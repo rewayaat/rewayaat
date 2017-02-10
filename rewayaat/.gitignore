@@ -1,0 +1,5 @@
+/target/
+.apt_generated/
+.springBeans
+.classpath
+/bin/
