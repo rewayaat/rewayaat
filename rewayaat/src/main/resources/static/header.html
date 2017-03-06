@@ -1,0 +1,32 @@
+<header >
+<div uk-sticky="media: 960"
+	class="uk-navbar-container tm-navbar-container uk-sticky uk-active"
+	style="position: fixed; top: 0px; width: 2378.75px;">
+	<div class="uk-container uk-container-expand">
+		<nav class="uk-navbar">
+			<ul class="uk-navbar-nav uk-visible@m">
+				<li class="uk-active"><a href="../docs/">REWAYAAT</a></li>
+			</ul>
+			<ul class="uk-navbar-nav uk-visible@m">
+				<li class="uk-active"><a href="../docs/">Documentation</a></li>
+				<li><a style="padding-right: 50px;" href="../changelog">Changelog</a></li>
+			</ul>
+			<form action="/" method="get"
+				class="uk-search uk-search-large">
+				<span uk-search-icon></span> <input class="uk-search-input"
+					style="padding-top: 10px;" id="query" type="search"
+					placeholder="Search Terms...">
+			</form>
+			<div onclick="submitSearchQuery()"
+				class="uk-navbar-item uk-visible@m">
+				<a class="uk-button uk-button-default tm-button-default uk-icon">Search
+					<canvas uk-icon="icon: download" width="20" height="20"
+						class="uk-icon" hidden="hidden"></canvas>
+				</a>
+			</div>
+			<a uk-navbar-toggle-icon="" uk-toggle=""
+				class="uk-navbar-toggle uk-hidden@m uk-navbar-toggle-icon uk-icon"></a>
+		</nav>
+	</div>
+</div>
+</header>

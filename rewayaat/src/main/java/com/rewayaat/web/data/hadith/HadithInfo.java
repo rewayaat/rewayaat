@@ -18,18 +18,20 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({ "book", "number", "chapter", "volume", "transmission_chain", "tags", "hadith", "gradings",
-        "present_day_location", "date", "source" })
+    "present_day_location", "date", "source" })
 @Document(indexName = "records", type = "hadith")
 public class HadithInfo implements Serializable {
 
     @JsonProperty("book")
     private String book;
     @JsonProperty("number")
-    private String number;
+    private int number;
     @JsonProperty("chapter")
-    private String chapter;
+    private int chapter;
     @JsonProperty("volume")
-    private String volume;
+    private int volume;
+    @JsonProperty("part")
+    private int part;
     @JsonProperty("transmission_chain")
     private List<Object> transmissionChain = null;
     @JsonProperty("tags")
@@ -57,23 +59,9 @@ public class HadithInfo implements Serializable {
     public HadithInfo() {
     }
 
-    /**
-     *
-     * @param tags
-     * @param transmissionChain
-     * @param chapter
-     * @param source
-     * @param presentDayLocation
-     * @param volume
-     * @param book
-     * @param number
-     * @param date
-     * @param gradings
-     * @param hadith
-     */
-    public HadithInfo(String book, String number, String chapter, String volume, List<Object> transmissionChain,
+    public HadithInfo(String book, int number, int chapter, int volume, List<Object> transmissionChain,
             List<Object> tags, Hadith hadith, List<Grading> gradings, String presentDayLocation, String date,
-            String source, String id) {
+            String source, String id, int part) {
         super();
         this.book = book;
         this.number = number;
@@ -86,6 +74,7 @@ public class HadithInfo implements Serializable {
         this.presentDayLocation = presentDayLocation;
         this.date = date;
         this.source = source;
+        this.part = part;
         this.id = id;
     }
 
@@ -99,6 +88,16 @@ public class HadithInfo implements Serializable {
         this.book = book;
     }
 
+    @JsonProperty("part")
+    public int getPart() {
+        return part;
+    }
+
+    @JsonProperty("part")
+    public void setPart(int part) {
+        this.part = part;
+    }
+
     @JsonProperty("id")
     public String getId() {
         return id;
@@ -110,32 +109,32 @@ public class HadithInfo implements Serializable {
     }
 
     @JsonProperty("number")
-    public String getNumber() {
+    public int getNumber() {
         return number;
     }
 
     @JsonProperty("number")
-    public void setNumber(String number) {
+    public void setNumber(int number) {
         this.number = number;
     }
 
     @JsonProperty("chapter")
-    public String getChapter() {
+    public int getChapter() {
         return chapter;
     }
 
     @JsonProperty("chapter")
-    public void setChapter(String chapter) {
+    public void setChapter(int chapter) {
         this.chapter = chapter;
     }
 
     @JsonProperty("volume")
-    public String getVolume() {
+    public int getVolume() {
         return volume;
     }
 
     @JsonProperty("volume")
-    public void setVolume(String volume) {
+    public void setVolume(int volume) {
         this.volume = volume;
     }
 
