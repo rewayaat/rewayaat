@@ -18,7 +18,7 @@ import org.springframework.data.elasticsearch.repository.config.EnableElasticsea
 @PropertySource(value = { "classpath:localdev.properties" })
 @Configuration
 @Profile("dev")
-@EnableElasticsearchRepositories(basePackages = "com.rewayaat.web.data")
+@EnableElasticsearchRepositories(basePackages = "com.rewayaat.*")
 public class ElasticSearchDevConfig {
 
     @Value("${spring.data.elasticsearch.properties.port}")

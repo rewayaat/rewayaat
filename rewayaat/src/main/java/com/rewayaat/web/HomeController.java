@@ -18,7 +18,7 @@ public class HomeController {
     private static Logger log = Logger.getLogger(HomeController.class.getName());
 
     @RequestMapping(value = "/", method = RequestMethod.GET)
-    public final String home(@RequestParam(value = "query", required = false) String query,
+    public final String home(@RequestParam(value = "q", required = false) String query,
             HttpServletRequest request, final Model model) {
         log.info("Entered home controller");
         if (query != null && !query.isEmpty()) {

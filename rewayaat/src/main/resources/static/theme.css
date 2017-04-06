@@ -1,20 +1,54 @@
 @import 'https://fonts.googleapis.com/css?family=Roboto+Mono';
 html {
-    font-family: ProximaNova, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    font-size: 15px;
+    font-family: Open Sans, Monstserrat, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 18px;
     font-weight: normal;
-    line-height: 1.5;
+    /* line-height: 1.5; */
     -webkit-text-size-adjust: 100%;
     -ms-text-size-adjust: 100%;
     background: #fff;
-    color: #666;
+    color: #ce8e8e;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility
+    text-rendering: optimizeLegibility;
+}
+
+.querySymbol {
+	padding-right: 3px;
+}
+
+.querySymbolRight {
+	padding-left: 3px;
+}
+
+.input {
+    border: 2px rgba(128, 128, 128, 0.54);
+    width: 100%;
+    border-style: solid;
+    height: 30px;
+    padding-left: 30px;
+    border-radius: 5px;
+    padding-top: -8px;
+    text-transform: uppercase;
+    vertical-align: text-top;
+    font-size: 20px;
+    margin-top: 12px;
+    font-family: Lane;
+    white-space: nowrap;
+    overflow: hidden;
+    font-weight: 600;
 }
 
 body {
-    margin: 0
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    background: #1d1f21;
+}
+
+.rewayaatColor {
+	
+	color: #22df80;	
 }
 
 a {
@@ -117,19 +151,19 @@ svg:not(:root) {
 }
 
 p, ul, ol, dl, pre, address, fieldset, figure {
-    margin: 0 0 20px 0
+    /* margin: 0 0 20px 0 */
 }
 
 *+p, *+ul, *+ol, *+dl, *+pre, *+address, *+fieldset, *+figure {
-    margin-top: 20px
+    /* margin-top: 20px */
 }
 
 h1, .uk-h1, h2, .uk-h2, h3, .uk-h3, h4, .uk-h4, h5, .uk-h5, h6, .uk-h6 {
     margin: 0 0 20px 0;
-    font-family: ProximaNova, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: Montserrat, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     font-weight: 300;
     color: #222;
-    text-transform: none
+    text-transform: none;
 }
 
 *+h1, *+.uk-h1, *+h2, *+.uk-h2, *+h3, *+.uk-h3, *+h4, *+.uk-h4, *+h5, *+.uk-h5, *+h6, *+.uk-h6 {
@@ -249,9 +283,9 @@ pre code {
 }
 
 ::selection {
-    background: #39f;
-    color: #fff;
-    text-shadow: none
+    background: #22df80;
+    color: #f8f8f8;
+    text-shadow: chocolate;
 }
 
 article, aside, details, figcaption, figure, footer, header, main, nav, section, summary {
@@ -603,7 +637,7 @@ a.uk-link-reset, a.uk-link-reset:hover, a.uk-link-reset:focus, .uk-link-reset a,
 }
 
 .uk-icon::before {
-    background-image: url("../assets/uikit/dist/images/icons.svg")
+    /* background-image: url("../assets/uikit/dist/images/icons.svg"); */
 }
 
 .uk-icon {
@@ -800,6 +834,10 @@ a.uk-link-reset, a.uk-link-reset:hover, a.uk-link-reset:focus, .uk-link-reset a,
 
 .uk-form-small {
     font-size: 14px
+}
+
+[contentEditable=true]:empty:not(:focus):before {
+    content:attr(data-text)
 }
 
 .uk-form-small:not(textarea):not([multiple]):not([size]) {
@@ -1063,7 +1101,8 @@ select.uk-form-width-xsmall {
 }
 
 .uk-button:not(:disabled) {
-    cursor: pointer
+    cursor: pointer;
+    padding-top: 1;
 }
 
 .uk-button::-moz-focus-inner {
@@ -1080,9 +1119,12 @@ select.uk-form-width-xsmall {
 }
 
 .uk-button-default {
-    background-color: transparent;
-    color: #222;
-    border: 1px solid #e5e5e5
+    /* background-color: transparent; */
+    /* color: #222; */
+    /* border: 1px solid #e5e5e5 */
+    /* border-bottom: gray; */
+    /* border-bottom-style: solid; */
+    /* border-bottom-width: 1px; */
 }
 
 .uk-button-default:hover, .uk-button-default:focus {
@@ -1378,7 +1420,7 @@ select.uk-form-width-xsmall {
 }
 
 .uk-grid>*>:last-child {
-    margin-bottom: 0
+    /* margin-bottom: 0; */
 }
 
 .uk-grid {
@@ -1398,7 +1440,7 @@ select.uk-form-width-xsmall {
         margin-left: -40px
     }
     .uk-grid>* {
-        padding-left: 40px
+        /* padding-left: 40px; */
     }
     .uk-grid+.uk-grid, .uk-grid>.uk-grid-margin, *+.uk-grid-margin {
         margin-top: 40px
@@ -1728,9 +1770,10 @@ select.uk-form-width-xsmall {
 }
 
 .uk-card-secondary {
-    background: #222;
+    background: #232323;
     color: #fff;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08)
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    border-radius: 10px;
 }
 
 .uk-card-secondary .uk-card-title {
@@ -2203,12 +2246,14 @@ select.uk-form-width-xsmall {
     margin: 0;
     border-radius: 0;
     font: inherit;
-    overflow: visible;
+    border-style: solid;
+    border-width: 1px;
+    border-color: white;
     -webkit-appearance: none;
     vertical-align: middle;
     width: 100%;
     border: none;
-    color: #666
+    color: #947070;
 }
 
 .uk-search-input:focus {
@@ -2228,7 +2273,7 @@ select.uk-form-width-xsmall {
 }
 
 .uk-search-icon::before {
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%20%20%20%20%3Ccircle%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.1%22%20cx%3D%229%22%20cy%3D%229%22%20r%3D%227%22%3E%3C%2Fcircle%3E%0A%20%20%20%20%3Cpath%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.1%22%20d%3D%22M14%2C14%20L18%2C18%20L14%2C14%20Z%22%3E%3C%2Fpath%3E%0A%3C%2Fsvg%3E%0A")
+     background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%4020%4020%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%20%20%20%20%3Ccircle%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.1%22%20cx%3D%229%22%20cy%3D%229%22%20r%3D%227%22%3E%3C%2Fcircle%3E%0A%20%20%20%20%3Cpath%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.1%22%20d%3D%22M14%2C14%20L18%2C18%20L14%2C14%20Z%22%3E%3C%2Fpath%3E%0A%3C%2Fsvg%3E%0A"); 
 }
 
 .uk-search-icon {
@@ -2274,7 +2319,9 @@ select.uk-form-width-xsmall {
 }
 
 .uk-search .uk-search-icon:not(a):not(button):not(input) {
-    pointer-events: none
+    pointer-events: none;
+    padding-left: 10px;
+    padding-right: 10px;
 }
 
 .uk-search .uk-search-icon-flip {
@@ -2347,7 +2394,7 @@ select.uk-form-width-xsmall {
 }
 
 .uk-search-large .uk-search-icon::before {
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2240%22%20height%3D%2240%22%20viewBox%3D%220%200%2040%2040%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%20%20%20%20%3Ccircle%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20cx%3D%2217.5%22%20cy%3D%2217.5%22%20r%3D%2216.5%22%3E%3C%2Fcircle%3E%0A%20%20%20%20%3Cline%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20x1%3D%2238%22%20y1%3D%2239%22%20x2%3D%2229%22%20y2%3D%2230%22%3E%3C%2Fline%3E%0A%3C%2Fsvg%3E%0A")
+    /* background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2240%22%20height%3D%2240%22%20viewBox%3D%220%200%2040%2040%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%20%20%20%20%3Ccircle%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20cx%3D%2217.5%22%20cy%3D%2217.5%22%20r%3D%2216.5%22%3E%3C%2Fcircle%3E%0A%20%20%20%20%3Cline%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20x1%3D%2238%22%20y1%3D%2239%22%20x2%3D%2229%22%20y2%3D%2230%22%3E%3C%2Fline%3E%0A%3C%2Fsvg%3E%0A") */
 }
 
 .uk-search-large .uk-search-icon {
@@ -2595,8 +2642,8 @@ ul.uk-nav-sub {
     height: 60px;
     padding: 0 15px;
     font-size: 14px;
-    font-family: ProximaNova, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    text-decoration: none
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    text-decoration: none;
 }
 
 .uk-navbar-nav>li>a {
@@ -3250,13 +3297,13 @@ ul.uk-nav-sub {
 .uk-dropdown {
     display: none;
     position: absolute;
-    z-index: 1020;
+    z-index: 9999999999999999;
     box-sizing: border-box;
-    min-width: 200px;
+    /* min-width: 200px; */
     padding: 25px;
     background: #fff;
     color: #666;
-    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15)
+    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15);
 }
 
 .uk-dropdown.uk-open {
@@ -5455,7 +5502,7 @@ th.uk-text-break, td.uk-text-break {
 
 [class*='uk-align'] {
     display: block;
-    margin-bottom: 30px
+    /* margin-bottom: 30px; */
 }
 
 *+[class*='uk-align'] {
@@ -5740,7 +5787,7 @@ th.uk-text-break, td.uk-text-break {
 
 .uk-logo {
     font-size: 24px;
-    font-family: ProximaNova, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: Monstserrat, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     color: #666;
     text-decoration: none
 }
@@ -6731,7 +6778,7 @@ th.uk-text-break, td.uk-text-break {
 }
 
 .uk-light hr, .uk-section-primary:not(.uk-preserve-color) hr, .uk-section-secondary:not(.uk-preserve-color) hr, .uk-card-primary.uk-card-body hr, .uk-card-primary>:not([class*='uk-card-media']) hr, .uk-card-secondary.uk-card-body hr, .uk-card-secondary>:not([class*='uk-card-media']) hr, .uk-overlay-primary hr, .tm-navbar-container:not(.uk-navbar-transparent) hr {
-    border-top-color: rgba(255, 255, 255, 0.2)
+    border-top-color: rgba(255, 255, 255, 0.2);
 }
 
 .uk-light a.uk-link-muted, .uk-light .uk-link-muted a, .uk-section-primary:not(.uk-preserve-color) a.uk-link-muted, .uk-section-primary:not(.uk-preserve-color) .uk-link-muted a, .uk-section-secondary:not(.uk-preserve-color) a.uk-link-muted, .uk-section-secondary:not(.uk-preserve-color) .uk-link-muted a, .uk-card-primary.uk-card-body a.uk-link-muted, .uk-card-primary.uk-card-body .uk-link-muted a, .uk-card-primary>:not([class*='uk-card-media']) a.uk-link-muted, .uk-card-primary>:not([class*='uk-card-media']) .uk-link-muted a, .uk-card-secondary.uk-card-body a.uk-link-muted, .uk-card-secondary.uk-card-body .uk-link-muted a, .uk-card-secondary>:not([class*='uk-card-media']) a.uk-link-muted, .uk-card-secondary>:not([class*='uk-card-media']) .uk-link-muted a, .uk-overlay-primary a.uk-link-muted, .uk-overlay-primary .uk-link-muted a, .tm-navbar-container:not(.uk-navbar-transparent) a.uk-link-muted, .tm-navbar-container:not(.uk-navbar-transparent) .uk-link-muted a {
@@ -6890,8 +6937,8 @@ th.uk-text-break, td.uk-text-break {
 
 .uk-light .uk-button-default, .uk-section-primary:not(.uk-preserve-color) .uk-button-default, .uk-section-secondary:not(.uk-preserve-color) .uk-button-default, .uk-card-primary.uk-card-body .uk-button-default, .uk-card-primary>:not([class*='uk-card-media']) .uk-button-default, .uk-card-secondary.uk-card-body .uk-button-default, .uk-card-secondary>:not([class*='uk-card-media']) .uk-button-default, .uk-overlay-primary .uk-button-default, .tm-navbar-container:not(.uk-navbar-transparent) .uk-button-default {
     background-color: transparent;
-    color: #fff;
-    border-color: rgba(255, 255, 255, 0.8)
+    color: rgba(255, 255, 255, 0.4);
+    border-color: rgba(255, 255, 255, 0.71);
 }
 
 .uk-light .uk-button-default:hover, .uk-light .uk-button-default:focus, .uk-section-primary:not(.uk-preserve-color) .uk-button-default:hover, .uk-section-primary:not(.uk-preserve-color) .uk-button-default:focus, .uk-section-secondary:not(.uk-preserve-color) .uk-button-default:hover, .uk-section-secondary:not(.uk-preserve-color) .uk-button-default:focus, .uk-card-primary.uk-card-body .uk-button-default:hover, .uk-card-primary.uk-card-body .uk-button-default:focus, .uk-card-primary>:not([class*='uk-card-media']) .uk-button-default:hover, .uk-card-primary>:not([class*='uk-card-media']) .uk-button-default:focus, .uk-card-secondary.uk-card-body .uk-button-default:hover, .uk-card-secondary.uk-card-body .uk-button-default:focus, .uk-card-secondary>:not([class*='uk-card-media']) .uk-button-default:hover, .uk-card-secondary>:not([class*='uk-card-media']) .uk-button-default:focus, .uk-overlay-primary .uk-button-default:hover, .uk-overlay-primary .uk-button-default:focus, .tm-navbar-container:not(.uk-navbar-transparent) .uk-button-default:hover, .tm-navbar-container:not(.uk-navbar-transparent) .uk-button-default:focus {
@@ -6902,8 +6949,10 @@ th.uk-text-break, td.uk-text-break {
 
 .uk-light .uk-button-default:active, .uk-light .uk-button-default.uk-active, .uk-section-primary:not(.uk-preserve-color) .uk-button-default:active, .uk-section-primary:not(.uk-preserve-color) .uk-button-default.uk-active, .uk-section-secondary:not(.uk-preserve-color) .uk-button-default:active, .uk-section-secondary:not(.uk-preserve-color) .uk-button-default.uk-active, .uk-card-primary.uk-card-body .uk-button-default:active, .uk-card-primary.uk-card-body .uk-button-default.uk-active, .uk-card-primary>:not([class*='uk-card-media']) .uk-button-default:active, .uk-card-primary>:not([class*='uk-card-media']) .uk-button-default.uk-active, .uk-card-secondary.uk-card-body .uk-button-default:active, .uk-card-secondary.uk-card-body .uk-button-default.uk-active, .uk-card-secondary>:not([class*='uk-card-media']) .uk-button-default:active, .uk-card-secondary>:not([class*='uk-card-media']) .uk-button-default.uk-active, .uk-overlay-primary .uk-button-default:active, .uk-overlay-primary .uk-button-default.uk-active, .tm-navbar-container:not(.uk-navbar-transparent) .uk-button-default:active, .tm-navbar-container:not(.uk-navbar-transparent) .uk-button-default.uk-active {
     background-color: transparent;
-    color: #fff;
-    border-color: #fff
+    color: #22df80;
+    border-bottom-color: rgba(34, 223, 128, 0.71);
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
 }
 
 .uk-light .uk-button-primary, .uk-section-primary:not(.uk-preserve-color) .uk-button-primary, .uk-section-secondary:not(.uk-preserve-color) .uk-button-primary, .uk-card-primary.uk-card-body .uk-button-primary, .uk-card-primary>:not([class*='uk-card-media']) .uk-button-primary, .uk-card-secondary.uk-card-body .uk-button-primary, .uk-card-secondary>:not([class*='uk-card-media']) .uk-button-primary, .uk-overlay-primary .uk-button-primary, .tm-navbar-container:not(.uk-navbar-transparent) .uk-button-primary {
@@ -7015,7 +7064,7 @@ th.uk-text-break, td.uk-text-break {
 }
 
 .uk-light .uk-search .uk-search-icon, .uk-section-primary:not(.uk-preserve-color) .uk-search .uk-search-icon, .uk-section-secondary:not(.uk-preserve-color) .uk-search .uk-search-icon, .uk-card-primary.uk-card-body .uk-search .uk-search-icon, .uk-card-primary>:not([class*='uk-card-media']) .uk-search .uk-search-icon, .uk-card-secondary.uk-card-body .uk-search .uk-search-icon, .uk-card-secondary>:not([class*='uk-card-media']) .uk-search .uk-search-icon, .uk-overlay-primary .uk-search .uk-search-icon, .tm-navbar-container:not(.uk-navbar-transparent) .uk-search .uk-search-icon {
-    color: rgba(255, 255, 255, 0.6)
+    color: rgba(255, 248, 248, 0.6);
 }
 
 .uk-light .uk-search .uk-search-icon:hover, .uk-section-primary:not(.uk-preserve-color) .uk-search .uk-search-icon:hover, .uk-section-secondary:not(.uk-preserve-color) .uk-search .uk-search-icon:hover, .uk-card-primary.uk-card-body .uk-search .uk-search-icon:hover, .uk-card-primary>:not([class*='uk-card-media']) .uk-search .uk-search-icon:hover, .uk-card-secondary.uk-card-body .uk-search .uk-search-icon:hover, .uk-card-secondary>:not([class*='uk-card-media']) .uk-search .uk-search-icon:hover, .uk-overlay-primary .uk-search .uk-search-icon:hover, .tm-navbar-container:not(.uk-navbar-transparent) .uk-search .uk-search-icon:hover {
@@ -7038,6 +7087,14 @@ th.uk-text-break, td.uk-text-break {
 .uk-light .uk-search-large .uk-search-input, .uk-section-primary:not(.uk-preserve-color) .uk-search-large .uk-search-input, .uk-section-secondary:not(.uk-preserve-color) .uk-search-large .uk-search-input, .uk-card-primary.uk-card-body .uk-search-large .uk-search-input, .uk-card-primary>:not([class*='uk-card-media']) .uk-search-large .uk-search-input, .uk-card-secondary.uk-card-body .uk-search-large .uk-search-input, .uk-card-secondary>:not([class*='uk-card-media']) .uk-search-large .uk-search-input, .uk-overlay-primary .uk-search-large .uk-search-input, .tm-navbar-container:not(.uk-navbar-transparent) .uk-search-large .uk-search-input {
     background-color: transparent;
     text-transform: uppercase;
+    border-style: solid;
+    border-width: 1px;
+    margin-top: 12px;
+    height: 60%;
+    padding-bottom: 10px;
+    border-color: rgba(128, 128, 128, 0.65);
+    border-radius: 10px;
+    color: #cec9c9;
 }
 
 .uk-light .uk-search-toggle, .uk-section-primary:not(.uk-preserve-color) .uk-search-toggle, .uk-section-secondary:not(.uk-preserve-color) .uk-search-toggle, .uk-card-primary.uk-card-body .uk-search-toggle, .uk-card-primary>:not([class*='uk-card-media']) .uk-search-toggle, .uk-card-secondary.uk-card-body .uk-search-toggle, .uk-card-secondary>:not([class*='uk-card-media']) .uk-search-toggle, .uk-overlay-primary .uk-search-toggle, .tm-navbar-container:not(.uk-navbar-transparent) .uk-search-toggle {
@@ -7132,6 +7189,10 @@ th.uk-text-break, td.uk-text-break {
     color: rgba(255, 255, 255, 0.8)
 }
 
+.uk-light .uk-navbar-item, .uk-section-primary:not(.uk-preserve-color) .uk-navbar-item, .uk-section-secondary:not(.uk-preserve-color) .uk-navbar-item, .uk-card-primary.uk-card-body .uk-navbar-item, .uk-card-primary>:not([class*='uk-card-media']) .uk-navbar-item, .uk-card-secondary.uk-card-body .uk-navbar-item, .uk-card-secondary>:not([class*='uk-card-media']) .uk-navbar-item, .uk-overlay-primary .uk-navbar-item, .tm-navbar-container:not(.uk-navbar-transparent) .uk-navbar-item .rewayaatColor {
+    color: rgba(255, 255, 255, 0.8)
+}
+
 .uk-light .uk-navbar-toggle, .uk-section-primary:not(.uk-preserve-color) .uk-navbar-toggle, .uk-section-secondary:not(.uk-preserve-color) .uk-navbar-toggle, .uk-card-primary.uk-card-body .uk-navbar-toggle, .uk-card-primary>:not([class*='uk-card-media']) .uk-navbar-toggle, .uk-card-secondary.uk-card-body .uk-navbar-toggle, .uk-card-secondary>:not([class*='uk-card-media']) .uk-navbar-toggle, .uk-overlay-primary .uk-navbar-toggle, .tm-navbar-container:not(.uk-navbar-transparent) .uk-navbar-toggle {
     color: rgba(255, 255, 255, 0.6)
 }
@@ -7217,7 +7278,7 @@ th.uk-text-break, td.uk-text-break {
 }
 
 .uk-light .uk-tab>*>a, .uk-section-primary:not(.uk-preserve-color) .uk-tab>*>a, .uk-section-secondary:not(.uk-preserve-color) .uk-tab>*>a, .uk-card-primary.uk-card-body .uk-tab>*>a, .uk-card-primary>:not([class*='uk-card-media']) .uk-tab>*>a, .uk-card-secondary.uk-card-body .uk-tab>*>a, .uk-card-secondary>:not([class*='uk-card-media']) .uk-tab>*>a, .uk-overlay-primary .uk-tab>*>a, .tm-navbar-container:not(.uk-navbar-transparent) .uk-tab>*>a {
-    color: rgba(255, 255, 255, 0.6)
+    color: rgb(255, 255, 255);
 }
 
 .uk-light .uk-tab>*>a:hover, .uk-light .uk-tab>*>a:focus, .uk-section-primary:not(.uk-preserve-color) .uk-tab>*>a:hover, .uk-section-primary:not(.uk-preserve-color) .uk-tab>*>a:focus, .uk-section-secondary:not(.uk-preserve-color) .uk-tab>*>a:hover, .uk-section-secondary:not(.uk-preserve-color) .uk-tab>*>a:focus, .uk-card-primary.uk-card-body .uk-tab>*>a:hover, .uk-card-primary.uk-card-body .uk-tab>*>a:focus, .uk-card-primary>:not([class*='uk-card-media']) .uk-tab>*>a:hover, .uk-card-primary>:not([class*='uk-card-media']) .uk-tab>*>a:focus, .uk-card-secondary.uk-card-body .uk-tab>*>a:hover, .uk-card-secondary.uk-card-body .uk-tab>*>a:focus, .uk-card-secondary>:not([class*='uk-card-media']) .uk-tab>*>a:hover, .uk-card-secondary>:not([class*='uk-card-media']) .uk-tab>*>a:focus, .uk-overlay-primary .uk-tab>*>a:hover, .uk-overlay-primary .uk-tab>*>a:focus, .tm-navbar-container:not(.uk-navbar-transparent) .uk-tab>*>a:hover, .tm-navbar-container:not(.uk-navbar-transparent) .uk-tab>*>a:focus {
@@ -7446,11 +7507,50 @@ html {
     overflow: auto
 }
 
+.hadithDetailsIcon {
+	padding: 5px;
+	display:inline-block;
+}
+
+.hadithDetailsTitle {
+	margin-top: 0px;
+	display:inline-block;
+	font-family: Lane, Roboto, Open Sans;
+	text-transform: uppercase;
+	font-weight:600;
+	font-size: 15px;
+}
+
+
+.hadithGrid {
+	padding:15px;
+}
+
+.hadithDetails {
+	
+	margin: 15px;
+	    border-right: solid 1px rgba(128, 128, 128, 0.24);
+}
+#parentContainer {
+	width:80%;
+}
 .tm-sidebar-right {
     position: absolute;
     top: 0;
     left: calc(100% + 0px);
     width: 200px
+}
+
+.hadithText {
+	
+	padding: 20px;
+	color: #cec9c9;
+	max-height:400px;
+	overflow-y: auto
+}
+@font-face {
+    font-family: Lane;
+    src: url(LANENAR.ttf);
 }
 
 @media (min-width:960px) {
@@ -7482,12 +7582,12 @@ html {
 }
 
 .tm-navbar-container:not(.uk-navbar-transparent) {
-      background: linear-gradient(to left, #1e87f0, #091016);
+      background: #1d2023;
 }
 
 .tm-navbar-container .uk-navbar-nav>li>a, .tm-navbar-container .uk-navbar-item:not(.uk-logo), .tm-navbar-container .uk-navbar-toggle {
     height: 70px;
-    font-size: 12px
+    font-size: 16px;
 }
 
 .tm-navbar-container .uk-navbar-nav>li>a {

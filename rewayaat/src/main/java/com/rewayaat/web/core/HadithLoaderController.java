@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rewayaat.web.HomeController;
-import com.rewayaat.web.data.hadith.HadithInfo;
+import com.rewayaat.web.data.hadith.HadithObject;
 import com.rewayaat.web.data.hadith.HadithRepository;
 
 @Controller
@@ -32,8 +32,8 @@ public class HadithLoaderController {
         try {
             ObjectMapper mapper = new ObjectMapper();
             String result = IOUtils.toString(classLoader.getResourceAsStream("rewayaat.json"));
-            HadithInfo[] obs = mapper.readValue(result, HadithInfo[].class);
-            for (HadithInfo hadithInfo : obs) {
+            HadithObject[] obs = mapper.readValue(result, HadithObject[].class);
+            for (HadithObject hadithInfo : obs) {
                 hadithRepo.save(hadithInfo);
             }
         } catch (IOException e) {

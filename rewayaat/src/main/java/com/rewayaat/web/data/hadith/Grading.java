@@ -26,7 +26,7 @@ public class Grading implements Serializable
     private String rationale;
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
-    private final static long serialVersionUID = -4825647759788646486L;
+    private final static long serialVersionUID = 6295517375461801531L;
 
     /**
      * No args constructor for use in serialization
