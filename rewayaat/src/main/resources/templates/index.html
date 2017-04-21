@@ -120,10 +120,10 @@
 									class="uk-button uk-button-default">Related</button>
 							</div>
 							<ul class="uk-switcher uk-margin">
-								<li v-if="narration.english" v-html="narration.english"><div
-										class="hadithText scrollable"></div></li>
+								<li v-if="narration.english"><div
+										class="hadithText scrollable" v-html="narration.english"></div></li>
 								<li v-if="narration.arabic"><div
-										class="hadithText scrollable">{{narration.arabic}}</div></li>
+										class="arabicHadithText scrollable" v-html="narration.arabic"></div></li>
 								<li v-if="narration.notes"><div
 										class="hadithText scrollable" v-html="narration.notes"></div></li>
 								<li class="relatedObjList" v-if="narration.related.length > 0"><a
