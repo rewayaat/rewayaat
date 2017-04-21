@@ -1,22 +1,19 @@
 package com.rewayaat.web.core;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.common.text.Text;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.highlight.HighlightBuilder;
-import org.elasticsearch.search.highlight.HighlightField;
-import org.springframework.data.elasticsearch.core.ElasticsearchTemplate;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rewayaat.web.config.ClientProvider;
 import com.rewayaat.web.data.hadith.HadithObject;
 
 /**
@@ -27,27 +24,37 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
 	public static int PAGE_SIZE = 20;
 	private String userQuery;
 	private int page;
-	private ElasticsearchTemplate esT;
+	final ObjectMapper mapper = new ObjectMapper();
 
-	public QueryStringQueryResult(String userQuery, int page, ElasticsearchTemplate esT) {
+	public QueryStringQueryResult(String userQuery, int page) {
 		this.userQuery = userQuery;
 		this.page = page;
-		this.esT = esT;
 	}
 
 	public List<HadithObject> result() throws Exception {
-		ObjectMapper mapper = new ObjectMapper();
 		List<HadithObject> hadithes = new ArrayList<HadithObject>();
-		SearchResponse response = esT.getClient().prepareSearch("rewayaattest").setTypes("narrationstest")
-				.setQuery(QueryBuilders.queryStringQuery(userQuery)).setSearchType(SearchType.QUERY_AND_FETCH)
-				.setHighlighterPreTags("<highlight>").setHighlighterPostTags("</highlight>")
-				.setHighlighterQuery(QueryBuilders.queryStringQuery(userQuery))
-				.setFrom(page * PAGE_SIZE).setSize(PAGE_SIZE).execute().actionGet();
 
-		for (SearchHit hit : response.getHits()) {
-			HadithObject obj = mapper.readValue(hit.getSourceAsString(), HadithObject.class);
-			hit.highlightFields();
-			hadithes.add(obj);
+		HighlightBuilder highlightBuilder = new HighlightBuilder().field("english").field("book").field("edition")
+				.field("notes").field("arabic").field("tags")
+				.postTags("</span>").preTags("<span class=\"highlight\">").highlightQuery(QueryBuilders.queryStringQuery(userQuery)
+						.field("english").field("book").field("edition").field("notes").field("arabic").field("tags"))
+				.numOfFragments(0);
+
+		SearchResponse resp = ClientProvider.instance().getClient().prepareSearch(ClientProvider.INDEX)
+				.setTypes(ClientProvider.TYPE).setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+				.setQuery(QueryBuilders.queryStringQuery(userQuery)).highlighter(highlightBuilder)
+				.setFrom(page * PAGE_SIZE).setSize(PAGE_SIZE).setExplain(true).execute().get();
+
+		SearchHit[] results = resp.getHits().getHits();
+		System.out.println("Current results: " + results.length);
+		for (SearchHit hit : results) {
+			System.out.println("------------------------------");
+			Map<String, Object> result = hit.getSource();
+			for (Entry<String, HighlightField> entry : hit.getHighlightFields().entrySet()) {
+				result.put(entry.getKey(), entry.getValue().fragments()[0].toString());
+			}
+			hadithes.add(mapper.convertValue(result, HadithObject.class));
+			System.out.println(result);
 		}
 		return hadithes;
 	}

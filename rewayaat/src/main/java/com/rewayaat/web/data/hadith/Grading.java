@@ -15,7 +15,8 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
     "grader",
-    "rationale"
+    "rationale",
+    "grading"
 })
 public class Grading implements Serializable
 {
@@ -24,9 +25,11 @@ public class Grading implements Serializable
     private String grader;
     @JsonProperty("rationale")
     private String rationale;
+    @JsonProperty("grading")
+    private String grading;
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
-    private final static long serialVersionUID = 6295517375461801531L;
+    private final static long serialVersionUID = -4608238425517677384L;
 
     /**
      * No args constructor for use in serialization
@@ -37,13 +40,15 @@ public class Grading implements Serializable
 
     /**
      * 
+     * @param grading
      * @param rationale
      * @param grader
      */
-    public Grading(String grader, String rationale) {
+    public Grading(String grader, String rationale, String grading) {
         super();
         this.grader = grader;
         this.rationale = rationale;
+        this.grading = grading;
     }
 
     @JsonProperty("grader")
@@ -66,9 +71,14 @@ public class Grading implements Serializable
         this.rationale = rationale;
     }
 
-    @Override
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this);
+    @JsonProperty("grading")
+    public String getGrading() {
+        return grading;
+    }
+
+    @JsonProperty("grading")
+    public void setGrading(String grading) {
+        this.grading = grading;
     }
 
     @JsonAnyGetter

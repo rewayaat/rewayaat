@@ -69,7 +69,8 @@ function updateQueryColor(currentCaretPosition) {
 				} else if (queryValue[i] === '^') {
 					queryDivInnerHTML += '<span class="querySymbol" style="color: #32d2cd">^</span>';
 				} else if (isNumeric(queryValue[i])) {
-					queryDivInnerHTML += '<span style="color: #98c2f1">' + queryValue[i] + '</span>';
+					queryDivInnerHTML += '<span style="color: #98c2f1">'
+							+ queryValue[i] + '</span>';
 				} else {
 					queryDivInnerHTML += '<span  style="color: #cec9c9">'
 							+ queryValue[i] + '</span>';
@@ -132,6 +133,11 @@ function setupVue(query) {
 			queryStr : query,
 			page : 0
 		},
+		computed : {
+			notesMarkdownText : function() {
+				return marked('wefwf');
+			}
+		},
 		// runs when the Vue instance has initialized.
 		mounted : function() {
 			this.fetchNarrations();
@@ -139,14 +145,18 @@ function setupVue(query) {
 		methods : {
 			// fetches more narrations to display using the Rewayaat REST API.
 			fetchNarrations : function() {
-				var xhr = new XMLHttpRequest();
 				var self = this;
+				var xhr = new XMLHttpRequest();
 				xhr.onload = function() {
 					if (xhr.readyState == XMLHttpRequest.DONE) {
-						var body = JSON.parse(xhr.responseText);
-						$.each(body, function(index, value) {
-							self.narrations.push(value);
-							console.log(value);
+
+						$.each(JSON.parse(xhr.responseText), function(index, value) {
+							setTimeout(function() {
+								value.notes = marked(value.notes);
+								self.narrations.push(value);
+								console.log(value);
+							}, 200 * index);
+
 						});
 					}
 				}
@@ -154,6 +164,28 @@ function setupVue(query) {
 						+ this.page);
 				xhr.send();
 				this.page++;
+			},
+			gradeLabelClass : function(grading) {
+				if (grading === 'mutawatir') {
+					return 'uk-label';
+				} else if (grading === 'sahih') {
+					return 'uk-label-success';
+				} else if (grading === 'hasan') {
+					return 'uk-label-warning';
+				} else {
+					return 'uk-label-danger';
+				}
+			},
+			gradeLabelIcon : function(grading) {
+				if (grading === 'mutawatir') {
+					return 'fa fa-bullhorn';
+				} else if (grading === 'sahih') {
+					return 'fa fa-check-circle-o';
+				} else if (grading === 'hasan') {
+					return 'fa fa-thumbs-o-up';
+				} else {
+					return 'fa fa-thumbs-o-down';
+				}
 			}
 		}
 	});
