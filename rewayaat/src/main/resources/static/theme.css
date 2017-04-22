@@ -38,7 +38,7 @@ html {
     vertical-align: text-top;
     font-size: 20px;
     margin-top: 12px;
-    font-family: Lane;
+    font-family: 'Scheherazade';
     white-space: nowrap;
     overflow: hidden;
     font-weight: 600;
@@ -7629,8 +7629,15 @@ html {
 }
 
 .arabicHadithText {
-	
-font-family: 'Scheherazade';padding: 20px;color: #cec9c9;max-height:800px;overflow-y: auto;font-size:35px;
+	font-family: 'Scheherazade';
+	padding: 20px;
+	/* direction: rtl; */
+	color: #cec9c9;
+	max-height:800px;
+	overflow-y: auto;
+	font-size:35px;
+	line-height: 45px;
+	direction: rtl;
 }
 
 .relatedObjList {

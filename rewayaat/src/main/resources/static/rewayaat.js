@@ -186,6 +186,13 @@ function setupVue(query) {
 				} else {
 					return 'fa fa-thumbs-o-down';
 				}
+			},
+			isActiveClass : function(text) {
+				if (text.includes('<span')) {
+					return "uk-active"
+				} else {
+					return '';
+				}
 			}
 		}
 	});

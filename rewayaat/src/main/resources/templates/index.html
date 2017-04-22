@@ -111,9 +111,9 @@
 
 							<div uk-switcher="animation: uk-animation-fade">
 								<button type="button" v-if="narration.english"
-									class="uk-button uk-button-default">English</button>
+									v-bind:class="isActiveClass(narration.english)" class="uk-button uk-button-default">English</button>
 								<button type="button" v-if="narration.arabic"
-									class="uk-button uk-button-default">Arabic</button>
+									v-bind:class="isActiveClass(narration.arabic)" class="uk-button uk-active uk-button-default">Arabic</button>
 								<button type="button" v-if="narration.notes"
 									class="uk-button uk-button-default">Notes</button>
 								<button type="button" v-if="narration.related.length > 0"
