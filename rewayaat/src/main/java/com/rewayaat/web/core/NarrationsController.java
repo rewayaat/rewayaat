@@ -27,6 +27,6 @@ public class NarrationsController {
     public final List<HadithObject> loadHadith(@RequestParam(value = "q", defaultValue = "") String query,
             @RequestParam(value = "page", defaultValue = "0") int page, HttpServletRequest request) throws Exception {
         log.info("Entered hadith query API with query: " + query + " and page: " + page);
-        return new QueryStringQueryResult(query, page).result();
+        return new QueryStringQueryResult(new RewayaatQuery(query).query(), page).result();
     }
 }

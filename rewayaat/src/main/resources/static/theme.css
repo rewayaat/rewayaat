@@ -34,11 +34,11 @@ html {
     padding-left: 30px;
     border-radius: 5px;
     padding-top: -8px;
-    text-transform: uppercase;
+    /* text-transform: uppercase; */
     vertical-align: text-top;
     font-size: 20px;
     margin-top: 12px;
-    font-family: 'Scheherazade';
+    font-family: Lane;
     white-space: nowrap;
     overflow: hidden;
     font-weight: 600;

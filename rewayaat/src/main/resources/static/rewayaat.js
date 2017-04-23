@@ -84,6 +84,12 @@ function updateQueryColor(currentCaretPosition) {
 	}
 }
 
+function isArabic(text) {
+    var pattern = /[\u0600-\u06FF\u0750-\u077F]/;
+    result = pattern.test(text);
+    return result;
+}
+
 function isNumeric(obj) {
 	return !isNaN(obj - parseFloat(obj));
 }

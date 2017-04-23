@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
@@ -34,16 +35,17 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
 	public List<HadithObject> result() throws Exception {
 		List<HadithObject> hadithes = new ArrayList<HadithObject>();
 
-		HighlightBuilder highlightBuilder = new HighlightBuilder().field("english").field("book").field("edition")
-				.field("notes").field("arabic").field("tags")
-				.postTags("</span>").preTags("<span class=\"highlight\">").highlightQuery(QueryBuilders.queryStringQuery(userQuery)
+		HighlightBuilder highlightBuilder = new HighlightBuilder().field("english").field("notes").field("arabic")
+				.postTags("</span>")
+				.preTags("<span class=\"highlight\">").highlightQuery(QueryBuilders.queryStringQuery(userQuery)
 						.field("english").field("book").field("edition").field("notes").field("arabic").field("tags"))
 				.numOfFragments(0);
 
 		SearchResponse resp = ClientProvider.instance().getClient().prepareSearch(ClientProvider.INDEX)
 				.setTypes(ClientProvider.TYPE).setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-				.setQuery(QueryBuilders.queryStringQuery(userQuery)).highlighter(highlightBuilder)
-				.setFrom(page * PAGE_SIZE).setSize(PAGE_SIZE).setExplain(true).execute().get();
+				.setQuery(QueryBuilders.queryStringQuery(userQuery))
+				.highlighter(highlightBuilder).setFrom(page * PAGE_SIZE).setSize(PAGE_SIZE)
+				.setExplain(true).execute().get();
 
 		SearchHit[] results = resp.getHits().getHits();
 		System.out.println("Current results: " + results.length);
