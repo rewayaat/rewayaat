@@ -15,8 +15,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({ "id", "book", "number", "part", "chapter", "volume", "tags", "notes", "arabic", "english",
-		"Commentaries", "gradings", "related" })
+@JsonPropertyOrder({ "id", "book", "number", "part", "chapter", "section", "volume", "tags", "notes", "arabic",
+		"english", "Commentaries", "gradings", "related" })
 public class HadithObject implements Serializable {
 
 	@JsonProperty("id")
@@ -31,6 +31,8 @@ public class HadithObject implements Serializable {
 	private String edition;
 	@JsonProperty("chapter")
 	private String chapter;
+	@JsonProperty("section")
+	private String section;
 	@JsonProperty("volume")
 	private String volume;
 	@JsonProperty("tags")
@@ -41,7 +43,7 @@ public class HadithObject implements Serializable {
 	private String arabic;
 	@JsonProperty("english")
 	private String english;
-	@JsonProperty("Commentaries")
+	@JsonProperty("commentaries")
 	private List<Commentary> commentaries = new ArrayList<Commentary>();
 	@JsonProperty("gradings")
 	private List<Grading> gradings = new ArrayList<Grading>();
@@ -75,9 +77,9 @@ public class HadithObject implements Serializable {
 	 * @param english
 	 * @param related
 	 */
-	public HadithObject(String id, String book, String number, String part, String chapter, String volume, List<Object> tags,
-			String notes, String arabic, String english, List<Commentary> commentaries, List<Grading> gradings,
-			List<Related> related, String edition) {
+	public HadithObject(String id, String book, String number, String part, String chapter, String volume,
+			List<Object> tags, String notes, String arabic, String english, List<Commentary> commentaries,
+			List<Grading> gradings, List<Related> related, String section, String edition) {
 		super();
 		this.id = id;
 		this.book = book;
@@ -93,6 +95,7 @@ public class HadithObject implements Serializable {
 		this.gradings = gradings;
 		this.related = related;
 		this.edition = edition;
+		this.section = section;
 	}
 
 	@JsonProperty("id")
@@ -120,9 +123,27 @@ public class HadithObject implements Serializable {
 		return number;
 	}
 
+	public void insertEnglishText(String text) {
+		this.english += text;
+	}
+
+	public void insertArabicText(String text) {
+		this.arabic += text;
+	}
+
 	@JsonProperty("number")
 	public void setNumber(String number) {
 		this.number = number;
+	}
+
+	@JsonProperty("section")
+	public String getSection() {
+		return section;
+	}
+
+	@JsonProperty("section")
+	public void setSection(String section) {
+		this.section = section;
 	}
 
 	@JsonProperty("part")

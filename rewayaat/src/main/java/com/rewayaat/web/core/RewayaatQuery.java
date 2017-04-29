@@ -1,8 +1,5 @@
 package com.rewayaat.web.core;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /**
  * Adds default amount of fuzziness to each term and phrase in the query.
  */
@@ -24,13 +21,12 @@ public class RewayaatQuery {
 					// term does not have fuzziness applied to it yet...
 					if (term.endsWith("\"") && term.startsWith("\"")) {
 						// term is a phrase, add slop amount based on total
-						// phrase
-						// length.
+						// phrase length.
 						int slopAmount = (int) (term.split(" ").length * 0.3) + 2;
 						System.out.println("Using slop value of " + slopAmount + " for phrase:\n" + term);
 						newQuery.append(term + "~" + slopAmount + " ");
 					} else {
-						// otherwise apply default fuzziness of 2
+						// add default non-phrase fuzziness amount
 						if (term.length() > 5) {
 							newQuery.append(term + "~2 ");
 						} else {
