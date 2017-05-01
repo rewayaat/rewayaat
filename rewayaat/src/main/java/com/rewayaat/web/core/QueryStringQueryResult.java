@@ -52,6 +52,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
 		for (SearchHit hit : results) {
 			System.out.println("------------------------------");
 			Map<String, Object> result = hit.getSource();
+			result.put("id", hit.getId());
 			for (Entry<String, HighlightField> entry : hit.getHighlightFields().entrySet()) {
 				result.put(entry.getKey(), entry.getValue().fragments()[0].toString());
 			}

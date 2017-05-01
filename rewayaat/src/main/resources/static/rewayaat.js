@@ -123,6 +123,8 @@ function setCaretPostion(el, pos) {
 	el.focus();
 }
 
+
+
 // processes the user's query by redirecting with query parameter.
 function submitSearchQuery() {
 	var query = encodeURIComponent(document.getElementById("query").innerText);
@@ -159,6 +161,7 @@ function setupVue(query) {
 						$.each(JSON.parse(xhr.responseText), function(index, value) {
 							setTimeout(function() {
 								value.notes = marked(value.notes);
+								value = socialMediaDecoratedHadith(value);
 								self.narrations.push(value);
 								console.log(value);
 							}, 200 * index);
@@ -199,11 +202,48 @@ function setupVue(query) {
 				} else {
 					return '';
 				}
+			},
+			socialMediaURL : function(narration) {
+				return 
 			}
 		}
 	});
 }
 
+/**
+ * Adds relevant social media urls as properties of the given object.
+ */
+function socialMediaDecoratedHadith(hadithObj) {
+	
+	var hadithURL = encodeURIComponent(location.protocol + "//" + location.host + "/?q=id:" + hadithObj.id);
+	var hadithText = "";
+	if (hadithObj.book) {
+		hadithText += hadithObj.book;
+	}
+	if (hadithObj.edition) {
+		hadithText += " (" +  hadithObj.edition + "), ";
+	} else {
+		hadithText += ", ";
+	}
+	if (hadithObj.number) {
+		hadithText += "#" +  hadithObj.number + ", ";
+	}
+	if (hadithObj.chapter) {
+		hadithText += "CHAP. " +  hadithObj.chapter + ", ";
+	}
+	if (hadithObj.volume) {
+		hadithText += "VOL. " +  hadithObj.volume;
+	}
+	var remainingLen = 150 - (hadithText.length + hadithURL.length);
+	var hadithText = hadithText + " \"" + hadithObj.english.slice(remainingLen * -1) + "\""; 
+	hadithText = encodeURIComponent(hadithText);
+	hadithObj["facebook"] = "https://www.facebook.com/sharer/sharer.php?u=" + hadithURL;
+	hadithObj["twitter"] = "https://twitter.com/intent/tweet/?text=" + hadithText + "&url=" + hadithURL;
+	hadithObj["tumblr"] = "https://www.tumblr.com/widgets/share/tool/preview?posttype=link&title=Rewayaat.io&caption=" + hadithText + "&content=" + hadithURL + "&shareSource=tumblr_share_button&_format=html";
+	hadithObj["googleplus"] = "https://plus.google.com/share?url=" + hadithURL;
+	hadithObj["whatsapp"] = "whatsapp://send?text=" + hadithText + "%20" + hadithURL;
+	return hadithObj;
+}
 function getParameterByName(name, url) {
 	if (!url) {
 		url = window.location.href;
