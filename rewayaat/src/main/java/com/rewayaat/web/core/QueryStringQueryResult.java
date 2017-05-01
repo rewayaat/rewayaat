@@ -22,7 +22,7 @@ import com.rewayaat.web.data.hadith.HadithObject;
  */
 public class QueryStringQueryResult implements RewayaatQueryResult {
 
-	public static int PAGE_SIZE = 20;
+	public static int PAGE_SIZE = 10;
 	private String userQuery;
 	private int page;
 	final ObjectMapper mapper = new ObjectMapper();

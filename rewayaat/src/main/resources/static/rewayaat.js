@@ -1,3 +1,5 @@
+var vueApp;
+
 function loadQuery(query) {
 	if (query) {
 		// load the query
@@ -25,6 +27,12 @@ $(document).keypress(function(e) {
 	}
 });
 
+// loads more hadith when near the bottom of the page
+window.onscroll = function(ev) {
+    if ((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight) {
+        vueApp.fetchNarrations();
+    }
+};
 // records queries on enter key-presses.
 $(document).keyup(function(e) {
 	if (isCharacterKeyPress(e)) {
@@ -134,17 +142,13 @@ function submitSearchQuery() {
 }
 
 function setupVue(query) {
-	new Vue({
+	vueApp = new Vue({
 		el : '#hadithView',
 		data : {
 			narrations : [],
 			queryStr : query,
-			page : 0
-		},
-		computed : {
-			notesMarkdownText : function() {
-				return marked('wefwf');
-			}
+			page : 0,
+			done : false
 		},
 		// runs when the Vue instance has initialized.
 		mounted : function() {
@@ -153,6 +157,7 @@ function setupVue(query) {
 		methods : {
 			// fetches more narrations to display using the Rewayaat REST API.
 			fetchNarrations : function() {
+				if (!this.done) {
 				var self = this;
 				var xhr = new XMLHttpRequest();
 				xhr.onload = function() {
@@ -167,12 +172,16 @@ function setupVue(query) {
 							}, 200 * index);
 
 						});
+						if (JSON.parse(xhr.responseText).length < 10) {
+							self.done = true;
+						}
 					}
 				}
 				xhr.open('GET', '/api/narrations?q=' + this.queryStr + '&page='
 						+ this.page);
 				xhr.send();
 				this.page++;
+				}
 			},
 			gradeLabelClass : function(grading) {
 				if (grading === 'mutawatir') {
