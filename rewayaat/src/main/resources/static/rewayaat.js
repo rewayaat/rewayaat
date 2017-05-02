@@ -162,7 +162,9 @@ function setupVue(query) {
 				var xhr = new XMLHttpRequest();
 				xhr.onload = function() {
 					if (xhr.readyState == XMLHttpRequest.DONE) {
-
+						if (JSON.parse(xhr.responseText).length < 1 && self.narrations.length === 0) {
+							swal("Oops...", "No results seem to match your query!", "error");
+						}
 						$.each(JSON.parse(xhr.responseText), function(index, value) {
 							setTimeout(function() {
 								value.notes = marked(value.notes);
@@ -175,6 +177,7 @@ function setupVue(query) {
 						if (JSON.parse(xhr.responseText).length < 10) {
 							self.done = true;
 						}
+						
 					}
 				}
 				xhr.open('GET', '/api/narrations?q=' + this.queryStr + '&page='

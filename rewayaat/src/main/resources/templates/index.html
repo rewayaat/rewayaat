@@ -192,6 +192,8 @@
 			
 		</div>
 	</div>
+	<!--  LOAD THE MENU BAR AT THE TOP -->
+	<div id="footer"></div>
 	<!---->
 	<script th:inline="javascript" type="text/javascript">
 	
@@ -204,6 +206,10 @@
 			    	updateQueryColor(0);
 				}
 			});
+		});
+		
+		$(function() {
+			$("#footer").load("/footer.html");
 		});
 		
 		loadQuery(query);

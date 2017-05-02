@@ -38,10 +38,11 @@ html {
 }
 
 .resp-sharing-button {
-  border-radius: 5px;
+  border-radius: 50%;
   transition: 25ms ease-out;
   padding: 0.02em 0.3em;
   font-family: Helvetica Neue,Helvetica,Arial,sans-serif;
+  box-shadow: 2px 3px rgba(0, 0, 0, 0.8);
 }
 
 .resp-sharing-button__icon svg {
@@ -399,7 +400,7 @@ svg:not(:root) {
 }
 
 p, ul, ol, dl, pre, address, fieldset, figure {
-    /* margin: 0 0 20px 0 */
+    margin: 0 0 20px 0;
 }
 
 *+p, *+ul, *+ol, *+dl, *+pre, *+address, *+fieldset, *+figure {
@@ -2019,7 +2020,7 @@ select.uk-form-width-xsmall {
 }
 
 .uk-card-secondary {
-    background: rgba(27, 27, 27, 0.34);
+    background: rgb(27, 27, 27);
     color: #fff;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
     border-radius: 10px;
@@ -5874,6 +5875,7 @@ th.uk-text-break, td.uk-text-break {
         margin-top: -25px;
         padding-left: 60px;
         margin-right: -60px;
+        box-shadow: 10px;
     }
 }
 
