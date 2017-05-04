@@ -1,0 +1,23 @@
+language:
+ - java
+
+jdk:
+ - oraclejdk8
+
+os: 
+  - linux
+
+script:
+  - cd rewayaat
+  - mvn clean compile assembly:single docker:build
+  - cd ..
+  - chmod a+x deploy.sh ecs_deploy.sh
+  - ./deploy.sh
+
+notifications: # set notification options
+  email:
+    recipients:
+      - rewayaat.org@gmail.com
+    # change is when the repo status goes from pass to fail or vice versa
+    on_success: change
+    on_failure: always
