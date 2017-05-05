@@ -14,7 +14,7 @@ os:
 
 script:
   - cd rewayaat
-  - mvn package docker:build
+  - mvn package docker:build cobertura:cobertura
   - cd ..
   - chmod a+x deploy.sh ecs_deploy.sh
   - ./deploy.sh
