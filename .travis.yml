@@ -26,3 +26,5 @@ notifications: # set notification options
     # change is when the repo status goes from pass to fail or vice versa
     on_success: change
     on_failure: always
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
