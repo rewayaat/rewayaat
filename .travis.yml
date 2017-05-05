@@ -9,7 +9,7 @@ os:
 
 script:
   - cd rewayaat
-  - mvn clean compile assembly:single docker:build
+  - mvn package docker:build
   - cd ..
   - chmod a+x deploy.sh ecs_deploy.sh
   - ./deploy.sh
