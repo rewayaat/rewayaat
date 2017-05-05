@@ -25,7 +25,7 @@ public class NarrationsController {
     @RequestMapping(method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public final List<HadithObject> loadHadith(@RequestParam(value = "q", defaultValue = "") String query,
-            @RequestParam(value = "page", defaultValue = "0") int page, HttpServletRequest request) throws Exception {
+            @RequestParam(value = "page", defaultValue = "0") int page) throws Exception {
         log.info("Entered hadith query API with query: " + query + " and page: " + page);
         return new QueryStringQueryResult(new RewayaatQuery(query).query(), page).result();
     }
