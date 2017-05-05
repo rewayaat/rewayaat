@@ -1,6 +1,11 @@
 language:
  - java
 
+sudo: required
+
+services:
+  - docker
+
 jdk:
  - oraclejdk8
 
