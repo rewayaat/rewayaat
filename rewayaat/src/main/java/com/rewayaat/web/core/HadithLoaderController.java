@@ -16,29 +16,32 @@ import com.rewayaat.web.HomeController;
 import com.rewayaat.web.config.ClientProvider;
 import com.rewayaat.web.data.hadith.HadithObject;
 
+/**
+ * For loading narrations into the system.
+ */
 @Controller
 public class HadithLoaderController {
 
-	private static Logger log = Logger.getLogger(HadithLoaderController.class.getName());
+    private static Logger log = Logger.getLogger(HadithLoaderController.class.getName());
 
-	@RequestMapping(value = "/load", method = RequestMethod.GET)
-	public final ResponseEntity<String> loadHadith() {
+    @RequestMapping(value = "/load", method = RequestMethod.GET)
+    public final ResponseEntity<String> loadHadith() {
 
-		log.info("Entered hadith controller, loading hadith on class path into the database");
-		ClassLoader classLoader = HomeController.class.getClassLoader();
-		try {
-			ObjectMapper mapper = new ObjectMapper();
-			String result = IOUtils.toString(classLoader.getResourceAsStream("rewayaat.json"));
-			HadithObject[] obs = mapper.readValue(result, HadithObject[].class);
-			for (HadithObject hadithInfo : obs) {
-				byte[] json = mapper.writeValueAsBytes(hadithInfo);
-				IndexResponse response = ClientProvider.instance().getClient()
-						.prepareIndex(ClientProvider.INDEX, ClientProvider.TYPE).setSource(json).get();
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-			return new ResponseEntity<String>("Error", HttpStatus.BAD_REQUEST);
-		}
-		return new ResponseEntity<String>("Success", HttpStatus.OK);
-	}
+        log.info("Entered hadith controller, loading hadith on class path into the database");
+        ClassLoader classLoader = HomeController.class.getClassLoader();
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            String result = IOUtils.toString(classLoader.getResourceAsStream("rewayaat.json"));
+            HadithObject[] obs = mapper.readValue(result, HadithObject[].class);
+            for (HadithObject hadithInfo : obs) {
+                byte[] json = mapper.writeValueAsBytes(hadithInfo);
+                IndexResponse response = ClientProvider.instance().getClient()
+                        .prepareIndex(ClientProvider.INDEX, ClientProvider.TYPE).setSource(json).get();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new ResponseEntity<String>("Error", HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<String>("Success", HttpStatus.OK);
+    }
 }
