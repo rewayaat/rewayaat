@@ -56,7 +56,6 @@ public class AlKafiLoader {
 				} else if (isProbablyArabic(lines[i])) {
 					System.out.println("original:\n" + lines[i]);
 					System.out.println("AFTER: \n");
-					System.out.println(new BiDiClass().makeLineLogicalOrder(lines[i], true));
 					currentArabicText.append(" " + lines[i].replaceAll("\n", "").replaceAll("\r", ""));
 					// arabic text found, insert
 				} else if (Character.isDigit(lines[i].trim().charAt(0))) {

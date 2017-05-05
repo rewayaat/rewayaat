@@ -1,7 +1,11 @@
 package com.rewayaat.web.core;
 
 /**
- * Adds default amount of fuzziness to each term and phrase in the query.
+ * Uses Elastic Search Query Syntax to Modify user queries 
+ * to improve search results. This is done mostly by removing
+ * weird characters, adding <a href="https://www.elastic.co/guide/en/elasticsearch/guide/current/fuzziness.html">fuzziness</a>,
+ * and adding <a href="https://www.elastic.co/guide/en/elasticsearch/guide/current/slop.html">slop</a> to phrases.
+ * See {@linkplain RewayaatQueryTest} for expected behavior.
  */
 public class RewayaatQuery {
 
@@ -14,12 +18,13 @@ public class RewayaatQuery {
 	public String query() {
 		System.out.println("Modifying query: " + query);
 		StringBuilder newQuery = new StringBuilder();
-		String[] terms = query.split("\"?([\\s\\xA0]|$)(?=(([^\"]*\"){2})*[^\"]*$)\"?");
+		// splits query by all spaces that are not enclosed by double quotes
+		String[] terms = query.split("[\\s\\xA0]+(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
 		for (String term : terms) {
 			if (term.length() > 0) {
 				if (!term.matches(".*~[0-9].*") && !isProbablyArabic(term)) {
 					// term does not have fuzziness applied to it yet...
-					if (term.endsWith("\"") && term.startsWith("\"")) {
+					if (term.startsWith("\"")) {
 						// term is a phrase, add slop amount based on total
 						// phrase length.
 						int slopAmount = (int) (term.split(" ").length * 0.3) + 2;
