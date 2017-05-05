@@ -1,5 +1,9 @@
 var vueApp;
 
+/**
+ * Main entry point to the website. If does not exist, display default welcome content.
+ * If there is a valid query, setup a Vue.js instance to display it.s
+ */
 function loadQuery(query) {
 	if (query) {
 		// load the query
@@ -11,8 +15,9 @@ function loadQuery(query) {
 }
 
 function displayWelcomeContent() {
-	var hadithDiv = document.getElementById('hadithView');
-	hadithDiv.innerHTML = "Hello";
+	document.getElementById('hadithView').innerHTML = '';
+	vueApp = new Vue({el : '#hadithView'});
+	$("#welcome").load("/welcome.html");
 }
 
 // records queries on enter key-presses.
@@ -29,7 +34,7 @@ $(document).keypress(function(e) {
 
 // loads more hadith when near the bottom of the page
 window.onscroll = function(ev) {
-    if ((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight) {
+    if (((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight) && document.getElementById('hadithView').innerHTML !== '') {
         vueApp.fetchNarrations();
     }
 };
@@ -56,8 +61,12 @@ function isCharacterKeyPress(evt) {
 	return false;
 }
 
+/**
+ * Adds color to elastic search query string query symbols in front end user
+ * queries. Some symbols that are coloured include: [,], [0-9], {, }, ~, ^,
+ * etc...
+ */
 function updateQueryColor(currentCaretPosition) {
-
 	var queryDiv = document.getElementById('query');
 	if (queryDiv) {
 		var queryValue = queryDiv.innerText;
@@ -131,8 +140,6 @@ function setCaretPostion(el, pos) {
 	el.focus();
 }
 
-
-
 // processes the user's query by redirecting with query parameter.
 function submitSearchQuery() {
 	var query = encodeURIComponent(document.getElementById("query").innerText);
@@ -141,7 +148,15 @@ function submitSearchQuery() {
 			+ query;
 }
 
+/**
+ * Main method responsible for displaying queries using Vue.js. Stores the
+ * created vue instance in the global vueApp var.
+ */
 function setupVue(query) {
+	
+	// clear welcome page content
+	document.getElementById('welcome').innerHTML = '';
+	
 	vueApp = new Vue({
 		el : '#hadithView',
 		data : {
@@ -214,16 +229,13 @@ function setupVue(query) {
 				} else {
 					return '';
 				}
-			},
-			socialMediaURL : function(narration) {
-				return 
 			}
 		}
 	});
 }
 
 /**
- * Adds relevant social media urls as properties of the given object.
+ * Adds relevant social media urls as properties of the given hadith object.
  */
 function socialMediaDecoratedHadith(hadithObj) {
 	
@@ -246,6 +258,7 @@ function socialMediaDecoratedHadith(hadithObj) {
 	if (hadithObj.volume) {
 		hadithText += "VOL. " +  hadithObj.volume;
 	}
+	// keep the overall text < 150 (to stay within twitter max length)
 	var remainingLen = 150 - (hadithText.length + hadithURL.length);
 	var hadithText = hadithText + " \"" + hadithObj.english.slice(remainingLen * -1) + "\""; 
 	hadithText = encodeURIComponent(hadithText);
@@ -256,6 +269,7 @@ function socialMediaDecoratedHadith(hadithObj) {
 	hadithObj["whatsapp"] = "whatsapp://send?text=" + hadithText + "%20" + hadithURL;
 	return hadithObj;
 }
+
 function getParameterByName(name, url) {
 	if (!url) {
 		url = window.location.href;

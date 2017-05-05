@@ -3,3 +3,4 @@
 .springBeans
 .classpath
 /bin/
+.settings/

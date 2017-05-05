@@ -20,6 +20,10 @@ html {
 	padding-right: 3px;
 }
 
+.socialMediaButton {
+	    margin-right: -95px;
+}
+
 .highlight {color: #1ec6f0;}
 
 .querySymbolRight {
@@ -302,7 +306,7 @@ body {
 
 a {
     background-color: transparent;
-    -webkit-text-decoration-skip: objects
+    -webkit-text-decoration-skip: objects;
 }
 
 a:active, a:hover {
@@ -335,12 +339,12 @@ b, strong {
 }
 
 :not(pre)>code, :not(pre)>kbd, :not(pre)>samp {
-    font-size: 12px;
+    font-size: 13px;
     font-family: 'Roboto Mono', monospace;
     color: #f0506e;
     white-space: nowrap;
-    padding: 2px 6px;
-    background: #f8f8f8
+    padding: 10px 6px;
+    background: #f8f8f8;
 }
 
 em {
@@ -416,12 +420,13 @@ h1, .uk-h1, h2, .uk-h2, h3, .uk-h3, h4, .uk-h4, h5, .uk-h5, h6, .uk-h6 {
 }
 
 *+h1, *+.uk-h1, *+h2, *+.uk-h2, *+h3, *+.uk-h3, *+h4, *+.uk-h4, *+h5, *+.uk-h5, *+h6, *+.uk-h6 {
-    margin-top: 40px
+    margin-top: 40px;
 }
 
 h1, .uk-h1 {
     font-size: 38px;
-    line-height: 1.2
+    line-height: 1.2;
+    border-bottom: solid 1px rgba(128, 128, 128, 0.23);
 }
 
 h2, .uk-h2 {
@@ -431,7 +436,7 @@ h2, .uk-h2 {
 
 h3, .uk-h3 {
     font-size: 24px;
-    line-height: 1.4
+    line-height: 1.4;
 }
 
 h4, .uk-h4 {
@@ -506,7 +511,7 @@ blockquote footer {
 }
 
 blockquote footer::before {
-    content: "â€” "
+    content: "ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â "
 }
 
 pre {
@@ -1982,9 +1987,9 @@ select.uk-form-width-xsmall {
 }
 
 .uk-card-default {
-    background: #fff;
+    background: rgba(23, 22, 22, 0.66);
     color: #666;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08)
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.98);
 }
 
 .uk-card-default .uk-card-title {
@@ -2020,9 +2025,9 @@ select.uk-form-width-xsmall {
 }
 
 .uk-card-secondary {
-    background: rgb(27, 27, 27);
+    background: rgba(23, 22, 22, 0.88);
     color: #fff;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.69);
     border-radius: 10px;
 }
 
@@ -2068,8 +2073,8 @@ select.uk-form-width-xsmall {
 }
 
 .uk-card-body .uk-nav-default>li>a, .uk-card-body .uk-nav-default .uk-nav-header, .uk-card-body .uk-nav-default .uk-nav-divider {
-    padding-left: 30px;
-    padding-right: 30px
+    /* padding-left: 30px; */
+    /* padding-right: 30px */
 }
 
 .uk-card-body .uk-nav-default .uk-nav-sub {
@@ -2085,7 +2090,10 @@ select.uk-form-width-xsmall {
     }
     .uk-card-body .uk-nav-default>li>a, .uk-card-body .uk-nav-default .uk-nav-header, .uk-card-body .uk-nav-default .uk-nav-divider {
         padding-left: 40px;
-        padding-right: 40px
+        padding-right: 40px;
+        font-family: LANE;
+        text-transform: uppercase;
+        font-weight: 600;
     }
     .uk-card-body .uk-nav-default .uk-nav-sub {
         padding-left: 55px
@@ -2739,7 +2747,7 @@ select.uk-form-width-xsmall {
 }
 
 .uk-nav>li>a {
-    padding: 5px 0
+    padding: 5px 0;
 }
 
 ul.uk-nav-sub {
@@ -2803,7 +2811,7 @@ ul.uk-nav-sub {
 }
 
 .uk-nav-default .uk-nav-divider {
-    border-top: 1px solid #e5e5e5
+    border-top: 1px solid rgba(229, 229, 229, 0.31);
 }
 
 .uk-nav-default .uk-nav-sub a {
@@ -4953,7 +4961,7 @@ ul.uk-nav-sub {
 }
 
 .uk-width-1-5 {
-    width: 20%
+    width: 20%;
 }
 
 .uk-width-2-5 {
@@ -5871,9 +5879,9 @@ th.uk-text-break, td.uk-text-break {
         margin-right: 40px
     }
     .uk-align-right, .uk-align-right\@s, .uk-align-right\@m, .uk-align-right\@l {
-        /* margin-left: 40px; */
+        margin-left: 40px;
         margin-top: -25px;
-        padding-left: 60px;
+        padding-left: 30px;
         margin-right: -60px;
         box-shadow: 10px;
     }
@@ -7059,16 +7067,18 @@ th.uk-text-break, td.uk-text-break {
 }
 
 .uk-light a, .uk-light .uk-link, .uk-section-primary:not(.uk-preserve-color) a, .uk-section-primary:not(.uk-preserve-color) .uk-link, .uk-section-secondary:not(.uk-preserve-color) a, .uk-section-secondary:not(.uk-preserve-color) .uk-link, .uk-card-primary.uk-card-body a, .uk-card-primary.uk-card-body .uk-link, .uk-card-primary>:not([class*='uk-card-media']) a, .uk-card-primary>:not([class*='uk-card-media']) .uk-link, .uk-card-secondary.uk-card-body a, .uk-card-secondary.uk-card-body .uk-link, .uk-card-secondary>:not([class*='uk-card-media']) a, .uk-card-secondary>:not([class*='uk-card-media']) .uk-link, .uk-overlay-primary a, .uk-overlay-primary .uk-link, .tm-navbar-container:not(.uk-navbar-transparent) a, .tm-navbar-container:not(.uk-navbar-transparent) .uk-link {
-    color: #000;
+    color: #23e4de;
+    /* margin-right: -70px; */
 }
 
 .uk-light a:hover, .uk-light .uk-link:hover, .uk-section-primary:not(.uk-preserve-color) a:hover, .uk-section-primary:not(.uk-preserve-color) .uk-link:hover, .uk-section-secondary:not(.uk-preserve-color) a:hover, .uk-section-secondary:not(.uk-preserve-color) .uk-link:hover, .uk-card-primary.uk-card-body a:hover, .uk-card-primary.uk-card-body .uk-link:hover, .uk-card-primary>:not([class*='uk-card-media']) a:hover, .uk-card-primary>:not([class*='uk-card-media']) .uk-link:hover, .uk-card-secondary.uk-card-body a:hover, .uk-card-secondary.uk-card-body .uk-link:hover, .uk-card-secondary>:not([class*='uk-card-media']) a:hover, .uk-card-secondary>:not([class*='uk-card-media']) .uk-link:hover, .uk-overlay-primary a:hover, .uk-overlay-primary .uk-link:hover, .tm-navbar-container:not(.uk-navbar-transparent) a:hover, .tm-navbar-container:not(.uk-navbar-transparent) .uk-link:hover {
-    color: #fff
+    color: #9312de;
 }
 
 .uk-light :not(pre)>code, .uk-light :not(pre)>kbd, .uk-light :not(pre)>samp, .uk-section-primary:not(.uk-preserve-color) :not(pre)>code, .uk-section-primary:not(.uk-preserve-color) :not(pre)>kbd, .uk-section-primary:not(.uk-preserve-color) :not(pre)>samp, .uk-section-secondary:not(.uk-preserve-color) :not(pre)>code, .uk-section-secondary:not(.uk-preserve-color) :not(pre)>kbd, .uk-section-secondary:not(.uk-preserve-color) :not(pre)>samp, .uk-card-primary.uk-card-body :not(pre)>code, .uk-card-primary.uk-card-body :not(pre)>kbd, .uk-card-primary.uk-card-body :not(pre)>samp, .uk-card-primary>:not([class*='uk-card-media']) :not(pre)>code, .uk-card-primary>:not([class*='uk-card-media']) :not(pre)>kbd, .uk-card-primary>:not([class*='uk-card-media']) :not(pre)>samp, .uk-card-secondary.uk-card-body :not(pre)>code, .uk-card-secondary.uk-card-body :not(pre)>kbd, .uk-card-secondary.uk-card-body :not(pre)>samp, .uk-card-secondary>:not([class*='uk-card-media']) :not(pre)>code, .uk-card-secondary>:not([class*='uk-card-media']) :not(pre)>kbd, .uk-card-secondary>:not([class*='uk-card-media']) :not(pre)>samp, .uk-overlay-primary :not(pre)>code, .uk-overlay-primary :not(pre)>kbd, .uk-overlay-primary :not(pre)>samp, .tm-navbar-container:not(.uk-navbar-transparent) :not(pre)>code, .tm-navbar-container:not(.uk-navbar-transparent) :not(pre)>kbd, .tm-navbar-container:not(.uk-navbar-transparent) :not(pre)>samp {
-    color: rgba(255, 255, 255, 0.8);
-    background: rgba(255, 255, 255, 0.1)
+    color: rgba(2, 2, 2, 0.8);
+    border-radius: 5px;
+    background: rgba(255, 250, 250, 0.88);
 }
 
 .uk-light em, .uk-section-primary:not(.uk-preserve-color) em, .uk-section-secondary:not(.uk-preserve-color) em, .uk-card-primary.uk-card-body em, .uk-card-primary>:not([class*='uk-card-media']) em, .uk-card-secondary.uk-card-body em, .uk-card-secondary>:not([class*='uk-card-media']) em, .uk-overlay-primary em, .tm-navbar-container:not(.uk-navbar-transparent) em {
@@ -7076,7 +7086,7 @@ th.uk-text-break, td.uk-text-break {
 }
 
 .uk-light h1, .uk-light .uk-h1, .uk-light h2, .uk-light .uk-h2, .uk-light h3, .uk-light .uk-h3, .uk-light h4, .uk-light .uk-h4, .uk-light h5, .uk-light .uk-h5, .uk-light h6, .uk-light .uk-h6, .uk-section-primary:not(.uk-preserve-color) h1, .uk-section-primary:not(.uk-preserve-color) .uk-h1, .uk-section-primary:not(.uk-preserve-color) h2, .uk-section-primary:not(.uk-preserve-color) .uk-h2, .uk-section-primary:not(.uk-preserve-color) h3, .uk-section-primary:not(.uk-preserve-color) .uk-h3, .uk-section-primary:not(.uk-preserve-color) h4, .uk-section-primary:not(.uk-preserve-color) .uk-h4, .uk-section-primary:not(.uk-preserve-color) h5, .uk-section-primary:not(.uk-preserve-color) .uk-h5, .uk-section-primary:not(.uk-preserve-color) h6, .uk-section-primary:not(.uk-preserve-color) .uk-h6, .uk-section-secondary:not(.uk-preserve-color) h1, .uk-section-secondary:not(.uk-preserve-color) .uk-h1, .uk-section-secondary:not(.uk-preserve-color) h2, .uk-section-secondary:not(.uk-preserve-color) .uk-h2, .uk-section-secondary:not(.uk-preserve-color) h3, .uk-section-secondary:not(.uk-preserve-color) .uk-h3, .uk-section-secondary:not(.uk-preserve-color) h4, .uk-section-secondary:not(.uk-preserve-color) .uk-h4, .uk-section-secondary:not(.uk-preserve-color) h5, .uk-section-secondary:not(.uk-preserve-color) .uk-h5, .uk-section-secondary:not(.uk-preserve-color) h6, .uk-section-secondary:not(.uk-preserve-color) .uk-h6, .uk-card-primary.uk-card-body h1, .uk-card-primary.uk-card-body .uk-h1, .uk-card-primary.uk-card-body h2, .uk-card-primary.uk-card-body .uk-h2, .uk-card-primary.uk-card-body h3, .uk-card-primary.uk-card-body .uk-h3, .uk-card-primary.uk-card-body h4, .uk-card-primary.uk-card-body .uk-h4, .uk-card-primary.uk-card-body h5, .uk-card-primary.uk-card-body .uk-h5, .uk-card-primary.uk-card-body h6, .uk-card-primary.uk-card-body .uk-h6, .uk-card-primary>:not([class*='uk-card-media']) h1, .uk-card-primary>:not([class*='uk-card-media']) .uk-h1, .uk-card-primary>:not([class*='uk-card-media']) h2, .uk-card-primary>:not([class*='uk-card-media']) .uk-h2, .uk-card-primary>:not([class*='uk-card-media']) h3, .uk-card-primary>:not([class*='uk-card-media']) .uk-h3, .uk-card-primary>:not([class*='uk-card-media']) h4, .uk-card-primary>:not([class*='uk-card-media']) .uk-h4, .uk-card-primary>:not([class*='uk-card-media']) h5, .uk-card-primary>:not([class*='uk-card-media']) .uk-h5, .uk-card-primary>:not([class*='uk-card-media']) h6, .uk-card-primary>:not([class*='uk-card-media']) .uk-h6, .uk-card-secondary.uk-card-body h1, .uk-card-secondary.uk-card-body .uk-h1, .uk-card-secondary.uk-card-body h2, .uk-card-secondary.uk-card-body .uk-h2, .uk-card-secondary.uk-card-body h3, .uk-card-secondary.uk-card-body .uk-h3, .uk-card-secondary.uk-card-body h4, .uk-card-secondary.uk-card-body .uk-h4, .uk-card-secondary.uk-card-body h5, .uk-card-secondary.uk-card-body .uk-h5, .uk-card-secondary.uk-card-body h6, .uk-card-secondary.uk-card-body .uk-h6, .uk-card-secondary>:not([class*='uk-card-media']) h1, .uk-card-secondary>:not([class*='uk-card-media']) .uk-h1, .uk-card-secondary>:not([class*='uk-card-media']) h2, .uk-card-secondary>:not([class*='uk-card-media']) .uk-h2, .uk-card-secondary>:not([class*='uk-card-media']) h3, .uk-card-secondary>:not([class*='uk-card-media']) .uk-h3, .uk-card-secondary>:not([class*='uk-card-media']) h4, .uk-card-secondary>:not([class*='uk-card-media']) .uk-h4, .uk-card-secondary>:not([class*='uk-card-media']) h5, .uk-card-secondary>:not([class*='uk-card-media']) .uk-h5, .uk-card-secondary>:not([class*='uk-card-media']) h6, .uk-card-secondary>:not([class*='uk-card-media']) .uk-h6, .uk-overlay-primary h1, .uk-overlay-primary .uk-h1, .uk-overlay-primary h2, .uk-overlay-primary .uk-h2, .uk-overlay-primary h3, .uk-overlay-primary .uk-h3, .uk-overlay-primary h4, .uk-overlay-primary .uk-h4, .uk-overlay-primary h5, .uk-overlay-primary .uk-h5, .uk-overlay-primary h6, .uk-overlay-primary .uk-h6, .tm-navbar-container:not(.uk-navbar-transparent) h1, .tm-navbar-container:not(.uk-navbar-transparent) .uk-h1, .tm-navbar-container:not(.uk-navbar-transparent) h2, .tm-navbar-container:not(.uk-navbar-transparent) .uk-h2, .tm-navbar-container:not(.uk-navbar-transparent) h3, .tm-navbar-container:not(.uk-navbar-transparent) .uk-h3, .tm-navbar-container:not(.uk-navbar-transparent) h4, .tm-navbar-container:not(.uk-navbar-transparent) .uk-h4, .tm-navbar-container:not(.uk-navbar-transparent) h5, .tm-navbar-container:not(.uk-navbar-transparent) .uk-h5, .tm-navbar-container:not(.uk-navbar-transparent) h6, .tm-navbar-container:not(.uk-navbar-transparent) .uk-h6 {
-    color: #fff
+    color: #f6f2f7;
 }
 
 .uk-light blockquote, .uk-section-primary:not(.uk-preserve-color) blockquote, .uk-section-secondary:not(.uk-preserve-color) blockquote, .uk-card-primary.uk-card-body blockquote, .uk-card-primary>:not([class*='uk-card-media']) blockquote, .uk-card-secondary.uk-card-body blockquote, .uk-card-secondary>:not([class*='uk-card-media']) blockquote, .uk-overlay-primary blockquote, .tm-navbar-container:not(.uk-navbar-transparent) blockquote {
