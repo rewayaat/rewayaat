@@ -1,6 +1,11 @@
 language:
  - java
 
+sudo: required
+
+services:
+  - docker
+
 jdk:
  - oraclejdk8
 
@@ -9,7 +14,7 @@ os:
 
 script:
   - cd rewayaat
-  - mvn clean compile assembly:single docker:build
+  - mvn package docker:build cobertura:cobertura
   - cd ..
   - chmod a+x deploy.sh ecs_deploy.sh
   - ./deploy.sh
@@ -21,3 +26,5 @@ notifications: # set notification options
     # change is when the repo status goes from pass to fail or vice versa
     on_success: change
     on_failure: always
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

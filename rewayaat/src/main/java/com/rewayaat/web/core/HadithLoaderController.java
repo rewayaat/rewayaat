@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
+import org.elasticsearch.action.index.IndexResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
