@@ -33,7 +33,7 @@ deploy:
   provider: releases
   api-key: $OAUTH_TOKEN
   file_glob: true
-  file: rewayaat/target/*
+  file: "rewayaat/target/rewayaat-*.jar"
   skip_cleanup: true
   on:
     tags: true
