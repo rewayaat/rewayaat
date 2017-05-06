@@ -34,7 +34,7 @@ public class RewayaatQuery {
                     } else {
                         // add default non-phrase fuzziness amount
                         if (term.length() > 5) {
-                            newQuery.append(term + "~2 ");
+                            newQuery.append(term);
                         } else {
                             newQuery.append(term + "~1 ");
                         }

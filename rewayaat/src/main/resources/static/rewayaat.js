@@ -239,7 +239,7 @@ function setupVue(query) {
  */
 function socialMediaDecoratedHadith(hadithObj) {
 	
-	var hadithURL = encodeURIComponent(location.protocol + "//" + location.host + "/?q=id:" + hadithObj.id);
+	var hadithURL = encodeURIComponent(location.protocol + "//" + location.host + "/?q=_id:" + hadithObj._id);
 	var hadithText = "";
 	if (hadithObj.book) {
 		hadithText += hadithObj.book;
