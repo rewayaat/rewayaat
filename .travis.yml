@@ -28,3 +28,12 @@ notifications: # set notification options
     on_failure: always
 after_success:
   - bash <(curl -s https://codecov.io/bash)
+
+deploy:
+  provider: releases
+  api-key: $OAUTH_TOKEN
+  file_glob: true
+  file: rewayaat/target/*
+  skip_cleanup: true
+  on:
+    tags: true
