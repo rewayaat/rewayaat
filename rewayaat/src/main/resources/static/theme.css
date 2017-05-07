@@ -544,7 +544,6 @@ pre code {
 
 article, aside, details, figcaption, figure, footer, header, main, nav, section, summary {
     display: block;
-    margin: 15px;
 }
 
 progress {
@@ -2464,7 +2463,8 @@ select.uk-form-width-xsmall {
 
 .uk-article-title {
     font-size: 38px;
-    line-height: 1.2
+    line-height: 1.2;
+    font-family: Open sans;
 }
 
 .uk-article-meta {

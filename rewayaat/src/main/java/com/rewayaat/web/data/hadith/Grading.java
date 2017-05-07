@@ -12,19 +12,19 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({
-    "grader",
-    "rationale",
-    "grading"
-})
-public class Grading implements Serializable
-{
+import io.swagger.annotations.ApiModelProperty;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonPropertyOrder({ "grader", "rationale", "grading" })
+public class Grading implements Serializable {
+
+    @ApiModelProperty(notes = "Grader's full name")
     @JsonProperty("grader")
     private String grader;
+    @ApiModelProperty(notes = "Rationale used for the grading")
     @JsonProperty("rationale")
     private String rationale;
+    @ApiModelProperty(notes = "The grading value(eg: hassan, dhaeef, etc..)")
     @JsonProperty("grading")
     private String grading;
     @JsonIgnore

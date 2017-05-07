@@ -23,7 +23,7 @@ public class RewayaatQuery {
         String[] terms = query.split("[\\s\\xA0]+(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
         for (String term : terms) {
             if (term.length() > 0) {
-                if (!term.matches(".*~[0-9].*") && !isProbablyArabic(term)) {
+                if (!term.matches(".*~[0-9].*") && !isProbablyArabic(term) && !term.startsWith("_id:")) {
                     // term does not have fuzziness applied to it yet...
                     if (term.startsWith("\"")) {
                         // term is a phrase, add slop amount based on total

@@ -4,26 +4,31 @@ package com.rewayaat.web.data.hadith;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.commons.lang.builder.ToStringBuilder;
+
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import org.apache.commons.lang.builder.ToStringBuilder;
+
+import io.swagger.annotations.ApiModelProperty;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({
-    "url",
-    "title"
-})
-public class Related implements Serializable
-{
+@JsonPropertyOrder({ "url", "title" })
+public class Related implements Serializable {
 
+    @ApiModelProperty(notes = "The web URL of the related resource")
     @JsonProperty("url")
     private String url;
+    @ApiModelProperty(notes = "The title of the related resource")
     @JsonProperty("title")
     private String title;
+    @ApiModelProperty(notes = "The description of the related resource")
+    @JsonProperty("description")
+    private String description;
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
     private final static long serialVersionUID = 3061569326692232168L;
@@ -64,6 +69,16 @@ public class Related implements Serializable
     @JsonProperty("title")
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    @JsonProperty("description")
+    public String getDescription() {
+        return description;
+    }
+
+    @JsonProperty("description")
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     @Override

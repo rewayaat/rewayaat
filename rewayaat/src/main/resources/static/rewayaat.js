@@ -195,7 +195,7 @@ function setupVue(query) {
 						
 					}
 				}
-				xhr.open('GET', '/api/narrations?q=' + this.queryStr + '&page='
+				xhr.open('GET', '/v1/narrations?q=' + this.queryStr + '&page='
 						+ this.page);
 				xhr.send();
 				this.page++;
