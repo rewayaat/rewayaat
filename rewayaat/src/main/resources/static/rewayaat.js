@@ -1,8 +1,8 @@
 var vueApp;
 
 /**
- * Main entry point to the website. If does not exist, display default welcome content.
- * If there is a valid query, setup a Vue.js instance to display it.s
+ * Main entry point to the website. If does not exist, display default welcome
+ * content. If there is a valid query, setup a Vue.js instance to display it.s
  */
 function loadQuery(query) {
 	if (query) {
@@ -16,7 +16,9 @@ function loadQuery(query) {
 
 function displayWelcomeContent() {
 	document.getElementById('hadithView').innerHTML = '';
-	vueApp = new Vue({el : '#hadithView'});
+	vueApp = new Vue({
+		el : '#hadithView'
+	});
 	$("#welcome").load("/welcome.html");
 }
 
@@ -34,9 +36,10 @@ $(document).keypress(function(e) {
 
 // loads more hadith when near the bottom of the page
 window.onscroll = function(ev) {
-    if (((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight) && document.getElementById('hadithView').innerHTML !== '') {
-        vueApp.fetchNarrations();
-    }
+	if (((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight)
+			&& document.getElementById('hadithView').innerHTML !== '') {
+		vueApp.fetchNarrations();
+	}
 };
 // records queries on enter key-presses.
 $(document).keyup(function(e) {
@@ -102,9 +105,9 @@ function updateQueryColor(currentCaretPosition) {
 }
 
 function isArabic(text) {
-    var pattern = /[\u0600-\u06FF\u0750-\u077F]/;
-    result = pattern.test(text);
-    return result;
+	var pattern = /[\u0600-\u06FF\u0750-\u077F]/;
+	result = pattern.test(text);
+	return result;
 }
 
 function isNumeric(obj) {
@@ -153,10 +156,62 @@ function submitSearchQuery() {
  * created vue instance in the global vueApp var.
  */
 function setupVue(query) {
-	
+
+	// create hadith details component
+	Vue
+			.component(
+					'hadith-details',
+					{
+						template : '<div><div class="uk-align-left">'
+								+ '	<i style="color: #22df80" class="fa fa-book hadithDetailsIcon"'
+								+ '		aria-hidden="true"></i>'
+								+ '	<p class="hadithDetailsTitle">{{narration.book}}</p>'
+								+ '</div>'
+								+ '<div class="uk-align-left" v-if="narration.edition">'
+								+ '<i style="color: #c9dae1"'
+								+ '	class="fa fa-pencil-square-o hadithDetailsIcon"'
+								+ '	aria-hidden="true"></i>'
+								+ '<p class="hadithDetailsTitle">({{narration.edition}})</p>'
+								+ '</div>'
+								+ '<div class="uk-align-left" v-if="narration.number">'
+								+ '<i style="color: #ea4f4f"'
+								+ '	class="fa fa-pencil-square-o hadithDetailsIcon"'
+								+ '	aria-hidden="true"></i>'
+								+ '<p class="hadithDetailsTitle">Hadith #{{narration.number}}</p>'
+								+ '</div>'
+								+ '<div class="uk-align-left" v-if="narration.chapter">'
+								+ '<i style="color: rgb(126, 143, 236);"'
+								+ '	class="fa fa-superpowers hadithDetailsIcon" aria-hidden="true"></i>'
+								+ '<p class="hadithDetailsTitle">Chapter #{{narration.chapter}}</p>'
+								+ '</div>'
+								+ '<div class="uk-align-left" v-if="narration.section">'
+								+ '<i style="color: rgb(182, 137, 228);"'
+								+ '	class="fa fa-bookmark-o hadithDetailsIcon" aria-hidden="true"></i>'
+								+ '<p class="hadithDetailsTitle">{{narration.section}}</p>'
+								+ '</div>'
+								+ '<div class="uk-align-left" v-if="narration.part">'
+								+ '<i style="color: rgb(248, 162, 134);"'
+								+ '  class="fa fa-clone hadithDetailsIcon" aria-hidden="true"></i>'
+								+ '	<p class="hadithDetailsTitle"> {{narration.part}}</p>'
+								+ '</div>'
+								+ '<div class="uk-align-left" v-if="narration.volume">'
+								+ '<i style="color: #a1f5f2"'
+								+ '	class="fa fa-calendar-o hadithDetailsIcon" aria-hidden="true"></i>'
+								+ '<p class="hadithDetailsTitle"> volume #{{narration.volume}}</p>'
+								+ '</div>'
+								+ '<span class="uk-align-left"'
+								+ 'v-for="gradingobj in narration.gradings"'
+								+ 'v-bind:class="gradeLabelClass(gradingobj.grading)"> <i'
+								+ 'v-bind:class="gradeLabelIcon(gradingobj.grading)"'
+								+ 'aria-hidden="true"></i> {{gradingobj.grader}}'
+								+ '</span></div>',
+						props : [ 'narration' ]
+
+					});
+
 	// clear welcome page content
 	document.getElementById('welcome').innerHTML = '';
-	
+
 	vueApp = new Vue({
 		el : '#hadithView',
 		data : {
@@ -173,32 +228,38 @@ function setupVue(query) {
 			// fetches more narrations to display using the Rewayaat REST API.
 			fetchNarrations : function() {
 				if (!this.done) {
-				var self = this;
-				var xhr = new XMLHttpRequest();
-				xhr.onload = function() {
-					if (xhr.readyState == XMLHttpRequest.DONE) {
-						if (JSON.parse(xhr.responseText).length < 1 && self.narrations.length === 0) {
-							swal("Oops...", "No results seem to match your query!", "error");
-						}
-						$.each(JSON.parse(xhr.responseText), function(index, value) {
-							setTimeout(function() {
-								value.notes = marked(value.notes);
-								value = socialMediaDecoratedHadith(value);
-								self.narrations.push(value);
-								console.log(value);
-							}, 200 * index);
+					var self = this;
+					var xhr = new XMLHttpRequest();
+					xhr.onload = function() {
+						if (xhr.readyState == XMLHttpRequest.DONE) {
+							if (JSON.parse(xhr.responseText).length < 1
+									&& self.narrations.length === 0) {
+								swal("Oops...",
+										"No results seem to match your query!",
+										"error");
+							}
+							$.each(JSON.parse(xhr.responseText), function(
+									index, value) {
+								setTimeout(function() {
+									if (value.notes) {
+										value.notes = marked(value.notes);
+									}
+									value = socialMediaDecoratedHadith(value);
+									self.narrations.push(value);
+									console.log(value);
+								}, 200 * index);
 
-						});
-						if (JSON.parse(xhr.responseText).length < 10) {
-							self.done = true;
+							});
+							if (JSON.parse(xhr.responseText).length < 10) {
+								self.done = true;
+							}
+
 						}
-						
 					}
-				}
-				xhr.open('GET', '/v1/narrations?q=' + this.queryStr + '&page='
-						+ this.page);
-				xhr.send();
-				this.page++;
+					xhr.open('GET', '/v1/narrations?q=' + this.queryStr
+							+ '&page=' + this.page);
+					xhr.send();
+					this.page++;
 				}
 			},
 			gradeLabelClass : function(grading) {
@@ -238,35 +299,44 @@ function setupVue(query) {
  * Adds relevant social media urls as properties of the given hadith object.
  */
 function socialMediaDecoratedHadith(hadithObj) {
-	
-	var hadithURL = encodeURIComponent(location.protocol + "//" + location.host + "/?q=_id:" + hadithObj._id);
+
+	var hadithURL = encodeURIComponent(location.protocol + "//" + location.host
+			+ "/?q=_id:" + hadithObj._id);
 	var hadithText = "";
 	if (hadithObj.book) {
 		hadithText += hadithObj.book;
 	}
 	if (hadithObj.edition) {
-		hadithText += " (" +  hadithObj.edition + "), ";
+		hadithText += " (" + hadithObj.edition + "), ";
 	} else {
 		hadithText += ", ";
 	}
 	if (hadithObj.number) {
-		hadithText += "#" +  hadithObj.number + ", ";
+		hadithText += "#" + hadithObj.number + ", ";
 	}
 	if (hadithObj.chapter) {
-		hadithText += "CHAP. " +  hadithObj.chapter + ", ";
+		hadithText += "CHAP. " + hadithObj.chapter + ", ";
 	}
 	if (hadithObj.volume) {
-		hadithText += "VOL. " +  hadithObj.volume;
+		hadithText += "VOL. " + hadithObj.volume;
 	}
 	// keep the overall text < 150 (to stay within twitter max length)
 	var remainingLen = 150 - (hadithText.length + hadithURL.length);
-	var hadithText = hadithText + " \"" + hadithObj.english.slice(remainingLen * -1) + "\""; 
+	var hadithText = hadithText + " \""
+			+ hadithObj.english.slice(remainingLen * -1) + "\"";
 	hadithText = encodeURIComponent(hadithText);
-	hadithObj["facebook"] = "https://www.facebook.com/sharer/sharer.php?u=" + hadithURL;
-	hadithObj["twitter"] = "https://twitter.com/intent/tweet/?text=" + hadithText + "&url=" + hadithURL;
-	hadithObj["tumblr"] = "https://www.tumblr.com/widgets/share/tool/preview?posttype=link&title=Rewayaat.io&caption=" + hadithText + "&content=" + hadithURL + "&shareSource=tumblr_share_button&_format=html";
+	hadithObj["facebook"] = "https://www.facebook.com/sharer/sharer.php?u="
+			+ hadithURL;
+	hadithObj["twitter"] = "https://twitter.com/intent/tweet/?text="
+			+ hadithText + "&url=" + hadithURL;
+	hadithObj["tumblr"] = "https://www.tumblr.com/widgets/share/tool/preview?posttype=link&title=Rewayaat.io&caption="
+			+ hadithText
+			+ "&content="
+			+ hadithURL
+			+ "&shareSource=tumblr_share_button&_format=html";
 	hadithObj["googleplus"] = "https://plus.google.com/share?url=" + hadithURL;
-	hadithObj["whatsapp"] = "whatsapp://send?text=" + hadithText + "%20" + hadithURL;
+	hadithObj["whatsapp"] = "whatsapp://send?text=" + hadithText + "%20"
+			+ hadithURL;
 	return hadithObj;
 }
 

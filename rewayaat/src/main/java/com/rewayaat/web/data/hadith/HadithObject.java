@@ -139,11 +139,17 @@ public class HadithObject implements Serializable {
     }
 
     public void insertEnglishText(String text) {
+        if (this.english == null) {
+            this.english = "";
+        }
         this.english += text;
     }
 
     public void insertArabicText(String text) {
-        this.arabic += text;
+        if (this.arabic == null) {
+            this.arabic = "";
+        }
+        this.arabic = this.arabic + " " + text;
     }
 
     @JsonProperty("number")

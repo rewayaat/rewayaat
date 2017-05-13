@@ -36,9 +36,8 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
         List<HadithObject> hadithes = new ArrayList<HadithObject>();
 
         HighlightBuilder highlightBuilder = new HighlightBuilder().field("english").field("notes").field("arabic")
-                .postTags("</span>")
-                .preTags("<span class=\"highlight\">").highlightQuery(QueryBuilders.queryStringQuery(userQuery)
-                        .field("english").field("book").field("edition").field("notes").field("arabic").field("tags"))
+                .postTags("</span>").preTags("<span class=\"highlight\">").highlightQuery(QueryBuilders
+                        .queryStringQuery(userQuery).field("english").field("notes").field("arabic").field("tags"))
                 .numOfFragments(0);
 
         SearchResponse resp = ClientProvider.instance().getClient().prepareSearch(ClientProvider.INDEX)
