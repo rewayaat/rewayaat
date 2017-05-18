@@ -11,6 +11,7 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
+import org.elasticsearch.search.sort.SortOrder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rewayaat.web.config.ClientProvider;
@@ -36,14 +37,18 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
         List<HadithObject> hadithes = new ArrayList<HadithObject>();
 
         HighlightBuilder highlightBuilder = new HighlightBuilder().field("english").field("notes").field("arabic")
-                .postTags("</span>").preTags("<span class=\"highlight\">").highlightQuery(QueryBuilders
-                        .queryStringQuery(userQuery).field("english").field("notes").field("arabic").field("tags"))
+                .field("book").field("section").field("part").field("chapter").field("volume").postTags("</span>")
+                .preTags("<span class=\"highlight\">")
+                .highlightQuery(QueryBuilders.queryStringQuery(userQuery).field("english").field("section")
+                        .field("part").field("chapter").field("volume").field("arabic").field("book").field("arabic")
+                        .field("tags"))
                 .numOfFragments(0);
 
         SearchResponse resp = ClientProvider.instance().getClient().prepareSearch(ClientProvider.INDEX)
                 .setTypes(ClientProvider.TYPE).setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
                 .setQuery(QueryBuilders.queryStringQuery(userQuery)).highlighter(highlightBuilder)
-                .setFrom(page * pageSize).setSize(pageSize).setExplain(true).execute().get();
+                .setFrom(page * pageSize).setSize(pageSize).setExplain(true).addSort("_score", SortOrder.DESC).execute()
+                .get();
 
         SearchHit[] results = resp.getHits().getHits();
         System.out.println("Current results: " + results.length);

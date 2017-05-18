@@ -511,7 +511,7 @@ blockquote footer {
 }
 
 blockquote footer::before {
-    content: "ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â "
+    content: "ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â "
 }
 
 pre {
@@ -2465,7 +2465,7 @@ select.uk-form-width-xsmall {
 .uk-article-title {
     font-size: 38px;
     line-height: 1.2;
-    font-family: Open sans;
+    font-family: Lane;
 }
 
 .uk-article-meta {
@@ -7099,9 +7099,14 @@ th.uk-text-break, td.uk-text-break {
 }
 
 .uk-light :not(pre)>code, .uk-light :not(pre)>kbd, .uk-light :not(pre)>samp, .uk-section-primary:not(.uk-preserve-color) :not(pre)>code, .uk-section-primary:not(.uk-preserve-color) :not(pre)>kbd, .uk-section-primary:not(.uk-preserve-color) :not(pre)>samp, .uk-section-secondary:not(.uk-preserve-color) :not(pre)>code, .uk-section-secondary:not(.uk-preserve-color) :not(pre)>kbd, .uk-section-secondary:not(.uk-preserve-color) :not(pre)>samp, .uk-card-primary.uk-card-body :not(pre)>code, .uk-card-primary.uk-card-body :not(pre)>kbd, .uk-card-primary.uk-card-body :not(pre)>samp, .uk-card-primary>:not([class*='uk-card-media']) :not(pre)>code, .uk-card-primary>:not([class*='uk-card-media']) :not(pre)>kbd, .uk-card-primary>:not([class*='uk-card-media']) :not(pre)>samp, .uk-card-secondary.uk-card-body :not(pre)>code, .uk-card-secondary.uk-card-body :not(pre)>kbd, .uk-card-secondary.uk-card-body :not(pre)>samp, .uk-card-secondary>:not([class*='uk-card-media']) :not(pre)>code, .uk-card-secondary>:not([class*='uk-card-media']) :not(pre)>kbd, .uk-card-secondary>:not([class*='uk-card-media']) :not(pre)>samp, .uk-overlay-primary :not(pre)>code, .uk-overlay-primary :not(pre)>kbd, .uk-overlay-primary :not(pre)>samp, .tm-navbar-container:not(.uk-navbar-transparent) :not(pre)>code, .tm-navbar-container:not(.uk-navbar-transparent) :not(pre)>kbd, .tm-navbar-container:not(.uk-navbar-transparent) :not(pre)>samp {
-    color: rgba(2, 2, 2, 0.8);
+    color: #bc92ef;
+    font-size: 18px;
     border-radius: 5px;
-    background: rgba(255, 250, 250, 0.88);
+    border: 1px solid #bc92ef;
+    font-family: Lane;
+    background: transparent;
+    margin:15px;
+    /* background: rgba(255, 250, 250, 0.88); */
 }
 
 .uk-light em, .uk-section-primary:not(.uk-preserve-color) em, .uk-section-secondary:not(.uk-preserve-color) em, .uk-card-primary.uk-card-body em, .uk-card-primary>:not([class*='uk-card-media']) em, .uk-card-secondary.uk-card-body em, .uk-card-secondary>:not([class*='uk-card-media']) em, .uk-overlay-primary em, .tm-navbar-container:not(.uk-navbar-transparent) em {

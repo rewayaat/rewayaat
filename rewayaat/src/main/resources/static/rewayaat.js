@@ -6,12 +6,29 @@ var vueApp;
  */
 function loadQuery(query) {
 	if (query) {
-		// load the query
-		setupVue(query);
+		// validate query
+		if (validQuery(query)) {
+			// load the query
+			setupVue(query);
+		} else {
+			swal(
+					"Invalid Query",
+					"Please ensure the entered query is greater than three characters long!",
+					"error");
+			displayWelcomeContent();
+
+		}
 	} else {
 		// show default mark-down welcome page
 		displayWelcomeContent();
 	}
+}
+
+function validQuery(query) {
+	if (query.trim().length < 4) {
+		return false;
+	}
+	return true;
 }
 
 function displayWelcomeContent() {
@@ -162,44 +179,44 @@ function setupVue(query) {
 			.component(
 					'hadith-details',
 					{
-						template : '<div><div class="uk-align-left">'
+						template : '<div><div title="Book" uk-tooltip="pos: right" class="uk-align-left">'
 								+ '	<i style="color: #22df80" class="fa fa-book hadithDetailsIcon"'
 								+ '		aria-hidden="true"></i>'
-								+ '	<p class="hadithDetailsTitle">{{narration.book}}</p>'
+								+ '	<p class="hadithDetailsTitle" v-html="narration.book" />'
 								+ '</div>'
-								+ '<div class="uk-align-left" v-if="narration.edition">'
+								+ '<div title="Edition" uk-tooltip="pos: right" class="uk-align-left" v-if="narration.edition">'
 								+ '<i style="color: #c9dae1"'
 								+ '	class="fa fa-pencil-square-o hadithDetailsIcon"'
 								+ '	aria-hidden="true"></i>'
 								+ '<p class="hadithDetailsTitle">({{narration.edition}})</p>'
 								+ '</div>'
-								+ '<div class="uk-align-left" v-if="narration.number">'
+								+ '<div title="Number" uk-tooltip="pos: right" class="uk-align-left" v-if="narration.number">'
 								+ '<i style="color: #ea4f4f"'
 								+ '	class="fa fa-pencil-square-o hadithDetailsIcon"'
 								+ '	aria-hidden="true"></i>'
 								+ '<p class="hadithDetailsTitle">Hadith #{{narration.number}}</p>'
 								+ '</div>'
-								+ '<div class="uk-align-left" v-if="narration.chapter">'
+								+ '<div title="Chapter" uk-tooltip="pos: right" class="uk-align-left" v-if="narration.chapter">'
 								+ '<i style="color: rgb(126, 143, 236);"'
 								+ '	class="fa fa-superpowers hadithDetailsIcon" aria-hidden="true"></i>'
-								+ '<p class="hadithDetailsTitle">Chapter #{{narration.chapter}}</p>'
+								+ '<p class="hadithDetailsTitle" v-html="narration.chapter" />'
 								+ '</div>'
-								+ '<div class="uk-align-left" v-if="narration.section">'
+								+ '<div title="Section" uk-tooltip="pos: right"  class="uk-align-left" v-if="narration.section">'
 								+ '<i style="color: rgb(182, 137, 228);"'
 								+ '	class="fa fa-bookmark-o hadithDetailsIcon" aria-hidden="true"></i>'
-								+ '<p class="hadithDetailsTitle">{{narration.section}}</p>'
+								+ '<p class="hadithDetailsTitle" v-html="narration.section" />'
 								+ '</div>'
-								+ '<div class="uk-align-left" v-if="narration.part">'
+								+ '<div title="Part" uk-tooltip="pos: right" class="uk-align-left" v-if="narration.part">'
 								+ '<i style="color: rgb(248, 162, 134);"'
 								+ '  class="fa fa-clone hadithDetailsIcon" aria-hidden="true"></i>'
-								+ '	<p class="hadithDetailsTitle"> {{narration.part}}</p>'
+								+ '	<p class="hadithDetailsTitle" v-html="narration.part" />'
 								+ '</div>'
-								+ '<div class="uk-align-left" v-if="narration.volume">'
+								+ '<div title="Volume" uk-tooltip="pos: right" class="uk-align-left" v-if="narration.volume">'
 								+ '<i style="color: #a1f5f2"'
 								+ '	class="fa fa-calendar-o hadithDetailsIcon" aria-hidden="true"></i>'
-								+ '<p class="hadithDetailsTitle"> volume #{{narration.volume}}</p>'
+								+ '<p class="hadithDetailsTitle" v-html="narration.volume" />'
 								+ '</div>'
-								+ '<span class="uk-align-left"'
+								+ '<span title="Grading" uk-tooltip="pos: right" class="uk-align-left"'
 								+ 'v-for="gradingobj in narration.gradings"'
 								+ 'v-bind:class="gradeLabelClass(gradingobj.grading)"> <i'
 								+ 'v-bind:class="gradeLabelIcon(gradingobj.grading)"'
@@ -244,6 +261,7 @@ function setupVue(query) {
 									if (value.notes) {
 										value.notes = marked(value.notes);
 									}
+									value.volume = "Volume " + value.volume;
 									value = socialMediaDecoratedHadith(value);
 									self.narrations.push(value);
 									console.log(value);
@@ -285,7 +303,7 @@ function setupVue(query) {
 				}
 			},
 			isActiveClass : function(text) {
-				if (text.includes('<span')) {
+				if (text && text.includes('<span')) {
 					return "uk-active"
 				} else {
 					return '';
@@ -324,6 +342,9 @@ function socialMediaDecoratedHadith(hadithObj) {
 	var remainingLen = 150 - (hadithText.length + hadithURL.length);
 	var hadithText = hadithText + " \""
 			+ hadithObj.english.slice(remainingLen * -1) + "\"";
+	hadithText = hadithText.replaceAll('<span class="highlight">', '');
+	hadithText = hadithText.replaceAll('</span>', '');
+
 	hadithText = encodeURIComponent(hadithText);
 	hadithObj["facebook"] = "https://www.facebook.com/sharer/sharer.php?u="
 			+ hadithURL;
@@ -339,6 +360,11 @@ function socialMediaDecoratedHadith(hadithObj) {
 			+ hadithURL;
 	return hadithObj;
 }
+
+String.prototype.replaceAll = function(search, replacement) {
+    var target = this;
+    return target.replace(new RegExp(search, 'g'), replacement);
+};
 
 function getParameterByName(name, url) {
 	if (!url) {
