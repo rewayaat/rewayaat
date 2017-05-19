@@ -7,6 +7,7 @@
 	<packaging>jar</packaging>
 	<version>1.0</version>
 	<properties>
+	<start-class>com.rewayaat.RewayaatApplication</start-class>
 		<java-version>1.8</java-version>
 		<docker.image.prefix>rewayaat</docker.image.prefix>
 	</properties>
@@ -186,7 +187,7 @@
 							<goal>check</goal>
 						</goals>
 						<configuration>
-							<excludes>**/com/rewayaat/web/data/**,**/com/rewayaat/web/config/**,**/com/rewayaat/test/**</excludes>
+							<excludes>**/com/rewayaat/web/data/**,**/com/rewayaat/web/config/**,**/com/rewayaat/test/**,**/com/rewayaat/loader/**</excludes>
 							<failOnViolation>true</failOnViolation>
 							<configLocation>${project.basedir}/src/main/resources/rewayaatcheckstyleconfig.xml</configLocation>
 							<violationSeverity>warning</violationSeverity>

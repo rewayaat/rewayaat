@@ -65,8 +65,8 @@ public class AlKafiWorker extends Thread {
         PrintWriter writer = null;
         try {
             writer = new PrintWriter((new BufferedWriter(new FileWriter(
-                    "/root/git/rewayaat/rewayaat/src/main/java/com/rewayaat/loader/resources/operationLog_" + start
-                            + "-" + end + ".txt",
+                    "/home/zir0/git/rewayaatv2/rewayaat/src/main/java/com/rewayaat/loader/resources/operationLog_"
+                            + start + "-" + end + ".txt",
                     true))));
         } catch (IOException e1) {
             // TODO Auto-generated catch block
@@ -74,7 +74,7 @@ public class AlKafiWorker extends Thread {
         }
         File myTempDir = Files.createTempDir();
         PDDocument document = null;
-        String pdfLocation = "/root/git/rewayaat/rewayaat/src/main/java/com/rewayaat/loader/resources/alkafi.pdf";
+        String pdfLocation = "/home/zir0/git/rewayaatv2/rewayaat/src/main/java/com/rewayaat/loader/resources/alkafi.pdf";
         try {
             document = PDDocument.load(new File(pdfLocation));
         } catch (InvalidPasswordException e1) {
@@ -154,7 +154,8 @@ public class AlKafiWorker extends Thread {
                         // get section in arabic
                         if (section.length() > 2) {
                             String arabicText = getPreceedingArabicText(lines, j);
-                            if (!arabicText.trim().isEmpty()) {
+                            if (!arabicText.trim().isEmpty() && !(new ArabicNormalizer(arabicText).getOutput()
+                                    .length() > (section.length() * 3))) {
                                 arabicText = combineArabicStrings(matchingArabicText(arabicText, arabicChunks),
                                         arabicText);
                                 section += " / " + arabicText;
@@ -162,7 +163,7 @@ public class AlKafiWorker extends Thread {
                         }
                         j = v - 1;
                     } else if ((line.toUpperCase().matches(
-                            "(CHAPTER|CHAPATER|CHAPER|CHATER|CHAPAATER|CHAPPTER|CAHPTER)[\\s\\xA0]*[0-9]+[\\s\\xA0]–.*")
+                            "(CHAPTER|CHAPATER|CHHAPTER|CHAPER|CHATER|CHAPAATER|CHAPPTER|CAHPTER)[\\s\\xA0]*[0-9]+[\\s\\xA0]–.*")
                             && !line.contains(".") && !st.contains("...."))
                             || line.toUpperCase().trim().contains("Chapter 13 The Imams are the Light")
                             || (line.trim().equals("Chapter 1") && i == 627)) {
@@ -181,7 +182,8 @@ public class AlKafiWorker extends Thread {
                         // get chapter name in arabic
                         if (chapter.length() > 2) {
                             String arabicText = getPreceedingArabicText(lines, j);
-                            if (!arabicText.trim().isEmpty()) {
+                            if (!arabicText.trim().isEmpty() && !(new ArabicNormalizer(arabicText).getOutput()
+                                    .length() > (chapter.length() * 3))) {
                                 arabicText = combineArabicStrings(matchingArabicText(arabicText, arabicChunks),
                                         arabicText);
                                 chapter += " / " + arabicText;
@@ -192,7 +194,8 @@ public class AlKafiWorker extends Thread {
 
                     } else if (line.contains("hubeali.com") || line.startsWith("Alkafi Volume ")
                             || line.contains("Al Kafi V") || line.contains("The Book Of")
-                            || line.contains("Al Kafi – V")
+                            || line.contains("Al Kafi – V") || line.contains("Al Kafi - V")
+                            || line.contains("Al-Kafi – V") || line.contains("Al-Kafi - V")
                             || line.matches(".*CH[\\s\\xA0][0-9]+[\\s\\xA0]H[\\s\\xA0][0-9]+.*")
                             || line.matches("^[\\s\\xA0]*[0-9]+[\\s\\xA0]out[\\s\\xA0]of[\\s\\xA0][0-9]+[\\s\\xA0]*$")
                             || line.matches("^[0-9]+[()]*[\\s\\xA0]*$") || line.contains("hubeali.com")
