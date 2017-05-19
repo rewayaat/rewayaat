@@ -23,7 +23,7 @@ public class ClientProvider implements EnvironmentAware {
     private static Object lock = new Object();
     private Client client;
     // default value, will be overwritten by spring configuration if applicable
-    public static String host = "34.209.210.59";
+    public static String host = "127.0.0.1";
     // default value, will be overwritten by spring configuration if applicable
     public static int port = 9300;
 
