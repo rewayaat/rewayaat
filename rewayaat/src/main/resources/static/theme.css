@@ -7099,10 +7099,10 @@ th.uk-text-break, td.uk-text-break {
 }
 
 .uk-light :not(pre)>code, .uk-light :not(pre)>kbd, .uk-light :not(pre)>samp, .uk-section-primary:not(.uk-preserve-color) :not(pre)>code, .uk-section-primary:not(.uk-preserve-color) :not(pre)>kbd, .uk-section-primary:not(.uk-preserve-color) :not(pre)>samp, .uk-section-secondary:not(.uk-preserve-color) :not(pre)>code, .uk-section-secondary:not(.uk-preserve-color) :not(pre)>kbd, .uk-section-secondary:not(.uk-preserve-color) :not(pre)>samp, .uk-card-primary.uk-card-body :not(pre)>code, .uk-card-primary.uk-card-body :not(pre)>kbd, .uk-card-primary.uk-card-body :not(pre)>samp, .uk-card-primary>:not([class*='uk-card-media']) :not(pre)>code, .uk-card-primary>:not([class*='uk-card-media']) :not(pre)>kbd, .uk-card-primary>:not([class*='uk-card-media']) :not(pre)>samp, .uk-card-secondary.uk-card-body :not(pre)>code, .uk-card-secondary.uk-card-body :not(pre)>kbd, .uk-card-secondary.uk-card-body :not(pre)>samp, .uk-card-secondary>:not([class*='uk-card-media']) :not(pre)>code, .uk-card-secondary>:not([class*='uk-card-media']) :not(pre)>kbd, .uk-card-secondary>:not([class*='uk-card-media']) :not(pre)>samp, .uk-overlay-primary :not(pre)>code, .uk-overlay-primary :not(pre)>kbd, .uk-overlay-primary :not(pre)>samp, .tm-navbar-container:not(.uk-navbar-transparent) :not(pre)>code, .tm-navbar-container:not(.uk-navbar-transparent) :not(pre)>kbd, .tm-navbar-container:not(.uk-navbar-transparent) :not(pre)>samp {
-    color: #bc92ef;
+    color: #92bfba;
     font-size: 18px;
     border-radius: 5px;
-    border: 1px solid #bc92ef;
+    border: 1px solid #669496;
     font-family: Lane;
     background: transparent;
     margin:15px;
