@@ -320,43 +320,46 @@ function socialMediaDecoratedHadith(hadithObj) {
 
 	var hadithURL = encodeURIComponent(location.protocol + "//" + location.host
 			+ "/?q=_id:" + hadithObj._id);
-	var hadithText = "";
+	var hadithDesc = "";
 	if (hadithObj.book) {
-		hadithText += hadithObj.book;
+		hadithDesc += hadithObj.book;
 	}
 	if (hadithObj.edition) {
-		hadithText += " (" + hadithObj.edition + "), ";
+		hadithDesc += " (" + hadithObj.edition + "), ";
 	} else {
-		hadithText += ", ";
+		hadithDesc += ", ";
 	}
 	if (hadithObj.number) {
-		hadithText += "#" + hadithObj.number + ", ";
+		hadithDesc += "#" + hadithObj.number + ", ";
 	}
 	if (hadithObj.chapter) {
-		hadithText += "CHAP. " + hadithObj.chapter + ", ";
+		hadithDesc += "CHAP. " + hadithObj.chapter + ", ";
 	}
 	if (hadithObj.volume) {
-		hadithText += "VOL. " + hadithObj.volume;
+		hadithDesc += "VOL. " + hadithObj.volume;
 	}
-	// keep the overall text < 150 (to stay within twitter max length)
-	var remainingLen = 150 - (hadithText.length + hadithURL.length);
-	var hadithText = hadithText + " \""
-			+ hadithObj.english.slice(remainingLen * -1) + "\"";
-	hadithText = hadithText.replaceAll('<span class="highlight">', '');
-	hadithText = hadithText.replaceAll('</span>', '');
-
-	hadithText = encodeURIComponent(hadithText);
+	// keep the overall hadithDesc + hadithURL < 150 (to stay within twitter max length)
+	if ((hadithDesc.length + hadithURL.length) > 140) {
+		hadithTextDesiredLen = 140 - hadithURL.length;
+		hadithDesc = hadithDesc.substring(0, hadithTextDesiredLen);
+	}
+	
+	hadithDesc = hadithDesc.replaceAll('<span class="highlight">', '');
+	hadithDesc = hadithDesc.replaceAll('</span>', '');
+	hadithDesc = encodeURIComponent(hadithDesc);
+	var hadithText = encodeURIComponent(hadithObj.english.replaceAll('<span class="highlight">', '').replaceAll('</span>', ''));
+	
 	hadithObj["facebook"] = "https://www.facebook.com/sharer/sharer.php?u="
 			+ hadithURL;
 	hadithObj["twitter"] = "https://twitter.com/intent/tweet/?text="
-			+ hadithText + "&url=" + hadithURL;
+			+ hadithDesc + "&url=" + hadithURL;
 	hadithObj["tumblr"] = "https://www.tumblr.com/widgets/share/tool/preview?posttype=link&title=Rewayaat.io&caption="
-			+ hadithText
+			+ hadithDesc
 			+ "&content="
 			+ hadithURL
 			+ "&shareSource=tumblr_share_button&_format=html";
 	hadithObj["googleplus"] = "https://plus.google.com/share?url=" + hadithURL;
-	hadithObj["whatsapp"] = "whatsapp://send?text=" + hadithText + "%20"
+	hadithObj["whatsapp"] = "whatsapp://send?text=" + hadithText + " - " + hadithURL + "%20"
 			+ hadithURL;
 	return hadithObj;
 }
