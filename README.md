@@ -3,4 +3,4 @@
 
 
 
-Welcome to the development home of the Rewayaat Hadith Database Project.
+Welcome to the development home of the Rewayaat Hadith Database Project. To build, execute ```mvn package docker:build```. To get the latest stable [docker image](docker pull rewayaat/webapp), execute ```docker pull rewayaat/webapp```
