@@ -242,7 +242,8 @@ function setupVue(query) {
 			this.fetchNarrations();
 		},
 		methods : {
-			// fetches more narrations to display using the Rewayaat REST API.
+			// fetches more narrations to display using the Rewayaat
+			// REST API.
 			fetchNarrations : function() {
 				if (!this.done) {
 					var self = this;
@@ -257,15 +258,15 @@ function setupVue(query) {
 							}
 							$.each(JSON.parse(xhr.responseText), function(
 									index, value) {
-								setTimeout(function() {
-									if (value.notes) {
-										value.notes = marked(value.notes);
-									}
-									value.volume = "Volume " + value.volume;
-									value = socialMediaDecoratedHadith(value);
-									self.narrations.push(value);
-									console.log(value);
-								}, 200 * index);
+
+								if (value.notes) {
+									value.notes = marked(value.notes);
+								}
+								value.volume = "Volume " + value.volume;
+								value = quranicVersesDecoratedHadith(value);
+								value = socialMediaDecoratedHadith(value);
+								self.narrations.push(value);
+								console.log(value);
 
 							});
 							if (JSON.parse(xhr.responseText).length < 10) {
@@ -338,17 +339,19 @@ function socialMediaDecoratedHadith(hadithObj) {
 	if (hadithObj.volume) {
 		hadithDesc += "VOL. " + hadithObj.volume;
 	}
-	// keep the overall hadithDesc + hadithURL < 150 (to stay within twitter max length)
+	// keep the overall hadithDesc + hadithURL < 150 (to stay within twitter max
+	// length)
 	if ((hadithDesc.length + hadithURL.length) > 140) {
 		hadithTextDesiredLen = 140 - hadithURL.length;
 		hadithDesc = hadithDesc.substring(0, hadithTextDesiredLen);
 	}
-	
+
 	hadithDesc = hadithDesc.replaceAll('<span class="highlight">', '');
 	hadithDesc = hadithDesc.replaceAll('</span>', '');
 	hadithDesc = encodeURIComponent(hadithDesc);
-	var hadithText = encodeURIComponent(hadithObj.english.replaceAll('<span class="highlight">', '').replaceAll('</span>', ''));
-	
+	var hadithText = encodeURIComponent(hadithObj.english.replaceAll(
+			'<span class="highlight">', '').replaceAll('</span>', ''));
+
 	hadithObj["facebook"] = "https://www.facebook.com/sharer/sharer.php?u="
 			+ hadithURL;
 	hadithObj["twitter"] = "https://twitter.com/intent/tweet/?text="
@@ -359,14 +362,67 @@ function socialMediaDecoratedHadith(hadithObj) {
 			+ hadithURL
 			+ "&shareSource=tumblr_share_button&_format=html";
 	hadithObj["googleplus"] = "https://plus.google.com/share?url=" + hadithURL;
-	hadithObj["whatsapp"] = "whatsapp://send?text=" + hadithText + " - " + hadithURL + "%20"
-			+ hadithURL;
+	hadithObj["whatsapp"] = "whatsapp://send?text=" + hadithText + " - "
+			+ hadithURL + "%20" + hadithURL;
 	return hadithObj;
 }
 
+/**
+ * References to Qur'anic verses in the hadith object are replaced with
+ * hyper-links that allow users to view those verses.
+ */
+function quranicVersesDecoratedHadith(hadithObj) {
+
+	var quranicVerses = hadithObj.english.match(/\s\[?[0-9]+:[0-9]+\]?\s/g);
+	if (quranicVerses) {
+		for (var i = 0, l = quranicVerses.length; i < l; i++) {
+			// trim, remove square brackets, and split on ':' symbol
+			var reference = quranicVerses[i].trim();
+			reference = reference.replaceAll('\\[', '');
+			reference = reference.replaceAll('\\]', '');
+			reference = reference.split(":");
+			var modalId = makeid();
+			var buttonCode = '<a href="#' + modalId + '" uk-toggle>'
+					+ quranicVerses[i].trim() + '</a>'
+			createQuranicVerseModal(reference[0], reference[1], modalId);
+			hadithObj.english = hadithObj.english.replace(quranicVerses[i]
+					.trim(), buttonCode);
+		}
+	}
+	return hadithObj;
+}
+
+/**
+ * Creates a modal div to display information for a given Qur'anic verse.
+ */
+function createQuranicVerseModal(surah, ayat, divId) {
+
+	var url = 'http://api.alquran.cloud/ayah/' + surah + ':' + ayat
+			+ '/editions/quran-simple,en.asad';
+	$
+			.get(
+					url,
+					function(data, status) {
+						// create UIKit modal
+						var divCode = '<div id="' + divId + '" uk-modal>';
+						divCode += ' <div class="uk-modal-dialog">';
+						divCode += '<button class="uk-modal-close-default" type="button" uk-close></button>';
+						divCode += '<div class="uk-modal-header"> <h2 class="uk-modal-title">Surah #'
+								+ surah
+								+ ' ('
+								+ data.data[0].surah.englishName
+								+ '), Verse #' + ayat + '</h2> </div>';
+						divCode += ' <div class="uk-modal-body"><p style="font-family:Scheherazade; font-size:35px; direction: rtl;">'
+								+ data.data[0].text + '</p><p>'
+								+ data.data[1].text + '</p></div>';
+						divCode += '</div></div>';
+						document.getElementById("hadithView").innerHTML += divCode;
+					});
+}
+
 String.prototype.replaceAll = function(search, replacement) {
-    var target = this;
-    return target.replace(new RegExp(search, 'g'), replacement);
+	var target = this;
+	return target.replace(new RegExp(search, 'g'), replacement);
 };
 
 function getParameterByName(name, url) {
@@ -388,4 +444,14 @@ function getQueryStringValue(key) {
 			"^(?:.*[&\\?]"
 					+ encodeURIComponent(key).replace(/[\.\+\*]/g, "\\$&")
 					+ "(?:\\=([^&]*))?)?.*$", "i"), "$1"));
+}
+
+function makeid() {
+	var text = "";
+	var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+	for (var i = 0; i < 5; i++)
+		text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+	return text;
 }
