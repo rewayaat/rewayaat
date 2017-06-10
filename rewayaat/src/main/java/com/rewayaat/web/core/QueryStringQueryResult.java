@@ -57,7 +57,11 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
             Map<String, Object> result = hit.getSource();
             result.put("_id", hit.getId());
             for (Entry<String, HighlightField> entry : hit.getHighlightFields().entrySet()) {
-                result.put(entry.getKey(), entry.getValue().fragments()[0].toString());
+                // Add the highlighted fragment if it is not a Qur'anic verse.
+                // Front-end will take care of highlighting Qur'anic verses.
+                if (!entry.getValue().fragments()[0].toString().contains(":")) {
+                    result.put(entry.getKey(), entry.getValue().fragments()[0].toString());
+                }
             }
             hadithes.add(mapper.convertValue(result, HadithObject.class));
             System.out.println(result);

@@ -170,7 +170,7 @@ function submitSearchQuery() {
 
 /**
  * Main method responsible for displaying queries using Vue.js. Stores the
- * created vue instance in the global vueApp var.
+ * created Vue instance in the global vueApp variable.
  */
 function setupVue(query) {
 
@@ -315,7 +315,7 @@ function setupVue(query) {
 }
 
 /**
- * Adds relevant social media urls as properties of the given hadith object.
+ * Adds relevant social media URLS as properties of the given hadith object.
  */
 function socialMediaDecoratedHadith(hadithObj) {
 
@@ -393,7 +393,7 @@ function quranicVersesDecoratedHadith(hadithObj) {
 }
 
 /**
- * Creates a modal div to display information for a given Qur'anic verse.
+ * Appends a modal object containing information for the given Qur'anic verse to the dom.
  */
 function createQuranicVerseModal(surah, ayat, divId) {
 
@@ -446,6 +446,9 @@ function getQueryStringValue(key) {
 					+ "(?:\\=([^&]*))?)?.*$", "i"), "$1"));
 }
 
+/**
+ * Generates a random string, suitable for making random id's.
+ */
 function makeid() {
 	var text = "";
 	var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
