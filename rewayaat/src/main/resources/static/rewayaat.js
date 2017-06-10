@@ -323,7 +323,7 @@ function socialMediaDecoratedHadith(hadithObj) {
 			+ "/?q=_id:" + hadithObj._id);
 	var hadithDesc = "";
 	if (hadithObj.book) {
-		hadithDesc += hadithObj.book;
+		hadithDesc += hadithObj.book + " ";
 	}
 	if (hadithObj.edition) {
 		hadithDesc += " (" + hadithObj.edition + "), ";
@@ -334,7 +334,7 @@ function socialMediaDecoratedHadith(hadithObj) {
 		hadithDesc += "#" + hadithObj.number + ", ";
 	}
 	if (hadithObj.chapter) {
-		hadithDesc += "CHAP. " + hadithObj.chapter + ", ";
+		hadithDesc += hadithObj.chapter + ", ";
 	}
 	if (hadithObj.volume) {
 		hadithDesc += "VOL. " + hadithObj.volume;
