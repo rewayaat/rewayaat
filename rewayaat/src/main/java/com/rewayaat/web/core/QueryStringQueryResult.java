@@ -59,7 +59,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
             for (Entry<String, HighlightField> entry : hit.getHighlightFields().entrySet()) {
                 // Add the highlighted fragment if it is not a Qur'anic verse.
                 // Front-end will take care of highlighting Qur'anic verses.
-                if (!entry.getValue().fragments()[0].toString().contains(":")) {
+                if (!entry.getValue().fragments()[0].toString().matches(".*[0-114]:[0-300].*")) {
                     result.put(entry.getKey(), entry.getValue().fragments()[0].toString());
                 }
             }
