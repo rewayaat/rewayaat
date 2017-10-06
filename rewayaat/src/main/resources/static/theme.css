@@ -7957,8 +7957,8 @@ html {
 
 @media (min-width:1400px) {
     .tm-sidebar-left {
-        width: 300px !important;
-        padding: 45px 45px 60px 45px
+           background: rgba(255, 255, 255, 0.89);
+    border-bottom: #bdbcbc solid 1px;
     }
     .tm-sidebar-right {
         left: calc(100% + 60px)
