@@ -2,8 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
 <meta charset="UTF-8" />
-<meta name="description"
-	content="The Rewayaat Hadith Database Project" />
+<meta name="description" content="The Rewayaat Hadith Database Project" />
 <meta name="keywords"
 	content="hadith, rewayaat, search, islam, narration, quran" />
 <meta name="author" content="Rewayaat" />
@@ -35,6 +34,8 @@
 <script
 	src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.6/marked.min.js"></script>
 
+<link href="https://fonts.googleapis.com/css?family=Chivo" rel="stylesheet"/>
+
 <script th:src="@{/vue.js}" src="/vue.js"></script>
 <script th:src="@{/rewayaat.js}" src="/rewayaat.js"></script>
 <script th:src="@{/pace.min.js}" src="/pace.min.js"></script>
@@ -45,7 +46,7 @@
 <script th:src="@{/jquery.mousewheel.js}" src="/jquery.mousewheel.js"></script>
 <script th:src="@{/jquery.jscrollpane.js}" src="/jquery.jscrollpane.js"></script>
 <!-- Place this tag in your head or just before your close body tag. -->
-<script  src="https://buttons.github.io/buttons.js"></script>
+<script src="https://buttons.github.io/buttons.js"></script>
 </head>
 <body>
 	<!--  LOAD THE MENU BAR AT THE TOP -->
@@ -56,9 +57,9 @@
 	<div id="parentContainer" class="uk-container-large uk-align-center"
 		style="margin-top: 0px;">
 		<div id="hadithView" class="uk-grid">
-			<div
-				class="uk-card uk-align-center uk-card-secondary  uk-width-1-1 "
-				style="margin-top: 40px;" v-for="(narration, index) in narrations">
+			<div class="uk-card uk-align-center uk-card  uk-width-1-1 "
+				style="margin-top: 40px; background-color: #efefef; border-radius: 25px; box-shadow: rgb(236, 235, 235) 5px 5px; border: #c1c0c0 solid 1px;"
+				v-for="(narration, index) in narrations">
 
 				<!--  SHOW ON LEFT IF LARGE SCREEN -->
 				<div class="uk-align-left uk-width-1-6 uk-visible@l hadithDetails "
@@ -69,12 +70,12 @@
 				<!--  HADITH TEXT SECTION -->
 				<div class="uk-grid">
 					<div class="hadithGrid">
-					<!-- SHOW ON TOP IF SMALL SCREEN -->
-				<div class="uk-align-left uk-width-1-1  uk-hidden@l"
-					style="padding-left: 0px; margin-left: 0px; padding: 10px;">
-					<hadith-details v-bind:narration="narration"> <br />
-					</hadith-details>
-				</div>
+						<!-- SHOW ON TOP IF SMALL SCREEN -->
+						<div class="uk-align-left uk-width-1-1  uk-hidden@l"
+							style="padding-left: 0px; margin-left: 0px; padding: 10px;">
+							<hadith-details v-bind:narration="narration"> <br />
+							</hadith-details>
+						</div>
 						<div class="uk-align-left" style="padding-top: 0px;">
 							<div>
 								<!-- Sharingbutton WhatsApp -->
@@ -159,11 +160,7 @@
 									class="uk-button uk-button-default">Related</button>
 							</div>
 							<ul
-								style="    color: rgba(206, 201, 201, 0.18);
-    box-shadow: rgba(0, 0, 0, 0.52) 0px 0px 40px inset;
-    border-style: solid;
-    border-width: 1px;
-    background: rgba(0, 0, 0, 0.23);"
+								style="color: rgba(0, 0, 0, 0.18); box-shadow: rgba(247, 247, 247, 0.52) 0px 0px 40px inset; border-style: solid; border-width: 1px; background: #f7f7f7;"
 								class="uk-switcher uk-margin">
 
 								<li v-if="narration.arabic"><div
@@ -178,7 +175,7 @@
 									class="relatedObj " v-for="relatedObj in narration.related"
 									v-bind:href="relatedObj.url">
 										<div style="margin: 20px; padding: 20px;"
-											class="uk-card uk-card-default uk-card-small uk-card-secondary uk-animation-slide-left-small relatedObj">
+											class="uk-card uk-card-default uk-card-small uk-card uk-animation-slide-left-small relatedObj">
 											<h4 class="uk-text-uppercase"
 												style="font-family: Lane; font-weight: 600">
 												<i class="fa fa-external-link" aria-hidden="true"></i> <span

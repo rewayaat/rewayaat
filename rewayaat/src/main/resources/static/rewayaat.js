@@ -1,4 +1,5 @@
 var vueApp;
+var loadingHadith = false;
 
 /**
  * Main entry point to the website. If does not exist, display default welcome
@@ -53,7 +54,7 @@ $(document).keypress(function(e) {
 
 // loads more hadith when near the bottom of the page
 window.onscroll = function(ev) {
-	if (((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight)
+	if (((window.innerHeight + window.pageYOffset) >= (document.body.offsetHeight - 100))
 			&& document.getElementById('hadithView').innerHTML !== '') {
 		vueApp.fetchNarrations();
 	}
@@ -109,7 +110,7 @@ function updateQueryColor(currentCaretPosition) {
 					queryDivInnerHTML += '<span style="color: #98c2f1">'
 							+ queryValue[i] + '</span>';
 				} else {
-					queryDivInnerHTML += '<span  style="color: #cec9c9">'
+					queryDivInnerHTML += '<span  style="color: #000">'
 							+ queryValue[i] + '</span>';
 				}
 			}
@@ -180,39 +181,39 @@ function setupVue(query) {
 					'hadith-details',
 					{
 						template : '<div><div title="Book" uk-tooltip="pos: right" class="uk-align-left">'
-								+ '	<i style="color: #22df80" class="fa fa-book hadithDetailsIcon"'
+								+ '	<i style="color: rgb(83, 102, 125);" class="fa fa-book hadithDetailsIcon"'
 								+ '		aria-hidden="true"></i>'
 								+ '	<p class="hadithDetailsTitle" v-html="narration.book" />'
 								+ '</div>'
 								+ '<div title="Edition" uk-tooltip="pos: right" class="uk-align-left" v-if="narration.edition">'
-								+ '<i style="color: #c9dae1"'
+								+ '<i style="color: rgb(83, 102, 125)"'
 								+ '	class="fa fa-pencil-square-o hadithDetailsIcon"'
 								+ '	aria-hidden="true"></i>'
 								+ '<p class="hadithDetailsTitle">({{narration.edition}})</p>'
 								+ '</div>'
 								+ '<div title="Number" uk-tooltip="pos: right" class="uk-align-left" v-if="narration.number">'
-								+ '<i style="color: #ea4f4f"'
+								+ '<i style="color: rgb(83, 102, 125)"'
 								+ '	class="fa fa-pencil-square-o hadithDetailsIcon"'
 								+ '	aria-hidden="true"></i>'
 								+ '<p class="hadithDetailsTitle">Hadith #{{narration.number}}</p>'
 								+ '</div>'
 								+ '<div title="Chapter" uk-tooltip="pos: right" class="uk-align-left" v-if="narration.chapter">'
-								+ '<i style="color: rgb(126, 143, 236);"'
+								+ '<i style="color: rgb(83, 102, 125);"'
 								+ '	class="fa fa-superpowers hadithDetailsIcon" aria-hidden="true"></i>'
 								+ '<p class="hadithDetailsTitle" v-html="narration.chapter" />'
 								+ '</div>'
 								+ '<div title="Section" uk-tooltip="pos: right"  class="uk-align-left" v-if="narration.section">'
-								+ '<i style="color: rgb(182, 137, 228);"'
+								+ '<i style="color:  rgb(83, 102, 125);"'
 								+ '	class="fa fa-bookmark-o hadithDetailsIcon" aria-hidden="true"></i>'
 								+ '<p class="hadithDetailsTitle" v-html="narration.section" />'
 								+ '</div>'
 								+ '<div title="Part" uk-tooltip="pos: right" class="uk-align-left" v-if="narration.part">'
-								+ '<i style="color: rgb(248, 162, 134);"'
+								+ '<i style="color: rgb(83, 102, 125);"'
 								+ '  class="fa fa-clone hadithDetailsIcon" aria-hidden="true"></i>'
 								+ '	<p class="hadithDetailsTitle" v-html="narration.part" />'
 								+ '</div>'
 								+ '<div title="Volume" uk-tooltip="pos: right" class="uk-align-left" v-if="narration.volume">'
-								+ '<i style="color: #a1f5f2"'
+								+ '<i style="color:rgb(83, 102, 125)"'
 								+ '	class="fa fa-calendar-o hadithDetailsIcon" aria-hidden="true"></i>'
 								+ '<p class="hadithDetailsTitle" v-html="narration.volume" />'
 								+ '</div>'
@@ -245,6 +246,7 @@ function setupVue(query) {
 			// fetches more narrations to display using the Rewayaat
 			// REST API.
 			fetchNarrations : function() {
+				loadingHadith = true;
 				if (!this.done) {
 					var self = this;
 					var xhr = new XMLHttpRequest();
@@ -279,6 +281,7 @@ function setupVue(query) {
 							+ '&page=' + this.page);
 					xhr.send();
 					this.page++;
+					loadingHadith = false;
 				}
 			},
 			gradeLabelClass : function(grading) {

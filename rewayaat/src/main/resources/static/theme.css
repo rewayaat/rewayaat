@@ -3,7 +3,7 @@
 
 
 html {
-    font-family: Open Sans, Monstserrat, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: Chivo, Open Sans, Monstserrat, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     font-size: 18px;
     font-weight: normal;
     /* line-height: 1.5; */
@@ -24,7 +24,7 @@ html {
 	    margin-right: -95px;
 }
 
-.highlight {color: #1ec6f0;}
+.highlight {background-color:#8db1dc;}
 
 .querySymbolRight {
 	padding-left: 1px;
@@ -46,7 +46,7 @@ html {
   transition: 25ms ease-out;
   padding: 0.02em 0.3em;
   font-family: Helvetica Neue,Helvetica,Arial,sans-serif;
-  box-shadow: 2px 3px rgba(0, 0, 0, 0.8);
+  box-shadow: 2px 3px rgba(195, 174, 174, 0.8);
 }
 
 .resp-sharing-button__icon svg {
@@ -268,34 +268,35 @@ background-color: #FF6600
 
 
 .input {
-    border: 2px rgba(128, 128, 128, 0.54);
+          border: 1px rgba(107, 106, 106, 0.54);
     width: 100%;
     border-style: solid;
     height: 30px;
     padding-left: 30px;
-    border-radius: 5px;
+    border-radius: 0px;
     padding-top: -8px;
     /* text-transform: uppercase; */
     vertical-align: text-top;
     font-size: 20px;
-    margin-top: 12px;
-    font-family: Lane;
+    margin-top: 17px;
+    font-family: Chivo;
     white-space: nowrap;
+    margin-bottom: 20px;
+    margin-left: 40px;
     overflow: hidden;
-    font-weight: 600;
 }
 
 html {
     /* To make use of full height of page*/
     min-height: 100%;
     margin: 0;
-    background: #1d1f21;
+    background: #fff;
     
 }
 body {
     min-height: 100%;
     margin: 0;
-     background: #1d1f21;
+     background: #fff;
     
 }
 
@@ -305,7 +306,7 @@ body {
 }
 
 a {
-    background-color: transparent;
+    background-color: rgba(74, 19, 19, 0);
     -webkit-text-decoration-skip: objects;
 }
 
@@ -314,7 +315,7 @@ a:active, a:hover {
 }
 
 a, .uk-link {
-    color: #1e87f0;
+    color: #2562ab;
     text-decoration: none;
     cursor: pointer
 }
@@ -341,14 +342,14 @@ b, strong {
 :not(pre)>code, :not(pre)>kbd, :not(pre)>samp {
     font-size: 13px;
     font-family: 'Roboto Mono', monospace;
-    color: #f0506e;
+    color: #2562ab;
     white-space: nowrap;
     padding: 10px 6px;
     background: #f8f8f8;
 }
 
 em {
-    color: #f0506e
+    color: #2562ab;
 }
 
 ins {
@@ -413,7 +414,7 @@ p, ul, ol, dl, pre, address, fieldset, figure {
 
 h1, .uk-h1, h2, .uk-h2, h3, .uk-h3, h4, .uk-h4, h5, .uk-h5, h6, .uk-h6 {
     margin: 0 0 20px 0;
-    font-family: Lane, Montserrat, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: Chivo, Lane, Montserrat, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     font-weight: 600;
     color: #222;
     text-transform: none;
@@ -537,8 +538,8 @@ pre code {
 }
 
 ::selection {
-    background: #22df80;
-    color: #f8f8f8;
+    background: #8db1dc;
+    color: #0a0a0a;
     text-shadow: chocolate;
 }
 
@@ -1373,9 +1374,9 @@ select.uk-form-width-xsmall {
 }
 
 .uk-button-default {
-    /* background-color: transparent; */
+    background-color: transparent;
     /* color: #222; */
-    /* border: 1px solid #e5e5e5 */
+    /* border: 1px solid #e5e5e5; */
     /* border-bottom: gray; */
     /* border-bottom-style: solid; */
     /* border-bottom-width: 1px; */
@@ -1390,7 +1391,9 @@ select.uk-form-width-xsmall {
 .uk-button-default:active, .uk-button-default.uk-active {
     background-color: transparent;
     color: #222;
-    border-color: #999
+    border: 1px solid #000000;
+    border-color: #999;
+    border-width: 2p1;
 }
 
 .uk-button-primary {
@@ -1986,9 +1989,9 @@ select.uk-form-width-xsmall {
 }
 
 .uk-card-default {
-    background: rgba(23, 22, 22, 0.66);
+    background: rgba(241, 241, 241, 0.66);
     color: #666;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.98);
+    box-shadow: 0 5px 15px rgba(173, 161, 161, 0.98);
 }
 
 .uk-card-default .uk-card-title {
@@ -2091,7 +2094,7 @@ select.uk-form-width-xsmall {
     .uk-card-body .uk-nav-default>li>a, .uk-card-body .uk-nav-default .uk-nav-header, .uk-card-body .uk-nav-default .uk-nav-divider {
         padding-left: 40px;
         padding-right: 40px;
-        font-family: LANE;
+        font-family: Lane;
         text-transform: uppercase;
         font-weight: 600;
     }
@@ -2796,11 +2799,11 @@ ul.uk-nav-sub {
 }
 
 .uk-nav-default>li>a {
-    color: #999
+    color: #000;
 }
 
 .uk-nav-default>li>a:hover, .uk-nav-default>li>a:focus {
-    color: #666
+    color: #2562ab;
 }
 
 .uk-nav-default>li.uk-active>a {
@@ -2812,7 +2815,7 @@ ul.uk-nav-sub {
 }
 
 .uk-nav-default .uk-nav-divider {
-    border-top: 1px solid rgba(229, 229, 229, 0.31);
+    border-top: 1px solid rgba(2, 2, 2, 0.3);
 }
 
 .uk-nav-default .uk-nav-sub a {
@@ -3686,10 +3689,10 @@ ul.uk-nav-sub {
     -webkit-overflow-scrolling: touch;
     padding-left: 15px;
     padding-right: 15px;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(88, 83, 83, 0.6);
     opacity: 0;
     -webkit-transition: opacity .15s linear;
-    transition: opacity .15s linear
+    transition: opacity .15s linear;
 }
 
 @media (min-width:640px) {
@@ -3720,7 +3723,7 @@ ul.uk-nav-sub {
     margin: 50px auto;
     width: 600px;
     max-width: 100%;
-    background: #d2d2d2;
+    background: #ffffff;
     opacity: 0;
     -webkit-transform: translateY(-100px);
     transform: translateY(-100px);
@@ -5871,7 +5874,7 @@ th.uk-text-break, td.uk-text-break {
 {
 	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
 	/* border-radius: 80px; */
-	background-color: rgba(27, 25, 25, 0.71);
+	background-color: rgba(210, 206, 206, 0.71);
 }
 
 .style-1::-webkit-scrollbar
@@ -5884,7 +5887,7 @@ th.uk-text-break, td.uk-text-break {
 {
 	border-radius: 10px;
 	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
-	background-color: #c1c1c1;
+	    background-color: rgb(141, 177, 220);
 }
 
 @media (min-width:1200px) {
@@ -7090,12 +7093,11 @@ th.uk-text-break, td.uk-text-break {
 }
 
 .uk-light a, .uk-light .uk-link, .uk-section-primary:not(.uk-preserve-color) a, .uk-section-primary:not(.uk-preserve-color) .uk-link, .uk-section-secondary:not(.uk-preserve-color) a, .uk-section-secondary:not(.uk-preserve-color) .uk-link, .uk-card-primary.uk-card-body a, .uk-card-primary.uk-card-body .uk-link, .uk-card-primary>:not([class*='uk-card-media']) a, .uk-card-primary>:not([class*='uk-card-media']) .uk-link, .uk-card-secondary.uk-card-body a, .uk-card-secondary.uk-card-body .uk-link, .uk-card-secondary>:not([class*='uk-card-media']) a, .uk-card-secondary>:not([class*='uk-card-media']) .uk-link, .uk-overlay-primary a, .uk-overlay-primary .uk-link, .tm-navbar-container:not(.uk-navbar-transparent) a, .tm-navbar-container:not(.uk-navbar-transparent) .uk-link {
-    color: #23e4a0;
-    /* margin-right: -70px; */
+  
 }
 
 .uk-light a:hover, .uk-light .uk-link:hover, .uk-section-primary:not(.uk-preserve-color) a:hover, .uk-section-primary:not(.uk-preserve-color) .uk-link:hover, .uk-section-secondary:not(.uk-preserve-color) a:hover, .uk-section-secondary:not(.uk-preserve-color) .uk-link:hover, .uk-card-primary.uk-card-body a:hover, .uk-card-primary.uk-card-body .uk-link:hover, .uk-card-primary>:not([class*='uk-card-media']) a:hover, .uk-card-primary>:not([class*='uk-card-media']) .uk-link:hover, .uk-card-secondary.uk-card-body a:hover, .uk-card-secondary.uk-card-body .uk-link:hover, .uk-card-secondary>:not([class*='uk-card-media']) a:hover, .uk-card-secondary>:not([class*='uk-card-media']) .uk-link:hover, .uk-overlay-primary a:hover, .uk-overlay-primary .uk-link:hover, .tm-navbar-container:not(.uk-navbar-transparent) a:hover, .tm-navbar-container:not(.uk-navbar-transparent) .uk-link:hover {
-    color: #32d296;
+    
 }
 
 .uk-light :not(pre)>code, .uk-light :not(pre)>kbd, .uk-light :not(pre)>samp, .uk-section-primary:not(.uk-preserve-color) :not(pre)>code, .uk-section-primary:not(.uk-preserve-color) :not(pre)>kbd, .uk-section-primary:not(.uk-preserve-color) :not(pre)>samp, .uk-section-secondary:not(.uk-preserve-color) :not(pre)>code, .uk-section-secondary:not(.uk-preserve-color) :not(pre)>kbd, .uk-section-secondary:not(.uk-preserve-color) :not(pre)>samp, .uk-card-primary.uk-card-body :not(pre)>code, .uk-card-primary.uk-card-body :not(pre)>kbd, .uk-card-primary.uk-card-body :not(pre)>samp, .uk-card-primary>:not([class*='uk-card-media']) :not(pre)>code, .uk-card-primary>:not([class*='uk-card-media']) :not(pre)>kbd, .uk-card-primary>:not([class*='uk-card-media']) :not(pre)>samp, .uk-card-secondary.uk-card-body :not(pre)>code, .uk-card-secondary.uk-card-body :not(pre)>kbd, .uk-card-secondary.uk-card-body :not(pre)>samp, .uk-card-secondary>:not([class*='uk-card-media']) :not(pre)>code, .uk-card-secondary>:not([class*='uk-card-media']) :not(pre)>kbd, .uk-card-secondary>:not([class*='uk-card-media']) :not(pre)>samp, .uk-overlay-primary :not(pre)>code, .uk-overlay-primary :not(pre)>kbd, .uk-overlay-primary :not(pre)>samp, .tm-navbar-container:not(.uk-navbar-transparent) :not(pre)>code, .tm-navbar-container:not(.uk-navbar-transparent) :not(pre)>kbd, .tm-navbar-container:not(.uk-navbar-transparent) :not(pre)>samp {
@@ -7290,17 +7292,11 @@ th.uk-text-break, td.uk-text-break {
 }
 
 .uk-light .uk-button-default:hover, .uk-light .uk-button-default:focus, .uk-section-primary:not(.uk-preserve-color) .uk-button-default:hover, .uk-section-primary:not(.uk-preserve-color) .uk-button-default:focus, .uk-section-secondary:not(.uk-preserve-color) .uk-button-default:hover, .uk-section-secondary:not(.uk-preserve-color) .uk-button-default:focus, .uk-card-primary.uk-card-body .uk-button-default:hover, .uk-card-primary.uk-card-body .uk-button-default:focus, .uk-card-primary>:not([class*='uk-card-media']) .uk-button-default:hover, .uk-card-primary>:not([class*='uk-card-media']) .uk-button-default:focus, .uk-card-secondary.uk-card-body .uk-button-default:hover, .uk-card-secondary.uk-card-body .uk-button-default:focus, .uk-card-secondary>:not([class*='uk-card-media']) .uk-button-default:hover, .uk-card-secondary>:not([class*='uk-card-media']) .uk-button-default:focus, .uk-overlay-primary .uk-button-default:hover, .uk-overlay-primary .uk-button-default:focus, .tm-navbar-container:not(.uk-navbar-transparent) .uk-button-default:hover, .tm-navbar-container:not(.uk-navbar-transparent) .uk-button-default:focus {
-    background-color: transparent;
-    color: #fff;
-    border-color: #fff
+   background-color: #adb9c7;
 }
 
 .uk-light .uk-button-default:active, .uk-light .uk-button-default.uk-active, .uk-section-primary:not(.uk-preserve-color) .uk-button-default:active, .uk-section-primary:not(.uk-preserve-color) .uk-button-default.uk-active, .uk-section-secondary:not(.uk-preserve-color) .uk-button-default:active, .uk-section-secondary:not(.uk-preserve-color) .uk-button-default.uk-active, .uk-card-primary.uk-card-body .uk-button-default:active, .uk-card-primary.uk-card-body .uk-button-default.uk-active, .uk-card-primary>:not([class*='uk-card-media']) .uk-button-default:active, .uk-card-primary>:not([class*='uk-card-media']) .uk-button-default.uk-active, .uk-card-secondary.uk-card-body .uk-button-default:active, .uk-card-secondary.uk-card-body .uk-button-default.uk-active, .uk-card-secondary>:not([class*='uk-card-media']) .uk-button-default:active, .uk-card-secondary>:not([class*='uk-card-media']) .uk-button-default.uk-active, .uk-overlay-primary .uk-button-default:active, .uk-overlay-primary .uk-button-default.uk-active, .tm-navbar-container:not(.uk-navbar-transparent) .uk-button-default:active, .tm-navbar-container:not(.uk-navbar-transparent) .uk-button-default.uk-active {
-    background-color: transparent;
-    color: #22df80;
-    border-bottom-color: rgba(34, 223, 128, 0.71);
-    border-bottom-style: solid;
-    border-bottom-width: 1px;
+   
 }
 
 .uk-light .uk-button-primary, .uk-section-primary:not(.uk-preserve-color) .uk-button-primary, .uk-section-secondary:not(.uk-preserve-color) .uk-button-primary, .uk-card-primary.uk-card-body .uk-button-primary, .uk-card-primary>:not([class*='uk-card-media']) .uk-button-primary, .uk-card-secondary.uk-card-body .uk-button-primary, .uk-card-secondary>:not([class*='uk-card-media']) .uk-button-primary, .uk-overlay-primary .uk-button-primary, .tm-navbar-container:not(.uk-navbar-transparent) .uk-button-primary {
@@ -7739,8 +7735,9 @@ th.uk-text-break, td.uk-text-break {
 }
 
 .uk-light .tm-button-default, .uk-section-primary:not(.uk-preserve-color) .tm-button-default, .uk-section-secondary:not(.uk-preserve-color) .tm-button-default, .uk-card-primary.uk-card-body .tm-button-default, .uk-card-primary>:not([class*='uk-card-media']) .tm-button-default, .uk-card-secondary.uk-card-body .tm-button-default, .uk-card-secondary>:not([class*='uk-card-media']) .tm-button-default, .uk-overlay-primary .tm-button-default, .tm-navbar-container:not(.uk-navbar-transparent) .tm-button-default {
-    color: rgba(255, 255, 255, 0.8);
-    border-color: rgba(255, 255, 255, 0.6)
+        background-color: #8db1dc;
+    color: #fff;
+        box-shadow: rgb(236, 235, 235) 2px 2px;
 }
 
 .uk-light .tm-button-primary, .uk-section-primary:not(.uk-preserve-color) .tm-button-primary, .uk-section-secondary:not(.uk-preserve-color) .tm-button-primary, .uk-card-primary.uk-card-body .tm-button-primary, .uk-card-primary>:not([class*='uk-card-media']) .tm-button-primary, .uk-card-secondary.uk-card-body .tm-button-primary, .uk-card-secondary>:not([class*='uk-card-media']) .tm-button-primary, .uk-overlay-primary .tm-button-primary, .tm-navbar-container:not(.uk-navbar-transparent) .tm-button-primary {
@@ -7874,9 +7871,8 @@ html {
 .hadithDetailsTitle {
 	/* margin-top: 5px; */
 	display:inline-block;
-	font-family: Lane, Roboto, Open Sans;
+	font-family: Chivo, Lane, Roboto, Open Sans;
 	text-transform: uppercase;
-	font-weight:600;
 	font-size: 15px;
 	/* padding-top: 10px; */
 	display: inline;
@@ -7888,8 +7884,7 @@ html {
 }
 
 .hadithDetails {
-	
-	    border-right: solid 1px rgba(128, 128, 128, 0.24);
+	border-right: solid 1px rgba(2, 2, 2, 0.31);
 }
 
 .hadithDetails .noBorder {
@@ -7908,32 +7903,22 @@ html {
 .hadithText {
 	
 	padding: 20px;
-	color: #cec9c9;
+	color: #000;
 	max-height:500px;
 	overflow-y: auto
 }
 
 .arabicHadithText {
-	
-font-family: 'Scheherazade';
-	
-padding: 20px;
-	
-/* direction: rtl; */
-	
-color: #cec9c9;
-	
-max-height:500px;
-	
-overflow-y: auto;
-	
-font-size:35px;
-	
-line-height: 45px;
-	
-direction: rtl;
-	
-text-align: right;
+	font-family: 'Scheherazade';
+	padding: 20px;
+	/* direction: rtl; */
+	color: #000;
+	max-height:500px;
+	overflow-y: auto;
+	font-size:35px;
+	line-height: 45px;
+	direction: rtl;
+	text-align: right;
 }
 
 
@@ -7983,7 +7968,7 @@ text-align: right;
 }
 
 .tm-navbar-container:not(.uk-navbar-transparent) {
-      background: #1d2023;
+      background: #fff;
 }
 
 .tm-navbar-container .uk-navbar-nav>li>a, .tm-navbar-container .uk-navbar-item:not(.uk-logo), .tm-navbar-container .uk-navbar-toggle {
