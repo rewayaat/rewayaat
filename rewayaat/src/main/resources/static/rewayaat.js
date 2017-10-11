@@ -54,8 +54,8 @@ $(document).keypress(function(e) {
 
 // loads more hadith when near the bottom of the page
 window.onscroll = function(ev) {
-	if (((window.innerHeight + window.pageYOffset) >= (document.body.offsetHeight - 100))
-			&& document.getElementById('hadithView').innerHTML !== '') {
+	if (((window.innerHeight + window.pageYOffset) >= (document.body.offsetHeight - (100 * (vueApp.page + 1))))
+			&& document.getElementById('hadithView').innerHTML !== '' && loadingHadith == false) {
 		vueApp.fetchNarrations();
 	}
 };
@@ -236,6 +236,7 @@ function setupVue(query) {
 			narrations : [],
 			queryStr : query,
 			page : 0,
+			totalHits : 0,
 			done : false
 		},
 		// runs when the Vue instance has initialized.
@@ -252,13 +253,14 @@ function setupVue(query) {
 					var xhr = new XMLHttpRequest();
 					xhr.onload = function() {
 						if (xhr.readyState == XMLHttpRequest.DONE) {
-							if (JSON.parse(xhr.responseText).length < 1
+							var respJSON = JSON.parse(xhr.responseText)
+							if (respJSON.collection.length < 1
 									&& self.narrations.length === 0) {
 								swal("Oops...",
 										"No results seem to match your query!",
 										"error");
 							}
-							$.each(JSON.parse(xhr.responseText), function(
+							$.each(respJSON.collection, function(
 									index, value) {
 
 								if (value.notes) {
@@ -271,17 +273,18 @@ function setupVue(query) {
 								console.log(value);
 
 							});
-							if (JSON.parse(xhr.responseText).length < 10) {
+							if (respJSON.collection.length < 10) {
 								self.done = true;
 							}
-
+							// set total results size value
+							self.totalHits = respJSON.totalResultSetSize;
+							loadingHadith = false;
 						}
 					}
 					xhr.open('GET', '/v1/narrations?q=' + this.queryStr
 							+ '&page=' + this.page);
 					xhr.send();
 					this.page++;
-					loadingHadith = false;
 				}
 			},
 			gradeLabelClass : function(grading) {

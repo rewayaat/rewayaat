@@ -26,14 +26,17 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
     private String userQuery;
     private int page;
     private final ObjectMapper mapper = new ObjectMapper();
+    private String fuzziedUserQuery;
+    private long totalResultsSize;
 
     public QueryStringQueryResult(String userQuery, int page) {
         this.userQuery = userQuery;
+        this.fuzziedUserQuery = new RewayaatQuery(userQuery).query();
         this.page = page;
     }
 
     @Override
-    public List<HadithObject> result() throws Exception {
+    public HadithObjectCollection result() throws Exception {
         List<HadithObject> hadithes = new ArrayList<HadithObject>();
 
         HighlightBuilder highlightBuilder = new HighlightBuilder().field("english").field("notes").field("arabic")
@@ -42,13 +45,19 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                 .highlightQuery(QueryBuilders.queryStringQuery(userQuery).field("english").field("section")
                         .field("part").field("chapter").field("volume").field("arabic").field("book").field("arabic")
                         .field("tags"))
+                .highlightQuery(QueryBuilders.queryStringQuery(fuzziedUserQuery).field("english").field("section")
+                        .field("part").field("chapter").field("volume").field("arabic").field("book").field("arabic")
+                        .field("tags"))
                 .numOfFragments(0);
 
         SearchResponse resp = ClientProvider.instance().getClient().prepareSearch(ClientProvider.INDEX)
                 .setTypes(ClientProvider.TYPE).setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-                .setQuery(QueryBuilders.queryStringQuery(userQuery)).highlighter(highlightBuilder)
-                .setFrom(page * pageSize).setSize(pageSize).setExplain(true).addSort("_score", SortOrder.DESC).execute()
-                .get();
+                .setQuery(QueryBuilders.boolQuery().must(QueryBuilders.queryStringQuery(fuzziedUserQuery))
+                        .should(QueryBuilders.queryStringQuery(userQuery).boost(10)))
+                .highlighter(highlightBuilder).setFrom(page * pageSize).setSize(pageSize).setExplain(true)
+                .addSort("_score", SortOrder.DESC).execute().get();
+
+        totalResultsSize = resp.getHits().getTotalHits();
 
         SearchHit[] results = resp.getHits().getHits();
         System.out.println("Current results: " + results.length);
@@ -66,6 +75,10 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
             hadithes.add(mapper.convertValue(result, HadithObject.class));
             System.out.println(result);
         }
-        return hadithes;
+        return new HadithObjectCollection(hadithes, resp.getHits().getTotalHits());
+    }
+
+    public long totalResultSize() {
+        return this.totalResultsSize;
     }
 }

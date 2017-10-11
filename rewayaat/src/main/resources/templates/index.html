@@ -34,7 +34,8 @@
 <script
 	src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.6/marked.min.js"></script>
 
-<link href="https://fonts.googleapis.com/css?family=Chivo" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css?family=Chivo"
+	rel="stylesheet" />
 
 <script th:src="@{/vue.js}" src="/vue.js"></script>
 <script th:src="@{/rewayaat.js}" src="/rewayaat.js"></script>
@@ -57,6 +58,10 @@
 	<div id="parentContainer" class="uk-container-large uk-align-center"
 		style="margin-top: 0px;">
 		<div id="hadithView" class="uk-grid">
+			<h2
+				v-if="totalHits" style="font-weight: normal; margin-top: 20px; margin-bottom: -20px;">
+				<b  v-html="totalHits" /> results found.
+			</h2>
 			<div class="uk-card uk-align-center uk-card  uk-width-1-1 "
 				style="margin-top: 40px; background-color: #efefef; border-radius: 25px; box-shadow: rgb(236, 235, 235) 5px 5px; border: #c1c0c0 solid 1px;"
 				v-for="(narration, index) in narrations">
