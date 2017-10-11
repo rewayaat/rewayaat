@@ -4,13 +4,32 @@ import java.util.List;
 
 import com.rewayaat.web.data.hadith.HadithObject;
 
+/**
+ * Represents a collection of hadith results.
+ */
 public class HadithObjectCollection {
 
-    public List<HadithObject> collection;
-    public long totalResultSetSize;
+    private List<HadithObject> collection;
+    private long totalResultSetSize;
 
     public HadithObjectCollection(List<HadithObject> collection, long totalResultSize) {
+        this.setCollection(collection);
+        this.setTotalResultSetSize(totalResultSize);
+    }
+
+    public long getTotalResultSetSize() {
+        return totalResultSetSize;
+    }
+
+    public void setTotalResultSetSize(long totalResultSetSize) {
+        this.totalResultSetSize = totalResultSetSize;
+    }
+
+    public List<HadithObject> getCollection() {
+        return collection;
+    }
+
+    public void setCollection(List<HadithObject> collection) {
         this.collection = collection;
-        this.totalResultSetSize = totalResultSize;
     }
 }
