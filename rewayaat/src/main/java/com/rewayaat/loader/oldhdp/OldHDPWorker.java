@@ -43,6 +43,7 @@ public class OldHDPWorker extends Thread {
             // TODO Auto-generated catch block
             e1.printStackTrace();
         }
+        NodeList nList = null;
         try {
             String xmlLocation = "/home/zir0/git/rewayaatv2/rewayaat/src/main/java/com/rewayaat/loader/oldhdp/resources/oldhdp.xml";
             File fXmlFile = new File(xmlLocation);
@@ -50,47 +51,58 @@ public class OldHDPWorker extends Thread {
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
             Document doc = dBuilder.parse(fXmlFile);
             doc.getDocumentElement().normalize();
-            NodeList nList = doc.getElementsByTagName("Row");
-            for (int temp = start; temp < end; temp++) {
+            nList = doc.getElementsByTagName("Row");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        for (int temp = start; temp < end; temp++) {
+
+            try {
                 int max = nList.getLength();
                 Node nNode = nList.item(temp);
                 NodeList subList = nNode.getChildNodes();
                 if (subList.item(1).getTextContent().startsWith("MH")) {
-                    // this is a mizanul hikma hadith
-                    String name = subList.item(1).getTextContent();
-                    String topic = subList.item(3).getTextContent().replaceAll("( +)", " ").trim()
-                            .replaceAll("[`~``’`]", "");
-                    String subtopic = subList.item(5).getTextContent().replaceAll("( +)", " ").trim()
-                            .replaceAll("[`~``’`]", "");
-                    String arabic = subList.item(6).getTextContent().replaceAll("[`~``’`]", "");
-                    String number = String.valueOf(Integer.parseInt(name.substring(2)));
-                    String english = subList.item(7).getTextContent().replaceAll("[`~’]", "");
-                    String primarySource = subList.item(8).getTextContent().replaceAll("v\\. ", "volume:")
-                            .replaceAll("ch\\. ", "chapter:").replaceAll("no\\. ", "number:")
-                            .replaceAll("[`~``’`]", "");
-                    String publisher = subList.item(10).getTextContent();
-                    writer.println("Values for current Row Node: " + nNode.getAttributes().getNamedItem("ss:Height"));
-                    writer.println("-----------------------");
-                    writer.println("Book : Mizan Al-Hikmah");
-                    writer.println("Source : " + primarySource);
-                    writer.println("Number : " + number);
-                    writer.println("Name : " + name);
-                    writer.println("Topic : " + topic);
-                    writer.println("Sub-Topic : " + subtopic);
-                    writer.println("Arabic : " + arabic);
-                    writer.println("English : " + english);
-                    writer.println("Publisher : " + publisher);
-                    writer.println("\n\n");
-                    HadithObject hadithobj = new HadithObject();
-                    hadithobj.setArabic(arabic);
-                    hadithobj.setEnglish(english.replaceAll("`~", ""));
-                    hadithobj.setBook("Mizan Al-Hikmah");
-                    hadithobj.setSource(primarySource);
-                    hadithobj.setNumber(number);
-                    hadithobj.setPart(topic);
-                    hadithobj.setSection(subtopic);
-                    hadithobj.setPublisher(publisher);
-                    saveHadith(hadithobj);
+                    // some hadith don't have the write number of entries which
+                    // messes us up, we will just skip over them.
+                    if (subList.getLength() > 10) {
+                        // this is a mizanul hikma hadith
+                        String name = subList.item(1).getTextContent();
+                        String topic = subList.item(3).getTextContent().replaceAll("( +)", " ").trim()
+                                .replaceAll("[`~``’`]", "");
+                        String subtopic = subList.item(5).getTextContent().replaceAll("( +)", " ").trim()
+                                .replaceAll("[`~``’`]", "");
+                        String arabic = subList.item(6).getTextContent().replaceAll("[`~``’`]", "");
+                        String number = String.valueOf(Integer.parseInt(name.substring(2)));
+                        String english = subList.item(7).getTextContent().replaceAll("[`~’]", "");
+                        String primarySource = subList.item(8).getTextContent().replaceAll("v\\. ", "volume:")
+                                .replaceAll("ch\\. ", "chapter:").replaceAll("no\\. ", "number:")
+                                .replaceAll("[`~``’`]", "");
+                        String publisher = subList.item(10).getTextContent();
+                        writer.println(
+                                "Values for current Row Node: " + nNode.getAttributes().getNamedItem("ss:Height"));
+                        writer.println("-----------------------");
+                        writer.println("Book : Mizan Al-Hikmah");
+                        writer.println("Source : " + primarySource);
+                        writer.println("Number : " + number);
+                        writer.println("Name : " + name);
+                        writer.println("Topic : " + topic);
+                        writer.println("Sub-Topic : " + subtopic);
+                        writer.println("Arabic : " + arabic);
+                        writer.println("English : " + english);
+                        writer.println("Publisher : " + publisher);
+                        writer.println("\n\n");
+                        HadithObject hadithobj = new HadithObject();
+                        hadithobj.setArabic(arabic);
+                        hadithobj.setEnglish(english.replaceAll("`~", ""));
+                        hadithobj.setBook("Mizan Al-Hikmah");
+                        hadithobj.setSource(primarySource);
+                        hadithobj.setNumber(number);
+                        hadithobj.setPart(topic);
+                        hadithobj.setSection(subtopic);
+                        hadithobj.setPublisher(publisher);
+                        saveHadith(hadithobj);
+                    }
                 } else {
                     // this is a Ghurur al Hakim hadith...
                     String name = subList.item(1).getTextContent();
@@ -121,10 +133,9 @@ public class OldHDPWorker extends Thread {
                     saveHadith(hadithobj);
                 }
                 writer.flush();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         writer.close();
     }

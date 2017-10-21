@@ -40,14 +40,14 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
         List<HadithObject> hadithes = new ArrayList<HadithObject>();
 
         HighlightBuilder highlightBuilder = new HighlightBuilder().field("english").field("notes").field("arabic")
-                .field("book").field("section").field("part").field("chapter").field("volume").postTags("</span>")
-                .preTags("<span class=\"highlight\">")
+                .field("book").field("section").field("part").field("chapter").field("publisher").field("source")
+                .field("volume").postTags("</span>").preTags("<span class=\"highlight\">")
                 .highlightQuery(QueryBuilders.queryStringQuery(userQuery).field("english").field("section")
                         .field("part").field("chapter").field("volume").field("arabic").field("book").field("arabic")
-                        .field("tags"))
+                        .field("tags").field("publisher").field("source"))
                 .highlightQuery(QueryBuilders.queryStringQuery(fuzziedUserQuery).field("english").field("section")
-                        .field("part").field("chapter").field("volume").field("arabic").field("book").field("arabic")
-                        .field("tags"))
+                        .field("part").field("chapter").field("publisher").field("source").field("volume")
+                        .field("arabic").field("book").field("arabic").field("tags"))
                 .numOfFragments(0);
 
         SearchResponse resp = ClientProvider.instance().getClient().prepareSearch(ClientProvider.INDEX)
