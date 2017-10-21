@@ -1,4 +1,4 @@
-package com.rewayaat.loader;
+package com.rewayaat.loader.alkafi;
 
 /**
  * Asynchronously Loads volumes 1 - 7 of Al-Kafi into the database.

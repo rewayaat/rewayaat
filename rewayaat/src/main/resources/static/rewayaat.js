@@ -55,19 +55,11 @@ $(document).keypress(function(e) {
 // loads more hadith when near the bottom of the page
 window.onscroll = function(ev) {
 	if (((window.innerHeight + window.pageYOffset) >= (document.body.offsetHeight - (100 * (vueApp.page + 1))))
-			&& document.getElementById('hadithView').innerHTML !== '' && loadingHadith == false) {
+			&& document.getElementById('hadithView').innerHTML !== ''
+			&& loadingHadith == false) {
 		vueApp.fetchNarrations();
 	}
 };
-// records queries on enter key-presses.
-$(document).keyup(function(e) {
-	if (isCharacterKeyPress(e)) {
-		var el = document.activeElement;
-		if (el && (el.id == 'query')) {
-			updateQueryColor(getCaretCharacterOffsetWithin(el));
-		}
-	}
-});
 
 function isCharacterKeyPress(evt) {
 	if (typeof evt.which == "undefined") {
@@ -82,46 +74,6 @@ function isCharacterKeyPress(evt) {
 	return false;
 }
 
-/**
- * Adds color to elastic search query string query symbols in front end user
- * queries. Some symbols that are coloured include: [,], [0-9], {, }, ~, ^,
- * etc...
- */
-function updateQueryColor(currentCaretPosition) {
-	var queryDiv = document.getElementById('query');
-	if (queryDiv) {
-		var queryValue = queryDiv.innerText;
-		if (queryValue) {
-			var queryDivInnerHTML = '';
-			for (var i = 0, len = queryValue.length; i < len; i++) {
-				if (queryValue[i] === '+') {
-					queryDivInnerHTML += '<span class="querySymbol" style="color: #22df80">+</span>';
-				} else if (queryValue[i] === '-') {
-					queryDivInnerHTML += '<span class="querySymbol" style="color: #ea4f4f">-</span>';
-				} else if (queryValue[i] === '[') {
-					queryDivInnerHTML += '<span class="querySymbol" style="color: #cc98f1">[</span>';
-				} else if (queryValue[i] === ']') {
-					queryDivInnerHTML += '<span class="querySymbolRight" style="color: #cc98f1">]</span>';
-				} else if (queryValue[i] === '~') {
-					queryDivInnerHTML += '<span class="querySymbol" style="color: #f8bb86">~</span>';
-				} else if (queryValue[i] === '^') {
-					queryDivInnerHTML += '<span class="querySymbol" style="color: #32d2cd">^</span>';
-				} else if (isNumeric(queryValue[i])) {
-					queryDivInnerHTML += '<span style="color: #98c2f1">'
-							+ queryValue[i] + '</span>';
-				} else {
-					queryDivInnerHTML += '<span  style="color: #000">'
-							+ queryValue[i] + '</span>';
-				}
-			}
-			queryDiv.innerHTML = queryDivInnerHTML;
-			if (currentCaretPosition) {
-				setCaretPostion(queryDiv, currentCaretPosition);
-			}
-		}
-	}
-}
-
 function isArabic(text) {
 	var pattern = /[\u0600-\u06FF\u0750-\u077F]/;
 	result = pattern.test(text);
@@ -130,35 +82,6 @@ function isArabic(text) {
 
 function isNumeric(obj) {
 	return !isNaN(obj - parseFloat(obj));
-}
-
-function getCaretCharacterOffsetWithin(element) {
-	var caretOffset = 0;
-	if (typeof window.getSelection != "undefined") {
-		var range = window.getSelection().getRangeAt(0);
-		var preCaretRange = range.cloneRange();
-		preCaretRange.selectNodeContents(element);
-		preCaretRange.setEnd(range.endContainer, range.endOffset);
-		caretOffset = preCaretRange.toString().length;
-	} else if (typeof document.selection != "undefined"
-			&& document.selection.type != "Control") {
-		var textRange = document.selection.createRange();
-		var preCaretTextRange = document.body.createTextRange();
-		preCaretTextRange.moveToElementText(element);
-		preCaretTextRange.setEndPoint("EndToEnd", textRange);
-		caretOffset = preCaretTextRange.text.length;
-	}
-	return caretOffset;
-}
-
-function setCaretPostion(el, pos) {
-	var range = document.createRange();
-	var sel = window.getSelection();
-	range.setStart(el, pos);
-	range.collapse(true);
-	sel.removeAllRanges();
-	sel.addRange(range);
-	el.focus();
 }
 
 // processes the user's query by redirecting with query parameter.
@@ -216,7 +139,17 @@ function setupVue(query) {
 								+ '<i style="color:rgb(83, 102, 125)"'
 								+ '	class="fa fa-calendar-o hadithDetailsIcon" aria-hidden="true"></i>'
 								+ '<p class="hadithDetailsTitle" v-html="narration.volume" />'
+								+ '</div>'								
+								+ '<div title="Source" uk-tooltip="pos: right" class="uk-align-left" v-if="narration.source">'
+								+ '<i style="color:rgb(83, 102, 125)"'
+								+ '	class="fa fa-share-square-o hadithDetailsIcon" aria-hidden="true"></i>'
+								+ '<p class="hadithDetailsTitle" v-html="narration.source" />'
 								+ '</div>'
+								+ '<div title="Publisher" uk-tooltip="pos: right" class="uk-align-left" v-if="narration.publisher">'
+								+ '<i style="color:rgb(83, 102, 125)"'
+								+ '	class="fa fa-medium hadithDetailsIcon" aria-hidden="true"></i>'
+								+ '<p class="hadithDetailsTitle" v-html="narration.publisher" />'
+								+ '</div>'		
 								+ '<span title="Grading" uk-tooltip="pos: right" class="uk-align-left"'
 								+ 'v-for="gradingobj in narration.gradings"'
 								+ 'v-bind:class="gradeLabelClass(gradingobj.grading)"> <i'
@@ -260,13 +193,14 @@ function setupVue(query) {
 										"No results seem to match your query!",
 										"error");
 							}
-							$.each(respJSON.collection, function(
-									index, value) {
+							$.each(respJSON.collection, function(index, value) {
 
 								if (value.notes) {
 									value.notes = marked(value.notes);
 								}
-								value.volume = "Volume " + value.volume;
+								if (value.volume) {
+									value.volume = "Volume " + value.volume;
+								}
 								value = quranicVersesDecoratedHadith(value);
 								value = socialMediaDecoratedHadith(value);
 								self.narrations.push(value);
@@ -399,7 +333,8 @@ function quranicVersesDecoratedHadith(hadithObj) {
 }
 
 /**
- * Appends a modal object containing information for the given Qur'anic verse to the dom.
+ * Appends a modal object containing information for the given Qur'anic verse to
+ * the dom.
  */
 function createQuranicVerseModal(surah, ayat, divId) {
 
@@ -419,7 +354,8 @@ function createQuranicVerseModal(surah, ayat, divId) {
 								+ data.data[0].surah.englishName
 								+ '), Verse #' + ayat + '</h2> </div>';
 						divCode += ' <div class="uk-modal-body"><p style="font-family:Scheherazade; font-size:35px; direction: rtl;">'
-								+ data.data[0].text + '</p><p>'
+								+ data.data[0].text
+								+ '</p><p>'
 								+ data.data[1].text + '</p></div>';
 						divCode += '</div></div>';
 						document.getElementById("hadithView").innerHTML += divCode;

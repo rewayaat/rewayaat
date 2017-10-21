@@ -25,6 +25,9 @@ public class HadithObject implements Serializable {
 
     @JsonProperty("id")
     private String id;
+    @ApiModelProperty(notes = "Primary source of the narration if applicable")
+    @JsonProperty("source")
+    private String source;
     @ApiModelProperty(notes = "The book containing the narration")
     @JsonProperty("book")
     private String book;
@@ -40,8 +43,10 @@ public class HadithObject implements Serializable {
     @ApiModelProperty(notes = "The chapter of the book associated with the narration")
     @JsonProperty("chapter")
     private String chapter;
+    @ApiModelProperty(notes = "The publisher of the book associated with the narration")
+    @JsonProperty("publisher")
+    private String publisher;
     @ApiModelProperty(notes = "The section of the book associated with the narration")
-
     @JsonProperty("section")
     private String section;
     @ApiModelProperty(notes = "The volume of the book associated with the narration")
@@ -69,34 +74,12 @@ public class HadithObject implements Serializable {
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
     private final static long serialVersionUID = 5990321989725337516L;
 
-    /**
-     * No args constructor for use in serialization
-     * 
-     */
     public HadithObject() {
     }
 
-    /**
-     * 
-     * @param tags
-     * @param id
-     * @param arabic
-     * @param chapter
-     * @param commentaries
-     * @param volume
-     * @param book
-     * @param number
-     * @param gradings
-     * @param edition
-     * @param notes
-     * @param part
-     * @param english
-     * @param related
-     */
     public HadithObject(String id, String book, String number, String part, String chapter, String volume,
             List<Object> tags, String notes, String arabic, String english, List<Commentary> commentaries,
             List<Grading> gradings, List<Related> related, String section, String edition) {
-        super();
         this.id = id;
         this.book = book;
         this.number = number;
@@ -113,6 +96,16 @@ public class HadithObject implements Serializable {
         this.section = section;
     }
 
+    public HadithObject(String id, String book, String number, String part, String chapter, String volume,
+            List<Object> tags, String notes, String arabic, String english, List<Commentary> commentaries,
+            List<Grading> gradings, List<Related> related, String section, String edition, String primarySource,
+            String publisher) {
+        this(id, book, number, part, chapter, volume, tags, notes, arabic, english, commentaries, gradings, related,
+                section, edition);
+        this.source = primarySource;
+        this.publisher = publisher;
+    }
+
     @JsonProperty("id")
     public String getId() {
         return id;
@@ -121,6 +114,26 @@ public class HadithObject implements Serializable {
     @JsonProperty("id")
     public void setId(String id) {
         this.id = id;
+    }
+
+    @JsonProperty("publisher")
+    public String getPublisher() {
+        return publisher;
+    }
+
+    @JsonProperty("publisher")
+    public void setPublisher(String publisher) {
+        this.publisher = publisher;
+    }
+
+    @JsonProperty("source")
+    public String getSource() {
+        return source;
+    }
+
+    @JsonProperty("source")
+    public void setSource(String source) {
+        this.source = source;
     }
 
     @JsonProperty("book")

@@ -1,4 +1,4 @@
-package com.rewayaat.loader;
+package com.rewayaat.loader.alkafi;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -26,6 +26,7 @@ import org.apache.http.util.EntityUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.elasticsearch.client.transport.NoNodeAvailableException;
 import org.json.JSONObject;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -65,7 +66,7 @@ public class AlKafiWorker extends Thread {
         PrintWriter writer = null;
         try {
             writer = new PrintWriter((new BufferedWriter(new FileWriter(
-                    "/home/zir0/git/rewayaatv2/rewayaat/src/main/java/com/rewayaat/loader/resources/operationLog_"
+                    "/home/zir0/git/rewayaatv2/rewayaat/src/main/java/com/rewayaat/loader/alkafi/resources/operationLog_"
                             + start + "-" + end + ".txt",
                     true))));
         } catch (IOException e1) {
@@ -74,7 +75,7 @@ public class AlKafiWorker extends Thread {
         }
         File myTempDir = Files.createTempDir();
         PDDocument document = null;
-        String pdfLocation = "/home/zir0/git/rewayaatv2/rewayaat/src/main/java/com/rewayaat/loader/resources/alkafi.pdf";
+        String pdfLocation = "/home/zir0/git/rewayaatv2/rewayaat/src/main/java/com/rewayaat/loader/alkafi/resources/alkafi.pdf";
         try {
             document = PDDocument.load(new File(pdfLocation));
         } catch (InvalidPasswordException e1) {
@@ -235,6 +236,13 @@ public class AlKafiWorker extends Thread {
                         currentHadith.insertArabicText(combineArabicStrings(matchingArabicText, arabicText));
                     }
                 }
+            } catch (NoNodeAvailableException e) {
+                writer.println("No Node available Exception while processing current Hadith, will try AGAIN!:\n"
+                        + currentHadith.toString() + "\n");
+                e.printStackTrace(writer);
+                i--;
+                continue;
+
             } catch (Exception e) {
                 writer.println("Error while processing current Hadith:\n" + currentHadith.toString() + "\n");
                 e.printStackTrace(writer);
@@ -245,6 +253,7 @@ public class AlKafiWorker extends Thread {
         }
         writer.close();
         myTempDir.delete();
+
     }
 
     public String getPreceedingArabicText(String[] lines, int boundaryLine) {
@@ -358,7 +367,7 @@ public class AlKafiWorker extends Thread {
 
     private String sendOCRAPIPost(File file) throws IOException, Exception {
 
-        HttpPost httppost = new HttpPost("https://api.ocr.space/parse/image");
+        HttpPost httppost = new HttpPost("http://apipro3.ocr.space/parse/image");
 
         byte[] imageBytes = IOUtils.toByteArray(new FileInputStream(file));
         String encodedfile = new String(org.apache.commons.codec.binary.Base64.encodeBase64(imageBytes), "UTF-8");
