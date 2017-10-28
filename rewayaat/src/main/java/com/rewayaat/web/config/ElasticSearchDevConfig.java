@@ -11,11 +11,7 @@ import org.springframework.context.annotation.PropertySource;
 public class ElasticSearchDevConfig {
 
     @Value("${spring.data.elasticsearch.properties.port}")
-	static
-    int port;
+    static int port;
     @Value("${spring.data.elasticsearch.properties.host}")
-	static
-    String hostname;
-    @Value("${spring.data.elasticsearch.cluster-name}")
-    String clusterName;
+    static String hostname;
 }
