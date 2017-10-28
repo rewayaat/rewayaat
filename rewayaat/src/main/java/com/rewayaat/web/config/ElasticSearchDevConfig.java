@@ -14,4 +14,6 @@ public class ElasticSearchDevConfig {
     static int port;
     @Value("${spring.data.elasticsearch.properties.host}")
     static String hostname;
+    @Value("${spring.data.elasticsearch.cluster-name}")
+    String clusterName;
 }
