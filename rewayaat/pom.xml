@@ -7,7 +7,7 @@
 	<packaging>jar</packaging>
 	<version>1.0</version>
 	<properties>
-	<start-class>com.rewayaat.RewayaatApplication</start-class>
+		<start-class>com.rewayaat.RewayaatApplication</start-class>
 		<java-version>1.8</java-version>
 		<docker.image.prefix>rewayaat</docker.image.prefix>
 	</properties>
@@ -15,7 +15,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>1.4.0.RELEASE</version>
+		<version>1.5.1.RELEASE</version>
 	</parent>
 	<dependencies>
 		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
@@ -125,6 +125,11 @@
 			<version>5.2.2</version>
 		</dependency>
 		<dependency>
+			<groupId>net.java.dev.jna</groupId>
+			<artifactId>jna</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
 			<version>2.7</version>
@@ -159,15 +164,15 @@
 	</dependencies>
 	<build>
 		<plugins>
-			 <plugin>
-                    		<groupId>org.apache.maven.plugins</groupId>
-                    		<artifactId>maven-compiler-plugin</artifactId>
-                    		<version>3.1</version>
-                    		<configuration>
-                        		<source>1.8</source>
-                        		<target>1.8</target>
-                    		</configuration>
-                	</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>

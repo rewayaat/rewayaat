@@ -14,7 +14,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 
 @Configuration
-@PropertySource("classpath:localdev.properties")
+@PropertySource("classpath:production.properties")
 public class ClientProvider implements EnvironmentAware {
 
     public static String INDEX = "rewayaat";
@@ -40,7 +40,7 @@ public class ClientProvider implements EnvironmentAware {
     }
 
     public void prepareClient() throws UnknownHostException {
-        Settings settings = Settings.builder().put("client.transport.sniff", true).put("cluster.name", "elasticsearch")
+        Settings settings = Settings.builder().put("client.transport.sniff", false).put("cluster.name", "elasticsearch")
                 .build();
         TransportClient client = new PreBuiltTransportClient(settings)
                 .addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(host, port)));
