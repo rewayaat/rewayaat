@@ -5,16 +5,7 @@
 		style="border-radius: 5px; position: fixed; width: 15%; margin-right: 15px; margin-top: 35px;">
 		<ul class="uk-nav-default uk-nav-parent-icon" uk-nav>
 
-			<li><a style="padding-left: 20px; padding-right: 20px;"
-				href="https://github.com/rewayaat/rewayaat" target="_blank"><i
-					style="display: inline-block; font-size: 1.3em;"
-					class="fa fa-github hadithDetailsIcon" aria-hidden="true"></i><span
-					class="uk-margin-small-right"></span>Development</a></li>
-			<li><a style="padding-left: 20px; padding-right: 20px;"
-				href="javascript:void(Tawk_API.toggle())"><i
-					style="display: inline-block; font-size: 1.3em;"
-					class="fa fa-commenting-o hadithDetailsIcon" aria-hidden="true"></i><span
-					class="uk-margin-small-right"></span>Get Help</a></li>
+
 			<li><a style="padding-left: 20px; padding-right: 20px;"
 				href="javascript:void(Tawk_API.toggle())"><i
 					style="display: inline-block; font-size: 1.3em;"
@@ -31,6 +22,11 @@
 					style="display: inline-block; font-size: 1.3em; margin-left: -6px; color: #75c6f9;"
 					class="fa fa-twitter hadithDetailsIcon" aria-hidden="true"></i><span
 					class="uk-margin-small-right"></span>TWITTER</a></li>
+			<li><a style="padding-left: 15px; padding-right: 20px;"
+				href="https://github.com/rewayaat/rewayaat" target="_blank"><i
+					style="display: inline-block; font-size: 1.3em;"
+					class="fa fa-github hadithDetailsIcon" aria-hidden="true"></i><span
+					class="uk-margin-small-right"></span>Development</a></li>
 			<!-- Place this tag where you want the button to render. -->
 		</ul>
 	</div>
@@ -38,17 +34,7 @@
 		class="uk-card uk-card-default uk-card-body uk-align-left  uk-hidden@l uk-width-1-1"
 		style="border-radius: 5px; margin-right: 15px; margin-top: 35px; margin-bottom: 30px;">
 		<ul class="uk-nav-default uk-nav-parent-icon" uk-nav>
-			<li><a style="padding-left: 20px; padding-right: 20px;"
-				href="https://github.com/rewayaat/rewayaat" target="_blank"><i
-					style="display: inline-block; font-size: 1.3em;"
-					class="fa fa-github hadithDetailsIcon" aria-hidden="true"></i><span
-					class="uk-margin-small-right"></span>Development</a></li>
 
-			<li><a style="padding-left: 20px; padding-right: 20px;"
-				href="javascript:void(Tawk_API.toggle())"><i
-					style="display: inline-block; font-size: 1.3em;"
-					class="fa fa-commenting-o hadithDetailsIcon" aria-hidden="true"></i><span
-					class="uk-margin-small-right"></span>Get Help</a></li>
 			<li><a style="padding-left: 20px; padding-right: 20px;"
 				href="javascript:void(Tawk_API.toggle())"><i
 					style="display: inline-block; font-size: 1.3em;"
@@ -65,45 +51,49 @@
 					style="display: inline-block; font-size: 1.3em; margin-left: -6px; color: #75c6f9;"
 					class="fa fa-twitter hadithDetailsIcon" aria-hidden="true"></i><span
 					class="uk-margin-small-right"></span>Twitter</a></li>
+			<li><a style="padding-left: 15px; padding-right: 20px;"
+				href="https://github.com/rewayaat/rewayaat" target="_blank"><i
+					style="display: inline-block; font-size: 1.3em;"
+					class="fa fa-github hadithDetailsIcon" aria-hidden="true"></i><span
+					class="uk-margin-small-right"></span>Development</a></li>
 		</ul>
 	</div>
 	<div id="start"
 		class="uk-card uk-card-default uk-align-right uk-card-body uk-width-4-5@l uk-width-1-1"
-		style="margin-top: 35px; text-align:center;">
+		style="margin-top: 35px; text-align: center;">
 
-		<p class="uk-text-lead" style="font-family: Chivo; margin-bottom:40px;">
+		<p class="uk-text-lead"
+			style="font-family: Chivo; margin-bottom: 40px;">
 			Welcome to the Hadith Database Project (HDP) by the <a
 				href="http://academyofislam.org/">Academy for Learning Islam</a>
 		</p>
-		
-		<p>
-		To begin your search, enter keywords or phrases in English or Arabic
-			into the search bar below.
-		</p>
+
+		<p>To begin your search, enter keywords or phrases in English or
+			Arabic into the search bar below.</p>
 
 		<span style="margin-top: 8px; color: #000; display: inline-block;"
 			uk-search-icon></span>
 		<div class="input" autocomplete="off" autocorrect="off"
 			autocapitalize="off" spellcheck="false"
-			style="padding-top: 8px; caret-color: black; text-align:left; background-color: rgba(255, 255, 255, 0.71); color: black; margin-left: 40px; -moz-box-shadow: inset 0 0 7px rgba(0, 0, 0, 0.18);; -webkit-box-shadow: inset 0 0 7px rgba(0, 0, 0, 0.18);; box-shadow: inset 0 0 7px rgba(0, 0, 0, 0.18);"
+			style="padding-top: 8px; caret-color: black; text-align: left; background-color: rgba(255, 255, 255, 0.71); color: black; margin-left: 40px; -moz-box-shadow: inset 0 0 7px rgba(0, 0, 0, 0.18);; -webkit-box-shadow: inset 0 0 7px rgba(0, 0, 0, 0.18);; box-shadow: inset 0 0 7px rgba(0, 0, 0, 0.18);"
 			id="query" contentEditable=true
-			data-text="Enter keywords (English or Arabic) to search hadith..."></div>
+			data-text="Enter Query..."></div>
 		<div onclick="submitSearchQuery()" class="uk-navbar-item uk-visible@m"
-			style="margin-top: 2px; margin-left: 20px;     margin-bottom: 40px;">
-			<a style="border-style: solid;  background-color: rgba(255, 255, 255, 0.71); border-width: 1px;"
+			style="margin-top: 2px; margin-left: 20px; margin-bottom: 40px;">
+			<a
+				style="border-style: solid; background-color: rgba(255, 255, 255, 0.71); border-width: 1px;"
 				class="uk-button uk-button-default tm-button-default uk-icon">Search
-				<canvas uk-icon="icon: download" width="20" height="20"
-					class="uk-icon" hidden="hidden"></canvas>
+				
 			</a>
 		</div>
 		<a uk-navbar-toggle-icon="" uk-toggle=""
 			class="uk-navbar-toggle uk-hidden@m uk-navbar-toggle-icon uk-icon"></a>
 		</nav>
 
-		<p>
+		<p style="text-align:left">
 
-			 Queries may also consist of a multiple
-			terms separated by spaces. For example, <a
+			Queries may also consist of a multiple terms separated by spaces. For
+			example, <a
 				href="/?q=Al-Reza%C2%A0intellect%C2%A0%22good%20mannerisms%22">this
 				query</a> searches for hadith containing the words <b>Al-Reza</b>, <b>intellect</b>,
 			and the phrase <b>"good mannerisms"</b>. Users may also incorporate
