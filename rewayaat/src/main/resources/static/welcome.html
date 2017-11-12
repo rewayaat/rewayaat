@@ -4,18 +4,6 @@
 		class="uk-card uk-card-default uk-card-body uk-align-left  uk-visible@l uk-width-1-5"
 		style="border-radius: 5px; position: fixed; width: 15%; margin-right: 15px; margin-top: 35px;">
 		<ul class="uk-nav-default uk-nav-parent-icon" uk-nav>
-			<li><a style="padding-left: 20px; padding-right: 20px;"
-				href="#start" uk-scroll><i
-					style="display: inline-block; font-size: 1.3em; color: #505e6f;"
-					class="fa fa-bullhorn hadithDetailsIcon" aria-hidden="true"></i><span
-					class="uk-margin-small-right"></span>Get Started</a></li>
-			<li><a style="padding-left: 20px; padding-right: 20px;"
-				href="#about" uk-scroll><i
-					style="display: inline-block; font-size: 1.3em; color: #505e6f;"
-					class="fa fa-pencil-square-o hadithDetailsIcon" aria-hidden="true"></i><span
-					class="uk-margin-small-right"></span>About Us</a></li>
-
-			<li class="uk-nav-divider"></li>
 
 			<li><a style="padding-left: 20px; padding-right: 20px;"
 				href="https://github.com/rewayaat/rewayaat" target="_blank"><i
@@ -51,19 +39,6 @@
 		style="border-radius: 5px; margin-right: 15px; margin-top: 35px; margin-bottom: 30px;">
 		<ul class="uk-nav-default uk-nav-parent-icon" uk-nav>
 			<li><a style="padding-left: 20px; padding-right: 20px;"
-				href="#start" uk-scroll><i
-					style="display: inline-block; font-size: 1.3em; color: #505e6f;"
-					class="fa fa-bullhorn hadithDetailsIcon" aria-hidden="true"></i><span
-					style="text-transform: uppercase;
-    font-size: 13px;" class="uk-margin-small-right"></span>Get Started</a></li>
-			<li><a style="padding-left: 20px; padding-right: 20px;"
-				href="#about" uk-scroll><i
-					style="display: inline-block; font-size: 1.3em; color: #505e6f;"
-					class="fa fa-pencil-square-o hadithDetailsIcon" aria-hidden="true"></i><span
-					class="uk-margin-small-right"></span>About Us</a></li>
-
-			<li class="uk-nav-divider"></li>
-			<li><a style="padding-left: 20px; padding-right: 20px;"
 				href="https://github.com/rewayaat/rewayaat" target="_blank"><i
 					style="display: inline-block; font-size: 1.3em;"
 					class="fa fa-github hadithDetailsIcon" aria-hidden="true"></i><span
@@ -94,84 +69,67 @@
 	</div>
 	<div id="start"
 		class="uk-card uk-card-default uk-align-right uk-card-body uk-width-4-5@l uk-width-1-1"
-		style="margin-top: 35px;">
+		style="margin-top: 35px; text-align:center;">
 
-		<p class="uk-text-lead" style="font-family: Chivo;">
-			Welcome to the Hadith Database Project by the <a
+		<p class="uk-text-lead" style="font-family: Chivo; margin-bottom:40px;">
+			Welcome to the Hadith Database Project (HDP) by the <a
 				href="http://academyofislam.org/">Academy for Learning Islam</a>
 		</p>
+		
+		<p>
+		To begin your search, enter keywords or phrases in English or Arabic
+			into the search bar below.
+		</p>
+
+		<span style="margin-top: 8px; color: #000; display: inline-block;"
+			uk-search-icon></span>
+		<div class="input" autocomplete="off" autocorrect="off"
+			autocapitalize="off" spellcheck="false"
+			style="padding-top: 8px; caret-color: black; text-align:left; background-color: rgba(255, 255, 255, 0.71); color: black; margin-left: 40px; -moz-box-shadow: inset 0 0 7px rgba(0, 0, 0, 0.18);; -webkit-box-shadow: inset 0 0 7px rgba(0, 0, 0, 0.18);; box-shadow: inset 0 0 7px rgba(0, 0, 0, 0.18);"
+			id="query" contentEditable=true
+			data-text="Enter keywords (English or Arabic) to search hadith..."></div>
+		<div onclick="submitSearchQuery()" class="uk-navbar-item uk-visible@m"
+			style="margin-top: 2px; margin-left: 20px;     margin-bottom: 40px;">
+			<a style="border-style: solid;  background-color: rgba(255, 255, 255, 0.71); border-width: 1px;"
+				class="uk-button uk-button-default tm-button-default uk-icon">Search
+				<canvas uk-icon="icon: download" width="20" height="20"
+					class="uk-icon" hidden="hidden"></canvas>
+			</a>
+		</div>
+		<a uk-navbar-toggle-icon="" uk-toggle=""
+			class="uk-navbar-toggle uk-hidden@m uk-navbar-toggle-icon uk-icon"></a>
+		</nav>
+
 		<p>
 
-			To begin your search, enter keywords or phrases in English or
-			Arabic into the search bar above. Queries may also consist of a multiple terms separated by spaces. For example,
-			<a href="/?q=Al-Reza%C2%A0intellect%C2%A0%22good%20mannerisms%22">this query</a> searches for hadith containing the words <b>Al-Reza</b>, <b>intellect</b>,
-			 and the phrase <b>"good mannerisms"</b>.
-			Users may also incorporate Elastic Search's <a
+			 Queries may also consist of a multiple
+			terms separated by spaces. For example, <a
+				href="/?q=Al-Reza%C2%A0intellect%C2%A0%22good%20mannerisms%22">this
+				query</a> searches for hadith containing the words <b>Al-Reza</b>, <b>intellect</b>,
+			and the phrase <b>"good mannerisms"</b>. Users may also incorporate
+			Elastic Search's <a
 				href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax">Query
 				String syntax</a> in their queries if they wish to do so.
 		</p>
 	</div>
 	<div id="about"
 		class="uk-card uk-card-default uk-align-right uk-card-body uk-width-4-5@l uk-width-1-1"
-		style="margin-top: 35px; margin-bottom:40px;">
+		style="margin-top: 35px; margin-bottom: 40px;">
 
 		<p class="uk-text-lead">About HDP</p>
 
 		<p>
 			The objective of the Hadith Database Project (HDP) is to make
 			accessible to the English speaking community a wide range of Hadiths
-			in an easily searchable format. Currently there are over 18,000
-			Hadiths stored on the database. About 7,000 of these Hadith have been
-			sourced from the book <em>Mīzānul Hikmah</em> compiled by Muhammadi
-			Reyshahri and published by Dar al-Hadith in Qum. Another 11,000
-			Hadith have been sourced from the book <em>Ghurar Al-Hikam Wa
-				Durar Al-Kalim</em>, (Exalted Aphorisms and Pearls Of Speech) of Amīrul
-			Mu’minīn Imam ‘Ali ibn Abi Talib. These Hadiths were compiled by
-			Qadhi Nasih al-Deen Abu al-Fath ‘Abd al-Wahid Ibn Muhammad Al-Tamimi
-			al-Amudi (d. 510 AH), and translated into English by Sheikh Tahir
-			Ridha Jaffer; the first edition of the translation was published by
-			Ansariyan Publications in Qum (2012).
-		</p>
-		<p>
-			Since the aim of the project was to provide easy access to the Hadith
-			rather than focus on their authenticity, a reference to the
-			<em>sanad</em> (chain of narrators) of the Hadith is not always provided. The Hadith
-			Database uses those books which are popular with Shi‘ī Muslims and
-			relies on the compilers to have verified the <em>sanad</em> and
-			authenticity of the traditions.
-		</p>
-		<p>
-			The target audience for this project are Madrasah teachers, young
-			speakers and the community at large. The website can currently be
-			accessed simply by using any computer/smart phone with an internet
-			connection. <em>Alhamdu lillāh</em> the website received almost 1500
-			hits in the first two weeks after launch.
-		</p>
-		<p>
-			Even though the current website has a good repository of Hadith, the
-			aim is to increase the number of accessible Hadith. Currently the
-			book <em>‘Uyūnun Akhbār al-Ridhā</em> is being worked on by the HDP
-			team which consists of volunteers based in Toronto. All members of
-			the team are either working full time, have their own business or are
-			studying. They are contributing to this project during their free
-			time.
-		</p>
-		<p>
-			There is great potential to increase the Hadith database but it
-			requires dedicated volunteers. There are plans to add additional
-			books of Hadith such as <em>Nahjul Balāgha </em>of al-Radhī<em>,
-				Tuhafal ‘Uqūl</em> of al-Harrānī, Al-Āmālī of al-Mufīd, <em>Mishkātul
-				Anwār </em>of al-Tabarsi and <em>al-Khisāl </em>of al-Sadūq. <u>The
-				team is desperately looking for more volunteers from around the
-				world</u>. This is a great opportunity for people to make a meaningful
-			contribution from the comfort of their homes.
-		</p>
-		<p>
-			To volunteer for the HD Project, one simply needs access to a
-			internet with basic computer skills. The time commitment is about
-			2hrs/week with each assignment lasting about two months. To join
-			please <a href="javascript:void(Tawk_API.toggle())">contact
-				us</a> expressing your interest to join the team.
+			in an easily searchable format. Currently there are over 33,000
+			Hadiths stored on the database. Since the aim of the project was to
+			provide easy access to the Hadith rather than focus on their
+			authenticity, a reference to the <em>sanad</em> (chain of narrators)
+			of the Hadith is not always provided. The Hadith Database uses those
+			books which are popular with Shi‘ī Muslims and relies on the
+			compilers to have verified the <em>sanad</em> and authenticity of the
+			traditions. The target audience for this project are Madrasah
+			teachers, young speakers and the community at large.
 		</p>
 
 	</div>
