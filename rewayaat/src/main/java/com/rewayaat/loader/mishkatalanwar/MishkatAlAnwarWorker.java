@@ -12,10 +12,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -32,6 +32,8 @@ import org.json.JSONObject;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Files;
+import com.rewayaat.loader.resources.ArabicNormalizer;
+import com.rewayaat.loader.resources.WordToNumber;
 import com.rewayaat.web.config.ClientProvider;
 import com.rewayaat.web.data.hadith.HadithObject;
 
@@ -41,8 +43,8 @@ import com.rewayaat.web.data.hadith.HadithObject;
 public class MishkatAlAnwarWorker extends Thread {
 
     private String chapter = null;
-    private HadithObject currentHadith = new HadithObject();
     private String book = "Mishkat Al-Anwar Fi Ghurar il-Akhbar / مشكاة الأنوار في غرر الأخبار";
+    private List<HadithObject> hadithObjects = new ArrayList<HadithObject>();
     private String section = null;
     private String part = null;
     private String volume = null;
@@ -54,6 +56,9 @@ public class MishkatAlAnwarWorker extends Thread {
         this.end = end;
     }
 
+    String cleanupArabicNumber (String str) {
+        return str.replaceAll("l", "1").replaceAll("L","1").replaceAll("I","1").replaceAll("O","0");
+    }
     @Override
     public void run() {
         PrintWriter writer = null;
@@ -68,7 +73,7 @@ public class MishkatAlAnwarWorker extends Thread {
         }
         File myTempDir = Files.createTempDir();
         PDDocument document = null;
-        String pdfLocation = "/home/zir0/git/rewayaatv2/rewayaat/src/main/java/com/rewayaat/loader/mishkatalanwar/miskat.pdf";
+        String pdfLocation = "/home/zir0/git/rewayaatv2/rewayaat/src/main/java/com/rewayaat/loader/resources/miskat.pdf";
         try {
             document = PDDocument.load(new File(pdfLocation));
         } catch (InvalidPasswordException e1) {
@@ -87,142 +92,147 @@ public class MishkatAlAnwarWorker extends Thread {
         }
 
         for (int i = start; i < end; i++) {
-
             writer.println("Processing page: " + i);
             try {
                 reader.setStartPage(i);
                 reader.setEndPage(i);
                 String st = reader.getText(document);
 
-                String ocrText = sendOCRAPIPost(getLatestFilefromDir(myTempDir.getAbsolutePath()));
-                List<String> arabicChunks = splitOCRTextIntoArabicChunks(ocrText, i);
-
-                // get rid of the following suffixes
-                st = st.replaceAll("azwj", "").replaceAll("asws", "").replaceAll("saww", "")
-                        .replaceAll("satanla", "satan(la)").replaceAll("yazidla", "yazid(la)")
-                        .replaceAll("Yazidla", "Tazid(la)").replaceAll("Yazeedla", "Yazeed(la)")
-                        .replaceAll("Satanla", "Satan(la)").replaceAll("Satanlsa", "Satans(la)");
-
+                boolean containsArabic = false;
                 String[] lines = st.split("\n");
                 for (int j = 0; j < lines.length; j++) {
                     String line = lines[j];
-                    if (line.toUpperCase().trim().matches("^VOLUME[\\s\\xA0][0-9]+$")) {
-                        volume = line.substring(line.indexOf("Volume") + 7).trim();
-                        if (Integer.parseInt(volume) < 3) {
-                            part = "Al-Usul (Principles) / أصول الكافي";
-                        } else if (Integer.parseInt(volume) == 8) {
-                            // can't process volume 8 yet.
+                    System.out.println(line);
+                    if (!isProbablyArabic(line) && !line.contains("األنوار في")) {
+
+                        if (line.contains("PDF created with")
+                                || line.trim()
+                                        .equals("Akhbar")
+                                || (line.trim()
+                                        .matches(
+                                                "^[0-9]+.*Mishkat ul-Anwar fi.*$"))
+                                || line.trim().isEmpty()
+                                || (section != null
+                                        && section.toUpperCase().trim().replaceAll(" ,-", "")
+                                                .contains(line.toUpperCase().trim().replaceAll(" ,.-", ""))
+                                        && !line.isEmpty())) {
+                            continue;
+                        } else if (line.contains("Translators' note:")) {
                             break;
-                            // part = "Al-Rawda' (Miscellanea)";
+                        } else if (line.toUpperCase().trim().matches("^SECTION[\\s\\xA0][A-Z]+$")) {
+                            section = "SECTION "
+                                    + WordToNumber.wordToNumber(line.split(" ")[line.split(" ").length - 1]) + " -";
+                            while (!lines[j + 1].toUpperCase().contains("CHAPTER") && !lines[j + 1].isEmpty()) {
+                                section += " " + lines[j + 1].trim();
+                                j++;
+                            }
+                        } else if (line.toUpperCase().trim().matches("^CHAPTER[\\s\\xA0][0-9]+$")) {
+                            chapter = line.trim().toUpperCase() + " -";
+                            while (!lines[j + 1].matches("^[0-9]+-.*$") && !lines[j + 1].isEmpty()
+                                    && !lines[j + 1].trim().startsWith("God the Almighty")) {
+                                chapter += " " + lines[j + 1].trim();
+                                j++;
+                            }
+                        } else if (line.trim().matches("^[0-9]+-.*$")) {
+                            setupNewHadithObj();
+                            getNewestHadith().setNumber(line.trim().substring(0, line.trim().indexOf("-")));
+                            getNewestHadith().insertEnglishText(
+                                    line.trim().substring(line.trim().indexOf("-") + 1).trim() + " ");
                         } else {
-                            part = "Al-Furu' (Jurisprudence) / فـروع الـكـافـي";
-                        }
-                    } else if (line.trim().startsWith("THE BOOK OF")) {
-                        int v = j;
-                        section = "";
-                        while (!lines[v].matches("[\\s\\xA0]*") && !lines[v]
-                                .matches("^[\\s\\xA0]*[0-9]+[\\s\\xA0]out[\\s\\xA0]of[\\s\\xA0][0-9]+[\\s\\xA0]*$")) {
-                            section += lines[v].trim() + " ";
-                            v++;
-                        }
-                        if (section.contains("(") && section.contains(")")) {
-                            section = section.substring(0, section.lastIndexOf("(")).trim();
-                        }
-                        section = cleanUpTheLine(section);
-
-                        // get section in arabic
-                        if (section.length() > 2) {
-                            String arabicText = getPreceedingArabicText(lines, j);
-                            if (!arabicText.trim().isEmpty() && !(new ArabicNormalizer(arabicText).getOutput()
-                                    .length() > (section.length() * 3))) {
-                                arabicText = combineArabicStrings(matchingArabicText(arabicText, arabicChunks),
-                                        arabicText);
-                                section += " / " + arabicText;
+                            if (line.contains("Translators")) {
+                                line = line.substring(0, line.indexOf("Translators")).trim();
                             }
+                            getNewestHadith().insertEnglishText(line.trim() + " ");
                         }
-                        j = v - 1;
-                    } else if ((line.toUpperCase().matches(
-                            "(CHAPTER|CHAPATER|CHHAPTER|CHAPER|CHATER|CHAPAATER|CHAPPTER|CAHPTER)[\\s\\xA0]*[0-9]+[\\s\\xA0]–.*")
-                            && !line.contains(".") && !st.contains("...."))
-                            || line.toUpperCase().trim().contains("Chapter 13 The Imams are the Light")
-                            || (line.trim().equals("Chapter 1") && i == 627)) {
-
-                        int y = j;
-                        chapter = "";
-                        while (!isProbablyArabic(lines[y]) && !lines[y].matches("[\\s\\xA0]*")) {
-                            chapter += lines[y].trim() + " ";
-                            chapter = cleanUpTheLine(chapter);
-                            y++;
-                        }
-                        String[] chapterTitleWords = chapter.trim().split("[\\s\\xA0]");
-                        chapterTitleWords[0] = "Chapter";
-                        chapter = String.join(" ", chapterTitleWords);
-
-                        // get chapter name in arabic
-                        if (chapter.length() > 2) {
-                            String arabicText = getPreceedingArabicText(lines, j);
-                            if (!arabicText.trim().isEmpty() && !(new ArabicNormalizer(arabicText).getOutput()
-                                    .length() > (chapter.length() * 3))) {
-                                arabicText = combineArabicStrings(matchingArabicText(arabicText, arabicChunks),
-                                        arabicText);
-                                chapter += " / " + arabicText;
-                            }
-                        }
-                        j = y - 1;
-                        setupNewHadithObj();
-
-                    } else if (line.contains("hubeali.com") || line.startsWith("Alkafi Volume ")
-                            || line.contains("Al Kafi V") || line.contains("The Book Of")
-                            || line.contains("Al Kafi – V") || line.contains("Al Kafi - V")
-                            || line.contains("Al-Kafi – V") || line.contains("Al-Kafi - V")
-                            || line.matches(".*CH[\\s\\xA0][0-9]+[\\s\\xA0]H[\\s\\xA0][0-9]+.*")
-                            || line.matches("^[\\s\\xA0]*[0-9]+[\\s\\xA0]out[\\s\\xA0]of[\\s\\xA0][0-9]+[\\s\\xA0]*$")
-                            || line.matches("^[0-9]+[()]*[\\s\\xA0]*$") || line.contains("hubeali.com")
-                            || line.matches("[\\s\\xA0]*")) {
-                        continue;
-
-                    } else if (!isProbablyArabic(line)) {
-                        // start entering hadith only if we have a valid
-                        // volume,
-                        // chapter, section
-                        if (book != null && chapter != null && volume != null && section != null && line != null) {
-                            line = cleanUpTheLine(line);
-
-                            if (line.matches(".*(\\.|\\?|!|'|-|`|~|’)[\\s\\xA0]*[0-9]+[\\s\\xA0]*$")) {
-                                currentHadith.setNumber(line.substring(line.lastIndexOf(".") + 1).trim());
-                                line = line.substring(0, line.lastIndexOf(".") + 1);
-                                currentHadith.insertEnglishText(line.trim() + " ");
-                                saveHadith();
-                                setupNewHadithObj();
-                            } else {
-                                currentHadith.insertEnglishText(line.trim() + " ");
-                            }
-                        }
-                    } else if (isProbablyArabic(line)) {
-                        int s = j;
-                        String arabicText = "";
-                        while (s <= lines.length - 1 && isProbablyArabic(lines[s])) {
-                            arabicText += lines[s].trim() + " ";
-                            s++;
-                        }
-                        j = s - 1;
-
-                        // compare our Arabic Text to Arabic chunks to find
-                        // the
-                        // correct replacement chunk
-                        String matchingArabicText = matchingArabicText(arabicText, arabicChunks);
-                        currentHadith.insertArabicText(combineArabicStrings(matchingArabicText, arabicText));
+                    } else {
+                        containsArabic = true;
                     }
                 }
-            } catch (NoNodeAvailableException e) {
-                writer.println("No Node available Exception while processing current Hadith, will try AGAIN!:\n"
-                        + currentHadith.toString() + "\n");
-                e.printStackTrace(writer);
-                i--;
-                continue;
+
+                if (containsArabic) {
+                    Process p;
+                    try {
+                        p = Runtime.getRuntime().exec("sudo pdftoppm -f " + i + " -l " + i + " -r 300 -png "
+                                + pdfLocation + " ocr" + i + ".0", null, myTempDir);
+                        p.waitFor();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    String ocrText = sendOCRAPIPost(getLatestFilefromDir(myTempDir.getAbsolutePath()));
+                    String[] ocrLines = ocrText.split("\r\n");
+
+                    for (int j = 0; j < ocrLines.length; j++) {
+                        String ocrLine = ocrLines[j];
+                        System.out.println(ocrLine);
+                        String matchingArabicText = matchingArabicText(ocrLine, new ArrayList(Arrays.asList(lines)));
+                        String finalArabicString = combineArabicStrings(ocrLine, matchingArabicText);
+                        if (isProbablyArabic(ocrLine)) {
+                            ocrLine = cleanupArabicNumber(ocrLine);
+                            if (ocrLine.contains("PDF created with") || ocrLine.contains("ععـتعلعقللفعلا")
+                                    || ocrLine.trim().isEmpty() || ocrLine.trim().contains("مشكاة الأنوار في")
+                                    || ocrLine.trim().equals("غرر الأخبار") || ocrLine.trim().equals("الأخبار")
+                                    || (section != null && chapter.trim().toUpperCase().replaceAll(" ,-", "")
+                                    .contains(ocrLine.trim().toUpperCase().replaceAll(" ,-", "")))
+                                    && !ocrLine.isEmpty()) {
+                                continue;
+                            } else if (ocrLine.trim().contains("الباب") && j == 0) {
+                                section += " / " + ocrLine.trim();
+                                while (!cleanupArabicNumber(ocrLines[j + 1]).contains("الفصل") && !ocrLines[j + 1].isEmpty()) {
+                                    section += " " + cleanupArabicNumber(ocrLines[j + 1]).trim();
+                                    j++;
+                                }
+                                for (HadithObject hadith : hadithObjects) {
+                                    hadith.setSection(section);
+                                }
+                            } else if (ocrLine.trim().contains("الفصل")) {
+                                chapter += " / ";
+                                while (!cleanupArabicNumber(ocrLines[j + 1]).matches("^[\\s\\xA0]?[0-9]+[\\s\\xA0]*\\..*$")
+                                        && !ocrLines[j + 1].isEmpty()) {
+                                    chapter += " " + ocrLines[j + 1].trim();
+                                    j++;
+                                }
+                                for (HadithObject hadith : hadithObjects) {
+                                    hadith.setChapter(chapter);
+                                }
+                            } else {
+                                Pattern arabicHadithStartPattern = Pattern.compile("(^ *(?<number>[0-9]+) *(\\.).*)$|(^.*(\\.) *(?<number2>[0-9]+) *$)");
+                                Matcher m = arabicHadithStartPattern.matcher(ocrLine.trim());
+                                int number = 0;
+                                if (m.find()) {
+                                    if (m.group(1) != null) {
+                                        number = Integer.parseInt(m.group("number").trim());
+                                    } else if (m.group(4) != null) {
+                                        number = Integer.parseInt(m.group("number2").trim());
+                                    }
+                                }
+                                if ((!ocrLine.trim().startsWith("1.")
+                                        && number != 0)
+                                        || ocrLine.toUpperCase().trim().equals("THE MAIN REFERENCES")) {
+
+                                    if (!hadithObjects.isEmpty()) {
+                                        writer.println("COMPLETING HADITH NUMBER:" + getOldestHadith().getNumber());
+                                        saveHadith(writer, number);
+                                    }
+                                    writer.println("ADDING LINE TO HADITH NUMBER :" + getOldestHadith().getNumber() + "\n"
+                                            + finalArabicString.replace(String.valueOf(number), "").replace(".","").trim());
+                                    getOldestHadith().insertArabicText(cleanupArabicNumber(finalArabicString.replace(String.valueOf(number), ""))
+                                            .replace(".","").replaceAll(":", "")
+                                            .replaceAll("0","").replaceAll( " م " , " عليه السلام ").replaceAll( " 4 " , " عليه السلام ").trim() + " ");
+                                } else {
+                                    writer.println("ADDING LINE TO HADITH NUMBER :" + getOldestHadith().getNumber() + "\n"
+                                            + finalArabicString.trim());
+                                    getOldestHadith().insertArabicText(finalArabicString.trim() + " ");
+                                }
+                            }
+                        }
+                    }
+                    File fileToDelete = getLatestFilefromDir(myTempDir.getAbsolutePath());
+                    fileToDelete.delete();
+                }
 
             } catch (Exception e) {
-                writer.println("Error while processing current Hadith:\n" + currentHadith.toString() + "\n");
+                writer.println("Error while processing current Hadith:\n" + getNewestHadith().toString() + "\n");
+                writer.flush();
                 e.printStackTrace(writer);
                 continue;
             }
@@ -234,23 +244,7 @@ public class MishkatAlAnwarWorker extends Thread {
 
     }
 
-    public String getPreceedingArabicText(String[] lines, int boundaryLine) {
-
-        String preceedingArabicText = "";
-        boolean foundArabic = false;
-        boolean done = false;
-        for (int f = boundaryLine - 1; f > 0 && !done && f > boundaryLine - 5; f--) {
-            if (isProbablyArabic(lines[f])) {
-                foundArabic = true;
-                preceedingArabicText += lines[f].trim() + " ";
-            } else if (foundArabic && !isProbablyArabic(lines[f])) {
-                done = true;
-            }
-        }
-        return preceedingArabicText;
-    }
-
-    private String matchingArabicText(String diacraticString, List<String> arabicChunks) {
+    private String matchingArabicText(String normalizedString, List<String> arabicChunks) {
 
         // figures out matching Arabic text by using String length and word
         // similarity
@@ -263,15 +257,15 @@ public class MishkatAlAnwarWorker extends Thread {
                 continue;
             }
 
-            String normalizedDiacraticString = new ArabicNormalizer(diacraticString).getOutput();
-            int normalizedDiacraticStringLenWithNoSpaces = normalizedDiacraticString.replaceAll("[\\s\\xA0]", "")
-                    .length();
-            int normalizedArabicStringLenWithNoSpaces = candidateArabicChunk.replaceAll("[\\s\\xA0]", "").length();
-            int score = Math.abs(normalizedDiacraticStringLenWithNoSpaces - normalizedArabicStringLenWithNoSpaces);
-            String[] dicraticWords = normalizedDiacraticString.split("[\\s\\xA0]");
-            String candidateArabicChunkCopy = candidateArabicChunk;
-            for (String dicraticWord : dicraticWords) {
-                candidateArabicChunkCopy = candidateArabicChunkCopy.replaceAll(Pattern.quote(dicraticWord.trim()), "");
+            int normalizedStringLenWithNoSpaces = normalizedString.replaceAll("[\\s\\xA0]", "").length();
+
+            String normalizedArabicChunk = new ArabicNormalizer(candidateArabicChunk).getOutput();
+            int normalizedArabicChunkLenWithNoSpaces = normalizedArabicChunk.replaceAll("[\\s\\xA0]", "").length();
+            int score = Math.abs(normalizedStringLenWithNoSpaces - normalizedArabicChunkLenWithNoSpaces);
+            String[] normalizedWords = normalizedString.split("[\\s\\xA0]");
+            String candidateArabicChunkCopy = normalizedArabicChunk;
+            for (String normalizedWord : normalizedWords) {
+                candidateArabicChunkCopy = candidateArabicChunkCopy.replace(normalizedWord, "");
             }
             // if the two strings are similar, we would expect that the
             // final normalizedArabicString is very small.
@@ -315,32 +309,38 @@ public class MishkatAlAnwarWorker extends Thread {
         return lastModifiedFile;
     }
 
-    private List<String> splitOCRTextIntoArabicChunks(String ocrText, int page) {
-        List<String> arabicChunks = new ArrayList<String>();
-        arabicChunks.add("");
-        String[] lines = ocrText.split("\n");
-        for (String line : lines) {
-            if (isProbablyArabic(line)) {
-                arabicChunks.set(arabicChunks.size() - 1, (arabicChunks.get(arabicChunks.size() - 1) + " "
-                        + StringUtils.reverseDelimited(line, ' ').trim()));
-            } else {
-                if (!arabicChunks.get(arabicChunks.size() - 1).isEmpty()) {
-                    arabicChunks.add("");
-                }
-            }
-        }
-        if (arabicChunks.get(arabicChunks.size() - 1).isEmpty()) {
-            arabicChunks.remove(arabicChunks.size() - 1);
-        }
-        System.out.println("Arabic chunks size is " + arabicChunks.size() + " for page " + page);
-        return arabicChunks;
-    }
+    public void saveHadith(PrintWriter writer, int newNumber) throws JsonProcessingException, UnknownHostException {
 
-    public void saveHadith() throws JsonProcessingException, UnknownHostException {
         ObjectMapper mapper = new ObjectMapper();
-        byte[] json = mapper.writeValueAsBytes(currentHadith);
-        ClientProvider.instance().getClient().prepareIndex(ClientProvider.INDEX, ClientProvider.TYPE).setSource(json)
-                .get();
+        HadithObject completedHadith = completeOldestHadith();
+        while (Integer.parseInt(completedHadith.getNumber()) <= (newNumber - 1)) {
+            byte[] json = mapper.writeValueAsBytes(completedHadith);
+            boolean successfull = false;
+            int tries = 0;
+            while (successfull == false && tries < 8) {
+                try {
+                    if (completedHadith.getArabic() == null) {
+                        writer.println("HADITH NUMBER " + completedHadith.getNumber() + " HAD NO ARABIC TEXT!");
+                    }
+                    ClientProvider.instance().getClient().prepareIndex(ClientProvider.INDEX, ClientProvider.TYPE)
+                            .setSource(json).get();
+                } catch (NoNodeAvailableException e) {
+                    writer.println("No Node available Exception while processing current Hadith, will try AGAIN!:\n"
+                            + getOldestHadith().toString() + "\n");
+                    e.printStackTrace(writer);
+                    tries++;
+                    continue;
+                }
+                successfull = true;
+                hadithObjects.remove(0);
+            }
+            if (hadithObjects.isEmpty()) {
+                break;
+            }
+            completedHadith = completeOldestHadith();
+            successfull = false;
+            tries = 0;
+        }
     }
 
     private String sendOCRAPIPost(File file) throws IOException, Exception {
@@ -365,7 +365,7 @@ public class MishkatAlAnwarWorker extends Thread {
     }
 
     public void setupNewHadithObj() {
-        currentHadith = new HadithObject();
+        HadithObject currentHadith = new HadithObject();
         if (volume != null) {
             currentHadith.setVolume(volume);
         }
@@ -379,14 +379,14 @@ public class MishkatAlAnwarWorker extends Thread {
             currentHadith.setSection(section);
         }
         currentHadith.setBook(book);
+        hadithObjects.add(currentHadith);
     }
 
     /**
      * Cleans up the line for any know formatting issues.
      */
     public String cleanUpTheLine(String line) {
-
-        return line.replaceAll("[`’]", "");
+        return line.replaceAll("`’", "");
     }
 
     /**
@@ -399,7 +399,7 @@ public class MishkatAlAnwarWorker extends Thread {
         }
         int sLen = s.length();
         int hits = 0;
-        for (int i = 0; i < s.length();) {
+        for (int i = 0; i < s.length(); ) {
             int c = s.codePointAt(i);
             if (c >= 0x0600 && c <= 0x06E0)
                 hits++;
@@ -410,6 +410,23 @@ public class MishkatAlAnwarWorker extends Thread {
         } else {
             return true;
         }
+    }
+
+    private HadithObject getOldestHadith() {
+        return hadithObjects.get(0);
+    }
+
+    private HadithObject getNewestHadith() {
+        if (hadithObjects.size() < 1) {
+            System.out.println("");
+        }
+        return hadithObjects.get(hadithObjects.size() - 1);
+    }
+
+    private HadithObject completeOldestHadith() {
+        HadithObject hadith = hadithObjects.get(0);
+        hadith.setEnglish(cleanUpTheLine(hadith.getEnglish()));
+        return hadith;
     }
 
 }

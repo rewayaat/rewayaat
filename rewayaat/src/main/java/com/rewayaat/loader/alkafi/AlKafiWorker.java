@@ -32,6 +32,7 @@ import org.json.JSONObject;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Files;
+import com.rewayaat.loader.resources.ArabicNormalizer;
 import com.rewayaat.web.config.ClientProvider;
 import com.rewayaat.web.data.hadith.HadithObject;
 
@@ -118,6 +119,9 @@ public class AlKafiWorker extends Thread {
 
                 String ocrText = sendOCRAPIPost(getLatestFilefromDir(myTempDir.getAbsolutePath()));
                 List<String> arabicChunks = splitOCRTextIntoArabicChunks(ocrText, i);
+
+                File fileToDelete = getLatestFilefromDir(myTempDir.getAbsolutePath());
+                fileToDelete.delete();
 
                 // get rid of the following suffixes
                 st = st.replaceAll("azwj", "").replaceAll("asws", "").replaceAll("saww", "")
