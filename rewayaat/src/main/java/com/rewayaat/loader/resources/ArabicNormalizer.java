@@ -1,4 +1,4 @@
-package com.rewayaat.loader.alkafi;
+package com.rewayaat.loader.resources;
 
 public final class ArabicNormalizer {
 

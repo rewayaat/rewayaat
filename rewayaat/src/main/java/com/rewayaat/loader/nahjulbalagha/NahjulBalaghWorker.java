@@ -37,7 +37,7 @@ public class NahjulBalaghWorker extends Thread {
         }
         NodeList nList = null;
         try {
-            String xmlLocation = "/home/zir0/git/rewayaatv2/rewayaat/src/main/java/com/rewayaat/loader/nahjulbalagha/nahjulbalagha.xml";
+            String xmlLocation = "/home/zir0/git/rewayaatv2/rewayaat/src/main/java/com/rewayaat/loader/resources/nahjulbalagha.xml";
             File fXmlFile = new File(xmlLocation);
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
