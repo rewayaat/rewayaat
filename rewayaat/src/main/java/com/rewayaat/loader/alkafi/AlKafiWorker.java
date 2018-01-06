@@ -1,19 +1,11 @@
 package com.rewayaat.loader.alkafi;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Pattern;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.io.Files;
+import com.rewayaat.loader.ArabicNormalizer;
+import com.rewayaat.web.config.ClientProvider;
+import com.rewayaat.web.data.hadith.HadithObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
@@ -29,12 +21,19 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.elasticsearch.client.transport.NoNodeAvailableException;
 import org.json.JSONObject;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.Files;
-import com.rewayaat.loader.resources.ArabicNormalizer;
-import com.rewayaat.web.config.ClientProvider;
-import com.rewayaat.web.data.hadith.HadithObject;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * Must be executed on linux machine with the pdftopom package installed.
@@ -48,12 +47,12 @@ public class AlKafiWorker extends Thread {
     private String part = null;
     private String volume = null;
     private int start;
-    private final List<String> replaceAsAtEndWords = Arrays.asList(new String[] { "prophetsas", "prophetas",
+    private final List<String> replaceAsAtEndWords = Arrays.asList("prophetsas", "prophetas",
             "rasoolsas", "adamas", "theyas", "theiras", "heas", "ibrahimas", "yaqoubas", "yunusas", "musaas",
             "brotheras", "talibas", "farwaas", "zakariyaas", "ayyubas", "shuaibas", "hisas", "ishaqas", "ismailas",
             "ibrahimas", "lutas", "salihas", "hudas", "idrisas", "mursilsas", "yahyaas", "qasimas", "sheas", "youras",
             "himas", "khadeejaas", "jibraeelas", "isaas", "nuhas", "maryamas", "uttalibas", "rasoolas", "successorsas",
-            "heas", "sheas", "sonas", "yusufas", "youas", "meas", "ias", "hamzaas" });
+            "heas", "sheas", "sonas", "yusufas", "youas", "meas", "ias", "hamzaas");
 
     private int end;
 
@@ -369,7 +368,7 @@ public class AlKafiWorker extends Thread {
                 .get();
     }
 
-    private String sendOCRAPIPost(File file) throws IOException, Exception {
+    private String sendOCRAPIPost(File file) throws Exception {
 
         HttpPost httppost = new HttpPost("http://apipro3.ocr.space/parse/image");
 
@@ -447,11 +446,7 @@ public class AlKafiWorker extends Thread {
                 hits++;
             i += Character.charCount(c);
         }
-        if ((sLen / 2) > hits) {
-            return false;
-        } else {
-            return true;
-        }
+        return (sLen / 2) <= hits;
     }
 
 }
