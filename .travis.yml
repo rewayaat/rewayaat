@@ -10,9 +10,6 @@ os:
 script:
 - cd rewayaat
 - mvn package docker:build cobertura:cobertura
-- cd ..
-- chmod a+x deploy.sh ecs_deploy.sh
-- "./deploy.sh"
 notifications:
   email:
     recipients:
@@ -20,6 +17,9 @@ notifications:
     on_success: change
     on_failure: always
 after_success:
+ - cd ..
+ - chmod a+x deploy.sh ecs_deploy.sh
+ - "./deploy.sh"
  - bash <(curl -s https://codecov.io/bash)
     
 secure: CcIMGt8gG+dE7yAbmQGJqh470seqKH1YE9pV242FqR326PIBaBsa0/eqJSAulBF3Jy9ZFun88MQ0W6cH5fYSbcp2/AXKVf3PMZY8vJvgIcoihYWZXgk2mP1KfLK9IgMz5M3lvIuSHeCi6Z8iIodbHWEzDvbD1mWTcqYmBr+o7Zlkd5pjWdklR7KKkVMnexPlzYFP0sR1GXCKtEXejvZXUcQYOikSuWP1vgUtAB/1o6Wd+7l2gJ/+7r1qDFCLNQvIfFU7CaFgznsRbUmULA5epMTjcbPttlZHmWMcdJRJbn/glQQJzSJ+Zu/IOnbQupOWs9oP4PPIKprKUThsQJTuhcjckFxQ2LR5eRNye3NB6j01iGKzFXBsnoNpb9QqDVWhTJtHpl52yURIm9FRELAhokIme3F2TYihK/7qzqaNKo8t6uN6e+2cYY0L46CQ9rZJQmMPQqSBcGtIj8Cn8ych4Xr/jwH9ja8KIjFbDp74jGyyUec2xiWqCNJcYiqOWxrIapFWppUS+uvQ4e8dQuom+Oi+e4ojzK8DfKlWDRRtqCqAkGDdQ/KK0MElVveqTJvySURGXaN18j6DkXpEhGx9py7P9kgpr1RVeAwlYqQDIdmD2pxGpVfwVaKUZleuv3HTPY4C5yaeh2KB7jY+ZldVCtMTsRnIHeOg3F0DP99SZbk=
