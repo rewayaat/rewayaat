@@ -1,15 +1,14 @@
-package com.rewayaat.loader.resources;
+package com.rewayaat.loader;
 
 public final class ArabicNormalizer {
 
-    private String input;
     private final String output;
+    private String input;
 
     /**
      * ArabicNormalizer constructor
-     * 
-     * @param input
-     *            String
+     *
+     * @param input String
      */
     public ArabicNormalizer(String input) {
         this.input = input;
@@ -18,14 +17,14 @@ public final class ArabicNormalizer {
 
     /**
      * normalize Method
-     * 
+     *
      * @return String
      */
     private String normalize() {
 
         // Remove honorific sign
         input = input.replaceAll("\u0610", "");// ARABIC SIGN SALLALLAHOU ALAYHE
-                                               // WA SALLAM
+        // WA SALLAM
         input = input.replaceAll("\u0611", "");// ARABIC SIGN ALAYHE ASSALLAM
         input = input.replaceAll("\u0612", "");// ARABIC SIGN RAHMATULLAH ALAYHE
         input = input.replaceAll("\u0613", "");// ARABIC SIGN RADI ALLAHOU ANHU
@@ -34,17 +33,17 @@ public final class ArabicNormalizer {
         // Remove koranic anotation
         input = input.replaceAll("\u0615", "");// ARABIC SMALL HIGH TAH
         input = input.replaceAll("\u0616", "");// ARABIC SMALL HIGH LIGATURE
-                                               // ALEF WITH LAM WITH YEH
+        // ALEF WITH LAM WITH YEH
         input = input.replaceAll("\u0617", "");// ARABIC SMALL HIGH ZAIN
         input = input.replaceAll("\u0618", "");// ARABIC SMALL FATHA
         input = input.replaceAll("\u0619", "");// ARABIC SMALL DAMMA
         input = input.replaceAll("\u061A", "");// ARABIC SMALL KASRA
         input = input.replaceAll("\u06D6", "");// ARABIC SMALL HIGH LIGATURE SAD
-                                               // WITH LAM WITH ALEF MAKSURA
+        // WITH LAM WITH ALEF MAKSURA
         input = input.replaceAll("\u06D7", "");// ARABIC SMALL HIGH LIGATURE QAF
-                                               // WITH LAM WITH ALEF MAKSURA
+        // WITH LAM WITH ALEF MAKSURA
         input = input.replaceAll("\u06D8", "");// ARABIC SMALL HIGH MEEM INITIAL
-                                               // FORM
+        // FORM
         input = input.replaceAll("\u06D9", "");// ARABIC SMALL HIGH LAM ALEF
         input = input.replaceAll("\u06DA", "");// ARABIC SMALL HIGH JEEM
         input = input.replaceAll("\u06DB", "");// ARABIC SMALL HIGH THREE DOTS
@@ -53,11 +52,11 @@ public final class ArabicNormalizer {
         input = input.replaceAll("\u06DE", "");// ARABIC START OF RUB EL HIZB
         input = input.replaceAll("\u06DF", "");// ARABIC SMALL HIGH ROUNDED ZERO
         input = input.replaceAll("\u06E0", "");// ARABIC SMALL HIGH UPRIGHT
-                                               // RECTANGULAR ZERO
+        // RECTANGULAR ZERO
         input = input.replaceAll("\u06E1", "");// ARABIC SMALL HIGH DOTLESS HEAD
-                                               // OF KHAH
+        // OF KHAH
         input = input.replaceAll("\u06E2", "");// ARABIC SMALL HIGH MEEM
-                                               // ISOLATED FORM
+        // ISOLATED FORM
         input = input.replaceAll("\u06E3", "");// ARABIC SMALL LOW SEEN
         input = input.replaceAll("\u06E4", "");// ARABIC SMALL HIGH MADDA
         input = input.replaceAll("\u06E5", "");// ARABIC SMALL WAW
@@ -68,7 +67,7 @@ public final class ArabicNormalizer {
         input = input.replaceAll("\u06EA", "");// ARABIC EMPTY CENTRE LOW STOP
         input = input.replaceAll("\u06EB", "");// ARABIC EMPTY CENTRE HIGH STOP
         input = input.replaceAll("\u06EC", "");// ARABIC ROUNDED HIGH STOP WITH
-                                               // FILLED CENTRE
+        // FILLED CENTRE
         input = input.replaceAll("\u06ED", "");// ARABIC SMALL LOW MEEM
 
         // Remove tatweel
@@ -91,9 +90,9 @@ public final class ArabicNormalizer {
         input = input.replaceAll("\u0658", "");// ARABIC MARK NOON GHUNNA
         input = input.replaceAll("\u0659", "");// ARABIC ZWARAKAY
         input = input.replaceAll("\u065A", "");// ARABIC VOWEL SIGN SMALL V
-                                               // ABOVE
+        // ABOVE
         input = input.replaceAll("\u065B", "");// ARABIC VOWEL SIGN INVERTED
-                                               // SMALL V ABOVE
+        // SMALL V ABOVE
         input = input.replaceAll("\u065C", "");// ARABIC VOWEL SIGN DOT BELOW
         input = input.replaceAll("\u065D", "");// ARABIC REVERSED DAMMA
         input = input.replaceAll("\u065E", "");// ARABIC FATHA WITH TWO DOTS

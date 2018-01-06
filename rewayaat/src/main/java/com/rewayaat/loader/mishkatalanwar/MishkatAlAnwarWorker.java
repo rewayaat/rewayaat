@@ -1,20 +1,12 @@
 package com.rewayaat.loader.mishkatalanwar;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.io.Files;
+import com.rewayaat.loader.ArabicNormalizer;
+import com.rewayaat.loader.WordToNumber;
+import com.rewayaat.web.config.ClientProvider;
+import com.rewayaat.web.data.hadith.HadithObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.HttpClient;
@@ -29,13 +21,20 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.elasticsearch.client.transport.NoNodeAvailableException;
 import org.json.JSONObject;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.Files;
-import com.rewayaat.loader.resources.ArabicNormalizer;
-import com.rewayaat.loader.resources.WordToNumber;
-import com.rewayaat.web.config.ClientProvider;
-import com.rewayaat.web.data.hadith.HadithObject;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Must be executed on linux machine with the pdftopom package installed.
@@ -343,7 +342,7 @@ public class MishkatAlAnwarWorker extends Thread {
         }
     }
 
-    private String sendOCRAPIPost(File file) throws IOException, Exception {
+    private String sendOCRAPIPost(File file) throws Exception {
 
         HttpPost httppost = new HttpPost("http://apipro3.ocr.space/parse/image");
 
@@ -405,11 +404,7 @@ public class MishkatAlAnwarWorker extends Thread {
                 hits++;
             i += Character.charCount(c);
         }
-        if ((sLen / 2) > hits) {
-            return false;
-        } else {
-            return true;
-        }
+        return (sLen / 2) <= hits;
     }
 
     private HadithObject getOldestHadith() {
