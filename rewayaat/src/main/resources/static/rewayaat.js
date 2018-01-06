@@ -26,7 +26,7 @@ function loadQuery(query) {
 }
 
 function validQuery(query) {
-	if (query.trim().length < 4) {
+	if (query.trim().length < 2) {
 		return false;
 	}
 	return true;
@@ -38,17 +38,26 @@ function displayWelcomeContent() {
 		el : '#hadithView'
 	});
 	$("#welcome").load("/welcome.html");
+	var queryBar = document.getElementById("queryBar");
+	if (queryBar) {
+        queryBar.style.display="block";
+        document.getElementById("queryBarText").innerHTML = query;
+    }
 }
 
 // records queries on enter key-presses.
 $(document).keypress(function(e) {
-	if (e.which == 13 || event.keyCode == 13) {
+	if (e.which == 13 || e.keyCode == 13) {
 		// Enter key was pressed.
 		var el = document.activeElement;
 		if (el && (el.id == 'query')) {
 			// focused element is query search bar.
 			submitSearchQuery();
 		}
+		if (el && (el.id == 'queryBarText')) {
+        			// focused element is query search bar.
+        			submitSearchQuery();
+        }
 	}
 });
 
@@ -86,7 +95,13 @@ function isNumeric(obj) {
 
 // processes the user's query by redirecting with query parameter.
 function submitSearchQuery() {
-	var query = encodeURIComponent(document.getElementById("query").innerText);
+    var queryBarOne = document.getElementById("query");
+    if (queryBarOne) {
+	    var query = encodeURIComponent(queryBarOne.innerText);
+	}
+	if (!query) {
+	    query = encodeURIComponent(document.getElementById("queryBarText").innerText);
+	}
 	window.location.href = window.location.protocol + "//"
 			+ window.location.host + window.location.pathname + '?' + 'q='
 			+ query;
@@ -186,6 +201,9 @@ function setupVue(query) {
 					var xhr = new XMLHttpRequest();
 					xhr.onload = function() {
 						if (xhr.readyState == XMLHttpRequest.DONE) {
+						    var queryBar = document.getElementById("queryBar");
+                            queryBar.style.display="block";
+                            document.getElementById("queryBarText").innerHTML = query;
 							var respJSON = JSON.parse(xhr.responseText)
 							if (respJSON.collection.length < 1
 									&& self.narrations.length === 0) {
