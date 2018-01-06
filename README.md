@@ -1,5 +1,5 @@
 # [rewayaat](http://rewayaat.info) 
-[![Build Status](https://travis-ci.org/rewayaat/rewayaat.svg?branch=master)](https://travis-ci.org/rewayaat/rewayaat) [![License](https://clarityviews.io/badge)](https://clarityviews.io/github/Zir0-93/rewayaat?branch=master) [![codecov](https://codecov.io/gh/rewayaat/rewayaat/branch/master/graph/badge.svg)](https://codecov.io/gh/rewayaat/rewayaat)
+[![Build Status](https://travis-ci.org/rewayaat/rewayaat.svg?branch=master)](https://travis-ci.org/rewayaat/rewayaat) [![codecov](https://codecov.io/gh/rewayaat/rewayaat/branch/master/graph/badge.svg)](https://codecov.io/gh/rewayaat/rewayaat)
 
 
 
