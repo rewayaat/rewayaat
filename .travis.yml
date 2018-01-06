@@ -9,7 +9,7 @@ os:
 - linux
 script:
 - cd rewayaat
-- mvn package docker:build cobertura:cobertura
+- mvn package docker:build
 notifications:
   email:
     recipients:
