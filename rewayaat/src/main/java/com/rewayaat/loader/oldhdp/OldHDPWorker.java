@@ -1,23 +1,19 @@
 package com.rewayaat.loader.oldhdp;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rewayaat.web.config.ClientProvider;
+import com.rewayaat.web.data.hadith.HadithObject;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.UnknownHostException;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rewayaat.web.config.ClientProvider;
-import com.rewayaat.web.data.hadith.HadithObject;
 
 public class OldHDPWorker extends Thread {
 
@@ -152,7 +148,7 @@ public class OldHDPWorker extends Thread {
                 ClientProvider.instance().getClient().prepareIndex(ClientProvider.INDEX, ClientProvider.TYPE)
                         .setSource(json).get();
                 return;
-            } catch (JsonProcessingException | UnknownHostException e) {
+            } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
                 writer.println(e);
