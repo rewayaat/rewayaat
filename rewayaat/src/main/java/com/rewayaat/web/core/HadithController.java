@@ -60,9 +60,9 @@ public class HadithController {
         GetResponse response = ClientProvider.instance().getClient().prepareGet(ClientProvider.INDEX, ClientProvider.TYPE, id)
                 .setOperationThreaded(false)
                 .get();
-        String responseStr = new String(response.getSourceAsBytes());
+        String responseStr = new JSONObject(new String(response.getSourceAsBytes())).toString(2);
         log.info("Original hadith is:\n" + responseStr);
-        log.info("Modification request:\n" + modifiedHadith.toString());
+        log.info("Modification request:\n" + modifiedHadith.toString(2));
         JSONObject existingHadith = new JSONObject(responseStr);
         // add all the values from the modification object to the stored hadith object
         Iterator<?> keys = modifiedHadith.keys();
@@ -72,6 +72,8 @@ public class HadithController {
         }
         // make sure we can still serialize a valid HadithObject from the new JSON data
         HadithObject newHadithObject = mapper.readValue(existingHadith.toString(), HadithObject.class);
+        newHadithObject.insertHistoryNote("User " + (String) req.getSession().getAttribute(LoginController.USER_EMAIL) + " modified this hadith on " + new java.util.Date() + ". The orginal hadith:\n"
+                + responseStr + "\n\n The following properties were modified and saved to the database:\n\n" + modifiedHadithStr);
         // save new hadith
         UpdateRequest updateRequest = new UpdateRequest();
         updateRequest.index(ClientProvider.INDEX);
