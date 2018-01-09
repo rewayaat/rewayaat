@@ -1,30 +1,28 @@
 
 package com.rewayaat.web.data.hadith;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import io.swagger.annotations.ApiModelProperty;
+import org.apache.commons.lang.builder.ToStringBuilder;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang.builder.ToStringBuilder;
-
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-
-import io.swagger.annotations.ApiModelProperty;
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({ "id", "book", "number", "part", "chapter", "section", "volume", "tags", "notes", "arabic",
-        "english", "Commentaries", "gradings", "related" })
+@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonPropertyOrder({"book", "number", "part", "chapter", "section", "volume", "tags", "notes", "arabic",
+        "english", "source", "gradings", "related"})
 public class HadithObject implements Serializable {
 
-    @JsonProperty("id")
-    private String id;
     @ApiModelProperty(notes = "Primary source of the narration if applicable")
     @JsonProperty("source")
     private String source;
@@ -77,45 +75,6 @@ public class HadithObject implements Serializable {
     public HadithObject() {
     }
 
-    public HadithObject(String id, String book, String number, String part, String chapter, String volume,
-            List<Object> tags, String notes, String arabic, String english, List<Commentary> commentaries,
-            List<Grading> gradings, List<Related> related, String section, String edition) {
-        this.id = id;
-        this.book = book;
-        this.number = number;
-        this.part = part;
-        this.chapter = chapter;
-        this.volume = volume;
-        this.tags = tags;
-        this.notes = notes;
-        this.arabic = arabic;
-        this.english = english;
-        this.gradings = gradings;
-        this.related = related;
-        this.edition = edition;
-        this.section = section;
-    }
-
-    public HadithObject(String id, String book, String number, String part, String chapter, String volume,
-            List<Object> tags, String notes, String arabic, String english, List<Commentary> commentaries,
-            List<Grading> gradings, List<Related> related, String section, String edition, String primarySource,
-            String publisher) {
-        this(id, book, number, part, chapter, volume, tags, notes, arabic, english, commentaries, gradings, related,
-                section, edition);
-        this.source = primarySource;
-        this.publisher = publisher;
-    }
-
-    @JsonProperty("id")
-    public String getId() {
-        return id;
-    }
-
-    @JsonProperty("id")
-    public void setId(String id) {
-        this.id = id;
-    }
-
     @JsonProperty("publisher")
     public String getPublisher() {
         return publisher;
@@ -124,6 +83,20 @@ public class HadithObject implements Serializable {
     @JsonProperty("publisher")
     public void setPublisher(String publisher) {
         this.publisher = publisher;
+    }
+
+    @JsonProperty("edition")
+    public String getEdition() {
+        return edition;
+    }
+
+    @JsonProperty("edition")
+    public void setEdition(String edition) {
+        this.edition = edition;
+    }
+
+    public void setAdditionalProperties(Map<String, Object> additionalProperties) {
+        this.additionalProperties = additionalProperties;
     }
 
     @JsonProperty("source")
