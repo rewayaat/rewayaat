@@ -13,7 +13,7 @@ import org.springframework.core.env.Environment;
 import java.net.InetSocketAddress;
 
 @Configuration
-@PropertySource("classpath:localdev.properties")
+@PropertySource("classpath:production.properties")
 public class ClientProvider implements EnvironmentAware {
 
     public final static String INDEX = "rewayaat";
@@ -22,7 +22,7 @@ public class ClientProvider implements EnvironmentAware {
     private static Object lock = new Object();
     private Client client;
     // default value, will be overwritten by spring configuration if applicable
-    public static String host = "localhost";
+    public static String host = "127.0.0.1";
     // default value, will be overwritten by spring configuration if applicable
     public static int port = 9300;
 
