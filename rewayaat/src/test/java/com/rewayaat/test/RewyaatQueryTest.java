@@ -1,10 +1,9 @@
 package com.rewayaat.test;
 
-import static org.junit.Assert.assertTrue;
-
+import com.rewayaat.web.core.RewayaatQuery;
 import org.junit.Test;
 
-import com.rewayaat.web.core.RewayaatQuery;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Ensures requirements of the RewayaatQuery class are satisfied.
@@ -69,7 +68,6 @@ public class RewyaatQueryTest {
      */
     @Test
     public void testNoAutoFuzzinessForUserPhrases() {
-        // "test" should keep its fuzziness of 3...
         assertTrue(new RewayaatQuery("cuppycakes \"a group\"~6").query().trim().equals("cuppycakes~2 \"a group\"~6"));
     }
 
@@ -79,7 +77,6 @@ public class RewyaatQueryTest {
      */
     @Test
     public void testNoAutoFuzzinessForUserPhrasesWithBoost() {
-        // "test" should keep its fuzziness of 3...
         assertTrue(new RewayaatQuery("\"a group\"^3~6").query().trim().equals("\"a group\"^3~6"));
     }
 
@@ -88,7 +85,6 @@ public class RewyaatQueryTest {
      */
     @Test
     public void testNoAutoFuzzinessForUserTermsWithBoost() {
-        // "test" should keep its fuzziness of 3...
         assertTrue(new RewayaatQuery("cuppycakes test^3~6").query().trim().equals("cuppycakes~2 test^3~6"));
     }
 
@@ -98,7 +94,6 @@ public class RewyaatQueryTest {
      */
     @Test
     public void testNoAutoFuzzinessOnIdTerm() {
-        // "test" should keep its fuzziness of 3...
         assertTrue(new RewayaatQuery("_id:AWDdW234FAEF").query().trim().equals("_id:AWDdW234FAEF"));
     }
 }

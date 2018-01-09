@@ -9,10 +9,12 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 
 import java.util.Collections;
 
+/**
+ * Verifies Google token ID's.
+ */
 public class GoogleTokenVerifier {
 
-    public static String CLIENT_ID = "776365081062-5fc66doo0k5jpg4nfnimkag81e02sb81.apps.googleusercontent.com";
-
+    public static final String CLIENTID = "776365081062-5fc66doo0k5jpg4nfnimkag81e02sb81.apps.googleusercontent.com";
 
     public String authenticate(String idTokenString) throws Exception {
         // Set up the HTTP transport and JSON factory
@@ -20,7 +22,7 @@ public class GoogleTokenVerifier {
         JsonFactory jsonFactory = new JacksonFactory();
 
         GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(transport, jsonFactory)
-                .setAudience(Collections.singletonList(CLIENT_ID))
+                .setAudience(Collections.singletonList(CLIENTID))
                 .build();
 
         // (Receive idTokenString by HTTPS POST)
