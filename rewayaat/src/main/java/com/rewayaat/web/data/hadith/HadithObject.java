@@ -68,11 +68,30 @@ public class HadithObject implements Serializable {
     @ApiModelProperty(notes = "Further resources that are related to the narration")
     @JsonProperty("related")
     private List<Related> related = new ArrayList<Related>();
+    @JsonProperty("history")
+    private List<String> history = new ArrayList<String>();
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
     private final static long serialVersionUID = 5990321989725337516L;
 
     public HadithObject() {
+        if (this.history.isEmpty()) {
+            this.history.add("This hadith was first loaded on " + new java.util.Date());
+        }
+    }
+
+    @JsonProperty("history")
+    public List<String> getHistory() {
+        return history;
+    }
+
+    public void insertHistoryNote(String note) {
+        this.history.add(note);
+    }
+
+    @JsonProperty("history")
+    public void setHistory(List<String> history) {
+        this.history = history;
     }
 
     @JsonProperty("publisher")
