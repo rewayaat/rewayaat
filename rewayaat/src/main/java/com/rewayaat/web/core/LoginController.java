@@ -1,8 +1,10 @@
 package com.rewayaat.web.core;
 
 import com.rewayaat.web.auth.GoogleTokenVerifier;
-import org.springframework.beans.factory.annotation.Value;
+import org.apache.commons.io.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -11,9 +13,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -25,23 +24,28 @@ public class LoginController {
 
     public static final String AUTHENTICATED = "authenticated";
     private static Logger log = Logger.getLogger(LoginController.class.getName());
-    @Value("classpath:admins.txt")
-    private Resource res;
+
+
+    @Autowired
+    private ResourceLoader resourceLoader;
 
     @RequestMapping(value = "/google/signin", method = RequestMethod.POST)
     public final ResponseEntity<String> home(HttpServletRequest request, @RequestParam(value = "idtoken") String idtoken) {
         log.info("User signed in with idtoken: " + idtoken);
         try {
             String email = new GoogleTokenVerifier().authenticate(idtoken);
-            List<String> lines = Files.readAllLines(Paths.get(res.getURI()),
-                    StandardCharsets.UTF_8);
+            Resource resource = resourceLoader.getResource("classpath:admins.txt");
+            List<String> lines = FileUtils.readLines(resource.getFile());
             if (lines.contains(email)) {
+                log.info("User is an administrator");
                 request.getSession().setAttribute(AUTHENTICATED, true);
                 return new ResponseEntity<>("Authenticated as an admin.", HttpStatus.OK);
             } else {
+                log.info("User is not an administrator");
                 return new ResponseEntity<>("Not an admin.", HttpStatus.ACCEPTED);
             }
         } catch (Exception e) {
+            log.info("Could not process id token.\n" + e);
             return new ResponseEntity<>("Invalid id token", HttpStatus.UNAUTHORIZED);
         }
     }
