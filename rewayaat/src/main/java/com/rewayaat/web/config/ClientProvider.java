@@ -1,8 +1,5 @@
 package com.rewayaat.web.config;
 
-import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
-
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
@@ -13,17 +10,19 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 
+import java.net.InetSocketAddress;
+
 @Configuration
-@PropertySource("classpath:production.properties")
+@PropertySource("classpath:localdev.properties")
 public class ClientProvider implements EnvironmentAware {
 
-    public static String INDEX = "rewayaat";
-    public static String TYPE = "rewayaat";
+    public final static String INDEX = "rewayaat";
+    public final static String TYPE = "rewayaat";
     private static ClientProvider instance = null;
     private static Object lock = new Object();
     private Client client;
     // default value, will be overwritten by spring configuration if applicable
-    public static String host = "127.0.0.1";
+    public static String host = "localhost";
     // default value, will be overwritten by spring configuration if applicable
     public static int port = 9300;
 
@@ -39,7 +38,7 @@ public class ClientProvider implements EnvironmentAware {
         return instance;
     }
 
-    public void prepareClient() throws UnknownHostException {
+    public void prepareClient() {
         Settings settings = Settings.builder().put("client.transport.sniff", false).put("cluster.name", "elasticsearch")
                 .build();
         TransportClient client = new PreBuiltTransportClient(settings)
@@ -51,7 +50,7 @@ public class ClientProvider implements EnvironmentAware {
         client.close();
     }
 
-    public Client getClient() throws UnknownHostException {
+    public Client getClient() {
         if (client == null) {
             prepareClient();
         }
