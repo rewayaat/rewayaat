@@ -172,6 +172,41 @@
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>com.samaxes.maven</groupId>
+				<artifactId>minify-maven-plugin</artifactId>
+				<version>1.7.6</version>
+				<executions>
+					<execution>
+						<id>default-minify</id>
+						<goals>
+							<goal>minify</goal>
+						</goals>
+						<configuration>
+							<webappSourceDir>${project.basedir}/src/main/resources</webappSourceDir>
+							<webappTargetDir>${project.build.directory}/classes</webappTargetDir>
+							<charset>UTF-8</charset>
+							<skipMerge>true</skipMerge>
+							<nosuffix>true</nosuffix>
+							<cssSourceDir>static</cssSourceDir>
+							<cssSourceIncludes>
+								<cssSourceInclude>**.css</cssSourceInclude>
+							</cssSourceIncludes>
+							<cssSourceExcludes>
+								<cssSourceExclude>**.min.css</cssSourceExclude>
+							</cssSourceExcludes>
+							<jsSourceDir>static</jsSourceDir>
+							<jsSourceIncludes>
+								<jsSourceInclude>**.js</jsSourceInclude>
+							</jsSourceIncludes>
+							<jsSourceExcludes>
+								<jsSourceExclude>**.min.js</jsSourceExclude>
+							</jsSourceExcludes>
+							<jsEngine>CLOSURE</jsEngine>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.1</version>
