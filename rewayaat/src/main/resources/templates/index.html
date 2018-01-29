@@ -15,6 +15,8 @@
     <link rel="stylesheet" th:href="@{/jsoneditor.min.css}" href="/jsoneditor.min.css"/>
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet"/>
     <link th:href="@{/pace.css}" href="/pace.css" rel="stylesheet"/>
+    <link rel="stylesheet" type="text/css"
+          href="https://cdn.rawgit.com/vaakash/socializer/a4c672bf/css/socializer.min.css"/>
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.5.16/clipboard.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
@@ -39,7 +41,6 @@
 </head>
 
 <body>
-<!--  LOAD THE MENU BAR AT THE TOP -->
 <div id="header">
     <div uk-sticky="media: 960" class="uk-navbar-container tm-navbar-container"
          style="width: 100%; background-color: #f7f7f7; border-bottom: 1px solid rgba(0, 0, 0, 0.26);">
@@ -93,6 +94,17 @@
     </div>
 </div>
 <!---->
+<div class="sr-sharebar sr-sb-vl sr-sb-left uk-visible@s">
+    <div class="socializer a sr-48px sr-circle sr-zoom sr-vertical sr-icon-white sr-bg-dark sr-sw-3 sr-pad"><span
+            class="sr-email sr-text-in"><a href="mailto:academyofislam@gmail.com" target="_blank" title="Email"><i
+            class="fa fa-envelope"></i><span class="text">Email</span></a></span><span class="sr-facebook sr-text-in"><a
+            href="https://www.facebook.com/alioutreach" target="_blank" title="Facebook"><i
+            class="fa fa-facebook"></i><span class="text">Facebook</span></a></span><span class="sr-twitter sr-text-in"><a
+            href="https://twitter.com/ALIactivities" target="_blank" title="Twitter"><i class="fa fa-twitter"></i><span
+            class="text">Twitter</span></a></span><span class="sr-github sr-text-in"><a
+            href="https://github.com/rewayaat/rewayaat" target="_blank" title="Github"><i class="fa fa-github"></i><span
+            class="text">Github</span></a></span></div>
+</div>
 <!--  VUE APP  -->
 
 <div id="parentContainer" class="uk-container-large uk-align-center" style="margin-top: 0px;">
@@ -290,21 +302,6 @@
         var query = [[${ query }]];
         loadQuery(query);
 
-
-
-</script>
-<!--Start of Tawk.to Script-->
-<script type="text/javascript">
-        var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
-        (function () {
-            var s1 = document.createElement("script"), s0 = document
-                .getElementsByTagName("script")[0];
-            s1.async = true;
-            s1.src = 'https://embed.tawk.to/590b41f74ac4446b24a6d37b/default';
-            s1.charset = 'UTF-8';
-            s1.setAttribute('crossorigin', '*');
-            s0.parentNode.insertBefore(s1, s0);
-        })();
 
 
 </script>
