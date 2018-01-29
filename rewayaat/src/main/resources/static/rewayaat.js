@@ -25,6 +25,26 @@ function loadQuery(query) {
 	}
 }
 
+$(document).ready(function(){
+  var changeCardWidth = function(){
+    if ( $(window).width() < 768 ){
+        $('.uk-card').css({"padding-left" : "0px"});
+        $('.uk-container-large').css({"width" : "97%"});
+        $('.uk-align-left').css({"margin-right" : "0px"});
+
+  };
+  if ( $(window).width() >= 768 ){
+          $('.uk-card').css({"padding-left" : "30px"});
+          $('.uk-container-large').css({"width" : "80%"});
+          $('.uk-align-left').css({"margin-right" : "30px"});
+    };
+
+
+   };
+  $(window).resize(changeCardWidth);
+  changeCardWidth();
+});
+
 function validQuery(query) {
 	if (query.trim().length < 2) {
 		return false;
@@ -118,24 +138,24 @@ function setupVue(query) {
 		.component(
 		'hadith-details',
 		{
-			template: '<div><div title="Book" uk-tooltip="pos: right" class="uk-align-left">'
+			template: '<div><div title="Book" uk-tooltip="pos: right" style=" margin-right:30px;" class="uk-align-left" >'
 				+ '	<i style="color: rgb(83, 102, 125);" class="fa fa-book hadithDetailsIcon"'
 				+ '		aria-hidden="true"></i>'
 				+ '	<p class="hadithDetailsTitle" v-html="narration.book" />'
 				+ '</div>'
-				+ '<div title="Edition" uk-tooltip="pos: right" class="uk-align-left" v-if="narration.edition">'
+				+ '<div title="Edition" uk-tooltip="pos: right" style=" margin-right:30px;" class="uk-align-left"  v-if="narration.edition">'
 				+ '<i style="color: rgb(83, 102, 125)"'
 				+ '	class="fa fa-pencil-square-o hadithDetailsIcon"'
 				+ '	aria-hidden="true"></i>'
 				+ '<p class="hadithDetailsTitle">({{narration.edition}})</p>'
 				+ '</div>'
-				+ '<div title="Number" uk-tooltip="pos: right" class="uk-align-left" v-if="narration.number">'
+				+ '<div title="Number" uk-tooltip="pos: right" style=" margin-right:30px;" class="uk-align-left"  v-if="narration.number">'
 				+ '<i style="color: rgb(83, 102, 125)"'
 				+ '	class="fa fa-pencil-square-o hadithDetailsIcon"'
 				+ '	aria-hidden="true"></i>'
 				+ '<p class="hadithDetailsTitle">Hadith #{{narration.number}}</p>'
 				+ '</div>'
-				+ '<div title="Chapter" uk-tooltip="pos: right" class="uk-align-left" v-if="narration.chapter">'
+				+ '<div title="Chapter" uk-tooltip="pos: right" style=" margin-right:30px;" class="uk-align-left"  v-if="narration.chapter">'
 				+ '<i style="color: rgb(83, 102, 125);"'
 				+ '	class="fa fa-superpowers hadithDetailsIcon" aria-hidden="true"></i>'
 				+ '<p class="hadithDetailsTitle" v-html="narration.chapter" />'
@@ -145,27 +165,27 @@ function setupVue(query) {
 				+ '	class="fa fa-bookmark-o hadithDetailsIcon" aria-hidden="true"></i>'
 				+ '<p class="hadithDetailsTitle" v-html="narration.section" />'
 				+ '</div>'
-				+ '<div title="Part" uk-tooltip="pos: right" class="uk-align-left" v-if="narration.part">'
+				+ '<div title="Part" uk-tooltip="pos: right" style=" margin-right:30px;" class="uk-align-left"  v-if="narration.part">'
 				+ '<i style="color: rgb(83, 102, 125);"'
 				+ '  class="fa fa-clone hadithDetailsIcon" aria-hidden="true"></i>'
 				+ '	<p class="hadithDetailsTitle" v-html="narration.part" />'
 				+ '</div>'
-				+ '<div title="Volume" uk-tooltip="pos: right" class="uk-align-left" v-if="narration.volume">'
+				+ '<div title="Volume" uk-tooltip="pos: right" style=" margin-right:30px;" class="uk-align-left"  v-if="narration.volume">'
 				+ '<i style="color:rgb(83, 102, 125)"'
 				+ '	class="fa fa-calendar-o hadithDetailsIcon" aria-hidden="true"></i>'
 				+ '<p class="hadithDetailsTitle" v-html="narration.volume" />'
 				+ '</div>'
-				+ '<div title="Source" uk-tooltip="pos: right" class="uk-align-left" v-if="narration.source">'
+				+ '<div title="Source" uk-tooltip="pos: right" style=" margin-right:30px;" class="uk-align-left"  v-if="narration.source">'
 				+ '<i style="color:rgb(83, 102, 125)"'
 				+ '	class="fa fa-share-square-o hadithDetailsIcon" aria-hidden="true"></i>'
 				+ '<p class="hadithDetailsTitle" v-html="narration.source" />'
 				+ '</div>'
-				+ '<div title="Publisher" uk-tooltip="pos: right" class="uk-align-left" v-if="narration.publisher">'
+				+ '<div title="Publisher" uk-tooltip="pos: right" style=" margin-right:30px;" class="uk-align-left"  v-if="narration.publisher">'
 				+ '<i style="color:rgb(83, 102, 125)"'
 				+ '	class="fa fa-medium hadithDetailsIcon" aria-hidden="true"></i>'
 				+ '<p class="hadithDetailsTitle" v-html="narration.publisher" />'
 				+ '</div>'
-				+ '<span v-on:click="showHadithInfo(gradingobj)" style="padding:10px;    max-width: 150px; text-align:center; width: 80%; margin-right:25px; cursor:pointer; margin-top:15px;" title="Click for more info" uk-tooltip="pos: right" class="uk-align-left"'
+				+ '<span v-on:click="showHadithInfo(gradingobj)" style="padding:10px;    max-width: 150px; text-align:center; width: 80%; margin-right:25px; cursor:pointer; margin-top:15px;" title="Click for more info" uk-tooltip="pos: right" class="uk-align-left" '
 				+ 'v-for="gradingobj in narration.gradings"'
 				+ 'v-bind:class="gradeLabelClass(gradingobj.grading)"> <i'
 				+ ' v-bind:class="gradeLabelIcon(gradingobj.grading)" '
@@ -454,7 +474,7 @@ function setupVue(query) {
 								if (http.readyState == 4 && http.status == 200) {
 									swal(
 										"Success!",
-										"This hadith was successfully saved.",
+										"This hadith was successfully modifed.",
 										"success");
 									// modify existing hadith object with new values
 									Object.keys(changedAtributes).forEach(function (key) {
