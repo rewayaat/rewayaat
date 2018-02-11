@@ -1,6 +1,7 @@
 var vueApp;
 var loadingHadith = false;
 var signedIn = false;
+var id_token;
 /**
  * Main entry point to the website. If does not exist, display default welcome
  * content. If there is a valid query, setup a Vue.js instance to display it.s
@@ -31,10 +32,21 @@ $(document).ready(function(){
 
   var gSignInBtn = document.getElementsByClassName('g-signin2')[0];
   gSignInBtn.onclick = function(e) {
-                  if (signedIn) {
+                  if (signedIn && id_token) {
                     e.preventDefault();
-                    signOutOfRewayaat();
-                    window.location='https://appengine.google.com/_ah/logout?continue=http://rewayaat.info'
+                      var auth2 = gapi.auth2.getAuthInstance();
+                                             auth2.disconnect();
+
+                                             //if this did not had time to sign out put below lines in setTimeout to make a delay
+                                             $('#google_token').val(id_token); //hidden form value
+                                             $('#google-oauth').submit(); //hidden form
+
+                                             if (vueApp) {
+                                             				vueApp.signedIn = false;
+                                             				vueApp.$forceUpdate();
+                                             			}
+                                             			signedIn = false
+                                             			location.reload();
                   }
               }
 
@@ -275,12 +287,15 @@ function setupVue(query) {
 							queryBar.style.opacity = "1";
 							document.getElementById("queryBarText").innerHTML = query;
 							var respJSON = JSON.parse(xhr.responseText)
-							if (respJSON.collection.length < 1
+							if (respJSON.error) {
+							   swal("Oops...",
+                               	"Something went wrong while fetching your hadith, please try a different search.");
+							} else if (respJSON.collection.length < 1
 								&& self.narrations.length === 0) {
 								swal("Oops...",
 									"No results seem to match your query!",
 									"error");
-							}
+							} else {
 							$.each(respJSON.collection, function (index, value) {
 
 								if (value.notes) {
@@ -301,6 +316,7 @@ function setupVue(query) {
 							// set total results size value
 							self.totalHits = respJSON.totalResultSetSize;
 							loadingHadith = false;
+							}
 						}
 					}
 					xhr.open('GET', '/v1/narrations?q=' + this.queryStr
@@ -678,7 +694,8 @@ function onSignIn(googleUser) {
 	console.log('Name: ' + profile.getName());
 	console.log('Image URL: ' + profile.getImageUrl());
 	console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
-	var id_token = googleUser.getAuthResponse().id_token;
+	id_token = googleUser.getAuthResponse().id_token;
+
 	var xhr = new XMLHttpRequest();
 	xhr.open('POST', '/google/signin');
 	xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -698,6 +715,7 @@ function onSignIn(googleUser) {
 		}
 	};
 	xhr.send('idtoken=' + id_token);
+
 }
 
 function signOutOfRewayaat() {
