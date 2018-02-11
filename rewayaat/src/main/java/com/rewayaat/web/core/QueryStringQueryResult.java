@@ -1,10 +1,8 @@
 package com.rewayaat.web.core;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rewayaat.web.config.ClientProvider;
+import com.rewayaat.web.data.hadith.HadithObject;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -13,9 +11,10 @@ import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.elasticsearch.search.sort.SortOrder;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rewayaat.web.config.ClientProvider;
-import com.rewayaat.web.data.hadith.HadithObject;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Represents a processed query for narrations.
