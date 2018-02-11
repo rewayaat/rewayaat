@@ -76,8 +76,4 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
         }
         return new HadithObjectCollection(hadithes, resp.getHits().getTotalHits());
     }
-
-    public long totalResultSize() {
-        return this.totalResultsSize;
-    }
 }

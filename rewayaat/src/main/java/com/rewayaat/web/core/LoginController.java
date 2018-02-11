@@ -33,7 +33,7 @@ public class LoginController {
     private ResourceLoader resourceLoader;
 
     @RequestMapping(value = "/google/signin", method = RequestMethod.POST)
-    public final ResponseEntity<String> home(HttpServletRequest request, @RequestParam(value = "idtoken") String idtoken) {
+    public final ResponseEntity<String> signin(HttpServletRequest request, @RequestParam(value = "idtoken") String idtoken) {
         log.info("User signed in with idtoken: " + idtoken);
         try {
             String email = new GoogleTokenVerifier().authenticate(idtoken);
@@ -53,5 +53,12 @@ public class LoginController {
             log.info("Could not process id token.\n" + e);
             return new ResponseEntity<>("Invalid id token", HttpStatus.UNAUTHORIZED);
         }
+    }
+
+    @RequestMapping(value = "/google/reset", method = RequestMethod.POST)
+    public final ResponseEntity<String> reset(HttpServletRequest request) {
+        request.getSession().setAttribute(AUTHENTICATED, false);
+        request.getSession().setAttribute(USER_EMAIL, null);
+        return new ResponseEntity<>("Session successfully reset.", HttpStatus.OK);
     }
 }
