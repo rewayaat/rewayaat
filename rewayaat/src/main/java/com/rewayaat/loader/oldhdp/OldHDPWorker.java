@@ -104,9 +104,9 @@ public class OldHDPWorker extends Thread {
                     String name = subList.item(1).getTextContent();
                     String topic = subList.item(3).getTextContent().replaceAll("( +)", " ").trim()
                             .replaceAll("[`~``’`]", "") + " " + subList.item(5).getTextContent();
-                    String arabic = subList.item(6).getTextContent().replaceAll("[`~``’`]", "");
+                    String arabic = "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ) : " + subList.item(6).getTextContent().replaceAll("[`~``’`]", "");
                     String number = String.valueOf(Integer.parseInt(name.substring(2)));
-                    String english = subList.item(7).getTextContent().replaceAll("[`~’]", "");
+                    String english = "Imam Ali (AS) said, " + subList.item(7).getTextContent().replaceAll("[`~’]", "");
                     String primarySource = "Ghurar Al-Hikam";
                     String publisher = "Ansariyan Publications";
                     writer.println("Values for current Row Node: " + nNode.getAttributes().getNamedItem("ss:Height"));
