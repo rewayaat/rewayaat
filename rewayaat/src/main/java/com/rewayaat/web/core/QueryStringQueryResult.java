@@ -12,6 +12,8 @@ import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.elasticsearch.search.sort.SortOrder;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -53,6 +55,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                 .setTypes(ClientProvider.TYPE).setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
                 .setQuery(QueryBuilders.boolQuery().must(QueryBuilders.queryStringQuery(fuzziedUserQuery))
                         .should(QueryBuilders.queryStringQuery(userQuery).boost(10)))
+
                 .highlighter(highlightBuilder).setFrom(page * pageSize).setSize(pageSize).setExplain(true)
                 .addSort("_score", SortOrder.DESC).execute().get();
 
@@ -74,6 +77,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
             hadithes.add(mapper.convertValue(result, HadithObject.class));
             System.out.println(result);
         }
-        return new HadithObjectCollection(hadithes, resp.getHits().getTotalHits());
+        // remove duplicates...
+        return new HadithObjectCollection(new LinkedList<>(new HashSet<>(hadithes)), resp.getHits().getTotalHits());
     }
 }

@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -275,6 +276,30 @@ public class HadithObject implements Serializable {
     @JsonAnySetter
     public void setAdditionalProperty(String name, Object value) {
         this.additionalProperties.put(name, value);
+    }
+
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(number, book, chapter, section, source, english, volume, part, arabic);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        HadithObject hadith = (HadithObject) o;
+        if (Objects.equals(hadith.number, this.number) &&
+                Objects.equals(hadith.book, this.book) &&
+                Objects.equals(hadith.chapter, this.chapter) &&
+                Objects.equals(hadith.section, this.section) &&
+                Objects.equals(hadith.source, this.source) &&
+                Objects.equals(hadith.english, this.english) &&
+                Objects.equals(hadith.volume, this.volume) &&
+                Objects.equals(hadith.part, this.part) &&
+                Objects.equals(hadith.arabic, this.arabic)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
 }
