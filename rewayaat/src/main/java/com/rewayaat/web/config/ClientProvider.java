@@ -13,7 +13,7 @@ import org.springframework.core.env.Environment;
 import java.net.InetSocketAddress;
 
 @Configuration
-@PropertySource("classpath:production.properties")
+@PropertySource("classpath:localdev.properties")
 public class ClientProvider implements EnvironmentAware {
 
     public final static String INDEX = "rewayaat";
