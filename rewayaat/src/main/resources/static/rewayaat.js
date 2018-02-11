@@ -26,8 +26,13 @@ function loadQuery(query) {
 }
 
 $(document).ready(function(){
-  var changeCardWidth = function(){
-    if ( $(window).width() < 768 ){
+  $(window).resize(changeCardWidth);
+  changeCardWidth();
+});
+
+
+function changeCardWidth() {
+if ( $(window).width() < 768 ){
         $('.uk-card').css({"padding-left" : "0px"});
         $('.uk-container-large').css({"width" : "97%"});
         $('.uk-align-left').css({"margin-right" : "0px"});
@@ -38,13 +43,7 @@ $(document).ready(function(){
           $('.uk-container-large').css({"width" : "80%"});
           $('.uk-align-left').css({"margin-right" : "30px"});
     };
-
-
-   };
-  $(window).resize(changeCardWidth);
-  changeCardWidth();
-});
-
+}
 function validQuery(query) {
 	if (query.trim().length < 2) {
 		return false;
@@ -560,14 +559,14 @@ function socialMediaDecoratedHadith(hadithObj) {
 		+ hadithURL;
 	hadithObj["twitter"] = "https://twitter.com/intent/tweet/?text="
 		+ hadithDesc + "&url=" + hadithURL;
-	hadithObj["tumblr"] = "https://www.tumblr.com/widgets/share/tool/preview?posttype=link&title=Rewayaat.io&caption="
+	hadithObj["tumblr"] = "https://www.tumblr.com/widgets/share/tool/preview?posttype=link&title=rewayaat.info&caption="
 		+ hadithDesc
 		+ "&content="
 		+ hadithURL
 		+ "&shareSource=tumblr_share_button&_format=html";
 	hadithObj["googleplus"] = "https://plus.google.com/share?url=" + hadithURL;
-	hadithObj["whatsapp"] = "whatsapp://send?text=" + hadithText + " - "
-		+ hadithURL + "%20" + hadithURL;
+	hadithObj["whatsapp"] = "whatsapp://send?text=" + hadithText + " %5B"
+		+ hadithURL + "%5D";
 	return hadithObj;
 }
 
