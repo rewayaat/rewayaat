@@ -28,6 +28,17 @@ function loadQuery(query) {
 $(document).ready(function(){
   $(window).resize(changeCardWidth);
   changeCardWidth();
+
+  var gSignInBtn = document.getElementsByClassName('g-signin2')[0];
+  gSignInBtn.onclick = function(e) {
+                  if (signedIn) {
+                    e.preventDefault();
+                    signOutOfRewayaat();
+                    window.location='https://appengine.google.com/_ah/logout?continue=http://rewayaat.info'
+                  }
+              }
+
+
 });
 
 
@@ -659,6 +670,9 @@ function makeid() {
 }
 
 function onSignIn(googleUser) {
+
+    var gSignInBtnTextEle = document.getElementsByClassName('abcRioButtonContents')[0];
+    gSignInBtnTextEle.innerHTML = 'Sign out with Google';
 	var profile = googleUser.getBasicProfile();
 	console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
 	console.log('Name: ' + profile.getName());
@@ -670,20 +684,24 @@ function onSignIn(googleUser) {
 	xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 	xhr.onload = function () {
 		if (xhr.status == 200){
+		    signedIn = true;
 			if (vueApp) {
 				vueApp.signedIn = true;
 				vueApp.$forceUpdate();
-			} else {
-				signedIn = true;
 			}
 		} else {
+		    signedIn = false;
 			if (vueApp) {
 				vueApp.signedIn = false;
 				vueApp.$forceUpdate();
-			} else {
-				signedIn = false;
 			}
 		}
 	};
 	xhr.send('idtoken=' + id_token);
+}
+
+function signOutOfRewayaat() {
+	var xhr = new XMLHttpRequest();
+    	xhr.open('POST', '/google/reset');
+    	xhr.send();
 }
