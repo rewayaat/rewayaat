@@ -542,16 +542,15 @@ function socialMediaDecoratedHadith(hadithObj) {
 	if (hadithObj.volume) {
 		hadithDesc += "VOL. " + hadithObj.volume;
 	}
-	// keep the overall hadithDesc + hadithURL < 150 (to stay within twitter max
+	// keep the overall hadithDesc + hadithURL < 260 (to stay within twitter max
 	// length)
-	if ((hadithDesc.length + hadithURL.length) > 140) {
-		hadithTextDesiredLen = 140 - hadithURL.length;
+	if ((hadithDesc.length + hadithURL.length) > 260) {
+		hadithTextDesiredLen = 260 - hadithURL.length;
 		hadithDesc = hadithDesc.substring(0, hadithTextDesiredLen);
 	}
-
 	hadithDesc = hadithDesc.replaceAll('<span class="highlight">', '');
 	hadithDesc = hadithDesc.replaceAll('</span>', '');
-	hadithDesc = encodeURIComponent(hadithDesc);
+	hadithDesc = encodeURIComponent(hadithDesc.replace(/(^,)|(,$)/g, "").trim());
 	var hadithText = encodeURIComponent(hadithObj.english.replaceAll(
 		'<span class="highlight">', '').replaceAll('</span>', ''));
 
@@ -559,14 +558,10 @@ function socialMediaDecoratedHadith(hadithObj) {
 		+ hadithURL;
 	hadithObj["twitter"] = "https://twitter.com/intent/tweet/?text="
 		+ hadithDesc + "&url=" + hadithURL;
-	hadithObj["tumblr"] = "https://www.tumblr.com/widgets/share/tool/preview?posttype=link&title=rewayaat.info&caption="
-		+ hadithDesc
-		+ "&content="
-		+ hadithURL
-		+ "&shareSource=tumblr_share_button&_format=html";
+	hadithObj["tumblr"] = "https://www.tumblr.com/widgets/share/tool?canonicalUrl=" + hadithURL + '&title=' + hadithDesc + '&caption=' + hadithText;
 	hadithObj["googleplus"] = "https://plus.google.com/share?url=" + hadithURL;
-	hadithObj["whatsapp"] = "whatsapp://send?text=" + hadithText + " %5B"
-		+ hadithURL + "%5D";
+	hadithObj["whatsapp"] = "whatsapp://send?text=" + hadithText + "\n\n["
+		+ hadithURL + "]";
 	return hadithObj;
 }
 
