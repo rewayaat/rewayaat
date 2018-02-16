@@ -9,6 +9,9 @@ import org.apache.commons.lang.RandomStringUtils;
 import java.io.File;
 import java.net.URL;
 
+/**
+ * Refreshes the ES Index to pick up synonym filter updates.
+ */
 public class RefreshSynonymFilter {
 
     public static void refresh() {
