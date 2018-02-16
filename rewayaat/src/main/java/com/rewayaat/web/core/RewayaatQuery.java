@@ -23,12 +23,16 @@ public class RewayaatQuery {
         this.query = query;
         // secret, shh.....
         if (query.equals("refresh_db")) {
-            RefreshSynonymFilter.refresh();
+            try {
+                RefreshSynonymFilter.refresh();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
     public String query() {
-        // splits query by all spaces that are not enclosed by double quotes
+        // splits query by all spaces that are not enclosed by double quotes or brackets
         List<String> splitted = new ArrayList<String>();
         List<String> allFieldItems = new ArrayList<String>();
         int nextingLevel = 0;

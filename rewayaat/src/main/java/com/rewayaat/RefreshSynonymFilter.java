@@ -14,12 +14,10 @@ import java.net.URL;
  */
 public class RefreshSynonymFilter {
 
-    public static void refresh() {
-
-        try {
+    public static void refresh() throws Exception {
 
             // delete existing and download new synonym file from github
-            File synonymFile = new File("/opt/bitnami/elasticsearch/config/synonyms.txt");
+        File synonymFile = new File(System.getenv("ES_CONFIG_SYNONYM_FILE"));
             if (synonymFile.exists()) {
                 synonymFile.delete();
             }
@@ -59,8 +57,6 @@ public class RefreshSynonymFilter {
 
             // delete old index
             Unirest.delete("http://" + ClientProvider.host + ":9200/" + currIndexName).asString();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
     }
 }
