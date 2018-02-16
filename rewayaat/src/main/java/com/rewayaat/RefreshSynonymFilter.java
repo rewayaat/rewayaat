@@ -18,9 +18,11 @@ public class RefreshSynonymFilter {
 
             // delete existing and download new synonym file from github
         File synonymFile = new File(System.getenv("ES_CONFIG_SYNONYM_FILE"));
+        boolean deleted = true;
             if (synonymFile.exists()) {
-                synonymFile.delete();
+                deleted = synonymFile.delete();
             }
+        if (deleted) {
             FileUtils.copyURLToFile(new URL("https://raw.githubusercontent.com/rewayaat/rewayaat/master/rewayaat/src/main/resources/synonyms.txt"), synonymFile);
 
             // get current index name
@@ -57,6 +59,6 @@ public class RefreshSynonymFilter {
 
             // delete old index
             Unirest.delete("http://" + ClientProvider.host + ":9200/" + currIndexName).asString();
-
+        }
     }
 }
