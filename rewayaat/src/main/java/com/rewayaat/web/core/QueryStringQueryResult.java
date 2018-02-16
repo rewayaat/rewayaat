@@ -5,6 +5,7 @@ import com.rewayaat.web.config.ClientProvider;
 import com.rewayaat.web.data.hadith.HadithObject;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
@@ -40,20 +41,17 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
     public HadithObjectCollection result() throws Exception {
         List<HadithObject> hadithes = new ArrayList<HadithObject>();
 
-        HighlightBuilder highlightBuilder = new HighlightBuilder().field("english").field("notes").field("arabic")
+        HighlightBuilder highlightBuilder = new HighlightBuilder().field("english").field("all").field("notes").field("arabic")
                 .field("book").field("section").field("part").field("chapter").field("publisher").field("source")
                 .field("volume").postTags("</span>").preTags("<span class=\"highlight\">")
-                .highlightQuery(QueryBuilders.queryStringQuery(userQuery).field("english").field("section")
-                        .field("part").field("chapter").field("volume").field("arabic").field("book").field("arabic")
-                        .field("tags").field("publisher").field("source"))
-                .highlightQuery(QueryBuilders.queryStringQuery(fuzziedUserQuery).field("english").field("section")
-                        .field("part").field("chapter").field("publisher").field("source").field("volume")
-                        .field("arabic").field("book").field("arabic").field("tags"))
+                .highlightQuery(QueryBuilders.queryStringQuery(userQuery).useAllFields(true))
+                .highlightQuery(QueryBuilders.queryStringQuery(fuzziedUserQuery).useAllFields(true))
                 .numOfFragments(0);
 
         SearchResponse resp = ClientProvider.instance().getClient().prepareSearch(ClientProvider.INDEX)
                 .setTypes(ClientProvider.TYPE).setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-                .setQuery(QueryBuilders.boolQuery().must(QueryBuilders.queryStringQuery(fuzziedUserQuery))
+                .setQuery(QueryBuilders.boolQuery().must(QueryBuilders.queryStringQuery(fuzziedUserQuery).fuzziness(Fuzziness.TWO)
+                )
                         .should(QueryBuilders.queryStringQuery(userQuery).boost(10)))
 
                 .highlighter(highlightBuilder).setFrom(page * pageSize).setSize(pageSize).setExplain(true)

@@ -1,52 +1,66 @@
 package com.rewayaat.web.core;
 
+import com.rewayaat.RefreshSynonymFilter;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Uses Elastic Search Query Syntax to Modify user queries to improve search
  * results. This is done mostly by removing weird characters, adding <a href=
  * "https://www.elastic.co/guide/en/elasticsearch/guide/current/fuzziness.html">fuzziness</a>,
  * and adding <a href=
  * "https://www.elastic.co/guide/en/elasticsearch/guide/current/slop.html">slop</a>
- * to phrases. See {@linkplain RewayaatQueryTest} for expected behavior.
+ * to phrases.
  */
 public class RewayaatQuery {
 
     private String query;
 
+    private String[] docFields = new String[]{"source:", "book:", "number:", "part:", "edition:", "chapter:", "publisher:", "section:", "tags:", "volume:", "notes:", "arabic:", "gradings:"};
     public RewayaatQuery(String query) {
         this.query = query;
+        // secret, shh.....
+        if (query.equals("refresh_db")) {
+            RefreshSynonymFilter.refresh();
+        }
     }
 
     public String query() {
-        System.out.println("Modifying query: " + query);
-        StringBuilder newQuery = new StringBuilder();
         // splits query by all spaces that are not enclosed by double quotes
-        String[] terms = query.split("[\\s\\xA0]+(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
-        for (String term : terms) {
-            if (term.length() > 0) {
-                if (!term.matches(".*~[0-9].*") && !isProbablyArabic(term) && !term.startsWith("_id:")) {
-                    // term does not have fuzziness applied to it yet...
-                    if (term.startsWith("\"")) {
-                        // term is a phrase, add slop amount based on total
-                        // phrase length.
-                        int slopAmount = (int) (term.split(" ").length * 0.3) + 2;
-                        System.out.println("Using slop value of " + slopAmount + " for phrase:\n" + term);
-                        newQuery.append(term + "~" + slopAmount + " ");
-                    } else {
-                        // add default non-phrase fuzziness amount
-                        if (term.length() > 5) {
-                            newQuery.append(term + "~2 ");
-                        } else {
-                            newQuery.append(term + "~1 ");
-                        }
-                    }
-                } else {
-                    // term already has fuzziness applied..
-                    newQuery.append(term + " ");
+        List<String> splitted = new ArrayList<String>();
+        List<String> allFieldItems = new ArrayList<String>();
+        int nextingLevel = 0;
+        StringBuilder result = new StringBuilder();
+        for (char c : query.toCharArray()) {
+            if (c == ' ' && nextingLevel == 0) {
+                splitted.add(result.toString());
+                result.setLength(0);
+            } else {
+                if (c == '(' | c == '[' | c == '\"') {
+                    nextingLevel++;
+                } else if (c == ')' | c == ']' | c == '\"') {
+                    nextingLevel--;
+                    result.append(c);
                 }
             }
         }
-        System.out.println("Modification complete, new query is: " + newQuery.toString());
-        return newQuery.toString();
+        splitted.add(result.toString());
+        for (String s : splitted) {
+            if (!s.contains("~") && !s.contains("(")) {
+                s += "~2";
+            }
+            if (!StringUtils.startsWithAny(s, docFields)) {
+                allFieldItems.add(s);
+            }
+        }
+        query = String.join(" ", splitted);
+        if (!allFieldItems.isEmpty()) {
+            query += " all:(" + String.join(" ", allFieldItems) + ")";
+        }
+        System.out.println("Final Query: " + query);
+        return query;
     }
 
     public static boolean isProbablyArabic(String s) {

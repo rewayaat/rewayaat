@@ -1,3 +1,6 @@
+FROM node:carbon
+RUN npm install elasticdump -g
+
 # Pull base image.
 FROM openjdk:8
 
@@ -6,4 +9,4 @@ ENV SPRING_PROFILES_ACTIVE=prod
 RUN ls -a
 ADD rewayaat-1.0.jar app.jar
 RUN /bin/sh -c 'touch /app.jar'
-ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
+ENTRYPOINT ["java","-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005","-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
