@@ -26,7 +26,11 @@ public class RewayaatApplication extends SpringBootServletInitializer {
     @Scheduled(fixedRate = 86400000)
     public void scheduleFixedRateTask() {
         Runnable task = () -> {
-            RefreshSynonymFilter.refresh();
+            try {
+                RefreshSynonymFilter.refresh();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         };
 
         task.run();
