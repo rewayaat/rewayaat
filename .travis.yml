@@ -1,6 +1,11 @@
 language:
 - java
 sudo: required
+install:
+  - . $HOME/.nvm/nvm.sh
+  - nvm install stable
+  - nvm use stable
+  - npm install
 services:
 - docker
 cache:
