@@ -57,13 +57,18 @@ public class RefreshSynonymFilter {
             }
             log.info("Current index name is: " + currIndexName);
 
+            // create backup of current index
+            Runtime rt = Runtime.getRuntime();
+            Process pr = rt.exec("elasticdump   --input=http://" + ClientProvider.host + ":9200/" + currIndexName + "   --output=/rewayaat_backup.json   --type=data");
+            pr.waitFor();
+            log.info("Successfully backed up original index data");
+
             // generate new index name
             String newIndexName = "rewayaat_" + RandomStringUtils.randomAlphabetic(10).toLowerCase();
             log.info("Generated new index name: " + newIndexName);
 
             // copy analyzer, mappings and data to new index
-            Runtime rt = Runtime.getRuntime();
-            Process pr = rt.exec("elasticdump   --input=http://" + ClientProvider.host + ":9200/" + currIndexName + "   --output=http://" + ClientProvider.host + ":9200/" + newIndexName + "   --type=analyzer");
+            pr = rt.exec("elasticdump   --input=http://" + ClientProvider.host + ":9200/" + currIndexName + "   --output=http://" + ClientProvider.host + ":9200/" + newIndexName + "   --type=analyzer");
             pr.waitFor();
             log.info("Successfully copied original index analyzer");
             pr = rt.exec("elasticdump   --input=http://" + ClientProvider.host + ":9200/" + currIndexName + "   --output=http://" + ClientProvider.host + ":9200/" + newIndexName + "   --type=mapping");

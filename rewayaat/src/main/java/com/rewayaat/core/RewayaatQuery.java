@@ -1,6 +1,5 @@
 package com.rewayaat.core;
 
-import com.rewayaat.RefreshSynonymFilter;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
@@ -18,17 +17,9 @@ public class RewayaatQuery {
 
     private String query;
 
-    private String[] docFields = new String[]{"source:", "book:", "number:", "part:", "edition:", "chapter:", "publisher:", "section:", "tags:", "volume:", "notes:", "arabic:", "gradings:"};
+    private String[] docFields = new String[]{"_id:", "source:", "book:", "number:", "part:", "edition:", "chapter:", "publisher:", "section:", "tags:", "volume:", "notes:", "arabic:", "gradings:"};
     public RewayaatQuery(String query) {
         this.query = query;
-        // secret, shh.....
-        if (query.equals("refresh_db")) {
-            try {
-                RefreshSynonymFilter.refresh();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     public String query() {
