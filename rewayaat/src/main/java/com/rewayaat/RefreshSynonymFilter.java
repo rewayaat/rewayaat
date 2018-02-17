@@ -16,7 +16,7 @@ public class RefreshSynonymFilter {
 
     public static void refresh() throws Exception {
 
-            // delete existing and download new synonym file from github
+        // delete existing and download new synonym file from github
         File synonymFile = new File(System.getenv("ES_CONFIG_SYNONYM_FILE"));
         boolean deleted = true;
             if (synonymFile.exists()) {
