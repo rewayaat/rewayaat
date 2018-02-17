@@ -1,4 +1,4 @@
-package com.rewayaat.web.config;
+package com.rewayaat.config;
 
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;

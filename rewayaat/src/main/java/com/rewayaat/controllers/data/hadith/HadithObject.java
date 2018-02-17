@@ -1,5 +1,5 @@
 
-package com.rewayaat.web.data.hadith;
+package com.rewayaat.controllers.data.hadith;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;

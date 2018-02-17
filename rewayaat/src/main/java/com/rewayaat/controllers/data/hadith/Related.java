@@ -1,11 +1,5 @@
 
-package com.rewayaat.web.data.hadith;
-
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.commons.lang.builder.ToStringBuilder;
+package com.rewayaat.controllers.data.hadith;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
@@ -13,14 +7,18 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-
 import io.swagger.annotations.ApiModelProperty;
+import org.apache.commons.lang.builder.ToStringBuilder;
+
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({ "url", "title" })
 public class Related implements Serializable {
 
-    @ApiModelProperty(notes = "The web URL of the related resource")
+    @ApiModelProperty(notes = "The controllers URL of the related resource")
     @JsonProperty("url")
     private String url;
     @ApiModelProperty(notes = "The title of the related resource")

@@ -1,4 +1,4 @@
-package com.rewayaat.web.core;
+package com.rewayaat.core;
 
 import com.rewayaat.RefreshSynonymFilter;
 import org.apache.commons.lang.StringUtils;

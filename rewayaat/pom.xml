@@ -169,6 +169,11 @@
             <artifactId>unirest-java</artifactId>
             <version>1.4.9</version>
         </dependency>
+		<dependency>
+			<groupId>io.sentry</groupId>
+			<artifactId>sentry</artifactId>
+			<version>1.6.8</version>
+		</dependency>
 		<!-- https://mvnrepository.com/artifact/commons-lang/commons-lang -->
 		<dependency>
 			<groupId>commons-lang</groupId>
@@ -260,7 +265,9 @@
 							<goal>check</goal>
 						</goals>
 						<configuration>
-							<excludes>**/com/rewayaat/web/data/**,**/com/rewayaat/web/config/**,**/com/rewayaat/test/**,**/com/rewayaat/loader/**</excludes>
+							<excludes>
+								**/com/rewayaat/controllers/data/**,**/com/rewayaat/config/**,**/com/rewayaat/test/**,**/com/rewayaat/loader/**
+							</excludes>
 							<failOnViolation>true</failOnViolation>
 							<configLocation>${project.basedir}/src/main/resources/rewayaatcheckstyleconfig.xml</configLocation>
 							<violationSeverity>warning</violationSeverity>
