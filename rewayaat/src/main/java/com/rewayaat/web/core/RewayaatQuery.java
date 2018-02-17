@@ -33,8 +33,8 @@ public class RewayaatQuery {
 
     public String query() {
         // splits query by all spaces that are not enclosed by double quotes or brackets
-        List<String> splitted = new ArrayList<String>();
-        List<String> allFieldItems = new ArrayList<String>();
+        List<String> splitted = new ArrayList<>();
+        List<String> allFieldItems = new ArrayList<>();
         int nextingLevel = 0;
         StringBuilder result = new StringBuilder();
         for (char c : query.toCharArray()) {
@@ -46,8 +46,8 @@ public class RewayaatQuery {
                     nextingLevel++;
                 } else if (c == ')' | c == ']' | c == '\"') {
                     nextingLevel--;
-                    result.append(c);
                 }
+                result.append(c);
             }
         }
         splitted.add(result.toString());
