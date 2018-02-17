@@ -35,53 +35,58 @@ public class RefreshSynonymFilter {
 
     public static void refresh() throws Exception {
 
-        // delete existing and download new synonym file from github
-        File synonymFile = new File(synonymsLocalFile);
-        FileUtils.copyURLToFile(new URL("https://raw.githubusercontent.com/rewayaat/rewayaat/master/rewayaat/src/main/resources/synonyms.txt"), synonymFile);
-        log.info("Successfully downloaded new synonyms file");
+        if (System.getenv("SPRING_PROFILES_ACTIVE").equalsIgnoreCase("prod")) {
+            // delete existing and download new synonym file from github
+            File synonymFile = new File(synonymsLocalFile);
+            FileUtils.copyURLToFile(new URL("https://raw.githubusercontent.com/rewayaat/rewayaat/master/rewayaat/src/main/resources/synonyms.txt"), synonymFile);
+            log.info("Successfully downloaded new synonyms file");
 
-        // transfer new synonyms file to elastic search ec2 instance
-        updateSynonymsFileOnESInstance(synonymFile);
+            // transfer new synonyms file to elastic search ec2 instance
+            updateSynonymsFileOnESInstance(synonymFile);
 
-        // get current index name
-        HttpResponse resp = Unirest.get("http://" + ClientProvider.host + ":9200/_cat/indices").asString();
-        String[] currIndexNames = ((String) resp.getBody()).split("\n");
-        String currIndexName = "";
-        for (String index : currIndexNames) {
-            String indexName = index.split(" ")[2];
-            if (indexName.startsWith("rewayaat")) {
-                currIndexName = indexName;
-                break;
+            // get current index name
+            HttpResponse resp = Unirest.get("http://" + ClientProvider.host + ":9200/_cat/indices").asString();
+            String[] currIndexNames = ((String) resp.getBody()).split("\n");
+            String currIndexName = "";
+            for (String index : currIndexNames) {
+                String indexName = index.split(" ")[2];
+                if (indexName.startsWith("rewayaat")) {
+                    currIndexName = indexName;
+                    break;
+                }
             }
+            log.info("Current index name is: " + currIndexName);
+
+            // generate new index name
+            String newIndexName = "rewayaat_" + RandomStringUtils.randomAlphabetic(10).toLowerCase();
+            log.info("Generated new index name: " + newIndexName);
+
+            // copy analyzer, mappings and data to new index
+            Runtime rt = Runtime.getRuntime();
+            Process pr = rt.exec("elasticdump   --input=http://" + ClientProvider.host + ":9200/" + currIndexName + "   --output=http://" + ClientProvider.host + ":9200/" + newIndexName + "   --type=analyzer");
+            pr.waitFor();
+            log.info("Successfully copied original index analyzer");
+            pr = rt.exec("elasticdump   --input=http://" + ClientProvider.host + ":9200/" + currIndexName + "   --output=http://" + ClientProvider.host + ":9200/" + newIndexName + "   --type=mapping");
+            pr.waitFor();
+            log.info("Successfully copied original index mappings");
+            pr = rt.exec("elasticdump   --input=http://" + ClientProvider.host + ":9200/" + currIndexName + "   --output=http://" + ClientProvider.host + ":9200/" + newIndexName + "   --type=data");
+            pr.waitFor();
+            log.info("Successfully copied original index data");
+
+            // remove alias to old index, add new alias
+            Unirest.post("http://" + ClientProvider.host + ":9200/_aliases")
+                    .body("{ \"actions\" : [ { \"remove\" : { \"index\" : \"" + currIndexName + "\", \"alias\" : \"rewayaat\" } } ] }").asString();
+            log.info("Successfully removed original index alias");
+
+            Unirest.post("http://" + ClientProvider.host + ":9200/_aliases").body("{ \"actions\" : [ { \"add\" : { \"index\" : \"" + newIndexName + "\", \"alias\" : \"rewayaat\" } } ] }").asString();
+            log.info("Successfully inserted new index alias to rewayaat");
+
+            // delete old index
+            Unirest.delete("http://" + ClientProvider.host + ":9200/" + currIndexName).asString();
+            log.info("Successfully deleted old index");
+        } else {
+            log.info("Not refreshing Elastic Search Index, this does not look like a prod environment.");
         }
-
-        // generate new index name
-        String newIndexName = "rewayaat_" + RandomStringUtils.randomAlphabetic(10).toLowerCase();
-        log.info("Generated new index name: " + newIndexName);
-
-        // copy analyzer, mappings and data to new index
-        Runtime rt = Runtime.getRuntime();
-        Process pr = rt.exec("elasticdump   --input=http://" + ClientProvider.host + ":9200/" + currIndexName + "   --output=http://" + ClientProvider.host + ":9200/" + newIndexName + "   --type=analyzer");
-        pr.waitFor();
-        log.info("Successfully copied original index analyzer");
-        pr = rt.exec("elasticdump   --input=http://" + ClientProvider.host + ":9200/" + currIndexName + "   --output=http://" + ClientProvider.host + ":9200/" + newIndexName + "   --type=mapping");
-        pr.waitFor();
-        log.info("Successfully copied original index mappings");
-        pr = rt.exec("elasticdump   --input=http://" + ClientProvider.host + ":9200/" + currIndexName + "   --output=http://" + ClientProvider.host + ":9200/" + newIndexName + "   --type=data");
-        pr.waitFor();
-        log.info("Successfully copied original index data");
-
-        // remove alias to old index, add new alias
-        Unirest.post("http://" + ClientProvider.host + ":9200/_aliases")
-                .body("{ \"actions\" : [ { \"remove\" : { \"index\" : \"" + currIndexName + "\", \"alias\" : \"rewayaat\" } } ] }").asString();
-        log.info("Successfully removed original index alias");
-
-        Unirest.post("http://" + ClientProvider.host + ":9200/_aliases").body("{ \"actions\" : [ { \"add\" : { \"index\" : \"" + newIndexName + "\", \"alias\" : \"rewayaat\" } } ] }").asString();
-        log.info("Successfully inserted new index alias to rewayaat");
-
-        // delete old index
-        Unirest.delete("http://" + ClientProvider.host + ":9200/" + currIndexName).asString();
-        log.info("Successfully deleted old index");
     }
 
     public static void updateSynonymsFileOnESInstance(File fileToCopy) {

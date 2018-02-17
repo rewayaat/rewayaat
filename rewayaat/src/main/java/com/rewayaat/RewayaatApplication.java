@@ -8,16 +8,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 
 /**
- * Rewayaat Entrypoint.
+ * Rewayaat web application entry point.
  */
 @EnableCaching
 @EnableAutoConfiguration
 @ComponentScan
-@EnableScheduling
 @SpringBootApplication
 public class RewayaatApplication extends SpringBootServletInitializer {
 
@@ -29,15 +26,10 @@ public class RewayaatApplication extends SpringBootServletInitializer {
     });
 
     public static void main(String[] args) {
+
         SpringApplication.run(RewayaatApplication.class, args);
-    }
 
-
-    /**
-     * Refresh the index mappings to pick up new synonyms every 24 hours.
-     */
-    @Scheduled(fixedRate = 86400000)
-    public void scheduleFixedRateTask() {
+        // refresh the elastic search index
         Runnable task = () -> {
             try {
                 RefreshSynonymFilter.refresh();
