@@ -1,2 +1,3 @@
 ghusl, ablution
-salaat, prayers
+salaat, prayers, namaz
+wuzu, ablution, wudhu
