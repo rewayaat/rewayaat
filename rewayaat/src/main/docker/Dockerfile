@@ -1,10 +1,11 @@
-FROM node:carbon
-RUN npm install elasticdump -g
-
 # Pull base image.
 FROM openjdk:8
 
 VOLUME /tmp
+
+RUN wget --no-check-certificate https://nodejs.org/dist/v4.2.1/node-v4.2.1-linux-x64.tar.gz
+RUN tar --strip-components 1 -xzf node-v4.2.1-linux-x64.tar.gz
+RUN npm install elasticdump -g
 ENV SPRING_PROFILES_ACTIVE=prod
 ENV ES_CONFIG_SYNONYM_FILE=/opt/bitnami/elasticsearch/config/synonyms.txt
 RUN ls -a
