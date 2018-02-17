@@ -7,7 +7,7 @@ RUN wget --no-check-certificate https://nodejs.org/dist/v4.2.1/node-v4.2.1-linux
 RUN tar --strip-components 1 -xzf node-v4.2.1-linux-x64.tar.gz
 RUN npm install elasticdump -g
 ENV SPRING_PROFILES_ACTIVE=prod
-ENV ES_CONFIG_SYNONYM_FILE=/opt/bitnami/elasticsearch/config/synonyms.txt
+ENV ES_CONFIG_SYNONYM_DIR=/opt/bitnami/elasticsearch/config/
 RUN ls -a
 ADD rewayaat-1.0.jar app.jar
 RUN /bin/sh -c 'touch /app.jar'

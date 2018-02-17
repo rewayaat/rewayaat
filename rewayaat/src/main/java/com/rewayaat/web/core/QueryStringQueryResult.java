@@ -5,7 +5,6 @@ import com.rewayaat.web.config.ClientProvider;
 import com.rewayaat.web.data.hadith.HadithObject;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
@@ -50,10 +49,8 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
 
         SearchResponse resp = ClientProvider.instance().getClient().prepareSearch(ClientProvider.INDEX)
                 .setTypes(ClientProvider.TYPE).setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-                .setQuery(QueryBuilders.boolQuery().must(QueryBuilders.queryStringQuery(fuzziedUserQuery).fuzziness(Fuzziness.TWO)
-                )
-                        .should(QueryBuilders.queryStringQuery(userQuery).boost(10)))
-
+                .setQuery(QueryBuilders.boolQuery().must(QueryBuilders.queryStringQuery(fuzziedUserQuery))
+                        .should(QueryBuilders.queryStringQuery(userQuery).boost(100)))
                 .highlighter(highlightBuilder).setFrom(page * pageSize).setSize(pageSize).setExplain(true)
                 .addSort("_score", SortOrder.DESC).execute().get();
 
