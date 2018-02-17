@@ -1,8 +1,8 @@
 package com.rewayaat.loader.oldhdp;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rewayaat.web.config.ClientProvider;
-import com.rewayaat.web.data.hadith.HadithObject;
+import com.rewayaat.config.ClientProvider;
+import com.rewayaat.controllers.data.hadith.HadithObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;

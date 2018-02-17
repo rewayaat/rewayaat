@@ -1,4 +1,4 @@
-package com.rewayaat.web.core;
+package com.rewayaat.core;
 
 /**
  * Represents the result of a user query.

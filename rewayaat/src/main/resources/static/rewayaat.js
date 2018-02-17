@@ -50,6 +50,7 @@ $(document).ready(function(){
                   }
               }
 
+Raven.config('https://b0e8263fd0ca4b88b2c51043a51df738@sentry.io/289790').install()
 
 });
 

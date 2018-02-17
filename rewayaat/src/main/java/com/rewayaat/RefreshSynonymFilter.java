@@ -6,12 +6,15 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
-import com.rewayaat.web.config.ClientProvider;
+import com.rewayaat.config.ClientProvider;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
+import org.apache.log4j.Logger;
+import org.apache.log4j.spi.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.net.URL;
 
 /**
@@ -19,12 +22,23 @@ import java.net.URL;
  */
 public class RefreshSynonymFilter {
 
+    /**
+     * The file we will eventually overwrite the existing synonyms file with.
+     */
+    private static String synonymsLocalFile = "/synonyms.txt";
+    private static Logger log = Logger.getLogger(RefreshSynonymFilter.class.getName(), new LoggerFactory() {
+        @Override
+        public Logger makeNewLoggerInstance(String name) {
+            return new RewayaatLogger(name);
+        }
+    });
+
     public static void refresh() throws Exception {
 
         // delete existing and download new synonym file from github
-        File synonymFile = new File("/synonyms.txt");
+        File synonymFile = new File(synonymsLocalFile);
         FileUtils.copyURLToFile(new URL("https://raw.githubusercontent.com/rewayaat/rewayaat/master/rewayaat/src/main/resources/synonyms.txt"), synonymFile);
-        System.out.println("Successfully downloaded new synonyms file");
+        log.info("Successfully downloaded new synonyms file");
 
         // transfer new synonyms file to elastic search ec2 instance
         updateSynonymsFileOnESInstance(synonymFile);
@@ -40,35 +54,34 @@ public class RefreshSynonymFilter {
                 break;
             }
         }
-        System.out.println(currIndexName);
 
         // generate new index name
         String newIndexName = "rewayaat_" + RandomStringUtils.randomAlphabetic(10).toLowerCase();
-        System.out.println("Generated new index name: " + newIndexName);
+        log.info("Generated new index name: " + newIndexName);
 
         // copy analyzer, mappings and data to new index
         Runtime rt = Runtime.getRuntime();
         Process pr = rt.exec("elasticdump   --input=http://" + ClientProvider.host + ":9200/" + currIndexName + "   --output=http://" + ClientProvider.host + ":9200/" + newIndexName + "   --type=analyzer");
         pr.waitFor();
-        System.out.println("Successfully copied original index analyzer");
+        log.info("Successfully copied original index analyzer");
         pr = rt.exec("elasticdump   --input=http://" + ClientProvider.host + ":9200/" + currIndexName + "   --output=http://" + ClientProvider.host + ":9200/" + newIndexName + "   --type=mapping");
         pr.waitFor();
-        System.out.println("Successfully copied original index mappings");
+        log.info("Successfully copied original index mappings");
         pr = rt.exec("elasticdump   --input=http://" + ClientProvider.host + ":9200/" + currIndexName + "   --output=http://" + ClientProvider.host + ":9200/" + newIndexName + "   --type=data");
         pr.waitFor();
-        System.out.println("Successfully copied original index data");
+        log.info("Successfully copied original index data");
 
         // remove alias to old index, add new alias
         Unirest.post("http://" + ClientProvider.host + ":9200/_aliases")
                 .body("{ \"actions\" : [ { \"remove\" : { \"index\" : \"" + currIndexName + "\", \"alias\" : \"rewayaat\" } } ] }").asString();
-        System.out.println("Successfully removed original index alias");
+        log.info("Successfully removed original index alias");
 
         Unirest.post("http://" + ClientProvider.host + ":9200/_aliases").body("{ \"actions\" : [ { \"add\" : { \"index\" : \"" + newIndexName + "\", \"alias\" : \"rewayaat\" } } ] }").asString();
-        System.out.println("Successfully inserted new index alias to rewayaat");
+        log.info("Successfully inserted new index alias to rewayaat");
 
         // delete old index
         Unirest.delete("http://" + ClientProvider.host + ":9200/" + currIndexName).asString();
-        System.out.println("Successfully deleted old index");
+        log.info("Successfully deleted old index");
     }
 
     public static void updateSynonymsFileOnESInstance(File fileToCopy) {
@@ -81,7 +94,7 @@ public class RefreshSynonymFilter {
         Session session = null;
         Channel channel = null;
         ChannelSftp channelSftp = null;
-        System.out.println("preparing the host information for sftp.");
+        log.info("preparing the host information for sftp.");
         try {
             JSch jsch = new JSch();
             session = jsch.getSession(sftpUser, sftpHost, sftPort);
@@ -90,23 +103,25 @@ public class RefreshSynonymFilter {
             config.put("StrictHostKeyChecking", "no");
             session.setConfig(config);
             session.connect();
-            System.out.println("Host connected.");
+            log.info("Host connected.");
             channel = session.openChannel("sftp");
             channel.connect();
-            System.out.println("sftp channel opened and connected.");
+            log.info("sftp channel opened and connected.");
             channelSftp = (ChannelSftp) channel;
             channelSftp.cd(sftpWorkingDir);
-            channelSftp.put(new FileInputStream(fileToCopy), fileToCopy.getName());
-            System.out.println("File transfered successfully to host.");
+            try (InputStream io = new FileInputStream(fileToCopy)) {
+                channelSftp.put(io, fileToCopy.getName());
+            }
+            log.info("File transfered successfully to host.");
         } catch (Exception ex) {
-            System.out.println("Exception found while transfer the response.");
+            log.error("Exception found while transfer the response.", ex);
         } finally {
             channelSftp.exit();
-            System.out.println("sftp Channel exited.");
+            log.info("sftp Channel exited.");
             channel.disconnect();
-            System.out.println("Channel disconnected.");
+            log.info("Channel disconnected.");
             session.disconnect();
-            System.out.println("Host Session disconnected.");
+            log.info("Host Session disconnected.");
         }
     }
 }

@@ -1,6 +1,4 @@
-package com.rewayaat.web;
-
-import javax.servlet.http.HttpServletRequest;
+package com.rewayaat.controllers;
 
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Controller;
@@ -8,8 +6,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
- * Redirects to the changelog web page.
+ * Redirects to the changelog controllers page.
  */
 @Controller
 public class ChangelogController {

@@ -1,8 +1,8 @@
-package com.rewayaat.web.core;
+package com.rewayaat.core;
+
+import com.rewayaat.controllers.data.hadith.HadithObject;
 
 import java.util.List;
-
-import com.rewayaat.web.data.hadith.HadithObject;
 
 /**
  * Represents a collection of hadith results.
