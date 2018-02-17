@@ -1,3 +1,17 @@
+# NOTE: DO NOT PUT MULTIPLE SPELLING OF THE SAME WORD IN THIS FILE.
+# For example, adding the following entry is fine:
+#
+# ghusl, ablution
+#
+# However, the following entry is problematic!
+#
+# ghusl, ghusal, ghusel
+#
+#
+# MULTIWORD SYNONYMS ARE NOT SUPPORTED! eg: Imam Ali (as)
+# 
+# START SYNONYM GROUPS BELOW
+
 ghusl, ablution
 salaat, prayers, namaz
 wuzu, ablution, wudhu
