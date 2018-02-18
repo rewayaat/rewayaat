@@ -12,6 +12,6 @@
 # 
 # START SYNONYM GROUPS BELOW
 
-ghusl, ablution
-salaat, prayers, namaz
-wuzu, ablution, wudhu
+ghusl, غسل
+salaat, prayers, namaz, صلاة
+wuzu, ablution, wudhu, وضوء
