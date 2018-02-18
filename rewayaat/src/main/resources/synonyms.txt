@@ -10,7 +10,7 @@
 #
 # MULTIWORD SYNONYMS ARE NOT SUPPORTED! eg: Imam Ali (as)
 # 
-# START SYNONYM GROUPS BELOW
+# START SYNONYM GROUPS BELOW 
 
 ghusl, غسل
 salaat, prayers, namaz, صلاة
