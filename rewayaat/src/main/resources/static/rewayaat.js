@@ -29,29 +29,7 @@ function loadQuery(query) {
 $(document).ready(function(){
   $(window).resize(changeCardWidth);
   changeCardWidth();
-
-  var gSignInBtn = document.getElementsByClassName('g-signin2')[0];
-  gSignInBtn.onclick = function(e) {
-                  if (signedIn && id_token) {
-                    e.preventDefault();
-                      var auth2 = gapi.auth2.getAuthInstance();
-                                             auth2.disconnect();
-
-                                             //if this did not had time to sign out put below lines in setTimeout to make a delay
-                                             $('#google_token').val(id_token); //hidden form value
-                                             $('#google-oauth').submit(); //hidden form
-
-                                             if (vueApp) {
-                                             				vueApp.signedIn = false;
-                                             				vueApp.$forceUpdate();
-                                             			}
-                                             			signedIn = false
-                                             			location.reload();
-                  }
-              }
-
-Raven.config('https://b0e8263fd0ca4b88b2c51043a51df738@sentry.io/289790').install()
-
+  Raven.config('https://b0e8263fd0ca4b88b2c51043a51df738@sentry.io/289790').install()
 });
 
 
@@ -706,6 +684,7 @@ function onSignIn(googleUser) {
 			if (vueApp) {
 				vueApp.signedIn = true;
 				vueApp.$forceUpdate();
+				displaySignOutBtn();
 			}
 		} else {
 		    signedIn = false;
@@ -719,8 +698,36 @@ function onSignIn(googleUser) {
 
 }
 
+function displaySignOutBtn() {
+    var gSignInBtn = document.getElementsByClassName('g-signin2')[0];
+    gSignInBtn.outerHTML='';
+    signInBtnLi = document.getElementById('signInBtnLi');
+    signInBtnLi.innerHTML = '<div onclick="signOutOfRewayaat()" class="uk-navbar-item uk-visible@s" style="display:inline-block;  margin-left: 20px;">' +
+                                                    '<a style="margin-top: 10px; border-radius: 3px;" class="uk-button uk-button-default tm-button-default uk-icon"><img style="display: inline-block;  margin-right: 10px; margin-bottom: 4px;width:18px;" src="img/google.png"/>Sign Out' +
+
+                                                    '</a>' +
+                                                '</div>';
+
+
+
+
+
+}
 function signOutOfRewayaat() {
 	var xhr = new XMLHttpRequest();
-    	xhr.open('POST', '/google/reset');
-    	xhr.send();
+    xhr.open('POST', '/google/reset');
+    xhr.send();
+    var auth2 = gapi.auth2.getAuthInstance();
+    auth2.disconnect();
+
+     //if this did not had time to sign out put below lines in setTimeout to make a delay
+     $('#google_token').val(id_token); //hidden form value
+     $('#google-oauth').submit(); //hidden form
+
+     if (vueApp) {
+        vueApp.signedIn = false;
+        vueApp.$forceUpdate();
+     }
+    signedIn = false
+    location.reload();
 }
