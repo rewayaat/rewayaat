@@ -1371,18 +1371,14 @@ select.uk-form-width-xsmall {
 }
 
 .uk-button-default {
-    background-color: transparent;
-    /* color: #222; */
-    /* border: 1px solid #e5e5e5; */
-    /* border-bottom: gray; */
-    /* border-bottom-style: solid; */
-    /* border-bottom-width: 1px; */
+         color: black;
+         background-color: rgba(255, 255, 255, 0.71);
+         border: 1px solid black;
 }
 
 .uk-button-default:hover, .uk-button-default:focus {
-    background-color: transparent;
-    color: #222;
-    border-color: #b2b2b2
+       background-color: #383737;
+       color: white;
 }
 
 .uk-button-default:active, .uk-button-default.uk-active {
@@ -7398,7 +7394,8 @@ th.uk-text-break, td.uk-text-break {
 }
 
 .uk-light .uk-button-default:hover, .uk-light .uk-button-default:focus, .uk-section-primary:not(.uk-preserve-color) .uk-button-default:hover, .uk-section-primary:not(.uk-preserve-color) .uk-button-default:focus, .uk-section-secondary:not(.uk-preserve-color) .uk-button-default:hover, .uk-section-secondary:not(.uk-preserve-color) .uk-button-default:focus, .uk-card-primary.uk-card-body .uk-button-default:hover, .uk-card-primary.uk-card-body .uk-button-default:focus, .uk-card-primary>:not([class*='uk-card-media']) .uk-button-default:hover, .uk-card-primary>:not([class*='uk-card-media']) .uk-button-default:focus, .uk-card-secondary.uk-card-body .uk-button-default:hover, .uk-card-secondary.uk-card-body .uk-button-default:focus, .uk-card-secondary>:not([class*='uk-card-media']) .uk-button-default:hover, .uk-card-secondary>:not([class*='uk-card-media']) .uk-button-default:focus, .uk-overlay-primary .uk-button-default:hover, .uk-overlay-primary .uk-button-default:focus, .tm-navbar-container:not(.uk-navbar-transparent) .uk-button-default:hover, .tm-navbar-container:not(.uk-navbar-transparent) .uk-button-default:focus {
-   background-color: #adb9c7;
+       background-color: #383737;
+       color: white;
 }
 
 .uk-light .uk-button-default:active, .uk-light .uk-button-default.uk-active, .uk-section-primary:not(.uk-preserve-color) .uk-button-default:active, .uk-section-primary:not(.uk-preserve-color) .uk-button-default.uk-active, .uk-section-secondary:not(.uk-preserve-color) .uk-button-default:active, .uk-section-secondary:not(.uk-preserve-color) .uk-button-default.uk-active, .uk-card-primary.uk-card-body .uk-button-default:active, .uk-card-primary.uk-card-body .uk-button-default.uk-active, .uk-card-primary>:not([class*='uk-card-media']) .uk-button-default:active, .uk-card-primary>:not([class*='uk-card-media']) .uk-button-default.uk-active, .uk-card-secondary.uk-card-body .uk-button-default:active, .uk-card-secondary.uk-card-body .uk-button-default.uk-active, .uk-card-secondary>:not([class*='uk-card-media']) .uk-button-default:active, .uk-card-secondary>:not([class*='uk-card-media']) .uk-button-default.uk-active, .uk-overlay-primary .uk-button-default:active, .uk-overlay-primary .uk-button-default.uk-active, .tm-navbar-container:not(.uk-navbar-transparent) .uk-button-default:active, .tm-navbar-container:not(.uk-navbar-transparent) .uk-button-default.uk-active {
@@ -7841,8 +7838,9 @@ th.uk-text-break, td.uk-text-break {
 }
 
 .uk-light .tm-button-default, .uk-section-primary:not(.uk-preserve-color) .tm-button-default, .uk-section-secondary:not(.uk-preserve-color) .tm-button-default, .uk-card-primary.uk-card-body .tm-button-default, .uk-card-primary>:not([class*='uk-card-media']) .tm-button-default, .uk-card-secondary.uk-card-body .tm-button-default, .uk-card-secondary>:not([class*='uk-card-media']) .tm-button-default, .uk-overlay-primary .tm-button-default, .tm-navbar-container:not(.uk-navbar-transparent) .tm-button-default {
-        background-color: #8db1dc;
-    color: #fff;
+           background-color: transparent;
+           color: #222;
+           border: 1px solid gray;
         box-shadow: rgb(236, 235, 235) 2px 2px;
 }
 

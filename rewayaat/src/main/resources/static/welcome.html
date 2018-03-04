@@ -4,14 +4,19 @@
          class="uk-card uk-card-default uk-align-right uk-card-body uk-width-1-1"
          style="margin-top: 35px; margin-top: 35px;    background-image: url(img/booksandbird.jpg);    text-align: center;    background-size: 250px;    background-position: left;    padding-left: 30px;    background-position-y: top;    background-color: #fbfbe1;    color: black;    background-repeat: no-repeat; text-align: center;">
 
-		<p class="uk-text-lead"
-           style="font-family: Chivo; margin-bottom: 40px; padding: 5px;">
-			Welcome to the Hadith Database Project (HDP) by the <a
-				href="http://academyofislam.org/">Academy for Learning Islam</a>
-		</p>
+        <div class="uk-text-lead"
+             style="font-family: Chivo; margin-bottom: 40px; padding: 5px;">
+            <div style="font-weight: 800; word-wrap: break-word; font-size:38px; text-transform: uppercase;  margin-left: auto; margin-right:auto; transform-origin: 50% 50% 0px; opacity: 1;">
+                The Hadith Database Project
+            </div>
 
-        <p style="padding: 15px;">To begin your search, enter keywords or phrases in English or
-			Arabic into the search bar below.</p>
+            <div style="font-weight: 800; font-size:16px; word-wrap: break-word; font-style:italic; text-transform: uppercase;  margin-left: auto; margin-right:auto; transform-origin: 50% 50% 0px; opacity: 1;">
+                Presented By <a href="http://academyofislam.org/">The Academy for Learning Islam</a></div>
+        </div>
+
+        <p style="padding: 15px; width:80%; margin-left:auto; margin-right:auto;">Enter <b>keywords</b> (separated by
+            spaces) and/or <b>phrases</b> (surrounded by quotes) in English or
+            Arabic into the search bar below to get started.</p>
 
 		<span style="margin-top: 8px; color: #000; display: inline-block;"
 			uk-search-icon></span>
@@ -23,7 +28,6 @@
 		<div onclick="submitSearchQuery()" class="uk-navbar-item uk-visible@m"
 			style="margin-top: 2px; margin-left: 20px; margin-bottom: 40px;">
 			<a
-                    style="border-style: solid; color: black; background-color: rgba(255, 255, 255, 0.71); border-width: 1px;"
                     class="uk-button uk-button-default tm-button-default uk-icon">Search
 				
 			</a>
@@ -32,23 +36,24 @@
 			class="uk-navbar-toggle uk-hidden@m uk-navbar-toggle-icon uk-icon"></a>
 		</nav>
 
-        <p style="text-align:left; padding:15px;">
+        <p style="text-align:left; padding:15px; margin-top:-20px;">
 
-			Queries may also consist of a multiple terms separated by spaces. For
-			example, <a
-				href="/?q=Al-Reza%C2%A0intellect%C2%A0%22good%20mannerisms%22">this
-				query</a> searches for hadith containing the words <b>Al-Reza</b>, <b>intellect</b>,
-			and the phrase <b>"good mannerisms"</b>. Users may also incorporate
+            <span style="color:black;"><b><em>Need help getting started?</em></b></span> &nbsp; Check out this <a
+                href="/?q=Al-Reza%C2%A0intellect%C2%A0%22good%20mannerisms%22"> sample
+            query</a> which searches for hadith containing the <b>keywords</b> "Al-Reza", "intellect",
+            and the <b>phrase</b> "good mannerisms". Also feel free to incorporate
 			Elastic Search's <a
 				href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax">Query
-				String syntax</a> in their queries if they wish to do so.
+            String syntax</a> in your queries if you wish to do so.
 		</p>
 	</div>
 	<div id="about"
          class="uk-card uk-card-default uk-align-right uk-card-body  uk-width-1-1"
-         style="margin-top: 35px; margin-bottom: 40px;     color: black; background: #e1e8fb;">
+         style="margin-top: 35px; margin-bottom: 40px;     color: black; background: #dcdcdc94;">
 
-        <p style="padding: 15px; margin-bottom: 0px;" class="uk-text-lead">About HDP</p>
+        <div style="font-weight: 800;     padding-left: 15px; word-wrap: break-word; font-size:22px; text-transform: uppercase;  margin-left: auto; margin-right:auto; transform-origin: 50% 50% 0px; opacity: 1;">
+            About This Project
+        </div>
 
         <p style="padding: 15px;">
 			The objective of the Hadith Database Project (HDP) is to make
