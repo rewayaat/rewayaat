@@ -312,7 +312,7 @@ a:active, a:hover {
 }
 
 a, .uk-link {
-    color: #2562ab;
+    color: #03a9f4;
     text-decoration: none;
     cursor: pointer
 }
@@ -346,7 +346,7 @@ b, strong {
 }
 
 em {
-    color: #2562ab;
+    color: #03a9f4;
 }
 
 ins {
@@ -1331,7 +1331,7 @@ select.uk-form-width-xsmall {
 }
 
 .uk-button {
-    margin: 0;
+    margin: 5px;
     border: none;
     overflow: visible;
     font: inherit;
@@ -1339,7 +1339,7 @@ select.uk-form-width-xsmall {
     text-transform: none;
     display: inline-block;
     box-sizing: border-box;
-    padding: 0 30px;
+    padding: 0 15px;
     vertical-align: middle;
     font-size: 14px;
     line-height: 38px;
@@ -1372,7 +1372,7 @@ select.uk-form-width-xsmall {
 
 .uk-button-default {
          color: black;
-         background-color: rgba(255, 255, 255, 0.71);
+         background-color: rgba(255, 255, 255, 0.89);
          border: 1px solid black;
 }
 
