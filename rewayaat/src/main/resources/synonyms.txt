@@ -15,3 +15,33 @@
 ghusl, غسل
 salaat, prayers, namaz, صلاة
 wuzu, ablution, wudhu, وضوء
+amāl, aamal, deeds, actions, عمل 
+Abbas, Abbaas, العباس
+abd, servant, slave, bondsman
+abid, worshipper, devotee, عابد
+abraar, abrar, ابرار
+adaa, ada
+adab, etiquette, rite, أدب
+adam, ادم
+adl, justice, equity
+adil, aadil, just, fair
+adhaab, azaab, punishment, torture, عذاب
+adhan, azan, call to prayer
+ahkam, ahkaam, rules, laws, rites, أحكام
+ahd, commitment, covenant, oath, pledge, promise, vow
+aimma, Imams
+aakhira, afterlife, الآخرة
+al-hamd, Alhamd, الحمد
+akhlaq, morals, أخلاق
+aalim, alim, scholar
+anbiya, ambiyaa, prophets, apostles, رسول, نبي
+ansar, helpers, freinds, supporters, أنصار
+aqd, agreement, marriage
+aqidah, aqeeda, faith, belief, creed
+aql, intelligence, intellect, sanity, العقل 
+aaqil, aql, intelligent, sane, wise, rational
+ashaab, companions, supporters, أصحاب
+ashoora, ashura, عاشوراء
+awliya, friends, guardians, protectors, saints
+ayah, ayat, sign, أية
+ayyam, days, أيام
