@@ -602,7 +602,7 @@ function quranicVersesDecoratedHadith(hadithObj) {
  */
 function createQuranicVerseModal(surah, ayat, divId) {
 
-	var url = 'http://api.alquran.cloud/ayah/' + surah + ':' + ayat
+	var url = 'https://api.alquran.cloud/ayah/' + surah + ':' + ayat
 		+ '/editions/quran-simple,en.asad';
 	$
 		.get(
