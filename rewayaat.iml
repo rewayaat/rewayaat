@@ -9,7 +9,7 @@
       <sourceFolder url="file://$MODULE_DIR$/rewayaat/src/test/java" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/rewayaat/target" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="1.8" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpclient:4.5.2" level="project" />
     <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpcore:4.4.6" level="project" />
@@ -122,6 +122,7 @@
     <orderEntry type="library" name="Maven: org.elasticsearch.plugin:percolator-client:5.2.2" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.mylyn.github:org.eclipse.egit.github.core:2.1.5" level="project" />
     <orderEntry type="library" name="Maven: com.google.code.gson:gson:2.8.0" level="project" />
+    <orderEntry type="library" name="Maven: com.jcraft:jsch:0.1.54" level="project" />
     <orderEntry type="library" name="Maven: io.springfox:springfox-swagger2:2.4.0" level="project" />
     <orderEntry type="library" name="Maven: io.swagger:swagger-annotations:1.5.6" level="project" />
     <orderEntry type="library" name="Maven: io.swagger:swagger-models:1.5.6" level="project" />
@@ -136,6 +137,7 @@
     <orderEntry type="library" name="Maven: com.mashape.unirest:unirest-java:1.4.9" level="project" />
     <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpasyncclient:4.1.2" level="project" />
     <orderEntry type="library" name="Maven: org.apache.httpcomponents:httpcore-nio:4.4.5" level="project" />
+    <orderEntry type="library" name="Maven: io.sentry:sentry:1.6.8" level="project" />
     <orderEntry type="library" name="Maven: commons-lang:commons-lang:2.6" level="project" />
     <orderEntry type="library" name="Maven: org.jsoup:jsoup:1.10.2" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-context:4.3.7.RELEASE" level="project" />
