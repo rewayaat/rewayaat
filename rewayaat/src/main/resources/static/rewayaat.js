@@ -702,7 +702,7 @@ function displaySignOutBtn() {
     var gSignInBtn = document.getElementsByClassName('g-signin2')[0];
     gSignInBtn.outerHTML='';
     signInBtnLi = document.getElementById('signInBtnLi');
-    signInBtnLi.innerHTML = '<div onclick="signOutOfRewayaat()" class="uk-navbar-item uk-visible@s" style="display:inline-block;  margin-left: 20px;">' +
+    signInBtnLi.innerHTML = '<div onclick="signOutOfRewayaat()" class="uk-navbar-item uk-visible@m" style="display:inline-block;  margin-left: 20px;">' +
                                                     '<a style="margin-top: 10px; border-radius: 3px;" class="uk-button uk-button-default tm-button-default uk-icon"><img style="display: inline-block;  margin-right: 10px; margin-bottom: 4px;width:18px;" src="img/google.png"/>Sign Out' +
 
                                                     '</a>' +
