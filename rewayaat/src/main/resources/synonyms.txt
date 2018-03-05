@@ -26,7 +26,7 @@ adam, ادم
 adl, justice, equity
 adil, aadil, just, fair
 adhaab, azaab, punishment, torture, عذاب
-adhan, azan, call to prayer
+adhan, azan
 ahkam, ahkaam, rules, laws, rites, أحكام
 ahd, commitment, covenant, oath, pledge, promise, vow
 aimma, Imams
