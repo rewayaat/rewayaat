@@ -672,7 +672,7 @@ function onSignIn(googleUser) {
 	console.log('Image URL: ' + profile.getImageUrl());
 	console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
 	id_token = googleUser.getAuthResponse().id_token;
-
+    displaySignOutBtn();
 	var xhr = new XMLHttpRequest();
 	xhr.open('POST', '/google/signin');
 	xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -682,7 +682,6 @@ function onSignIn(googleUser) {
 			if (vueApp) {
 				vueApp.signedIn = true;
 				vueApp.$forceUpdate();
-				displaySignOutBtn();
 			}
 		} else {
 		    signedIn = false;
