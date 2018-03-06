@@ -66,20 +66,21 @@
     border-radius: 5px; caret-color:black;  color: black; width:30vw;" id="queryBarText" contentEditable="true"
                          data-text="Enter Query Here.."></div>
                     <div onclick="submitSearchQuery()" class="uk-navbar-item uk-visible@s"
-                         style="display:inline-block;  margin-left: 20px;">
+                         style="display:inline-block;  margin-left: 10px;">
                         <a style="
-    margin-bottom: -15px;
+    margin-bottom: -15px;     margin-left: 10px;
     border-width: 1px; border-radius: 3px;" class="uk-button uk-button-default tm-button-default uk-icon">Search</a>
                     </div>
                 </div>
                 <a uk-navbar-toggle-icon="" uk-toggle=""
-                   class="uk-navbar-toggle uk-hidden@m uk-navbar-toggle-icon uk-icon"></a>
+                   class="uk-navbar-toggle uk-navbar-toggle-icon uk-icon"></a>
                 <div class="uk-navbar-right">
-                    <ul class="uk-navbar-nav uk-visible@m">
+                    <ul class="uk-navbar-nav">
                         <li id="signInBtnLi">
-                            <div style="margin-top: -10px;" data-theme="light" data-width="180" data-longtitle="false"
-                                 class="g-signin2" data-onsuccess="onSignIn"></div>
-
+                            <div style="margin-top: -10px; margin-right:5px;" data-theme="light" data-width="36"
+                                 data-longtitle="false"
+                                 class="g-signin2" data-text="Sign In" data-onsuccess="onSignIn">Sign In
+                            </div>
                         </li>
                     </ul>
                 </div>
@@ -112,7 +113,7 @@
             <b v-html="totalHits"/> results found.
         </h2>
         <div class="uk-card uk-align-center uk-card  uk-width-1-1 "
-             style="margin-top: 40px; background-color: #efefef; border-radius: 25px; box-shadow: rgb(236, 235, 235) 5px 5px; border: #c1c0c0 solid 1px;"
+             style="margin-top: 40px; background-color: #efefef; border-radius: 25px;  box-shadow: rgb(212, 212, 212) 15px 15px 15px;  border: 1px solid rgb(109, 109, 109);"
              v-for="(narration, index) in narrations">
 
             <!--  SHOW ON LEFT IF LARGE SCREEN -->
@@ -235,26 +236,34 @@
 
 
                         <div uk-switcher="animation: uk-animation-fade">
-                            <button style="font-size: 12px; padding: 0px 30px;" type="button" v-if="narration.arabic"
+                            <button style="font-size: 12px; padding: 0px 30px;     margin: 15px 15px 0px 0px;"
+                                    type="button" v-if="narration.arabic"
                                     v-bind:class="isActiveClass(narration.arabic)"
                                     class="uk-button uk-button-default">Arabic
                             </button>
-                            <button type="button" style="font-size: 12px; padding: 0px 30px;" v-if="narration.english"
+                            <button type="button"
+                                    style="font-size: 12px; padding: 0px 30px;     margin: 15px 15px 0px 0px;"
+                                    v-if="narration.english"
                                     v-bind:class="isActiveClass(narration.arabic)"
                                     class="uk-button uk-active uk-button-default">English
                             </button>
-                            <button type="button" style="font-size: 12px; padding: 0px 30px;" v-if="narration.notes"
+                            <button type="button"
+                                    style="font-size: 12px; padding: 0px 30px;     margin: 15px 15px 0px 0px;"
+                                    v-if="narration.notes"
                                     class="uk-button uk-button-default">Notes
                             </button>
-                            <button type="button" style="font-size: 12px; padding: 0px 30px;"
+                            <button type="button"
+                                    style="font-size: 12px; padding: 0px 30px;     margin: 15px 15px 0px 0px;"
                                     v-if="narration.related.length > 0"
                                     class="uk-button uk-button-default">Related
                             </button>
-                            <button type="button" style="font-size: 12px; padding: 0px 30px;" v-if="signedIn"
+                            <button type="button"
+                                    style="font-size: 12px; padding: 0px 30px;     margin: 15px 15px 0px 0px;"
+                                    v-if="signedIn"
                                     class="uk-button uk-button-default">History
                             </button>
                         </div>
-                        <ul style="color: rgba(0, 0, 0, 0.18); box-shadow: rgba(202, 202, 202, 0.52) 0px 0px 40px inset; border-style: solid; border-width: 1px; background: #f7f7f7;"
+                        <ul style="color: rgba(0, 0, 0, 0.35); box-shadow: rgba(202, 202, 202, 0.52) 0px 0px 40px inset; border-style: solid; border-width: 1px; background: #f7f7f7;"
                             class="uk-switcher uk-margin">
 
                             <li v-if="narration.arabic">

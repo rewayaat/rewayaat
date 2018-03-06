@@ -1331,7 +1331,6 @@ select.uk-form-width-xsmall {
 }
 
 .uk-button {
-    margin: 5px;
     border: none;
     overflow: visible;
     font: inherit;
@@ -3052,7 +3051,6 @@ ul.uk-nav-sub {
     align-items: center;
     box-sizing: border-box;
     height: 60px;
-    padding: 0 15px;
     font-size: 14px;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     text-decoration: none;
@@ -6008,7 +6006,7 @@ th.uk-text-break, td.uk-text-break {
     }
     .uk-align-right, .uk-align-right\@s, .uk-align-right\@m, .uk-align-right\@l {
          margin-left: 20px;
-    margin-top: -25px;
+    margin-top: -18px;
     padding-left: 30px;
     margin-right: -40px;
         box-shadow: 10px;
@@ -7984,13 +7982,14 @@ html {
 
 
 .hadithGrid {
-	padding:15px;
+	padding:5px;
 	width: 100%;
 }
 
 .hadithDetails {
 	
-border-right: solid 1px rgba(2, 2, 2, 0.31);
+border-right: solid 1px rgba(0, 0, 0, 0.31);
+
 }
 
 .hadithDetails .noBorder {

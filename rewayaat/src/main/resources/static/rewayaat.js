@@ -577,7 +577,7 @@ function socialMediaDecoratedHadith(hadithObj) {
  */
 function quranicVersesDecoratedHadith(hadithObj) {
 
-	var quranicVerses = hadithObj.english.match(/\s\[?[0-9]+:[0-9]+\]?\s/g);
+	var quranicVerses = hadithObj.english.match(/[0-9]+:[0-9]+/g);
 	if (quranicVerses) {
 		for (var i = 0, l = quranicVerses.length; i < l; i++) {
 			// trim, remove square brackets, and split on ':' symbol
@@ -666,8 +666,6 @@ function makeid() {
 
 function onSignIn(googleUser) {
 
-    var gSignInBtnTextEle = document.getElementsByClassName('abcRioButtonContents')[0];
-    gSignInBtnTextEle.innerHTML = 'Sign out with Google';
 	var profile = googleUser.getBasicProfile();
 	console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
 	console.log('Name: ' + profile.getName());
@@ -702,17 +700,12 @@ function displaySignOutBtn() {
     var gSignInBtn = document.getElementsByClassName('g-signin2')[0];
     gSignInBtn.outerHTML='';
     signInBtnLi = document.getElementById('signInBtnLi');
-    signInBtnLi.innerHTML = '<div onclick="signOutOfRewayaat()" class="uk-navbar-item uk-visible@m" style="display:inline-block;  margin-left: 20px;">' +
-                                                    '<a style="margin-top: 10px; border-radius: 3px;" class="uk-button uk-button-default tm-button-default uk-icon"><img style="display: inline-block;  margin-right: 10px; margin-bottom: 4px;width:18px;" src="img/google.png"/>Sign Out' +
-
+    signInBtnLi.innerHTML = '<div onclick="signOutOfRewayaat()" class="uk-navbar-item" style="display:inline-block;  margin-left: 20px;">' +
+                                                    '<a style="margin-top: 10px; border-radius: 3px;" class="uk-button uk-button-default tm-button-default uk-icon"><img style="display: inline-block;   margin-bottom: 4px;width:18px;" src="img/google.png"/><span style="margin-left: 10px;" class="uk-visible@m">Sign Out</span>' +
                                                     '</a>' +
                                                 '</div>';
-
-
-
-
-
 }
+
 function signOutOfRewayaat() {
 	var xhr = new XMLHttpRequest();
     xhr.open('POST', '/google/reset');
