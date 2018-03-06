@@ -44,10 +44,12 @@ public class RewayaatQuery {
         splitted.add(result.toString());
         for (String s : splitted) {
             if (!s.contains("~") && !s.contains("(")) {
-                if (query.length() > 6) {
-                    s += "~2";
-                } else {
-                    s += "~1";
+                if (s.length() > 4) {
+                    if (s.length() > 6) {
+                        s += "~2";
+                    } else {
+                        s += "~1";
+                    }
                 }
             }
             if (!StringUtils.startsWithAny(s, docFields)) {
