@@ -256,12 +256,13 @@ function setupVue(query) {
 			// fetches more narrations to display using the Rewayaat
 			// REST API.
 			fetchNarrations: function () {
-				loadingHadith = true;
 				if (!this.done) {
+				    loadingHadith = true;
 					var self = this;
 					var xhr = new XMLHttpRequest();
 					xhr.onload = function () {
 						if (xhr.readyState == XMLHttpRequest.DONE) {
+						    loadingHadith = false;
 							var queryBar = document.getElementById("queryBar");
 							queryBar.style.opacity = "1";
 							document.getElementById("queryBarText").innerHTML = query;
@@ -289,12 +290,11 @@ function setupVue(query) {
 								console.log(value);
 
 							});
-							if (respJSON.collection.length < 10) {
+							if (self.page === Math.ceil(respJSON.totalResultSetSize / 10)) {
 								self.done = true;
 							}
 							// set total results size value
 							self.totalHits = respJSON.totalResultSetSize;
-							loadingHadith = false;
 							}
 						}
 					}
