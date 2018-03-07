@@ -14,6 +14,7 @@ import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -46,7 +47,7 @@ public class HadithController {
     @Autowired
     private CacheManager cacheManager;
 
-    //@Cacheable(value = "queries")
+    @Cacheable(value = "queries")
     @RequestMapping(method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public HadithObjectCollection loadHadith(

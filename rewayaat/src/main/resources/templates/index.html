@@ -209,8 +209,9 @@
                                 </div>
                             </a>
                             <!-- Copy Link -->
-                            <div class="resp-sharing-button__link uk-align-right" aria-label="">
-                                <div v-on:click="showHadithURL(narration._id)"
+                            <div class="resp-sharing-button__link uk-align-right"
+                                 v-on:click.native="showHadithURL(narration._id)" aria-label="">
+                                <div
                                      title="Click to get a URL for this hadith" style="background: transparent;
                                        color: #222;
                                           font-size: 1.25em;
@@ -222,8 +223,9 @@
                                 </div>
                             </div>
                             <!-- Edit Hadith -->
-                            <div v-if="signedIn" class="resp-sharing-button__link uk-align-right" aria-label="">
-                                <div title="Click to edit this hadith" v-on:click="editHadith(narration, index)" style="background: transparent;
+                            <div v-if="signedIn" v-on:click.native="editHadith(narration, index)"
+                                 class="resp-sharing-button__link uk-align-right" aria-label="">
+                                <div title="Click to edit this hadith" style="background: transparent;
                                        color: #222;
                                           font-size: 1.3em;
     margin-right: -17px; cursor:pointer; width: 40%; " class="resp-sharing-button  resp-sharing-button--small">
