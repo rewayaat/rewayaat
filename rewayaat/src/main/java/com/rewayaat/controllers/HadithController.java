@@ -1,9 +1,12 @@
-package com.rewayaat.core;
+package com.rewayaat.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rewayaat.RewayaatLogger;
 import com.rewayaat.config.ClientProvider;
 import com.rewayaat.controllers.data.hadith.HadithObject;
+import com.rewayaat.core.HadithObjectCollection;
+import com.rewayaat.core.LoginController;
+import com.rewayaat.core.QueryStringQueryResult;
 import org.apache.log4j.spi.LoggerFactory;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.update.UpdateRequest;
@@ -11,7 +14,6 @@ import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -44,7 +46,7 @@ public class HadithController {
     @Autowired
     private CacheManager cacheManager;
 
-    @Cacheable(value = "queries")
+    //@Cacheable(value = "queries")
     @RequestMapping(method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public HadithObjectCollection loadHadith(
