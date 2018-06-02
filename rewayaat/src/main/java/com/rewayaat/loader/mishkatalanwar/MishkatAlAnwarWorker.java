@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Files;
 import com.rewayaat.config.ClientProvider;
-import com.rewayaat.core.HadithObject;
+import com.rewayaat.core.data.HadithObject;
 import com.rewayaat.loader.ArabicNormalizer;
 import com.rewayaat.loader.WordToNumber;
 import org.apache.commons.io.IOUtils;

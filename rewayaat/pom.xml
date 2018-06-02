@@ -276,7 +276,7 @@
 						</goals>
 						<configuration>
 							<excludes>
-								**/com/rewayaat/controllers/data/**,**/com/rewayaat/config/**,**/com/rewayaat/test/**,**/com/rewayaat/loader/**
+                                **/com/rewayaat/core/data/**,**/com/rewayaat/config/**,**/com/rewayaat/test/**,**/com/rewayaat/loader/**
 							</excludes>
 							<failOnViolation>true</failOnViolation>
 							<configLocation>${project.basedir}/src/main/resources/rewayaatcheckstyleconfig.xml</configLocation>

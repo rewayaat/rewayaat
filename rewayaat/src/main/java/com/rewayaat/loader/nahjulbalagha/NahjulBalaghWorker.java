@@ -2,7 +2,7 @@ package com.rewayaat.loader.nahjulbalagha;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rewayaat.config.ClientProvider;
-import com.rewayaat.core.HadithObject;
+import com.rewayaat.core.data.HadithObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
