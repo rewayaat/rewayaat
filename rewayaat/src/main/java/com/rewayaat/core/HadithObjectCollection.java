@@ -1,7 +1,5 @@
 package com.rewayaat.core;
 
-import com.rewayaat.controllers.data.hadith.HadithObject;
-
 import java.util.List;
 
 /**

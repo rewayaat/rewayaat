@@ -3,7 +3,6 @@ package com.rewayaat.core;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rewayaat.RewayaatLogger;
 import com.rewayaat.config.ClientProvider;
-import com.rewayaat.controllers.data.hadith.HadithObject;
 import org.apache.log4j.spi.LoggerFactory;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
