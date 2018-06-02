@@ -3,10 +3,13 @@ package com.rewayaat.controllers.rest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rewayaat.RewayaatLogger;
 import com.rewayaat.config.ClientProvider;
-import com.rewayaat.core.HadithObject;
 import com.rewayaat.core.HadithObjectCollection;
 import com.rewayaat.core.LoginController;
 import com.rewayaat.core.QueryStringQueryResult;
+import com.rewayaat.core.data.HadithObject;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.apache.log4j.spi.LoggerFactory;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.update.UpdateRequest;
@@ -48,6 +51,15 @@ public class HadithController {
     @Autowired
     private CacheManager cacheManager;
 
+    @ApiOperation(
+            value = "Queries the narration database.",
+            response = HadithObjectCollection.class
+    )
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Returns a list of narrations matching the given query."),
+            @ApiResponse(code = 404, message = "Bad request"),
+            @ApiResponse(code = 500, message = "Internal server error")
+    })
     @Cacheable(value = "queries")
     @RequestMapping(method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
