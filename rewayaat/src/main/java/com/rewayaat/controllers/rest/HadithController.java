@@ -1,9 +1,9 @@
-package com.rewayaat.controllers;
+package com.rewayaat.controllers.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rewayaat.RewayaatLogger;
 import com.rewayaat.config.ClientProvider;
-import com.rewayaat.controllers.data.hadith.HadithObject;
+import com.rewayaat.core.HadithObject;
 import com.rewayaat.core.HadithObjectCollection;
 import com.rewayaat.core.LoginController;
 import com.rewayaat.core.QueryStringQueryResult;
@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Iterator;
@@ -50,13 +51,14 @@ public class HadithController {
     @Cacheable(value = "queries")
     @RequestMapping(method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
-    public HadithObjectCollection loadHadith(
+    public HadithObjectCollection queryHadith(
             @RequestParam(value = "q", defaultValue = "") String query,
             @RequestParam(value = "page", defaultValue = "0") int page) throws Exception {
         log.info("Entered hadith query API with query: " + query + " and page: " + page);
         return new QueryStringQueryResult(query, page).result();
     }
 
+    @ApiIgnore
     @RequestMapping(method = RequestMethod.POST, consumes = "application/json")
     public ResponseEntity<String> modifyHadith(
             @RequestParam(value = "id", required = true) String id,
