@@ -33,7 +33,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
     });
 
     // Do not change without considering impact on front-end
-    private final int pageSize = 10;
+    public static final int PAGE_SIZE = 10;
 
     private String userQuery;
     private int page;
@@ -61,7 +61,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                 .setTypes(ClientProvider.TYPE).setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
                 .setQuery(QueryBuilders.boolQuery().must(QueryBuilders.queryStringQuery(fuzziedQuery))
                         .should(QueryBuilders.queryStringQuery(userQuery).boost(100)))
-                .highlighter(highlightBuilder).setFrom(page * pageSize).setSize(pageSize).setExplain(true)
+                .highlighter(highlightBuilder).setFrom(page * PAGE_SIZE).setSize(PAGE_SIZE).setExplain(true)
                 .addSort("_score", SortOrder.DESC).execute().get();
 
         SearchHit[] results = resp.getHits().getHits();
