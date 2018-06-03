@@ -52,7 +52,7 @@ public class HadithController {
     private CacheManager cacheManager;
 
     @ApiOperation(
-            value = "Queries the narration database.",
+            value = "Queries the hadith database.",
             response = HadithObjectCollection.class
     )
     @ApiResponses(value = {
