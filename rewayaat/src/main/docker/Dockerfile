@@ -1,11 +1,8 @@
-# Pull base image.
-FROM openjdk:8
-
-VOLUME /tmp
-
-RUN curl -sL https://rpm.nodesource.com/setup_10.x | bash -
-RUN yum install -y nodejs
+FROM node:6
 RUN npm install elasticdump -g
+
+FROM openjdk:8
+VOLUME /tmp
 ENV SPRING_PROFILES_ACTIVE=prod
 ENV ES_CONFIG_SYNONYM_DIR=/opt/bitnami/elasticsearch/config/
 RUN ls -a
