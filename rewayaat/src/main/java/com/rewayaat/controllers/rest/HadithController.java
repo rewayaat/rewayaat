@@ -22,6 +22,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -52,6 +53,7 @@ public class HadithController {
     @Autowired
     private CacheManager cacheManager;
 
+    @CrossOrigin(origins = {"*"}, allowCredentials = "false")
     @ApiOperation(
             value = "Queries the hadith database.",
             response = HadithObjectCollection.class
