@@ -56,7 +56,7 @@ public class RefreshSynonymFilter {
                 }
             }
 
-            if (currIndexName != "") {
+            if (!currIndexName.equals("")) {
                 log.info("Current index name is: " + currIndexName);
                 // create backup of current index at /var/lib/docker/devicemapper/mnt/b43a07171255604a89772f76ed043b5a40dcb5331a84bcc9e410e48ee50ac747/rootfs/rewayaat_backup.json
                 Runtime rt = Runtime.getRuntime();
