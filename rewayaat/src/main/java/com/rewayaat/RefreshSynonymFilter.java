@@ -55,26 +55,30 @@ public class RefreshSynonymFilter {
                     break;
                 }
             }
-            log.info("Current index name is: " + currIndexName);
 
-            // create backup of current index at /var/lib/docker/devicemapper/mnt/b43a07171255604a89772f76ed043b5a40dcb5331a84bcc9e410e48ee50ac747/rootfs/rewayaat_backup.json
-            Runtime rt = Runtime.getRuntime();
-            Process pr = rt.exec("elasticdump   --input=http://" + ClientProvider.host + ":9200/" + currIndexName + "   --output=/rewayaat_backup.json   --type=data");
-            pr.waitFor();
-            log.info("Successfully backed up original index data");
+            if (currIndexName != "") {
+                log.info("Current index name is: " + currIndexName);
+                // create backup of current index at /var/lib/docker/devicemapper/mnt/b43a07171255604a89772f76ed043b5a40dcb5331a84bcc9e410e48ee50ac747/rootfs/rewayaat_backup.json
+                Runtime rt = Runtime.getRuntime();
+                Process pr = rt.exec("elasticdump   --input=http://" + ClientProvider.host + ":9200/" + currIndexName + "   --output=/rewayaat_backup.json   --type=data");
+                pr.waitFor();
+                log.info("Successfully backed up original index data");
+            } else {
+                log.info("No existing rewayaat index found!");
+            }
 
             // generate new index name
             String newIndexName = "rewayaat_" + RandomStringUtils.randomAlphabetic(10).toLowerCase();
             log.info("Generated new index name: " + newIndexName);
 
             // copy analyzer, mappings and data to new index
-            pr = rt.exec("elasticdump   --input=http://" + ClientProvider.host + ":9200/" + currIndexName + "   --output=http://" + ClientProvider.host + ":9200/" + newIndexName + "   --type=analyzer");
+            Process pr = Runtime.getRuntime().exec("elasticdump   --input=http://" + ClientProvider.host + ":9200/" + currIndexName + "   --output=http://" + ClientProvider.host + ":9200/" + newIndexName + "   --type=analyzer");
             pr.waitFor();
             log.info("Successfully copied original index analyzer");
-            pr = rt.exec("elasticdump   --input=http://" + ClientProvider.host + ":9200/" + currIndexName + "   --output=http://" + ClientProvider.host + ":9200/" + newIndexName + "   --type=mapping");
+            pr = Runtime.getRuntime().exec("elasticdump   --input=http://" + ClientProvider.host + ":9200/" + currIndexName + "   --output=http://" + ClientProvider.host + ":9200/" + newIndexName + "   --type=mapping");
             pr.waitFor();
             log.info("Successfully copied original index mappings");
-            pr = rt.exec("elasticdump   --input=http://" + ClientProvider.host + ":9200/" + currIndexName + "   --output=http://" + ClientProvider.host + ":9200/" + newIndexName + "   --type=data");
+            pr = Runtime.getRuntime().exec("elasticdump   --input=http://" + ClientProvider.host + ":9200/" + currIndexName + "   --output=http://" + ClientProvider.host + ":9200/" + newIndexName + "   --type=data");
             pr.waitFor();
             log.info("Successfully copied original index data");
 
