@@ -3,8 +3,8 @@ FROM openjdk:8
 
 VOLUME /tmp
 
-RUN curl -sL https://rpm.nodesource.com/setup | bash -
-RUN sudo yum install -y nodejs
+RUN curl -sL https://rpm.nodesource.com/setup_10.x | bash -
+RUN yum install -y nodejs
 RUN npm install elasticdump -g
 ENV SPRING_PROFILES_ACTIVE=prod
 ENV ES_CONFIG_SYNONYM_DIR=/opt/bitnami/elasticsearch/config/
