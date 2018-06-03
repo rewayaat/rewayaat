@@ -8,6 +8,7 @@ import com.rewayaat.core.LoginController;
 import com.rewayaat.core.QueryStringQueryResult;
 import com.rewayaat.core.data.HadithObject;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.log4j.spi.LoggerFactory;
@@ -64,7 +65,9 @@ public class HadithController {
     @RequestMapping(method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public HadithObjectCollection queryHadith(
+            @ApiParam(name = "q", value = "The query to execute.")
             @RequestParam(value = "q", defaultValue = "") String query,
+            @ApiParam(name = "page", value = "The page number to return. Note, page size is " + QueryStringQueryResult.PAGE_SIZE + ".")
             @RequestParam(value = "page", defaultValue = "0") int page) throws Exception {
         log.info("Entered hadith query API with query: " + query + " and page: " + page);
         return new QueryStringQueryResult(query, page).result();
