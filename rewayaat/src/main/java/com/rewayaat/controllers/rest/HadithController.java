@@ -85,12 +85,12 @@ public class HadithController {
     @ApiIgnore
     @RequestMapping(method = RequestMethod.POST, consumes = "application/json")
     public ResponseEntity<String> modifyHadith(
-            @RequestParam(value = "id_token", required = true) String id_token,
+            @RequestParam(value = "id_token", required = true) String idToken,
             @RequestParam(value = "hadith_id", required = true) String hadithId,
             @RequestBody String modifiedHadithStr, HttpServletRequest req) throws Exception {
 
         try {
-            if (new User(id_token).isAdmin()) {
+            if (new User(idToken).isAdmin()) {
                 modifiedHadithStr = Jsoup.parse(modifiedHadithStr).text();
                 log.info("Recieved Modification Request for hadith: " + hadithId);
                 JSONObject modifiedHadith = new JSONObject(modifiedHadithStr);
@@ -109,7 +109,7 @@ public class HadithController {
                 }
                 // make sure we can still serialize a valid HadithObject from the new JSON data
                 HadithObject newHadithObject = mapper.readValue(existingHadith.toString(), HadithObject.class);
-                newHadithObject.insertHistoryNote("User " + new User(id_token).email() + " modified this hadith on " + new java.util.Date() + ". The orginal hadith:\n"
+                newHadithObject.insertHistoryNote("User " + new User(idToken).email() + " modified this hadith on " + new java.util.Date() + ". The orginal hadith:\n"
                         + responseStr + "\n\n The following properties were modified and saved to the database:\n\n" + modifiedHadithStr);
                 new UpdateRequest(newHadithObject, hadithId).execute();
                 // clear the cache

@@ -9,7 +9,9 @@ import org.springframework.core.io.Resource;
 import java.util.Arrays;
 import java.util.List;
 
-
+/**
+ * Represents a user of the system.
+ */
 public class User {
 
     private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(User.class.getName(), new LoggerFactory() {
@@ -20,11 +22,8 @@ public class User {
     });
     private final String email;
 
-    private final String id_token;
-
-    public User(String id_token) throws Exception {
-        this.id_token = id_token;
-        this.email = new com.rewayaat.config.GoogleTokenVerifier().authenticate(id_token);
+    public User(String idToken) throws Exception {
+        this.email = new com.rewayaat.config.GoogleTokenVerifier().authenticate(idToken);
     }
 
     public boolean isAdmin() {
