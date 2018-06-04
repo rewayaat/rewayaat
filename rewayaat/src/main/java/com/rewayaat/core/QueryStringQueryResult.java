@@ -38,10 +38,10 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
     private int page;
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public QueryStringQueryResult(String userQuery, int page, int per_page) {
+    public QueryStringQueryResult(String userQuery, int page, int perPage) {
         this.userQuery = userQuery;
         this.page = page;
-        this.pageSize = per_page;
+        this.pageSize = perPage;
     }
 
     @Override
