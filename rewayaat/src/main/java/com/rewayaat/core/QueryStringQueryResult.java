@@ -33,15 +33,15 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
     });
 
     // Do not change without considering impact on front-end
-    public static final int PAGE_SIZE = 10;
-
+    private int pageSize;
     private String userQuery;
     private int page;
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public QueryStringQueryResult(String userQuery, int page) {
+    public QueryStringQueryResult(String userQuery, int page, int per_page) {
         this.userQuery = userQuery;
         this.page = page;
+        this.pageSize = per_page;
     }
 
     @Override
@@ -61,7 +61,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                 .setTypes(ClientProvider.TYPE).setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
                 .setQuery(QueryBuilders.boolQuery().must(QueryBuilders.queryStringQuery(fuzziedQuery))
                         .should(QueryBuilders.queryStringQuery(userQuery).boost(100)))
-                .highlighter(highlightBuilder).setFrom(page * PAGE_SIZE).setSize(PAGE_SIZE).setExplain(true)
+                .highlighter(highlightBuilder).setFrom(page * this.pageSize).setSize(this.pageSize).setExplain(true)
                 .addSort("_score", SortOrder.DESC).execute().get();
 
         SearchHit[] results = resp.getHits().getHits();
@@ -89,7 +89,8 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                         System.out.println("Found duplicate! deleting...");
                         System.out.println(hadithes.get(i).toString());
                         try {
-                            ClientProvider.instance().getClient().prepareDelete(ClientProvider.INDEX, ClientProvider.TYPE, (String) mapper.convertValue(hadithes.get(i), Map.class).get("_id")).get();
+                            Map duplicatedHadith = mapper.convertValue(hadithes.get(i), Map.class);
+                            ClientProvider.instance().getClient().prepareDelete(ClientProvider.INDEX, ClientProvider.TYPE, (String) duplicatedHadith.get("_id")).get();
                         } catch (Exception e) {
                             log.error("Unable to delete duplicated hadith: " + hadithes.get(i).toString(), e);
                         }

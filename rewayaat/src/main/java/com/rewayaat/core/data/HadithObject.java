@@ -75,12 +75,6 @@ public class HadithObject implements Serializable {
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
     private final static long serialVersionUID = 5990321989725337516L;
 
-    public HadithObject() {
-        if (this.history.isEmpty()) {
-            this.history.add("This hadith was first loaded on " + new java.util.Date());
-        }
-    }
-
     @JsonProperty("history")
     public List<String> getHistory() {
         return history;

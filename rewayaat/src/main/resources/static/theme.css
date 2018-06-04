@@ -44,7 +44,7 @@ html {
 .resp-sharing-button {
   border-radius: 50%;
   transition: 25ms ease-out;
-  padding: 0.02em 0.35em;
+  padding: 0.02em 0.44em;
   font-family: Helvetica Neue,Helvetica,Arial,sans-serif;
 }
 
@@ -3382,13 +3382,13 @@ ul.uk-nav-sub {
     -ms-flex: none;
     -webkit-flex: none;
     flex: none;
-    padding-left: 20px;
+    padding-left: 10px;
     position: relative
 }
 
 .uk-pagination>*>* {
     display: block;
-    color: #999;
+    color: #5d5c5c;
     -webkit-transition: color .1s ease-in-out;
     transition: color .1s ease-in-out
 }
@@ -3399,7 +3399,9 @@ ul.uk-nav-sub {
 }
 
 .uk-pagination>.uk-active>* {
-    color: #666
+        color: #2d2d2d;
+        font-weight: bold;
+        text-decoration: underline;
 }
 
 .uk-pagination>.uk-disabled>* {
@@ -7971,12 +7973,10 @@ html {
 }
 
 .hadithDetailsTitle {
-	/* margin-top: 5px; */
 	display:inline-block;
 	font-family: Chivo, Lane, Roboto, Open Sans;
 	text-transform: uppercase;
 	font-size: 15px;
-	/* padding-top: 10px; */
 	display: inline;
 }
 
