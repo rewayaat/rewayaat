@@ -74,7 +74,7 @@
                 </div>
                 <a uk-navbar-toggle-icon="" uk-toggle=""
                    class="uk-navbar-toggle uk-navbar-toggle-icon uk-icon"></a>
-                <!--
+
                 <div class="uk-navbar-right">
                     <ul class="uk-navbar-nav">
                         <li id="signInBtnLi">
@@ -85,7 +85,7 @@
                         </li>
                     </ul>
                 </div>
-                -->
+
             </nav>
         </div>
     </div>
@@ -114,11 +114,15 @@
 
 <div id="parentContainer" class="uk-container-large uk-align-center" style="margin-top: 0px;">
     <div id="hadithView" class="uk-grid">
-        <h2 v-if="totalHits" style="font-weight: normal; margin-top: 20px; margin-bottom: -20px;">
+        <div>
+            <h2 v-if="totalHits"
+                style="font-weight: normal; margin-left: -30px; margin-top: 20px; margin-bottom: -20px;">
             <b v-html="totalHits"/> results found.
         </h2>
+            <pagination/>
+        </div>
         <div class="uk-card uk-align-center uk-card  uk-width-1-1 "
-             style="margin-top: 40px; background-color: #efefef;  box-shadow: rgb(212, 212, 212) 15px 15px 15px;  border: 1px solid rgb(109, 109, 109);"
+             style="margin-top: 40px; background-color: #efefef;  box-shadow: rgb(212, 212, 212) 15px 15px 15px;  border: 1px solid rgba(109, 109, 109, 0.52);"
              v-for="(narration, index) in narrations">
 
             <!--  SHOW ON LEFT IF LARGE SCREEN -->
@@ -212,8 +216,7 @@
                                 </div>
                             </a>
                             <!-- Copy Link -->
-                            <div class="resp-sharing-button__link uk-align-right"
-                                 v-on:click.native="showHadithURL(narration._id)" aria-label="">
+                            <div class="resp-sharing-button__link uk-align-right" aria-label="">
                                 <div
                                      title="Click to get a URL for this hadith" style="background: transparent;
                                        color: #222;
@@ -221,20 +224,20 @@
     margin-right: -10px; cursor:pointer; width: 40%; " class="resp-sharing-button  resp-sharing-button--small">
                                     <div aria-hidden="true"
                                          class="resp-sharing-button__icon resp-sharing-button__icon--solid">
-                                        <i class="fa fa-share-square-o"></i>
+                                        <i v-on:click="showHadithURL(narration._id)" class="fa fa-share-square-o"></i>
                                     </div>
                                 </div>
                             </div>
+
                             <!-- Edit Hadith -->
-                            <div v-if="signedIn" v-on:click.native="editHadith(narration, index)"
-                                 class="resp-sharing-button__link uk-align-right" aria-label="">
+                            <div v-if="signedIn" class="resp-sharing-button__link uk-align-right" aria-label="">
                                 <div title="Click to edit this hadith" style="background: transparent;
                                        color: #222;
                                           font-size: 1.3em;
     margin-right: -17px; cursor:pointer; width: 40%; " class="resp-sharing-button  resp-sharing-button--small">
                                     <div aria-hidden="true"
                                          class="resp-sharing-button__icon resp-sharing-button__icon--solid">
-                                        <i class="fa fa-pencil-square-o"></i>
+                                        <i v-on:click="editHadith(index)" class="fa fa-pencil-square-o"></i>
                                     </div>
                                 </div>
                             </div>
@@ -309,18 +312,17 @@
             </div>
             <!-- END OF HADITH TEXT SECTION -->
         </div>
+        <pagination style="margin-top: 35px;margin-bottom: 45px;margin-left: -10px;"/>
     </div>
 </div>
 <!--  LOAD THE MENU BAR AT THE TOP -->
 <div id="welcome"></div>
+<div id="modal"></div>
 <!---->
 <script th:inline="javascript" type="text/javascript">
-
         var query = [[${ query }]];
-        loadQuery(query);
-
-
-
+        var page = [[${ page }]];
+        loadQuery(query, page);
 </script>
 <script>
         (function (i, s, o, g, r, a, m) {

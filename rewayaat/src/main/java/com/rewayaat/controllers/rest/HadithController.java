@@ -4,8 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rewayaat.RewayaatLogger;
 import com.rewayaat.config.ClientProvider;
 import com.rewayaat.core.HadithObjectCollection;
-import com.rewayaat.core.LoginController;
 import com.rewayaat.core.QueryStringQueryResult;
+import com.rewayaat.core.UpdateRequest;
+import com.rewayaat.core.User;
 import com.rewayaat.core.data.HadithObject;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -13,7 +14,6 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.apache.log4j.spi.LoggerFactory;
 import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.update.UpdateRequest;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import springfox.documentation.annotations.ApiIgnore;
 
+import javax.naming.AuthenticationException;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Iterator;
 
@@ -69,54 +70,56 @@ public class HadithController {
     public HadithObjectCollection queryHadith(
             @ApiParam(name = "q", value = "The query to execute.")
             @RequestParam(value = "q", defaultValue = "") String query,
-            @ApiParam(name = "page", value = "The page number to return. Note, page size is " + QueryStringQueryResult.PAGE_SIZE + ".")
-            @RequestParam(value = "page", defaultValue = "0") int page) throws Exception {
-        log.info("Entered hadith query API with query: " + query + " and page: " + page);
-        return new QueryStringQueryResult(query, page).result();
+            @ApiParam(name = "page", value = "The number of the page to return.")
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @ApiParam(name = "per_page", value = "Number of hadith to include per page. Maximum of 100.")
+            @RequestParam(value = "per_page", defaultValue = "20") int perPage) throws Exception {
+
+        if (perPage > 100) {
+            perPage = 100;
+        }
+        log.info("Entered hadith query API with query: " + query + " and page: " + page + " and per_page: " + perPage);
+        return new QueryStringQueryResult(query, page - 1, perPage).result();
     }
 
     @ApiIgnore
     @RequestMapping(method = RequestMethod.POST, consumes = "application/json")
     public ResponseEntity<String> modifyHadith(
-            @RequestParam(value = "id", required = true) String id,
+            @RequestParam(value = "id_token", required = true) String id_token,
+            @RequestParam(value = "hadith_id", required = true) String hadithId,
             @RequestBody String modifiedHadithStr, HttpServletRequest req) throws Exception {
 
         try {
-            if (req.getSession().getAttribute(LoginController.AUTHENTICATED) == null || !(boolean) req.getSession().getAttribute(LoginController.AUTHENTICATED)) {
-                return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
+            if (new User(id_token).isAdmin()) {
+                modifiedHadithStr = Jsoup.parse(modifiedHadithStr).text();
+                log.info("Recieved Modification Request for hadith: " + hadithId);
+                JSONObject modifiedHadith = new JSONObject(modifiedHadithStr);
+                GetResponse response = ClientProvider.instance().getClient().prepareGet(ClientProvider.INDEX, ClientProvider.TYPE, hadithId)
+                        .setOperationThreaded(false)
+                        .get();
+                String responseStr = new JSONObject(new String(response.getSourceAsBytes())).toString(2);
+                log.info("Original hadith is:\n" + responseStr);
+                log.info("Modification request:\n" + modifiedHadith.toString(2));
+                JSONObject existingHadith = new JSONObject(responseStr);
+                // add all the values from the modification object to the stored hadith object
+                Iterator<?> keys = modifiedHadith.keys();
+                while (keys.hasNext()) {
+                    String key = (String) keys.next();
+                    existingHadith.put(key, modifiedHadith.get(key));
+                }
+                // make sure we can still serialize a valid HadithObject from the new JSON data
+                HadithObject newHadithObject = mapper.readValue(existingHadith.toString(), HadithObject.class);
+                newHadithObject.insertHistoryNote("User " + new User(id_token).email() + " modified this hadith on " + new java.util.Date() + ". The orginal hadith:\n"
+                        + responseStr + "\n\n The following properties were modified and saved to the database:\n\n" + modifiedHadithStr);
+                new UpdateRequest(newHadithObject, hadithId).execute();
+                // clear the cache
+                cacheManager.getCacheNames().parallelStream().forEach(name -> cacheManager.getCache(name).clear());
+                return new ResponseEntity<>("Successfully update hadith: " + hadithId, HttpStatus.OK);
+            } else {
+                throw new AuthenticationException("Unauthorized to modify hadith: " + hadithId);
             }
-            modifiedHadithStr = Jsoup.parse(modifiedHadithStr).text();
-            log.info("Recieved Modification Request for hadith: " + id);
-            JSONObject modifiedHadith = new JSONObject(modifiedHadithStr);
-            GetResponse response = ClientProvider.instance().getClient().prepareGet(ClientProvider.INDEX, ClientProvider.TYPE, id)
-                    .setOperationThreaded(false)
-                    .get();
-            String responseStr = new JSONObject(new String(response.getSourceAsBytes())).toString(2);
-            log.info("Original hadith is:\n" + responseStr);
-            log.info("Modification request:\n" + modifiedHadith.toString(2));
-            JSONObject existingHadith = new JSONObject(responseStr);
-            // add all the values from the modification object to the stored hadith object
-            Iterator<?> keys = modifiedHadith.keys();
-            while (keys.hasNext()) {
-                String key = (String) keys.next();
-                existingHadith.put(key, modifiedHadith.get(key));
-            }
-            // make sure we can still serialize a valid HadithObject from the new JSON data
-            HadithObject newHadithObject = mapper.readValue(existingHadith.toString(), HadithObject.class);
-            newHadithObject.insertHistoryNote("User " + (String) req.getSession().getAttribute(LoginController.USER_EMAIL) + " modified this hadith on " + new java.util.Date() + ". The orginal hadith:\n"
-                    + responseStr + "\n\n The following properties were modified and saved to the database:\n\n" + modifiedHadithStr);
-            // save new hadith
-            UpdateRequest updateRequest = new UpdateRequest();
-            updateRequest.index(ClientProvider.INDEX);
-            updateRequest.type(ClientProvider.TYPE);
-            updateRequest.id(id);
-            updateRequest.doc(mapper.writeValueAsBytes(newHadithObject));
-            ClientProvider.instance().getClient().update(updateRequest).get();
-            // clear the cache
-            cacheManager.getCacheNames().parallelStream().forEach(name -> cacheManager.getCache(name).clear());
-            return new ResponseEntity<>("Successfully update hadith: " + id, HttpStatus.OK);
         } catch (Exception e) {
-            log.error("Unable to modify hadith: " + id, e);
+            log.error("Unable to modify hadith: " + hadithId, e);
             throw e;
         }
     }

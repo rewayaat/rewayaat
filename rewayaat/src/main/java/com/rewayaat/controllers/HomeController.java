@@ -19,7 +19,8 @@ public class HomeController {
 
     @RequestMapping(value = "/", method = RequestMethod.GET)
     public final String home(@RequestParam(value = "q", required = false) String query,
-            HttpServletRequest request, final Model model) {
+                             @RequestParam(value = "page", defaultValue = "1") int page,
+                             HttpServletRequest request, final Model model) {
         log.info("Entered home controller");
         if (query != null && !query.isEmpty()) {
             // returning the query as a model attribute allows the front end to
@@ -27,6 +28,8 @@ public class HomeController {
             // results.
             log.info("Query param is " + query + ", returning query value in model.");
             model.addAttribute("query", query);
+            log.info("Page param is " + page + ", returning page value in model.");
+            model.addAttribute("page", page);
         }
         return "index";
     }
