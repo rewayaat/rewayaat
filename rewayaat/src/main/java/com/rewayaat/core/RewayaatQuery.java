@@ -43,24 +43,16 @@ public class RewayaatQuery {
         }
         splitted.add(result.toString());
         for (String s : splitted) {
+            s = s.trim();
             if (!s.contains("~") && !s.contains("(")) {
-                if (s.length() > 4) {
-                    if (s.length() > 6) {
-                        s += "~2";
-                    } else {
-                        s += "~1";
-                    }
-                }
+                s += "~";
             }
             if (!StringUtils.startsWithAny(s, docFields)) {
                 allFieldItems.add(s);
             }
         }
-        query = String.join(" ", splitted);
-        if (!allFieldItems.isEmpty()) {
-            query += " all:(" + String.join(" ", allFieldItems) + ")";
-        }
-        System.out.println("Final Query: " + query);
+        query = String.join(" ", allFieldItems);
+        System.out.println("Final fuzzied query: " + query);
         return query;
     }
 

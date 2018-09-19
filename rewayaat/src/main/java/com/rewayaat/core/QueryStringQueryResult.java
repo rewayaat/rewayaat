@@ -14,7 +14,7 @@ import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.elasticsearch.search.sort.SortOrder;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -53,14 +53,14 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
         HighlightBuilder highlightBuilder = new HighlightBuilder().field("english").field("all").field("notes").field("arabic")
                 .field("book").field("section").field("part").field("chapter").field("publisher").field("source")
                 .field("volume").postTags("</span>").preTags("<span class=\"highlight\">")
-                .highlightQuery(QueryBuilders.queryStringQuery(userQuery).useAllFields(true))
                 .highlightQuery(QueryBuilders.queryStringQuery(fuzziedQuery).useAllFields(true))
+                .highlightQuery(QueryBuilders.queryStringQuery(userQuery).useAllFields(true))
                 .numOfFragments(0);
 
         SearchResponse resp = ClientProvider.instance().getClient().prepareSearch(ClientProvider.INDEX)
                 .setTypes(ClientProvider.TYPE).setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-                .setQuery(QueryBuilders.boolQuery().must(QueryBuilders.queryStringQuery(fuzziedQuery))
-                        .should(QueryBuilders.queryStringQuery(userQuery).boost(100)))
+                .setQuery(QueryBuilders.boolQuery().should(QueryBuilders.queryStringQuery(fuzziedQuery))
+                        .should(QueryBuilders.queryStringQuery(userQuery).boost(10)))
                 .highlighter(highlightBuilder).setFrom(page * this.pageSize).setSize(this.pageSize).setExplain(true)
                 .addSort("_score", SortOrder.DESC).execute().get();
 
@@ -100,6 +100,6 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
         }
 
         // Return result set with duplicates removed.
-        return new HadithObjectCollection(new LinkedList<>(new HashSet<>(hadithes)), resp.getHits().getTotalHits());
+        return new HadithObjectCollection(new LinkedList<>(new LinkedHashSet<>(hadithes)), resp.getHits().getTotalHits());
     }
 }
