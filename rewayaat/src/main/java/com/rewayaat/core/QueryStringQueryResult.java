@@ -54,13 +54,13 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                 .field("book").field("section").field("part").field("chapter").field("publisher").field("source")
                 .field("volume").postTags("</span>").preTags("<span class=\"highlight\">")
                 .highlightQuery(QueryBuilders.queryStringQuery(fuzziedQuery).useAllFields(true))
-                .highlightQuery(QueryBuilders.queryStringQuery(userQuery).useAllFields(true))
+                .highlightQuery(QueryBuilders.queryStringQuery(userQuery).useAllFields(true).analyzer("synonym"))
                 .numOfFragments(0);
 
         SearchResponse resp = ClientProvider.instance().getClient().prepareSearch(ClientProvider.INDEX)
                 .setTypes(ClientProvider.TYPE).setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
                 .setQuery(QueryBuilders.boolQuery().should(QueryBuilders.queryStringQuery(fuzziedQuery))
-                        .should(QueryBuilders.queryStringQuery(userQuery).boost(10)))
+                        .should(QueryBuilders.queryStringQuery(userQuery).analyzer("synonym").boost(10)))
                 .highlighter(highlightBuilder).setFrom(page * this.pageSize).setSize(this.pageSize).setExplain(true)
                 .addSort("_score", SortOrder.DESC).execute().get();
 
