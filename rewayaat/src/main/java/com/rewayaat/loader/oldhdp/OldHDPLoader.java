@@ -2,7 +2,7 @@ package com.rewayaat.loader.oldhdp;
 
 public class OldHDPLoader {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         Thread t = new OldHDPWorker(2, 1000);
         t.start();
         Thread a = new OldHDPWorker(1001, 2010);

@@ -281,7 +281,7 @@ public class HadithObject implements Serializable {
     @Override
     public boolean equals(Object o) {
         HadithObject hadith = (HadithObject) o;
-        if (Objects.equals(hadith.number, this.number) &&
+        return Objects.equals(hadith.number, this.number) &&
                 Objects.equals(hadith.book, this.book) &&
                 Objects.equals(hadith.chapter, this.chapter) &&
                 Objects.equals(hadith.section, this.section) &&
@@ -289,11 +289,7 @@ public class HadithObject implements Serializable {
                 Objects.equals(hadith.english, this.english) &&
                 Objects.equals(hadith.volume, this.volume) &&
                 Objects.equals(hadith.part, this.part) &&
-                Objects.equals(hadith.arabic, this.arabic)) {
-            return true;
-        } else {
-            return false;
-        }
+                Objects.equals(hadith.arabic, this.arabic);
     }
 
 }
