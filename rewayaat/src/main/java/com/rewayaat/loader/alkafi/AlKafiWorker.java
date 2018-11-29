@@ -6,33 +6,21 @@ import com.google.common.io.Files;
 import com.rewayaat.config.ClientProvider;
 import com.rewayaat.core.data.HadithObject;
 import com.rewayaat.loader.ArabicNormalizer;
-import org.apache.commons.io.IOUtils;
+import com.rewayaat.loader.LoaderUtil;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.elasticsearch.client.transport.NoNodeAvailableException;
-import org.json.JSONObject;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -116,10 +104,10 @@ public class AlKafiWorker extends Thread {
                     e.printStackTrace();
                 }
 
-                String ocrText = sendOCRAPIPost(getLatestFilefromDir(myTempDir.getAbsolutePath()));
+                String ocrText = LoaderUtil.sendOCRAPIPost(LoaderUtil.getLatestFilefromDir(myTempDir.getAbsolutePath()));
                 List<String> arabicChunks = splitOCRTextIntoArabicChunks(ocrText, i);
 
-                File fileToDelete = getLatestFilefromDir(myTempDir.getAbsolutePath());
+                File fileToDelete = LoaderUtil.getLatestFilefromDir(myTempDir.getAbsolutePath());
                 fileToDelete.delete();
 
                 // get rid of the following suffixes
@@ -160,7 +148,7 @@ public class AlKafiWorker extends Thread {
                             String arabicText = getPreceedingArabicText(lines, j);
                             if (!arabicText.trim().isEmpty() && !(new ArabicNormalizer(arabicText).getOutput()
                                     .length() > (section.length() * 3))) {
-                                arabicText = combineArabicStrings(matchingArabicText(arabicText, arabicChunks),
+                                arabicText = LoaderUtil.combineArabicStrings(matchingArabicText(arabicText, arabicChunks),
                                         arabicText);
                                 section += " / " + arabicText;
                             }
@@ -174,7 +162,7 @@ public class AlKafiWorker extends Thread {
 
                         int y = j;
                         chapter = "";
-                        while (!isProbablyArabic(lines[y]) && !lines[y].matches("[\\s\\xA0]*")) {
+                        while (!LoaderUtil.isProbablyArabic(lines[y]) && !lines[y].matches("[\\s\\xA0]*")) {
                             chapter += lines[y].trim() + " ";
                             chapter = cleanUpTheLine(chapter);
                             y++;
@@ -188,7 +176,7 @@ public class AlKafiWorker extends Thread {
                             String arabicText = getPreceedingArabicText(lines, j);
                             if (!arabicText.trim().isEmpty() && !(new ArabicNormalizer(arabicText).getOutput()
                                     .length() > (chapter.length() * 3))) {
-                                arabicText = combineArabicStrings(matchingArabicText(arabicText, arabicChunks),
+                                arabicText = LoaderUtil.combineArabicStrings(matchingArabicText(arabicText, arabicChunks),
                                         arabicText);
                                 chapter += " / " + arabicText;
                             }
@@ -206,7 +194,7 @@ public class AlKafiWorker extends Thread {
                             || line.matches("[\\s\\xA0]*")) {
                         continue;
 
-                    } else if (!isProbablyArabic(line)) {
+                    } else if (!LoaderUtil.isProbablyArabic(line)) {
                         // start entering hadith only if we have a valid
                         // volume,
                         // chapter, section
@@ -223,10 +211,10 @@ public class AlKafiWorker extends Thread {
                                 currentHadith.insertEnglishText(line.trim() + " ");
                             }
                         }
-                    } else if (isProbablyArabic(line)) {
+                    } else if (LoaderUtil.isProbablyArabic(line)) {
                         int s = j;
                         String arabicText = "";
-                        while (s <= lines.length - 1 && isProbablyArabic(lines[s])) {
+                        while (s <= lines.length - 1 && LoaderUtil.isProbablyArabic(lines[s])) {
                             arabicText += lines[s].trim() + " ";
                             s++;
                         }
@@ -236,7 +224,7 @@ public class AlKafiWorker extends Thread {
                         // the
                         // correct replacement chunk
                         String matchingArabicText = matchingArabicText(arabicText, arabicChunks);
-                        currentHadith.insertArabicText(combineArabicStrings(matchingArabicText, arabicText));
+                        currentHadith.insertArabicText(LoaderUtil.combineArabicStrings(matchingArabicText, arabicText));
                     }
                 }
             } catch (NoNodeAvailableException e) {
@@ -265,10 +253,10 @@ public class AlKafiWorker extends Thread {
         boolean foundArabic = false;
         boolean done = false;
         for (int f = boundaryLine - 1; f > 0 && !done && f > boundaryLine - 5; f--) {
-            if (isProbablyArabic(lines[f])) {
+            if (LoaderUtil.isProbablyArabic(lines[f])) {
                 foundArabic = true;
                 preceedingArabicText += lines[f].trim() + " ";
-            } else if (foundArabic && !isProbablyArabic(lines[f])) {
+            } else if (foundArabic && !LoaderUtil.isProbablyArabic(lines[f])) {
                 done = true;
             }
         }
@@ -311,41 +299,12 @@ public class AlKafiWorker extends Thread {
         return currArabicChunkLeaderStr;
     }
 
-    private String combineArabicStrings(String normalizedArabic, String diacraticArabic) {
-
-        Set<String> diacraticWords = new HashSet<String>(Arrays.asList(diacraticArabic.split("[\\s\\xA0]")));
-        for (String dicraticWord : diacraticWords) {
-            String normalizedDiacraticWord = new ArabicNormalizer(dicraticWord).getOutput();
-            if (normalizedArabic.contains(normalizedDiacraticWord) && !normalizedDiacraticWord.isEmpty()
-                    && normalizedDiacraticWord.length() >= 3) {
-                normalizedArabic = normalizedArabic.replaceAll(Pattern.quote(normalizedDiacraticWord), dicraticWord);
-            }
-        }
-        return normalizedArabic;
-    }
-
-    private File getLatestFilefromDir(String dirPath) {
-        File dir = new File(dirPath);
-        File[] files = dir.listFiles();
-        if (files == null || files.length == 0) {
-            return null;
-        }
-
-        File lastModifiedFile = files[0];
-        for (int i = 1; i < files.length; i++) {
-            if (lastModifiedFile.lastModified() < files[i].lastModified()) {
-                lastModifiedFile = files[i];
-            }
-        }
-        return lastModifiedFile;
-    }
-
     private List<String> splitOCRTextIntoArabicChunks(String ocrText, int page) {
         List<String> arabicChunks = new ArrayList<String>();
         arabicChunks.add("");
         String[] lines = ocrText.split("\n");
         for (String line : lines) {
-            if (isProbablyArabic(line)) {
+            if (LoaderUtil.isProbablyArabic(line)) {
                 arabicChunks.set(arabicChunks.size() - 1, (arabicChunks.get(arabicChunks.size() - 1) + " "
                         + StringUtils.reverseDelimited(line, ' ').trim()));
             } else {
@@ -361,32 +320,11 @@ public class AlKafiWorker extends Thread {
         return arabicChunks;
     }
 
-    public void saveHadith() throws JsonProcessingException, UnknownHostException {
+    public void saveHadith() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         byte[] json = mapper.writeValueAsBytes(currentHadith);
         ClientProvider.instance().getClient().prepareIndex(ClientProvider.INDEX, ClientProvider.TYPE).setSource(json)
                 .get();
-    }
-
-    private String sendOCRAPIPost(File file) throws Exception {
-
-        HttpPost httppost = new HttpPost("http://apipro3.ocr.space/parse/image");
-
-        byte[] imageBytes = IOUtils.toByteArray(new FileInputStream(file));
-        String encodedfile = new String(org.apache.commons.codec.binary.Base64.encodeBase64(imageBytes), "UTF-8");
-
-        HttpEntity entity = MultipartEntityBuilder.create().setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
-                .addTextBody("base64image", "data:image/png;base64," + encodedfile)
-                .addTextBody("apikey", "PKMXB3676888A").addTextBody("isOverlayRequired", "false")
-                .addTextBody("language", "ara").build();
-
-        httppost.setEntity(entity);
-        HttpClient httpClient = HttpClientBuilder.create().build();
-        org.apache.http.HttpResponse response = httpClient.execute(httppost);
-
-        String json_string = EntityUtils.toString(response.getEntity());
-        return new JSONObject(json_string).getJSONArray("ParsedResults").getJSONObject(0).getString("ParsedText");
-
     }
 
     public void setupNewHadithObj() {
@@ -429,24 +367,4 @@ public class AlKafiWorker extends Thread {
         }
         return newStr;
     }
-
-    /**
-     * Returns true if there more than half of the characters in the given
-     * string are arabic letters.
-     */
-    public boolean isProbablyArabic(String s) {
-        if (s.matches("[\\s\\xA0]*")) {
-            return false;
-        }
-        int sLen = s.length();
-        int hits = 0;
-        for (int i = 0; i < s.length();) {
-            int c = s.codePointAt(i);
-            if (c >= 0x0600 && c <= 0x06E0)
-                hits++;
-            i += Character.charCount(c);
-        }
-        return (sLen / 2) <= hits;
-    }
-
 }

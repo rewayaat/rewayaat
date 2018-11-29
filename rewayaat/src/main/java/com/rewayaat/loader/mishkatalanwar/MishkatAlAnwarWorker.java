@@ -5,34 +5,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Files;
 import com.rewayaat.config.ClientProvider;
 import com.rewayaat.core.data.HadithObject;
-import com.rewayaat.loader.ArabicNormalizer;
+import com.rewayaat.loader.LoaderUtil;
 import com.rewayaat.loader.WordToNumber;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.elasticsearch.client.transport.NoNodeAvailableException;
-import org.json.JSONObject;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -102,7 +89,7 @@ public class MishkatAlAnwarWorker extends Thread {
                 for (int j = 0; j < lines.length; j++) {
                     String line = lines[j];
                     System.out.println(line);
-                    if (!isProbablyArabic(line) && !line.contains("األنوار في")) {
+                    if (!LoaderUtil.isProbablyArabic(line) && !line.contains("األنوار في")) {
 
                         if (line.contains("PDF created with")
                                 || line.trim()
@@ -157,15 +144,15 @@ public class MishkatAlAnwarWorker extends Thread {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    String ocrText = sendOCRAPIPost(getLatestFilefromDir(myTempDir.getAbsolutePath()));
+                    String ocrText = LoaderUtil.sendOCRAPIPost(LoaderUtil.getLatestFilefromDir(myTempDir.getAbsolutePath()));
                     String[] ocrLines = ocrText.split("\r\n");
 
                     for (int j = 0; j < ocrLines.length; j++) {
                         String ocrLine = ocrLines[j];
                         System.out.println(ocrLine);
-                        String matchingArabicText = matchingArabicText(ocrLine, new ArrayList(Arrays.asList(lines)));
-                        String finalArabicString = combineArabicStrings(ocrLine, matchingArabicText);
-                        if (isProbablyArabic(ocrLine)) {
+                        String matchingArabicText = LoaderUtil.matchingArabicText(ocrLine, new ArrayList(Arrays.asList(lines)));
+                        String finalArabicString = LoaderUtil.combineArabicStrings(ocrLine, matchingArabicText);
+                        if (LoaderUtil.isProbablyArabic(ocrLine)) {
                             ocrLine = cleanupArabicNumber(ocrLine);
                             if (ocrLine.contains("PDF created with") || ocrLine.contains("ععـتعلعقللفعلا")
                                     || ocrLine.trim().isEmpty() || ocrLine.trim().contains("مشكاة الأنوار في")
@@ -225,7 +212,7 @@ public class MishkatAlAnwarWorker extends Thread {
                             }
                         }
                     }
-                    File fileToDelete = getLatestFilefromDir(myTempDir.getAbsolutePath());
+                    File fileToDelete = LoaderUtil.getLatestFilefromDir(myTempDir.getAbsolutePath());
                     fileToDelete.delete();
                 }
 
@@ -243,72 +230,7 @@ public class MishkatAlAnwarWorker extends Thread {
 
     }
 
-    private String matchingArabicText(String normalizedString, List<String> arabicChunks) {
-
-        // figures out matching Arabic text by using String length and word
-        // similarity
-        String currArabicChunkLeaderStr = "";
-        int currArabicChunkLeaderScore = -1;
-
-        for (String candidateArabicChunk : arabicChunks) {
-
-            if (candidateArabicChunk.matches("[\\s\\xA0]*")) {
-                continue;
-            }
-
-            int normalizedStringLenWithNoSpaces = normalizedString.replaceAll("[\\s\\xA0]", "").length();
-
-            String normalizedArabicChunk = new ArabicNormalizer(candidateArabicChunk).getOutput();
-            int normalizedArabicChunkLenWithNoSpaces = normalizedArabicChunk.replaceAll("[\\s\\xA0]", "").length();
-            int score = Math.abs(normalizedStringLenWithNoSpaces - normalizedArabicChunkLenWithNoSpaces);
-            String[] normalizedWords = normalizedString.split("[\\s\\xA0]");
-            String candidateArabicChunkCopy = normalizedArabicChunk;
-            for (String normalizedWord : normalizedWords) {
-                candidateArabicChunkCopy = candidateArabicChunkCopy.replace(normalizedWord, "");
-            }
-            // if the two strings are similar, we would expect that the
-            // final normalizedArabicString is very small.
-            score += candidateArabicChunkCopy.replaceAll("[\\s\\xA0].[\\s\\xA0]", "").replaceAll("[\\s\\xA0]", "")
-                    .length();
-
-            if (currArabicChunkLeaderScore == -1 || score < currArabicChunkLeaderScore) {
-                currArabicChunkLeaderScore = score;
-                currArabicChunkLeaderStr = candidateArabicChunk;
-            }
-        }
-        return currArabicChunkLeaderStr;
-    }
-
-    private String combineArabicStrings(String normalizedArabic, String diacraticArabic) {
-
-        Set<String> diacraticWords = new HashSet<String>(Arrays.asList(diacraticArabic.split("[\\s\\xA0]")));
-        for (String dicraticWord : diacraticWords) {
-            String normalizedDiacraticWord = new ArabicNormalizer(dicraticWord).getOutput();
-            if (normalizedArabic.contains(normalizedDiacraticWord) && !normalizedDiacraticWord.isEmpty()
-                    && normalizedDiacraticWord.length() >= 3) {
-                normalizedArabic = normalizedArabic.replaceAll(Pattern.quote(normalizedDiacraticWord), dicraticWord);
-            }
-        }
-        return normalizedArabic;
-    }
-
-    private File getLatestFilefromDir(String dirPath) {
-        File dir = new File(dirPath);
-        File[] files = dir.listFiles();
-        if (files == null || files.length == 0) {
-            return null;
-        }
-
-        File lastModifiedFile = files[0];
-        for (int i = 1; i < files.length; i++) {
-            if (lastModifiedFile.lastModified() < files[i].lastModified()) {
-                lastModifiedFile = files[i];
-            }
-        }
-        return lastModifiedFile;
-    }
-
-    public void saveHadith(PrintWriter writer, int newNumber) throws JsonProcessingException, UnknownHostException {
+    public void saveHadith(PrintWriter writer, int newNumber) throws JsonProcessingException {
 
         ObjectMapper mapper = new ObjectMapper();
         HadithObject completedHadith = completeOldestHadith();
@@ -342,26 +264,6 @@ public class MishkatAlAnwarWorker extends Thread {
         }
     }
 
-    private String sendOCRAPIPost(File file) throws Exception {
-
-        HttpPost httppost = new HttpPost("http://apipro3.ocr.space/parse/image");
-
-        byte[] imageBytes = IOUtils.toByteArray(new FileInputStream(file));
-        String encodedfile = new String(org.apache.commons.codec.binary.Base64.encodeBase64(imageBytes), "UTF-8");
-
-        HttpEntity entity = MultipartEntityBuilder.create().setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
-                .addTextBody("base64image", "data:image/png;base64," + encodedfile)
-                .addTextBody("apikey", "PKMXB3676888A").addTextBody("isOverlayRequired", "false")
-                .addTextBody("language", "ara").build();
-
-        httppost.setEntity(entity);
-        HttpClient httpClient = HttpClientBuilder.create().build();
-        org.apache.http.HttpResponse response = httpClient.execute(httppost);
-
-        String json_string = EntityUtils.toString(response.getEntity());
-        return new JSONObject(json_string).getJSONArray("ParsedResults").getJSONObject(0).getString("ParsedText");
-
-    }
 
     public void setupNewHadithObj() {
         HadithObject currentHadith = new HadithObject();
@@ -388,25 +290,6 @@ public class MishkatAlAnwarWorker extends Thread {
         return line.replaceAll("`’", "");
     }
 
-    /**
-     * Returns true if there more than half of the characters in the given
-     * string are arabic letters.
-     */
-    public boolean isProbablyArabic(String s) {
-        if (s.matches("[\\s\\xA0]*")) {
-            return false;
-        }
-        int sLen = s.length();
-        int hits = 0;
-        for (int i = 0; i < s.length(); ) {
-            int c = s.codePointAt(i);
-            if (c >= 0x0600 && c <= 0x06E0)
-                hits++;
-            i += Character.charCount(c);
-        }
-        return (sLen / 2) <= hits;
-    }
-
     private HadithObject getOldestHadith() {
         return hadithObjects.get(0);
     }
@@ -423,5 +306,4 @@ public class MishkatAlAnwarWorker extends Thread {
         hadith.setEnglish(cleanUpTheLine(hadith.getEnglish()));
         return hadith;
     }
-
 }

@@ -179,12 +179,13 @@ function setupVue(query, page) {
 				+ '	class="fa fa-medium hadithDetailsIcon" aria-hidden="true"></i>'
 				+ '<p class="hadithDetailsTitle" v-html="narration.publisher" />'
 				+ '</div>'
-				+ '<span v-on:click="showHadithInfo(gradingobj)" style="padding:10px;    max-width: 150px; text-align:center; width: 80%; margin-right:25px; cursor:pointer; margin-top:15px;" title="Click for more info" uk-tooltip="pos: right" class="uk-align-left" '
-				+ 'v-for="gradingobj in narration.gradings"'
-				+ 'v-bind:class="gradeLabelClass(gradingobj.grading)"> <i'
-				+ ' v-bind:class="gradeLabelIcon(gradingobj.grading)" '
-				+ 'aria-hidden="true"></i> {{gradingobj.grading}}'
-				+ '</span></div>',
+				//+ '<span v-on:click="showHadithInfo(gradingobj)" style="padding:10px;    max-width: 150px; text-align:center; width: 80%; margin-right:25px; cursor:pointer; margin-top:15px;" title="Click for more info" uk-tooltip="pos: right" class="uk-align-left" '
+				//+ 'v-for="gradingobj in narration.gradings"'
+				//+ 'v-bind:class="gradeLabelClass(gradingobj.grading)"> <i'
+				//+ ' v-bind:class="gradeLabelIcon(gradingobj.grading)" '
+				//+ 'aria-hidden="true"></i> {{gradingobj.grading}}'
+				//+ '</span>
+				+ '</div>',
 			props: ['narration'],
 			methods: {
 				showHadithInfo: function (gradingobj) {

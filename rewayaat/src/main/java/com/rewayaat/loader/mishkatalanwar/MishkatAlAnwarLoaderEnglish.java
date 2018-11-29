@@ -2,7 +2,7 @@ package com.rewayaat.loader.mishkatalanwar;
 
 public class MishkatAlAnwarLoaderEnglish {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
 
         MishkatAlAnwarWorker t11 = new MishkatAlAnwarWorker(32, 170);
         t11.start();
