@@ -1372,7 +1372,7 @@ select.uk-form-width-xsmall {
 .uk-button-default {
          color: black;
          background-color: rgba(255, 255, 255, 0.89);
-         border: 1px solid black;
+         border: 1px solid #00000075;
 }
 
 .uk-button-default:hover, .uk-button-default:focus {
@@ -1381,8 +1381,8 @@ select.uk-form-width-xsmall {
 }
 
 .uk-button-default:active, .uk-button-default.uk-active {
-    background-color: transparent;
-    color: #222;
+    background-color: #383737;
+    color: #fff;
     border: 1px solid #000000;
     border-color: #999;
     border-width: 2p1;
