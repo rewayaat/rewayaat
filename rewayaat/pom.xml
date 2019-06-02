@@ -15,11 +15,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-<<<<<<< HEAD
 		<version>1.5.3.RELEASE</version>
-=======
-		<version>1.5.1.RELEASE</version>
->>>>>>> c858816f79227837fd39ba664a1c576aa395c511
 	</parent>
 	<dependencies>
 		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
@@ -31,7 +27,7 @@
 		<dependency>
 			<groupId>io.springfox</groupId>
 			<artifactId>springfox-swagger-ui</artifactId>
-			<version>2.4.0</version>
+			<version>2.7.0</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.google.api-client/google-api-client -->
 		<dependency>
@@ -45,12 +41,7 @@
 			<artifactId>json</artifactId>
 			<version>20160810</version>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-cache</artifactId>
-		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.ibm.icu/icu4j -->
-
 		<dependency>
 			<groupId>info.debatty</groupId>
 			<artifactId>java-string-similarity</artifactId>
@@ -136,7 +127,6 @@
 			<artifactId>jna</artifactId>
 			<scope>runtime</scope>
 		</dependency>
-<<<<<<< HEAD
 		<!-- https://mvnrepository.com/artifact/log4j/log4j -->
 		<dependency>
 			<groupId>log4j</groupId>
@@ -144,20 +134,6 @@
 			<version>1.2.17</version>
 		</dependency>
 
-		<dependency>
-			<groupId>net.sf.ehcache</groupId>
-			<artifactId>ehcache</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-cache</artifactId>
-=======
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-api</artifactId>
-			<version>2.7</version>
->>>>>>> c858816f79227837fd39ba664a1c576aa395c511
-		</dependency>
 		<dependency>
 			<groupId>net.sf.ehcache</groupId>
 			<artifactId>ehcache</artifactId>
@@ -188,26 +164,11 @@
 			<artifactId>jsch</artifactId>
 			<version>0.1.54</version>
 		</dependency>
-
-		<dependency>
-			<groupId>io.springfox</groupId>
-			<artifactId>springfox-swagger2</artifactId>
-			<version>2.4.0</version>
-		</dependency>
         <dependency>
             <groupId>com.mashape.unirest</groupId>
             <artifactId>unirest-java</artifactId>
             <version>1.4.9</version>
         </dependency>
-<<<<<<< HEAD
-=======
-		<dependency>
-			<groupId>io.sentry</groupId>
-			<artifactId>sentry</artifactId>
-			<version>1.6.8</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/commons-lang/commons-lang -->
->>>>>>> c858816f79227837fd39ba664a1c576aa395c511
 		<dependency>
 			<groupId>io.sentry</groupId>
 			<artifactId>sentry</artifactId>
@@ -228,11 +189,6 @@
 			<artifactId>springfox-swagger2</artifactId>
 			<version>2.7.0</version>
 		</dependency>
-		<dependency>
-			<groupId>io.springfox</groupId>
-			<artifactId>springfox-swagger-ui</artifactId>
-			<version>2.7.0</version>
-		</dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
@@ -243,31 +199,6 @@
 			<artifactId>spring-webmvc</artifactId>
 			<version>4.3.7.RELEASE</version>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-webmvc</artifactId>
-			<version>4.3.7.RELEASE</version>
-		</dependency>
-		<dependency>
-			<groupId>org.jsoup</groupId>
-			<artifactId>jsoup</artifactId>
-			<version>1.10.2</version>
-		</dependency>
-		<dependency>
-			<groupId>io.springfox</groupId>
-			<artifactId>springfox-swagger2</artifactId>
-			<version>2.7.0</version>
-		</dependency>
-		<dependency>
-			<groupId>io.springfox</groupId>
-			<artifactId>springfox-swagger-ui</artifactId>
-			<version>2.7.0</version>
-		</dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-            <version>4.3.7.RELEASE</version>
-        </dependency>
     </dependencies>
 	<build>
 		<plugins>
@@ -287,22 +218,14 @@
 							<charset>UTF-8</charset>
 							<skipMerge>true</skipMerge>
 							<nosuffix>true</nosuffix>
-<<<<<<< HEAD
 							<cssSourceDir>static/css</cssSourceDir>
-=======
-							<cssSourceDir>static</cssSourceDir>
->>>>>>> c858816f79227837fd39ba664a1c576aa395c511
 							<cssSourceIncludes>
 								<cssSourceInclude>**.css</cssSourceInclude>
 							</cssSourceIncludes>
 							<cssSourceExcludes>
 								<cssSourceExclude>**.min.css</cssSourceExclude>
 							</cssSourceExcludes>
-<<<<<<< HEAD
 							<jsSourceDir>static/js</jsSourceDir>
-=======
-							<jsSourceDir>static</jsSourceDir>
->>>>>>> c858816f79227837fd39ba664a1c576aa395c511
 							<jsSourceIncludes>
 								<jsSourceInclude>**.js</jsSourceInclude>
 							</jsSourceIncludes>

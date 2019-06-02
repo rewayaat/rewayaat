@@ -9,7 +9,6 @@
     <meta name="google-signin-client_id"
           content="776365081062-5fc66doo0k5jpg4nfnimkag81e02sb81.apps.googleusercontent.com"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
-<<<<<<< HEAD
     <link th:href="@{/css/select2.css}" href="/css/select2.css" rel="stylesheet"/>
     <link rel="stylesheet" th:href="@{/css/theme.css}" href="/css/theme.css"/>
     <link rel="stylesheet" th:href="@{/css/jquery.jscrollpane.css}" href="/css/jquery.jscrollpane.css"/>
@@ -21,37 +20,6 @@
     <link rel="stylesheet" type="text/css"
           href="https://cdn.rawgit.com/vaakash/socializer/a4c672bf/css/socializer.min.css"/>
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
-=======
-    <link rel="stylesheet" th:href="@{/theme.css}" href="/theme.css"/>
-    <link rel="stylesheet" th:href="@{/jquery.jscrollpane.css}" href="/jquery.jscrollpane.css"/>
-    <link rel="stylesheet" th:href="@{/sweetalert.css}" href="/sweetalert.css"/>
-    <link rel="stylesheet" th:href="@{/jsoneditor.min.css}" href="/jsoneditor.min.css"/>
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet"/>
-    <link th:href="@{/pace.css}" href="/pace.css" rel="stylesheet"/>
-    <link rel="stylesheet" type="text/css"
-          href="https://cdn.rawgit.com/vaakash/socializer/a4c672bf/css/socializer.min.css"/>
-    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.5.16/clipboard.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.6/marked.min.js"></script>
-
-    <link href="https://fonts.googleapis.com/css?family=Chivo" rel="stylesheet"/>
-
-    <script th:src="@{/vue.js}" src="/vue.js"></script>
-    <script th:src="@{/rewayaat.js}" src="/rewayaat.js"></script>
-    <script th:src="@{/pace.min.js}" src="/pace.min.js"></script>
-    <script th:src="@{/uikit.min.js}" src="/uikit.min.js"></script>
-    <script th:src="@{/sweetalert-dev.js}" src="/sweetalert-dev.js"></script>
-    <script th:src="@{/uikit-icons.js}" src="/uikit-icons.js"></script>
-    <script th:src="@{/mwheelIntent.js}" src="/mwheelIntent.js"></script>
-    <script th:src="@{/jquery.mousewheel.js}" src="/jquery.mousewheel.js"></script>
-    <script th:src="@{/jquery.jscrollpane.js}" src="/jquery.jscrollpane.js"></script>
-    <script th:src="@{/jsoneditor.min.js}" src="/jsoneditor.min.js"></script>
-    <script src="https://apis.google.com/js/platform.js" async="async"></script>
-    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.4/lodash.min.js"></script>
-    <!-- Place this tag in your head or just before your close body tag. -->
-    <script src="https://buttons.github.io/buttons.js"></script>
->>>>>>> c858816f79227837fd39ba664a1c576aa395c511
 </head>
 
 <body>
@@ -74,33 +42,15 @@
                         </a>
                     </li>
                 </ul>
-<<<<<<< HEAD
 
-=======
-                <div id="queryBar" style=" opacity:0;   margin-top: 19px;">
-                    <div class="input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-                         style="padding-top: 8px;  display:inline-block;
-    border-radius: 5px; caret-color:black;  color: black; width:30vw;" id="queryBarText" contentEditable="true"
-                         data-text="Enter Query Here.."></div>
-                    <div onclick="submitSearchQuery()" class="uk-navbar-item uk-visible@s"
-                         style="display:inline-block;  margin-left: 10px;">
-                        <a style="
-    margin-bottom: -15px;     margin-left: 10px;
-    border-width: 1px; border-radius: 3px;" class="uk-button uk-button-default tm-button-default uk-icon">Search</a>
-                    </div>
-                </div>
->>>>>>> c858816f79227837fd39ba664a1c576aa395c511
                 <a uk-navbar-toggle-icon="" uk-toggle=""
                    class="uk-navbar-toggle uk-navbar-toggle-icon uk-icon"></a>
 
                 <div class="uk-navbar-right">
                     <ul class="uk-navbar-nav">
                         <li id="signInBtnLi">
-<<<<<<< HEAD
                             <div style="margin-top: 10px; margin-right:20px;" data-theme="dark"
-=======
-                            <div style="margin-top: -10px; margin-right:5px;" data-theme="light" data-width="36"
->>>>>>> c858816f79227837fd39ba664a1c576aa395c511
+
                                  data-longtitle="false"
                                  class="g-signin2" data-text="Sign In" data-onsuccess="onSignIn">Sign In
                             </div>
@@ -133,7 +83,6 @@
             class="text">Github</span></a></span></div>
 </div>
 <!--  VUE APP  -->
-<<<<<<< HEAD
 <div id="parentContainer" class="uk-container-large uk-align-center" style="margin-top: 0px;">
     <div id="queryBar"
          style="padding-bottom: 40px;  border-bottom: 1px solid #80808052; display: none; width: 80%; max-width: 1200px; min-width: 400px; margin-left: auto; margin-right: auto;">
@@ -160,16 +109,6 @@
                    v-for="(significantTerm, index) in significantTerms" v-html="significantTerm">
                 </a>
             </p>
-=======
-
-<div id="parentContainer" class="uk-container-large uk-align-center" style="margin-top: 0px;">
-    <div id="hadithView" class="uk-grid">
-        <div>
-            <h2 v-if="totalHits"
-                style="font-weight: normal; margin-left: -30px; margin-top: 20px; margin-bottom: -20px;">
-            <b v-html="totalHits"/> results found.
-        </h2>
->>>>>>> c858816f79227837fd39ba664a1c576aa395c511
             <pagination/>
         </div>
         <div class="uk-card uk-align-center uk-card  uk-width-1-1 "
@@ -236,25 +175,7 @@
                                     </div>
                                 </div>
                             </a>
-<<<<<<< HEAD
-=======
 
-                            <!-- Sharingbutton Google+ -->
-                            <a class="resp-sharing-button__link uk-align-right" v-bind:href="narration.googleplus"
-                               target="_blank" aria-label="">
-                                <div title="Share hadith on  Google+"
-                                     class="resp-sharing-button resp-sharing-button--google resp-sharing-button--small">
-                                    <div aria-hidden="true"
-                                         class="resp-sharing-button__icon resp-sharing-button__icon--solid">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                                            <path d="M11.37 12.93c-.73-.52-1.4-1.27-1.4-1.5 0-.43.03-.63.98-1.37 1.23-.97 1.9-2.23 1.9-3.57 0-1.22-.36-2.3-1-3.05h.5c.1 0 .2-.04.28-.1l1.36-.98c.16-.12.23-.34.17-.54-.07-.2-.25-.33-.46-.33H7.6c-.66 0-1.34.12-2 .35-2.23.76-3.78 2.66-3.78 4.6 0 2.76 2.13 4.85 5 4.9-.07.23-.1.45-.1.66 0 .43.1.83.33 1.22h-.08c-2.72 0-5.17 1.34-6.1 3.32-.25.52-.37 1.04-.37 1.56 0 .5.13.98.38 1.44.6 1.04 1.84 1.86 3.55 2.28.87.23 1.82.34 2.8.34.88 0 1.7-.1 2.5-.34 2.4-.7 3.97-2.48 3.97-4.54 0-1.97-.63-3.15-2.33-4.35zm-7.7 4.5c0-1.42 1.8-2.68 3.9-2.68h.05c.45 0 .9.07 1.3.2l.42.28c.96.66 1.6 1.1 1.77 1.8.05.16.07.33.07.5 0 1.8-1.33 2.7-3.96 2.7-1.98 0-3.54-1.23-3.54-2.8zM5.54 3.9c.33-.38.75-.58 1.23-.58h.05c1.35.05 2.64 1.55 2.88 3.35.14 1.02-.08 1.97-.6 2.55-.32.37-.74.56-1.23.56h-.03c-1.32-.04-2.63-1.6-2.87-3.4-.13-1 .08-1.92.58-2.5zM23.5 9.5h-3v-3h-2v3h-3v2h3v3h2v-3h3"
-                                            />
-                                        </svg>
-                                    </div>
-                                </div>
-                            </a>
-
->>>>>>> c858816f79227837fd39ba664a1c576aa395c511
                             <!-- Sharingbutton Tumblr -->
                             <a class="resp-sharing-button__link uk-align-right" v-bind:href="narration.tumblr"
                                target="_blank" aria-label="">
@@ -300,56 +221,33 @@
 
 
                         <div uk-switcher="animation: uk-animation-fade">
-<<<<<<< HEAD
                             <button style="font-size: 14px; font-family: Open Sans; padding: 0px 30px;     margin: 15px 15px 0px 0px;"
-=======
-                            <button style="font-size: 12px; padding: 0px 30px;     margin: 15px 15px 0px 0px;"
->>>>>>> c858816f79227837fd39ba664a1c576aa395c511
+
                                     type="button" v-if="narration.arabic"
                                     class="uk-button uk-button-default">Arabic
                             </button>
                             <button type="button"
-<<<<<<< HEAD
                                     style="font-size: 14px; font-family: Open Sans; padding: 0px 30px;     margin: 15px 15px 0px 0px;"
-=======
-                                    style="font-size: 12px; padding: 0px 30px;     margin: 15px 15px 0px 0px;"
->>>>>>> c858816f79227837fd39ba664a1c576aa395c511
                                     v-if="narration.english"
                                     class="uk-button uk-active uk-button-default">English
                             </button>
                             <button type="button"
-<<<<<<< HEAD
                                     style="font-size: 14px; font-family: Open Sans; padding: 0px 30px;     margin: 15px 15px 0px 0px;"
-=======
-                                    style="font-size: 12px; padding: 0px 30px;     margin: 15px 15px 0px 0px;"
->>>>>>> c858816f79227837fd39ba664a1c576aa395c511
                                     v-if="narration.notes"
                                     class="uk-button uk-button-default">Notes
                             </button>
                             <button type="button"
-<<<<<<< HEAD
                                     style="font-size: 14px; font-family: Open Sans; padding: 0px 30px;     margin: 15px 15px 0px 0px;"
-=======
-                                    style="font-size: 12px; padding: 0px 30px;     margin: 15px 15px 0px 0px;"
->>>>>>> c858816f79227837fd39ba664a1c576aa395c511
                                     v-if="narration.related.length > 0"
                                     class="uk-button uk-button-default">Related
                             </button>
                             <button type="button"
-<<<<<<< HEAD
                                     style="font-size: 14px; font-family: Open Sans; padding: 0px 30px;     margin: 15px 15px 0px 0px;"
-=======
-                                    style="font-size: 12px; padding: 0px 30px;     margin: 15px 15px 0px 0px;"
->>>>>>> c858816f79227837fd39ba664a1c576aa395c511
                                     v-if="signedIn"
                                     class="uk-button uk-button-default">History
                             </button>
                         </div>
-<<<<<<< HEAD
                         <ul style="color: rgba(0, 0, 0, 0.35); box-shadow: rgb(198, 209, 218) 0px 0px 40px inset; border-style: solid; border-width: 1px; background:rgb(253, 253, 253);"
-=======
-                        <ul style="color: rgba(0, 0, 0, 0.35); box-shadow: rgba(202, 202, 202, 0.52) 0px 0px 40px inset; border-style: solid; border-width: 1px; background: #f7f7f7;"
->>>>>>> c858816f79227837fd39ba664a1c576aa395c511
                             class="uk-switcher uk-margin">
 
                             <li v-if="narration.arabic">
@@ -366,11 +264,7 @@
                                    v-bind:href="relatedObj.url">
                                     <div style="margin: 20px; padding: 20px;"
                                          class="uk-card uk-card-default uk-card-small uk-card uk-animation-slide-left-small relatedObj">
-<<<<<<< HEAD
                                         <h4 class="uk-text-uppercase" style="font-family: Chivo; font-weight: 600">
-=======
-                                        <h4 class="uk-text-uppercase" style="font-family: Lane; font-weight: 600">
->>>>>>> c858816f79227837fd39ba664a1c576aa395c511
                                             <i class="fa fa-external-link" aria-hidden="true"></i>
                                             <span style="color: #22df80;">{{relatedObj.title}}</span>
                                         </h4>
@@ -397,7 +291,6 @@
         <pagination style="margin-top: 35px;margin-bottom: 45px;margin-left: -10px;"/>
     </div>
 </div>
-<<<<<<< HEAD
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <script th:src="@{/js/vue.js}" src="/js/vue.js"></script>
 <script th:src="@{/js/rewayaat.js}" src="/js/rewayaat.js"></script>
@@ -413,8 +306,6 @@
 <script th:defer="defer" th:src="@{/js/jsoneditor.min.js}" src="/js/jsoneditor.min.js"></script>
 <script th:defer="defer" src="https://cdn.jsdelivr.net/npm/lodash@4.17.4/lodash.min.js"></script>
 <script th:defer="defer" src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.7/js/select2.min.js"></script>
-=======
->>>>>>> c858816f79227837fd39ba664a1c576aa395c511
 <!--  LOAD THE MENU BAR AT THE TOP -->
 <div id="welcome"></div>
 <div id="modal"></div>
@@ -440,20 +331,13 @@
         ga('create', 'UA-99916919-1', 'auto');
         ga('send', 'pageview');
 </script>
-<<<<<<< HEAD
 <script th:defer="defer" src="https://cdn.ravenjs.com/3.22.3/raven.min.js" crossorigin="anonymous"></script>
 <script th:defer="defer" src="https://cdn.lr-ingest.io/LogRocket.min.js" crossorigin="anonymous"></script>
 <script type="text/javascript">
 // <![CDATA[
 window.LogRocket && window.LogRocket.init('ctebns/rewyaat');
 // ]]>
-
 </script>
-<script></script>
-=======
-<script src="https://cdn.ravenjs.com/3.22.3/raven.min.js" crossorigin="anonymous"></script>
-<script src="https://cdn.logrocket.io/LogRocket.min.js" crossorigin="anonymous"></script>
->>>>>>> c858816f79227837fd39ba664a1c576aa395c511
 </body>
 
 </html>

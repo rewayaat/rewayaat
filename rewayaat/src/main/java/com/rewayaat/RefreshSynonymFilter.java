@@ -8,11 +8,7 @@ import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.rewayaat.config.ClientProvider;
 import org.apache.commons.io.FileUtils;
-<<<<<<< HEAD
 import org.apache.commons.lang3.RandomStringUtils;
-=======
-import org.apache.commons.lang.RandomStringUtils;
->>>>>>> c858816f79227837fd39ba664a1c576aa395c511
 import org.apache.log4j.Logger;
 import org.apache.log4j.spi.LoggerFactory;
 
@@ -62,11 +58,7 @@ public class RefreshSynonymFilter {
 
             if (!currIndexName.equals("")) {
                 log.info("Current index name is: " + currIndexName);
-<<<<<<< HEAD
                 // create backup of current index
-=======
-                // create backup of current index at /var/lib/docker/devicemapper/mnt/b43a07171255604a89772f76ed043b5a40dcb5331a84bcc9e410e48ee50ac747/rootfs/rewayaat_backup.json
->>>>>>> c858816f79227837fd39ba664a1c576aa395c511
                 Runtime rt = Runtime.getRuntime();
                 Process pr = rt.exec("elasticdump   --input=http://" + ClientProvider.host + ":9200/" + currIndexName + "   --output=/rewayaat_backup.json   --type=data");
                 pr.waitFor();

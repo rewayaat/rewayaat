@@ -56,11 +56,7 @@ public class HadithController {
 
     @CrossOrigin(origins = {"*"}, allowCredentials = "false")
     @ApiOperation(
-<<<<<<< HEAD
             value = "Returns a list of narrations matching the given query.",
-=======
-            value = "Queries the hadith database.",
->>>>>>> c858816f79227837fd39ba664a1c576aa395c511
             response = HadithObjectCollection.class
     )
     @ApiResponses(value = {

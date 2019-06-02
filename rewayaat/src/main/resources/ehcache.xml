@@ -9,8 +9,6 @@
            timeToLiveSeconds="86400" timeToIdleSeconds="0"
            memoryStoreEvictionPolicy="LFU" transactionalMode="off">
     </cache>
-<<<<<<< HEAD
-
     <cache name="topterms"
            maxElementsInMemory="1000" eternal="false"
            overflowToDisk="false"
@@ -24,6 +22,4 @@
            timeToLiveSeconds="86400" timeToIdleSeconds="0"
            memoryStoreEvictionPolicy="LFU" transactionalMode="off">
     </cache>
-=======
->>>>>>> c858816f79227837fd39ba664a1c576aa395c511
 </ehcache>
