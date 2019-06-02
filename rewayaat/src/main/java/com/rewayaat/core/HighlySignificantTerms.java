@@ -16,11 +16,14 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * A collection of highly significant terms based on a given set of input terms.
+ */
 public class HighlySignificantTerms {
 
     private final int size;
     private List<String> inputTerms;
-    private static final double minimumScore = 0.5;
+    private static final double MINIMUM_SCORE = 0.5;
 
     public HighlySignificantTerms(int size, String[] inputTerms) {
         this.size = size;
@@ -62,7 +65,7 @@ public class HighlySignificantTerms {
         Collections.sort(allBuckets, new SignifcantTermsBucketComparator());
         List<SignificantTerms.Bucket> firstSizeElementsList = allBuckets.stream().limit(this.size).collect(Collectors.toList());
         for (SignificantTerms.Bucket bucket : firstSizeElementsList) {
-            if (bucket.getSignificanceScore() < minimumScore) {
+            if (bucket.getSignificanceScore() < MINIMUM_SCORE) {
                 break;
             } else {
                 result.put(bucket.getKeyAsString());
@@ -71,15 +74,19 @@ public class HighlySignificantTerms {
         return result;
     }
 
+    /**
+     * Comparator for the Signifcant Terms Bucket.
+     */
     public class SignifcantTermsBucketComparator implements Comparator<SignificantTerms.Bucket> {
         @Override
         public int compare(SignificantTerms.Bucket o1, SignificantTerms.Bucket o2) {
-            if (o1.getSignificanceScore() == o2.getSignificanceScore())
+            if (o1.getSignificanceScore() == o2.getSignificanceScore()) {
                 return 0;
-            else if (o1.getSignificanceScore() < o2.getSignificanceScore())
+            } else if (o1.getSignificanceScore() < o2.getSignificanceScore()) {
                 return 1;
-            else
+            } else {
                 return -1;
+            }
         }
     }
 }

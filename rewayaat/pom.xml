@@ -239,14 +239,14 @@
 							<charset>UTF-8</charset>
 							<skipMerge>true</skipMerge>
 							<nosuffix>true</nosuffix>
-							<cssSourceDir>static</cssSourceDir>
+							<cssSourceDir>static/css</cssSourceDir>
 							<cssSourceIncludes>
 								<cssSourceInclude>**.css</cssSourceInclude>
 							</cssSourceIncludes>
 							<cssSourceExcludes>
 								<cssSourceExclude>**.min.css</cssSourceExclude>
 							</cssSourceExcludes>
-							<jsSourceDir>static</jsSourceDir>
+							<jsSourceDir>static/js</jsSourceDir>
 							<jsSourceIncludes>
 								<jsSourceInclude>**.js</jsSourceInclude>
 							</jsSourceIncludes>

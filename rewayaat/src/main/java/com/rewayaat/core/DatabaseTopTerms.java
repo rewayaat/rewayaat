@@ -8,6 +8,9 @@ import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.support.IncludeExclude;
 import org.json.JSONArray;
 
+/**
+ * Represents a collections of the most frequently used terms in the database.
+ */
 public class DatabaseTopTerms {
 
     private final String language;
