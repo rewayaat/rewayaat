@@ -20,6 +20,12 @@
     <link rel="stylesheet" type="text/css"
           href="https://cdn.rawgit.com/vaakash/socializer/a4c672bf/css/socializer.min.css"/>
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script th:src="@{/js/vue.js}" src="/js/vue.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.7/js/select2.min.js"></script>
+    <script src="https://cdn.ravenjs.com/3.22.3/raven.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.lr-ingest.io/LogRocket.min.js" crossorigin="anonymous"></script>
+    <script th:src="@{/js/rewayaat.js}" src="/js/rewayaat.js"></script>
 </head>
 
 <body>
@@ -291,10 +297,6 @@
         <pagination style="margin-top: 35px;margin-bottom: 45px;margin-left: -10px;"/>
     </div>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-<script th:src="@{/js/vue.js}" src="/js/vue.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.7/js/select2.min.js"></script>
-<script th:src="@{/js/rewayaat.js}" src="/js/rewayaat.js"></script>
 <script src="https://apis.google.com/js/platform.js"></script>
 <script th:async="async" th:src="@{/js/pace.min.js}" src="/js/pace.min.js"></script>
 <script th:async="async" th:src="@{/js/uikit.min.js}" src="/js/uikit.min.js"></script>
@@ -331,8 +333,6 @@
         ga('create', 'UA-99916919-1', 'auto');
         ga('send', 'pageview');
 </script>
-<script th:defer="defer" src="https://cdn.ravenjs.com/3.22.3/raven.min.js" crossorigin="anonymous"></script>
-<script th:defer="defer" src="https://cdn.lr-ingest.io/LogRocket.min.js" crossorigin="anonymous"></script>
 <script type="text/javascript">
 // <![CDATA[
 window.LogRocket && window.LogRocket.init('ctebns/rewyaat');
