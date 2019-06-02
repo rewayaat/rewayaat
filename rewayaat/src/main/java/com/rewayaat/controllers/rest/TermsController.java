@@ -68,7 +68,7 @@ public class TermsController {
 
     @CrossOrigin(origins = {"*"}, allowCredentials = "false")
     @ApiOperation(
-            value = "Returns a list of highly significant terms in the database.",
+            value = "Returns a list of highly significant terms in the database based on the given input terms.",
             response = List.class
     )
     @ApiResponses(value = {
