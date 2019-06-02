@@ -19,6 +19,7 @@ function loadQuery(query, page = 1) {
                 "error");
             displayWelcomeContent();
 
+
         }
     } else {
         // show default mark-down welcome page
@@ -44,14 +45,10 @@ $(document).ready(function() {
         data.extra.sessionURL = LogRocket.sessionURL;
         return data;
     });
-    // initialize select2
-    initSelect2();
-    // setup select2 select handler
-    select2SelectHandler();
 });
 
-function initSelect2() {
-    $('.search-control').select2({
+function initSelect2(select2_id) {
+    $('#' + select2_id).select2({
         tags: "true",
         dropdownAutoWidth: true,
         width: '100%',
@@ -86,8 +83,8 @@ function initSelect2() {
 }
 
 
-function select2SelectHandler() {
-    $(".search-control").on('select2:close', function(e) {
+function select2SelectHandler(select2_id) {
+    $('#' + select2_id).on('select2:close', function(e) {
         var select2SearchField = $(this).parent().find('.select2-search__field'),
             setfocus = setTimeout(function() {
                 select2SearchField.focus();
@@ -126,6 +123,13 @@ async function displayQuery(query) {
         selectSearchTerms.add(option);
     }
 
+    // initialize select2
+    initSelect2('searchTerms');
+    // setup select2 select handler
+    select2SelectHandler('searchTerms');
+
+    // display search bar
+    var queryBar = document.getElementById("queryBar");
     $(queryBar).css('display', 'block');
 }
 
@@ -167,7 +171,12 @@ function displayWelcomeContent() {
     vueApp = new Vue({
         el: '#hadithView'
     });
-    $("#welcome").load("/welcome.html");
+    $("#welcome").load("/welcome.html", function(responseData) {
+        // initialize select2
+        initSelect2('searchTerms2');
+        // setup select2 select handler
+        select2SelectHandler('searchTerms2');
+    });
 }
 
 function isCharacterKeyPress(evt) {
