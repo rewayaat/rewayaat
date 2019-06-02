@@ -5,7 +5,7 @@ import com.rewayaat.config.ClientProvider;
 import com.rewayaat.core.data.HadithObject;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.FileReader;
 import java.io.IOException;

@@ -7,7 +7,7 @@ import com.rewayaat.config.ClientProvider;
 import com.rewayaat.core.data.HadithObject;
 import com.rewayaat.loader.ArabicNormalizer;
 import com.rewayaat.loader.LoaderUtil;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
 import org.apache.pdfbox.text.PDFTextStripper;

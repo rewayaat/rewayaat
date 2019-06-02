@@ -46,21 +46,21 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
 
     @Override
     public HadithObjectCollection result() throws Exception {
-        List<HadithObject> hadithes = new ArrayList<HadithObject>();
 
+        List<HadithObject> hadithes = new ArrayList<HadithObject>();
         String fuzziedQuery = new RewayaatQuery(userQuery).query();
 
         HighlightBuilder highlightBuilder = new HighlightBuilder().field("english").field("all").field("notes").field("arabic")
                 .field("book").field("section").field("part").field("chapter").field("publisher").field("source")
                 .field("volume").postTags("</span>").preTags("<span class=\"highlight\">")
                 .highlightQuery(QueryBuilders.queryStringQuery(fuzziedQuery).useAllFields(true))
-                .highlightQuery(QueryBuilders.queryStringQuery(userQuery).useAllFields(true).analyzer("synonym"))
+                .highlightQuery(QueryBuilders.queryStringQuery(userQuery).useAllFields(true).analyzer("search_analyzer"))
                 .numOfFragments(0);
 
         SearchResponse resp = ClientProvider.instance().getClient().prepareSearch(ClientProvider.INDEX)
                 .setTypes(ClientProvider.TYPE).setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
                 .setQuery(QueryBuilders.boolQuery().should(QueryBuilders.queryStringQuery(fuzziedQuery))
-                        .should(QueryBuilders.queryStringQuery(userQuery).analyzer("synonym").boost(10)))
+                        .should(QueryBuilders.queryStringQuery(userQuery).analyzer("search_analyzer").boost(10)))
                 .highlighter(highlightBuilder).setFrom(page * this.pageSize).setSize(this.pageSize).setExplain(true)
                 .addSort("_score", SortOrder.DESC).execute().get();
 

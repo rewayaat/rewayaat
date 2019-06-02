@@ -3,7 +3,6 @@ package com.rewayaat.loader.kitab_al_tawheed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Files;
-import com.rewayaat.config.ClientProvider;
 import com.rewayaat.core.data.HadithObject;
 import com.rewayaat.loader.LoaderUtil;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -73,12 +72,10 @@ public class KitabAlTawheedWorker extends Thread {
                 reader.setStartPage(i);
                 reader.setEndPage(i);
                 String st = reader.getText(document);
-                boolean containsArabic = false;
                 String[] lines = st.split("\n");
                 for (int j = 0; j < lines.length; j++) {
                     String line = lines[j];
-                    System.out.println(line);
-                    if (!LoaderUtil.isProbablyArabic(line)) {
+                    if (!LoaderUtil.containsArabic(line)) {
                         if (!line.trim().isEmpty()) {
                             if (line.contains("Translator’s Note")
                                     || line.contains("Editor’s Note")
@@ -91,18 +88,36 @@ public class KitabAlTawheedWorker extends Thread {
                                     break;
                                 }
                             } else if (line.toUpperCase().trim().startsWith("CHAPTER")) {
-
-                                while (!lines[j + 1].toUpperCase().contains("CHAPTER") && !lines[j + 1].isEmpty()) {
+                                chapter = "";
+                                chapter += line.trim();
+                                while (!lines[j + 1].trim().isEmpty() && !LoaderUtil.containsArabic(lines[j + 1])) {
                                     chapter += " " + lines[j + 1].trim();
                                     j++;
                                 }
+                                if (chapter.contains(" - ")) {
+                                    chapter = chapter.substring(0, chapter.lastIndexOf(" - ")).trim();
+                                }
+                                if (chapter.contains(":")) {
+                                    String wordNumber = chapter.substring(0, chapter.indexOf(":")).toLowerCase().replaceAll("chapter", "").trim();
+                                    String chapterInteger = String.valueOf(LoaderUtil.convertWordToInteger(wordNumber));
+                                    chapter = "Chapter " + chapterInteger.trim() + " - " +
+                                            chapter.substring(chapter.indexOf(":") + 1).trim();
+                                }
+                                chapter = LoaderUtil.cleanupEnglishLine(chapter).trim();
+                                writer.println(chapter);
+                                writer.flush();
                             } else if (line.trim().matches("^[0-9]+\\..*$")) {
+                                if (!hadithObjects.isEmpty()) {
+                                    saveHadith();
+                                }
                                 setupNewHadithObj();
-                                getNewestHadith().setNumber(line.trim().substring(0, line.trim().indexOf("-")));
+                                getNewestHadith().setNumber(line.trim().substring(0, line.trim().indexOf(".")));
                                 getNewestHadith().insertEnglishText(
-                                        line.trim().substring(line.trim().indexOf("-") + 1).trim() + " ");
+                                        line.trim().substring(line.trim().indexOf(".") + 1).trim() + " ");
                             } else {
-                                getNewestHadith().insertEnglishText(line.trim() + " ");
+                                if (!hadithObjects.isEmpty()) {
+                                    getNewestHadith().insertEnglishText(line.trim() + " ");
+                                }
                             }
                         }
                     }
@@ -121,35 +136,22 @@ public class KitabAlTawheedWorker extends Thread {
 
     }
 
-    public void saveHadith(PrintWriter writer, int newNumber) throws JsonProcessingException {
+    public void saveHadith() throws JsonProcessingException {
 
         ObjectMapper mapper = new ObjectMapper();
         HadithObject completedHadith = completeOldestHadith();
-        while (Integer.parseInt(completedHadith.getNumber()) <= (newNumber - 1)) {
-            byte[] json = mapper.writeValueAsBytes(completedHadith);
-            boolean successful = false;
-            int tries = 0;
-            while (successful == false && tries < 8) {
-                try {
-                    if (completedHadith.getArabic() == null) {
-                        writer.println("HADITH NUMBER " + completedHadith.getNumber() + " HAD NO ARABIC TEXT!");
-                    }
-                    ClientProvider.instance().getClient().prepareIndex(ClientProvider.INDEX, ClientProvider.TYPE)
-                            .setSource(json).get();
-                } catch (NoNodeAvailableException e) {
-                    writer.println("No Node available Exception while processing current Hadith, will try AGAIN!:\n"
-                            + getOldestHadith().toString() + "\n");
-                    e.printStackTrace(writer);
-                    tries++;
-                    continue;
-                }
-                successful = true;
-                hadithObjects.remove(0);
+        completedHadith.setEnglish(LoaderUtil.cleanupEnglishLine(completedHadith.getEnglish()));
+        byte[] json = mapper.writeValueAsBytes(completedHadith);
+        boolean successful = false;
+        int tries = 0;
+        while (successful == false && tries < 8) {
+            try {
+                //ClientProvider.instance().getClient().prepareIndex(ClientProvider.INDEX, ClientProvider.TYPE)
+                //.setSource(json).get();
+            } catch (NoNodeAvailableException e) {
+                tries++;
+                continue;
             }
-            if (hadithObjects.isEmpty()) {
-                break;
-            }
-            completedHadith = completeOldestHadith();
         }
     }
 
@@ -162,27 +164,17 @@ public class KitabAlTawheedWorker extends Thread {
         hadithObjects.add(currentHadith);
     }
 
-    /**
-     * Cleans up the line for any know formatting issues.
-     */
-    public String cleanUpTheLine(String line) {
-        return line.replaceAll("`’", "");
-    }
-
     private HadithObject getOldestHadith() {
         return hadithObjects.get(0);
     }
 
     private HadithObject getNewestHadith() {
-        if (hadithObjects.size() < 1) {
-            System.out.println("");
-        }
         return hadithObjects.get(hadithObjects.size() - 1);
     }
 
     private HadithObject completeOldestHadith() {
         HadithObject hadith = hadithObjects.get(0);
-        hadith.setEnglish(cleanUpTheLine(hadith.getEnglish()));
+        hadith.setEnglish(LoaderUtil.cleanupEnglishLine(hadith.getEnglish()));
         return hadith;
     }
 
