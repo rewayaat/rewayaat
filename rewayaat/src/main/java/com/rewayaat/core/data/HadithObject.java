@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.annotations.ApiModelProperty;
+<<<<<<< HEAD:rewayaat/src/main/java/com/rewayaat/core/data/HadithObject.java
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.io.Serializable;
@@ -18,6 +19,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+=======
+import org.apache.commons.lang.builder.ToStringBuilder;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+>>>>>>> c858816f79227837fd39ba664a1c576aa395c511:rewayaat/src/main/java/com/rewayaat/core/data/HadithObject.java
 @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonPropertyOrder({"book", "number", "part", "chapter", "section", "volume", "tags", "notes", "arabic",

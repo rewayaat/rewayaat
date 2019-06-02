@@ -4,7 +4,11 @@ public class KitabAlTawheedLoader {
 
     public static void main(String[] args) {
 
+<<<<<<< HEAD
         KitabAlTawheedWorker t11 = new KitabAlTawheedWorker(24, 80);
+=======
+        KitabAlTawheedWorker t11 = new KitabAlTawheedWorker(24, 27);
+>>>>>>> c858816f79227837fd39ba664a1c576aa395c511
         t11.start();
 
         /**   KitabAlTawheedWorker t12 = new KitabAlTawheedWorker(171, 306);

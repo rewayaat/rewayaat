@@ -3,6 +3,10 @@ package com.rewayaat.loader.kitab_al_tawheed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Files;
+<<<<<<< HEAD
+=======
+import com.rewayaat.config.ClientProvider;
+>>>>>>> c858816f79227837fd39ba664a1c576aa395c511
 import com.rewayaat.core.data.HadithObject;
 import com.rewayaat.loader.LoaderUtil;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -72,10 +76,19 @@ public class KitabAlTawheedWorker extends Thread {
                 reader.setStartPage(i);
                 reader.setEndPage(i);
                 String st = reader.getText(document);
+<<<<<<< HEAD
                 String[] lines = st.split("\n");
                 for (int j = 0; j < lines.length; j++) {
                     String line = lines[j];
                     if (!LoaderUtil.containsArabic(line)) {
+=======
+                boolean containsArabic = false;
+                String[] lines = st.split("\n");
+                for (int j = 0; j < lines.length; j++) {
+                    String line = lines[j];
+                    System.out.println(line);
+                    if (!LoaderUtil.isProbablyArabic(line)) {
+>>>>>>> c858816f79227837fd39ba664a1c576aa395c511
                         if (!line.trim().isEmpty()) {
                             if (line.contains("Translator’s Note")
                                     || line.contains("Editor’s Note")
@@ -88,6 +101,7 @@ public class KitabAlTawheedWorker extends Thread {
                                     break;
                                 }
                             } else if (line.toUpperCase().trim().startsWith("CHAPTER")) {
+<<<<<<< HEAD
                                 chapter = "";
                                 chapter += line.trim();
                                 while (!lines[j + 1].trim().isEmpty() && !LoaderUtil.containsArabic(lines[j + 1])) {
@@ -118,6 +132,20 @@ public class KitabAlTawheedWorker extends Thread {
                                 if (!hadithObjects.isEmpty()) {
                                     getNewestHadith().insertEnglishText(line.trim() + " ");
                                 }
+=======
+
+                                while (!lines[j + 1].toUpperCase().contains("CHAPTER") && !lines[j + 1].isEmpty()) {
+                                    chapter += " " + lines[j + 1].trim();
+                                    j++;
+                                }
+                            } else if (line.trim().matches("^[0-9]+\\..*$")) {
+                                setupNewHadithObj();
+                                getNewestHadith().setNumber(line.trim().substring(0, line.trim().indexOf("-")));
+                                getNewestHadith().insertEnglishText(
+                                        line.trim().substring(line.trim().indexOf("-") + 1).trim() + " ");
+                            } else {
+                                getNewestHadith().insertEnglishText(line.trim() + " ");
+>>>>>>> c858816f79227837fd39ba664a1c576aa395c511
                             }
                         }
                     }
@@ -136,6 +164,7 @@ public class KitabAlTawheedWorker extends Thread {
 
     }
 
+<<<<<<< HEAD
     public void saveHadith() throws JsonProcessingException {
 
         ObjectMapper mapper = new ObjectMapper();
@@ -152,6 +181,37 @@ public class KitabAlTawheedWorker extends Thread {
                 tries++;
                 continue;
             }
+=======
+    public void saveHadith(PrintWriter writer, int newNumber) throws JsonProcessingException {
+
+        ObjectMapper mapper = new ObjectMapper();
+        HadithObject completedHadith = completeOldestHadith();
+        while (Integer.parseInt(completedHadith.getNumber()) <= (newNumber - 1)) {
+            byte[] json = mapper.writeValueAsBytes(completedHadith);
+            boolean successful = false;
+            int tries = 0;
+            while (successful == false && tries < 8) {
+                try {
+                    if (completedHadith.getArabic() == null) {
+                        writer.println("HADITH NUMBER " + completedHadith.getNumber() + " HAD NO ARABIC TEXT!");
+                    }
+                    ClientProvider.instance().getClient().prepareIndex(ClientProvider.INDEX, ClientProvider.TYPE)
+                            .setSource(json).get();
+                } catch (NoNodeAvailableException e) {
+                    writer.println("No Node available Exception while processing current Hadith, will try AGAIN!:\n"
+                            + getOldestHadith().toString() + "\n");
+                    e.printStackTrace(writer);
+                    tries++;
+                    continue;
+                }
+                successful = true;
+                hadithObjects.remove(0);
+            }
+            if (hadithObjects.isEmpty()) {
+                break;
+            }
+            completedHadith = completeOldestHadith();
+>>>>>>> c858816f79227837fd39ba664a1c576aa395c511
         }
     }
 
@@ -164,17 +224,37 @@ public class KitabAlTawheedWorker extends Thread {
         hadithObjects.add(currentHadith);
     }
 
+<<<<<<< HEAD
+=======
+    /**
+     * Cleans up the line for any know formatting issues.
+     */
+    public String cleanUpTheLine(String line) {
+        return line.replaceAll("`’", "");
+    }
+
+>>>>>>> c858816f79227837fd39ba664a1c576aa395c511
     private HadithObject getOldestHadith() {
         return hadithObjects.get(0);
     }
 
     private HadithObject getNewestHadith() {
+<<<<<<< HEAD
+=======
+        if (hadithObjects.size() < 1) {
+            System.out.println("");
+        }
+>>>>>>> c858816f79227837fd39ba664a1c576aa395c511
         return hadithObjects.get(hadithObjects.size() - 1);
     }
 
     private HadithObject completeOldestHadith() {
         HadithObject hadith = hadithObjects.get(0);
+<<<<<<< HEAD
         hadith.setEnglish(LoaderUtil.cleanupEnglishLine(hadith.getEnglish()));
+=======
+        hadith.setEnglish(cleanUpTheLine(hadith.getEnglish()));
+>>>>>>> c858816f79227837fd39ba664a1c576aa395c511
         return hadith;
     }
 

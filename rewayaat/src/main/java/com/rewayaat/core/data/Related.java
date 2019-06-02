@@ -8,7 +8,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import io.swagger.annotations.ApiModelProperty;
+<<<<<<< HEAD:rewayaat/src/main/java/com/rewayaat/core/data/Related.java
 import org.apache.commons.lang3.builder.ToStringBuilder;
+=======
+import org.apache.commons.lang.builder.ToStringBuilder;
+>>>>>>> c858816f79227837fd39ba664a1c576aa395c511:rewayaat/src/main/java/com/rewayaat/core/data/Related.java
 
 import java.io.Serializable;
 import java.util.HashMap;

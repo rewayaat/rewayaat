@@ -7,7 +7,11 @@ import com.rewayaat.config.ClientProvider;
 import com.rewayaat.core.data.HadithObject;
 import com.rewayaat.loader.ArabicNormalizer;
 import com.rewayaat.loader.LoaderUtil;
+<<<<<<< HEAD
 import org.apache.commons.lang3.StringUtils;
+=======
+import org.apache.commons.lang.StringUtils;
+>>>>>>> c858816f79227837fd39ba664a1c576aa395c511
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
 import org.apache.pdfbox.text.PDFTextStripper;

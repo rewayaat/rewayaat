@@ -46,21 +46,34 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
 
     @Override
     public HadithObjectCollection result() throws Exception {
+<<<<<<< HEAD:rewayaat/src/main/java/com/rewayaat/core/QueryStringQueryResult.java
 
         List<HadithObject> hadithes = new ArrayList<HadithObject>();
+=======
+        List<HadithObject> hadithes = new ArrayList<HadithObject>();
+
+>>>>>>> c858816f79227837fd39ba664a1c576aa395c511:rewayaat/src/main/java/com/rewayaat/core/QueryStringQueryResult.java
         String fuzziedQuery = new RewayaatQuery(userQuery).query();
 
         HighlightBuilder highlightBuilder = new HighlightBuilder().field("english").field("all").field("notes").field("arabic")
                 .field("book").field("section").field("part").field("chapter").field("publisher").field("source")
                 .field("volume").postTags("</span>").preTags("<span class=\"highlight\">")
                 .highlightQuery(QueryBuilders.queryStringQuery(fuzziedQuery).useAllFields(true))
+<<<<<<< HEAD:rewayaat/src/main/java/com/rewayaat/core/QueryStringQueryResult.java
                 .highlightQuery(QueryBuilders.queryStringQuery(userQuery).useAllFields(true).analyzer("search_analyzer"))
+=======
+                .highlightQuery(QueryBuilders.queryStringQuery(userQuery).useAllFields(true).analyzer("synonym"))
+>>>>>>> c858816f79227837fd39ba664a1c576aa395c511:rewayaat/src/main/java/com/rewayaat/core/QueryStringQueryResult.java
                 .numOfFragments(0);
 
         SearchResponse resp = ClientProvider.instance().getClient().prepareSearch(ClientProvider.INDEX)
                 .setTypes(ClientProvider.TYPE).setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
                 .setQuery(QueryBuilders.boolQuery().should(QueryBuilders.queryStringQuery(fuzziedQuery))
+<<<<<<< HEAD:rewayaat/src/main/java/com/rewayaat/core/QueryStringQueryResult.java
                         .should(QueryBuilders.queryStringQuery(userQuery).analyzer("search_analyzer").boost(10)))
+=======
+                        .should(QueryBuilders.queryStringQuery(userQuery).analyzer("synonym").boost(10)))
+>>>>>>> c858816f79227837fd39ba664a1c576aa395c511:rewayaat/src/main/java/com/rewayaat/core/QueryStringQueryResult.java
                 .highlighter(highlightBuilder).setFrom(page * this.pageSize).setSize(this.pageSize).setExplain(true)
                 .addSort("_score", SortOrder.DESC).execute().get();
 

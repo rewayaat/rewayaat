@@ -87,6 +87,7 @@ public class LoaderUtil {
         return (sLen / 2) <= hits;
     }
 
+<<<<<<< HEAD
     /**
      * Returns true if any letters in the given String are
      * Arabic.
@@ -224,6 +225,8 @@ public class LoaderUtil {
         }
         return finalResult;
     }
+=======
+>>>>>>> c858816f79227837fd39ba664a1c576aa395c511
     public static String sendOCRAPIPost(File file) throws Exception {
 
         HttpPost httppost = new HttpPost("http://apipro3.ocr.space/parse/image");
