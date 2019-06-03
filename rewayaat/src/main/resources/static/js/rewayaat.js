@@ -1,5 +1,7 @@
 var vueApp;
 var google_id_token;
+var currentQueryText = '';
+
 /**
  * Main entry point to the website. If does not exist, display default welcome
  * content. If there is a valid query, setup a Vue.js instance to display it.s
@@ -18,14 +20,14 @@ function loadQuery(query, page = 1) {
                 "Please ensure the entered query is greater than three characters long!",
                 "error");
             displayWelcomeContent();
-
-
         }
     } else {
         // show default mark-down welcome page
         displayWelcomeContent();
     }
 }
+
+
 
 function matchStart(params, data) {
     params.term = params.term || '';
@@ -46,6 +48,25 @@ $(document).ready(function() {
         return data;
     });
 });
+
+function setupSelect2EnterKeyListener(select2_id) {
+    $(document).on('keyup', '.select2-search__field', function (e) {
+        if (e.which === 13) {
+            e.preventDefault();
+            var curr_text = $('.select2-search__field')[0].value;
+            if (curr_text) {
+                var selectSearchTerms = document.getElementById(select2_id);
+                var option = document.createElement("option");
+                option.text = curr_text;
+                option.selected = true;
+                selectSearchTerms.add(option);
+                $('.select2-search__field')[0].value = "";
+                $('select.select2').val('').trigger('change');
+            }
+        }
+    });
+}
+
 
 function initSelect2(select2_id) {
     $('#' + select2_id).select2({
@@ -79,6 +100,10 @@ function initSelect2(select2_id) {
                 };
             }
         }
+    });
+
+    $('#' + select2_id).on('select2:closing', function() {
+      currentQueryText = $('.select2-search input').prop('value').trim();
     });
 }
 
@@ -131,6 +156,9 @@ async function displayQuery(query) {
     // display search bar
     var queryBar = document.getElementById("queryBar");
     $(queryBar).css('display', 'block');
+
+    // setup enter key listener
+    setupSelect2EnterKeyListener('searchTerms');
 }
 
 function changeCardWidth() {
@@ -176,6 +204,9 @@ function displayWelcomeContent() {
         initSelect2('searchTerms2');
         // setup select2 select handler
         select2SelectHandler('searchTerms2');
+
+        // setup enter key listener
+        setupSelect2EnterKeyListener('searchTerms2');
     });
 }
 
@@ -216,6 +247,9 @@ function submitSearchQuery() {
         if (opt.selected === true) {
             query += opt.value + " ";
         }
+    }
+    if (currentQueryText) {
+        query += currentQueryText;
     }
 
     if (query) {
