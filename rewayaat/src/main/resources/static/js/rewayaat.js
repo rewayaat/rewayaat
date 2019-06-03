@@ -105,6 +105,10 @@ function initSelect2(select2_id) {
     $('#' + select2_id).on('select2:closing', function() {
       currentQueryText = $('.select2-search input').prop('value').trim();
     });
+
+    $('#' + select2_id).on('select2:select', function() {
+          currentQueryText = '';
+    });
 }
 
 
