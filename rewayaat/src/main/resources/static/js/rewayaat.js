@@ -61,7 +61,8 @@ function setupSelect2EnterKeyListener(select2_id) {
                 option.selected = true;
                 selectSearchTerms.add(option);
                 $('.select2-search__field')[0].value = "";
-                $('select.select2').val('').trigger('change');
+                currentQueryText = "";
+                $('#' + select2_id).select2('close');
             }
         }
     });
