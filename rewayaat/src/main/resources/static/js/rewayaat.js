@@ -103,11 +103,21 @@ function initSelect2(select2_id) {
     });
 
     $('#' + select2_id).on('select2:closing', function() {
-      currentQueryText = $('.select2-search input').prop('value').trim();
+        currentQueryText = $('.select2-search input').prop('value').trim();
+        if (currentQueryText) {
+            var selectSearchTerms = document.getElementById(select2_id);
+            var option = document.createElement("option");
+            option.text = currentQueryText;
+            option.selected = true;
+            selectSearchTerms.add(option);
+            currentQueryText = '';
+            $('.select2-search input').val('');
+        }
     });
 
-    $('#' + select2_id).on('select2:select', function() {
-          currentQueryText = '';
+    $('#' + select2_id).on('select2:selecting', function() {
+        currentQueryText = '';
+        $('.select2-search input').val('');
     });
 }
 
@@ -251,9 +261,6 @@ function submitSearchQuery() {
         if (opt.selected === true) {
             query += opt.value + " ";
         }
-    }
-    if (currentQueryText) {
-        query += currentQueryText;
     }
 
     if (query) {
