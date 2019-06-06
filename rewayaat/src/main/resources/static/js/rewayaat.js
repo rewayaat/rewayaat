@@ -274,7 +274,7 @@ function submitSearchQuery() {
 }
 
 function indicatePendingSearchTerms() {
-    $("html, body").animate({ scrollTop: 0 }, "slow");
+    //$("html, body").animate({ scrollTop: 0 }, "slow");
     $("[id^=searchBtn]").addClass("button-glow");
     $("[id^=searchBtn]").css('background', '#383737');
     $("[id^=searchBtn]").css('color', '#fafafa');
