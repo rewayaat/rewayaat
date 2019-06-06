@@ -119,6 +119,7 @@ function initSelect2(select2_id) {
     $('#' + select2_id).on('select2:selecting', function() {
         currentQueryText = '';
         $('.select2-search input').val('');
+        indicatePendingSearchTerms();
     });
 }
 
@@ -185,13 +186,14 @@ function changeCardWidth() {
             "width": "97%"
         });
         $('.uk-align-left').css({
-            "margin-right": "0px"
+            "margin-right": "0px",
+            "padding-left": "5px"
         });
 
     };
     if ($(window).width() >= 768) {
         $('.uk-card').css({
-            "padding-left": "30px"
+            "padding-left": "20px"
         });
         $('.uk-container-large').css({
             "width": "80%"
@@ -271,6 +273,12 @@ function submitSearchQuery() {
     }
 }
 
+function indicatePendingSearchTerms() {
+    $("html, body").animate({ scrollTop: 0 }, "slow");
+    $("[id^=searchBtn]").addClass("button-glow");
+    $("[id^=searchBtn]").css('background', '#383737');
+    $("[id^=searchBtn]").css('color', '#fafafa');
+}
 /**
  * Main method responsible for displaying queries using Vue.js. Stores the
  * created Vue instance in the global vueApp variable.
@@ -281,24 +289,24 @@ function setupVue(query, page) {
     Vue
         .component(
             'hadith-details', {
-                template: '<div><div v-on:click="showBookBlurb(narration.book)" title="Book" uk-tooltip="pos: right" style=" margin-right:30px;" class="uk-align-left" >' +
+                template: '<div><div v-on:click="showBookBlurb(narration.book)" title="Book" uk-tooltip="pos: right"  class="uk-align-left" >' +
                     '	<i style="color: rgb(83, 102, 125);" class="fa fa-book hadithDetailsIcon"' +
                     '		aria-hidden="true"></i>' +
                     '	<p style="text-decoration:underline; cursor: pointer;" class="hadithDetailsTitle" v-html="narration.book" />' +
                     '</div>' +
-                    '<div title="Edition" uk-tooltip="pos: right" style=" margin-right:30px;" class="uk-align-left"  v-if="narration.edition">' +
+                    '<div title="Edition" uk-tooltip="pos: right"  class="uk-align-left"  v-if="narration.edition">' +
                     '<i style="color: rgb(83, 102, 125)"' +
                     '	class="fa fa-pencil-square-o hadithDetailsIcon"' +
                     '	aria-hidden="true"></i>' +
                     '<p class="hadithDetailsTitle">({{narration.edition}})</p>' +
                     '</div>' +
-                    '<div title="Number" uk-tooltip="pos: right" style=" margin-right:30px;" class="uk-align-left"  v-if="narration.number">' +
+                    '<div title="Number" uk-tooltip="pos: right"  class="uk-align-left"  v-if="narration.number">' +
                     '<i style="color: rgb(83, 102, 125)"' +
                     '	class="fa fa-pencil-square-o hadithDetailsIcon"' +
                     '	aria-hidden="true"></i>' +
                     '<p class="hadithDetailsTitle">Hadith #{{narration.number}}</p>' +
                     '</div>' +
-                    '<div title="Chapter" uk-tooltip="pos: right" style=" margin-right:30px;" class="uk-align-left"  v-if="narration.chapter">' +
+                    '<div title="Chapter" uk-tooltip="pos: right"  class="uk-align-left"  v-if="narration.chapter">' +
                     '<i style="color: rgb(83, 102, 125);"' +
                     '	class="fa fa-superpowers hadithDetailsIcon" aria-hidden="true"></i>' +
                     '<p class="hadithDetailsTitle" v-html="narration.chapter" />' +
@@ -308,22 +316,22 @@ function setupVue(query, page) {
                     '	class="fa fa-bookmark-o hadithDetailsIcon" aria-hidden="true"></i>' +
                     '<p class="hadithDetailsTitle" v-html="narration.section" />' +
                     '</div>' +
-                    '<div title="Part" uk-tooltip="pos: right" style=" margin-right:30px;" class="uk-align-left"  v-if="narration.part">' +
+                    '<div title="Part" uk-tooltip="pos: right"   class="uk-align-left"  v-if="narration.part">' +
                     '<i style="color: rgb(83, 102, 125);"' +
                     '  class="fa fa-clone hadithDetailsIcon" aria-hidden="true"></i>' +
                     '	<p class="hadithDetailsTitle" v-html="narration.part" />' +
                     '</div>' +
-                    '<div title="Volume" uk-tooltip="pos: right" style=" margin-right:30px;" class="uk-align-left"  v-if="narration.volume">' +
+                    '<div title="Volume" uk-tooltip="pos: right"   class="uk-align-left"  v-if="narration.volume">' +
                     '<i style="color:rgb(83, 102, 125)"' +
                     '	class="fa fa-calendar-o hadithDetailsIcon" aria-hidden="true"></i>' +
                     '<p class="hadithDetailsTitle" v-html="narration.volume" />' +
                     '</div>' +
-                    '<div title="Source" uk-tooltip="pos: right" style=" margin-right:30px;" class="uk-align-left"  v-if="narration.source">' +
+                    '<div title="Source" uk-tooltip="pos: right"  class="uk-align-left"  v-if="narration.source">' +
                     '<i style="color:rgb(83, 102, 125)"' +
                     '	class="fa fa-share-square-o hadithDetailsIcon" aria-hidden="true"></i>' +
                     '<p class="hadithDetailsTitle" v-html="narration.source" />' +
                     '</div>' +
-                    '<div title="Publisher" uk-tooltip="pos: right" style=" margin-right:30px;" class="uk-align-left"  v-if="narration.publisher">' +
+                    '<div title="Publisher" uk-tooltip="pos: right" class="uk-align-left"  v-if="narration.publisher">' +
                     '<i style="color:rgb(83, 102, 125)"' +
                     '	class="fa fa-medium hadithDetailsIcon" aria-hidden="true"></i>' +
                     '<p class="hadithDetailsTitle" v-html="narration.publisher" />' +
@@ -351,7 +359,9 @@ function setupVue(query, page) {
                             if (strip(bookName).toUpperCase().includes(this.$root.book_blurbs[blurb].book.toUpperCase())) {
                                 UIkit.modal.alert(this.$root.book_blurbs[blurb].blurb);
                                 var modelDialog = document.getElementsByClassName("uk-modal-dialog")[0];
-                                modelDialog.style.width = '80%';
+                                modelDialog.style.width = '95%';
+                                modelDialog.style.maxWidth = '1000px';
+
                             }
                         }
                     },
@@ -465,7 +475,6 @@ function setupVue(query, page) {
             // runs when the Vue instance has initialized.
             mounted: function() {
                 this.fetchNarrations();
-                this.fetchSignificantTerms();
             },
             methods: {
                 // fetches significant query terms using the Rewayaat REST API
@@ -521,6 +530,9 @@ function setupVue(query, page) {
                                 // set total results size value
                                 self.totalHits = respJSON.totalResultSetSize;
                             }
+
+                            // fetch significant terms
+                            self.fetchSignificantTerms();
                         }
                     }
                     xhr.open('GET', '/v1/narrations?q=' + this.queryStr +
@@ -554,6 +566,7 @@ function setupVue(query, page) {
                     option.selected = true;
                     selectSearchTerms.add(option);
                     $('#' + termDivId).remove();
+                    indicatePendingSearchTerms();
                 },
                 gradeLabelIcon: function(grading) {
                     if (grading === 'mutawatir') {

@@ -20,12 +20,6 @@
     <link rel="stylesheet" type="text/css"
           href="https://cdn.rawgit.com/vaakash/socializer/a4c672bf/css/socializer.min.css"/>
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-    <script th:src="@{/js/vue.js}" src="/js/vue.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.7/js/select2.min.js"></script>
-    <script src="https://cdn.ravenjs.com/3.22.3/raven.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.lr-ingest.io/LogRocket.min.js" crossorigin="anonymous"></script>
-    <script th:src="@{/js/rewayaat.js}" src="/js/rewayaat.js"></script>
 </head>
 
 <body>
@@ -91,16 +85,19 @@
 <!--  VUE APP  -->
 <div id="parentContainer" class="uk-container-large uk-align-center" style="margin-top: 0px;">
     <div id="queryBar"
-         style="padding-bottom: 40px;  border-bottom: 1px solid #80808052; display: none; width: 80%; max-width: 1200px; min-width: 400px; margin-left: auto; margin-right: auto;">
+         style="padding-bottom: 40px;  border-bottom: 1px solid #80808052; display: none; width: 80%; max-width: 1200px; margin-left: auto; margin-right: auto;">
         <select id="searchTerms" class="search-control" multiple="multiple"/>
         <div class="uk-navbar-item">
             <a onclick="submitSearchQuery()" style="margin-left: auto; border-width: 1px; position: relative; border-radius: 3px; margin-left: auto;
               margin-right: auto; width: 150px;  display: inline-block; margin-top: 30px;  font-family: Chivo; font-size: 16px;"
-               class="uk-button uk-button-default tm-button-default uk-icon">Search</a>
+               id="searchBtn1"
+               class="uk-button uk-button-default tm-button-default uk-icon">
+                Search
+            </a>
         </div>
     </div>
     <div id="hadithView" class="uk-grid">
-        <div>
+        <div style="padding-left: 40px;">
             <h2 v-if="totalHits"
                 style="font-weight: normal; margin-left: -30px; margin-top: 20px; ">
                 <b v-html="totalHits"/> results found.
@@ -123,7 +120,7 @@
 
             <!--  SHOW ON LEFT IF LARGE SCREEN -->
             <div class="uk-align-left uk-width-1-6 uk-visible@l hadithDetails "
-                 style="padding-left: 0px; margin-left: 0px; padding: 10px;">
+                 style="padding: 5px; margin-left: 20px; padding: 10px;">
                 <hadith-details v-bind:narration="narration"/>
             </div>
 
@@ -137,7 +134,7 @@
                             <br/>
                         </hadith-details>
                     </div>
-                    <div class="uk-align-left" style="padding-top: 0px; width:97%;">
+                    <div style="padding-top: 0px; margin-right: auto; margin-left: auto; width:97%;">
                         <div>
                             <!-- Sharingbutton WhatsApp -->
                             <a class="resp-sharing-button__link uk-align-right" v-bind:href="narration.whatsapp"
@@ -297,6 +294,12 @@
         <pagination style="margin-top: 35px;margin-bottom: 45px;margin-left: -10px;"/>
     </div>
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script th:src="@{/js/vue.js}" src="/js/vue.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.7/js/select2.min.js"></script>
+<script src="https://cdn.ravenjs.com/3.22.3/raven.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.lr-ingest.io/LogRocket.min.js" crossorigin="anonymous"></script>
+<script th:src="@{/js/rewayaat.js}" src="/js/rewayaat.js"></script>
 <script src="https://apis.google.com/js/platform.js"></script>
 <script th:async="async" th:src="@{/js/pace.min.js}" src="/js/pace.min.js"></script>
 <script th:async="async" th:src="@{/js/uikit.min.js}" src="/js/uikit.min.js"></script>

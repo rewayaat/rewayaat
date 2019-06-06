@@ -16,6 +16,17 @@ html {
     text-rendering: optimizeLegibility;
 }
 
+@keyframes glowing {
+  0% { box-shadow: 0 0 -15px #383737; }
+  40% { box-shadow: 0 0 25px #383737; }
+  60% { box-shadow: 0 0 25px #383737; }
+  100% { box-shadow: 0 0 -15px #383737; }
+}
+
+.button-glow {
+  animation: glowing 1500ms infinite;
+}
+
 .querySymbol {
 	padding-right: 3px;
 }
@@ -1679,18 +1690,6 @@ select.uk-form-width-xsmall {
 
 .uk-grid>* {
     margin: 0
-}
-
-.uk-grid>*>:last-child {
-    /* margin-bottom: 0; */
-}
-
-.uk-grid {
-   /* margin-left: -30px*/
-}
-
-.uk-grid>* {
-    padding-left: 30px
 }
 
 .uk-grid+.uk-grid, .uk-grid>.uk-grid-margin, *+.uk-grid-margin {
@@ -5943,7 +5942,7 @@ th.uk-text-break, td.uk-text-break {
 }
 
 .uk-align-left {
-    margin-top: 0;
+    margin-top: 10px;
     margin-right: 30px;
     float: left;
 }
@@ -6009,10 +6008,17 @@ th.uk-text-break, td.uk-text-break {
         margin-top: 0;
         float: right
     }
-    .uk-align-left, .uk-align-left\@s, .uk-align-left\@m, .uk-align-left\@l {
+    .uk-align-left\@m, .uk-align-left\@l {
         
-        padding-top: 20px;
-            margin-left: -15px;
+        padding-top: 15px;
+
+    }
+
+    .uk-align-left\@s {
+
+     padding-left: 10px;
+
+
     }
     .uk-align-right, .uk-align-right\@s, .uk-align-right\@m, .uk-align-right\@l {
          margin-left: 20px;
@@ -8189,9 +8195,28 @@ text-align: right;
     }
 }
 
-@media (min-width:960px) {
+@media (min-width:1200px) {
     .tm-main .uk-container {
         padding-left: 40px;
         padding-right: 40px
     }
+
+     .hadithGrid {
+        margin-left: -20px;
+     }
 }
+
+@media (max-width:1200px) {
+    #hadithView {
+        margin-left: auto;
+        margin-right: auto;
+        width: 95%;
+        padding:0px;
+    }
+
+    .uk-align-left {
+
+    }
+}
+
+
