@@ -192,9 +192,6 @@ function changeCardWidth() {
 
     };
     if ($(window).width() >= 768) {
-        $('.uk-card').css({
-            "padding-left": "20px"
-        });
         $('.uk-container-large').css({
             "width": "80%"
         });
