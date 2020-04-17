@@ -19,7 +19,7 @@ os:
 - linux
 script:
 - npm install elasticdump -g
-- mvn package docker:build
+- mvn -q package docker:build
 notifications:
   email:
     recipients:
