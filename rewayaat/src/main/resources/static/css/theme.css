@@ -16,6 +16,37 @@ html {
     text-rendering: optimizeLegibility;
 }
 
+#queryBar {
+    padding-bottom: 40px;
+     border-bottom: 1px solid #80808052;
+     display: none;
+     width: 80%;
+     max-width: 1200px;
+     margin-left: auto;
+     margin-right: auto;
+}
+
+#latest-news-bar{
+    background-color: #c9dfff;
+    width: 100%;
+    display: block;
+    color: #1f1f1f;
+    text-align: center;
+    font-size: 15px;
+    line-height: 1.6;
+    position: static;
+    border-bottom: 1px solid #80808078;
+    font-weight: 400;
+    font-family: Open Sans;
+}
+
+.terms-suggestion{
+    margin-left: -30px;
+    font-family: Open Sans;
+    font-size: 16px;
+    font-weight: lighter;
+}
+
 @keyframes glowing {
   0% { box-shadow: 0 0 -15px #383737; }
   40% { box-shadow: 0 0 25px #383737; }
@@ -7851,7 +7882,7 @@ th.uk-text-break, td.uk-text-break {
 }
 
 .uk-light .tm-button-default, .uk-section-primary:not(.uk-preserve-color) .tm-button-default, .uk-section-secondary:not(.uk-preserve-color) .tm-button-default, .uk-card-primary.uk-card-body .tm-button-default, .uk-card-primary>:not([class*='uk-card-media']) .tm-button-default, .uk-card-secondary.uk-card-body .tm-button-default, .uk-card-secondary>:not([class*='uk-card-media']) .tm-button-default, .uk-overlay-primary .tm-button-default, .tm-navbar-container:not(.uk-navbar-transparent) .tm-button-default {
-           background-color: transparent;
+           background-color: #c9dfff;
            color: #222;
            border: 1px solid gray;
         box-shadow: rgb(236, 235, 235) 2px 2px;

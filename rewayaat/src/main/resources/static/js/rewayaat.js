@@ -14,6 +14,8 @@ function loadQuery(query, page = 1) {
             displayQuery(query);
             // load the query
             setupVue(query, page);
+            // Update latest new bar
+            setLatestNewsBarHTML('Help improve our content by <b><a target="_blank" style="color:black; text-decoration:underline;" href="mailto:rewayaat.org@gmail.com?Subject=HDP%20Database%20Error">reporting</a></b> any mistakes you find!')
         } else {
             swal(
                 "Invalid Query",
@@ -22,12 +24,15 @@ function loadQuery(query, page = 1) {
             displayWelcomeContent();
         }
     } else {
+        setLatestNewsBarHTML('Our team has recently added <b><a target="_blank" style="color: black;text-decoration: underline;" href="'+ window.location.href + '?q=%22Kitab%20Al-Tawhid%22">Kitab Al-Tawhid</a></b> by Sheikh Sadooq to our Collection!');
         // show default mark-down welcome page
         displayWelcomeContent();
     }
 }
 
-
+function setLatestNewsBarHTML(htmlCode) {
+    document.getElementById("latest-news-bar").innerHTML = htmlCode;
+}
 
 function matchStart(params, data) {
     params.term = params.term || '';
@@ -54,8 +59,8 @@ function setupSelect2EnterKeyListener(select2_id) {
         if (e.which === 13) {
             e.preventDefault();
             var curr_text = $('.select2-search__field')[0].value;
+            var selectSearchTerms = document.getElementById(select2_id);
             if (curr_text) {
-                var selectSearchTerms = document.getElementById(select2_id);
                 var option = document.createElement("option");
                 option.text = curr_text;
                 option.selected = true;
@@ -63,11 +68,13 @@ function setupSelect2EnterKeyListener(select2_id) {
                 $('.select2-search__field')[0].value = "";
                 currentQueryText = "";
                 $('#' + select2_id).select2('close');
+            } else if (selectSearchTerms.length > 0) {
+                // User pressed enter while not in the middle of a term, submit the query developed thus far.
+                submitSearchQuery();
             }
         }
     });
 }
-
 
 function initSelect2(select2_id) {
     $('#' + select2_id).select2({
@@ -148,7 +155,6 @@ function splitQuery(query) {
     } while (match != null);
     return termsArr;
 }
-
 
 async function displayQuery(query) {
 
@@ -271,11 +277,12 @@ function submitSearchQuery() {
 }
 
 function indicatePendingSearchTerms() {
-    //$("html, body").animate({ scrollTop: 0 }, "slow");
+    // make search button glow
     $("[id^=searchBtn]").addClass("button-glow");
     $("[id^=searchBtn]").css('background', '#383737');
     $("[id^=searchBtn]").css('color', '#fafafa');
 }
+
 /**
  * Main method responsible for displaying queries using Vue.js. Stores the
  * created Vue instance in the global vueApp variable.
@@ -564,6 +571,18 @@ function setupVue(query, page) {
                     selectSearchTerms.add(option);
                     $('#' + termDivId).remove();
                     indicatePendingSearchTerms();
+                    new Noty({
+                        type: 'info',
+                        text: '<b>Click here</b> to update your search results!',
+                        theme: 'mint',
+                        layout: 'bottomCenter',
+                        killer: true,
+                        callbacks: {
+                            onClick: function() {
+                                submitSearchQuery();
+                            },
+                        }
+                    }).show();
                 },
                 gradeLabelIcon: function(grading) {
                     if (grading === 'mutawatir') {
@@ -696,7 +715,7 @@ function setupVue(query, page) {
                             changeDetected = true;
                             changedAtributes.section = modifiedHadith.section;
                         }
-                        if (modifiedHadith.tags && (_.isEqual(modifiedHadith.tags, narration.tags) === false)) {
+                        if (modifiedHadith.tags && (arraysEqual(modifiedHadith.tags, narration.tags) === false)) {
                             changeDetected = true;
                             changedAtributes.tags = modifiedHadith.tags;
                         }
@@ -704,7 +723,7 @@ function setupVue(query, page) {
                             changeDetected = true;
                             changedAtributes.notes = modifiedHadith.notes;
                         }
-                        if (modifiedHadith.gradings && (_.isEqual(modifiedHadith.gradings, narration.gradings) === false)) {
+                        if (modifiedHadith.gradings && (arraysEqual(modifiedHadith.gradings, narration.gradings) === false)) {
                             changeDetected = true;
                             changedAtributes.gradings = modifiedHadith.gradings;
                         }
@@ -829,6 +848,21 @@ function socialMediaDecoratedHadith(hadithObj) {
     return hadithObj;
 }
 
+function arraysEqual(a, b) {
+    if (a === b) return true;
+    if (a == null || b == null) return false;
+    if (a.length != b.length) return false;
+
+    // We don't  care about order...
+    a.sort();
+    b.sort();
+
+    for (var i = 0; i < a.length; ++i) {
+        if (a[i] !== b[i]) return false;
+    }
+    return true;
+}
+
 String.prototype.replaceAll = function(search, replacement) {
     var target = this;
     return target.replace(new RegExp(search, 'g'), replacement);
@@ -873,3 +907,4 @@ function signOutOfRewayaat() {
     auth2.disconnect();
     location.reload();
 }
+
