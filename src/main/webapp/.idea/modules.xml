@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/rewayaat.iml" filepath="$PROJECT_DIR$/rewayaat.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/webapp.iml" filepath="$PROJECT_DIR$/.idea/webapp.iml" />
     </modules>
   </component>
 </project>
