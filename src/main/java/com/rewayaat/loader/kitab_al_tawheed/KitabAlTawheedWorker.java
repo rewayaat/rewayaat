@@ -198,7 +198,7 @@ public class KitabAlTawheedWorker extends Thread {
                                     int chapterInteger = (int) LoaderUtil.convertWordToInteger(wordNumber);
                                     chapter = "Chapter " + String.valueOf(chapterInteger) + " - " + this.chapterNamesArray[chapterInteger].trim();
                                 }
-                                chapter = LoaderUtil.cleanupEnglishLine(chapter).trim();
+                                chapter = LoaderUtil.cleanupText(chapter).trim();
                                 writer.println(chapter);
                                 writer.flush();
                             } else if (line.trim().matches("^[0-9]+\\..*$")) {
@@ -242,7 +242,7 @@ public class KitabAlTawheedWorker extends Thread {
 
         ObjectMapper mapper = new ObjectMapper();
         HadithObject completedHadith = completeOldestHadith();
-        completedHadith.setEnglish(LoaderUtil.cleanupEnglishLine(completedHadith.getEnglish()));
+        completedHadith.setEnglish(LoaderUtil.cleanupText(completedHadith.getEnglish()));
         byte[] json = mapper.writeValueAsBytes(completedHadith);
         boolean successful = false;
         int tries = 0;
@@ -277,7 +277,7 @@ public class KitabAlTawheedWorker extends Thread {
 
     private HadithObject completeOldestHadith() {
         HadithObject hadith = hadithObjects.get(0);
-        hadith.setEnglish(LoaderUtil.cleanupEnglishLine(hadith.getEnglish()));
+        hadith.setEnglish(LoaderUtil.cleanupText(hadith.getEnglish()));
         hadithObjects.remove(0);
         return hadith;
     }

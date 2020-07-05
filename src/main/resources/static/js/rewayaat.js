@@ -24,7 +24,7 @@ function loadQuery(query, page = 1) {
             displayWelcomeContent();
         }
     } else {
-        setLatestNewsBarHTML('Our team has recently added <b><a target="_blank" style="color: black;text-decoration: underline;" href="'+ window.location.href + '?q=%22Kitab%20Al-Tawhid%22">Kitab Al-Tawhid</a></b> by Sheikh Sadooq to our Collection!');
+        setLatestNewsBarHTML('Our team has recently added <b><a target="_blank" style="color: black;text-decoration: underline;" href="'+ window.location.href + '?q="Kamil%20Al-Ziyarat"%20-same%20-similar%20_exists_%3Aenglish">Kamil Al-Ziyarat</a></b> by Ibn Qulawayh to our Collection!');
         // show default mark-down welcome page
         displayWelcomeContent();
     }
@@ -834,17 +834,15 @@ function socialMediaDecoratedHadith(hadithObj) {
     hadithDesc = hadithDesc.replaceAll('<span class="highlight">', '');
     hadithDesc = hadithDesc.replaceAll('</span>', '');
     hadithDesc = encodeURIComponent(hadithDesc.replace(/(^,)|(,$)/g, "").trim());
-    var hadithText = encodeURIComponent(hadithObj.english.replaceAll(
+    var hadithText="Hadith " + hadithObj.number + " chapter " + hadithObj.chapter + " from " + hadithObj.book;
+    if (hadithObj.english) {
+        hadithText = encodeURIComponent(hadithObj.english.replaceAll(
         '<span class="highlight">', '').replaceAll('</span>', ''));
-
+    }
     hadithObj["facebook"] = "https://www.facebook.com/sharer/sharer.php?u=" +
         hadithURL;
     hadithObj["twitter"] = "https://twitter.com/intent/tweet/?text=" +
         hadithDesc + "&url=" + hadithURL;
-    hadithObj["tumblr"] = "https://www.tumblr.com/widgets/share/tool?canonicalUrl=" + hadithURL + '&title=' + hadithDesc + '&caption=' + hadithText;
-    hadithObj["googleplus"] = "https://plus.google.com/share?url=" + hadithURL;
-    hadithObj["whatsapp"] = "whatsapp://send?text=" + hadithText + "\n\n[" +
-        hadithURL + "]";
     return hadithObj;
 }
 

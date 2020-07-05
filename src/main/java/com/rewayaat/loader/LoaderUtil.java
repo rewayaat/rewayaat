@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class LoaderUtil {
@@ -104,15 +105,27 @@ public class LoaderUtil {
         return false;
     }
 
+    public static String numberFromEnd(String input) throws Exception {
+        Pattern lastIntPattern = Pattern.compile("[^0-9]+([0-9]+)$");
+        Matcher matcher = lastIntPattern.matcher(input);
+        if (matcher.find()) {
+            String someNumberStr = matcher.group(1);
+            return someNumberStr;
+        }
+        throw new Exception("No number was found at the end of the given string: " + input);
+    }
+
     /**
      * Removes odd symbols from text to be used as english translation
      * of Hadith.
      */
-    public static String cleanupEnglishLine(String dirtyLine) {
-        dirtyLine = dirtyLine.replaceAll("[`’]", "");
+    public static String cleanupText(String uncleanText) {
+        uncleanText = uncleanText.replaceAll("[`’]", "");
         // Replace foot note numbers found after periods or commas if they exist.
-        dirtyLine = dirtyLine.replaceAll("[\\.,][0-5] ", " ");
-        return dirtyLine;
+        uncleanText = uncleanText.replaceAll("[\\.,][0-5] ", " ");
+        // Replace double spaces
+        uncleanText = uncleanText.replaceAll("\\s+", " ");
+        return uncleanText;
     }
 
     public static long convertWordToInteger(String word) {
