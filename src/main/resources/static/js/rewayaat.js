@@ -24,7 +24,7 @@ function loadQuery(query, page = 1) {
             displayWelcomeContent();
         }
     } else {
-        setLatestNewsBarHTML('Our team has recently added <b><a target="_blank" style="color: black;text-decoration: underline;" href="'+ window.location.href + '?q="Kamil%20Al-Ziyarat"%20-same%20-similar%20_exists_%3Aenglish">Kamil Al-Ziyarat</a></b> by Ibn Qulawayh to our Collection!');
+        setLatestNewsBarHTML('Our team has recently added <b><a target="_blank" style="color: black;text-decoration: underline;" href="'+ window.location.href + '?q=%22Kamil%20Al-Ziyarat%22%20-same%20-similar%20_exists_%3Aenglish%0D%0A">Kamil Al-Ziyarat</a></b> by Ibn Qulawayh to our Collection!');
         // show default mark-down welcome page
         displayWelcomeContent();
     }
