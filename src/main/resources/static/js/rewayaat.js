@@ -141,7 +141,7 @@ function select2SelectHandler(select2_id) {
 }
 
 function splitQuery(query) {
-    var myRegexp = /[^\s"]+|"([^"]*)"/gi;
+    var myRegexp = /((".*?"|[^"\s]+)+(?=\s*|\s*$))/gi;
     var termsArr = [];
 
     do {
@@ -150,7 +150,7 @@ function splitQuery(query) {
         if (match != null) {
             //Index 1 in the array is the captured group if it exists
             //Index 0 is the matched text, which we use if no captured group exists
-            termsArr.push(match[1] ? '"' + match[1] + '"' : match[0]);
+            termsArr.push(match[1] ? match[1] : match[0]);
         }
     } while (match != null);
     return termsArr;
