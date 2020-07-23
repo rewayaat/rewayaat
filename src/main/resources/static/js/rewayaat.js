@@ -539,7 +539,7 @@ function setupVue(query, page) {
                             self.fetchSignificantTerms();
                         }
                     }
-                    xhr.open('GET', '/v1/narrations?q=' + this.queryStr +
+                    xhr.open('GET', '/v1/narrations?q=' + encodeURIComponent(this.queryStr) +
                         '&page=' + this.page + '&per_page=' + this.pageSize);
                     xhr.send();
                 },

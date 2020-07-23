@@ -45,7 +45,7 @@ public class RewayaatQuery {
         splitted.add(result.toString());
         for (String s : splitted) {
             s = s.trim();
-            if (!s.contains("~") && !s.contains("(") && !s.contains("\"")) {
+            if (!s.contains("~") && !s.contains("(") && !s.contains("\"") && !s.trim().startsWith("+") && !s.trim().startsWith("-")) {
                 s += "~";
             }
             if (!StringUtils.startsWithAny(s, docFields)) {
