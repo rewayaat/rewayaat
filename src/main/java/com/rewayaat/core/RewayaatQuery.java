@@ -20,7 +20,7 @@ public class RewayaatQuery {
     private String[] docFields = new String[]{"_id:", "source:", "book:", "number:", "part:", "edition:", "chapter:", "publisher:", "section:", "tags:", "volume:", "notes:", "arabic:", "gradings:"};
 
     public RewayaatQuery(String query) {
-        this.query = query;
+        this.query = query.trim();
     }
 
     public String query() {
@@ -45,7 +45,7 @@ public class RewayaatQuery {
         splitted.add(result.toString());
         for (String s : splitted) {
             s = s.trim();
-            if (!s.contains("~") && !s.contains("(")) {
+            if (!s.contains("~") && !s.contains("(") && !s.contains("\"")) {
                 s += "~";
             }
             if (!StringUtils.startsWithAny(s, docFields)) {
