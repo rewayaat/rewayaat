@@ -35,7 +35,7 @@ public class RefreshSynonymFilter {
 
     public static void refresh() throws Exception {
 
-        if (System.getenv("SPRING_PROFILES_ACTIVE").equalsIgnoreCase("prod")) {
+        if (System.getenv("SPRING_PROFILES_ACTIVE") != null && System.getenv("SPRING_PROFILES_ACTIVE").equalsIgnoreCase("prod")) {
             // delete existing and download new synonym file from github
             File synonymFile = new File(synonymsLocalFile);
             FileUtils.copyURLToFile(new URL("https://raw.githubusercontent.com/rewayaat/rewayaat/master/rewayaat/src/main/resources/synonyms.txt"), synonymFile);

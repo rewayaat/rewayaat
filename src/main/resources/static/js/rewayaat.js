@@ -24,7 +24,7 @@ function loadQuery(query, page = 1) {
             displayWelcomeContent();
         }
     } else {
-        setLatestNewsBarHTML('Our team has recently added <b><a target="_blank" style="color: black;text-decoration: underline;" href="'+ window.location.href + '?q=%22Kamil%20Al-Ziyarat%22%20-same%20-similar%20_exists_%3Aenglish%0D%0A">Kamil Al-Ziyarat</a></b> by Ibn Qulawayh to our Collection!');
+        setLatestNewsBarHTML('Our team has recently added <b><a target="_blank" style="color: black;text-decoration: underline;" href="'+ window.location.href + '?q=book:%22al-amali%22">Al-Amali</a></b>, <b><a target="_blank" style="color: black;text-decoration: underline;" href="' + window.location.href + '?q=book%3A%22Khisal%22">Al Khisal</a></b> and <b><a target="_blank" style="color: black;text-decoration: underline;" href="'+ window.location.href + '?q=book%3A%22Uyun%22">Uyun Akhbar Al-Rida</a></b> to our Collection!');
         // show default mark-down welcome page
         displayWelcomeContent();
     }
@@ -224,7 +224,6 @@ function displayWelcomeContent() {
         initSelect2('searchTerms2');
         // setup select2 select handler
         select2SelectHandler('searchTerms2');
-
         // setup enter key listener
         setupSelect2EnterKeyListener('searchTerms2');
     });
@@ -288,7 +287,6 @@ function indicatePendingSearchTerms() {
  * created Vue instance in the global vueApp variable.
  */
 function setupVue(query, page) {
-
     // create hadith details component
     Vue
         .component(
@@ -498,8 +496,7 @@ function setupVue(query, page) {
                         xhr.send();
                     }
                 },
-                // fetches more narrations to display using the Rewayaat
-                // REST API.
+                // fetches more narrations to display using the API.
                 fetchNarrations: function() {
                     var self = this;
                     var xhr = new XMLHttpRequest();
@@ -519,7 +516,6 @@ function setupVue(query, page) {
                                     "error");
                             } else {
                                 $.each(respJSON.collection, function(index, value) {
-
                                     if (value.notes) {
                                         value.notes = marked(value.notes);
                                     }
@@ -572,10 +568,10 @@ function setupVue(query, page) {
                     $('#' + termDivId).remove();
                     indicatePendingSearchTerms();
                     new Noty({
-                        type: 'info',
+                        type: 'success',
                         text: '<b>Click here</b> to update your search results!',
-                        theme: 'mint',
-                        layout: 'bottomCenter',
+                        theme: 'semanticui',
+                        layout: 'topRight',
                         killer: true,
                         callbacks: {
                             onClick: function() {
