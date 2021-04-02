@@ -6,9 +6,10 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
-import org.elasticsearch.search.aggregations.bucket.significant.SignificantTerms;
+import org.elasticsearch.search.aggregations.bucket.terms.SignificantTerms;
 import org.json.JSONArray;
 
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,7 +31,7 @@ public class HighlySignificantTerms {
         this.inputTerms = Arrays.asList(inputTerms);
     }
 
-    public JSONArray terms() {
+    public JSONArray terms() throws UnknownHostException {
         JSONArray result = new JSONArray();
         List<String> englishValues = new ArrayList<>();
         List<String> arabicValues = new ArrayList<>();
@@ -46,7 +47,7 @@ public class HighlySignificantTerms {
         }
 
         SearchResponse resp = ClientProvider.instance().getClient().prepareSearch(ClientProvider.INDEX)
-                .setTypes(ClientProvider.TYPE).setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                                            .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
                 .setQuery(QueryBuilders.boolQuery().should(QueryBuilders.termsQuery("english", englishValues))
                         .should(QueryBuilders.termsQuery("arabic", arabicValues)).minimumShouldMatch((int) (this.inputTerms.size() * 0.25)))
                 .addAggregation(AggregationBuilders

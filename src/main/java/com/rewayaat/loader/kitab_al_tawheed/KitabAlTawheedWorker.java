@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -248,10 +249,10 @@ public class KitabAlTawheedWorker extends Thread {
         int tries = 0;
         while (successful == false && tries < 8) {
             try {
-                ClientProvider.instance().getClient().prepareIndex(ClientProvider.INDEX, ClientProvider.TYPE)
+                ClientProvider.instance().getClient().prepareIndex(ClientProvider.INDEX, "_doc")
                         .setSource(json).get();
                 successful = true;
-            } catch (NoNodeAvailableException e) {
+            } catch (NoNodeAvailableException | UnknownHostException e) {
                 tries++;
                 continue;
             }

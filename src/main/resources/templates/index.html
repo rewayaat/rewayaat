@@ -3,28 +3,31 @@
 
 <head>
     <meta charset="UTF-8"/>
-    <meta name="description" content="The ALI Hadith Database Project"/>
-    <meta name="keywords" content="hadith, sayings, hadith database project, shia, search, islam, narration, quran"/>
-    <meta name="author" content="HDP"/>
-    <meta name="google-signin-client_id"
-          content="776365081062-5fc66doo0k5jpg4nfnimkag81e02sb81.apps.googleusercontent.com"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
-    <link th:href="@{/css/select2.css}" href="/css/select2.css" rel="stylesheet"/>
-    <link rel="stylesheet" th:href="@{/css/theme.css}" href="/css/theme.css"/>
-    <link rel="stylesheet" th:href="@{/css/jquery.jscrollpane.css}" href="/css/jquery.jscrollpane.css"/>
-    <link rel="stylesheet" th:href="@{/css/sweetalert.css}" href="/css/sweetalert.css"/>
-    <link rel="stylesheet" th:href="@{/css/jsoneditor.min.css}" href="/css/jsoneditor.min.css"/>
+    <meta content="The ALI Hadith Database Project" name="description"/>
+    <meta content="hadith, sayings, hadith database project, shia, search, islam, narration, quran"
+          name="keywords"/>
+    <meta content="HDP" name="author"/>
+    <meta content="776365081062-5fc66doo0k5jpg4nfnimkag81e02sb81.apps.googleusercontent.com"
+          name="google-signin-client_id"/>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1" name="viewport"/>
+    <link href="/css/select2.css" rel="stylesheet" th:href="@{/css/select2.css}"/>
+    <link href="/css/theme.css" rel="stylesheet" th:href="@{/css/theme.css}"/>
+    <link href="/css/jquery.jscrollpane.css" rel="stylesheet"
+          th:href="@{/css/jquery.jscrollpane.css}"/>
+    <link href="/css/sweetalert.css" rel="stylesheet" th:href="@{/css/sweetalert.css}"/>
+    <link href="/css/jsoneditor.min.css" rel="stylesheet" th:href="@{/css/jsoneditor.min.css}"/>
     <link href="https://fonts.googleapis.com/css?family=Chivo" rel="stylesheet"/>
-    <link th:href="@{/css/noty.css}" href="/css/noty.css" rel="stylesheet"/>
+    <link href="/css/noty.css" rel="stylesheet" th:href="@{/css/noty.css}"/>
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400" rel="stylesheet"/>
-    <link th:href="@{/css/pace.css}" href="/css/pace.css" rel="stylesheet"/>
-    <link rel="stylesheet" type="text/css"
-          href="https://cdn.rawgit.com/vaakash/socializer/a4c672bf/css/socializer.min.css"/>
-    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
+    <link href="/css/pace.css" rel="stylesheet" th:href="@{/css/pace.css}"/>
+    <link href="https://cdn.rawgit.com/vaakash/socializer/a4c672bf/css/socializer.min.css" rel="stylesheet"
+          type="text/css"/>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+          rel="stylesheet"/>
 </head>
 
 <body>
-<div id="latest-news-bar"/>
+<div id="latest-news-bar"></div>
 <div id="header">
     <div class="uk-navbar-container tm-navbar-container"
          style="width: 100%; background-color: #f7f7f7; border-bottom: 1px solid rgba(0, 0, 0, 0.26);">
@@ -32,88 +35,103 @@
             <nav class="uk-navbar">
                 <ul class="uk-navbar-nav uk-visible@m">
                     <li>
-                        <a style="color: transparent;" href="/">
-                            <img src="img/ALI-Logo.png" style="margin-right: 15px; margin-top: 10px; width: 200px;"/>
+                        <a href="/" style="color: transparent;">
+                            <img src="img/ALI-Logo.png"
+                                 style="margin-right: 15px; margin-top: 10px; width: 200px;"/>
                         </a>
                     </li>
                 </ul>
                 <ul class="uk-navbar-nav uk-hidden@m">
                     <li>
-                        <a style="color: transparent;" href="/">
-                            <img src="img/ali_icon.png" style="margin-right: 15px; margin-top: 10px; width: 40px;"/>
+                        <a href="/" style="color: transparent;">
+                            <img src="img/ali_icon.png"
+                                 style="margin-right: 15px; margin-top: 10px; width: 40px;"/>
                         </a>
                     </li>
                 </ul>
-
-                <a uk-navbar-toggle-icon="" uk-toggle=""
-                   class="uk-navbar-toggle uk-navbar-toggle-icon uk-icon"></a>
+                <a class="uk-navbar-toggle uk-navbar-toggle-icon uk-icon" uk-navbar-toggle-icon=""
+                   uk-toggle=""></a>
 
                 <div class="uk-navbar-right">
                     <ul class="uk-navbar-nav">
                         <li id="signInBtnLi">
-                            <div style="margin-top: 10px; margin-right:20px;" data-theme="dark"
-
-                                 data-longtitle="false"
-                                 class="g-signin2" data-text="Sign In" data-onsuccess="onSignIn">Sign In
+                            <div class="g-signin2" data-longtitle="false"
+                                 data-onsuccess="onSignIn"
+                                 data-text="Sign In" data-theme="dark" style="margin-top: 10px; margin-right:20px;">
+                                Sign In
                             </div>
                         </li>
                     </ul>
                 </div>
-
             </nav>
         </div>
     </div>
 </div>
 <!---->
 <div class="sr-sharebar sr-sb-vl sr-sb-right uk-visible@m">
-    <div class="socializer a sr-48px sr-circle sr-zoom sr-vertical sr-icon-white sr-bg-dark sr-sw-3 sr-pad"><span
-            class="sr-email sr-text-in"><a href="mailto:rewayaat.org@gmail.com"
-                                           style="  background-color: #c9dfff; border: 1px solid gray;color: #383737;"
-                                           target="_blank" title="Email"><i
-            class="fa fa-envelope"></i><span class="text">Email</span></a></span><span class="sr-facebook sr-text-in"><a
-            style="  background-color: #c9dfff; border: 1px solid gray;color: #383737;"
-            href="https://www.facebook.com/academyofislam" target="_blank" title="Facebook"><i
-            class="fa fa-facebook"></i><span class="text">Facebook</span></a></span><span class="sr-twitter sr-text-in"><a
-            style="  background-color: #c9dfff; border: 1px solid gray;color: #383737;"
-            href="https://twitter.com/academyforislam" target="_blank" title="Twitter"><i
-            class="fa fa-twitter"></i><span
-            class="text">Twitter</span></a></span><span class="sr-github sr-text-in"><a
-            style="  background-color: #c9dfff; border: 1px solid gray;color: #383737;"
-            href="https://github.com/rewayaat/rewayaat" target="_blank" title="Github"><i class="fa fa-github"></i><span
-            class="text">Github</span></a></span><span class="sr-rest-api sr-text-in"><a
-            style="  background-color: #c9dfff; border: 1px solid gray;color: #383737;"
-            href="/swagger-ui.html" target="_blank" title="REST API"><i class="fa fa-code"></i><span
-            class="text">Github</span></a></span></div>
+    <div class="socializer a sr-48px sr-circle sr-zoom sr-vertical sr-icon-white sr-bg-dark sr-sw-3 sr-pad">
+        <span class="sr-email sr-text-in">
+            <a href="mailto:rewayaat.org@gmail.com" style="  background-color: #c9dfff; border: 1px solid gray;color: #383737;" target="_blank" title="Email">
+                <i class="fa fa-envelope"></i><span class="text">Email</span>
+            </a>
+        </span>
+        <span
+            class="sr-facebook sr-text-in">
+            <a href="https://www.facebook.com/academyofislam" style="  background-color: #c9dfff; border: 1px solid gray;color: #383737;" target="_blank" title="Facebook">
+                <i class="fa fa-facebook"></i>
+                <span class="text">Facebook</span>
+            </a>
+        </span>
+        <span class="sr-twitter sr-text-in">
+            <a href="https://twitter.com/academyforislam" style="  background-color: #c9dfff; border: 1px solid gray;color: #383737;" target="_blank" title="Twitter">
+                <i class="fa fa-twitter"></i>
+                <span class="text">Twitter</span>
+            </a>
+        </span>
+        <span class="sr-github sr-text-in">
+            <a href="https://github.com/rewayaat/rewayaat" style="  background-color: #c9dfff; border: 1px solid gray;color: #383737;" target="_blank" title="Github">
+                <i class="fa fa-github"></i>
+                <span class="text">Github</span>
+            </a>
+        </span>
+        <span class="sr-rest-api sr-text-in">
+            <a href="/swagger-ui.html"  style="  background-color: #c9dfff; border: 1px solid gray;color: #383737;" target="_blank" title="REST API">
+                <i class="fa fa-code"></i>
+                <span class="text">Github</span>
+            </a>
+        </span>
+    </div>
 </div>
 <!--  VUE APP  -->
-<div id="parentContainer" class="uk-container-large uk-align-center" style="margin-top: 0px;">
+<div class="uk-container-large uk-align-center" id="parentContainer" style="margin-top: 0px;">
     <div id="queryBar">
-        <select id="searchTerms" class="search-control" multiple="multiple"/>
+        <select class="search-control" id="searchTerms" multiple="multiple"></select>
         <div class="uk-navbar-item">
-            <a onclick="submitSearchQuery()" style="margin-left: auto; border-width: 1px; position: relative; border-radius: 3px; margin-left: auto;
-                  margin-right: auto; width: 150px;  display: inline-block; margin-top: 30px;  font-family: Chivo; font-size: 16px;"
-               id="searchBtn1"
-               class="uk-button uk-button-default tm-button-default uk-icon">
+            <a class="uk-button uk-button-default tm-button-default uk-icon" id="searchBtn1"
+               onclick="submitSearchQuery()"
+               style="margin-left: auto; border-width: 1px; position: relative; border-radius: 3px; margin-left: auto;
+                  margin-right: auto; width: 150px;  display: inline-block; margin-top: 30px;  font-family: Chivo; font-size: 16px;">
                 Search
             </a>
         </div>
     </div>
-    <div id="hadithView" class="uk-grid">
+    <div class="uk-grid" id="hadithView">
         <div style="padding-left: 40px;">
-            <h2 v-if="totalHits"
-                style="font-weight: normal; margin-left: -30px; margin-top: 20px; ">
-                <b v-html="totalHits"/> results found.
+            <h2 style="font-weight: normal; margin-left: -30px; margin-top: 20px; "
+                v-if="totalHits">
+                <b v-html="totalHits"></b> results found.
             </h2>
-            <p v-if="significantTerms.length" class="terms-suggestion">
+            <p class="terms-suggestion" v-if="significantTerms.length">
                 Not finding the hadith that you're looking for? Consider adding these <b>{{significantTerms.length}}</b>
                 terms to improve your query:
-                <a v-on:click="addTermToSearchBar(significantTerm, 'significant_term_' + index)"
-                   v-bind:id="'significant_term_' + index" v-bind:class="significant_btn_class(significantTerm)"
-                   style=""
-                   v-for="(significantTerm, index) in significantTerms" v-html="significantTerm">
+                <a style=""
+                   v-bind:class="significant_btn_class(significantTerm)"
+                   v-bind:id="'significant_term_' + index"
+                   v-for="(significantTerm, index) in significantTerms"
+                   v-html="significantTerm" v-on:click="addTermToSearchBar(significantTerm, 'significant_term_' + index)">
                 </a>
             </p>
-            <pagination/>
+            <pagination></pagination>
         </div>
         <div class="uk-card uk-align-center uk-card  uk-width-1-1 "
              style="margin-top: 40px; background-color: #efefef;  box-shadow: rgb(212, 212, 212) 15px 15px 15px;  border: 1px solid rgba(109, 109, 109, 0.52);"
@@ -137,14 +155,15 @@
                     </div>
                     <div style="padding-top: 0px; margin-right: auto; margin-left: auto; width:97%;">
                         <div>
-                            <a class="resp-sharing-button__link uk-align-right" v-bind:href="narration.facebook"
+                            <a aria-label=""
+                               class="resp-sharing-button__link uk-align-right"
                                target="_blank"
-                               aria-label="">
-                                <div title="Share hadith on  Facebook"
-                                     class="resp-sharing-button resp-sharing-button--facebook resp-sharing-button--small">
+                               v-bind:href="narration.facebook">
+                                <div class="resp-sharing-button resp-sharing-button--facebook resp-sharing-button--small"
+                                     title="Share hadith on  Facebook">
                                     <div aria-hidden="true"
                                          class="resp-sharing-button__icon resp-sharing-button__icon--solid">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path d="M18.77 7.46H14.5v-1.9c0-.9.6-1.1 1-1.1h3V.5h-4.33C10.24.5 9.5 3.44 9.5 5.32v2.15h-3v4h3v12h5v-12h3.85l.42-4z"/>
                                         </svg>
                                     </div>
@@ -152,13 +171,14 @@
                             </a>
 
                             <!-- Sharingbutton Twitter -->
-                            <a class="resp-sharing-button__link uk-align-right" v-bind:href="narration.twitter"
-                               target="_blank" aria-label="">
-                                <div title="Share hadith on  Twitter"
-                                     class="resp-sharing-button resp-sharing-button--twitter resp-sharing-button--small">
+                            <a aria-label=""
+                               class="resp-sharing-button__link uk-align-right"
+                               target="_blank" v-bind:href="narration.twitter">
+                                <div class="resp-sharing-button resp-sharing-button--twitter resp-sharing-button--small"
+                                     title="Share hadith on  Twitter">
                                     <div aria-hidden="true"
                                          class="resp-sharing-button__icon resp-sharing-button__icon--solid">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path d="M23.44 4.83c-.8.37-1.5.38-2.22.02.93-.56.98-.96 1.32-2.02-.88.52-1.86.9-2.9 1.1-.82-.88-2-1.43-3.3-1.43-2.5 0-4.55 2.04-4.55 4.54 0 .36.03.7.1 1.04-3.77-.2-7.12-2-9.36-4.75-.4.67-.6 1.45-.6 2.3 0 1.56.8 2.95 2 3.77-.74-.03-1.44-.23-2.05-.57v.06c0 2.2 1.56 4.03 3.64 4.44-.67.2-1.37.2-2.06.08.58 1.8 2.26 3.12 4.25 3.16C5.78 18.1 3.37 18.74 1 18.46c2 1.3 4.4 2.04 6.97 2.04 8.35 0 12.92-6.92 12.92-12.93 0-.2 0-.4-.02-.6.9-.63 1.96-1.22 2.56-2.14z"
                                             />
                                         </svg>
@@ -166,80 +186,88 @@
                                 </div>
                             </a>
                             <!-- Copy Link -->
-                            <div class="resp-sharing-button__link uk-align-right" aria-label="">
+                            <div aria-label="" class="resp-sharing-button__link uk-align-right">
                                 <div
-                                        title="Click to get a URL for this hadith" style="background: transparent;
+                                        class="resp-sharing-button  resp-sharing-button--small" style="background: transparent;
                                            color: #222;
                                               font-size: 1.25em;
-        margin-right: -10px; cursor:pointer; width: 40%; " class="resp-sharing-button  resp-sharing-button--small">
+        margin-right: -10px; cursor:pointer; width: 40%; "
+                                        title="Click to get a URL for this hadith">
                                     <div aria-hidden="true"
                                          class="resp-sharing-button__icon resp-sharing-button__icon--solid">
-                                        <i v-on:click="showHadithURL(narration._id)" class="fa fa-share-square-o"></i>
+                                        <i class="fa fa-share-square-o"
+                                           v-on:click="showHadithURL(narration._id)"></i>
                                     </div>
                                 </div>
                             </div>
                             <!-- Edit Hadith -->
-                            <div v-if="signedIn" class="resp-sharing-button__link uk-align-right" aria-label="">
-                                <div title="Click to edit this hadith" style="background: transparent;
+                            <div aria-label="" class="resp-sharing-button__link uk-align-right"
+                                 v-if="signedIn">
+                                <div class="resp-sharing-button  resp-sharing-button--small" style="background: transparent;
                                            color: #222;
                                               font-size: 1.3em;
-        margin-right: -17px; cursor:pointer; width: 40%; " class="resp-sharing-button  resp-sharing-button--small">
+        margin-right: -17px; cursor:pointer; width: 40%; "
+                                     title="Click to edit this hadith">
                                     <div aria-hidden="true"
                                          class="resp-sharing-button__icon resp-sharing-button__icon--solid">
-                                        <i v-on:click="editHadith(index)" class="fa fa-pencil-square-o"></i>
+                                        <i class="fa fa-pencil-square-o"
+                                           v-on:click="editHadith(index)"></i>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div uk-switcher="animation: uk-animation-fade">
-                            <button style="font-size: 14px; font-family: Open Sans; padding: 0px 30px;     margin: 15px 15px 0px 0px;"
+                            <button class="uk-button uk-button-default"
 
-                                    type="button" v-if="narration.arabic"
-                                    class="uk-button uk-button-default">Arabic
+                                    style="font-size: 14px; font-family: Open Sans; padding: 0px 30px;     margin: 15px 15px 0px 0px;" type="button"
+                                    v-if="narration.arabic">Arabic
                             </button>
-                            <button type="button"
+                            <button class="uk-button uk-active uk-button-default"
                                     style="font-size: 14px; font-family: Open Sans; padding: 0px 30px;     margin: 15px 15px 0px 0px;"
-                                    v-if="narration.english"
-                                    class="uk-button uk-active uk-button-default">English
+                                    type="button"
+                                    v-if="narration.english">English
                             </button>
-                            <button type="button"
+                            <button class="uk-button uk-button-default"
                                     style="font-size: 14px; font-family: Open Sans; padding: 0px 30px;     margin: 15px 15px 0px 0px;"
-                                    v-if="narration.notes"
-                                    class="uk-button uk-button-default">Notes
+                                    type="button"
+                                    v-if="narration.notes">Notes
                             </button>
-                            <button type="button"
+                            <button class="uk-button uk-button-default"
                                     style="font-size: 14px; font-family: Open Sans; padding: 0px 30px;     margin: 15px 15px 0px 0px;"
-                                    v-if="narration.related.length > 0"
-                                    class="uk-button uk-button-default">Related
+                                    type="button"
+                                    v-if="narration.related.length > 0">Related
                             </button>
-                            <button type="button"
+                            <button class="uk-button uk-button-default"
                                     style="font-size: 14px; font-family: Open Sans; padding: 0px 30px;     margin: 15px 15px 0px 0px;"
-                                    v-if="signedIn"
-                                    class="uk-button uk-button-default">History
+                                    type="button"
+                                    v-if="signedIn">History
                             </button>
                         </div>
-                        <ul style="color: rgba(0, 0, 0, 0.35); box-shadow: rgb(198, 209, 218) 0px 0px 40px inset; border-style: solid; border-width: 1px; background:rgb(253, 253, 253);"
-                            class="uk-switcher uk-margin">
+                        <ul class="uk-switcher uk-margin"
+                            style="color: rgba(0, 0, 0, 0.35); box-shadow: rgb(198, 209, 218) 0px 0px 40px inset; border-style: solid; border-width: 1px; background:rgb(253, 253, 253);">
 
                             <li v-if="narration.arabic">
-                                <div class="arabicHadithText scrollable style-1" v-html="narration.arabic"></div>
+                                <div class="arabicHadithText scrollable style-1"
+                                     v-html="narration.arabic"></div>
                             </li>
                             <li v-if="narration.english">
-                                <div class="hadithText scrollable style-1" v-html="narration.english"></div>
+                                <div class="hadithText scrollable style-1"
+                                     v-html="narration.english"></div>
                             </li>
                             <li v-if="narration.notes">
                                 <div class="hadithText scrollable" v-html="narration.notes"></div>
                             </li>
                             <li class="relatedObjList" v-if="narration.related.length > 0">
-                                <a class="relatedObj " v-for="relatedObj in narration.related"
-                                   v-bind:href="relatedObj.url">
-                                    <div style="margin: 20px; padding: 20px;"
-                                         class="uk-card uk-card-default uk-card-small uk-card uk-animation-slide-left-small relatedObj">
-                                        <h4 class="uk-text-uppercase" style="font-family: Chivo; font-weight: 600">
-                                            <i class="fa fa-external-link" aria-hidden="true"></i>
+                                <a class="relatedObj " v-bind:href="relatedObj.url"
+                                   v-for="relatedObj in narration.related">
+                                    <div class="uk-card uk-card-default uk-card-small uk-card uk-animation-slide-left-small relatedObj"
+                                         style="margin: 20px; padding: 20px;">
+                                        <h4 class="uk-text-uppercase"
+                                            style="font-family: Chivo; font-weight: 600">
+                                            <i aria-hidden="true" class="fa fa-external-link"></i>
                                             <span style="color: #22df80;">{{relatedObj.title}}</span>
                                         </h4>
-                                        <div style="font-family: Open Sans" class="uk-text-meta">
+                                        <div class="uk-text-meta" style="font-family: Open Sans">
                                             {{relatedObj.description}}
                                         </div>
                                     </div>
@@ -259,62 +287,64 @@
             </div>
             <!-- END OF HADITH TEXT SECTION -->
         </div>
-        <pagination style="margin-top: 35px;margin-bottom: 45px;margin-left: -10px;"/>
+        <pagination style="margin-top: 35px;margin-bottom: 45px;margin-left: -10px;"></pagination>
     </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-<script th:src="@{/js/vue.js}" src="/js/vue.js"></script>
+<script src="/js/vue.js" th:src="@{/js/vue.js}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.7/js/select2.min.js"></script>
-<script src="https://cdn.ravenjs.com/3.22.3/raven.min.js" crossorigin="anonymous"></script>
+<script crossorigin="anonymous" src="https://cdn.ravenjs.com/3.22.3/raven.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/noty/3.1.4/noty.min.js"></script>
-<script src="https://cdn.lr-ingest.io/LogRocket.min.js" crossorigin="anonymous"></script>
-<script th:src="@{/js/rewayaat.js?v=7}" src="/js/rewayaat.js?v=7"></script>
+<script crossorigin="anonymous" src="https://cdn.lr-ingest.io/LogRocket.min.js"></script>
+<script src="/js/rewayaat.js?v=8" th:src="@{/js/rewayaat.js?v=8}"></script>
 <script src="https://apis.google.com/js/platform.js"></script>
-<script th:async="async" th:src="@{/js/pace.min.js}" src="/js/pace.min.js"></script>
-<script th:async="async" th:src="@{/js/uikit.min.js}" src="/js/uikit.min.js"></script>
-<script th:defer="defer" src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.6/marked.min.js"></script>
-<script th:defer="defer" th:src="@{/js/sweetalert-dev.js}" src="/js/sweetalert-dev.js"></script>
-<script th:defer="defer" th:src="@{/js/uikit-icons.js}" src="/js/uikit-icons.js"></script>
-<script th:defer="defer" th:src="@{/js/jquery.mousewheel.js}" src="/js/jquery.mousewheel.js"></script>
-<script th:defer="defer" th:src="@{/js/jquery.jscrollpane.js}" src="/js/jquery.jscrollpane.js"></script>
-<script th:defer="defer" th:src="@{/js/jsoneditor.min.js}" src="/js/jsoneditor.min.js"></script>
+<script src="/js/pace.min.js" th:async="async" th:src="@{/js/pace.min.js}"></script>
+<script src="/js/uikit.min.js" th:async="async" th:src="@{/js/uikit.min.js}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.6/marked.min.js"
+        th:defer="defer"></script>
+<script src="/js/sweetalert-dev.js" th:defer="defer" th:src="@{/js/sweetalert-dev.js}"></script>
+<script src="/js/uikit-icons.js" th:defer="defer" th:src="@{/js/uikit-icons.js}"></script>
+<script src="/js/jquery.mousewheel.js" th:defer="defer"
+        th:src="@{/js/jquery.mousewheel.js}"></script>
+<script src="/js/jquery.jscrollpane.js" th:defer="defer"
+        th:src="@{/js/jquery.jscrollpane.js}"></script>
+<script src="/js/jsoneditor.min.js" th:defer="defer" th:src="@{/js/jsoneditor.min.js}"></script>
 <!--  LOAD THE MENU BAR AT THE TOP -->
 <div id="welcome"></div>
 <div id="modal"></div>
 <!---->
 <script th:inline="javascript" type="text/javascript">
-            var query = [[${ query }]];
-            var page = [[${ page }]];
-            loadQuery(query, page);
-
-
+    /*<![CDATA[*/
+    $(document).ready(function() {
+       var query = [[${query}]];
+       var page = [[${page}]];
+       loadQuery(query, page);
+    });
+    /*]]>*/
 
 </script>
-<script>
-            (function (i, s, o, g, r, a, m) {
-                i['GoogleAnalyticsObject'] = r;
-                i[r] = i[r] || function () {
-                    (i[r].q = i[r].q || []).push(arguments)
-                }, i[r].l = 1 * new Date();
-                a = s.createElement(o), m = s.getElementsByTagName(o)[0];
-                a.async = 1;
-                a.src = g;
-                m.parentNode.insertBefore(a, m)
-            })(window, document, 'script',
-                'https://www.google-analytics.com/analytics.js', 'ga');
-
-            ga('create', 'UA-99916919-1', 'auto');
-            ga('send', 'pageview');
-
-
+<script th:inline="javascript" type="text/javascript">
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+            (i[r].q = i[r].q || []).push(arguments)
+        }, i[r].l = 1 * new Date();
+        a = s.createElement(o), m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script',
+        'https://www.google-analytics.com/analytics.js', 'ga');
+    ga('create', 'UA-99916919-1', 'auto');
+    ga('send', 'pageview');
 
 </script>
 <script type="text/javascript">
-    // <![CDATA[
-    window.LogRocket && window.LogRocket.init('ctebns/rewyaat');
-    // ]]>
-
-
+    if (location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
+        // <![CDATA[
+        window.LogRocket && window.LogRocket.init('ctebns/rewyaat');
+        // ]]>
+    }
 
 </script>
 </body>

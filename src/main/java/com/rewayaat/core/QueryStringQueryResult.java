@@ -1,10 +1,8 @@
 package com.rewayaat.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rewayaat.RewayaatLogger;
 import com.rewayaat.config.ClientProvider;
 import com.rewayaat.core.data.HadithObject;
-import org.apache.log4j.spi.LoggerFactory;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -12,6 +10,8 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.elasticsearch.search.sort.SortOrder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -25,13 +25,7 @@ import java.util.Map.Entry;
  */
 public class QueryStringQueryResult implements RewayaatQueryResult {
 
-    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(QueryStringQueryResult.class.getName(), new LoggerFactory() {
-        @Override
-        public org.apache.log4j.Logger makeNewLoggerInstance(String name) {
-            return new RewayaatLogger(name);
-        }
-    });
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(QueryStringQueryResult.class);
     // Do not change without considering impact on front-end
     private int pageSize;
     private String userQuery;
@@ -50,15 +44,17 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
         List<HadithObject> hadithes = new ArrayList<HadithObject>();
         String fuzziedQuery = new RewayaatQuery(userQuery).query();
 
-        HighlightBuilder highlightBuilder = new HighlightBuilder().field("english").field("all").field("notes").field("arabic")
+        HighlightBuilder highlightBuilder =
+            new HighlightBuilder().field("english").field("allFields").field("notes").field("arabic")
                 .field("book").field("section").field("part").field("chapter").field("publisher").field("source")
                 .field("volume").postTags("</span>").preTags("<span class=\"highlight\">")
-                .highlightQuery(QueryBuilders.queryStringQuery(fuzziedQuery).useAllFields(true))
-                .highlightQuery(QueryBuilders.queryStringQuery(userQuery).useAllFields(true).analyzer("search_analyzer"))
+                .highlightQuery(QueryBuilders.queryStringQuery(fuzziedQuery).defaultField("*"))
+                .highlightQuery(QueryBuilders.queryStringQuery(userQuery).defaultField("*").analyzer(
+                    "search_analyzer"))
                 .numOfFragments(0);
 
         SearchResponse resp = ClientProvider.instance().getClient().prepareSearch(ClientProvider.INDEX)
-                .setTypes(ClientProvider.TYPE).setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
                 .setQuery(QueryBuilders.boolQuery().should(QueryBuilders.queryStringQuery(fuzziedQuery))
                         .should(QueryBuilders.queryStringQuery(userQuery).analyzer("search_analyzer").boost(10)))
                 .highlighter(highlightBuilder).setFrom(page * this.pageSize).setSize(this.pageSize).setExplain(true)
@@ -68,7 +64,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
         System.out.println("Current results: " + results.length);
         for (SearchHit hit : results) {
             System.out.println("------------------------------");
-            Map<String, Object> result = hit.getSource();
+            Map<String, Object> result = hit.getSourceAsMap();
             result.put("_id", hit.getId());
             for (Entry<String, HighlightField> entry : hit.getHighlightFields().entrySet()) {
                 // Add the highlighted fragment if it is not a Qur'anic verse.
@@ -90,9 +86,9 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                         System.out.println(hadithes.get(i).toString());
                         try {
                             Map duplicatedHadith = mapper.convertValue(hadithes.get(i), Map.class);
-                            ClientProvider.instance().getClient().prepareDelete(ClientProvider.INDEX, ClientProvider.TYPE, (String) duplicatedHadith.get("_id")).get();
+                            ClientProvider.instance().getClient().prepareDelete(ClientProvider.INDEX, "_doc", (String) duplicatedHadith.get("_id")).get();
                         } catch (Exception e) {
-                            log.error("Unable to delete duplicated hadith: " + hadithes.get(i).toString(), e);
+                            LOGGER.error("Unable to delete duplicated hadith: " + hadithes.get(i).toString(), e);
                         }
                     }
                 }
@@ -100,6 +96,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
         }
 
         // Return result set with duplicates removed.
-        return new HadithObjectCollection(new LinkedList<>(new LinkedHashSet<>(hadithes)), resp.getHits().getTotalHits());
+        return new HadithObjectCollection(new LinkedList<>(new LinkedHashSet<>(hadithes)),
+                                          resp.getHits().getTotalHits().value);
     }
 }

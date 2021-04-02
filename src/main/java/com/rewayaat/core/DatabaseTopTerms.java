@@ -4,9 +4,12 @@ import com.rewayaat.config.ClientProvider;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.BucketOrder;
+import org.elasticsearch.search.aggregations.bucket.terms.IncludeExclude;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
-import org.elasticsearch.search.aggregations.bucket.terms.support.IncludeExclude;
 import org.json.JSONArray;
+
+import java.net.UnknownHostException;
 
 /**
  * Represents a collections of the most frequently used terms in the database.
@@ -27,15 +30,15 @@ public class DatabaseTopTerms {
         }
     }
 
-    public JSONArray terms() {
+    public JSONArray terms() throws UnknownHostException {
         JSONArray result = new JSONArray();
         SearchResponse resp = ClientProvider.instance().getClient().prepareSearch(ClientProvider.INDEX)
-                .setTypes(ClientProvider.TYPE).setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
                 .addAggregation(AggregationBuilders
                         .terms("topterms")
                         .field(this.language)
                         .size(this.size)
-                        .order(Terms.Order.count(false))
+                        .order(BucketOrder.count(false))
                         .includeExclude(new IncludeExclude(this.prefix + ".*", null)))
                 .get();
         Terms topterms = resp.getAggregations().get("topterms");

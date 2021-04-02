@@ -1,7 +1,6 @@
 package com.rewayaat.controllers.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rewayaat.RewayaatLogger;
 import com.rewayaat.config.ClientProvider;
 import com.rewayaat.core.HadithObjectCollection;
 import com.rewayaat.core.QueryStringQueryResult;
@@ -12,10 +11,11 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.apache.log4j.spi.LoggerFactory;
 import org.elasticsearch.action.get.GetResponse;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
@@ -42,13 +42,7 @@ import java.util.Iterator;
 @RequestMapping("/v1/narrations")
 public class HadithController {
 
-    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(HadithController.class.getName(), new LoggerFactory() {
-        @Override
-        public org.apache.log4j.Logger makeNewLoggerInstance(String name) {
-            return new RewayaatLogger(name);
-        }
-    });
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(HadithController.class);
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
@@ -78,7 +72,7 @@ public class HadithController {
         if (perPage > 100) {
             perPage = 100;
         }
-        log.info("Entered hadith query API with query: " + query + " and page: " + page + " and per_page: " + perPage);
+        LOGGER.info("Entered hadith query API with query: " + query + " and page: " + page + " and per_page: " + perPage);
         return new QueryStringQueryResult(query, page - 1, perPage).result();
     }
 
@@ -92,14 +86,15 @@ public class HadithController {
         try {
             if (new User(idToken).isAdmin()) {
                 modifiedHadithStr = Jsoup.parse(modifiedHadithStr).text();
-                log.info("Recieved Modification Request for hadith: " + hadithId);
+                LOGGER.info("Recieved Modification Request for hadith: " + hadithId);
                 JSONObject modifiedHadith = new JSONObject(modifiedHadithStr);
-                GetResponse response = ClientProvider.instance().getClient().prepareGet(ClientProvider.INDEX, ClientProvider.TYPE, hadithId)
-                        .setOperationThreaded(false)
+                GetResponse response =
+                    ClientProvider.instance().getClient().prepareGet(
+                        ClientProvider.INDEX, "_doc", hadithId)
                         .get();
                 String responseStr = new JSONObject(new String(response.getSourceAsBytes())).toString(2);
-                log.info("Original hadith is:\n" + responseStr);
-                log.info("Modification request:\n" + modifiedHadith.toString(2));
+                LOGGER.info("Original hadith is:\n" + responseStr);
+                LOGGER.info("Modification request:\n" + modifiedHadith.toString(2));
                 JSONObject existingHadith = new JSONObject(responseStr);
                 // add all the values from the modification object to the stored hadith object
                 Iterator<?> keys = modifiedHadith.keys();
@@ -119,7 +114,7 @@ public class HadithController {
                 throw new AuthenticationException("Unauthorized to modify hadith: " + hadithId);
             }
         } catch (Exception e) {
-            log.error("Unable to modify hadith: " + hadithId, e);
+            LOGGER.error("Unable to modify hadith: " + hadithId, e);
             throw e;
         }
     }

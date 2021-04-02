@@ -1,14 +1,13 @@
 package com.rewayaat.controllers.rest;
 
-import com.rewayaat.RewayaatLogger;
 import com.rewayaat.core.DatabaseTopTerms;
 import com.rewayaat.core.HighlySignificantTerms;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.apache.log4j.spi.LoggerFactory;
-import org.hibernate.validator.constraints.Range;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
@@ -20,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import java.util.List;
 
 /**
@@ -30,12 +31,7 @@ import java.util.List;
 @RequestMapping("/v1/terms")
 public class TermsController {
 
-    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TermsController.class.getName(), new LoggerFactory() {
-        @Override
-        public org.apache.log4j.Logger makeNewLoggerInstance(String name) {
-            return new RewayaatLogger(name);
-        }
-    });
+    private static final Logger LOGGER = LoggerFactory.getLogger(TermsController.class);
 
     @Autowired
     private CacheManager cacheManager;
@@ -54,7 +50,7 @@ public class TermsController {
     @RequestMapping(value = "/top", method = RequestMethod.GET, produces = "application/json")
     public ResponseEntity<String> topTerms(
             @ApiParam(name = "size", value = "Number of top terms to include.")
-            @RequestParam(value = "size", defaultValue = "10") @Range(min = 1, max = 10) int size,
+            @RequestParam(value = "size", defaultValue = "10") @Min(1) @Max(10) int size,
             @ApiParam(name = "term", value = "Term to filter results by, must be a minimum length of 2.")
             @RequestParam(value = "term", required = true) String prefix) throws Exception {
 
@@ -80,7 +76,7 @@ public class TermsController {
     @RequestMapping(value = "/significant", method = RequestMethod.GET, produces = "application/json")
     public ResponseEntity<String> significantTerms(
             @ApiParam(name = "size", value = "Number of significant terms to include.")
-            @RequestParam(value = "size", defaultValue = "5") @Range(min = 1, max = 10) int size,
+            @RequestParam(value = "size", defaultValue = "5") @Min(1) @Max(10) int size,
             @ApiParam(name = "inputTerms", value = "Comma separated list of input terms for which to retrieve highly significant terms.")
             @RequestParam(value = "inputTerms", required = true) String inputTerms) throws Exception {
 

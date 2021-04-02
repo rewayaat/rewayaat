@@ -66,7 +66,7 @@ public class MujamLoader {
             byte[] json;
             try {
                 json = mapper.writeValueAsBytes(obj);
-                ClientProvider.instance().getClient().prepareIndex(ClientProvider.INDEX, ClientProvider.TYPE)
+                ClientProvider.instance().getClient().prepareIndex(ClientProvider.INDEX, "_doc")
                         .setSource(json).get();
                 return;
             } catch (Exception e) {

@@ -157,10 +157,8 @@ function splitQuery(query) {
 }
 
 async function displayQuery(query) {
-
     // 1 --> split query on spaces and quotes
     searchTermsArray = splitQuery(query)
-
     // 2 --> populate search bar with options
     var selectSearchTerms = document.getElementById("searchTerms");
     for (term in searchTermsArray) {
@@ -169,16 +167,13 @@ async function displayQuery(query) {
         option.selected = true;
         selectSearchTerms.add(option);
     }
-
     // initialize select2
     initSelect2('searchTerms');
     // setup select2 select handler
     select2SelectHandler('searchTerms');
-
     // display search bar
     var queryBar = document.getElementById("queryBar");
     $(queryBar).css('display', 'block');
-
     // setup enter key listener
     setupSelect2EnterKeyListener('searchTerms');
 }
@@ -195,7 +190,6 @@ function changeCardWidth() {
             "margin-right": "0px",
             "padding-left": "5px"
         });
-
     };
     if ($(window).width() >= 768) {
         $('.uk-container-large').css({
@@ -288,8 +282,7 @@ function indicatePendingSearchTerms() {
  */
 function setupVue(query, page) {
     // create hadith details component
-    Vue
-        .component(
+    Vue.component(
             'hadith-details', {
                 template: '<div><div v-on:click="showBookBlurb(narration.book)" title="Book" uk-tooltip="pos: right"  class="uk-align-left" >' +
                     '	<i style="color: rgb(83, 102, 125);" class="fa fa-book hadithDetailsIcon"' +
@@ -450,7 +443,7 @@ function setupVue(query, page) {
                 if (n !== this.$root.page) {
                     window.location.href = window.location.protocol + "//" +
                         window.location.host + window.location.pathname + '?' + 'q=' +
-                        getQueryStringValue('q') + '&page=' + n;
+                        encodeURIComponent(getQueryStringValue('q')) + '&page=' + n;
                 }
             }
         }
@@ -458,10 +451,9 @@ function setupVue(query, page) {
 
     // clear welcome page content
     document.getElementById('welcome').innerHTML = '';
-
     // get book blurbs info
     $.getJSON("book_blurbs.json", function(book_blurbs) {
-
+        // Setup hadith vue component
         vueApp = new Vue({
             el: '#hadithView',
             data: {
@@ -525,7 +517,6 @@ function setupVue(query, page) {
                                     value = socialMediaDecoratedHadith(value);
                                     self.narrations.push(value);
                                     console.log(value);
-
                                 });
                                 // set total results size value
                                 self.totalHits = respJSON.totalResultSetSize;

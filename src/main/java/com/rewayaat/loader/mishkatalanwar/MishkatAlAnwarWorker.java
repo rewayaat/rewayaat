@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -244,9 +245,9 @@ public class MishkatAlAnwarWorker extends Thread {
                     if (completedHadith.getArabic() == null) {
                         writer.println("HADITH NUMBER " + completedHadith.getNumber() + " HAD NO ARABIC TEXT!");
                     }
-                    ClientProvider.instance().getClient().prepareIndex(ClientProvider.INDEX, ClientProvider.TYPE)
+                    ClientProvider.instance().getClient().prepareIndex(ClientProvider.INDEX, "_doc")
                             .setSource(json).get();
-                } catch (NoNodeAvailableException e) {
+                } catch (NoNodeAvailableException | UnknownHostException e) {
                     writer.println("No Node available Exception while processing current Hadith, will try AGAIN!:\n"
                             + getOldestHadith().toString() + "\n");
                     e.printStackTrace(writer);

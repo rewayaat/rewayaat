@@ -3,21 +3,22 @@ package com.rewayaat.config;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 
 @Configuration
 @PropertySource("classpath:production.properties")
 public class ClientProvider implements EnvironmentAware {
 
     public final static String INDEX = "rewayaat";
-    public final static String TYPE = "rewayaat";
     private static ClientProvider instance = null;
     private static Object lock = new Object();
     private Client client;
@@ -38,11 +39,12 @@ public class ClientProvider implements EnvironmentAware {
         return instance;
     }
 
-    public void prepareClient() {
-        Settings settings = Settings.builder().put("client.transport.sniff", false).put("cluster.name", "elasticsearch")
-                .build();
-        TransportClient client = new PreBuiltTransportClient(settings)
-                .addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(host, port)));
+    public void prepareClient() throws UnknownHostException {
+        Settings settings = Settings.builder().put("client.transport.sniff", false)
+                                    .put("cluster.name", "elasticsearch")
+                                    .build();
+        Client client = new PreBuiltTransportClient(settings)
+                .addTransportAddress(new TransportAddress(InetAddress.getByName(host), port));
         this.client = client;
     }
 
@@ -50,7 +52,7 @@ public class ClientProvider implements EnvironmentAware {
         client.close();
     }
 
-    public Client getClient() {
+    public Client getClient() throws UnknownHostException {
         if (client == null) {
             prepareClient();
         }

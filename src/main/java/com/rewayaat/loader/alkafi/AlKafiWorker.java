@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -320,10 +321,10 @@ public class AlKafiWorker extends Thread {
         return arabicChunks;
     }
 
-    public void saveHadith() throws JsonProcessingException {
+    public void saveHadith() throws JsonProcessingException, UnknownHostException {
         ObjectMapper mapper = new ObjectMapper();
         byte[] json = mapper.writeValueAsBytes(currentHadith);
-        ClientProvider.instance().getClient().prepareIndex(ClientProvider.INDEX, ClientProvider.TYPE).setSource(json)
+        ClientProvider.instance().getClient().prepareIndex(ClientProvider.INDEX, "_doc").setSource(json)
                 .get();
     }
 

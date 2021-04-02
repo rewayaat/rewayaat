@@ -1,8 +1,8 @@
 package com.rewayaat.core;
 
-import com.rewayaat.RewayaatLogger;
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.spi.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
@@ -14,12 +14,7 @@ import java.util.List;
  */
 public class User {
 
-    private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(User.class.getName(), new LoggerFactory() {
-        @Override
-        public org.apache.log4j.Logger makeNewLoggerInstance(String name) {
-            return new RewayaatLogger(name);
-        }
-    });
+    private static final Logger LOGGER = LoggerFactory.getLogger(User.class);
     private final String email;
 
     public User(String idToken) throws Exception {
@@ -31,14 +26,14 @@ public class User {
             Resource resource = new ClassPathResource("admins.txt");
             List<String> lines = Arrays.asList(IOUtils.toString(resource.getInputStream(), "UTF-8").split("\n"));
             if (lines.contains(email)) {
-                log.info("User is an administrator");
+                LOGGER.info("User is an administrator");
                 return true;
             } else {
-                log.info("User is not an administrator");
+                LOGGER.info("User is not an administrator");
                 return false;
             }
         } catch (Exception e) {
-            log.error("Could not process id token.", e);
+            LOGGER.error("Could not process id token.", e);
             return false;
         }
     }

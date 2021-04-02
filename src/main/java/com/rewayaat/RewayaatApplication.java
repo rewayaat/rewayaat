@@ -1,43 +1,23 @@
 package com.rewayaat;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.spi.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.ComponentScan;
 
 /**
- * Rewayaat web application entry point.
+ * Main entrypoint to rewayaat app.
  */
 @EnableCaching
-@EnableAutoConfiguration
-@ComponentScan
+@ComponentScan("com.rewayaat.controllers")
 @SpringBootApplication
-public class RewayaatApplication extends SpringBootServletInitializer {
+public class RewayaatApplication {
 
-    private static Logger log = Logger.getLogger(RewayaatApplication.class.getName(), new LoggerFactory() {
-        @Override
-        public Logger makeNewLoggerInstance(String name) {
-            return new RewayaatLogger(name);
-        }
-    });
+    private static final Logger LOGGER = LoggerFactory.getLogger(RewayaatApplication.class);
 
     public static void main(String[] args) {
-
         SpringApplication.run(RewayaatApplication.class, args);
-
-        // refresh the elastic search index
-        Runnable task = () -> {
-            try {
-                RefreshSynonymFilter.refresh();
-            } catch (Exception e) {
-                log.error("Unable to refresh synonyms list!", e);
-                e.printStackTrace();
-            }
-        };
-        task.run();
     }
 }
