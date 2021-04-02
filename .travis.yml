@@ -2,6 +2,10 @@ language:
 - java
 dist: trusty
 sudo: required
+before_install:
+  - pyenv global 3.7.1
+  - pip install -U pip
+  - pip install awscli
 install:
   - . $HOME/.nvm/nvm.sh
   - nvm install stable
