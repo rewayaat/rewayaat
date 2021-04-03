@@ -213,7 +213,7 @@ function displayWelcomeContent() {
     vueApp = new Vue({
         el: '#hadithView'
     });
-    $("#welcome").load("/welcome.html", function(responseData) {
+    $("#welcome").load("/welcome.html?v=2", function(responseData) {
         // initialize select2
         initSelect2('searchTerms2');
         // setup select2 select handler
