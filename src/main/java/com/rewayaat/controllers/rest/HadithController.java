@@ -1,7 +1,7 @@
 package com.rewayaat.controllers.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rewayaat.config.ClientProvider;
+import com.rewayaat.config.ESClientProvider;
 import com.rewayaat.core.HadithObjectCollection;
 import com.rewayaat.core.QueryStringQueryResult;
 import com.rewayaat.core.UpdateRequest;
@@ -89,9 +89,9 @@ public class HadithController {
                 LOGGER.info("Recieved Modification Request for hadith: " + hadithId);
                 JSONObject modifiedHadith = new JSONObject(modifiedHadithStr);
                 GetResponse response =
-                    ClientProvider.instance().getClient().prepareGet(
-                        ClientProvider.INDEX, "_doc", hadithId)
-                        .get();
+                    ESClientProvider.instance().getClient().prepareGet(
+                        ESClientProvider.INDEX, "_doc", hadithId)
+                                    .get();
                 String responseStr = new JSONObject(new String(response.getSourceAsBytes())).toString(2);
                 LOGGER.info("Original hadith is:\n" + responseStr);
                 LOGGER.info("Modification request:\n" + modifiedHadith.toString(2));

@@ -3,7 +3,7 @@ package com.rewayaat.loader.kitab_al_tawheed;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Files;
-import com.rewayaat.config.ClientProvider;
+import com.rewayaat.config.ESClientProvider;
 import com.rewayaat.core.data.HadithObject;
 import com.rewayaat.loader.LoaderUtil;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -249,8 +249,8 @@ public class KitabAlTawheedWorker extends Thread {
         int tries = 0;
         while (successful == false && tries < 8) {
             try {
-                ClientProvider.instance().getClient().prepareIndex(ClientProvider.INDEX, "_doc")
-                        .setSource(json).get();
+                ESClientProvider.instance().getClient().prepareIndex(ESClientProvider.INDEX, "_doc")
+                                .setSource(json).get();
                 successful = true;
             } catch (NoNodeAvailableException | UnknownHostException e) {
                 tries++;

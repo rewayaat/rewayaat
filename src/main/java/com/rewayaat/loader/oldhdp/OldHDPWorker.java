@@ -1,7 +1,7 @@
 package com.rewayaat.loader.oldhdp;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rewayaat.config.ClientProvider;
+import com.rewayaat.config.ESClientProvider;
 import com.rewayaat.core.data.HadithObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -145,8 +145,8 @@ public class OldHDPWorker extends Thread {
             byte[] json;
             try {
                 json = mapper.writeValueAsBytes(obj);
-                ClientProvider.instance().getClient().prepareIndex(ClientProvider.INDEX, "_doc")
-                        .setSource(json).get();
+                ESClientProvider.instance().getClient().prepareIndex(ESClientProvider.INDEX, "_doc")
+                                .setSource(json).get();
                 return;
             } catch (Exception e) {
                 // TODO Auto-generated catch block

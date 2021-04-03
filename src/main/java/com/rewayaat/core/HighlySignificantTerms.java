@@ -1,6 +1,6 @@
 package com.rewayaat.core;
 
-import com.rewayaat.config.ClientProvider;
+import com.rewayaat.config.ESClientProvider;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
@@ -46,15 +46,15 @@ public class HighlySignificantTerms {
             }
         }
 
-        SearchResponse resp = ClientProvider.instance().getClient().prepareSearch(ClientProvider.INDEX)
-                                            .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-                .setQuery(QueryBuilders.boolQuery().should(QueryBuilders.termsQuery("english", englishValues))
+        SearchResponse resp = ESClientProvider.instance().getClient().prepareSearch(ESClientProvider.INDEX)
+                                              .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                                              .setQuery(QueryBuilders.boolQuery().should(QueryBuilders.termsQuery("english", englishValues))
                         .should(QueryBuilders.termsQuery("arabic", arabicValues)).minimumShouldMatch((int) (this.inputTerms.size() * 0.25)))
-                .addAggregation(AggregationBuilders
+                                              .addAggregation(AggregationBuilders
                         .significantTerms("significantEnglishTerms").field("english").size(this.size))
-                .addAggregation(AggregationBuilders
+                                              .addAggregation(AggregationBuilders
                         .significantTerms("significantArabicTerms").field("arabic").size(this.size))
-                .get();
+                                              .get();
         SignificantTerms englishTermsAgg = resp.getAggregations().get("significantEnglishTerms");
         SignificantTerms arabicTermsAgg = resp.getAggregations().get("significantArabicTerms");
         List<SignificantTerms.Bucket> allBuckets = new ArrayList<>();

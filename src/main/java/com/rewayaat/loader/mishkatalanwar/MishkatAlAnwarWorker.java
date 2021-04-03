@@ -3,7 +3,7 @@ package com.rewayaat.loader.mishkatalanwar;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Files;
-import com.rewayaat.config.ClientProvider;
+import com.rewayaat.config.ESClientProvider;
 import com.rewayaat.core.data.HadithObject;
 import com.rewayaat.loader.LoaderUtil;
 import com.rewayaat.loader.WordToNumber;
@@ -245,8 +245,8 @@ public class MishkatAlAnwarWorker extends Thread {
                     if (completedHadith.getArabic() == null) {
                         writer.println("HADITH NUMBER " + completedHadith.getNumber() + " HAD NO ARABIC TEXT!");
                     }
-                    ClientProvider.instance().getClient().prepareIndex(ClientProvider.INDEX, "_doc")
-                            .setSource(json).get();
+                    ESClientProvider.instance().getClient().prepareIndex(ESClientProvider.INDEX, "_doc")
+                                    .setSource(json).get();
                 } catch (NoNodeAvailableException | UnknownHostException e) {
                     writer.println("No Node available Exception while processing current Hadith, will try AGAIN!:\n"
                             + getOldestHadith().toString() + "\n");

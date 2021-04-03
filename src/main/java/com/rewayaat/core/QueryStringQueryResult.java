@@ -1,7 +1,7 @@
 package com.rewayaat.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rewayaat.config.ClientProvider;
+import com.rewayaat.config.ESClientProvider;
 import com.rewayaat.core.data.HadithObject;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
@@ -53,12 +53,12 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                     "search_analyzer"))
                 .numOfFragments(0);
 
-        SearchResponse resp = ClientProvider.instance().getClient().prepareSearch(ClientProvider.INDEX)
-                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-                .setQuery(QueryBuilders.boolQuery().should(QueryBuilders.queryStringQuery(fuzziedQuery))
+        SearchResponse resp = ESClientProvider.instance().getClient().prepareSearch(ESClientProvider.INDEX)
+                                              .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                                              .setQuery(QueryBuilders.boolQuery().should(QueryBuilders.queryStringQuery(fuzziedQuery))
                         .should(QueryBuilders.queryStringQuery(userQuery).analyzer("search_analyzer").boost(10)))
-                .highlighter(highlightBuilder).setFrom(page * this.pageSize).setSize(this.pageSize).setExplain(true)
-                .addSort("_score", SortOrder.DESC).execute().get();
+                                              .highlighter(highlightBuilder).setFrom(page * this.pageSize).setSize(this.pageSize).setExplain(true)
+                                              .addSort("_score", SortOrder.DESC).execute().get();
 
         SearchHit[] results = resp.getHits().getHits();
         System.out.println("Current results: " + results.length);
@@ -86,7 +86,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                         System.out.println(hadithes.get(i).toString());
                         try {
                             Map duplicatedHadith = mapper.convertValue(hadithes.get(i), Map.class);
-                            ClientProvider.instance().getClient().prepareDelete(ClientProvider.INDEX, "_doc", (String) duplicatedHadith.get("_id")).get();
+                            ESClientProvider.instance().getClient().prepareDelete(ESClientProvider.INDEX, "_doc", (String) duplicatedHadith.get("_id")).get();
                         } catch (Exception e) {
                             LOGGER.error("Unable to delete duplicated hadith: " + hadithes.get(i).toString(), e);
                         }

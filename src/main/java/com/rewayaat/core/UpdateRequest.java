@@ -1,7 +1,7 @@
 package com.rewayaat.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rewayaat.config.ClientProvider;
+import com.rewayaat.config.ESClientProvider;
 import com.rewayaat.core.data.HadithObject;
 import org.elasticsearch.common.xcontent.XContentType;
 
@@ -22,10 +22,10 @@ public class UpdateRequest {
 
     public void execute() throws Exception {
         org.elasticsearch.action.update.UpdateRequest updateRequest = new org.elasticsearch.action.update.UpdateRequest();
-        updateRequest.index(ClientProvider.INDEX);
+        updateRequest.index(ESClientProvider.INDEX);
         updateRequest.type("_doc");
         updateRequest.id(hadithId);
         updateRequest.doc(mapper.writeValueAsBytes(newHadithObject), XContentType.JSON);
-        ClientProvider.instance().getClient().update(updateRequest).get();
+        ESClientProvider.instance().getClient().update(updateRequest).get();
     }
 }

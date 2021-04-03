@@ -3,7 +3,7 @@ package com.rewayaat.loader.alkafi;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Files;
-import com.rewayaat.config.ClientProvider;
+import com.rewayaat.config.ESClientProvider;
 import com.rewayaat.core.data.HadithObject;
 import com.rewayaat.loader.ArabicNormalizer;
 import com.rewayaat.loader.LoaderUtil;
@@ -324,8 +324,8 @@ public class AlKafiWorker extends Thread {
     public void saveHadith() throws JsonProcessingException, UnknownHostException {
         ObjectMapper mapper = new ObjectMapper();
         byte[] json = mapper.writeValueAsBytes(currentHadith);
-        ClientProvider.instance().getClient().prepareIndex(ClientProvider.INDEX, "_doc").setSource(json)
-                .get();
+        ESClientProvider.instance().getClient().prepareIndex(ESClientProvider.INDEX, "_doc").setSource(json)
+                        .get();
     }
 
     public void setupNewHadithObj() {

@@ -1,6 +1,6 @@
 package com.rewayaat.core;
 
-import com.rewayaat.config.ClientProvider;
+import com.rewayaat.config.ESClientProvider;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
@@ -32,15 +32,15 @@ public class DatabaseTopTerms {
 
     public JSONArray terms() throws UnknownHostException {
         JSONArray result = new JSONArray();
-        SearchResponse resp = ClientProvider.instance().getClient().prepareSearch(ClientProvider.INDEX)
-                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-                .addAggregation(AggregationBuilders
+        SearchResponse resp = ESClientProvider.instance().getClient().prepareSearch(ESClientProvider.INDEX)
+                                              .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                                              .addAggregation(AggregationBuilders
                         .terms("topterms")
                         .field(this.language)
                         .size(this.size)
                         .order(BucketOrder.count(false))
                         .includeExclude(new IncludeExclude(this.prefix + ".*", null)))
-                .get();
+                                              .get();
         Terms topterms = resp.getAggregations().get("topterms");
         for (Terms.Bucket bucket : topterms.getBuckets()) {
             String topTerm = bucket.getKey().toString();

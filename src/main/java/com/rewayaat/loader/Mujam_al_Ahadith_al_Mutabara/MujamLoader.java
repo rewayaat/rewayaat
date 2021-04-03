@@ -1,7 +1,7 @@
 package com.rewayaat.loader.Mujam_al_Ahadith_al_Mutabara;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rewayaat.config.ClientProvider;
+import com.rewayaat.config.ESClientProvider;
 import com.rewayaat.core.data.HadithObject;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
@@ -66,8 +66,8 @@ public class MujamLoader {
             byte[] json;
             try {
                 json = mapper.writeValueAsBytes(obj);
-                ClientProvider.instance().getClient().prepareIndex(ClientProvider.INDEX, "_doc")
-                        .setSource(json).get();
+                ESClientProvider.instance().getClient().prepareIndex(ESClientProvider.INDEX, "_doc")
+                                .setSource(json).get();
                 return;
             } catch (Exception e) {
                 e.printStackTrace();

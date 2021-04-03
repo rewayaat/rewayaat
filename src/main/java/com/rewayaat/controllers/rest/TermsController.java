@@ -84,7 +84,8 @@ public class TermsController {
         if (inputTermArr.length < 1) {
             return new ResponseEntity<>("Input Terms parameter is empty!", HttpStatus.BAD_REQUEST);
         } else {
-            return new ResponseEntity<>(new HighlySignificantTerms(size, inputTermArr).terms().toString(), HttpStatus.OK);
+            return new ResponseEntity<>(new HighlySignificantTerms(size, inputTermArr)
+                                            .terms().toString(), HttpStatus.OK);
         }
     }
 }
