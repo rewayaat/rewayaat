@@ -1,7 +1,6 @@
 FROM openjdk:8
 VOLUME /tmp
 ENV SPRING_PROFILES_ACTIVE=prod
-ENV ES_CONFIG_SYNONYM_DIR=/opt/bitnami/elasticsearch/config/
 RUN ls -a
 ADD rewayaat-1.0.jar app.jar
 RUN /bin/sh -c 'touch /app.jar'
