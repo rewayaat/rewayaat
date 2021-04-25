@@ -16,6 +16,19 @@ html {
     text-rendering: optimizeLegibility;
 }
 
+a.homePageBookLink {
+    color: #2f2f2f;
+    cursor: pointer;
+    border: 1px solid #969696;
+    padding: 5px;
+    border-radius: 5px;
+    white-space: nowrap;
+    margin: 5px;
+    line-height: 2.5;
+    margin-bottom: 20px;
+    background: #d6d6d6;
+}
+
 #queryBar {
     padding-bottom: 40px;
      border-bottom: 1px solid #80808052;

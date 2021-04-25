@@ -1,6 +1,7 @@
 var vueApp;
 var google_id_token;
 var currentQueryText = '';
+var bookBlurbs;
 
 /**
  * Main entry point to the website. If does not exist, display default welcome
@@ -12,8 +13,12 @@ function loadQuery(query, page = 1) {
         if (validQuery(query)) {
             // display query in search bar
             displayQuery(query);
-            // load the query
-            setupVue(query, page);
+            // load book blurbs
+            $.getJSON("book_blurbs.json", function(book_blurbs) {
+                bookBlurbs = book_blurbs
+                // load the query
+                setupVue(query, page);
+            });
             // Update latest new bar
             setLatestNewsBarHTML('Help improve our content by <b><a target="_blank" style="color:black; text-decoration:underline;" href="mailto:rewayaat.org@gmail.com?Subject=HDP%20Database%20Error">reporting</a></b> any mistakes you find!')
         } else {
@@ -27,6 +32,10 @@ function loadQuery(query, page = 1) {
         setLatestNewsBarHTML('Our team has recently added <b><a target="_blank" style="color: black;text-decoration: underline;" href="'+ window.location.href + '?q=book:%22al-amali%22">Al-Amali</a></b>, <b><a target="_blank" style="color: black;text-decoration: underline;" href="' + window.location.href + '?q=book%3A%22Khisal%22">Al Khisal</a></b> and <b><a target="_blank" style="color: black;text-decoration: underline;" href="'+ window.location.href + '?q=book%3A%22Uyun%22">Uyun Akhbar Al-Rida</a></b> to our Collection!');
         // show default mark-down welcome page
         displayWelcomeContent();
+        // load book blurbs
+        $.getJSON("book_blurbs.json", function(book_blurbs) {
+            bookBlurbs = book_blurbs
+        });
     }
 }
 
@@ -213,7 +222,7 @@ function displayWelcomeContent() {
     vueApp = new Vue({
         el: '#hadithView'
     });
-    $("#welcome").load("/welcome.html?v=2", function(responseData) {
+    $("#welcome").load("/welcome.html?v=3", function(responseData) {
         // initialize select2
         initSelect2('searchTerms2');
         // setup select2 select handler
@@ -236,6 +245,17 @@ function isCharacterKeyPress(evt) {
     return false;
 }
 
+function showBookBlurb(bookName) {
+    for (blurb in bookBlurbs) {
+        if (strip(bookName).toUpperCase().includes(bookBlurbs[blurb].book.toUpperCase())) {
+            UIkit.modal.alert(bookBlurbs[blurb].blurb);
+            var modelDialog = document.getElementsByClassName("uk-modal-dialog")[0];
+            modelDialog.style.width = '95%';
+            modelDialog.style.maxWidth = '1000px';
+
+        }
+    }
+}
 function isArabic(text) {
     var pattern = /[\u0600-\u06FF\u0750-\u077F]/;
     result = pattern.test(text);
@@ -350,15 +370,7 @@ function setupVue(query, page) {
                             gradingobj.grader + '. ' + rationaleStr + '</p>');
                     },
                     showBookBlurb: function(bookName) {
-                        for (blurb in this.$root.book_blurbs) {
-                            if (strip(bookName).toUpperCase().includes(this.$root.book_blurbs[blurb].book.toUpperCase())) {
-                                UIkit.modal.alert(this.$root.book_blurbs[blurb].blurb);
-                                var modelDialog = document.getElementsByClassName("uk-modal-dialog")[0];
-                                modelDialog.style.width = '95%';
-                                modelDialog.style.maxWidth = '1000px';
-
-                            }
-                        }
+                        showBookBlurb(bookName)
                     },
                     gradeLabelClass: function(grading) {
                         if (grading === 'mutawatir') {
@@ -451,333 +463,330 @@ function setupVue(query, page) {
 
     // clear welcome page content
     document.getElementById('welcome').innerHTML = '';
-    // get book blurbs info
-    $.getJSON("book_blurbs.json", function(book_blurbs) {
-        // Setup hadith vue component
-        vueApp = new Vue({
-            el: '#hadithView',
-            data: {
-                narrations: [],
-                queryStr: query,
-                significantTerms: [],
-                page: page,
-                totalHits: 0,
-                pageSize: 20,
-                signedIn: false,
-                book_blurbs: book_blurbs
-            },
-            // runs when the Vue instance has initialized.
-            mounted: function() {
-                this.fetchNarrations();
-            },
-            methods: {
-                // fetches significant query terms using the Rewayaat REST API
-                fetchSignificantTerms: function() {
-                    var self = this;
-                    if (this.queryStr) {
-                        var xhr = new XMLHttpRequest();
-                        xhr.onload = function() {
-                            if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
-                                var respJSON = '{}'
-                                if (xhr.responseText) {
-                                    self.significantTerms = JSON.parse(xhr.responseText)
-                                }
-                            }
-                        }
-                        xhr.open('GET', '/v1/terms/significant?inputTerms=' + splitQuery(this.queryStr).join(","));
-                        xhr.send();
-                    }
-                },
-                // fetches more narrations to display using the API.
-                fetchNarrations: function() {
-                    var self = this;
+    // Setup hadith vue component
+    vueApp = new Vue({
+        el: '#hadithView',
+        data: {
+            narrations: [],
+            queryStr: query,
+            significantTerms: [],
+            page: page,
+            totalHits: 0,
+            pageSize: 20,
+            signedIn: false,
+            book_blurbs: bookBlurbs
+        },
+        // runs when the Vue instance has initialized.
+        mounted: function() {
+            this.fetchNarrations();
+        },
+        methods: {
+            // fetches significant query terms using the Rewayaat REST API
+            fetchSignificantTerms: function() {
+                var self = this;
+                if (this.queryStr) {
                     var xhr = new XMLHttpRequest();
                     xhr.onload = function() {
-                        if (xhr.readyState == XMLHttpRequest.DONE) {
+                        if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
                             var respJSON = '{}'
                             if (xhr.responseText) {
-                                var respJSON = JSON.parse(xhr.responseText)
+                                self.significantTerms = JSON.parse(xhr.responseText)
                             }
-                            if (respJSON.error) {
-                                swal("Oops...",
-                                    "Something went wrong while fetching your hadith, please try a different search.");
-                            } else if (respJSON.collection.length < 1 &&
-                                self.narrations.length === 0) {
-                                swal("Oops...",
-                                    "No results seem to match your query!",
-                                    "error");
-                            } else {
-                                $.each(respJSON.collection, function(index, value) {
-                                    if (value.notes) {
-                                        value.notes = marked(value.notes);
-                                    }
-                                    if (value.volume) {
-                                        value.volume = "Volume " + value.volume;
-                                    }
-                                    value = socialMediaDecoratedHadith(value);
-                                    self.narrations.push(value);
-                                    console.log(value);
-                                });
-                                // set total results size value
-                                self.totalHits = respJSON.totalResultSetSize;
-                            }
-
-                            // fetch significant terms
-                            self.fetchSignificantTerms();
                         }
                     }
-                    xhr.open('GET', '/v1/narrations?q=' + encodeURIComponent(this.queryStr) +
-                        '&page=' + this.page + '&per_page=' + this.pageSize);
+                    xhr.open('GET', '/v1/terms/significant?inputTerms=' + splitQuery(this.queryStr).join(","));
                     xhr.send();
-                },
-                gradeLabelClass: function(grading) {
-                    if (grading === 'mutawatir') {
-                        return 'uk-label';
-                    } else if (grading === 'sahih') {
-                        return 'uk-label-success';
-                    } else if (grading === 'hassan') {
-                        return 'uk-label-warning';
-                    } else {
-                        return 'uk-label-danger';
-                    }
-                },
-                significant_btn_class: function(btn_text) {
-                    class_str = "uk-button tm-button-default uk-icon";
-                    if (isArabic(btn_text)) {
-                        class_str += " uk-button-significant-arabic";
-                    } else {
-                        class_str += " uk-button-significant-english";
-                    }
-                    return class_str
-                },
-                addTermToSearchBar: function(term, termDivId) {
-                    var selectSearchTerms = document.getElementById("searchTerms");
-                    var option = document.createElement("option");
-                    option.text = term;
-                    option.selected = true;
-                    selectSearchTerms.add(option);
-                    $('#' + termDivId).remove();
-                    indicatePendingSearchTerms();
-                    new Noty({
-                        type: 'success',
-                        text: '<b>Click here</b> to update your search results!',
-                        theme: 'semanticui',
-                        layout: 'topRight',
-                        killer: true,
-                        callbacks: {
-                            onClick: function() {
-                                submitSearchQuery();
-                            },
-                        }
-                    }).show();
-                },
-                gradeLabelIcon: function(grading) {
-                    if (grading === 'mutawatir') {
-                        return 'fa fa-bullhorn';
-                    } else if (grading === 'sahih') {
-                        return 'fa fa-check-circle-o';
-                    } else if (grading === 'hasdan') {
-                        return 'fa fa-thumbs-o-up';
-                    } else {
-                        return 'fa fa-thumbs-o-down';
-                    }
-                },
-                isActiveClass: function(text) {
-                    if (text && text.includes('<span')) {
-                        return "uk-active"
-                    } else {
-                        return '';
-                    }
-                },
-                showHadithURL: function(id) {
-                    UIkit.modal.alert('<h2>Hadith URL</h2><pre>' + location.protocol + '//' + location.host + '/?q=_id:' + id + '</pre>');
-                },
-                editHadith: function(index) {
-
-                    var narration = this.narrations[index];
-                    // hadith that the user will see...
-                    var originalHadith = new Object();
-                    // remove any HTML from the JSON object...
-                    narration = JSON.parse(JSON.stringify(narration).replace(/<(?:.|\n)*?>/gm, ''));
-
-                    originalHadith.book = '';
-                    if (narration.book) {
-                        originalHadith.book = narration.book;
-                    }
-                    originalHadith.number = '';
-                    if (narration.number) {
-                        originalHadith.number = narration.number;
-                    }
-                    originalHadith.source = '';
-                    if (narration.source) {
-                        originalHadith.source = narration.source;
-                    }
-                    originalHadith.part = '';
-                    if (narration.part) {
-                        originalHadith.part = narration.part;
-                    }
-                    originalHadith.edition = '';
-                    if (narration.edition) {
-                        originalHadith.edition = narration.edition;
-                    }
-                    originalHadith.chapter = '';
-                    if (narration.chapter) {
-                        originalHadith.chapter = narration.chapter;
-                    }
-                    originalHadith.publisher = '';
-                    if (narration.publisher) {
-                        originalHadith.publisher = narration.publisher;
-                    }
-                    originalHadith.section = '';
-                    if (narration.section) {
-                        originalHadith.section = narration.section;
-                    }
-                    originalHadith.volume = '';
-                    if (narration.volume) {
-                        originalHadith.volume = narration.volume;
-                    }
-                    originalHadith.tags = [];
-                    if (narration.tags) {
-                        originalHadith.tags = narration.tags;
-                    }
-                    originalHadith.notes = '';
-                    if (narration.notes) {
-                        originalHadith.notes = narration.notes;
-                    }
-                    originalHadith.arabic = '';
-                    if (narration.arabic) {
-                        originalHadith.arabic = narration.arabic;
-                    }
-                    originalHadith.english = '';
-                    if (narration.english) {
-                        originalHadith.english = narration.english;
-                    }
-                    originalHadith.gradings = [];
-                    if (narration.gradings) {
-                        originalHadith.gradings = narration.gradings;
-                    }
-
-                    // stores all the hadith properties that were modified.
-                    var changedAtributes = new Object();
-
-                    UIkit.modal.confirm('<h2>Editing Mode</h2><p>Modify this hadith in the editor below, make sure to read the <a target="_blank" href="https://github.com/rewayaat/rewayaat/wiki/Hadith-Entry-Guidelines">Hadith Entry Guidelines</a>. When finished, select <span style="display: inline-block;box-sizing: border-box;' +
-                        'padding: 0 15px;vertical-align: middle;font-size: 14px;line-height: 28px;text-align: center;color: #fff;background-color:#1e87f0;' +
-                        '">OK</span> to save your changes to the database.</p>').then(function() {
-                        var modifiedHadith = editor.get();
-                        var changeDetected = false;
-
-                        if (modifiedHadith.book && (modifiedHadith.book !== narration.book)) {
-                            changeDetected = true;
-                            changedAtributes.book = modifiedHadith.book;
-                        }
-                        if (modifiedHadith.number && (modifiedHadith.number !== narration.number)) {
-                            changeDetected = true;
-                            changedAtributes.number = modifiedHadith.number;
-                        }
-                        if (modifiedHadith.source && (modifiedHadith.source !== narration.source)) {
-                            changeDetected = true;
-                            changedAtributes.source = modifiedHadith.source;
-                        }
-                        if (modifiedHadith.part && (modifiedHadith.part !== narration.part)) {
-                            changeDetected = true;
-                            changedAtributes.part = modifiedHadith.part;
-                        }
-                        if (modifiedHadith.edition && (modifiedHadith.edition !== narration.edition)) {
-                            changeDetected = true;
-                            changedAtributes.edition = modifiedHadith.edition;
-                        }
-                        if (modifiedHadith.chapter && (modifiedHadith.chapter !== narration.chapter)) {
-                            changeDetected = true;
-                            changedAtributes.chapter = modifiedHadith.chapter;
-                        }
-                        if (modifiedHadith.publisher && (modifiedHadith.publisher !== narration.publisher)) {
-                            changeDetected = true;
-                            changedAtributes.publisher = modifiedHadith.publisher;
-                        }
-                        if (modifiedHadith.volume && (modifiedHadith.volume !== narration.volume)) {
-                            changeDetected = true;
-                            changedAtributes.volume = modifiedHadith.volume;
-                        }
-                        if (modifiedHadith.section && (modifiedHadith.section !== narration.section)) {
-                            changeDetected = true;
-                            changedAtributes.section = modifiedHadith.section;
-                        }
-                        if (modifiedHadith.tags && (arraysEqual(modifiedHadith.tags, narration.tags) === false)) {
-                            changeDetected = true;
-                            changedAtributes.tags = modifiedHadith.tags;
-                        }
-                        if (modifiedHadith.notes && (modifiedHadith.notes !== narration.notes)) {
-                            changeDetected = true;
-                            changedAtributes.notes = modifiedHadith.notes;
-                        }
-                        if (modifiedHadith.gradings && (arraysEqual(modifiedHadith.gradings, narration.gradings) === false)) {
-                            changeDetected = true;
-                            changedAtributes.gradings = modifiedHadith.gradings;
-                        }
-                        if (modifiedHadith.arabic && (modifiedHadith.arabic !== narration.arabic)) {
-                            changeDetected = true;
-                            changedAtributes.arabic = modifiedHadith.arabic;
-                        }
-                        if (modifiedHadith.english && (modifiedHadith.english !== narration.english)) {
-                            changeDetected = true;
-                            changedAtributes.english = modifiedHadith.english;
-                        }
-
-                        if (changeDetected) {
-                            // save hadith
-                            var http = new XMLHttpRequest();
-                            var url = "/v1/narrations?hadith_id=" + narration._id + '&id_token=' + google_id_token;
-                            var data = JSON.stringify(changedAtributes);
-                            http.open("POST", url, true);
-
-                            //Send the proper header information along with the request
-                            http.setRequestHeader("Content-type", "application/json");
-
-                            http.onreadystatechange = function() { //Call a function when the state changes.
-                                if (http.readyState == 4 && http.status == 200) {
-                                    swal(
-                                        "Success!",
-                                        "This hadith was successfully modifed.",
-                                        "success");
-                                    // modify existing hadith object with new values
-                                    Object.keys(changedAtributes).forEach(function(key) {
-                                        vueApp.narrations[index][key] = changedAtributes[key];
-                                    });
-                                } else {
-                                    swal(
-                                        "Oops!",
-                                        "An error was encountered while saving this hadith, please contact us " +
-                                        "if this issue persists.",
-                                        "error");
-                                }
-                            }
-                            http.send(data);
-                        } else {
-
-                            // no changes were found
-                            swal(
-                                "No Changes Were Found",
-                                "If you meant to make changes to the hadith, please try again.",
-                                "error");
-                        }
-                    }, function() {
-                        console.log('rejected');
-                    });
-                    var modelDialog = document.getElementsByClassName("uk-modal-dialog")[0];
-                    modelDialog.style.width = '80%';
-                    modelDialog.style.height = '80%';
-                    var container = document.getElementsByClassName("uk-modal-body")[0];
-                    container.style.height = '85%';
-                    var options = {
-                        "mode": "code",
-                        "sortObjectKeys": true,
-                        "search": true,
-                        "indentation": 2
-                    };
-                    var editor = new JSONEditor(container, options, originalHadith);
                 }
+            },
+            // fetches more narrations to display using the API.
+            fetchNarrations: function() {
+                var self = this;
+                var xhr = new XMLHttpRequest();
+                xhr.onload = function() {
+                    if (xhr.readyState == XMLHttpRequest.DONE) {
+                        var respJSON = '{}'
+                        if (xhr.responseText) {
+                            var respJSON = JSON.parse(xhr.responseText)
+                        }
+                        if (respJSON.error) {
+                            swal("Oops...",
+                                "Something went wrong while fetching your hadith, please try a different search.");
+                        } else if (respJSON.collection.length < 1 &&
+                            self.narrations.length === 0) {
+                            swal("Oops...",
+                                "No results seem to match your query!",
+                                "error");
+                        } else {
+                            $.each(respJSON.collection, function(index, value) {
+                                if (value.notes) {
+                                    value.notes = marked(value.notes);
+                                }
+                                if (value.volume) {
+                                    value.volume = "Volume " + value.volume;
+                                }
+                                value = socialMediaDecoratedHadith(value);
+                                self.narrations.push(value);
+                                console.log(value);
+                            });
+                            // set total results size value
+                            self.totalHits = respJSON.totalResultSetSize;
+                        }
+
+                        // fetch significant terms
+                        self.fetchSignificantTerms();
+                    }
+                }
+                xhr.open('GET', '/v1/narrations?q=' + encodeURIComponent(this.queryStr) +
+                    '&page=' + this.page + '&per_page=' + this.pageSize);
+                xhr.send();
+            },
+            gradeLabelClass: function(grading) {
+                if (grading === 'mutawatir') {
+                    return 'uk-label';
+                } else if (grading === 'sahih') {
+                    return 'uk-label-success';
+                } else if (grading === 'hassan') {
+                    return 'uk-label-warning';
+                } else {
+                    return 'uk-label-danger';
+                }
+            },
+            significant_btn_class: function(btn_text) {
+                class_str = "uk-button tm-button-default uk-icon";
+                if (isArabic(btn_text)) {
+                    class_str += " uk-button-significant-arabic";
+                } else {
+                    class_str += " uk-button-significant-english";
+                }
+                return class_str
+            },
+            addTermToSearchBar: function(term, termDivId) {
+                var selectSearchTerms = document.getElementById("searchTerms");
+                var option = document.createElement("option");
+                option.text = term;
+                option.selected = true;
+                selectSearchTerms.add(option);
+                $('#' + termDivId).remove();
+                indicatePendingSearchTerms();
+                new Noty({
+                    type: 'success',
+                    text: '<b>Click here</b> to update your search results!',
+                    theme: 'semanticui',
+                    layout: 'topRight',
+                    killer: true,
+                    callbacks: {
+                        onClick: function() {
+                            submitSearchQuery();
+                        },
+                    }
+                }).show();
+            },
+            gradeLabelIcon: function(grading) {
+                if (grading === 'mutawatir') {
+                    return 'fa fa-bullhorn';
+                } else if (grading === 'sahih') {
+                    return 'fa fa-check-circle-o';
+                } else if (grading === 'hasdan') {
+                    return 'fa fa-thumbs-o-up';
+                } else {
+                    return 'fa fa-thumbs-o-down';
+                }
+            },
+            isActiveClass: function(text) {
+                if (text && text.includes('<span')) {
+                    return "uk-active"
+                } else {
+                    return '';
+                }
+            },
+            showHadithURL: function(id) {
+                UIkit.modal.alert('<h2>Hadith URL</h2><pre>' + location.protocol + '//' + location.host + '/?q=_id:' + id + '</pre>');
+            },
+            editHadith: function(index) {
+
+                var narration = this.narrations[index];
+                // hadith that the user will see...
+                var originalHadith = new Object();
+                // remove any HTML from the JSON object...
+                narration = JSON.parse(JSON.stringify(narration).replace(/<(?:.|\n)*?>/gm, ''));
+
+                originalHadith.book = '';
+                if (narration.book) {
+                    originalHadith.book = narration.book;
+                }
+                originalHadith.number = '';
+                if (narration.number) {
+                    originalHadith.number = narration.number;
+                }
+                originalHadith.source = '';
+                if (narration.source) {
+                    originalHadith.source = narration.source;
+                }
+                originalHadith.part = '';
+                if (narration.part) {
+                    originalHadith.part = narration.part;
+                }
+                originalHadith.edition = '';
+                if (narration.edition) {
+                    originalHadith.edition = narration.edition;
+                }
+                originalHadith.chapter = '';
+                if (narration.chapter) {
+                    originalHadith.chapter = narration.chapter;
+                }
+                originalHadith.publisher = '';
+                if (narration.publisher) {
+                    originalHadith.publisher = narration.publisher;
+                }
+                originalHadith.section = '';
+                if (narration.section) {
+                    originalHadith.section = narration.section;
+                }
+                originalHadith.volume = '';
+                if (narration.volume) {
+                    originalHadith.volume = narration.volume;
+                }
+                originalHadith.tags = [];
+                if (narration.tags) {
+                    originalHadith.tags = narration.tags;
+                }
+                originalHadith.notes = '';
+                if (narration.notes) {
+                    originalHadith.notes = narration.notes;
+                }
+                originalHadith.arabic = '';
+                if (narration.arabic) {
+                    originalHadith.arabic = narration.arabic;
+                }
+                originalHadith.english = '';
+                if (narration.english) {
+                    originalHadith.english = narration.english;
+                }
+                originalHadith.gradings = [];
+                if (narration.gradings) {
+                    originalHadith.gradings = narration.gradings;
+                }
+
+                // stores all the hadith properties that were modified.
+                var changedAtributes = new Object();
+
+                UIkit.modal.confirm('<h2>Editing Mode</h2><p>Modify this hadith in the editor below, make sure to read the <a target="_blank" href="https://github.com/rewayaat/rewayaat/wiki/Hadith-Entry-Guidelines">Hadith Entry Guidelines</a>. When finished, select <span style="display: inline-block;box-sizing: border-box;' +
+                    'padding: 0 15px;vertical-align: middle;font-size: 14px;line-height: 28px;text-align: center;color: #fff;background-color:#1e87f0;' +
+                    '">OK</span> to save your changes to the database.</p>').then(function() {
+                    var modifiedHadith = editor.get();
+                    var changeDetected = false;
+
+                    if (modifiedHadith.book && (modifiedHadith.book !== narration.book)) {
+                        changeDetected = true;
+                        changedAtributes.book = modifiedHadith.book;
+                    }
+                    if (modifiedHadith.number && (modifiedHadith.number !== narration.number)) {
+                        changeDetected = true;
+                        changedAtributes.number = modifiedHadith.number;
+                    }
+                    if (modifiedHadith.source && (modifiedHadith.source !== narration.source)) {
+                        changeDetected = true;
+                        changedAtributes.source = modifiedHadith.source;
+                    }
+                    if (modifiedHadith.part && (modifiedHadith.part !== narration.part)) {
+                        changeDetected = true;
+                        changedAtributes.part = modifiedHadith.part;
+                    }
+                    if (modifiedHadith.edition && (modifiedHadith.edition !== narration.edition)) {
+                        changeDetected = true;
+                        changedAtributes.edition = modifiedHadith.edition;
+                    }
+                    if (modifiedHadith.chapter && (modifiedHadith.chapter !== narration.chapter)) {
+                        changeDetected = true;
+                        changedAtributes.chapter = modifiedHadith.chapter;
+                    }
+                    if (modifiedHadith.publisher && (modifiedHadith.publisher !== narration.publisher)) {
+                        changeDetected = true;
+                        changedAtributes.publisher = modifiedHadith.publisher;
+                    }
+                    if (modifiedHadith.volume && (modifiedHadith.volume !== narration.volume)) {
+                        changeDetected = true;
+                        changedAtributes.volume = modifiedHadith.volume;
+                    }
+                    if (modifiedHadith.section && (modifiedHadith.section !== narration.section)) {
+                        changeDetected = true;
+                        changedAtributes.section = modifiedHadith.section;
+                    }
+                    if (modifiedHadith.tags && (arraysEqual(modifiedHadith.tags, narration.tags) === false)) {
+                        changeDetected = true;
+                        changedAtributes.tags = modifiedHadith.tags;
+                    }
+                    if (modifiedHadith.notes && (modifiedHadith.notes !== narration.notes)) {
+                        changeDetected = true;
+                        changedAtributes.notes = modifiedHadith.notes;
+                    }
+                    if (modifiedHadith.gradings && (arraysEqual(modifiedHadith.gradings, narration.gradings) === false)) {
+                        changeDetected = true;
+                        changedAtributes.gradings = modifiedHadith.gradings;
+                    }
+                    if (modifiedHadith.arabic && (modifiedHadith.arabic !== narration.arabic)) {
+                        changeDetected = true;
+                        changedAtributes.arabic = modifiedHadith.arabic;
+                    }
+                    if (modifiedHadith.english && (modifiedHadith.english !== narration.english)) {
+                        changeDetected = true;
+                        changedAtributes.english = modifiedHadith.english;
+                    }
+
+                    if (changeDetected) {
+                        // save hadith
+                        var http = new XMLHttpRequest();
+                        var url = "/v1/narrations?hadith_id=" + narration._id + '&id_token=' + google_id_token;
+                        var data = JSON.stringify(changedAtributes);
+                        http.open("POST", url, true);
+
+                        //Send the proper header information along with the request
+                        http.setRequestHeader("Content-type", "application/json");
+
+                        http.onreadystatechange = function() { //Call a function when the state changes.
+                            if (http.readyState == 4 && http.status == 200) {
+                                swal(
+                                    "Success!",
+                                    "This hadith was successfully modifed.",
+                                    "success");
+                                // modify existing hadith object with new values
+                                Object.keys(changedAtributes).forEach(function(key) {
+                                    vueApp.narrations[index][key] = changedAtributes[key];
+                                });
+                            } else {
+                                swal(
+                                    "Oops!",
+                                    "An error was encountered while saving this hadith, please contact us " +
+                                    "if this issue persists.",
+                                    "error");
+                            }
+                        }
+                        http.send(data);
+                    } else {
+
+                        // no changes were found
+                        swal(
+                            "No Changes Were Found",
+                            "If you meant to make changes to the hadith, please try again.",
+                            "error");
+                    }
+                }, function() {
+                    console.log('rejected');
+                });
+                var modelDialog = document.getElementsByClassName("uk-modal-dialog")[0];
+                modelDialog.style.width = '80%';
+                modelDialog.style.height = '80%';
+                var container = document.getElementsByClassName("uk-modal-body")[0];
+                container.style.height = '85%';
+                var options = {
+                    "mode": "code",
+                    "sortObjectKeys": true,
+                    "search": true,
+                    "indentation": 2
+                };
+                var editor = new JSONEditor(container, options, originalHadith);
             }
-        });
+        }
     });
 }
 
