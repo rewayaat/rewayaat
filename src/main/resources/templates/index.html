@@ -134,7 +134,9 @@
             <pagination></pagination>
         </div>
         <div class="uk-card uk-align-center uk-card  uk-width-1-1 "
-             style="margin-top: 40px; background-color: #efefef;  box-shadow: rgb(212, 212, 212) 15px 15px 15px;  border: 1px solid rgba(109, 109, 109, 0.52);"
+             style="margin-top: 40px; background-color: #e0e0e054;
+              background-image: url('img/cream-pixels.png');
+              box-shadow: rgb(212, 212, 212) 15px 15px 15px;  border: 1px solid rgba(109, 109, 109, 0.52);"
              v-for="(narration, index) in narrations">
 
             <!--  SHOW ON LEFT IF LARGE SCREEN -->
@@ -170,7 +172,7 @@
                                 </div>
                             </a>
 
-                            <!-- Sharingbutton Twitter -->
+                            <!-- Sharing button Twitter -->
                             <a aria-label=""
                                class="resp-sharing-button__link uk-align-right"
                                target="_blank" v-bind:href="narration.twitter">
@@ -217,42 +219,39 @@
                             </div>
                         </div>
                         <div uk-switcher="animation: uk-animation-fade">
-                            <button class="uk-button uk-button-default"
-
-                                    style="font-size: 14px; font-family: Open Sans; padding: 0px 30px;     margin: 15px 15px 0px 0px;" type="button"
-                                    v-if="narration.arabic">Arabic
+                            <button
+                                    class="uk-button uk-button-default hadithMainTabBtn" type="button">
+                                Content
                             </button>
-                            <button class="uk-button uk-active uk-button-default"
-                                    style="font-size: 14px; font-family: Open Sans; padding: 0px 30px;     margin: 15px 15px 0px 0px;"
-                                    type="button"
-                                    v-if="narration.english">English
-                            </button>
-                            <button class="uk-button uk-button-default"
-                                    style="font-size: 14px; font-family: Open Sans; padding: 0px 30px;     margin: 15px 15px 0px 0px;"
-                                    type="button"
+                            <button class="uk-button uk-button-default hadithMainTabBtn" type="button"
                                     v-if="narration.notes">Notes
                             </button>
-                            <button class="uk-button uk-button-default"
-                                    style="font-size: 14px; font-family: Open Sans; padding: 0px 30px;     margin: 15px 15px 0px 0px;"
-                                    type="button"
+                            <button class="uk-button uk-button-default hadithMainTabBtn" type="button"
                                     v-if="narration.related.length > 0">Related
                             </button>
-                            <button class="uk-button uk-button-default"
-                                    style="font-size: 14px; font-family: Open Sans; padding: 0px 30px;     margin: 15px 15px 0px 0px;"
-                                    type="button"
+                            <button class="uk-button uk-button-default hadithMainTabBtn" type="button"
                                     v-if="signedIn">History
                             </button>
                         </div>
                         <ul class="uk-switcher uk-margin"
                             style="color: rgba(0, 0, 0, 0.35); box-shadow: rgb(198, 209, 218) 0px 0px 40px inset; border-style: solid; border-width: 1px; background:rgb(253, 253, 253);">
-
-                            <li v-if="narration.arabic">
-                                <div class="arabicHadithText scrollable style-1"
-                                     v-html="narration.arabic"></div>
-                            </li>
-                            <li v-if="narration.english">
-                                <div class="hadithText scrollable style-1"
-                                     v-html="narration.english"></div>
+                            <li>
+                                <div class="hadithText scrollable">
+                                    <div class="style-1 uk-visible@m"
+                                         style="display:block; float:left; width:49%;"
+                                         v-html="narration.english">
+                                    </div>
+                                    <div class="arabicHadithText style-1 uk-visible@m"
+                                         style="display:block; float:right; width:49%;"
+                                         v-html="narration.arabic">
+                                    </div>
+                                    <div class="style-1 uk-hidden@m"
+                                         v-html="narration.english">
+                                    </div>
+                                    <div class="arabicHadithText style-1 uk-hidden@m"
+                                         v-html="narration.arabic">
+                                    </div>
+                                </div>
                             </li>
                             <li v-if="narration.notes">
                                 <div class="hadithText scrollable" v-html="narration.notes"></div>
@@ -291,18 +290,19 @@
     </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-<script src="/js/vue.js" th:src="@{/js/vue.js}"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.7/js/select2.min.js"></script>
 <script crossorigin="anonymous" src="https://cdn.ravenjs.com/3.22.3/raven.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/noty/3.1.4/noty.min.js"></script>
 <script crossorigin="anonymous" src="https://cdn.lr-ingest.io/LogRocket.min.js"></script>
+<script src="/js/vue-components.js?v=1" th:src="@{/js/vue-components.js?v=1}"></script>
 <script src="/js/rewayaat.js?v=9" th:src="@{/js/rewayaat.js?v=9}"></script>
 <script src="https://apis.google.com/js/platform.js"></script>
-<script src="/js/pace.min.js" th:async="async" th:src="@{/js/pace.min.js}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" th:async="async"></script>
 <script src="/js/uikit.min.js" th:async="async" th:src="@{/js/uikit.min.js}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.6/marked.min.js"
         th:defer="defer"></script>
-<script src="/js/sweetalert-dev.js" th:defer="defer" th:src="@{/js/sweetalert-dev.js}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"  th:defer="defer"></script>
 <script src="/js/uikit-icons.js" th:defer="defer" th:src="@{/js/uikit-icons.js}"></script>
 <script src="/js/jquery.mousewheel.js" th:defer="defer"
         th:src="@{/js/jquery.mousewheel.js}"></script>
@@ -337,7 +337,6 @@
         'https://www.google-analytics.com/analytics.js', 'ga');
     ga('create', 'UA-99916919-1', 'auto');
     ga('send', 'pageview');
-
 </script>
 <script type="text/javascript">
     if (location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
@@ -345,8 +344,6 @@
         window.LogRocket && window.LogRocket.init('ctebns/rewyaat');
         // ]]>
     }
-
 </script>
 </body>
-
 </html>

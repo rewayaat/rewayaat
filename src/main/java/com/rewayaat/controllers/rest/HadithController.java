@@ -86,7 +86,7 @@ public class HadithController {
         try {
             if (new User(idToken).isAdmin()) {
                 modifiedHadithStr = Jsoup.parse(modifiedHadithStr).text();
-                LOGGER.info("Recieved Modification Request for hadith: " + hadithId);
+                LOGGER.info("Received Modification Request for hadith: " + hadithId);
                 JSONObject modifiedHadith = new JSONObject(modifiedHadithStr);
                 GetResponse response =
                     ESClientProvider.instance().getClient().prepareGet(
@@ -104,7 +104,8 @@ public class HadithController {
                 }
                 // make sure we can still serialize a valid HadithObject from the new JSON data
                 HadithObject newHadithObject = mapper.readValue(existingHadith.toString(), HadithObject.class);
-                newHadithObject.insertHistoryNote("User " + new User(idToken).email() + " modified this hadith on " + new java.util.Date() + ". The orginal hadith:\n"
+                newHadithObject.insertHistoryNote("User " + new User(idToken).email() + " " +
+                                                      "modified this hadith on " + new java.util.Date() + ". The original hadith:\n"
                         + responseStr + "\n\n The following properties were modified and saved to the database:\n\n" + modifiedHadithStr);
                 new UpdateRequest(newHadithObject, hadithId).execute();
                 // clear the cache

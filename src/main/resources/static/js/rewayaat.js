@@ -29,7 +29,7 @@ function loadQuery(query, page = 1) {
             displayWelcomeContent();
         }
     } else {
-        setLatestNewsBarHTML('Our team has recently added <b><a target="_blank" style="color: black;text-decoration: underline;" href="'+ window.location.href + '?q=book:%22al-amali%22">Al-Amali</a></b>, <b><a target="_blank" style="color: black;text-decoration: underline;" href="' + window.location.href + '?q=book%3A%22Khisal%22">Al Khisal</a></b> and <b><a target="_blank" style="color: black;text-decoration: underline;" href="'+ window.location.href + '?q=book%3A%22Uyun%22">Uyun Akhbar Al-Rida</a></b> to our Collection!');
+        setLatestNewsBarHTML('Our team has recently added <b><a target="_blank" style="color: black;text-decoration: underline;" href="' + window.location.href + '?q=book:%22al-amali%22">Al-Amali</a></b>, <b><a target="_blank" style="color: black;text-decoration: underline;" href="' + window.location.href + '?q=book%3A%22Khisal%22">Al Khisal</a></b> and <b><a target="_blank" style="color: black;text-decoration: underline;" href="' + window.location.href + '?q=book%3A%22Uyun%22">Uyun Akhbar Al-Rida</a></b> to our Collection!');
         // show default mark-down welcome page
         displayWelcomeContent();
         // load book blurbs
@@ -64,7 +64,7 @@ $(document).ready(function() {
 });
 
 function setupSelect2EnterKeyListener(select2_id) {
-    $(document).on('keyup', '.select2-search__field', function (e) {
+    $(document).on('keyup', '.select2-search__field', function(e) {
         if (e.which === 13) {
             e.preventDefault();
             var curr_text = $('.select2-search__field')[0].value;
@@ -139,14 +139,47 @@ function initSelect2(select2_id) {
     });
 }
 
+function isArabic(text) {
+    var pattern = /[\u0600-\u06FF\u0750-\u077F]/;
+    result = pattern.test(text);
+    return result;
+}
 
-function select2SelectHandler(select2_id) {
-    $('#' + select2_id).on('select2:close', function(e) {
-        var select2SearchField = $(this).parent().find('.select2-search__field'),
-            setfocus = setTimeout(function() {
-                select2SearchField.focus();
-            }, 100);
-    });
+function strip(html) {
+    var tmp = document.createElement("DIV");
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || "";
+}
+
+function isNumeric(obj) {
+    return !isNaN(obj - parseFloat(obj));
+}
+
+function arraysEqual(a, b) {
+    if (a === b) return true;
+    if (a == null || b == null) return false;
+    if (a.length != b.length) return false;
+
+    // We don't  care about order...
+    a.sort();
+    b.sort();
+
+    for (var i = 0; i < a.length; ++i) {
+        if (a[i] !== b[i]) return false;
+    }
+    return true;
+}
+
+String.prototype.replaceAll = function(search, replacement) {
+    var target = this;
+    return target.replace(new RegExp(search, 'g'), replacement);
+};
+
+function getQueryStringValue(key) {
+    return decodeURIComponent(window.location.search.replace(new RegExp(
+        "^(?:.*[&\\?]" +
+        encodeURIComponent(key).replace(/[\.\+\*]/g, "\\$&") +
+        "(?:\\=([^&]*))?)?.*$", "i"), "$1"));
 }
 
 function splitQuery(query) {
@@ -163,6 +196,254 @@ function splitQuery(query) {
         }
     } while (match != null);
     return termsArr;
+}
+
+function isCharacterKeyPress(evt) {
+    if (typeof evt.which == "undefined") {
+        // This is IE, which only fires keypress events for printable keys
+        return true;
+    } else if (typeof evt.which == "number" && evt.which > 0) {
+        // In other browsers except old versions of WebKit, evt.which is
+        // only greater than zero if the keypress is a printable key.
+        // We need to filter out backspace and ctrl/alt/meta key combinations
+        return !evt.ctrlKey && !evt.metaKey && !evt.altKey && evt.which != 8;
+    }
+    return false;
+}
+
+function isArabic(text) {
+    var pattern = /[\u0600-\u06FF\u0750-\u077F]/;
+    result = pattern.test(text);
+    return result;
+}
+
+function strip(html) {
+    var tmp = document.createElement("DIV");
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || "";
+}
+
+function isIterable (value) {
+  return Symbol.iterator in Object(value);
+}
+
+function isNumeric(obj) {
+    return !isNaN(obj - parseFloat(obj));
+}
+
+function arraysEqual(a, b) {
+    if (a === b) return true;
+    if (a == null || b == null) return false;
+    if (a.length != b.length) return false;
+
+    // We don't  care about order...
+    a.sort();
+    b.sort();
+
+    for (var i = 0; i < a.length; ++i) {
+        if (a[i] !== b[i]) return false;
+    }
+    return true;
+}
+
+String.prototype.replaceAll = function(search, replacement) {
+    var target = this;
+    return target.replace(new RegExp(search, 'g'), replacement);
+};
+
+function getQueryStringValue(key) {
+    return decodeURIComponent(window.location.search.replace(new RegExp(
+        "^(?:.*[&\\?]" +
+        encodeURIComponent(key).replace(/[\.\+\*]/g, "\\$&") +
+        "(?:\\=([^&]*))?)?.*$", "i"), "$1"));
+}
+
+
+function onSignIn(googleUser) {
+    var profile = googleUser.getBasicProfile();
+    // console.log('Image URL: ' + profile.getImageUrl());
+    // Identify user with log rocket.
+    google_id_token = googleUser.getAuthResponse().id_token;
+    LogRocket.identify(profile.getId(), {
+        name: profile.getName(),
+        email: profile.getEmail()
+    });
+    // display signout button
+    displaySignOutBtn();
+    // establish session with rewayaat webapp
+    vueApp.signedIn = true;
+    vueApp.$forceUpdate();
+}
+
+function displaySignOutBtn() {
+    var gSignInBtn = document.getElementsByClassName('g-signin2')[0];
+    gSignInBtn.outerHTML = '';
+    signInBtnLi = document.getElementById('signInBtnLi');
+    signInBtnLi.innerHTML = '<div onclick="signOutOfRewayaat()" class="uk-navbar-item" style="display:inline-block;  margin-right: 20px;">' +
+        '<a style="margin-top: 20px; border-radius: 3px;" class="uk-button uk-button-default tm-button-default uk-icon"><img style="display: inline-block;   margin-bottom: 4px;width:18px;" src="img/google.png"/><span style="margin-left: 10px;">Sign Out</span>' +
+        '</a>' +
+        '</div>';
+}
+
+// processes the user's query by redirecting with query parameter.
+function submitSearchQuery() {
+    //searchTerms corresponds to to the main search bar
+    var queryBar = document.getElementById("searchTerms");
+    if (queryBar.options.length < 1) {
+        // searchTerms2 corresponds to the home page search bar
+        queryBar = document.getElementById("searchTerms2");
+    }
+    query = ''
+    for (var i = 0, len = queryBar.options.length; i < len; i++) {
+        opt = queryBar.options[i]
+        if (opt.selected === true) {
+            query += opt.value + " ";
+        }
+    }
+
+    if (query) {
+        window.location.href = window.location.protocol + "//" +
+            window.location.host + window.location.pathname + '?' + 'q=' +
+            encodeURIComponent(query.trim());
+    }
+}
+
+function showBookBlurb(bookName) {
+    for (blurb in bookBlurbs) {
+        if (strip(bookName).toUpperCase().includes(bookBlurbs[blurb].book.toUpperCase())) {
+            UIkit.modal.alert(bookBlurbs[blurb].blurb);
+            var modelDialog = document.getElementsByClassName("uk-modal-dialog")[0];
+            modelDialog.style.width = '95%';
+            modelDialog.style.maxWidth = '1000px';
+
+        }
+    }
+}
+
+function displayWelcomeContent() {
+    document.getElementById('hadithView').innerHTML = '';
+    vueApp = new Vue({
+        el: '#hadithView'
+    });
+    $("#welcome").load("/welcome.html?v=3", function(responseData) {
+        // initialize select2
+        initSelect2('searchTerms2');
+        // setup select2 select handler
+        select2SelectHandler('searchTerms2');
+        // setup enter key listener
+        setupSelect2EnterKeyListener('searchTerms2');
+    });
+}
+
+function indicatePendingSearchTerms() {
+    // make search button glow
+    $("[id^=searchBtn]").addClass("button-glow");
+    $("[id^=searchBtn]").css('background', '#383737');
+    $("[id^=searchBtn]").css('color', '#fafafa');
+}
+
+function signOutOfRewayaat() {
+    var auth2 = gapi.auth2.getAuthInstance();
+    auth2.disconnect();
+    location.reload();
+}
+
+function onSignIn(googleUser) {
+    var profile = googleUser.getBasicProfile();
+    // console.log('Image URL: ' + profile.getImageUrl());
+    // Identify user with log rocket.
+    google_id_token = googleUser.getAuthResponse().id_token;
+    LogRocket.identify(profile.getId(), {
+        name: profile.getName(),
+        email: profile.getEmail()
+    });
+    // display signout button
+    displaySignOutBtn();
+    // establish session with rewayaat webapp
+    vueApp.signedIn = true;
+    vueApp.$forceUpdate();
+}
+
+function displaySignOutBtn() {
+    var gSignInBtn = document.getElementsByClassName('g-signin2')[0];
+    gSignInBtn.outerHTML = '';
+    signInBtnLi = document.getElementById('signInBtnLi');
+    signInBtnLi.innerHTML = '<div onclick="signOutOfRewayaat()" class="uk-navbar-item" style="display:inline-block;  margin-right: 20px;">' +
+        '<a style="margin-top: 20px; border-radius: 3px;" class="uk-button uk-button-default tm-button-default uk-icon"><img style="display: inline-block;   margin-bottom: 4px;width:18px;" src="img/google.png"/><span style="margin-left: 10px;">Sign Out</span>' +
+        '</a>' +
+        '</div>';
+}
+
+// processes the user's query by redirecting with query parameter.
+function submitSearchQuery() {
+    //searchTerms corresponds to to the main search bar
+    var queryBar = document.getElementById("searchTerms");
+    if (queryBar.options.length < 1) {
+        // searchTerms2 corresponds to the home page search bar
+        queryBar = document.getElementById("searchTerms2");
+    }
+    query = ''
+    for (var i = 0, len = queryBar.options.length; i < len; i++) {
+        opt = queryBar.options[i]
+        if (opt.selected === true) {
+            query += opt.value + " ";
+        }
+    }
+
+    if (query) {
+        window.location.href = window.location.protocol + "//" +
+            window.location.host + window.location.pathname + '?' + 'q=' +
+            encodeURIComponent(query.trim());
+    }
+}
+
+function showBookBlurb(bookName) {
+    for (blurb in bookBlurbs) {
+        if (strip(bookName).toUpperCase().includes(bookBlurbs[blurb].book.toUpperCase())) {
+            UIkit.modal.alert(bookBlurbs[blurb].blurb);
+            var modelDialog = document.getElementsByClassName("uk-modal-dialog")[0];
+            modelDialog.style.width = '95%';
+            modelDialog.style.maxWidth = '1000px';
+
+        }
+    }
+}
+
+function displayWelcomeContent() {
+    document.getElementById('hadithView').innerHTML = '';
+    vueApp = new Vue({
+        el: '#hadithView'
+    });
+    $("#welcome").load("/welcome.html?v=3", function(responseData) {
+        // initialize select2
+        initSelect2('searchTerms2');
+        // setup select2 select handler
+        select2SelectHandler('searchTerms2');
+        // setup enter key listener
+        setupSelect2EnterKeyListener('searchTerms2');
+    });
+}
+
+function indicatePendingSearchTerms() {
+    // make search button glow
+    $("[id^=searchBtn]").addClass("button-glow");
+    $("[id^=searchBtn]").css('background', '#383737');
+    $("[id^=searchBtn]").css('color', '#fafafa');
+}
+
+function signOutOfRewayaat() {
+    var auth2 = gapi.auth2.getAuthInstance();
+    auth2.disconnect();
+    location.reload();
+}
+
+function select2SelectHandler(select2_id) {
+    $('#' + select2_id).on('select2:close', function(e) {
+        var select2SearchField = $(this).parent().find('.select2-search__field'),
+            setfocus = setTimeout(function() {
+                select2SearchField.focus();
+            }, 100);
+    });
 }
 
 async function displayQuery(query) {
@@ -217,250 +498,11 @@ function validQuery(query) {
     return true;
 }
 
-function displayWelcomeContent() {
-    document.getElementById('hadithView').innerHTML = '';
-    vueApp = new Vue({
-        el: '#hadithView'
-    });
-    $("#welcome").load("/welcome.html?v=3", function(responseData) {
-        // initialize select2
-        initSelect2('searchTerms2');
-        // setup select2 select handler
-        select2SelectHandler('searchTerms2');
-        // setup enter key listener
-        setupSelect2EnterKeyListener('searchTerms2');
-    });
-}
-
-function isCharacterKeyPress(evt) {
-    if (typeof evt.which == "undefined") {
-        // This is IE, which only fires keypress events for printable keys
-        return true;
-    } else if (typeof evt.which == "number" && evt.which > 0) {
-        // In other browsers except old versions of WebKit, evt.which is
-        // only greater than zero if the keypress is a printable key.
-        // We need to filter out backspace and ctrl/alt/meta key combinations
-        return !evt.ctrlKey && !evt.metaKey && !evt.altKey && evt.which != 8;
-    }
-    return false;
-}
-
-function showBookBlurb(bookName) {
-    for (blurb in bookBlurbs) {
-        if (strip(bookName).toUpperCase().includes(bookBlurbs[blurb].book.toUpperCase())) {
-            UIkit.modal.alert(bookBlurbs[blurb].blurb);
-            var modelDialog = document.getElementsByClassName("uk-modal-dialog")[0];
-            modelDialog.style.width = '95%';
-            modelDialog.style.maxWidth = '1000px';
-
-        }
-    }
-}
-function isArabic(text) {
-    var pattern = /[\u0600-\u06FF\u0750-\u077F]/;
-    result = pattern.test(text);
-    return result;
-}
-
-function isNumeric(obj) {
-    return !isNaN(obj - parseFloat(obj));
-}
-
-// processes the user's query by redirecting with query parameter.
-function submitSearchQuery() {
-    //searchTerms corresponds to to the main search bar
-    var queryBar = document.getElementById("searchTerms");
-    if (queryBar.options.length < 1) {
-        // searchTerms2 corresponds to the home page search bar
-        queryBar = document.getElementById("searchTerms2");
-    }
-    query = ''
-    for (var i = 0, len = queryBar.options.length; i < len; i++) {
-        opt = queryBar.options[i]
-        if (opt.selected === true) {
-            query += opt.value + " ";
-        }
-    }
-
-    if (query) {
-        window.location.href = window.location.protocol + "//" +
-            window.location.host + window.location.pathname + '?' + 'q=' +
-            encodeURIComponent(query.trim());
-    }
-}
-
-function indicatePendingSearchTerms() {
-    // make search button glow
-    $("[id^=searchBtn]").addClass("button-glow");
-    $("[id^=searchBtn]").css('background', '#383737');
-    $("[id^=searchBtn]").css('color', '#fafafa');
-}
-
 /**
  * Main method responsible for displaying queries using Vue.js. Stores the
  * created Vue instance in the global vueApp variable.
  */
 function setupVue(query, page) {
-    // create hadith details component
-    Vue.component(
-            'hadith-details', {
-                template: '<div><div v-on:click="showBookBlurb(narration.book)" title="Book" uk-tooltip="pos: right"  class="uk-align-left" >' +
-                    '	<i style="color: rgb(83, 102, 125);" class="fa fa-book hadithDetailsIcon"' +
-                    '		aria-hidden="true"></i>' +
-                    '	<p style="text-decoration:underline; cursor: pointer;" class="hadithDetailsTitle" v-html="narration.book" />' +
-                    '</div>' +
-                    '<div title="Edition" uk-tooltip="pos: right"  class="uk-align-left"  v-if="narration.edition">' +
-                    '<i style="color: rgb(83, 102, 125)"' +
-                    '	class="fa fa-pencil-square-o hadithDetailsIcon"' +
-                    '	aria-hidden="true"></i>' +
-                    '<p class="hadithDetailsTitle">({{narration.edition}})</p>' +
-                    '</div>' +
-                    '<div title="Number" uk-tooltip="pos: right"  class="uk-align-left"  v-if="narration.number">' +
-                    '<i style="color: rgb(83, 102, 125)"' +
-                    '	class="fa fa-pencil-square-o hadithDetailsIcon"' +
-                    '	aria-hidden="true"></i>' +
-                    '<p class="hadithDetailsTitle">Hadith #{{narration.number}}</p>' +
-                    '</div>' +
-                    '<div title="Chapter" uk-tooltip="pos: right"  class="uk-align-left"  v-if="narration.chapter">' +
-                    '<i style="color: rgb(83, 102, 125);"' +
-                    '	class="fa fa-superpowers hadithDetailsIcon" aria-hidden="true"></i>' +
-                    '<p class="hadithDetailsTitle" v-html="narration.chapter" />' +
-                    '</div>' +
-                    '<div title="Section" uk-tooltip="pos: right"  class="uk-align-left" v-if="narration.section">' +
-                    '<i style="color:  rgb(83, 102, 125);"' +
-                    '	class="fa fa-bookmark-o hadithDetailsIcon" aria-hidden="true"></i>' +
-                    '<p class="hadithDetailsTitle" v-html="narration.section" />' +
-                    '</div>' +
-                    '<div title="Part" uk-tooltip="pos: right"   class="uk-align-left"  v-if="narration.part">' +
-                    '<i style="color: rgb(83, 102, 125);"' +
-                    '  class="fa fa-clone hadithDetailsIcon" aria-hidden="true"></i>' +
-                    '	<p class="hadithDetailsTitle" v-html="narration.part" />' +
-                    '</div>' +
-                    '<div title="Volume" uk-tooltip="pos: right"   class="uk-align-left"  v-if="narration.volume">' +
-                    '<i style="color:rgb(83, 102, 125)"' +
-                    '	class="fa fa-calendar-o hadithDetailsIcon" aria-hidden="true"></i>' +
-                    '<p class="hadithDetailsTitle" v-html="narration.volume" />' +
-                    '</div>' +
-                    '<div title="Source" uk-tooltip="pos: right"  class="uk-align-left"  v-if="narration.source">' +
-                    '<i style="color:rgb(83, 102, 125)"' +
-                    '	class="fa fa-share-square-o hadithDetailsIcon" aria-hidden="true"></i>' +
-                    '<p class="hadithDetailsTitle" v-html="narration.source" />' +
-                    '</div>' +
-                    '<div title="Publisher" uk-tooltip="pos: right" class="uk-align-left"  v-if="narration.publisher">' +
-                    '<i style="color:rgb(83, 102, 125)"' +
-                    '	class="fa fa-medium hadithDetailsIcon" aria-hidden="true"></i>' +
-                    '<p class="hadithDetailsTitle" v-html="narration.publisher" />' +
-                    '</div>'
-                    //+ '<span v-on:click="showHadithInfo(gradingobj)" style="padding:10px;    max-width: 150px; text-align:center; width: 80%; margin-right:25px; cursor:pointer; margin-top:15px;" title="Click for more info" uk-tooltip="pos: right" class="uk-align-left" '
-                    //+ 'v-for="gradingobj in narration.gradings"'
-                    //+ 'v-bind:class="gradeLabelClass(gradingobj.grading)"> <i'
-                    //+ ' v-bind:class="gradeLabelIcon(gradingobj.grading)" '
-                    //+ 'aria-hidden="true"></i> {{gradingobj.grading}}'
-                    //+ '</span>
-                    +
-                    '</div>',
-                props: ['narration'],
-                methods: {
-                    showHadithInfo: function(gradingobj) {
-                        var rationaleStr = '';
-                        if (gradingobj.rationale) {
-                            rationaleStr = gradingobj.rationale;
-                        }
-                        UIkit.modal.alert('<h2>Hadith Grading</h2><p>This hadith was given a grading of <code>' + gradingobj.grading + '</code> by ' +
-                            gradingobj.grader + '. ' + rationaleStr + '</p>');
-                    },
-                    showBookBlurb: function(bookName) {
-                        showBookBlurb(bookName)
-                    },
-                    gradeLabelClass: function(grading) {
-                        if (grading === 'mutawatir') {
-                            return 'uk-label';
-                        } else if (grading === 'sahih') {
-                            return 'uk-label-success';
-                        } else if (grading === 'hassan') {
-                            return 'uk-label-warning';
-                        } else {
-                            return 'uk-label-danger';
-                        }
-                    },
-                    gradeLabelIcon: function(grading) {
-                        if (grading === 'mutawatir') {
-                            return 'fa fa-bullhorn';
-                        } else if (grading === 'sahih') {
-                            return 'fa fa-check-circle-o';
-                        } else if (grading === 'hassan') {
-                            return 'fa fa-thumbs-o-up';
-                        } else {
-                            return 'fa fa-thumbs-o-down';
-                        }
-                    },
-                    isActiveClass: function(text) {
-                        if (text && text.includes('<span')) {
-                            return "uk-active"
-                        } else {
-                            return '';
-                        }
-                    }
-                }
-            });
-
-    // create pagination component
-    Vue.component('pagination', {
-        template: '<ul v-if="showList()" style="margin-top: 25px;margin-bottom: -35px;margin-left: -40px; font-size: 15px;" class="uk-pagination uk-flex-left">' +
-            '<li v-if="showPrevious()" v-on:click="goToPrevious()" style="margin-right:15px;"><a><span>&lArr; Previous</span></a></li>' +
-            '<li v-bind:class="isActivePage(n)" v-if="showPage(n)" v-for="n in 20"><a v-on:click="goToPage(n)">{{n}}</a></li>' +
-            '<li v-if="showNext()" v-on:click="goToNext()" style="margin-left:15px;"><a><span>Next &rArr;</span></a></li>' +
-            '</ul>',
-        methods: {
-            isActivePage: function(n) {
-                if (n == (this.$root.page)) {
-                    return 'uk-active';
-                }
-            },
-            showList: function() {
-                if (this.$root.totalHits > this.$root.pageSize) {
-                    return true;
-                } else {
-                    return false;
-                }
-            },
-            showPage: function(n) {
-                if (Math.ceil(this.$root.totalHits / this.$root.pageSize) >= n) {
-                    return true;
-                } else {
-                    return false;
-                }
-            },
-            showPrevious: function() {
-                if (this.$root.page > 1) {
-                    return true;
-                } else {
-                    return false;
-                }
-            },
-            showNext: function() {
-                if (this.$root.page < 21 && ((this.$root.totalHits / this.$root.pageSize) > (this.$root.page))) {
-                    return true;
-                } else {
-                    return false;
-                }
-            },
-            goToPrevious: function() {
-                this.goToPage(this.$root.page - 1);
-            },
-            goToNext: function() {
-                this.goToPage(this.$root.page + 1);
-            },
-            goToPage: function(n) {
-                if (n !== this.$root.page) {
-                    window.location.href = window.location.protocol + "//" +
-                        window.location.host + window.location.pathname + '?' + 'q=' +
-                        encodeURIComponent(getQueryStringValue('q')) + '&page=' + n;
-                }
-            }
-        }
-    });
-
     // clear welcome page content
     document.getElementById('welcome').innerHTML = '';
     // Setup hadith vue component
@@ -531,7 +573,6 @@ function setupVue(query, page) {
                             // set total results size value
                             self.totalHits = respJSON.totalResultSetSize;
                         }
-
                         // fetch significant terms
                         self.fetchSignificantTerms();
                     }
@@ -539,17 +580,6 @@ function setupVue(query, page) {
                 xhr.open('GET', '/v1/narrations?q=' + encodeURIComponent(this.queryStr) +
                     '&page=' + this.page + '&per_page=' + this.pageSize);
                 xhr.send();
-            },
-            gradeLabelClass: function(grading) {
-                if (grading === 'mutawatir') {
-                    return 'uk-label';
-                } else if (grading === 'sahih') {
-                    return 'uk-label-success';
-                } else if (grading === 'hassan') {
-                    return 'uk-label-warning';
-                } else {
-                    return 'uk-label-danger';
-                }
             },
             significant_btn_class: function(btn_text) {
                 class_str = "uk-button tm-button-default uk-icon";
@@ -581,17 +611,6 @@ function setupVue(query, page) {
                     }
                 }).show();
             },
-            gradeLabelIcon: function(grading) {
-                if (grading === 'mutawatir') {
-                    return 'fa fa-bullhorn';
-                } else if (grading === 'sahih') {
-                    return 'fa fa-check-circle-o';
-                } else if (grading === 'hasdan') {
-                    return 'fa fa-thumbs-o-up';
-                } else {
-                    return 'fa fa-thumbs-o-down';
-                }
-            },
             isActiveClass: function(text) {
                 if (text && text.includes('<span')) {
                     return "uk-active"
@@ -603,146 +622,51 @@ function setupVue(query, page) {
                 UIkit.modal.alert('<h2>Hadith URL</h2><pre>' + location.protocol + '//' + location.host + '/?q=_id:' + id + '</pre>');
             },
             editHadith: function(index) {
-
                 var narration = this.narrations[index];
                 // hadith that the user will see...
                 var originalHadith = new Object();
                 // remove any HTML from the JSON object...
                 narration = JSON.parse(JSON.stringify(narration).replace(/<(?:.|\n)*?>/gm, ''));
-
-                originalHadith.book = '';
-                if (narration.book) {
-                    originalHadith.book = narration.book;
+                var editableAttrs = ["book", "number", "source", "part", "edition", "chapter",
+                    "publisher", "section", "volume", "tags", "notes", "english", "arabic"
+                ];
+                // loop through narration properties
+                for (var attribute in narration) {
+                    if (Object.prototype.hasOwnProperty.call(narration, attribute) &&
+                        editableAttrs.includes(attribute) && narration[attribute]) {
+                        originalHadith[attribute] = narration[attribute];
+                    }
                 }
-                originalHadith.number = '';
-                if (narration.number) {
-                    originalHadith.number = narration.number;
-                }
-                originalHadith.source = '';
-                if (narration.source) {
-                    originalHadith.source = narration.source;
-                }
-                originalHadith.part = '';
-                if (narration.part) {
-                    originalHadith.part = narration.part;
-                }
-                originalHadith.edition = '';
-                if (narration.edition) {
-                    originalHadith.edition = narration.edition;
-                }
-                originalHadith.chapter = '';
-                if (narration.chapter) {
-                    originalHadith.chapter = narration.chapter;
-                }
-                originalHadith.publisher = '';
-                if (narration.publisher) {
-                    originalHadith.publisher = narration.publisher;
-                }
-                originalHadith.section = '';
-                if (narration.section) {
-                    originalHadith.section = narration.section;
-                }
-                originalHadith.volume = '';
-                if (narration.volume) {
-                    originalHadith.volume = narration.volume;
-                }
-                originalHadith.tags = [];
-                if (narration.tags) {
-                    originalHadith.tags = narration.tags;
-                }
-                originalHadith.notes = '';
-                if (narration.notes) {
-                    originalHadith.notes = narration.notes;
-                }
-                originalHadith.arabic = '';
-                if (narration.arabic) {
-                    originalHadith.arabic = narration.arabic;
-                }
-                originalHadith.english = '';
-                if (narration.english) {
-                    originalHadith.english = narration.english;
-                }
-                originalHadith.gradings = [];
-                if (narration.gradings) {
-                    originalHadith.gradings = narration.gradings;
-                }
-
                 // stores all the hadith properties that were modified.
-                var changedAtributes = new Object();
-
+                var changedAttributes = new Object();
                 UIkit.modal.confirm('<h2>Editing Mode</h2><p>Modify this hadith in the editor below, make sure to read the <a target="_blank" href="https://github.com/rewayaat/rewayaat/wiki/Hadith-Entry-Guidelines">Hadith Entry Guidelines</a>. When finished, select <span style="display: inline-block;box-sizing: border-box;' +
                     'padding: 0 15px;vertical-align: middle;font-size: 14px;line-height: 28px;text-align: center;color: #fff;background-color:#1e87f0;' +
                     '">OK</span> to save your changes to the database.</p>').then(function() {
                     var modifiedHadith = editor.get();
                     var changeDetected = false;
-
-                    if (modifiedHadith.book && (modifiedHadith.book !== narration.book)) {
-                        changeDetected = true;
-                        changedAtributes.book = modifiedHadith.book;
+                    // loop through original hadith
+                    for (var attribute in originalHadith) {
+                        if (Object.prototype.hasOwnProperty.call(originalHadith, attribute) &&
+                            editableAttrs.includes(attribute) && modifiedHadith[attribute]) {
+                            if ((isIterable(originalHadith[attribute]) &&
+                            arraysEqual(modifiedHadith[attribute], originalHadith[attribute]) ===
+                            false) ||
+                            (isIterable(originalHadith[attribute]) === false &&
+                             modifiedHadith[attribute] !== originalHadith[attribute])) {
+                                changeDetected = true;
+                                changedAttributes[attribute] = modifiedHadith[attribute];
+                                originalHadith[attribute] = narration[attribute];
+                            }
+                        }
                     }
-                    if (modifiedHadith.number && (modifiedHadith.number !== narration.number)) {
-                        changeDetected = true;
-                        changedAtributes.number = modifiedHadith.number;
-                    }
-                    if (modifiedHadith.source && (modifiedHadith.source !== narration.source)) {
-                        changeDetected = true;
-                        changedAtributes.source = modifiedHadith.source;
-                    }
-                    if (modifiedHadith.part && (modifiedHadith.part !== narration.part)) {
-                        changeDetected = true;
-                        changedAtributes.part = modifiedHadith.part;
-                    }
-                    if (modifiedHadith.edition && (modifiedHadith.edition !== narration.edition)) {
-                        changeDetected = true;
-                        changedAtributes.edition = modifiedHadith.edition;
-                    }
-                    if (modifiedHadith.chapter && (modifiedHadith.chapter !== narration.chapter)) {
-                        changeDetected = true;
-                        changedAtributes.chapter = modifiedHadith.chapter;
-                    }
-                    if (modifiedHadith.publisher && (modifiedHadith.publisher !== narration.publisher)) {
-                        changeDetected = true;
-                        changedAtributes.publisher = modifiedHadith.publisher;
-                    }
-                    if (modifiedHadith.volume && (modifiedHadith.volume !== narration.volume)) {
-                        changeDetected = true;
-                        changedAtributes.volume = modifiedHadith.volume;
-                    }
-                    if (modifiedHadith.section && (modifiedHadith.section !== narration.section)) {
-                        changeDetected = true;
-                        changedAtributes.section = modifiedHadith.section;
-                    }
-                    if (modifiedHadith.tags && (arraysEqual(modifiedHadith.tags, narration.tags) === false)) {
-                        changeDetected = true;
-                        changedAtributes.tags = modifiedHadith.tags;
-                    }
-                    if (modifiedHadith.notes && (modifiedHadith.notes !== narration.notes)) {
-                        changeDetected = true;
-                        changedAtributes.notes = modifiedHadith.notes;
-                    }
-                    if (modifiedHadith.gradings && (arraysEqual(modifiedHadith.gradings, narration.gradings) === false)) {
-                        changeDetected = true;
-                        changedAtributes.gradings = modifiedHadith.gradings;
-                    }
-                    if (modifiedHadith.arabic && (modifiedHadith.arabic !== narration.arabic)) {
-                        changeDetected = true;
-                        changedAtributes.arabic = modifiedHadith.arabic;
-                    }
-                    if (modifiedHadith.english && (modifiedHadith.english !== narration.english)) {
-                        changeDetected = true;
-                        changedAtributes.english = modifiedHadith.english;
-                    }
-
                     if (changeDetected) {
                         // save hadith
                         var http = new XMLHttpRequest();
                         var url = "/v1/narrations?hadith_id=" + narration._id + '&id_token=' + google_id_token;
-                        var data = JSON.stringify(changedAtributes);
+                        var data = JSON.stringify(changedAttributes);
                         http.open("POST", url, true);
-
                         //Send the proper header information along with the request
                         http.setRequestHeader("Content-type", "application/json");
-
                         http.onreadystatechange = function() { //Call a function when the state changes.
                             if (http.readyState == 4 && http.status == 200) {
                                 swal(
@@ -750,8 +674,8 @@ function setupVue(query, page) {
                                     "This hadith was successfully modifed.",
                                     "success");
                                 // modify existing hadith object with new values
-                                Object.keys(changedAtributes).forEach(function(key) {
-                                    vueApp.narrations[index][key] = changedAtributes[key];
+                                Object.keys(changedAttributes).forEach(function(key) {
+                                    vueApp.narrations[index][key] = changedAttributes[key];
                                 });
                             } else {
                                 swal(
@@ -763,15 +687,12 @@ function setupVue(query, page) {
                         }
                         http.send(data);
                     } else {
-
                         // no changes were found
                         swal(
                             "No Changes Were Found",
                             "If you meant to make changes to the hadith, please try again.",
                             "error");
                     }
-                }, function() {
-                    console.log('rejected');
                 });
                 var modelDialog = document.getElementsByClassName("uk-modal-dialog")[0];
                 modelDialog.style.width = '80%';
@@ -790,17 +711,10 @@ function setupVue(query, page) {
     });
 }
 
-function strip(html) {
-    var tmp = document.createElement("DIV");
-    tmp.innerHTML = html;
-    return tmp.textContent || tmp.innerText || "";
-}
-
 /**
  * Adds relevant social media URLS as properties of the given hadith object.
  */
 function socialMediaDecoratedHadith(hadithObj) {
-
     var hadithURL = encodeURIComponent(location.protocol + "//" + location.host +
         "/?q=_id:" + hadithObj._id);
     var hadithDesc = "";
@@ -830,10 +744,10 @@ function socialMediaDecoratedHadith(hadithObj) {
     hadithDesc = hadithDesc.replaceAll('<span class="highlight">', '');
     hadithDesc = hadithDesc.replaceAll('</span>', '');
     hadithDesc = encodeURIComponent(hadithDesc.replace(/(^,)|(,$)/g, "").trim());
-    var hadithText="Hadith " + hadithObj.number + " chapter " + hadithObj.chapter + " from " + hadithObj.book;
+    var hadithText = "Hadith " + hadithObj.number + " chapter " + hadithObj.chapter + " from " + hadithObj.book;
     if (hadithObj.english) {
         hadithText = encodeURIComponent(hadithObj.english.replaceAll(
-        '<span class="highlight">', '').replaceAll('</span>', ''));
+            '<span class="highlight">', '').replaceAll('</span>', ''));
     }
     hadithObj["facebook"] = "https://www.facebook.com/sharer/sharer.php?u=" +
         hadithURL;
@@ -841,64 +755,3 @@ function socialMediaDecoratedHadith(hadithObj) {
         hadithDesc + "&url=" + hadithURL;
     return hadithObj;
 }
-
-function arraysEqual(a, b) {
-    if (a === b) return true;
-    if (a == null || b == null) return false;
-    if (a.length != b.length) return false;
-
-    // We don't  care about order...
-    a.sort();
-    b.sort();
-
-    for (var i = 0; i < a.length; ++i) {
-        if (a[i] !== b[i]) return false;
-    }
-    return true;
-}
-
-String.prototype.replaceAll = function(search, replacement) {
-    var target = this;
-    return target.replace(new RegExp(search, 'g'), replacement);
-};
-
-function getQueryStringValue(key) {
-    return decodeURIComponent(window.location.search.replace(new RegExp(
-        "^(?:.*[&\\?]" +
-        encodeURIComponent(key).replace(/[\.\+\*]/g, "\\$&") +
-        "(?:\\=([^&]*))?)?.*$", "i"), "$1"));
-}
-
-function onSignIn(googleUser) {
-    var profile = googleUser.getBasicProfile();
-
-    // console.log('Image URL: ' + profile.getImageUrl());
-    // Identify user with log rocket.
-    google_id_token = googleUser.getAuthResponse().id_token;
-    LogRocket.identify(profile.getId(), {
-        name: profile.getName(),
-        email: profile.getEmail()
-    });
-    // display signout button
-    displaySignOutBtn();
-    // establish session with rewayaat webapp
-    vueApp.signedIn = true;
-    vueApp.$forceUpdate();
-}
-
-function displaySignOutBtn() {
-    var gSignInBtn = document.getElementsByClassName('g-signin2')[0];
-    gSignInBtn.outerHTML = '';
-    signInBtnLi = document.getElementById('signInBtnLi');
-    signInBtnLi.innerHTML = '<div onclick="signOutOfRewayaat()" class="uk-navbar-item" style="display:inline-block;  margin-right: 20px;">' +
-        '<a style="margin-top: 20px; border-radius: 3px;" class="uk-button uk-button-default tm-button-default uk-icon"><img style="display: inline-block;   margin-bottom: 4px;width:18px;" src="img/google.png"/><span style="margin-left: 10px;">Sign Out</span>' +
-        '</a>' +
-        '</div>';
-}
-
-function signOutOfRewayaat() {
-    var auth2 = gapi.auth2.getAuthInstance();
-    auth2.disconnect();
-    location.reload();
-}
-
