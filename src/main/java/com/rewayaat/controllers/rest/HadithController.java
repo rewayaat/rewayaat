@@ -3,6 +3,7 @@ package com.rewayaat.controllers.rest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rewayaat.config.ESClientProvider;
 import com.rewayaat.core.HadithObjectCollection;
+import com.rewayaat.core.QueryMode;
 import com.rewayaat.core.QueryStringQueryResult;
 import com.rewayaat.core.UpdateRequest;
 import com.rewayaat.core.User;
@@ -12,6 +13,11 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.script.Script;
+import org.elasticsearch.search.sort.ScriptSortBuilder;
+import org.elasticsearch.search.sort.SortBuilder;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.slf4j.Logger;
@@ -32,7 +38,9 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.naming.AuthenticationException;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * API for working with narrations.
@@ -58,22 +66,63 @@ public class HadithController {
             @ApiResponse(code = 404, message = "Bad request"),
             @ApiResponse(code = 500, message = "Internal server error")
     })
-    @Cacheable(value = "queries")
+    //@Cacheable(value = "queries")
     @RequestMapping(method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public HadithObjectCollection queryHadith(
             @ApiParam(name = "q", value = "The query to execute.")
             @RequestParam(value = "q", defaultValue = "") String query,
-            @ApiParam(name = "page", value = "The number of the page to return.")
+            @ApiParam(name = "sort_fields", hidden = true, required = false)
+            @RequestParam(value = "sort_fields", defaultValue = "", required = false) String sortFields,
+            @ApiParam(name = "page", value = "The number of the page to return.", required = false)
             @RequestParam(value = "page", defaultValue = "1") int page,
             @ApiParam(name = "per_page", value = "Number of hadith to include per page. Maximum of 100.")
             @RequestParam(value = "per_page", defaultValue = "20") int perPage) throws Exception {
-
         if (perPage > 100) {
             perPage = 100;
         }
-        LOGGER.info("Entered hadith query API with query: " + query + " and page: " + page + " and per_page: " + perPage);
-        return new QueryStringQueryResult(query, page - 1, perPage).result();
+        LOGGER.info("Entered hadith query API with query: " + query + ", page: " + page +
+                        ", per_page: " + perPage + " and sort_fields: " + sortFields);
+        List<SortBuilder> sortBuilders = setSortBuilders(sortFields);
+        QueryMode queryMode = QueryMode.SEARCH;
+        if (!sortFields.isEmpty()) {
+            // Assumption: If sort values are provided, a lookup query is required.
+            queryMode = QueryMode.LOOKUP;
+        }
+        return new QueryStringQueryResult(query, page - 1, perPage, sortBuilders, queryMode).result();
+    }
+
+    private List<SortBuilder> setSortBuilders(String sort_fields) {
+        List<SortBuilder> sortBuilders = new ArrayList<>();
+        if (sort_fields == null || sort_fields.isEmpty()) {
+            sortBuilders.add(SortBuilders.scoreSort());
+        } else {
+            String[] fieldSorts = sort_fields.split(",");
+            for (String fieldSort : fieldSorts) {
+                String field = fieldSort.split(":")[0] + ".keyword";
+                if (field.startsWith("number")) {
+                    sortBuilders.add(SortBuilders.scriptSort(
+                        new Script("Integer.parseInt(doc['number.keyword'].value)"),
+                        ScriptSortBuilder.ScriptSortType.NUMBER)
+                    );
+                } else if (field.startsWith("chapter")) {
+                    sortBuilders.add(SortBuilders.scriptSort(
+                        new Script(
+                            "def m = /([0-9]+) +[-–—]/.matcher(doc['chapter.keyword'].value); " +
+                                "if(m.find()) { " +
+                                "return Integer.parseInt(m.group(1))" +
+                                " } else { " +
+                                "return 0 }"
+                        ),
+                        ScriptSortBuilder.ScriptSortType.NUMBER)
+                    );
+                } else {
+                    SortOrder sortOrder = SortOrder.fromString(fieldSort.split(":")[1]);
+                    sortBuilders.add(SortBuilders.fieldSort(field).order(sortOrder));
+                }
+            }
+        }
+        return sortBuilders;
     }
 
     @ApiIgnore
@@ -82,7 +131,6 @@ public class HadithController {
             @RequestParam(value = "id_token", required = true) String idToken,
             @RequestParam(value = "hadith_id", required = true) String hadithId,
             @RequestBody String modifiedHadithStr, HttpServletRequest req) throws Exception {
-
         try {
             if (new User(idToken).isAdmin()) {
                 modifiedHadithStr = Jsoup.parse(modifiedHadithStr).text();

@@ -23,12 +23,15 @@ public class HomeController {
     @RequestMapping(method = RequestMethod.GET)
     public final String home(@RequestParam(value = "q", required = false, defaultValue = "") String query,
                              @RequestParam(value = "page", defaultValue = "1") int page,
+                             @RequestParam(value = "sort_fields", required = false) String sort_fields,
                              HttpServletRequest request, final Model model) {
         log.info("Entered home controller");
         log.info("Query param is " + query + ", returning query value in model.");
         model.addAttribute("query", query);
         log.info("Page param is " + page + ", returning page value in model.");
         model.addAttribute("page", page);
+        log.info("Page sort_fields is " + sort_fields + ", returning sort_fields value in model.");
+        model.addAttribute("sort_fields", sort_fields);
         return "index";
     }
 }

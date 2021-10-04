@@ -6,7 +6,7 @@
                        <div v-on:click="showBookBlurb(narration.book)" title="Book" uk-tooltip="pos: right"  class="uk-align-left" >
                           <i class="fa fa-book hadithDetailsIcon"
                              aria-hidden="true"></i>
-                          <p style="text-decoration:underline; cursor: pointer;" class="hadithDetailsTitle" v-html="narration.book" />
+                          <p class="hadithDetailsTitle hadithDetailsLink" v-html="narration.book" />
                        </div>
                        <div title="Edition" uk-tooltip="pos: right"  class="uk-align-left"  v-if="narration.edition">
                           <i class="fa fa-pencil-square-o hadithDetailsIcon"
@@ -18,21 +18,29 @@
                              aria-hidden="true"></i>
                           <p class="hadithDetailsTitle">Hadith #{{narration.number}}</p>
                        </div>
-                       <div title="Chapter" uk-tooltip="pos: right"  class="uk-align-left"  v-if="narration.chapter">
+                       <div v-on:click="showSpecific(narration.chapter, '', '', '', narration.book)"
+                        title="Chapter"
+                       uk-tooltip="pos: right"  class="uk-align-left"  v-if="narration.chapter">
                           <i class="fa fa-superpowers hadithDetailsIcon" aria-hidden="true"></i>
-                          <p class="hadithDetailsTitle" v-html="narration.chapter" />
+                          <p class="hadithDetailsTitle hadithDetailsLink" v-html="narration.chapter" />
                        </div>
-                       <div title="Section" uk-tooltip="pos: right"  class="uk-align-left" v-if="narration.section">
+                       <div title="Section"
+                       v-on:click="showSpecific('', narration.section, '', '', narration.book)"
+                       uk-tooltip="pos: right"  class="uk-align-left" v-if="narration.section">
                           <i class="fa fa-bookmark-o hadithDetailsIcon" aria-hidden="true"></i>
-                          <p class="hadithDetailsTitle" v-html="narration.section" />
+                          <p class="hadithDetailsTitle hadithDetailsLink" v-html="narration.section" />
                        </div>
-                       <div title="Part" uk-tooltip="pos: right"   class="uk-align-left"  v-if="narration.part">
+                       <div title="Part"
+                          v-on:click="showSpecific('', '', narration.part, '', narration.book)"
+                          uk-tooltip="pos: right"   class="uk-align-left"  v-if="narration.part">
                           <i class="fa fa-clone hadithDetailsIcon" aria-hidden="true"></i>
-                          <p class="hadithDetailsTitle" v-html="narration.part" />
+                          <p class="hadithDetailsTitle hadithDetailsLink" v-html="narration.part" />
                        </div>
-                       <div title="Volume" uk-tooltip="pos: right"   class="uk-align-left"  v-if="narration.volume">
+                       <div title="Volume"
+                          v-on:click="showSpecific('', '', '', narration.volume, narration.book)"
+                          uk-tooltip="pos: right"   class="uk-align-left"  v-if="narration.volume">
                           <i class="fa fa-calendar-o hadithDetailsIcon" aria-hidden="true"></i>
-                          <p class="hadithDetailsTitle" v-html="narration.volume" />
+                          <p class="hadithDetailsTitle hadithDetailsLink" v-html="narration.volume" />
                        </div>
                        <div title="Source" uk-tooltip="pos: right"  class="uk-align-left"  v-if="narration.source">
                           <i class="fa fa-share-square-o hadithDetailsIcon" aria-hidden="true"></i>
@@ -48,6 +56,27 @@
                 methods: {
                     showBookBlurb: function(bookName) {
                         showBookBlurb(bookName)
+                    },
+                    showSpecific: function(chapter="", section="", part="", volume="", book="") {
+                        var query = "book:\"" + strip(book) + "\"";
+                        var sortFields = "number:asc";
+                        if (chapter) {
+                            query += " chapter:\"" + strip(chapter) + "\"";
+                            sortFields = "chapter:asc," + sortFields;
+                        }
+                        if (section) {
+                            query += " section:\"" + strip(section) + "\"";
+                            sortFields = "section:asc," + sortFields;
+                        }
+                        if (part) {
+                            query += " part:\"" + strip(part) + "\"";
+                            sortFields = "part:asc," + sortFields;
+                        }
+                        if (volume) {
+                            query += " volume:\"" + strip(volume.replace("Volume", "")) + "\"";
+                            sortFields = "volume:asc," + sortFields;
+                        }
+                        redirectToSearchResult(query, '', sortFields);
                     }
                 }
             });
@@ -104,9 +133,8 @@
             },
             goToPage: function(n) {
                 if (n !== this.$root.page) {
-                    window.location.href = window.location.protocol + "//" +
-                        window.location.host + window.location.pathname + '?' + 'q=' +
-                        encodeURIComponent(getQueryStringValue('q')) + '&page=' + n;
+                    redirectToSearchResult(getQueryStringValue('q'), n, getQueryStringValue
+                    ('sort_fields'));
                 }
             }
         }

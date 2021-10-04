@@ -2,12 +2,11 @@ var vueApp;
 var google_id_token;
 var currentQueryText = '';
 var bookBlurbs;
-
 /**
  * Main entry point to the website. If does not exist, display default welcome
  * content. If there is a valid query, setup a Vue.js instance to display it.s
  */
-function loadQuery(query, page = 1) {
+function loadQuery(query, page = 1, sortFields) {
     if (query) {
         // validate query
         if (validQuery(query)) {
@@ -17,7 +16,7 @@ function loadQuery(query, page = 1) {
             $.getJSON("book_blurbs.json", function(book_blurbs) {
                 bookBlurbs = book_blurbs
                 // load the query
-                setupVue(query, page);
+                setupVue(query, page, sortFields);
             });
             // Update latest new bar
             setLatestNewsBarHTML('Help improve our content by <b><a target="_blank" style="color:black; text-decoration:underline;" href="mailto:rewayaat.org@gmail.com?Subject=HDP%20Database%20Error">reporting</a></b> any mistakes you find!')
@@ -29,7 +28,7 @@ function loadQuery(query, page = 1) {
             displayWelcomeContent();
         }
     } else {
-        setLatestNewsBarHTML('Our team has recently added <b><a target="_blank" style="color: black;text-decoration: underline;" href="' + window.location.href + '?q=book:%22al-amali%22">Al-Amali</a></b>, <b><a target="_blank" style="color: black;text-decoration: underline;" href="' + window.location.href + '?q=book%3A%22Khisal%22">Al Khisal</a></b> and <b><a target="_blank" style="color: black;text-decoration: underline;" href="' + window.location.href + '?q=book%3A%22Uyun%22">Uyun Akhbar Al-Rida</a></b> to our Collection!');
+        //setLatestNewsBarHTML('Our team has recently added <b><a target="_blank" style="color: black;text-decoration: underline;" href="' + window.location.href + '?q=book:%22al-amali%22">Al-Amali</a></b>, <b><a target="_blank" style="color: black;text-decoration: underline;" href="' + window.location.href + '?q=book%3A%22Khisal%22">Al Khisal</a></b> and <b><a target="_blank" style="color: black;text-decoration: underline;" href="' + window.location.href + '?q=book%3A%22Uyun%22">Uyun Akhbar Al-Rida</a></b> to our Collection!');
         // show default mark-down welcome page
         displayWelcomeContent();
         // load book blurbs
@@ -85,6 +84,9 @@ function setupSelect2EnterKeyListener(select2_id) {
     });
 }
 
+function removeArabicText(text) {
+    return text.replace(/[^\x00-\x7F]/g, "").trim();
+}
 function initSelect2(select2_id) {
     $('#' + select2_id).select2({
         tags: "true",
@@ -101,6 +103,9 @@ function initSelect2(select2_id) {
             type: "GET",
             delay: 250,
             data: function(params) {
+                if (params['term'].indexOf(' ') >= 0) {
+                    return;
+                }
                 var queryParameters = {
                     term: params.term.replace(/["']/g, "")
                 }
@@ -300,12 +305,21 @@ function submitSearchQuery() {
             query += opt.value + " ";
         }
     }
-
     if (query) {
-        window.location.href = window.location.protocol + "//" +
-            window.location.host + window.location.pathname + '?' + 'q=' +
-            encodeURIComponent(query.trim());
+        redirectToSearchResult(query)
     }
+}
+
+function redirectToSearchResult(query, page, sortFields) {
+    var queryParamString = '?q=' + encodeURIComponent(query.trim())
+    if (sortFields) {
+        queryParamString += '&sort_fields=' + encodeURIComponent(sortFields.trim())
+    }
+    if (page) {
+        queryParamString += '&page=' + page;
+    }
+    window.location.href = window.location.protocol + "//" +
+        window.location.host + window.location.pathname + queryParamString;
 }
 
 function showBookBlurb(bookName) {
@@ -502,7 +516,7 @@ function validQuery(query) {
  * Main method responsible for displaying queries using Vue.js. Stores the
  * created Vue instance in the global vueApp variable.
  */
-function setupVue(query, page) {
+function setupVue(query, page, sortFields) {
     // clear welcome page content
     document.getElementById('welcome').innerHTML = '';
     // Setup hadith vue component
@@ -512,6 +526,7 @@ function setupVue(query, page) {
             narrations: [],
             queryStr: query,
             significantTerms: [],
+            sortFields: sortFields,
             page: page,
             totalHits: 0,
             pageSize: 20,
@@ -526,7 +541,7 @@ function setupVue(query, page) {
             // fetches significant query terms using the Rewayaat REST API
             fetchSignificantTerms: function() {
                 var self = this;
-                if (this.queryStr) {
+                if (this.queryStr && !this.sortFields) {
                     var xhr = new XMLHttpRequest();
                     xhr.onload = function() {
                         if (xhr.readyState == XMLHttpRequest.DONE && xhr.status == 200) {
@@ -577,8 +592,12 @@ function setupVue(query, page) {
                         self.fetchSignificantTerms();
                     }
                 }
-                xhr.open('GET', '/v1/narrations?q=' + encodeURIComponent(this.queryStr) +
-                    '&page=' + this.page + '&per_page=' + this.pageSize);
+                var reqUrl = '/v1/narrations?q=' + encodeURIComponent(this.queryStr) +
+                '&page=' + this.page + '&per_page=' + this.pageSize;
+                if (this.sortFields) {
+                    reqUrl += '&sort_fields=' + this.sortFields
+                }
+                xhr.open('GET', reqUrl);
                 xhr.send();
             },
             significant_btn_class: function(btn_text) {

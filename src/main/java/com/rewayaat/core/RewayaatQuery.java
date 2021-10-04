@@ -1,6 +1,8 @@
 package com.rewayaat.core;
 
+import com.rewayaat.controllers.HomeController;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,12 +17,18 @@ import java.util.List;
  */
 public class RewayaatQuery {
 
+    private static Logger log = Logger.getLogger(HomeController.class.getName());
+    private final QueryMode queryMode;
+
     private String query;
 
-    private String[] docFields = new String[]{"_id:", "source:", "book:", "number:", "part:", "edition:", "chapter:", "publisher:", "section:", "tags:", "volume:", "notes:", "arabic:", "gradings:"};
+    private String[] docFields = new String[]{"_id:", "source:", "book:", "number:", "part:",
+        "edition:", "chapter:", "publisher:", "section:", "tags:", "volume:", "notes:", "arabic:",
+        "gradings:"};
 
-    public RewayaatQuery(String query) {
+    public RewayaatQuery(String query, QueryMode queryMode) {
         this.query = query.trim();
+        this.queryMode = queryMode;
     }
 
     public String query() {
@@ -29,31 +37,39 @@ public class RewayaatQuery {
         List<String> allFieldItems = new ArrayList<>();
         int nextingLevel = 0;
         StringBuilder result = new StringBuilder();
-        for (char c : query.toCharArray()) {
-            if (c == ' ' && nextingLevel == 0) {
+        for (int i = 0; i < query.length(); i++) {
+            char curr_c = query.charAt(i);
+            Character next_c = null;
+            if (i != query.length() - 1) {
+                next_c = query.charAt(i + 1);
+            }
+            if (curr_c == ' ' && nextingLevel == 0) {
                 splitted.add(result.toString());
                 result.setLength(0);
             } else {
-                if (c == '(' | c == '[' | c == '\"') {
-                    nextingLevel++;
-                } else if (c == ')' | c == ']' | c == '\"') {
+                if (curr_c == ')' | curr_c == ']' ||
+                    (curr_c == '\"' && (next_c == null || next_c == ' '))) {
                     nextingLevel--;
+                } else if (curr_c == '(' | curr_c == '[' | curr_c == '\"') {
+                    nextingLevel++;
                 }
-                result.append(c);
+                result.append(curr_c);
             }
         }
         splitted.add(result.toString());
         for (String s : splitted) {
             s = s.trim();
-            if (!s.contains("~") && !s.contains("(") && !s.contains("\"") && !s.trim().startsWith("+") && !s.trim().startsWith("-")) {
+            if (!s.contains("~") && !s.contains(":") && !s.contains("(") && !s.contains("\"") && !s.trim().startsWith("+") && !s.trim().startsWith("-")) {
                 s += "~";
             }
-            if (!StringUtils.startsWithAny(s, docFields)) {
-                allFieldItems.add(s);
-            }
+            allFieldItems.add(s);
         }
-        query = String.join(" ", allFieldItems);
-        System.out.println("Final fuzzied query: " + query);
+        if (queryMode == QueryMode.LOOKUP) {
+            query = String.join(" AND ", allFieldItems);
+        } else {
+            query = String.join(" ", allFieldItems);
+        }
+        log.info("Final query post modifications: " + query);
         return query;
     }
 

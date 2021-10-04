@@ -12,8 +12,6 @@
     <meta content="width=device-width, initial-scale=1, maximum-scale=1" name="viewport"/>
     <link href="/css/select2.css" rel="stylesheet" th:href="@{/css/select2.css}"/>
     <link href="/css/theme.css?v=1" rel="stylesheet" th:href="@{/css/theme.css?v=1}"/>
-    <link href="/css/jquery.jscrollpane.css" rel="stylesheet"
-          th:href="@{/css/jquery.jscrollpane.css}"/>
     <link href="/css/sweetalert.css" rel="stylesheet" th:href="@{/css/sweetalert.css}"/>
     <link href="/css/jsoneditor.min.css" rel="stylesheet" th:href="@{/css/jsoneditor.min.css}"/>
     <link href="https://fonts.googleapis.com/css?family=Chivo" rel="stylesheet"/>
@@ -75,13 +73,6 @@
                 <i class="fa fa-envelope"></i><span class="text">Email</span>
             </a>
         </span>
-        <span
-            class="sr-facebook sr-text-in">
-            <a href="https://www.facebook.com/academyofislam" style="  background-color: #c9dfff; border: 1px solid gray;color: #383737;" target="_blank" title="Facebook">
-                <i class="fa fa-facebook"></i>
-                <span class="text">Facebook</span>
-            </a>
-        </span>
         <span class="sr-twitter sr-text-in">
             <a href="https://twitter.com/academyforislam" style="  background-color: #c9dfff; border: 1px solid gray;color: #383737;" target="_blank" title="Twitter">
                 <i class="fa fa-twitter"></i>
@@ -98,6 +89,15 @@
             <a href="/swagger-ui.html"  style="  background-color: #c9dfff; border: 1px solid gray;color: #383737;" target="_blank" title="REST API">
                 <i class="fa fa-code"></i>
                 <span class="text">Github</span>
+            </a>
+        </span>
+        <span
+                class="sr-facebook sr-text-in">
+            <a href="https://stats.uptimerobot.com/B6PV5iV09p"
+               style="background-color: #c9dfff; border: 1px solid gray;color: #383737;"
+               target="_blank" title="System Health">
+                <i class="fa fa-heartbeat"></i>
+                <span class="text">System Health</span>
             </a>
         </span>
     </div>
@@ -156,68 +156,6 @@
                         </hadith-details>
                     </div>
                     <div style="padding-top: 0px; margin-right: auto; margin-left: auto; width:97%;">
-                        <div>
-                            <a aria-label=""
-                               class="resp-sharing-button__link uk-align-right"
-                               target="_blank"
-                               v-bind:href="narration.facebook">
-                                <div class="resp-sharing-button resp-sharing-button--facebook resp-sharing-button--small"
-                                     title="Share hadith on  Facebook">
-                                    <div aria-hidden="true"
-                                         class="resp-sharing-button__icon resp-sharing-button__icon--solid">
-                                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M18.77 7.46H14.5v-1.9c0-.9.6-1.1 1-1.1h3V.5h-4.33C10.24.5 9.5 3.44 9.5 5.32v2.15h-3v4h3v12h5v-12h3.85l.42-4z"/>
-                                        </svg>
-                                    </div>
-                                </div>
-                            </a>
-
-                            <!-- Sharing button Twitter -->
-                            <a aria-label=""
-                               class="resp-sharing-button__link uk-align-right"
-                               target="_blank" v-bind:href="narration.twitter">
-                                <div class="resp-sharing-button resp-sharing-button--twitter resp-sharing-button--small"
-                                     title="Share hadith on  Twitter">
-                                    <div aria-hidden="true"
-                                         class="resp-sharing-button__icon resp-sharing-button__icon--solid">
-                                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M23.44 4.83c-.8.37-1.5.38-2.22.02.93-.56.98-.96 1.32-2.02-.88.52-1.86.9-2.9 1.1-.82-.88-2-1.43-3.3-1.43-2.5 0-4.55 2.04-4.55 4.54 0 .36.03.7.1 1.04-3.77-.2-7.12-2-9.36-4.75-.4.67-.6 1.45-.6 2.3 0 1.56.8 2.95 2 3.77-.74-.03-1.44-.23-2.05-.57v.06c0 2.2 1.56 4.03 3.64 4.44-.67.2-1.37.2-2.06.08.58 1.8 2.26 3.12 4.25 3.16C5.78 18.1 3.37 18.74 1 18.46c2 1.3 4.4 2.04 6.97 2.04 8.35 0 12.92-6.92 12.92-12.93 0-.2 0-.4-.02-.6.9-.63 1.96-1.22 2.56-2.14z"
-                                            />
-                                        </svg>
-                                    </div>
-                                </div>
-                            </a>
-                            <!-- Copy Link -->
-                            <div aria-label="" class="resp-sharing-button__link uk-align-right">
-                                <div
-                                        class="resp-sharing-button  resp-sharing-button--small" style="background: transparent;
-                                           color: #222;
-                                              font-size: 1.25em;
-        margin-right: -10px; cursor:pointer; width: 40%; "
-                                        title="Click to get a URL for this hadith">
-                                    <div aria-hidden="true"
-                                         class="resp-sharing-button__icon resp-sharing-button__icon--solid">
-                                        <i class="fa fa-share-square-o"
-                                           v-on:click="showHadithURL(narration._id)"></i>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Edit Hadith -->
-                            <div aria-label="" class="resp-sharing-button__link uk-align-right"
-                                 v-if="signedIn">
-                                <div class="resp-sharing-button  resp-sharing-button--small" style="background: transparent;
-                                           color: #222;
-                                              font-size: 1.3em;
-        margin-right: -17px; cursor:pointer; width: 40%; "
-                                     title="Click to edit this hadith">
-                                    <div aria-hidden="true"
-                                         class="resp-sharing-button__icon resp-sharing-button__icon--solid">
-                                        <i class="fa fa-pencil-square-o"
-                                           v-on:click="editHadith(index)"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                         <div uk-switcher="animation: uk-animation-fade">
                             <button
                                     class="uk-button uk-button-default hadithMainTabBtn" type="button">
@@ -234,9 +172,9 @@
                             </button>
                         </div>
                         <ul class="uk-switcher uk-margin"
-                            style="color: rgba(0, 0, 0, 0.35); box-shadow: rgb(198, 209, 218) 0px 0px 40px inset; border-style: solid; border-width: 1px; background:rgb(253, 253, 253);">
+                            style="color: rgba(0, 0, 0, 0.35); margin-bottom:0px;  box-shadow: rgb(198, 209, 218) 0px 0px 40px inset; border-style: solid; border-width: 1px; background:rgb(253, 253, 253);">
                             <li>
-                                <div class="hadithText scrollable">
+                                <div class="hadithText">
                                     <div class="style-1 uk-visible@m"
                                          style="display:block; float:left; width:49%;"
                                          v-html="narration.english">
@@ -254,7 +192,7 @@
                                 </div>
                             </li>
                             <li v-if="narration.notes">
-                                <div class="hadithText scrollable" v-html="narration.notes"></div>
+                                <div class="hadithText" v-html="narration.notes"></div>
                             </li>
                             <li class="relatedObjList" v-if="narration.related.length > 0">
                                 <a class="relatedObj " v-bind:href="relatedObj.url"
@@ -273,7 +211,7 @@
                                 </a>
                             </li>
                             <li v-if="signedIn">
-                                <div class="hadithText scrollable style-1">
+                                <div class="hadithText style-1">
                                     <div v-for="(historyNote, index) in narration.history">
                                             <pre style="padding:20px; border-bottom: 1px solid gray;"
                                                  v-html="historyNote"></pre>
@@ -281,6 +219,29 @@
                                 </div>
                             </li>
                         </ul>
+                        <a target="_blank"
+                           v-bind:href="'mailto:rewayaat.org@gmail.com?subject=Error Report: Hadith ' + narration._id"><button
+                                class="uk-button uk-button-danger uk-button-small hadithMainTabBtn"
+                                type="button" style="float:right; width:110px; margin-bottom:15px;">
+                            <i class="fa fa-bug"></i>  Report
+                        </button></a>
+                        <button
+                                v-if="signedIn" v-on:click="editHadith(index)"
+                                class="uk-button uk-button-default uk-button-small hadithMainTabBtn"
+                                type="button" style="float:right; margin-bottom:15px;">
+                            <i class="fa fa-pencil-square-o"></i>  Edit
+                        </button>
+                        <button
+                                v-on:click="showHadithURL(narration._id)"
+                                class="uk-button uk-button-secondary uk-button-small hadithMainTabBtn"
+                                type="button" style="float:right; margin-bottom:15px;">
+                            <i class="fa fa-share-square-o"></i>  Share
+                        </button>
+                        <a aria-label="" target="_blank" v-bind:href="narration.twitter"><button
+                                class="uk-button uk-button-primary uk-button-small hadithMainTabBtn"
+                                type="button" style="float:right; margin-bottom:15px;">
+                            <i class="fa fa-twitter"></i>  Tweet
+                        </button></a>
                     </div>
                 </div>
             </div>
@@ -296,7 +257,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/noty/3.1.4/noty.min.js"></script>
 <script crossorigin="anonymous" src="https://cdn.lr-ingest.io/LogRocket.min.js"></script>
 <script src="/js/vue-components.js?v=1" th:src="@{/js/vue-components.js?v=1}"></script>
-<script src="/js/rewayaat.js?v=9" th:src="@{/js/rewayaat.js?v=9}"></script>
+<script src="/js/rewayaat.js?v=10" th:src="@{/js/rewayaat.js?v=10}"></script>
 <script src="https://apis.google.com/js/platform.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" th:async="async"></script>
 <script src="/js/uikit.min.js" th:async="async" th:src="@{/js/uikit.min.js}"></script>
@@ -304,10 +265,6 @@
         th:defer="defer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"  th:defer="defer"></script>
 <script src="/js/uikit-icons.js" th:defer="defer" th:src="@{/js/uikit-icons.js}"></script>
-<script src="/js/jquery.mousewheel.js" th:defer="defer"
-        th:src="@{/js/jquery.mousewheel.js}"></script>
-<script src="/js/jquery.jscrollpane.js" th:defer="defer"
-        th:src="@{/js/jquery.jscrollpane.js}"></script>
 <script src="/js/jsoneditor.min.js" th:defer="defer" th:src="@{/js/jsoneditor.min.js}"></script>
 <!--  LOAD THE MENU BAR AT THE TOP -->
 <div id="welcome"></div>
@@ -318,7 +275,8 @@
     $(document).ready(function() {
        var query = [[${query}]];
        var page = [[${page}]];
-       loadQuery(query, page);
+       var sort_fields = [[${sort_fields}]];
+       loadQuery(query, page, sort_fields);
     });
     /*]]>*/
 

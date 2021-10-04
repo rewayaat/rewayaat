@@ -8071,6 +8071,11 @@ border-right: solid 1px rgba(0, 0, 0, 0.31);
     width: 200px
 }
 
+.hadithDetailsLink {
+    text-decoration:underline;
+    cursor: pointer;
+}
+
 .hadithText {
 	padding: 10px;
 	color: #000;
