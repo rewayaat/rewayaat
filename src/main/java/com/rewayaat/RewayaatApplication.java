@@ -10,7 +10,8 @@ import org.springframework.cache.annotation.EnableCaching;
  * Main entrypoint to rewayaat app.
  */
 @EnableCaching
-@SpringBootApplication(scanBasePackages = {"com.rewayaat.config", "com.rewayaat.controllers"})
+@SpringBootApplication(scanBasePackages = {"com.rewayaat.config", "com.rewayaat.controllers",
+    "com.rewayaat.service"})
 public class RewayaatApplication {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RewayaatApplication.class);
