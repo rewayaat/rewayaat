@@ -6,15 +6,10 @@ env:
   global:
     # include $HOME/.local/bin for `aws`
     - PATH=$HOME/.local/bin:$PATH
-before_install:
+install:
   - pyenv global 3.7.1
   - pip install -U pip
   - pip install awscli
-install:
-  - . $HOME/.nvm/nvm.sh
-  - nvm install stable
-  - nvm use stable
-  - npm install
 services:
 - docker
 cache:
@@ -26,7 +21,6 @@ jdk:
 os:
 - linux
 script:
-- npm install elasticdump -g
 - mvn -q package docker:build
 notifications:
   email:
