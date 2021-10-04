@@ -8,23 +8,19 @@ import com.rewayaat.core.QueryStringQueryResult;
 import com.rewayaat.core.UpdateRequest;
 import com.rewayaat.core.User;
 import com.rewayaat.core.data.HadithObject;
+import com.rewayaat.service.HadithQueryService;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.script.Script;
-import org.elasticsearch.search.sort.ScriptSortBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.sort.SortOrder;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -38,7 +34,6 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.naming.AuthenticationException;
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -55,6 +50,9 @@ public class HadithController {
 
     @Autowired
     private CacheManager cacheManager;
+
+    @Autowired
+    private HadithQueryService hadithQueryService;
 
     @CrossOrigin(origins = {"*"}, allowCredentials = "false")
     @ApiOperation(
@@ -81,48 +79,19 @@ public class HadithController {
         if (perPage > 100) {
             perPage = 100;
         }
-        LOGGER.info("Entered hadith query API with query: " + query + ", page: " + page +
-                        ", per_page: " + perPage + " and sort_fields: " + sortFields);
-        List<SortBuilder> sortBuilders = setSortBuilders(sortFields);
+        LOGGER.info("Entered hadith query API with query: " + query + ", page: " + page
+                        + ", per_page: " + perPage + " and sort_fields: " + sortFields);
+        List<SortBuilder> sortBuilders = hadithQueryService.setupSortBuilders(sortFields);
         QueryMode queryMode = QueryMode.SEARCH;
         if (!sortFields.isEmpty()) {
             // Assumption: If sort values are provided, a lookup query is required.
             queryMode = QueryMode.LOOKUP;
         }
-        return new QueryStringQueryResult(query, page - 1, perPage, sortBuilders, queryMode).result();
-    }
-
-    private List<SortBuilder> setSortBuilders(String sort_fields) {
-        List<SortBuilder> sortBuilders = new ArrayList<>();
-        if (sort_fields == null || sort_fields.isEmpty()) {
-            sortBuilders.add(SortBuilders.scoreSort());
-        } else {
-            String[] fieldSorts = sort_fields.split(",");
-            for (String fieldSort : fieldSorts) {
-                String field = fieldSort.split(":")[0] + ".keyword";
-                if (field.startsWith("number")) {
-                    sortBuilders.add(SortBuilders.scriptSort(
-                        new Script("Integer.parseInt(doc['number.keyword'].value)"),
-                        ScriptSortBuilder.ScriptSortType.NUMBER)
-                    );
-                } else if (field.startsWith("chapter")) {
-                    sortBuilders.add(SortBuilders.scriptSort(
-                        new Script(
-                            "def m = /([0-9]+) +[-–—]/.matcher(doc['chapter.keyword'].value); " +
-                                "if(m.find()) { " +
-                                "return Integer.parseInt(m.group(1))" +
-                                " } else { " +
-                                "return 0 }"
-                        ),
-                        ScriptSortBuilder.ScriptSortType.NUMBER)
-                    );
-                } else {
-                    SortOrder sortOrder = SortOrder.fromString(fieldSort.split(":")[1]);
-                    sortBuilders.add(SortBuilders.fieldSort(field).order(sortOrder));
-                }
-            }
-        }
-        return sortBuilders;
+        return new QueryStringQueryResult(
+            hadithQueryService.enhanceQuery(query, queryMode),
+            page - 1,
+            perPage,
+            sortBuilders).result();
     }
 
     @ApiIgnore
@@ -152,8 +121,9 @@ public class HadithController {
                 }
                 // make sure we can still serialize a valid HadithObject from the new JSON data
                 HadithObject newHadithObject = mapper.readValue(existingHadith.toString(), HadithObject.class);
-                newHadithObject.insertHistoryNote("User " + new User(idToken).email() + " " +
-                                                      "modified this hadith on " + new java.util.Date() + ". The original hadith:\n"
+                newHadithObject.insertHistoryNote(
+                    "User " + new User(idToken).email() + " "
+                        + "modified this hadith on " + new java.util.Date() + ". The original hadith:\n"
                         + responseStr + "\n\n The following properties were modified and saved to the database:\n\n" + modifiedHadithStr);
                 new UpdateRequest(newHadithObject, hadithId).execute();
                 // clear the cache

@@ -28,29 +28,26 @@ import java.util.Map.Entry;
 public class QueryStringQueryResult implements RewayaatQueryResult {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(QueryStringQueryResult.class);
-    private final QueryMode queryMode;
     // Do not change without considering impact on front-end
     private int pageSize;
-    private String userQuery;
+    private String query;
     private int page;
     private List<SortBuilder> sortBuilders = new ArrayList<>();
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public QueryStringQueryResult(String userQuery, int page, int perPage,
-                                  List<SortBuilder> sortBuilders, QueryMode queryMode) {
-        this.userQuery = userQuery;
+    public QueryStringQueryResult(String query, int page, int perPage,
+                                  List<SortBuilder> sortBuilders) {
+        this.query = query;
         this.page = page;
         this.pageSize = perPage;
         this.sortBuilders = sortBuilders;
-        this.queryMode = queryMode;
     }
 
     @Override
     public HadithObjectCollection result() throws Exception {
         List<HadithObject> hadithes = new ArrayList<HadithObject>();
-        String enhancedQuery = new RewayaatQuery(userQuery, this.queryMode).query();
-        HighlightBuilder highlightBuilder = getHighlightBuilder(enhancedQuery);
-        SearchRequestBuilder sRB = buildSearchQueryModeRequest(enhancedQuery, highlightBuilder);
+        HighlightBuilder highlightBuilder = getHighlightBuilder(this.query);
+        SearchRequestBuilder sRB = buildSearchQueryModeRequest(query, highlightBuilder);
         SearchResponse resp = sRB.execute().get();
         SearchHit[] results = resp.getHits().getHits();
         LOGGER.info("Current results: " + results.length);
@@ -90,7 +87,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                 .field("book").field("section").field("part").field("chapter").field("publisher").field("source")
                 .field("volume").postTags("</span>").preTags("<span class=\"highlight\">")
                 .highlightQuery(QueryBuilders.queryStringQuery(fuzziedQuery).defaultField("*"))
-                .highlightQuery(QueryBuilders.queryStringQuery(userQuery).defaultField("*").analyzer(
+                .highlightQuery(QueryBuilders.queryStringQuery(query).defaultField("*").analyzer(
                     "search_analyzer")).numOfFragments(0);
         return highlightBuilder;
     }
