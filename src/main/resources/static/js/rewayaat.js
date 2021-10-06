@@ -93,7 +93,7 @@ function initSelect2(select2_id) {
         dropdownAutoWidth: true,
         width: '100%',
         minimumInputLength: 2,
-        placeholder: 'Enter search terms here...',
+        placeholder: '"Household of the prophet"  Ahlulbayt  "اهل البيت"',
         matcher: function(params, data) {
             return matchStart(params, data);
         },
@@ -339,13 +339,17 @@ function displayWelcomeContent() {
     vueApp = new Vue({
         el: '#hadithView'
     });
-    $("#welcome").load("/welcome.html?v=3", function(responseData) {
+    $("#welcome").load("/welcome.html?v=4", function(responseData) {
         // initialize select2
         initSelect2('searchTerms2');
         // setup select2 select handler
         select2SelectHandler('searchTerms2');
         // setup enter key listener
         setupSelect2EnterKeyListener('searchTerms2');
+        // Scroll to tips section if required
+        if (window.location.hash && window.location.hash.substring(1) === 'tips') {
+              document.getElementById('tips').scrollIntoView();
+        }
     });
 }
 
@@ -421,21 +425,6 @@ function showBookBlurb(bookName) {
 
         }
     }
-}
-
-function displayWelcomeContent() {
-    document.getElementById('hadithView').innerHTML = '';
-    vueApp = new Vue({
-        el: '#hadithView'
-    });
-    $("#welcome").load("/welcome.html?v=3", function(responseData) {
-        // initialize select2
-        initSelect2('searchTerms2');
-        // setup select2 select handler
-        select2SelectHandler('searchTerms2');
-        // setup enter key listener
-        setupSelect2EnterKeyListener('searchTerms2');
-    });
 }
 
 function indicatePendingSearchTerms() {

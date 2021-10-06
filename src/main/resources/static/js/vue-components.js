@@ -58,23 +58,24 @@
                         showBookBlurb(bookName)
                     },
                     showSpecific: function(chapter="", section="", part="", volume="", book="") {
-                        var query = "book:\"" + strip(book) + "\"";
+                        var query = "book:\"" + strip(book).trim() + "\"";
                         var sortFields = "number:asc";
                         if (chapter) {
-                            query += " chapter:\"" + strip(chapter) + "\"";
-                            sortFields = "chapter:asc," + sortFields;
+                            query += " chapter:\"" + strip(chapter).trim() + "\"";
+                            var sortFields = "chapter:asc,number:asc";
                         }
                         if (section) {
-                            query += " section:\"" + strip(section) + "\"";
-                            sortFields = "section:asc," + sortFields;
+                            query += " section:\"" + strip(section).trim() + "\"";
+                            var sortFields = "section:asc,chapter:asc,number:asc";
                         }
                         if (part) {
-                            query += " part:\"" + strip(part) + "\"";
-                            sortFields = "part:asc," + sortFields;
+                            query += " part:\"" + strip(part).trim() + "\"";
+                            var sortFields = "part:asc,section:asc,chapter:asc,number:asc";
                         }
                         if (volume) {
-                            query += " volume:\"" + strip(volume.replace("Volume", "")) + "\"";
-                            sortFields = "volume:asc," + sortFields;
+                            query += " volume:\"" + strip(volume).replace("Volume", "").trim() +
+                            "\"";
+                            var sortFields = "volume:asc,part:asc,section:asc,chapter:asc,number:asc";
                         }
                         redirectToSearchResult(query, '', sortFields);
                     }

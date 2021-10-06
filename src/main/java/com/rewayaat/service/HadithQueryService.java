@@ -40,7 +40,8 @@ public class HadithQueryService {
                 } else if (field.startsWith("chapter")) {
                     sortBuilders.add(SortBuilders.scriptSort(
                         new Script(
-                            "def m = /([0-9]+) +[-–—]/.matcher(doc['chapter.keyword'].value); "
+                            "def m = /([0-9]+) +[-–—–]/.matcher(doc['chapter.keyword']" +
+                                ".value); "
                                 + "if(m.find()) { "
                                 + "return Integer.parseInt(m.group(1))"
                                 + " } else { "
@@ -85,7 +86,7 @@ public class HadithQueryService {
         splitted.add(result.toString());
         for (String s : splitted) {
             s = s.trim();
-            if (!s.contains("~") && !s.contains(":") && !s.contains("(") && !s.contains("\"") && !s.trim().startsWith("+") && !s.trim().startsWith("-")) {
+            if (!s.contains("~") && !s.contains(":") && !s.contains("^") && !s.contains("(") && !s.contains("\"") && !s.trim().startsWith("+") && !s.trim().startsWith("-")) {
                 s += "~";
             }
             allFieldItems.add(s);

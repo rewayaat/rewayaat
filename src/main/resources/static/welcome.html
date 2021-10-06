@@ -1,8 +1,8 @@
 <!-- Getting Started Card -->
 <div class="uk-width-3-4@s uk-width-1-1 uk-align-center">
-    <div class="uk-card uk-card-default uk-align-right uk-card-body uk-width-1-1"
+    <div class="uk-card uk-card-default uk-align-right  uk-card-body uk-width-1-1"
          id="start"
-         style="background:linear-gradient(to bottom, rgba(0,0,0,0.1) 10%,rgba(0,0,0,0.8) 80%), url(img/books.jpg); margin-top: 45px;    text-align: center; padding: 3px;    color: white;    background-repeat: no-repeat; text-align: center;">
+         style="background:linear-gradient(to bottom, rgba(0,0,0,0.1) 10%,rgba(0,0,0,0.8) 80%), url(img/books.jpg); margin-top: 45px; margin-bottom: 35px; text-align: center; padding: 3px; color: white; background-repeat: no-repeat; text-align: center;">
 
         <div class="uk-text-lead"
              style="font-family: Chivo; color:white; margin-bottom: 40px; padding: 5px;">
@@ -15,37 +15,29 @@
             </div>
         </div>
 
-        <p style="padding: 15px; width:80%; margin-left:auto; margin-right:auto;">Enter
-            <b>keywords</b> (separated by
-            spaces) and/or <b>phrases</b> (surrounded by quotes) in English or
-            Arabic into the search bar below to get started.</p>
+        <p style="padding: 15px; width:80%; margin-left:auto; margin-right:auto;"><b>Hadith
+            Search</b>: Enter your <b>English</b> or <b>Arabic</b>
+            <a style="color: white; text-decoration: underline;" href="#tips">search query</a>
+            into the search bar below.</p>
 
         <div id="queryBar"
-             style="padding-bottom: 40px; width: 80%; max-width: 1200px; margin-left: auto; display: block; margin-right: auto;">
+             style="padding-bottom: 40px; width: 80%; margin-bottom: 30px; max-width: 1200px; margin-left: auto; display: block; margin-right: auto;">
             <select class="search-control" id="searchTerms2" multiple="multiple"/>
             <div class="uk-navbar-item">
                 <a class="uk-button uk-button-default tm-button-default uk-icon" id="searchBtn2"
                    onclick="submitSearchQuery()" style="margin-left: auto; border-width: 1px; position: relative; border-radius: 3px; margin-left: auto;
               margin-right: auto; width: 150px;  display: inline-block; margin-top: 30px;  font-family: Chivo; font-size: 16px;">Search</a>
+
             </div>
+            <a
+                    href="#tips"
+                    style="float: right; font-family: 'Chivo'; margin-top: -50px; background: transparent; color:
+                    #fafafa; font-size: 0.6em;">SEARCH TIPS</a>
         </div>
-
-        <p style="text-align:left; padding:15px; margin-top:20px; padding-bottom:50px;">
-
-            <span style="color:black;"><b><em>Need help getting started?</em></b></span> &nbsp;
-            Check out this <a
-                href="/?q=Al-Reza%C2%A0intellect%C2%A0%22good%20mannerisms%22"> sample
-            query</a> which searches for hadith containing the <b>keywords</b> "Al-Reza",
-            "intellect",
-            and the <b>phrase</b> "good mannerisms". Also feel free to incorporate
-            Elastic Search's <a
-                href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax">Query
-            String syntax</a> in your queries if you wish to do so.
-        </p>
     </div>
     <div class="uk-card uk-card-default uk-align-right uk-card-body  uk-width-1-1"
          id="about"
-         style="margin-top: 35px; margin-bottom: 40px;     color: black; background: #dcdcdc94;     border: 1px solid #00000054;">
+         style="margin-top: 35px; margin-bottom: 35px;     color: black; background: #dcdcdc94;     border: 1px solid #00000054;">
 
         <div style="font-weight: 800;     padding-left: 15px; word-wrap: break-word; font-size:22px; text-transform: uppercase;  margin-left: auto; margin-right:auto; transform-origin: 50% 50% 0px; opacity: 1;">
             Disclaimer
@@ -85,5 +77,123 @@
             found in this database, please <a href="mailto:rewayaat.org@gmail.com">email
             us</a>.
         </p>
+    </div>
+
+    <div class="uk-card uk-card-default uk-align-right uk-card-body uk-width-1-1"
+         id="tips"
+         style="margin-top: 35px; margin-bottom: 35px; color: black; background: #c2ceda94; border: 1px solid #00000054;">
+
+        <div style="font-weight: 800;  padding-left: 15px; word-wrap: break-word; font-size:22px; text-transform: uppercase;  margin-left: auto; margin-right:auto; transform-origin: 50% 50% 0px; opacity: 1;">
+            Search Tips
+        </div>
+
+        <div style="padding: 15px;">
+
+            The following tips have been provided to help users develop effective queries to
+            retrieve relevant hadith quickly. This
+            list has
+            been compiled from the official documentation of the Lucene search engine
+            which has been incorporated into the database.
+            <br>
+            <br>
+            <b>1. Terms</b>
+            <br>
+            <br>
+            A query is broken up into terms and operators. There are two types of terms:
+            <br>
+            <ol style="margin-top:10px;">
+                <li>
+                    <b>Single Term</b>: A Single Term is a single word such as <code class="welcome">pledge
+                </code> or
+                    <code class="welcome">allegiance</code>.
+                </li>
+                <li>
+                    <b>Phrase</b>: A Phrase is a group of words surrounded by double quotes
+                    such as <code class="welcome">"pledge allegiance"</code>. Multiple terms can be combined together
+                    with Boolean operators to form a more complex query (see below).
+                </li>
+            </ol>
+            <b>2. Wildcard searches</b>
+            <br>
+            <br>
+            Single and multiple character wildcard searches within single terms (not within
+            phrase queries) are supported. To perform a single character wildcard search use the
+            "?"
+            symbol. To perform a multiple character wildcard search use the "*" symbol.
+            The single character wildcard search looks for terms that match that with the single character replaced.
+            <br>
+            <br>
+        For example, to search for "near" or "neat" you can use the search <code class="welcome">nea?</code>
+            Multiple character wildcard searches looks for 0 or more characters. To search for
+            test, tests or testers, you can use the search <code class="welcome">test*</code>
+        You can also use the wildcard searches in the middle of a term, such as
+        in <code class="welcome">"te*t"</code>.
+            Note: You cannot use a * or ? symbol as the first character of a search.
+            <br>
+            <br>
+            <b>3. Fuzzy searching</b>
+            <br>
+            <br>
+            To do a fuzzy search use the tilde, "~", symbol at the end of a Single word Term. For
+            example to search for a term similar in spelling to "swore" use the fuzzy search:
+            <code class="welcome">"swore~"</code>.
+            This search will find terms like swore, snore, score, etc.
+            Furthermore, an optional parameter can specify the required similarity. The value is between
+            0 and 1, with a value closer to 1 only terms with a higher similarity will be matched.
+
+            <br>
+            <br>
+        For example: <code class="welcome">swore~0.7</code> will yield only results that are close to the original
+        query,
+        such as swore, score, etc.
+            A search query <code class="welcome">swore~0.3</code> will yield results that are slightly similar to the
+            original query, such as swore, stone, swords, etc. The default that is used if the parameter is not given is 0.5.
+            <br>
+            <br>
+            <b>4. Proximity Searches</b>
+            <br>
+            <br>
+            To do a proximity search use
+            the tilde, "~", symbol at the end of a Phrase. For example to search for a "pledge"
+            and "migration" within 10 words of each other in a
+        hadith use the search: <code class="welcome">"pledge migration"~10</code>. This will yield
+        results in
+        which the words pledge and migration are separated by no more than 10 words.
+        This is extremely useful when you only know the context of what you are searching for.
+            <br>
+            <br>
+            <b>5. Boosting a term</b>
+            <br>
+            <br>
+            You can increase the relevance level of matching hadith based on the terms found. To
+        boost a term use the caret ("^") symbol with a boost factor (a number) at the end of the
+        term you are searching. The higher the boost factor, the more relevant the term will be.
+        Boosting allows you to control the relevance of a hadith by boosting its term.
+            <br>
+            <br>
+            For example, if you are searching for
+            pledge hijrah
+            and you want the term "pledge" to be more relevant, boost it using the ^ symbol along with the boost factor next to the term. You would type:
+            <code class="welcome">pledge^4 hijrah</code> This will make results with the term pledge appear more relevant. You can also boost Phrase Terms as in the example:
+            <code class="welcome">"pledge of allegiance"^5</code> requested.
+            By default, the boost factor is 1. Although the boost factor must be positive, it can be less than 1 (e.g. 0.2)
+            <br>
+            <br>
+            <b>6. Boolean operators</b>
+            <br>
+            <br>
+            Boolean operators allow terms to be combined through logic operators.
+        The "+" or required operator requires that the term after the "+" symbol exist somewhere
+        in the field of a single hadith.
+
+            To search for hadith that must contain "pledge" and may contain "allegiance" use
+        the query: <code class="welcome"> +pledge allegiance </code>
+            <br>
+            <br>
+            The "-" or prohibit operator excludes hadith that contain the term after the "-" symbol.
+            To search for hadith that contain "pledge allegiance" but not "allegiance to the
+        Messenger" use the query: <code class="welcome">"pledge allegiance"  -"allegiance to the
+        Messenger"</code>.
+        </div>
     </div>
 </div>

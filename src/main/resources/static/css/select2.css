@@ -51,11 +51,12 @@
         -webkit-appearance: none; }
 
 .select2-dropdown {
-  background-color: white;
+  background-color: #d0d0d0;
   border: 1px solid #aaa;
   border-radius: 4px;
   box-sizing: border-box;
   display: block;
+  color: black;
   position: absolute;
   left: -100000px;
   width: 100%;
@@ -182,7 +183,9 @@
       background-color: #eeefef;
       border-radius: 4px;
       cursor: text;
-      padding: 7px;}
+          padding: 0px 7px 7px 5px;
+      }
+
   .select2-container--default .select2-selection--multiple .select2-selection__rendered {
     box-sizing: border-box;
     list-style: none;
