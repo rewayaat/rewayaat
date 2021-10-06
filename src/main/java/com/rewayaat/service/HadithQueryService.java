@@ -40,8 +40,8 @@ public class HadithQueryService {
                 } else if (field.startsWith("chapter")) {
                     sortBuilders.add(SortBuilders.scriptSort(
                         new Script(
-                            "def m = /([0-9]+) +[-–—–]/.matcher(doc['chapter.keyword']" +
-                                ".value); "
+                            "def m = /([0-9]+) +[-–—–]/.matcher(doc['chapter.keyword']"
+                                + ".value); "
                                 + "if(m.find()) { "
                                 + "return Integer.parseInt(m.group(1))"
                                 + " } else { "
