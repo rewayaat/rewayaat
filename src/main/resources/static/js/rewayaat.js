@@ -91,7 +91,7 @@ function initSelect2(select2_id) {
     $('#' + select2_id).select2({
         tags: "true",
         dropdownAutoWidth: true,
-        width: '100%',
+        width: '60%',
         minimumInputLength: 2,
         placeholder: '"Household of the prophet"  Ahlulbayt  "اهل البيت"',
         matcher: function(params, data) {

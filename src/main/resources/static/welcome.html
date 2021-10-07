@@ -1,43 +1,47 @@
 <!-- Getting Started Card -->
-<div class="uk-width-3-4@s uk-width-1-1 uk-align-center">
+<div class="uk-width-2-3@m uk-width-2-4@l uk-width-4-5 uk-align-center">
     <div class="uk-card uk-card-default uk-align-right  uk-card-body uk-width-1-1"
          id="start"
-         style="background:linear-gradient(to bottom, rgba(0,0,0,0.1) 10%,rgba(0,0,0,0.8) 80%), url(img/books.jpg); margin-top: 45px; margin-bottom: 35px; text-align: center; padding: 3px; color: white; background-repeat: no-repeat; text-align: center;">
+         style="margin-top: 45px; margin-bottom: 35px; color: #fafafa; background: linear-gradient(to bottom, rgb(0 0 0 / 83%) 10%,rgb(0 0 0 / 79%) 80%), url(img/books.jpg); text-align: center; padding: 3px; text-align: center; border: 1px solid gray;">
 
         <div class="uk-text-lead"
-             style="font-family: Chivo; color:white; margin-bottom: 40px; padding: 5px;">
-            <div style="padding-top: 40px; font-weight: 800; word-wrap: break-word; font-size:38px; text-transform: uppercase;  margin-left: auto; margin-right:auto; transform-origin: 50% 50% 0px; opacity: 1;">
+             style="font-family: Chivo; margin-bottom: 40px; padding: 5px;">
+            <div
+                    style="padding-top: 40px; color: #fafafa; font-weight: 800; word-wrap: break-word; font-size:38px; text-transform: uppercase;  margin-left: auto; margin-right:auto; transform-origin: 50% 50% 0px; opacity: 1;">
                 The Hadith Database Project
             </div>
 
-            <div style="font-weight: 800; font-size:16px; word-wrap: break-word; font-style:italic; text-transform: uppercase;  margin-left: auto; margin-right:auto; transform-origin: 50% 50% 0px; opacity: 1;">
-                Presented By <a href="http://academyofislam.org/">The Academy for Learning Islam</a>
+            <div
+                    style="font-weight: 800; color: #fafafa; font-size:16px; word-wrap: break-word; font-style:italic; text-transform: uppercase;  margin-left: auto; margin-right:auto; transform-origin: 50% 50% 0px; opacity: 1;">
+                Presented By <a target="_blank" href="http://academyofislam.org/">The Academy for
+                Learning Islam</a>
             </div>
         </div>
-
-        <p style="padding: 15px; width:80%; margin-left:auto; margin-right:auto;"><b>Hadith
+        <img style="width: 30%; min-width: 300px;" src="img/books_stack.png"/>
+        <p
+                style="padding: 15px; width:80%; margin-left:auto; margin-top:35px; margin-right:auto;"><b>Hadith
             Search</b>: Enter your <b>English</b> or <b>Arabic</b>
-            <a style="color: white; text-decoration: underline;" href="#tips">search query</a>
-            into the search bar below.</p>
-
+            <a style="text-decoration: underline;" href="#tips">search query</a>
+            into the search bar below.
+        </p>
         <div id="queryBar"
-             style="padding-bottom: 40px; width: 80%; margin-bottom: 30px; max-width: 1200px; margin-left: auto; display: block; margin-right: auto;">
+             style="padding-bottom: 40px; margin-top: -30px; width: 80%; margin-bottom: 30px; max-width: 1200px; margin-left: auto; display: block; margin-right: auto;">
             <select class="search-control" id="searchTerms2" multiple="multiple"/>
             <div class="uk-navbar-item">
                 <a class="uk-button uk-button-default tm-button-default uk-icon" id="searchBtn2"
-                   onclick="submitSearchQuery()" style="margin-left: auto; border-width: 1px; position: relative; border-radius: 3px; margin-left: auto;
+                   onclick="submitSearchQuery()"
+                   style="margin-left: auto; border-width: 1px; position: relative; border-radius: 5px; margin-left: auto;
               margin-right: auto; width: 150px;  display: inline-block; margin-top: 30px;  font-family: Chivo; font-size: 16px;">Search</a>
 
             </div>
             <a
                     href="#tips"
-                    style="float: right; font-family: 'Chivo'; margin-top: -50px; background: transparent; color:
-                    #fafafa; font-size: 0.6em;">SEARCH TIPS</a>
+                    style="float: right; font-family: 'Chivo'; margin-top: -50px; background: transparent; margin-right: 21%; font-size: 0.6em;">SEARCH TIPS</a>
         </div>
     </div>
     <div class="uk-card uk-card-default uk-align-right uk-card-body  uk-width-1-1"
          id="about"
-         style="margin-top: 35px; margin-bottom: 35px;     color: black; background: #dcdcdc94;     border: 1px solid #00000054;">
+         style="margin-top: 35px; margin-bottom: 35px; padding: 25px; color: black; background: #dcdcdc94; border: 1px solid #00000054;">
 
         <div style="font-weight: 800;     padding-left: 15px; word-wrap: break-word; font-size:22px; text-transform: uppercase;  margin-left: auto; margin-right:auto; transform-origin: 50% 50% 0px; opacity: 1;">
             Disclaimer
@@ -81,7 +85,7 @@
 
     <div class="uk-card uk-card-default uk-align-right uk-card-body uk-width-1-1"
          id="tips"
-         style="margin-top: 35px; margin-bottom: 35px; color: black; background: #c2ceda94; border: 1px solid #00000054;">
+         style="margin-top: 35px; padding: 25px; margin-bottom: 35px; color: black; background: #c2ceda94; border: 1px solid #00000054;">
 
         <div style="font-weight: 800;  padding-left: 15px; word-wrap: break-word; font-size:22px; text-transform: uppercase;  margin-left: auto; margin-right:auto; transform-origin: 50% 50% 0px; opacity: 1;">
             Search Tips

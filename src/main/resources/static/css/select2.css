@@ -1,9 +1,16 @@
 .select2-container {
   box-sizing: border-box;
-  display: inline-block;
   margin: 0;
   border: solid #08080833 1px;
-  margin-top: 20px;
+  margin-top: 30px;
+  width: 60%;
+  min-width:300px;
+  max-width: 800px;
+  width: 60%;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+  border-radius: 10px;
   position: relative;
   vertical-align: middle; }
   .select2-container .select2-selection--single {
@@ -183,7 +190,6 @@
       background-color: #eeefef;
       border-radius: 4px;
       cursor: text;
-          padding: 0px 7px 7px 5px;
       }
 
   .select2-container--default .select2-selection--multiple .select2-selection__rendered {
