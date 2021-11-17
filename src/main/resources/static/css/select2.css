@@ -224,8 +224,8 @@
        float: left;
        margin-right: 5px;
        margin-top: 5px;
-       padding: 5px 15px;
-       border-radius: 500px;
+       padding: 0.5px 15px;
+       border-radius: 5px;
    }
   .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
         color: #999;
@@ -275,6 +275,7 @@
       border: none;
       outline: 0;
       font-size: 20px;
+      padding-left: 10px;
       box-shadow: none;
       margin-right: 10px;
       -webkit-appearance: textfield; }

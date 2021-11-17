@@ -19,7 +19,9 @@ function loadQuery(query, page = 1, sortFields) {
                 setupVue(query, page, sortFields);
             });
             // Update latest new bar
-            setLatestNewsBarHTML('Help improve our content by <b><a target="_blank" style="color:black; text-decoration:underline;" href="mailto:rewayaat.org@gmail.com?Subject=HDP%20Database%20Error">reporting</a></b> any mistakes you find!')
+            setLatestNewsBarHTML('<b>NEW</b>: Hadith metadata such as the chapter, section, part ' +
+            'and volume can now be selected <i class="fa fa-mouse-pointer"></i> for further ' +
+            'reading!')
         } else {
             swal(
                 "Invalid Query",

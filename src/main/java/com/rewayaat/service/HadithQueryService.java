@@ -37,18 +37,6 @@ public class HadithQueryService {
                         new Script("Integer.parseInt(doc['number.keyword'].value)"),
                         ScriptSortBuilder.ScriptSortType.NUMBER)
                     );
-                } else if (field.startsWith("chapter")) {
-                    sortBuilders.add(SortBuilders.scriptSort(
-                        new Script(
-                            "def m = /([0-9]+) +[-–—–]/.matcher(doc['chapter.keyword']"
-                                + ".value); "
-                                + "if(m.find()) { "
-                                + "return Integer.parseInt(m.group(1))"
-                                + " } else { "
-                                + "return 0 }"
-                        ),
-                        ScriptSortBuilder.ScriptSortType.NUMBER)
-                    );
                 } else {
                     SortOrder sortOrder = SortOrder.fromString(fieldSort.split(":")[1]);
                     sortBuilders.add(SortBuilders.fieldSort(field).order(sortOrder));

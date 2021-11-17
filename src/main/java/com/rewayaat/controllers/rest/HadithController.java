@@ -128,7 +128,8 @@ public class HadithController {
                 new UpdateRequest(newHadithObject, hadithId).execute();
                 // clear the cache
                 cacheManager.getCacheNames().parallelStream().forEach(name -> cacheManager.getCache(name).clear());
-                return new ResponseEntity<>("Successfully update hadith: " + hadithId, HttpStatus.OK);
+                return new ResponseEntity<>("Successfully updated hadith: " + hadithId,
+                                            HttpStatus.OK);
             } else {
                 throw new AuthenticationException("Unauthorized to modify hadith: " + hadithId);
             }
