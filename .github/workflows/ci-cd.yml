@@ -4,10 +4,6 @@ on: [ push ]
 
 jobs:
   build:
-    strategy:
-      matrix:
-        python:
-          - 3.7.1
     runs-on: ubuntu-latest
 
     steps:
@@ -25,6 +21,7 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.7.1'
+          cache: 'pip'
       - name: Install AWS CLI
         run: |
           pip install -U pip
