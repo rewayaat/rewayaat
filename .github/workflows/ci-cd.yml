@@ -26,15 +26,15 @@ jobs:
         with:
           default: "${{ matrix.python }}"
           command: |
-            - pip install -U pip
-            - pip install awscli
+            pip install -U pip
+            pip install awscli
       - name: "Run tests and build image"
         run: "mvn -q package docker:build"
       - name: "Deploy"
         if: ${{ github.ref == 'refs/heads/master' }}
         run: |
-          - chmod a+x deploy.sh ecs_deploy.sh
-          - "./deploy.sh"
+          chmod a+x deploy.sh ecs_deploy.sh
+          ./deploy.sh
       - uses: satackey/action-docker-layer-caching@v0.0.8
         # Ignore the failure of a step and avoid terminating the job.
         continue-on-error: true
@@ -54,5 +54,3 @@ env:
   AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
-  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
