@@ -21,11 +21,15 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.7.1'
-          cache: 'pip'
       - name: Install AWS CLI
         run: |
           pip install -U pip
           pip install awscli
+      - name: Cache pip deps
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ hashFiles('.github/workflows/ci-cd.yml') }}
       - name: "Run tests and build image"
         run: "mvn -q package docker:build"
       - name: "Deploy"
