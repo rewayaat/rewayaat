@@ -23,6 +23,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
       - name: Install python version
         uses: gabrielfalcao/pyenv-action@v5
+        continue-on-error: true
         with:
           default: "${{ matrix.python }}"
           command: |
