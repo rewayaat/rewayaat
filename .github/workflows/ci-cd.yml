@@ -21,12 +21,10 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      - name: Install python version
-        uses: gabrielfalcao/pyenv-action@v5
-        continue-on-error: true
+      - uses: actions/setup-python@v2
         with:
-          default: "${{ matrix.python }}"
-          command: |
+          python-version: '3.7.1'
+        - run: |
             pip install -U pip
             pip install awscli
       - name: "Run tests and build image"
