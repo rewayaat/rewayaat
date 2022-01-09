@@ -21,13 +21,13 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.7.1'
-        - run: |
-            pip install -U pip
-            pip install awscli
+        run: |
+          pip install -U pip
+          pip install awscli
       - name: "Run tests and build image"
         run: "mvn -q package docker:build"
       - name: "Deploy"
