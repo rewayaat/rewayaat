@@ -578,6 +578,9 @@ function setupVue(query, page, sortFields) {
                             });
                             // set total results size value
                             self.totalHits = respJSON.totalResultSetSize;
+                            if (self.totalHits > 500) {
+                                self.totalHits = 500;
+                            }
                         }
                         // fetch significant terms
                         self.fetchSignificantTerms();
