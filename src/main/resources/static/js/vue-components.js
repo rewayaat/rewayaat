@@ -120,7 +120,7 @@
                 }
             },
             showNext: function() {
-                if (this.$root.page < 21 && ((this.$root.totalHits / this.$root.pageSize) > (this.$root.page))) {
+                if (this.$root.page < 20 && ((this.$root.totalHits / this.$root.pageSize) > (this.$root.page))) {
                     return true;
                 } else {
                     return false;
