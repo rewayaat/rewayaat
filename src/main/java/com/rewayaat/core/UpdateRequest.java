@@ -3,6 +3,9 @@ package com.rewayaat.core;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rewayaat.config.ESClientProvider;
 import com.rewayaat.core.data.HadithObject;
+
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
 
 /**
@@ -26,6 +29,8 @@ public class UpdateRequest {
         updateRequest.type("_doc");
         updateRequest.id(hadithId);
         updateRequest.doc(mapper.writeValueAsBytes(newHadithObject), XContentType.JSON);
-        ESClientProvider.instance().getClient().update(updateRequest).get();
+        try (RestHighLevelClient client = new ESClientProvider().client()) {
+            client.update(updateRequest, RequestOptions.DEFAULT).getGetResult();
+        }
     }
 }

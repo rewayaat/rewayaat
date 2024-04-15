@@ -45,7 +45,8 @@ public class KitabAlTawheedWorker extends Thread {
             "The Commentary of Verse 67 of Chapter 9 the Repentance [al-Tawbah] They have " +
                     "forsaken Allah, so He has forsaken them",
             "The Commentary of Verse 67 of Chapter 39 the Companies [al-Zumar] And the " +
-                    "whole Earth shall be in His Grip on the Day of Resurrection and the Heavens rolled up in his Right " +
+                    "whole Earth shall be in His Grip on the Day of Resurrection and the Heavens rolled up in his Right "
+                    +
                     "Hand",
             "The Commentary of Verse 15 of Chapter 83 the Defrauders [al-Mutaffifin] Nay! " +
                     "Most surely they shall on that day be debarred from their Lord",
@@ -195,9 +196,11 @@ public class KitabAlTawheedWorker extends Thread {
                                     j++;
                                 }
                                 if (chapter.contains(":")) {
-                                    String wordNumber = chapter.substring(0, chapter.indexOf(":")).toLowerCase().replaceAll("chapter", "").trim();
+                                    String wordNumber = chapter.substring(0, chapter.indexOf(":")).toLowerCase()
+                                            .replaceAll("chapter", "").trim();
                                     int chapterInteger = (int) LoaderUtil.convertWordToInteger(wordNumber);
-                                    chapter = "Chapter " + String.valueOf(chapterInteger) + " - " + this.chapterNamesArray[chapterInteger].trim();
+                                    chapter = "Chapter " + String.valueOf(chapterInteger) + " - "
+                                            + this.chapterNamesArray[chapterInteger].trim();
                                 }
                                 chapter = LoaderUtil.cleanupText(chapter).trim();
                                 writer.println(chapter);
@@ -249,10 +252,11 @@ public class KitabAlTawheedWorker extends Thread {
         int tries = 0;
         while (successful == false && tries < 8) {
             try {
-                ESClientProvider.instance().getClient().prepareIndex(ESClientProvider.INDEX, "_doc")
-                                .setSource(json).get();
+                // ESClientProvider.instance().getClient().prepareIndex(ESClientProvider.INDEX,
+                // "_doc")
+                // .setSource(json).get();
                 successful = true;
-            } catch (NoNodeAvailableException | UnknownHostException e) {
+            } catch (NoNodeAvailableException e) {
                 tries++;
                 continue;
             }

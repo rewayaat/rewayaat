@@ -105,7 +105,8 @@ public class KamilAlZiyaratWorker {
                             }
                         } else {
                             if (!hadithObjects.isEmpty()) {
-                                getNewestHadith().insertEnglishText(LoaderUtil.cleanupText(line.trim().replace("Translation:", "")) + " ");
+                                getNewestHadith().insertEnglishText(
+                                        LoaderUtil.cleanupText(line.trim().replace("Translation:", "")) + " ");
                             }
                         }
                     }
@@ -160,7 +161,8 @@ public class KamilAlZiyaratWorker {
                             chapter = line.trim();
                             currHadithNo = "0";
                             currChapterArabic = "";
-                            while (!lines[j + 1].trim().matches("^.*\\-[0-9]+$") && !lines[j + 1].trim().matches("^ *\\-.*[0-9]+ *$")) {
+                            while (!lines[j + 1].trim().matches("^.*\\-[0-9]+$")
+                                    && !lines[j + 1].trim().matches("^ *\\-.*[0-9]+ *$")) {
                                 currChapterArabic += " " + lines[j + 1].trim();
                                 j++;
                             }
@@ -171,15 +173,19 @@ public class KamilAlZiyaratWorker {
                                 String oldHadithNo = currHadithNo;
                                 currHadithNo = line.substring(line.indexOf("-") + 1, line.length()).trim();
                                 if (Integer.valueOf(currHadithNo) != (Integer.valueOf(oldHadithNo) + 1)) {
-                                    writer.println("Hadith with chapter:" + chapter + " and number: " + currHadithNo + " is incorrectly number in Arabic pdf!");
+                                    writer.println("Hadith with chapter:" + chapter + " and number: " + currHadithNo
+                                            + " is incorrectly number in Arabic pdf!");
                                     writer.flush();
                                     currHadithNo = String.valueOf(Integer.valueOf(oldHadithNo) + 1);
                                     writer.println("Setting the hadith number to " + currHadithNo + " instead");
                                 }
-                                addArabicText(chapter, currHadithNo, line.substring(0, line.indexOf("-")).trim() + " ", currChapterArabic);
+                                addArabicText(chapter, currHadithNo, line.substring(0, line.indexOf("-")).trim() + " ",
+                                        currChapterArabic);
                             } else if (line.trim().matches("^ *\\-.*[0-9]+ *$")) {
                                 currHadithNo = LoaderUtil.numberFromEnd(line.trim());
-                                addArabicText(chapter, currHadithNo, line.replace(currHadithNo, "").substring(line.indexOf("-") + 1).trim(), currChapterArabic);
+                                addArabicText(chapter, currHadithNo,
+                                        line.replace(currHadithNo, "").substring(line.indexOf("-") + 1).trim(),
+                                        currChapterArabic);
                             } else if (!currHadithNo.isEmpty()) {
                                 addArabicText(chapter, currHadithNo, line.trim() + " ", currChapterArabic);
                             }
@@ -215,7 +221,8 @@ public class KamilAlZiyaratWorker {
         return null;
     }
 
-    private static void addArabicText(String chapter, String number, String text, String arabicChapter) throws Exception {
+    private static void addArabicText(String chapter, String number, String text, String arabicChapter)
+            throws Exception {
         AtomicBoolean found = new AtomicBoolean(false);
         hadithMap.keySet().forEach(key -> {
             if (chapter.toUpperCase().equals(key.toUpperCase().split("-")[0].trim())) {
@@ -241,12 +248,12 @@ public class KamilAlZiyaratWorker {
                     hadithObj.setArabic(text);
                     hadithObj.setBook(book);
                     hadithMap.get(key).put(number, hadithObj);
-                    writer.println("Inserted new hadith with chapter: " + chapter + " and number: " + number + " with Arabic text only!");
+                    writer.println("Inserted new hadith with chapter: " + chapter + " and number: " + number
+                            + " with Arabic text only!");
                 }
             });
         }
     }
-
 
     private static void storeHadithToDb(HadithObject completedHadith) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
@@ -263,10 +270,11 @@ public class KamilAlZiyaratWorker {
         int tries = 0;
         while (successful == false && tries < 8) {
             try {
-                ESClientProvider.instance().getClient().prepareIndex(ESClientProvider.INDEX, "_doc")
-                                .setSource(json).get();
+                // ESClientProvider.instance().getClient().prepareIndex(ESClientProvider.INDEX,
+                // "_doc")
+                // .setSource(json).get();
                 successful = true;
-            } catch (NoNodeAvailableException | UnknownHostException e) {
+            } catch (NoNodeAvailableException e) {
                 tries++;
                 continue;
             }

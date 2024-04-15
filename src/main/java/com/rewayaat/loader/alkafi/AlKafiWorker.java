@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.transport.NoNodeAvailableException;
 
 import java.io.BufferedWriter;
@@ -44,10 +45,12 @@ public class AlKafiWorker extends Thread {
             "heas", "sheas", "sonas", "yusufas", "youas", "meas", "ias", "hamzaas");
 
     private int end;
+    private RestHighLevelClient client;
 
     public AlKafiWorker(int start, int end) {
         this.start = start;
         this.end = end;
+        this.client = new ESClientProvider().client();
     }
 
     @Override
@@ -105,7 +108,8 @@ public class AlKafiWorker extends Thread {
                     e.printStackTrace();
                 }
 
-                String ocrText = LoaderUtil.sendOCRAPIPost(LoaderUtil.getLatestFilefromDir(myTempDir.getAbsolutePath()));
+                String ocrText = LoaderUtil
+                        .sendOCRAPIPost(LoaderUtil.getLatestFilefromDir(myTempDir.getAbsolutePath()));
                 List<String> arabicChunks = splitOCRTextIntoArabicChunks(ocrText, i);
 
                 File fileToDelete = LoaderUtil.getLatestFilefromDir(myTempDir.getAbsolutePath());
@@ -149,7 +153,8 @@ public class AlKafiWorker extends Thread {
                             String arabicText = getPreceedingArabicText(lines, j);
                             if (!arabicText.trim().isEmpty() && !(new ArabicNormalizer(arabicText).getOutput()
                                     .length() > (section.length() * 3))) {
-                                arabicText = LoaderUtil.combineArabicStrings(matchingArabicText(arabicText, arabicChunks),
+                                arabicText = LoaderUtil.combineArabicStrings(
+                                        matchingArabicText(arabicText, arabicChunks),
                                         arabicText);
                                 section += " / " + arabicText;
                             }
@@ -177,7 +182,8 @@ public class AlKafiWorker extends Thread {
                             String arabicText = getPreceedingArabicText(lines, j);
                             if (!arabicText.trim().isEmpty() && !(new ArabicNormalizer(arabicText).getOutput()
                                     .length() > (chapter.length() * 3))) {
-                                arabicText = LoaderUtil.combineArabicStrings(matchingArabicText(arabicText, arabicChunks),
+                                arabicText = LoaderUtil.combineArabicStrings(
+                                        matchingArabicText(arabicText, arabicChunks),
                                         arabicText);
                                 chapter += " / " + arabicText;
                             }
@@ -324,8 +330,8 @@ public class AlKafiWorker extends Thread {
     public void saveHadith() throws JsonProcessingException, UnknownHostException {
         ObjectMapper mapper = new ObjectMapper();
         byte[] json = mapper.writeValueAsBytes(currentHadith);
-        ESClientProvider.instance().getClient().prepareIndex(ESClientProvider.INDEX, "_doc").setSource(json)
-                        .get();
+        // this.client.prepareIndex(ESClientProvider.INDEX,
+        // "_doc").setSource(json).get();
     }
 
     public void setupNewHadithObj() {

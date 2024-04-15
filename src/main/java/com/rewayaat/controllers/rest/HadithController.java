@@ -13,7 +13,11 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+
+import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
@@ -54,33 +58,27 @@ public class HadithController {
     @Autowired
     private HadithQueryService hadithQueryService;
 
-    @CrossOrigin(origins = {"*"}, allowCredentials = "false")
-    @ApiOperation(
-            value = "Returns a list of narrations matching the given query.",
-            response = HadithObjectCollection.class
-    )
+    @CrossOrigin(origins = { "*" }, allowCredentials = "false")
+    @ApiOperation(value = "Returns a list of narrations matching the given query.", response = HadithObjectCollection.class)
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Returns a list of narrations matching the given query."),
             @ApiResponse(code = 404, message = "Bad request"),
             @ApiResponse(code = 500, message = "Internal server error")
     })
-    //@Cacheable(value = "queries")
+    // @Cacheable(value = "queries")
     @RequestMapping(method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public HadithObjectCollection queryHadith(
-            @ApiParam(name = "q", value = "The query to execute.")
-            @RequestParam(value = "q", defaultValue = "") String query,
-            @ApiParam(name = "sort_fields", hidden = true, required = false)
-            @RequestParam(value = "sort_fields", defaultValue = "", required = false) String sortFields,
-            @ApiParam(name = "page", value = "The number of the page to return.", required = false)
-            @RequestParam(value = "page", defaultValue = "1") int page,
-            @ApiParam(name = "per_page", value = "Number of hadith to include per page. Maximum of 100.")
-            @RequestParam(value = "per_page", defaultValue = "20") int perPage) throws Exception {
+            @ApiParam(name = "q", value = "The query to execute.") @RequestParam(value = "q", defaultValue = "") String query,
+            @ApiParam(name = "sort_fields", hidden = true, required = false) @RequestParam(value = "sort_fields", defaultValue = "", required = false) String sortFields,
+            @ApiParam(name = "page", value = "The number of the page to return.", required = false) @RequestParam(value = "page", defaultValue = "1") int page,
+            @ApiParam(name = "per_page", value = "Number of hadith to include per page. Maximum of 100.") @RequestParam(value = "per_page", defaultValue = "20") int perPage)
+            throws Exception {
         if (perPage > 100) {
             perPage = 100;
         }
         LOGGER.info("Entered hadith query API with query: " + query + ", page: " + page
-                        + ", per_page: " + perPage + " and sort_fields: " + sortFields);
+                + ", per_page: " + perPage + " and sort_fields: " + sortFields);
         List<SortBuilder> sortBuilders = hadithQueryService.setupSortBuilders(sortFields);
         QueryMode queryMode = QueryMode.SEARCH;
         if (!sortFields.isEmpty()) {
@@ -88,12 +86,13 @@ public class HadithController {
             queryMode = QueryMode.LOOKUP;
         }
         return new QueryStringQueryResult(
-            hadithQueryService.enhanceQuery(query, queryMode),
-            page - 1,
-            perPage,
-            sortBuilders).result();
+                hadithQueryService.enhanceQuery(query, queryMode),
+                page - 1,
+                perPage,
+                sortBuilders).result();
     }
 
+    @SuppressWarnings("deprecation")
     @ApiIgnore
     @RequestMapping(method = RequestMethod.POST, consumes = "application/json")
     public ResponseEntity<String> modifyHadith(
@@ -105,10 +104,11 @@ public class HadithController {
                 modifiedHadithStr = Jsoup.parse(modifiedHadithStr).text();
                 LOGGER.info("Received Modification Request for hadith: " + hadithId);
                 JSONObject modifiedHadith = new JSONObject(modifiedHadithStr);
-                GetResponse response =
-                    ESClientProvider.instance().getClient().prepareGet(
-                        ESClientProvider.INDEX, "_doc", hadithId)
-                                    .get();
+                GetResponse response;
+                try (RestHighLevelClient client = new ESClientProvider().client()) {
+                    response = client.get(new GetRequest(ESClientProvider.INDEX, "_doc", hadithId),
+                            RequestOptions.DEFAULT);
+                }
                 String responseStr = new JSONObject(new String(response.getSourceAsBytes())).toString(2);
                 LOGGER.info("Original hadith is:\n" + responseStr);
                 LOGGER.info("Modification request:\n" + modifiedHadith.toString(2));
@@ -122,14 +122,16 @@ public class HadithController {
                 // make sure we can still serialize a valid HadithObject from the new JSON data
                 HadithObject newHadithObject = mapper.readValue(existingHadith.toString(), HadithObject.class);
                 newHadithObject.insertHistoryNote(
-                    "User " + new User(idToken).email() + " "
-                        + "modified this hadith on " + new java.util.Date() + ". The original hadith:\n"
-                        + responseStr + "\n\n The following properties were modified and saved to the database:\n\n" + modifiedHadithStr);
+                        "User " + new User(idToken).email() + " "
+                                + "modified this hadith on " + new java.util.Date() + ". The original hadith:\n"
+                                + responseStr
+                                + "\n\n The following properties were modified and saved to the database:\n\n"
+                                + modifiedHadithStr);
                 new UpdateRequest(newHadithObject, hadithId).execute();
                 // clear the cache
                 cacheManager.getCacheNames().parallelStream().forEach(name -> cacheManager.getCache(name).clear());
                 return new ResponseEntity<>("Successfully updated hadith: " + hadithId,
-                                            HttpStatus.OK);
+                        HttpStatus.OK);
             } else {
                 throw new AuthenticationException("Unauthorized to modify hadith: " + hadithId);
             }

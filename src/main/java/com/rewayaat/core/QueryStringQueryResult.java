@@ -3,11 +3,15 @@ package com.rewayaat.core;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rewayaat.config.ESClientProvider;
 import com.rewayaat.core.data.HadithObject;
-import org.elasticsearch.action.search.SearchRequestBuilder;
+
+import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.elasticsearch.search.sort.SortBuilder;
@@ -36,7 +40,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
     private final ObjectMapper mapper = new ObjectMapper();
 
     public QueryStringQueryResult(String query, int page, int perPage,
-                                  List<SortBuilder> sortBuilders) {
+            List<SortBuilder> sortBuilders) {
         this.query = query;
         this.page = page;
         this.pageSize = perPage;
@@ -47,16 +51,20 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
     public HadithObjectCollection result() throws Exception {
         List<HadithObject> hadithes = new ArrayList<HadithObject>();
         HighlightBuilder highlightBuilder = getHighlightBuilder(this.query);
-        SearchRequestBuilder sRB = buildSearchQueryModeRequest(query, highlightBuilder);
-        SearchResponse resp = sRB.execute().get();
-        SearchHit[] results = resp.getHits().getHits();
-        LOGGER.info("Current results: " + results.length);
-        for (SearchHit hit : results) {
-            processHit(hadithes, hit);
+        SearchSourceBuilder searchSourceBuilder = buildSearchSourceBuilder(query, highlightBuilder);
+        SearchRequest searchRequest = new SearchRequest(ESClientProvider.INDEX);
+        searchRequest.searchType(SearchType.DFS_QUERY_THEN_FETCH).source(searchSourceBuilder);
+        try (RestHighLevelClient client = new ESClientProvider().client()) {
+            SearchResponse resp = client.search(searchRequest, RequestOptions.DEFAULT);
+            SearchHit[] results = resp.getHits().getHits();
+            LOGGER.info("Current results: " + results.length);
+            for (SearchHit hit : results) {
+                processHit(hadithes, hit);
+            }
+            // Return result set with duplicates removed.
+            return new HadithObjectCollection(
+                    new LinkedList<>(new LinkedHashSet<>(hadithes)), resp.getHits().getTotalHits().value);
         }
-        // Return result set with duplicates removed.
-        return new HadithObjectCollection(
-            new LinkedList<>(new LinkedHashSet<>(hadithes)), resp.getHits().getTotalHits().value);
     }
 
     private void processHit(List<HadithObject> hadithes, SearchHit hit) {
@@ -68,27 +76,27 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
         hadithes.add(mapper.convertValue(result, HadithObject.class));
     }
 
-    private SearchRequestBuilder buildSearchQueryModeRequest(
-        String fuzziedQuery, HighlightBuilder highlightBuilder) throws UnknownHostException {
-        SearchRequestBuilder sRB =
-            ESClientProvider.instance().getClient().prepareSearch(ESClientProvider.INDEX)
-                            .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-                            .setQuery(QueryBuilders.boolQuery().should(QueryBuilders.queryStringQuery(fuzziedQuery)))
-                            .highlighter(highlightBuilder).setFrom(page * this.pageSize).setSize(this.pageSize).setExplain(true);
+    private SearchSourceBuilder buildSearchSourceBuilder(
+            String fuzziedQuery, HighlightBuilder highlightBuilder) throws UnknownHostException {
+        SearchSourceBuilder sRB = new SearchSourceBuilder()
+                .query(QueryBuilders.boolQuery().should(QueryBuilders.queryStringQuery(fuzziedQuery)))
+                .highlighter(highlightBuilder).from(page * this.pageSize).size(this.pageSize).explain(true);
+
         for (SortBuilder sort : this.sortBuilders) {
-            sRB.addSort(sort);
+            sRB.sort(sort);
         }
         return sRB;
     }
 
     private HighlightBuilder getHighlightBuilder(String fuzziedQuery) {
-        HighlightBuilder highlightBuilder =
-            new HighlightBuilder().field("english").field("allFields").field("notes").field("arabic")
+        HighlightBuilder highlightBuilder = new HighlightBuilder().field("english").field("allFields").field("notes")
+                .field("arabic")
                 .field("book").field("section").field("part").field("chapter").field("publisher").field("source")
                 .field("volume").postTags("</span>").preTags("<span class=\"highlight\">")
                 .highlightQuery(QueryBuilders.queryStringQuery(fuzziedQuery).defaultField("*"))
                 .highlightQuery(QueryBuilders.queryStringQuery(query).defaultField("*").analyzer(
-                    "search_analyzer")).numOfFragments(0);
+                        "search_analyzer"))
+                .numOfFragments(0);
         return highlightBuilder;
     }
 }

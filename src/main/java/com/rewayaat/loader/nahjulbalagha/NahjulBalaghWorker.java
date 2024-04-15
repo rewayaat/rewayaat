@@ -104,8 +104,9 @@ public class NahjulBalaghWorker extends Thread {
             byte[] json;
             try {
                 json = mapper.writeValueAsBytes(obj);
-                ESClientProvider.instance().getClient().prepareIndex(ESClientProvider.INDEX, "_doc")
-                                .setSource(json).get();
+                // ESClientProvider.instance().getClient().prepareIndex(ESClientProvider.INDEX,
+                // "_doc")
+                // .setSource(json).get();
                 return;
             } catch (Exception e) {
                 // TODO Auto-generated catch block

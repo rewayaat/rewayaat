@@ -14,7 +14,8 @@ import java.io.Reader;
 public class MujamLoader {
 
     public static void main(String[] args) throws IOException {
-        Reader in = new FileReader("/home/zir0/git/rewayaatv2/rewayaat/src/main/java/com/rewayaat/loader/resources/mujam.csv");
+        Reader in = new FileReader(
+                "/home/zir0/git/rewayaatv2/rewayaat/src/main/java/com/rewayaat/loader/resources/mujam.csv");
         Iterable<CSVRecord> records = CSVFormat.EXCEL.parse(in);
         for (CSVRecord record : records) {
             String book = "A Comprehensive Compilation of Reliable Narrations | معجم الاحاديث المعتبرة";
@@ -66,8 +67,9 @@ public class MujamLoader {
             byte[] json;
             try {
                 json = mapper.writeValueAsBytes(obj);
-                ESClientProvider.instance().getClient().prepareIndex(ESClientProvider.INDEX, "_doc")
-                                .setSource(json).get();
+                // ESClientProvider.instance().getClient().prepareIndex(ESClientProvider.INDEX,
+                // "_doc")
+                // .setSource(json).get();
                 return;
             } catch (Exception e) {
                 e.printStackTrace();

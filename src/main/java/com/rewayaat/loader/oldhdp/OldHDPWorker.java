@@ -104,7 +104,8 @@ public class OldHDPWorker extends Thread {
                     String name = subList.item(1).getTextContent();
                     String topic = subList.item(3).getTextContent().replaceAll("( +)", " ").trim()
                             .replaceAll("[`~``’`]", "") + " " + subList.item(5).getTextContent();
-                    String arabic = "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ) : " + subList.item(6).getTextContent().replaceAll("[`~``’`]", "");
+                    String arabic = "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ) : "
+                            + subList.item(6).getTextContent().replaceAll("[`~``’`]", "");
                     String number = String.valueOf(Integer.parseInt(name.substring(2)));
                     String english = "Imam Ali (AS) said, " + subList.item(7).getTextContent().replaceAll("[`~’]", "");
                     String primarySource = "Ghurar Al-Hikam";
@@ -145,8 +146,9 @@ public class OldHDPWorker extends Thread {
             byte[] json;
             try {
                 json = mapper.writeValueAsBytes(obj);
-                ESClientProvider.instance().getClient().prepareIndex(ESClientProvider.INDEX, "_doc")
-                                .setSource(json).get();
+                // ESClientProvider.instance().getClient().prepareIndex(ESClientProvider.INDEX,
+                // "_doc")
+                // .setSource(json).get();
                 return;
             } catch (Exception e) {
                 // TODO Auto-generated catch block

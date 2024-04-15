@@ -95,15 +95,15 @@ public class MishkatAlAnwarWorker extends Thread {
 
                         if (line.contains("PDF created with")
                                 || line.trim()
-                                .equals("Akhbar")
+                                        .equals("Akhbar")
                                 || (line.trim()
-                                .matches(
-                                        "^[0-9]+.*Mishkat ul-Anwar fi.*$"))
+                                        .matches(
+                                                "^[0-9]+.*Mishkat ul-Anwar fi.*$"))
                                 || line.trim().isEmpty()
                                 || (section != null
-                                && section.toUpperCase().trim().replaceAll(" ,-", "")
-                                .contains(line.toUpperCase().trim().replaceAll(" ,.-", ""))
-                                && !line.isEmpty())) {
+                                        && section.toUpperCase().trim().replaceAll(" ,-", "")
+                                                .contains(line.toUpperCase().trim().replaceAll(" ,.-", ""))
+                                        && !line.isEmpty())) {
                             continue;
                         } else if (line.contains("Translators' note:")) {
                             break;
@@ -146,13 +146,15 @@ public class MishkatAlAnwarWorker extends Thread {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    String ocrText = LoaderUtil.sendOCRAPIPost(LoaderUtil.getLatestFilefromDir(myTempDir.getAbsolutePath()));
+                    String ocrText = LoaderUtil
+                            .sendOCRAPIPost(LoaderUtil.getLatestFilefromDir(myTempDir.getAbsolutePath()));
                     String[] ocrLines = ocrText.split("\r\n");
 
                     for (int j = 0; j < ocrLines.length; j++) {
                         String ocrLine = ocrLines[j];
                         System.out.println(ocrLine);
-                        String matchingArabicText = LoaderUtil.matchingArabicText(ocrLine, new ArrayList(Arrays.asList(lines)));
+                        String matchingArabicText = LoaderUtil.matchingArabicText(ocrLine,
+                                new ArrayList(Arrays.asList(lines)));
                         String finalArabicString = LoaderUtil.combineArabicStrings(ocrLine, matchingArabicText);
                         if (LoaderUtil.isProbablyArabic(ocrLine)) {
                             ocrLine = cleanupArabicNumber(ocrLine);
@@ -160,12 +162,13 @@ public class MishkatAlAnwarWorker extends Thread {
                                     || ocrLine.trim().isEmpty() || ocrLine.trim().contains("مشكاة الأنوار في")
                                     || ocrLine.trim().equals("غرر الأخبار") || ocrLine.trim().equals("الأخبار")
                                     || (section != null && chapter.trim().toUpperCase().replaceAll(" ,-", "")
-                                    .contains(ocrLine.trim().toUpperCase().replaceAll(" ,-", "")))
-                                    && !ocrLine.isEmpty()) {
+                                            .contains(ocrLine.trim().toUpperCase().replaceAll(" ,-", "")))
+                                            && !ocrLine.isEmpty()) {
                                 continue;
                             } else if (ocrLine.trim().contains("الباب") && j == 0) {
                                 section += " / " + ocrLine.trim();
-                                while (!cleanupArabicNumber(ocrLines[j + 1]).contains("الفصل") && !ocrLines[j + 1].isEmpty()) {
+                                while (!cleanupArabicNumber(ocrLines[j + 1]).contains("الفصل")
+                                        && !ocrLines[j + 1].isEmpty()) {
                                     section += " " + cleanupArabicNumber(ocrLines[j + 1]).trim();
                                     j++;
                                 }
@@ -174,7 +177,8 @@ public class MishkatAlAnwarWorker extends Thread {
                                 }
                             } else if (ocrLine.trim().contains("الفصل")) {
                                 chapter += " / ";
-                                while (!cleanupArabicNumber(ocrLines[j + 1]).matches("^[\\s\\xA0]?[0-9]+[\\s\\xA0]*\\..*$")
+                                while (!cleanupArabicNumber(ocrLines[j + 1])
+                                        .matches("^[\\s\\xA0]?[0-9]+[\\s\\xA0]*\\..*$")
                                         && !ocrLines[j + 1].isEmpty()) {
                                     chapter += " " + ocrLines[j + 1].trim();
                                     j++;
@@ -183,7 +187,8 @@ public class MishkatAlAnwarWorker extends Thread {
                                     hadith.setChapter(chapter);
                                 }
                             } else {
-                                Pattern arabicHadithStartPattern = Pattern.compile("(^ *(?<number>[0-9]+) *(\\.).*)$|(^.*(\\.) *(?<number2>[0-9]+) *$)");
+                                Pattern arabicHadithStartPattern = Pattern
+                                        .compile("(^ *(?<number>[0-9]+) *(\\.).*)$|(^.*(\\.) *(?<number2>[0-9]+) *$)");
                                 Matcher m = arabicHadithStartPattern.matcher(ocrLine.trim());
                                 int number = 0;
                                 if (m.find()) {
@@ -201,14 +206,19 @@ public class MishkatAlAnwarWorker extends Thread {
                                         writer.println("COMPLETING HADITH NUMBER:" + getOldestHadith().getNumber());
                                         saveHadith(writer, number);
                                     }
-                                    writer.println("ADDING LINE TO HADITH NUMBER :" + getOldestHadith().getNumber() + "\n"
-                                            + finalArabicString.replace(String.valueOf(number), "").replace(".", "").trim());
-                                    getOldestHadith().insertArabicText(cleanupArabicNumber(finalArabicString.replace(String.valueOf(number), ""))
-                                            .replace(".", "").replaceAll(":", "")
-                                            .replaceAll("0", "").replaceAll(" م ", " عليه السلام ").replaceAll(" 4 ", " عليه السلام ").trim() + " ");
+                                    writer.println(
+                                            "ADDING LINE TO HADITH NUMBER :" + getOldestHadith().getNumber() + "\n"
+                                                    + finalArabicString.replace(String.valueOf(number), "")
+                                                            .replace(".", "").trim());
+                                    getOldestHadith().insertArabicText(
+                                            cleanupArabicNumber(finalArabicString.replace(String.valueOf(number), ""))
+                                                    .replace(".", "").replaceAll(":", "")
+                                                    .replaceAll("0", "").replaceAll(" م ", " عليه السلام ")
+                                                    .replaceAll(" 4 ", " عليه السلام ").trim() + " ");
                                 } else {
-                                    writer.println("ADDING LINE TO HADITH NUMBER :" + getOldestHadith().getNumber() + "\n"
-                                            + finalArabicString.trim());
+                                    writer.println(
+                                            "ADDING LINE TO HADITH NUMBER :" + getOldestHadith().getNumber() + "\n"
+                                                    + finalArabicString.trim());
                                     getOldestHadith().insertArabicText(finalArabicString.trim() + " ");
                                 }
                             }
@@ -245,9 +255,10 @@ public class MishkatAlAnwarWorker extends Thread {
                     if (completedHadith.getArabic() == null) {
                         writer.println("HADITH NUMBER " + completedHadith.getNumber() + " HAD NO ARABIC TEXT!");
                     }
-                    ESClientProvider.instance().getClient().prepareIndex(ESClientProvider.INDEX, "_doc")
-                                    .setSource(json).get();
-                } catch (NoNodeAvailableException | UnknownHostException e) {
+                    // ESClientProvider.instance().getClient().prepareIndex(ESClientProvider.INDEX,
+                    // "_doc")
+                    // .setSource(json).get();
+                } catch (NoNodeAvailableException e) {
                     writer.println("No Node available Exception while processing current Hadith, will try AGAIN!:\n"
                             + getOldestHadith().toString() + "\n");
                     e.printStackTrace(writer);
@@ -265,7 +276,6 @@ public class MishkatAlAnwarWorker extends Thread {
             tries = 0;
         }
     }
-
 
     public void setupNewHadithObj() {
         HadithObject currentHadith = new HadithObject();

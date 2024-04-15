@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: rewayaat
-          image: $IMAGE
+          image: rewayaat/rewayaat:8694695125
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
@@ -26,4 +26,4 @@ spec:
             - name: "SPRING_ACTIVE_PROFILE"
               value: "PROD"
             - name: "ELASTIC_HOST"
-              value: "$ELASTIC_HOST"
+              value: "elasticsearch-master-hl.elastic.svc.cluster.local"
