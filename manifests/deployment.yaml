@@ -26,4 +26,4 @@ spec:
             - name: "SPRING_ACTIVE_PROFILE"
               value: "PROD"
             - name: "ELASTIC_HOST"
-              value: "elasticsearch"
+              value: "$ELASTIC_HOST"

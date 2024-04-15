@@ -43,7 +43,7 @@ jobs:
         if: ${{ github.ref == 'refs/heads/master' }}
         run: |
           kubectl create namespace rewayaat --dry-run=client -o yaml | kubectl apply -f -
-          sed -e 's|$IMAGE|'"${IMAGE_NAME}:${GITHUB_RUN_ID}"'|g' manifests/deployment.yaml | kubectl apply -f -
+          sed -e 's|$IMAGE|'"${IMAGE_NAME}:${GITHUB_RUN_ID}"'|g' manifests/deployment.yaml | sed -e 's|$ELASTIC_HOST|'"${ELASTIC_HOST}"'|g' | kubectl apply -f -
 
       - name: Verify deployment
         if: ${{ github.ref == 'refs/heads/master' }}
@@ -66,3 +66,4 @@ env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
   REMOTE_IMAGE_URL: ${{ secrets.REMOTE_IMAGE_URL }}
+  ELASTIC_HOST: ${{ secrets.$ELASTIC_HOST }}
