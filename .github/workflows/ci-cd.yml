@@ -39,7 +39,7 @@ jobs:
         if: ${{ github.ref == 'refs/heads/master' }}
         run: |
           kubectl create namespace rewayaat --dry-run=client -o yaml | kubectl apply -f -
-          sed -e 's|$CHANGE_CAUSE|test|g' manifests/deployment.yaml | sed -e 's|$BUILD_NUMBER|latest|g' | kubectl apply -f -
+          sed -e 's|$BUILD_NUMBER|latest|g' manifests/deployment.yaml | kubectl apply -f -
       
       - name: Verify deployment
         if: ${{ github.ref == 'refs/heads/master' }}
