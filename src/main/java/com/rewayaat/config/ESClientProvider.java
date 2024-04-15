@@ -36,12 +36,12 @@ public class ESClientProvider implements EnvironmentAware {
 
     public void prepareClient() throws UnknownHostException {
         Settings settings = Settings.builder().put("client.transport.sniff", false)
-                                    .put("cluster.name", "elasticsearch")
-                                    .build();
+                .put("cluster.name", "elasticsearch")
+                .build();
+        @SuppressWarnings("deprecation")
         Client client = new PreBuiltTransportClient(settings)
                 .addTransportAddress(new TransportAddress(InetAddress.getByName(
-                    env.getProperty("spring.data.elasticsearch.properties.host")
-                ), Integer.parseInt(env.getProperty("spring.data.elasticsearch.properties.port"))));
+                        System.getenv("ELASTIC_HOST")), 9300));
         this.client = client;
     }
 
