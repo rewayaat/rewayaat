@@ -1,0 +1,31 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: rewayaat
+  labels:
+    app: rewayaat
+  namespace: rewayaat
+  annotations:
+    kubernetes.io/change-cause: $CHANGE_CAUSE
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: rewayaat
+  template:
+    metadata:
+      labels:
+        app: rewayaat
+    spec:
+      containers:
+        - name: rewayaat
+          image: rewayaat/webapp:$BUILD_NUMBER
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+            - containerPort: 8081
+          env:
+            - name: "SPRING_ACTIVE_PROFILE"
+              value: "PROD"
+            - name: "ELASTIC_HOST"
+              value: "elasticsearch"

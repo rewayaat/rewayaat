@@ -1,0 +1,22 @@
+management:
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: prometheus,info,metrics,health
+  health:
+    sensitive: false
+    elasticsearch:
+      enabled: false
+  security:
+    enabled: false
+  endpoint:
+    health:
+      show-details: always
+  server:
+    port: 8081
+  
+
