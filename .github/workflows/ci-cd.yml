@@ -30,9 +30,11 @@ jobs:
       - name: "Push Image to DockerHub"
         if: ${{ github.ref == 'refs/heads/master' }}
         run: |
-          chmod a+x push-image.sh manifests/deployment.yaml
-          ./push-image.sh
-    
+          chmod a+x manifests/deployment.yaml
+          docker tag $IMAGE_NAME:latest "$IMAGE_NAME:$GITHUB_RUN_ID"
+          docker push "$IMAGE_NAME:$GITHUB_RUN_ID"
+          docker push "$IMAGE_NAME:latest"
+              
       - name: Save DigitalOcean kubeconfig with short-lived credentials
         if: ${{ github.ref == 'refs/heads/master' }}
         run: doctl kubernetes cluster kubeconfig save --expiry-seconds 600 ${{ secrets.DO_KUBE_CLUSTER }}
@@ -42,7 +44,7 @@ jobs:
         run: |
           kubectl create namespace rewayaat --dry-run=client -o yaml | kubectl apply -f -
           sed -e 's|$IMAGE_TAG|'"${GITHUB_RUN_ID}"'|g' manifests/deployment.yaml | kubectl apply -f -
-          
+
       - name: Verify deployment
         if: ${{ github.ref == 'refs/heads/master' }}
         run: kubectl rollout status deployment/rewayaat -n rewayaat
