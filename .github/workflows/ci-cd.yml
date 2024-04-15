@@ -66,4 +66,4 @@ env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
   REMOTE_IMAGE_URL: ${{ secrets.REMOTE_IMAGE_URL }}
-  ELASTIC_HOST: ${{ secrets.$ELASTIC_HOST }}
+  ELASTIC_HOST: ${{ secrets.ELASTIC_HOST }}
