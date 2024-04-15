@@ -29,15 +29,12 @@ jobs:
         if: ${{ github.ref == 'refs/heads/master' }}
         run: |
           ./push-image.sh
-      - uses: satackey/action-docker-layer-caching@v0.0.8
-        # Ignore the failure of a step and avoid terminating the job.
-        continue-on-error: true
-      
+    
       - name: Save DigitalOcean kubeconfig with short-lived credentials
         if: ${{ github.ref == 'refs/heads/master' }}
         run: doctl kubernetes cluster kubeconfig save --expiry-seconds 600 hadii-k8s
       
-      - name: Deploy t0 k8s
+      - name: Deploy to k8s
         if: ${{ github.ref == 'refs/heads/master' }}
         run: kubectl create ns rewayaat; sed -e 's|$CHANGE_CAUSE|test|g' deployment.yaml | sed -e 's|$BUILD_NUMBER|latest|g' | kubectl apply -f -
       
@@ -48,6 +45,9 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+      - uses: satackey/action-docker-layer-caching@v0.0.8
+        continue-on-error: true
+      
 
 env:
   DOCKER_EMAIL: ${{ secrets.DOCKER_EMAIL }}
