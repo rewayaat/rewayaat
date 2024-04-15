@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: rewayaat
-          image: $IMAGE_NAME:$IMAGE_TAG
+          image: $IMAGE
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
