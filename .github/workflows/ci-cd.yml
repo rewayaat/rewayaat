@@ -8,10 +8,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-
-      - name: Set outputs
-        id: vars
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
         
       - name: Set up JDK 1.8
         uses: actions/setup-java@v1
@@ -45,7 +41,7 @@ jobs:
         if: ${{ github.ref == 'refs/heads/master' }}
         run: |
           kubectl create namespace rewayaat --dry-run=client -o yaml | kubectl apply -f -
-          sed -e 's|$BUILD_NUMBER|${{ steps.vars.outputs.sha_short }}|g' manifests/deployment.yaml | kubectl apply -f -
+          sed -e 's|$IMAGE_TAG|'"${GITHUB_RUN_ID}"'|g' manifests/deployment.yaml | kubectl apply -f -
       
       - name: Verify deployment
         if: ${{ github.ref == 'refs/heads/master' }}

@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: rewayaat
-          image: rewayaat/webapp:$BUILD_NUMBER
+          image: rewayaat/webapp:$IMAGE_TAG
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
