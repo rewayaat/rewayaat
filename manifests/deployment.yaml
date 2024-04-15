@@ -22,8 +22,15 @@ spec:
           ports:
             - containerPort: 8080
             - containerPort: 8081
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 15
+            periodSeconds: 30
           env:
             - name: "SPRING_ACTIVE_PROFILE"
               value: "PROD"
             - name: "ELASTIC_HOST"
               value: "$ELASTIC_HOST"
+          
