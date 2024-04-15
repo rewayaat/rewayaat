@@ -1,6 +1,7 @@
 package com.rewayaat.config;
 
 import org.elasticsearch.client.Client;
+import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
@@ -21,7 +22,7 @@ public class ESClientProvider implements EnvironmentAware {
     public final static String INDEX = "rewayaat";
     private static ESClientProvider instance = null;
     private static Object lock = new Object();
-    private Client client;
+    private TransportClient client;
 
     public static ESClientProvider instance() {
         if (instance == null) {
@@ -36,12 +37,11 @@ public class ESClientProvider implements EnvironmentAware {
 
     public void prepareClient() throws UnknownHostException {
         Settings settings = Settings.builder().put("client.transport.sniff", false)
-                                    .put("cluster.name", "elasticsearch")
-                                    .build();
-        Client client = new PreBuiltTransportClient(settings)
+                .put("cluster.name", "elasticsearch")
+                .build();
+        TransportClient client = new PreBuiltTransportClient(settings)
                 .addTransportAddress(new TransportAddress(InetAddress.getByName(
-                    env.getProperty("spring.data.elasticsearch.properties.host")
-                ), Integer.parseInt(env.getProperty("spring.data.elasticsearch.properties.port"))));
+                        System.getenv("ELASTIC_HOST")), 9300));
         this.client = client;
     }
 
@@ -49,11 +49,20 @@ public class ESClientProvider implements EnvironmentAware {
         client.close();
     }
 
-    public Client getClient() throws UnknownHostException {
+    public TransportClient getClient() throws UnknownHostException {
         if (client == null) {
             prepareClient();
         }
         return client;
+    }
+
+    public boolean isConnected() {
+        try {
+            return this.getClient().connectedNodes().size() > 0;
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     @Override

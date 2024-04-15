@@ -17,29 +17,30 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
         with:
-          python-version: '3.7.13'
-      - name: Install AWS CLI
-        run: |
-          pip install -U pip
-          pip install awscli
-      - name: Cache pip deps
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ hashFiles('.github/workflows/ci-cd.yml') }}
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+      
       - name: "Run tests and build image"
         run: "mvn -q package docker:build"
-      - name: "Deploy"
+      
+      - name: "Push Image to DockerHub"
         if: ${{ github.ref == 'refs/heads/master' }}
         run: |
-          chmod a+x deploy.sh ecs_deploy.sh
-          ./deploy.sh
+          ./push-image.sh
       - uses: satackey/action-docker-layer-caching@v0.0.8
         # Ignore the failure of a step and avoid terminating the job.
         continue-on-error: true
+      
+      - name: Save DigitalOcean kubeconfig with short-lived credentials
+        if: ${{ github.ref == 'refs/heads/master' }}
+        run: doctl kubernetes cluster kubeconfig save --expiry-seconds 600 hadii-k8s
+      
+      - name: Deploy t0 k8s
+        if: ${{ github.ref == 'refs/heads/master' }}
+        run: kubectl create ns rewayaat; sed -e 's|$CHANGE_CAUSE|test|g' deployment.yaml | sed -e 's|$BUILD_NUMBER|latest|g' | kubectl apply -f -
+      
       - name: Cache Maven dependencies
         uses: actions/cache@v2
         with:
@@ -49,13 +50,8 @@ jobs:
             ${{ runner.os }}-maven-
 
 env:
-  AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  CLUSTER: ${{ secrets.CLUSTER }}
   DOCKER_EMAIL: ${{ secrets.DOCKER_EMAIL }}
   DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
   REMOTE_IMAGE_URL: ${{ secrets.REMOTE_IMAGE_URL }}
-  SERVICE: ${{ secrets.SERVICE }}
