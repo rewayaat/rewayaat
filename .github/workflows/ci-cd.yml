@@ -30,9 +30,11 @@ jobs:
       - name: "Push Image to DockerHub"
         if: ${{ github.ref == 'refs/heads/master' }}
         run: |
-          chmod a+x push-image.sh manifests/deployment.yaml
-          ./push-image.sh
-    
+          chmod a+x manifests/deployment.yaml
+          docker tag $IMAGE_NAME:latest "$IMAGE_NAME:$GITHUB_RUN_ID"
+          docker push "$IMAGE_NAME:$GITHUB_RUN_ID"
+          docker push "$IMAGE_NAME:latest"
+              
       - name: Save DigitalOcean kubeconfig with short-lived credentials
         if: ${{ github.ref == 'refs/heads/master' }}
         run: doctl kubernetes cluster kubeconfig save --expiry-seconds 600 ${{ secrets.DO_KUBE_CLUSTER }}
