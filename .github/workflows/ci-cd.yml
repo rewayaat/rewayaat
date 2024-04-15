@@ -8,10 +8,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+        
       - name: Set up JDK 1.8
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
+
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
@@ -39,8 +41,8 @@ jobs:
         if: ${{ github.ref == 'refs/heads/master' }}
         run: |
           kubectl create namespace rewayaat --dry-run=client -o yaml | kubectl apply -f -
-          sed -e 's|$BUILD_NUMBER|latest|g' manifests/deployment.yaml | kubectl apply -f -
-      
+          sed -e 's|$IMAGE_TAG|'"${GITHUB_RUN_ID}"'|g' manifests/deployment.yaml | kubectl apply -f -
+          
       - name: Verify deployment
         if: ${{ github.ref == 'refs/heads/master' }}
         run: kubectl rollout status deployment/rewayaat -n rewayaat
