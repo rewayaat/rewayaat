@@ -5,8 +5,6 @@ metadata:
   labels:
     app: rewayaat
   namespace: rewayaat
-  annotations:
-    kubernetes.io/change-cause: $CHANGE_CAUSE
 spec:
   replicas: 2
   selector:
