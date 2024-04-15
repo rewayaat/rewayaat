@@ -28,6 +28,7 @@ jobs:
       - name: "Push Image to DockerHub"
         if: ${{ github.ref == 'refs/heads/master' }}
         run: |
+          chmod a+x push-image.sh manifests/deployment.yaml
           ./push-image.sh
     
       - name: Save DigitalOcean kubeconfig with short-lived credentials
