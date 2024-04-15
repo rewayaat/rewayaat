@@ -39,6 +39,7 @@ jobs:
         run: kubectl create ns rewayaat; sed -e 's|$CHANGE_CAUSE|test|g' manifests/deployment.yaml | sed -e 's|$BUILD_NUMBER|latest|g' | kubectl apply -f -
       
       - name: Verify deployment
+        if: ${{ github.ref == 'refs/heads/master' }}
         run: kubectl rollout status deployment/rewayaat -n rewayaat
 
       - name: Cache Maven dependencies
