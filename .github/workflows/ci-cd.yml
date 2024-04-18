@@ -44,6 +44,8 @@ jobs:
         run: |
           kubectl create namespace rewayaat --dry-run=client -o yaml | kubectl apply -f -
           sed -e 's|$IMAGE|'"${IMAGE_NAME}:${GITHUB_RUN_ID}"'|g' manifests/deployment.yaml | sed -e 's|$ELASTIC_HOST|'"${ELASTIC_HOST}"'|g' | kubectl apply -f -
+          kubectl apply -f manifests/pod-monitor.yaml
+          kubectl apply -f manifest/ingress.yaml        
 
       - name: Verify deployment
         if: ${{ github.ref == 'refs/heads/master' }}

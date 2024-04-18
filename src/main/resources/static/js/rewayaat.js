@@ -19,9 +19,7 @@ function loadQuery(query, page = 1, sortFields) {
                 setupVue(query, page, sortFields);
             });
             // Update latest new bar
-            setLatestNewsBarHTML('<b>NEW</b>: Hadith metadata such as the chapter, section, part ' +
-            'and volume can now be selected <i class="fa fa-mouse-pointer"></i> for further ' +
-            'reading!')
+            //setLatestNewsBarHTML();
         } else {
             swal(
                 "Invalid Query",
