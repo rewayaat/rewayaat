@@ -5,20 +5,32 @@ metadata:
   namespace: rewayaat
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    kubernetes.io/ingress.class: "nginx"
+    kubernetes.io/ingress.class: "nginx"   # legacy; kept for compatibility
 spec:
+  ingressClassName: nginx                  # explicit class
   tls:
     - hosts:
-      - rewayaat.info
+        - rewayaat.info
+        - hadith.academyofislam.com
       secretName: rewayaat-tls
   rules:
-  - host: rewayaat.info
-    http:
+    - host: rewayaat.info
+      http:
         paths:
-        - pathType: Prefix
-          path: "/"
-          backend:
-            service:
-              name: rewayaat
-              port:
-                number: 8080
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: rewayaat
+                port:
+                  number: 8080
+    - host: hadith.academyofislam.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: rewayaat
+                port:
+                  number: 8080
