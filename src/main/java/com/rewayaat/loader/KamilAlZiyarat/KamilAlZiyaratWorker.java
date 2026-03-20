@@ -8,7 +8,6 @@ import com.rewayaat.loader.LoaderUtil;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
 import org.apache.pdfbox.text.PDFTextStripper;
-import org.elasticsearch.client.transport.NoNodeAvailableException;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -274,7 +273,7 @@ public class KamilAlZiyaratWorker {
                 // "_doc")
                 // .setSource(json).get();
                 successful = true;
-            } catch (NoNodeAvailableException e) {
+            } catch (Exception e) {
                 tries++;
                 continue;
             }

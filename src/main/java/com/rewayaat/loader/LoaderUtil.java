@@ -243,14 +243,21 @@ public class LoaderUtil {
 
     public static String sendOCRAPIPost(File file) throws Exception {
 
-        HttpPost httppost = new HttpPost("http://apipro3.ocr.space/parse/image");
+        HttpPost httppost = new HttpPost("https://apipro3.ocr.space/parse/image");
+        String apiKey = System.getenv("OCR_SPACE_API_KEY");
+        if (apiKey == null || apiKey.trim().isEmpty()) {
+            apiKey = System.getProperty("ocr.space.api.key");
+        }
+        if (apiKey == null || apiKey.trim().isEmpty()) {
+            throw new IllegalStateException("OCR Space API key is not configured.");
+        }
 
         byte[] imageBytes = IOUtils.toByteArray(new FileInputStream(file));
         String encodedfile = new String(org.apache.commons.codec.binary.Base64.encodeBase64(imageBytes), "UTF-8");
 
         HttpEntity entity = MultipartEntityBuilder.create().setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
                 .addTextBody("base64image", "data:image/png;base64," + encodedfile)
-                .addTextBody("apikey", "PKMXB3676888A").addTextBody("isOverlayRequired", "false")
+                .addTextBody("apikey", apiKey.trim()).addTextBody("isOverlayRequired", "false")
                 .addTextBody("language", "ara").build();
 
         httppost.setEntity(entity);

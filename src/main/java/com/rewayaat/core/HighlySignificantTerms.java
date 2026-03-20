@@ -3,24 +3,25 @@ package com.rewayaat.core;
 import com.rewayaat.config.ESClientProvider;
 
 import org.apache.commons.lang3.StringUtils;
-import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.aggregations.AggregationBuilders;
-import org.elasticsearch.search.aggregations.bucket.terms.ParsedSignificantTerms;
-import org.elasticsearch.search.aggregations.bucket.terms.SignificantTerms;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.json.JSONArray;
+
+import co.elastic.clients.elasticsearch._types.FieldValue;
+import co.elastic.clients.elasticsearch._types.SearchType;
+import co.elastic.clients.elasticsearch._types.aggregations.Aggregate;
+import co.elastic.clients.elasticsearch._types.aggregations.SignificantStringTermsAggregate;
+import co.elastic.clients.elasticsearch._types.aggregations.SignificantStringTermsBucket;
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -41,52 +42,71 @@ public class HighlySignificantTerms {
         JSONArray result = new JSONArray();
         List<String> englishValues = new ArrayList<>();
         List<String> arabicValues = new ArrayList<>();
+        Set<String> normalizedInputs = new HashSet<>();
         for (String inputTerm : inputTerms) {
             // filter out phrases..
             if (!inputTerm.trim().contains(" ") && !inputTerm.trim().startsWith("\"")) {
                 if (new RewayaatTerm(inputTerm).isArabic()) {
-                    arabicValues.add(StringUtils.stripAccents(inputTerm.trim()));
+                    String normalized = StringUtils.stripAccents(inputTerm.trim());
+                    arabicValues.add(normalized);
+                    normalizedInputs.add(normalized);
                 } else {
-                    englishValues.add(StringUtils.stripAccents(inputTerm.trim().toLowerCase()));
+                    String normalized = StringUtils.stripAccents(inputTerm.trim().toLowerCase(Locale.ROOT));
+                    englishValues.add(normalized);
+                    normalizedInputs.add(normalized);
                 }
             }
         }
+        if (englishValues.isEmpty() && arabicValues.isEmpty()) {
+            return result;
+        }
 
-        try (RestHighLevelClient client = new ESClientProvider().client()) {
-            BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery()
-                    .should(QueryBuilders.termsQuery("english", englishValues))
-                    .should(QueryBuilders.termsQuery("arabic", arabicValues))
-                    .minimumShouldMatch((int) (this.inputTerms.size() * 0.25));
+        try (ESClientProvider provider = new ESClientProvider()) {
+            BoolQuery.Builder boolQueryBuilder = new BoolQuery.Builder();
+            int shouldClauseCount = 0;
+            if (!englishValues.isEmpty()) {
+                List<FieldValue> values = englishValues.stream().map(FieldValue::of).collect(Collectors.toList());
+                boolQueryBuilder.should(s -> s.terms(t -> t.field("english").terms(v -> v.value(values))));
+                shouldClauseCount++;
+            }
+            if (!arabicValues.isEmpty()) {
+                List<FieldValue> values = arabicValues.stream().map(FieldValue::of).collect(Collectors.toList());
+                boolQueryBuilder.should(s -> s.terms(t -> t.field("arabic").terms(v -> v.value(values))));
+                shouldClauseCount++;
+            }
+            boolQueryBuilder.minimumShouldMatch(String.valueOf(Math.max(1, shouldClauseCount)));
+            Query query = new Query.Builder().bool(boolQueryBuilder.build()).build();
 
-            SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-            searchSourceBuilder.query(boolQueryBuilder)
-                    .aggregation(AggregationBuilders
-                            .significantTerms("significantEnglishTerms").field("english").size(this.size))
-                    .aggregation(AggregationBuilders
-                            .significantTerms("significantArabicTerms").field("arabic").size(this.size));
+            SearchResponse<Void> response = provider.client().search(s -> {
+                s.index(ESClientProvider.INDEX)
+                        .searchType(SearchType.DfsQueryThenFetch)
+                        .size(0)
+                        .query(query);
+                s.aggregations("significantArabicTerms", a -> a
+                        .significantTerms(t -> t.field("arabic").size(Math.max(this.size * 6, 12))));
+                return s;
+            }, Void.class);
 
-            SearchRequest searchRequest = new SearchRequest(ESClientProvider.INDEX);
-            searchRequest.searchType(SearchType.DFS_QUERY_THEN_FETCH).source(searchSourceBuilder);
-
-            SearchResponse response = client.search(searchRequest, RequestOptions.DEFAULT);
-
-            ParsedSignificantTerms englishTermsAgg = response.getAggregations().get("significantEnglishTerms");
-            ParsedSignificantTerms arabicTermsAgg = response.getAggregations().get("significantArabicTerms");
-            List<SignificantTerms.Bucket> allBuckets = new ArrayList<>();
-            allBuckets.addAll(englishTermsAgg.getBuckets());
-            allBuckets.addAll(arabicTermsAgg.getBuckets());
+            Aggregate arabicAgg = response.aggregations().get("significantArabicTerms");
+            List<SignificantStringTermsBucket> allBuckets = new ArrayList<>();
+            if (arabicAgg != null) {
+                SignificantStringTermsAggregate arabicTermsAgg = arabicAgg.sigsterms();
+                allBuckets.addAll(arabicTermsAgg.buckets().array());
+            }
             allBuckets = allBuckets.stream()
-                    .filter(x -> !this.inputTerms
-                            .contains(StringUtils.stripAccents(x.getKeyAsString().trim().toLowerCase())))
+                    .filter(x -> {
+                        String normalized = StringUtils.stripAccents(x.key().trim().toLowerCase(Locale.ROOT));
+                        return !normalizedInputs.contains(normalized);
+                    })
                     .collect(Collectors.toList());
-            allBuckets.sort(new SignifcantTermsBucketComparator());
-            List<SignificantTerms.Bucket> firstSizeElementsList = allBuckets.stream().limit(this.size)
+            allBuckets.sort(new SignificantTermsBucketComparator());
+            List<SignificantStringTermsBucket> firstSizeElementsList = allBuckets.stream().limit(this.size)
                     .collect(Collectors.toList());
-            for (SignificantTerms.Bucket bucket : firstSizeElementsList) {
-                if (bucket.getSignificanceScore() < MINIMUM_SCORE) {
+            for (SignificantStringTermsBucket bucket : firstSizeElementsList) {
+                if (bucket.score() < MINIMUM_SCORE) {
                     break;
                 } else {
-                    result.put(bucket.getKeyAsString());
+                    result.put(bucket.key());
                 }
             }
             return result;
@@ -96,12 +116,12 @@ public class HighlySignificantTerms {
     /**
      * Comparator for the Significant Terms Bucket.
      */
-    public static class SignifcantTermsBucketComparator implements Comparator<SignificantTerms.Bucket> {
+    public static class SignificantTermsBucketComparator implements Comparator<SignificantStringTermsBucket> {
         @Override
-        public int compare(SignificantTerms.Bucket o1, SignificantTerms.Bucket o2) {
-            if (o1.getSignificanceScore() == o2.getSignificanceScore()) {
+        public int compare(SignificantStringTermsBucket o1, SignificantStringTermsBucket o2) {
+            if (o1.score() == o2.score()) {
                 return 0;
-            } else if (o1.getSignificanceScore() < o2.getSignificanceScore()) {
+            } else if (o1.score() < o2.score()) {
                 return 1;
             } else {
                 return -1;

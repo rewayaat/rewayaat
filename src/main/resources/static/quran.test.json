@@ -1,0 +1,164 @@
+{
+  "surahs": [
+    {
+      "number": 1,
+      "name": "الفاتحة",
+      "englishName": "Al-Fatihah",
+      "englishNameTranslation": "The Opening",
+      "revelationType": "Meccan",
+      "numberOfAyahs": 7,
+      "ayahs": [
+        {
+          "number": 1,
+          "text": "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ",
+          "numberInSurah": 1,
+          "juz": 1,
+          "page": 1,
+          "ruku": 1,
+          "hizbQuarter": 1,
+          "sajda": false
+        },
+        {
+          "number": 2,
+          "text": "ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَـٰلَمِينَ",
+          "numberInSurah": 2,
+          "juz": 1,
+          "page": 1,
+          "ruku": 1,
+          "hizbQuarter": 1,
+          "sajda": false
+        },
+        {
+          "number": 3,
+          "text": "ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ",
+          "numberInSurah": 3,
+          "juz": 1,
+          "page": 1,
+          "ruku": 1,
+          "hizbQuarter": 1,
+          "sajda": false
+        },
+        {
+          "number": 4,
+          "text": "مَـٰلِكِ يَوْمِ ٱلدِّينِ",
+          "numberInSurah": 4,
+          "juz": 1,
+          "page": 1,
+          "ruku": 1,
+          "hizbQuarter": 1,
+          "sajda": false
+        },
+        {
+          "number": 5,
+          "text": "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ",
+          "numberInSurah": 5,
+          "juz": 1,
+          "page": 1,
+          "ruku": 1,
+          "hizbQuarter": 1,
+          "sajda": false
+        },
+        {
+          "number": 6,
+          "text": "ٱهْدِنَا ٱلصِّرَٰطَ ٱلْمُسْتَقِيمَ",
+          "numberInSurah": 6,
+          "juz": 1,
+          "page": 1,
+          "ruku": 1,
+          "hizbQuarter": 1,
+          "sajda": false
+        },
+        {
+          "number": 7,
+          "text": "صِرَٰطَ ٱلَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ ٱلْمَغْضُوبِ عَلَيْهِمْ وَلَا ٱلضَّآلِّينَ",
+          "numberInSurah": 7,
+          "juz": 1,
+          "page": 1,
+          "ruku": 1,
+          "hizbQuarter": 1,
+          "sajda": false
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "name": "البقرة",
+      "englishName": "Al-Baqarah",
+      "englishNameTranslation": "The Cow",
+      "revelationType": "Medinan",
+      "numberOfAyahs": 286,
+      "ayahs": [
+        {
+          "number": 255,
+          "text": "ٱللَّهُ لَآ إِلَـٰهَ إِلَّا هُوَ ٱلْحَىُّ ٱلْقَيُّومُ ۚ لَا تَأْخُذُهُۥ سِنَةٌۭ وَلَا نَوْمٌ ۚ لَّهُۥ مَا فِى ٱلسَّمَـٰوَٰتِ وَمَا فِى ٱلْأَرْضِ ۗ مَن ذَا ٱلَّذِى يَشْفَعُ عِندَهُۥٓ إِلَّا بِإِذْنِهِۦ ۚ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ ۖ وَلَا يُحِيطُونَ بِشَىْءٍۢ مِّنْ عِلْمِهِۦٓ إِلَّا بِمَا شَآءَ ۚ وَسِعَ كُرْسِيُّهُ ٱلسَّمَـٰوَٰتِ وَٱلْأَرْضَ ۖ وَلَا يَئُودُهُۥ حِفْظُهُمَا ۚ وَهُوَ ٱلْعَلِىُّ ٱلْعَظِيمُ",
+          "numberInSurah": 255,
+          "juz": 3,
+          "page": 51,
+          "ruku": 43,
+          "hizbQuarter": 6,
+          "sajda": false
+        },
+        {
+          "number": 256,
+          "text": "لَآ إِكْرَاهَ فِى ٱلدِّينِ ۖ قَد تَّبَيَّنَ ٱلرُّشْدُ مِنَ ٱلْغَىِّ ۚ فَمَن يَكْفُرْ بِٱلطَّـٰغُوتِ وَيُؤْمِن بِٱللَّهِ فَقَدِ ٱسْتَمْسَكَ بِٱلْعُرْوَةِ ٱلْوُثْقَىٰ لَا ٱنفِصَامَ لَهَا ۗ وَٱللَّهُ سَمِيعٌ عَلِيمٌ",
+          "numberInSurah": 256,
+          "juz": 3,
+          "page": 51,
+          "ruku": 43,
+          "hizbQuarter": 6,
+          "sajda": false
+        }
+      ]
+    },
+    {
+      "number": 112,
+      "name": "الإخلاص",
+      "englishName": "Al-Ikhlas",
+      "englishNameTranslation": "The Sincerity",
+      "revelationType": "Meccan",
+      "numberOfAyahs": 4,
+      "ayahs": [
+        {
+          "number": 1,
+          "text": "قُلْ هُوَ ٱللَّهُ أَحَدٌ",
+          "numberInSurah": 1,
+          "juz": 30,
+          "page": 604,
+          "ruku": 551,
+          "hizbQuarter": 240,
+          "sajda": false
+        },
+        {
+          "number": 2,
+          "text": "ٱللَّهُ ٱلصَّمَدُ",
+          "numberInSurah": 2,
+          "juz": 30,
+          "page": 604,
+          "ruku": 551,
+          "hizbQuarter": 240,
+          "sajda": false
+        },
+        {
+          "number": 3,
+          "text": "لَمْ يَلِدْ وَلَمْ يُولَدْ",
+          "numberInSurah": 3,
+          "juz": 30,
+          "page": 604,
+          "ruku": 551,
+          "hizbQuarter": 240,
+          "sajda": false
+        },
+        {
+          "number": 4,
+          "text": "وَلَمْ يَكُن لَّهُۥ كُفُوًا أَحَدٌۢ",
+          "numberInSurah": 4,
+          "juz": 30,
+          "page": 604,
+          "ruku": 551,
+          "hizbQuarter": 240,
+          "sajda": false
+        }
+      ]
+    }
+  ]
+}

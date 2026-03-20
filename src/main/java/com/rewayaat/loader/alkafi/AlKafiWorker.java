@@ -11,8 +11,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
 import org.apache.pdfbox.text.PDFTextStripper;
-import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.client.transport.NoNodeAvailableException;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -45,12 +43,9 @@ public class AlKafiWorker extends Thread {
             "heas", "sheas", "sonas", "yusufas", "youas", "meas", "ias", "hamzaas");
 
     private int end;
-    private RestHighLevelClient client;
-
     public AlKafiWorker(int start, int end) {
         this.start = start;
         this.end = end;
-        this.client = new ESClientProvider().client();
     }
 
     @Override
@@ -234,13 +229,6 @@ public class AlKafiWorker extends Thread {
                         currentHadith.insertArabicText(LoaderUtil.combineArabicStrings(matchingArabicText, arabicText));
                     }
                 }
-            } catch (NoNodeAvailableException e) {
-                writer.println("No Node available Exception while processing current Hadith, will try AGAIN!:\n"
-                        + currentHadith.toString() + "\n");
-                e.printStackTrace(writer);
-                i--;
-                continue;
-
             } catch (Exception e) {
                 writer.println("Error while processing current Hadith:\n" + currentHadith.toString() + "\n");
                 e.printStackTrace(writer);

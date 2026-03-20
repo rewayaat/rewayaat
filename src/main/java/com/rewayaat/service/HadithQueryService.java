@@ -1,13 +1,14 @@
 package com.rewayaat.service;
 
 import com.rewayaat.core.QueryMode;
-import org.apache.log4j.Logger;
-import org.elasticsearch.script.Script;
-import org.elasticsearch.search.sort.ScriptSortBuilder;
-import org.elasticsearch.search.sort.SortBuilder;
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.sort.SortOrder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import co.elastic.clients.elasticsearch._types.Script;
+import co.elastic.clients.elasticsearch._types.ScriptSortType;
+import co.elastic.clients.elasticsearch._types.SortOptions;
+import co.elastic.clients.elasticsearch._types.SortOrder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,35 +19,49 @@ import java.util.List;
 @Service
 public class HadithQueryService {
 
-    private static Logger log = Logger.getLogger(HadithQueryService.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(HadithQueryService.class);
 
     private String[] docFields = new String[]{"_id:", "source:", "book:", "number:", "part:",
         "edition:", "chapter:", "publisher:", "section:", "tags:", "volume:", "notes:", "arabic:",
         "gradings:"};
 
-    public List<SortBuilder> setupSortBuilders(String sortFields) {
-        List<SortBuilder> sortBuilders = new ArrayList<>();
+    public List<SortOptions> setupSortBuilders(String sortFields) {
+        List<SortOptions> sortBuilders = new ArrayList<>();
         if (sortFields == null || sortFields.isEmpty()) {
-            sortBuilders.add(SortBuilders.scoreSort());
+            sortBuilders.add(SortOptions.of(s -> s.score(sc -> sc.order(SortOrder.Desc))));
         } else {
             String[] fieldSorts = sortFields.split(",");
             for (String fieldSort : fieldSorts) {
                 String field = fieldSort.split(":")[0] + ".keyword";
                 if (field.startsWith("number")) {
-                    sortBuilders.add(SortBuilders.scriptSort(
-                        new Script("Integer.parseInt(doc['number.keyword'].value)"),
-                        ScriptSortBuilder.ScriptSortType.NUMBER)
-                    );
+                    sortBuilders.add(SortOptions.of(s -> s.script(ss -> ss
+                            .type(ScriptSortType.Number)
+                            .order(parseOrder(fieldSort))
+                            .script(Script.of(sc -> sc.source(src -> src.scriptString(
+                                    "Integer.parseInt(doc['number.keyword'].value)")))))));
                 } else {
-                    SortOrder sortOrder = SortOrder.fromString(fieldSort.split(":")[1]);
-                    sortBuilders.add(SortBuilders.fieldSort(field).order(sortOrder));
+                    sortBuilders.add(SortOptions.of(s -> s.field(f -> f
+                            .field(field)
+                            .order(parseOrder(fieldSort)))));
                 }
             }
         }
         return sortBuilders;
     }
 
-    public String enhanceQuery(String query, QueryMode queryMode) {
+    private SortOrder parseOrder(String fieldSort) {
+        String[] parts = fieldSort.split(":");
+        if (parts.length < 2) {
+            return SortOrder.Desc;
+        }
+        String order = parts[1].trim().toLowerCase();
+        return "asc".equals(order) ? SortOrder.Asc : SortOrder.Desc;
+    }
+
+    public String enhanceQuery(String query, QueryMode queryMode, boolean strictMatchMode) {
+        if (query == null) {
+            query = "";
+        }
         // splits query by all spaces that are not enclosed by double quotes or brackets
         List<String> splitted = new ArrayList<>();
         List<String> allFieldItems = new ArrayList<>();
@@ -74,18 +89,37 @@ public class HadithQueryService {
         splitted.add(result.toString());
         for (String s : splitted) {
             s = s.trim();
-            if (!s.contains("~") && !s.contains(":") && !s.contains("^") && !s.contains("(") && !s.contains("\"") && !s.trim().startsWith("+") && !s.trim().startsWith("-")) {
+            s = normalizeFieldAlias(s);
+            if (!strictMatchMode &&
+                    !s.contains("~") && !s.contains(":") && !s.contains("^") && !s.contains("(") && !s.contains("\"") &&
+                    !s.trim().startsWith("+") && !s.trim().startsWith("-")) {
                 s += "~";
             }
             allFieldItems.add(s);
         }
-        if (queryMode == QueryMode.LOOKUP) {
+        if (strictMatchMode || queryMode == QueryMode.LOOKUP) {
             query = String.join(" AND ", allFieldItems);
         } else {
             query = String.join(" ", allFieldItems);
         }
-        log.info("Final query post modifications: " + query);
+        log.debug("Final query post modifications: {}", query);
         return query;
+    }
+
+    private String normalizeFieldAlias(String token) {
+        if (token == null || token.isEmpty()) {
+            return token;
+        }
+        String prefix = "";
+        String body = token;
+        if (token.startsWith("+") || token.startsWith("-")) {
+            prefix = token.substring(0, 1);
+            body = token.substring(1);
+        }
+        if (body.regionMatches(true, 0, "id:", 0, 3)) {
+            return prefix + "_id:" + body.substring(3);
+        }
+        return token;
     }
 
     public boolean isProbablyArabic(String s) {

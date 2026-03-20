@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.io.Serializable;
@@ -18,13 +18,13 @@ import java.util.Map;
 @JsonPropertyOrder({"url", "title"})
 public class Related implements Serializable {
 
-    @ApiModelProperty(notes = "The controllers URL of the related resource")
+    @Schema(description = "The controllers URL of the related resource")
     @JsonProperty("url")
     private String url;
-    @ApiModelProperty(notes = "The title of the related resource")
+    @Schema(description = "The title of the related resource")
     @JsonProperty("title")
     private String title;
-    @ApiModelProperty(notes = "The description of the related resource")
+    @Schema(description = "The description of the related resource")
     @JsonProperty("description")
     private String description;
     @JsonIgnore

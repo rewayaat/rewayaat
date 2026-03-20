@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+    <title>Sign In - Rewayaat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/materia/bootstrap.min.css" rel="stylesheet"/>
+    <link href="/css/manuscript.css?v=42" rel="stylesheet"/>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
+</head>
+<body class="bg-light">
+<main class="container py-4 auth-page-shell">
+    <div class="auth-page-header d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+            <h1 class="h4 mb-1">Sign In</h1>
+            <div class="text-muted small">Access collections and manage saved hadith.</div>
+        </div>
+        <a href="/" class="btn btn-outline-dark btn-sm">
+            <i class="fa fa-arrow-left" aria-hidden="true"></i>
+            Back to Home
+        </a>
+    </div>
+
+    <section class="card shadow-sm border-0 auth-page-card">
+        <div class="card-body p-4">
+            <div id="authAlert" class="alert d-none" role="alert"></div>
+
+            <div id="authSessionState" class="auth-session-state d-none mb-3">
+                <div class="auth-session-copy">
+                    You are already signed in as <span id="authSessionEmail"></span>.
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <button id="authContinueBtn" type="button" class="btn btn-primary btn-sm">Continue</button>
+                    <button id="authLogoutBtn" type="button" class="btn btn-outline-dark btn-sm">Sign Out</button>
+                </div>
+            </div>
+
+            <div class="auth-segment mb-3" role="tablist" aria-label="Authentication mode">
+                <button id="authModeLogin" type="button" class="auth-segment-btn active">Sign In</button>
+                <button id="authModeRegister" type="button" class="auth-segment-btn">Register</button>
+                <button id="authModeReset" type="button" class="auth-segment-btn">Reset Password</button>
+            </div>
+
+            <form id="authLoginForm" class="auth-form" novalidate>
+                <label for="authLoginEmail" class="auth-modal-label">Email</label>
+                <input id="authLoginEmail" type="email" class="form-control auth-modal-input mb-2" placeholder="you@example.com" required/>
+                <label for="authLoginPassword" class="auth-modal-label">Password</label>
+                <input id="authLoginPassword" type="password" class="form-control auth-modal-input mb-3" placeholder="Password" required/>
+                <button type="submit" class="btn btn-primary btn-sm">Sign In</button>
+            </form>
+
+            <form id="authRegisterForm" class="auth-form d-none" novalidate>
+                <label for="authRegisterName" class="auth-modal-label">Display Name</label>
+                <input id="authRegisterName" type="text" class="form-control auth-modal-input mb-2" placeholder="Your name"/>
+                <label for="authRegisterEmail" class="auth-modal-label">Email</label>
+                <input id="authRegisterEmail" type="email" class="form-control auth-modal-input mb-2" placeholder="you@example.com" required/>
+                <label for="authRegisterPassword" class="auth-modal-label">Password</label>
+                <input id="authRegisterPassword" type="password" class="form-control auth-modal-input mb-2" placeholder="Create password" required/>
+                <label for="authRegisterPasswordConfirm" class="auth-modal-label">Confirm Password</label>
+                <input id="authRegisterPasswordConfirm" type="password" class="form-control auth-modal-input mb-2" placeholder="Re-enter password" required/>
+                <div class="auth-policy mb-3">
+                    Minimum password requirements:
+                    <span>At least 6 characters and no spaces.</span>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">Create Account</button>
+            </form>
+
+            <form id="authResetRequestForm" class="auth-form d-none" novalidate>
+                <label for="authResetEmail" class="auth-modal-label">Account Email</label>
+                <input id="authResetEmail" type="email" class="form-control auth-modal-input mb-3" placeholder="you@example.com" required/>
+                <button type="submit" class="btn btn-primary btn-sm">Send Reset Link</button>
+            </form>
+
+            <form id="authResetConfirmForm" class="auth-form d-none" novalidate>
+                <input id="authResetToken" type="hidden"/>
+                <label for="authResetPassword" class="auth-modal-label">New Password</label>
+                <input id="authResetPassword" type="password" class="form-control auth-modal-input mb-2" placeholder="Create new password" required/>
+                <label for="authResetPasswordConfirm" class="auth-modal-label">Confirm New Password</label>
+                <input id="authResetPasswordConfirm" type="password" class="form-control auth-modal-input mb-2" placeholder="Re-enter new password" required/>
+                <div class="auth-policy mb-3">
+                    Minimum password requirements:
+                    <span>At least 6 characters and no spaces.</span>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">Update Password</button>
+            </form>
+        </div>
+    </section>
+</main>
+<script src="/js/auth-page.js?v=1"></script>
+</body>
+</html>

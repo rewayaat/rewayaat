@@ -10,7 +10,6 @@ import com.rewayaat.loader.WordToNumber;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
 import org.apache.pdfbox.text.PDFTextStripper;
-import org.elasticsearch.client.transport.NoNodeAvailableException;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -258,7 +257,7 @@ public class MishkatAlAnwarWorker extends Thread {
                     // ESClientProvider.instance().getClient().prepareIndex(ESClientProvider.INDEX,
                     // "_doc")
                     // .setSource(json).get();
-                } catch (NoNodeAvailableException e) {
+                } catch (Exception e) {
                     writer.println("No Node available Exception while processing current Hadith, will try AGAIN!:\n"
                             + getOldestHadith().toString() + "\n");
                     e.printStackTrace(writer);

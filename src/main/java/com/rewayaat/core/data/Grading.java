@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -17,13 +17,13 @@ import java.util.Map;
 @JsonPropertyOrder({"grader", "rationale", "grading"})
 public class Grading implements Serializable {
 
-    @ApiModelProperty(notes = "Grader's full name")
+    @Schema(description = "Grader's full name")
     @JsonProperty("grader")
     private String grader;
-    @ApiModelProperty(notes = "Rationale used for the grading")
+    @Schema(description = "Rationale used for the grading")
     @JsonProperty("rationale")
     private String rationale;
-    @ApiModelProperty(notes = "The grading value(eg: hassan, dhaeef, etc..)")
+    @Schema(description = "The grading value(eg: hassan, dhaeef, etc..)")
     @JsonProperty("grading")
     private String grading;
     @JsonIgnore

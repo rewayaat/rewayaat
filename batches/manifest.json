@@ -1,0 +1,17 @@
+{
+  "index": "rewayaat_updated",
+  "exported_at": "2026-02-03T08:31:55Z",
+  "batch_size": 200,
+  "fields": [
+    "book",
+    "number",
+    "chapter",
+    "arabic",
+    "english"
+  ],
+  "query": {
+    "match_all": {}
+  },
+  "batches": 163,
+  "documents": 32519
+}

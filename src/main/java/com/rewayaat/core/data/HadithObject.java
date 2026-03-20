@@ -5,10 +5,10 @@ import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.io.Serializable;
@@ -18,55 +18,61 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonPropertyOrder({"book", "number", "part", "chapter", "section", "volume", "tags", "notes", "arabic",
+@JsonPropertyOrder({"_id", "book", "number", "part", "chapter", "section", "volume", "tags", "topic_tags", "notes", "arabic",
         "english", "source", "gradings", "related"})
 public class HadithObject implements Serializable {
 
-    @ApiModelProperty(notes = "Primary source of the narration if applicable")
+    @Schema(description = "The unique id of the narration")
+    @JsonProperty("_id")
+    private String id;
+    @Schema(description = "Primary source of the narration if applicable")
     @JsonProperty("source")
     private String source;
-    @ApiModelProperty(notes = "The book containing the narration")
+    @Schema(description = "The book containing the narration")
     @JsonProperty("book")
     private String book;
-    @ApiModelProperty(notes = "The number of the narration")
+    @Schema(description = "The number of the narration")
     @JsonProperty("number")
     private String number;
-    @ApiModelProperty(notes = "The part of the book associated with the narration")
+    @Schema(description = "The part of the book associated with the narration")
     @JsonProperty("part")
     private String part;
-    @ApiModelProperty(notes = "The edition of the book associated with the narration")
+    @Schema(description = "The edition of the book associated with the narration")
     @JsonProperty("edition")
     private String edition;
-    @ApiModelProperty(notes = "The chapter of the book associated with the narration")
+    @Schema(description = "The chapter of the book associated with the narration")
     @JsonProperty("chapter")
     private String chapter;
-    @ApiModelProperty(notes = "The publisher of the book associated with the narration")
+    @Schema(description = "The publisher of the book associated with the narration")
     @JsonProperty("publisher")
     private String publisher;
-    @ApiModelProperty(notes = "The section of the book associated with the narration")
+    @Schema(description = "The section of the book associated with the narration")
     @JsonProperty("section")
     private String section;
-    @ApiModelProperty(notes = "The volume of the book associated with the narration")
+    @Schema(description = "The volume of the book associated with the narration")
     @JsonProperty("volume")
     private String volume;
-    @ApiModelProperty(notes = "relevant tags describing the narration's contents")
+    @Schema(description = "Relevant tags describing the narration's contents")
     @JsonProperty("tags")
     private List<Object> tags = new ArrayList<Object>();
-    @ApiModelProperty(notes = "Relevant notes helpful in understanding the narration")
+    @Schema(description = "Controlled topic taxonomy slugs for filtering and concept mapping")
+    @JsonProperty("topic_tags")
+    private List<String> topicTags = new ArrayList<String>();
+    @Schema(description = "Relevant notes helpful in understanding the narration")
     @JsonProperty("notes")
     private String notes;
-    @ApiModelProperty(notes = "Arabic text of the narration")
+    @Schema(description = "Arabic text of the narration")
     @JsonProperty("arabic")
     private String arabic;
-    @ApiModelProperty(notes = "English text of the narration")
+    @Schema(description = "English text of the narration")
     @JsonProperty("english")
     private String english;
-    @ApiModelProperty(notes = "Gradings of the narration")
+    @Schema(description = "Gradings of the narration")
     @JsonProperty("gradings")
     private List<Grading> gradings = new ArrayList<Grading>();
-    @ApiModelProperty(notes = "Further resources that are related to the narration")
+    @Schema(description = "Further resources that are related to the narration")
     @JsonProperty("related")
     private List<Related> related = new ArrayList<Related>();
     @JsonProperty("history")
@@ -78,6 +84,16 @@ public class HadithObject implements Serializable {
     @JsonProperty("history")
     public List<String> getHistory() {
         return history;
+    }
+
+    @JsonProperty("_id")
+    public String getId() {
+        return id;
+    }
+
+    @JsonProperty("_id")
+    public void setId(String id) {
+        this.id = id;
     }
 
     public void insertHistoryNote(String note) {
@@ -205,6 +221,16 @@ public class HadithObject implements Serializable {
     @JsonProperty("tags")
     public void setTags(List<Object> tags) {
         this.tags = tags;
+    }
+
+    @JsonProperty("topic_tags")
+    public List<String> getTopicTags() {
+        return topicTags;
+    }
+
+    @JsonProperty("topic_tags")
+    public void setTopicTags(List<String> topicTags) {
+        this.topicTags = topicTags == null ? new ArrayList<>() : topicTags;
     }
 
     @JsonProperty("notes")

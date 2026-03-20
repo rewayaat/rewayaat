@@ -2,10 +2,10 @@ package com.rewayaat.controllers.rest;
 
 import com.rewayaat.core.DatabaseTopTerms;
 import com.rewayaat.core.HighlySignificantTerms;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import java.util.List;
 
 /**
@@ -37,21 +37,18 @@ public class TermsController {
     private CacheManager cacheManager;
 
     @CrossOrigin(origins = {"*"}, allowCredentials = "false")
-    @ApiOperation(
-            value = "Returns a list of top terms in the database based on the given prefix term.",
-            response = List.class
-    )
+    @Operation(summary = "Returns a list of top terms in the database based on the given prefix term.")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Returns a list of top terms in the database based on the given prefix term."),
-            @ApiResponse(code = 400, message = "Bad request"),
-            @ApiResponse(code = 500, message = "Internal server error")
+            @ApiResponse(responseCode = "200", description = "Returns a list of top terms in the database based on the given prefix term."),
+            @ApiResponse(responseCode = "400", description = "Bad request"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @Cacheable(value = "topterms")
     @RequestMapping(value = "/top", method = RequestMethod.GET, produces = "application/json")
     public ResponseEntity<String> topTerms(
-            @ApiParam(name = "size", value = "Number of top terms to include.")
+            @Parameter(name = "size", description = "Number of top terms to include.")
             @RequestParam(value = "size", defaultValue = "10") @Min(1) @Max(10) int size,
-            @ApiParam(name = "term", value = "Term to filter results by, must be a minimum length of 2.")
+            @Parameter(name = "term", description = "Term to filter results by, must be a minimum length of 2.")
             @RequestParam(value = "term", required = true) String prefix) throws Exception {
 
         if (prefix.length() < 2) {
@@ -63,21 +60,18 @@ public class TermsController {
 
 
     @CrossOrigin(origins = {"*"}, allowCredentials = "false")
-    @ApiOperation(
-            value = "Returns a list of highly significant terms in the database based on the given input terms.",
-            response = List.class
-    )
+    @Operation(summary = "Returns a list of highly significant terms in the database based on the given input terms.")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Returns a list of highly significant terms in the database."),
-            @ApiResponse(code = 400, message = "Bad request"),
-            @ApiResponse(code = 500, message = "Internal server error")
+            @ApiResponse(responseCode = "200", description = "Returns a list of highly significant terms in the database."),
+            @ApiResponse(responseCode = "400", description = "Bad request"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @Cacheable(value = "significantterms")
     @RequestMapping(value = "/significant", method = RequestMethod.GET, produces = "application/json")
     public ResponseEntity<String> significantTerms(
-            @ApiParam(name = "size", value = "Number of significant terms to include.")
+            @Parameter(name = "size", description = "Number of significant terms to include.")
             @RequestParam(value = "size", defaultValue = "5") @Min(1) @Max(10) int size,
-            @ApiParam(name = "inputTerms", value = "Comma separated list of input terms for which to retrieve highly significant terms.")
+            @Parameter(name = "inputTerms", description = "Comma separated list of input terms for which to retrieve highly significant terms.")
             @RequestParam(value = "inputTerms", required = true) String inputTerms) throws Exception {
 
         String[] inputTermArr = inputTerms.split(",");

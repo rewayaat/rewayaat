@@ -1,0 +1,32 @@
+[
+  {
+    "date": "2026-02-17",
+    "title": "Sign In and Account Access",
+    "summary": "The top navigation now uses a single Sign In entry, and account creation is available directly from the sign-in flow.",
+    "highlights": [
+      "Single Sign In button in the main menu",
+      "Create account action inside the sign-in dialog",
+      "Password reset remains available in the same flow"
+    ]
+  },
+  {
+    "date": "2026-02-17",
+    "title": "Search Mode and Reading Mode",
+    "summary": "We introduced two clear working modes so users can either explore broadly or read in sequence.",
+    "highlights": [
+      "Prominent mode switch in the top navigation",
+      "Reading controls optimized for book/chapter navigation",
+      "Optional filter guidance in reading and browse views"
+    ]
+  },
+  {
+    "date": "2026-02-17",
+    "title": "Find Similar Hadith",
+    "summary": "Each narration now shows similar hadith using semantic retrieval in Elasticsearch.",
+    "highlights": [
+      "Inline similar hadith panel under each card",
+      "Upfront similar count shown on the trigger",
+      "Tabbed similar hadith browsing with full text display"
+    ]
+  }
+]

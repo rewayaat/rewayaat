@@ -1,3 +1,24 @@
+spring:
+  mvc:
+    async:
+      request-timeout: 180s
+
+elasticsearch:
+  host: ${ELASTIC_HOST:localhost}
+  port: ${ELASTIC_PORT:9200}
+  index: ${REWAYAAT_INDEX:rewayaat_updated_e5large_20260320}
+
+rewayaat:
+  users-index: ${REWAYAAT_USERS_INDEX:rewayaat_users}
+  app-base-url: ${APP_BASE_URL:http://localhost:8080}
+  mail-from: ${MAIL_FROM:no-reply@rewayaat.local}
+  auth:
+    verify-token-hours: ${AUTH_VERIFY_TOKEN_HOURS:48}
+    reset-token-hours: ${AUTH_RESET_TOKEN_HOURS:2}
+    session-hours: ${AUTH_SESSION_HOURS:720}
+    password-min-length: ${AUTH_PASSWORD_MIN_LENGTH:6}
+    expose-debug-tokens: ${AUTH_EXPOSE_DEBUG_TOKENS:false}
+
 management:
   metrics:
     export:
@@ -17,6 +38,16 @@ management:
     health:
       show-details: always
   server:
-    port: 8081
-  
+    port: 8003
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
 
+tafsir:
+  index: ${TAFSIR_INDEX:rewayaat_tafsir}
+  source-dir: ${TAFSIR_SOURCE_DIR:/tmp/tafsir-sources}
+  fetch-delay: ${TAFSIR_FETCH_DELAY:1000}
+  dry-run: ${TAFSIR_DRY_RUN:false}
+  force: ${TAFSIR_FORCE:false}
+  extractor: ${TAFSIR_EXTRACTOR:enlightening-commentary}
+  batch-size: ${TAFSIR_BATCH_SIZE:100}
