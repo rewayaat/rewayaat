@@ -1920,18 +1920,24 @@ main.container::before {
 /* Update Results button */
 .reading-toolbar .reading-apply,
 .reading-toolbar .browse-action.btn-primary {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: #fff;
+    min-height: 42px;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.88rem;
+    font-weight: 700;
+    background: linear-gradient(180deg, #1a3a6b 0%, #0f2440 100%);
+    border: 1px solid var(--gold-light);
+    color: var(--gold-light);
+    border-radius: 12px;
     box-shadow: var(--shadow-sm);
+    transition: all 250ms ease;
 }
 .reading-toolbar .reading-apply:hover:not(:disabled),
 .reading-toolbar .browse-action.btn-primary:hover:not(:disabled) {
-    background: var(--primary-light);
-    border-color: var(--primary-light);
-    color: #fff;
+    background: linear-gradient(180deg, #1d467f 0%, #122945 100%);
+    border-color: #f7e1a6;
+    color: #f7e1a6;
     transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 6px 16px rgba(16, 35, 63, 0.2);
 }
 .reading-toolbar .reading-apply:disabled,
 .reading-toolbar .browse-action.btn-primary:disabled {
@@ -1939,6 +1945,16 @@ main.container::before {
     border-color: var(--border-strong);
     color: var(--text-muted);
     box-shadow: none;
+}
+
+/* Glow animation for update button when changes pending */
+@keyframes updateBtnGlow {
+    0%, 100% { box-shadow: 0 0 6px rgba(247, 225, 166, 0.3), 0 2px 8px rgba(0, 0, 0, 0.1); }
+    50% { box-shadow: 0 0 18px rgba(247, 225, 166, 0.6), 0 4px 16px rgba(0, 0, 0, 0.15); }
+}
+.reading-toolbar .reading-apply.needs-update {
+    animation: updateBtnGlow 1.8s ease-in-out infinite;
+    border-color: var(--gold-light);
 }
 
 /* ========================================================================

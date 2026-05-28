@@ -2241,7 +2241,18 @@ function indicateActionButtonPending(buttonId) {
     if (!button || button.disabled) {
         return;
     }
-    button.classList.add("button-glow");
+    button.classList.add("needs-update");
+    button.classList.remove("button-glow");
+    if (typeof Noty !== 'undefined') {
+        new Noty({
+            text: 'Click <b>Update Results</b> to apply your changes',
+            type: 'info',
+            timeout: 3500,
+            theme: 'mint',
+            layout: 'bottomRight',
+            killer: true
+        }).show();
+    }
 }
 
 function clearActionButtonPending(buttonId) {
@@ -2252,6 +2263,7 @@ function clearActionButtonPending(buttonId) {
     if (!button) {
         return;
     }
+    button.classList.remove("needs-update");
     button.classList.remove("button-glow");
 }
 // processes the user's query by redirecting with query parameter.
