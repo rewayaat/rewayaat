@@ -26,10 +26,11 @@ var SEARCH_FETCH_LIMIT = 50;
 var READING_PAGE_SIZE = 50;
 var INITIAL_VISIBLE_NARRATIONS = 16;
 var REVEAL_BATCH_SIZE = 12;
-var INITIAL_VISIBLE_TAG_FILTERS = 5;
+var INITIAL_VISIBLE_TAG_FILTERS = 15;
 var similarLoadingMinDurationMs = 550;
 var scopeFieldKeys = ['book', 'volume', 'part', 'section', 'chapter'];
 var pendingSearchUpdateToast = null;
+var pendingArabicSuggestionToast = null;
 var authState = {
     authenticated: false,
     user: null
@@ -78,7 +79,6 @@ function loadQuery(query, page = 1, sortFields) {
         //setLatestNewsBarHTML('Our team has recently added <b><a target="_blank" style="color: black;text-decoration: underline;" href="' + window.location.href + '?q=book:%22al-amali%22">Al-Amali</a></b>, <b><a target="_blank" style="color: black;text-decoration: underline;" href="' + window.location.href + '?q=book%3A%22Khisal%22">Al Khisal</a></b> and <b><a target="_blank" style="color: black;text-decoration: underline;" href="' + window.location.href + '?q=book%3A%22Uyun%22">Uyun Akhbar Al-Rida</a></b> to our Collection!');
         // show default mark-down welcome page
         displayWelcomeContent();
-        setupSearchMatchToggle('', '');
         // load book blurbs
         $.getJSON("book_blurbs.json", function(book_blurbs) {
             bookBlurbs = book_blurbs
@@ -488,7 +488,7 @@ function showSearchUpdateToast() {
         pendingSearchUpdateToast.close();
     }
     pendingSearchUpdateToast = new Noty({
-        text: '<div class="search-update-toast"><span class="search-update-toast__label">Search changed</span><span class="search-update-toast__cta">Click here to update your results</span></div>',
+        text: '<div class="search-update-toast"><span class="search-update-toast__label">Search changed</span><span class="search-update-toast__cta">Press Search to update your results</span></div>',
         theme: 'mint',
         type: 'information',
         layout: 'topRight',
@@ -506,6 +506,68 @@ function showSearchUpdateToast() {
             },
             onClose: function() {
                 pendingSearchUpdateToast = null;
+            }
+        }
+    }).show();
+}
+
+function closeArabicSuggestionToast() {
+    if (pendingArabicSuggestionToast && typeof pendingArabicSuggestionToast.close === 'function') {
+        pendingArabicSuggestionToast.close();
+    }
+    pendingArabicSuggestionToast = null;
+}
+
+function showArabicSuggestionToast(terms) {
+    if (typeof Noty === 'undefined' || !Array.isArray(terms) || !terms.length) {
+        return;
+    }
+    closeArabicSuggestionToast();
+    var safeTerms = terms.slice(0, 3).map(function(term) {
+        return String(term || '').trim();
+    }).filter(function(term) {
+        return !!term;
+    });
+    if (!safeTerms.length) {
+        return;
+    }
+    var buttonsMarkup = safeTerms.map(function(term) {
+        return '<button type="button" class="arabic-suggestion-toast__term" data-suggestion-term="' +
+            escapeHtml(term) + '">' + escapeHtml(term) + '</button>';
+    }).join('');
+    pendingArabicSuggestionToast = new Noty({
+        text: '<div class="arabic-suggestion-toast">' +
+            '<span class="arabic-suggestion-toast__label">Suggested Arabic Terms</span>' +
+            '<span class="arabic-suggestion-toast__hint">Add one to refine this search.</span>' +
+            '<div class="arabic-suggestion-toast__terms">' + buttonsMarkup + '</div>' +
+            '</div>',
+        theme: 'mint',
+        type: 'information',
+        layout: 'topRight',
+        timeout: 15000,
+        progressBar: false,
+        closeWith: ['click', 'button'],
+        callbacks: {
+            onShow: function() {
+                if (!this.barDom) {
+                    return;
+                }
+                Array.prototype.forEach.call(
+                    this.barDom.querySelectorAll('[data-suggestion-term]'),
+                    function(button) {
+                        button.addEventListener('click', function(event) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            if (vueApp && typeof vueApp.addArabicSuggestionToSearchBar === 'function') {
+                                vueApp.addArabicSuggestionToSearchBar(button.getAttribute('data-suggestion-term'));
+                            }
+                            closeArabicSuggestionToast();
+                        });
+                    }
+                );
+            },
+            onClose: function() {
+                pendingArabicSuggestionToast = null;
             }
         }
     }).show();
@@ -574,6 +636,7 @@ function initAuthUI() {
     var profileBtn = document.getElementById('authProfileBtn');
     var profileShell = document.getElementById('authProfileShell');
     var createCollectionBtn = document.getElementById('createCollectionBtn');
+    var collectionsToggleBtn = document.getElementById('collectionsToggleBtn');
 
     if (signInBtn && !signInBtn.dataset.bound) {
         signInBtn.addEventListener('click', function() {
@@ -585,13 +648,19 @@ function initAuthUI() {
         profileBtn.addEventListener('click', function(event) {
             event.preventDefault();
             event.stopPropagation();
-            if (!authState.authenticated) {
-                openLoginModal();
-                return;
-            }
             toggleUserProfileMenu();
         });
         profileBtn.dataset.bound = 'true';
+    }
+    if (collectionsToggleBtn && !collectionsToggleBtn.dataset.bound) {
+        collectionsToggleBtn.addEventListener('click', function() {
+            var sidebar = document.getElementById('collectionSidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('d-none');
+                collectionsToggleBtn.classList.toggle('is-active');
+            }
+        });
+        collectionsToggleBtn.dataset.bound = 'true';
     }
     if (profileShell && !profileShell.dataset.bound) {
         document.addEventListener('click', function(event) {
@@ -653,6 +722,13 @@ function applyAuthState() {
     if (profileShell) {
         profileShell.classList.toggle('d-none', !isAuthed);
     }
+
+    // Show/hide collections toggle button
+    var collectionsToggleBtn = document.getElementById('collectionsToggleBtn');
+    if (collectionsToggleBtn) {
+        collectionsToggleBtn.classList.toggle('d-none', !isAuthed);
+    }
+
     if (profileBtn) {
         profileBtn.setAttribute('aria-expanded', 'false');
     }
@@ -667,7 +743,25 @@ function applyAuthState() {
             : 'R';
         profileInitial.textContent = String(source).charAt(0).toUpperCase();
     }
-    if (!isAuthed) {
+
+    // Update Vue app with collections - use proper reactivity
+    if (window.vueApp) {
+        window.vueApp.collections = userCollectionsCache || [];
+        // Update authStateProxy reactively by copying properties
+        if (window.vueApp.authStateProxy) {
+            window.vueApp.authStateProxy.authenticated = authState.authenticated;
+            window.vueApp.authStateProxy.user = authState.user;
+        } else {
+            window.vueApp.authStateProxy = authState;
+        }
+    }
+
+    if (isAuthed) {
+        // Pre-build profile menu for instant display
+        ensureCollectionsLoaded().then(function(collections) {
+            renderUserProfileMenu(Array.isArray(collections) ? collections : []);
+        });
+    } else {
         closeUserProfileMenu();
     }
     ensurePublicHomeVisible();
@@ -698,7 +792,7 @@ function positionUserProfileMenu() {
     var rect = profileBtn.getBoundingClientRect();
     var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
     var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-    var menuWidth = Math.min(432, Math.max(260, viewportWidth - 24));
+    var menuWidth = Math.min(300, Math.max(260, viewportWidth - 24));
     profileMenu.style.width = menuWidth + 'px';
     var menuRect = profileMenu.getBoundingClientRect();
     var left = Math.max(12, Math.min(rect.right - menuRect.width, viewportWidth - menuRect.width - 12));
@@ -748,47 +842,46 @@ function renderUserProfileMenu(collections) {
         empty.textContent = 'No collections yet. Save a hadith to start building your reading lists.';
         list.appendChild(empty);
     } else {
+        // Create "View Collections" dropdown item for mobile
+        var collectionsDropdown = document.createElement('div');
+        collectionsDropdown.className = 'profile-dropdown__nested';
+
+        var collectionsToggle = document.createElement('div');
+        collectionsToggle.className = 'profile-dropdown__toggle';
+        collectionsToggle.innerHTML = '<span>View Collection</span><i class="fa fa-angle-down"></i>';
+
+        var collectionsSubmenu = document.createElement('div');
+        collectionsSubmenu.className = 'profile-dropdown__submenu';
+
         collections.forEach(function(collection) {
-            var row = document.createElement('div');
-            row.className = 'profile-dropdown__collection-row';
-
-            var details = document.createElement('div');
-            details.className = 'profile-dropdown__collection-details';
-            details.innerHTML =
-                '<div class="profile-dropdown__collection-name">' + escapeHtml(collection.name || 'Collection') + '</div>' +
-                '<div class="profile-dropdown__collection-meta">' + (Array.isArray(collection.hadithIds) ? collection.hadithIds.length : 0) + ' hadith</div>';
-            row.appendChild(details);
-
-            var actions = document.createElement('div');
-            actions.className = 'profile-dropdown__collection-actions';
-
-            var openBtn = document.createElement('button');
-            openBtn.type = 'button';
-            openBtn.className = 'btn btn-outline-dark btn-sm';
-            openBtn.textContent = 'Open';
-            openBtn.addEventListener('click', function(event) {
+            var item = document.createElement('div');
+            item.className = 'profile-dropdown__submenu-item';
+            var count = Array.isArray(collection.hadith_ids) ? collection.hadith_ids.length : 0;
+            item.innerHTML =
+                '<span class="profile-dropdown__collection-name">' + escapeHtml(collection.name || 'Collection') + '</span>' +
+                '<span class="profile-dropdown__collection-meta">' + count + ' hadith</span>';
+            item.addEventListener('click', function(event) {
                 event.preventDefault();
                 closeUserProfileMenu();
                 openCollectionPage(collection.id, 1, []);
             });
-            actions.appendChild(openBtn);
-
-            var deleteBtn = document.createElement('button');
-            deleteBtn.type = 'button';
-            deleteBtn.className = 'btn btn-outline-danger btn-sm';
-            deleteBtn.textContent = 'Delete';
-            deleteBtn.addEventListener('click', function(event) {
-                event.preventDefault();
-                deleteCollection(collection.id, function() {
-                    openUserProfileModal();
-                });
-            });
-            actions.appendChild(deleteBtn);
-
-            row.appendChild(actions);
-            list.appendChild(row);
+            collectionsSubmenu.appendChild(item);
         });
+
+        // Toggle submenu on click
+        var isOpen = false;
+        collectionsToggle.addEventListener('click', function(event) {
+            event.preventDefault();
+            isOpen = !isOpen;
+            collectionsSubmenu.classList.toggle('is-open', isOpen);
+            collectionsToggle.classList.toggle('is-open', isOpen);
+        });
+
+        collectionsDropdown.appendChild(collectionsToggle);
+        collectionsDropdown.appendChild(collectionsSubmenu);
+        list.appendChild(collectionsDropdown);
     }
+
     panel.appendChild(list);
 
     var footer = document.createElement('div');
@@ -797,7 +890,7 @@ function renderUserProfileMenu(collections) {
     var createBtn = document.createElement('button');
     createBtn.type = 'button';
     createBtn.className = 'btn btn-link btn-sm px-0';
-    createBtn.textContent = 'Create collection';
+    createBtn.innerHTML = '<i class="fa fa-plus"></i> Create collection';
     createBtn.addEventListener('click', function(event) {
         event.preventDefault();
         closeUserProfileMenu();
@@ -825,11 +918,30 @@ function renderUserProfileMenu(collections) {
 
 function toggleUserProfileMenu() {
     var profileMenu = document.getElementById('authProfileMenu');
+    var profileBtn = document.getElementById('authProfileBtn');
+
+    // If menu is already open, close it
     if (profileMenu && !profileMenu.classList.contains('d-none')) {
         closeUserProfileMenu();
         return;
     }
-    openUserProfileModal();
+
+    // If not authenticated, show login
+    if (!authState.authenticated) {
+        openLoginModal();
+        return;
+    }
+
+    // Show pre-built menu instantly
+    if (profileBtn) {
+        profileBtn.classList.add('is-open');
+        profileBtn.setAttribute('aria-expanded', 'true');
+    }
+    if (profileMenu) {
+        profileMenu.classList.remove('d-none');
+        profileMenu.setAttribute('aria-hidden', 'false');
+    }
+    positionUserProfileMenu();
 }
 
 function ensurePublicHomeVisible() {
@@ -1050,45 +1162,55 @@ function openCollectionNameModal(options) {
 function openCollectionPickerModal(hadithId, collections) {
     var wrapper = createCollectionModalShell(
         'Save Hadith',
-        'Choose an existing collection or create a new one. Saved cards will live in full-page collection views.'
+        'Choose an existing collection or create a new one.'
     );
-    var selectedName = '';
-    var collectionList = document.createElement('div');
-    collectionList.className = 'collection-picker-modal__list';
-    (Array.isArray(collections) ? collections : []).forEach(function(collection) {
-        var button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'collection-picker-modal__option';
-        var count = Array.isArray(collection.hadithIds) ? collection.hadithIds.length : 0;
-        button.innerHTML =
-            '<span class="collection-picker-modal__option-title">' + escapeHtml(collection.name || 'Collection') + '</span>' +
-            '<span class="collection-picker-modal__option-meta">' + count + ' hadith</span>';
-        button.addEventListener('click', function() {
-            selectedName = collection.name || 'Saved Hadith';
-            Array.prototype.slice.call(collectionList.querySelectorAll('.collection-picker-modal__option')).forEach(function(node) {
-                node.classList.remove('is-selected');
-            });
-            button.classList.add('is-selected');
-            input.value = selectedName;
-        });
-        collectionList.appendChild(button);
-    });
-    if (collectionList.children.length > 0) {
-        wrapper.appendChild(collectionList);
-    }
 
     var label = document.createElement('label');
     label.className = 'auth-modal-label';
-    label.textContent = 'Collection Name';
+    label.textContent = 'Collection';
     wrapper.appendChild(label);
 
-    var input = document.createElement('input');
-    input.className = 'form-control auth-modal-input collection-picker-modal__input';
-    input.type = 'text';
-    input.placeholder = 'Saved Hadith';
-    input.value = 'Saved Hadith';
-    input.id = 'collectionPickerName';
-    wrapper.appendChild(input);
+    // Create a select dropdown for existing collections
+    var select = document.createElement('select');
+    select.className = 'form-control auth-modal-input collection-picker-modal__input';
+    select.id = 'collectionPickerSelect';
+    select.style.marginBottom = '0.75rem';
+
+    // Add "New Collection" option at the top
+    var newOption = document.createElement('option');
+    newOption.value = '';
+    newOption.textContent = '+ New Collection';
+    select.appendChild(newOption);
+
+    // Add existing collections
+    (Array.isArray(collections) ? collections : []).forEach(function(collection) {
+        var option = document.createElement('option');
+        option.value = collection.name || 'Collection';
+        var count = Array.isArray(collection.hadith_ids) ? collection.hadith_ids.length : 0;
+        option.textContent = (collection.name || 'Collection') + ' (' + count + ' hadith)';
+        select.appendChild(option);
+    });
+    wrapper.appendChild(select);
+
+    // Container for new collection name input (hidden by default)
+    var newCollectionContainer = document.createElement('div');
+    newCollectionContainer.id = 'newCollectionContainer';
+    newCollectionContainer.style.display = 'none';
+    newCollectionContainer.style.marginBottom = '0.75rem';
+
+    var newLabel = document.createElement('label');
+    newLabel.className = 'auth-modal-label';
+    newLabel.textContent = 'New Collection Name';
+    newLabel.style.fontSize = '0.85rem';
+    newCollectionContainer.appendChild(newLabel);
+
+    var newInput = document.createElement('input');
+    newInput.className = 'form-control auth-modal-input collection-picker-modal__input';
+    newInput.type = 'text';
+    newInput.placeholder = 'New Collection';
+    newInput.id = 'newCollectionInput';
+    newCollectionContainer.appendChild(newInput);
+    wrapper.appendChild(newCollectionContainer);
 
     var footer = document.createElement('div');
     footer.className = 'collection-picker-modal__actions';
@@ -1108,7 +1230,21 @@ function openCollectionPickerModal(hadithId, collections) {
     submitBtn.className = 'btn btn-primary btn-sm collection-picker-modal__submit';
     submitBtn.textContent = 'Save Hadith';
     submitBtn.addEventListener('click', function() {
-        var collectionName = (input.value || '').trim() || selectedName || 'Saved Hadith';
+        var selectedValue = select.value;
+        var newCollectionName = (newInput.value || '').trim();
+
+        var collectionName;
+        if (selectedValue === '' && newCollectionName) {
+            // User selected "New Collection" and entered a name
+            collectionName = newCollectionName;
+        } else if (selectedValue !== '') {
+            // User selected an existing collection
+            collectionName = selectedValue;
+        } else {
+            // No selection made, use default
+            collectionName = 'New Collection';
+        }
+
         apiJSON('/v1/collections/quick-save', {
             method: 'POST',
             body: JSON.stringify({ hadithId: hadithId, collectionName: collectionName })
@@ -1124,6 +1260,17 @@ function openCollectionPickerModal(hadithId, collections) {
     });
     footer.appendChild(submitBtn);
     wrapper.appendChild(footer);
+
+    // Show/hide new collection input based on dropdown selection
+    select.addEventListener('change', function() {
+        if (select.value === '') {
+            // "New Collection" selected
+            newCollectionContainer.style.display = 'block';
+            newInput.focus();
+        } else {
+            newCollectionContainer.style.display = 'none';
+        }
+    });
 
     swal({
         content: wrapper,
@@ -1192,6 +1339,23 @@ function openSaveHadithModal(hadithId) {
         openCollectionPickerModal(hadithId, collections);
     }).catch(function() {
         swal('Save unavailable', 'Unable to load your collections right now.', 'error');
+    });
+}
+
+function openCollectionManageModal() {
+    if (!authState.authenticated) {
+        openLoginModal();
+        return;
+    }
+    ensureCollectionsLoaded().then(function(collections) {
+        if (!collections || !collections.length) {
+            openCreateCollectionModal();
+            return;
+        }
+        // Open the full collections modal
+        openUserProfileModal();
+    }).catch(function() {
+        swal('Collections unavailable', 'Unable to load your collections right now.', 'error');
     });
 }
 
@@ -1703,7 +1867,7 @@ function renderCollectionsSection(collections) {
     collections.forEach(function(collection) {
         var card = document.createElement('article');
         card.className = 'collection-card';
-        var count = (collection.hadithIds && collection.hadithIds.length) ? collection.hadithIds.length : 0;
+        var count = (collection.hadith_ids && collection.hadith_ids.length) ? collection.hadith_ids.length : 0;
         var updatedText = collection.updatedAt ? new Date(collection.updatedAt).toLocaleDateString() : '';
         card.innerHTML =
             '<div class="collection-title">' + escapeHtml(collection.name || 'Collection') + '</div>' +
@@ -2023,7 +2187,7 @@ function displayWelcomeContent() {
     vueApp = new Vue({
         el: '#hadithView'
     });
-    $("#welcome").load("/welcome.html?v=15", function(responseData, statusText) {
+    $("#welcome").load("/welcome.html?v=16", function(responseData, statusText) {
         welcomeContentLoading = false;
         welcomeContentInitialized = statusText === 'success';
         var queryBar = document.getElementById('queryBar');
@@ -2060,11 +2224,12 @@ function displayWelcomeContent() {
 }
 
 function indicatePendingSearchTerms() {
-    // make search button glow
+    toggleSearchBarPendingState(true);
     $("[id^=searchBtn]").addClass("button-glow");
 }
 
 function clearPendingSearchTermsIndicator() {
+    toggleSearchBarPendingState(false);
     $("[id^=searchBtn]").removeClass("button-glow");
 }
 
@@ -2124,8 +2289,22 @@ function showBookBlurb(bookName) {
 }
 
 function indicatePendingSearchTerms() {
-    // make search button glow
+    toggleSearchBarPendingState(true);
     $("[id^=searchBtn]").addClass("button-glow");
+}
+
+function toggleSearchBarPendingState(isPending) {
+    var queryBar = document.getElementById('queryBar');
+    if (queryBar) {
+        queryBar.classList.toggle('search-bar-glow', !!isPending);
+    }
+    var searchShell = queryBar ? queryBar.querySelector('.navbar-search__input') : null;
+    if (searchShell) {
+        searchShell.classList.toggle('search-bar-glow', !!isPending);
+    }
+    if (searchSelectControl && searchSelectControl.wrapper) {
+        searchSelectControl.wrapper.classList.toggle('search-bar-glow', !!isPending);
+    }
 }
 
 
@@ -2262,16 +2441,25 @@ function extractQueryState(query) {
 }
 
 function buildScopedQuery(keywordTerms, scopeFilters) {
+    var safeScope = scopeFilters || {};
+    var scopeQuery = buildQueryFromFilters(safeScope);
+    if (!scopeQuery || !scopeQuery.trim()) {
+        // No scope filters, return keyword query only
+        var terms = Array.isArray(keywordTerms) ? keywordTerms.filter(function(term) {
+            return term && String(term).trim().length > 0;
+        }) : [];
+        return terms.join(' ').trim();
+    }
+    // Has scope filters - build combined query
     var terms = Array.isArray(keywordTerms) ? keywordTerms.filter(function(term) {
         return term && String(term).trim().length > 0;
     }) : [];
-    var safeScope = scopeFilters || {};
     var keywordQuery = terms.join(' ').trim();
-    var scopeQuery = buildQueryFromFilters(safeScope);
-    var fullQuery = [keywordQuery, scopeQuery].filter(function(part) {
-        return part && String(part).trim().length > 0;
-    }).join(' ').trim();
-    return fullQuery;
+    // Only add keyword query if it's not empty (don't add '*' placeholder)
+    if (keywordQuery) {
+        return keywordQuery + ' ' + scopeQuery;
+    }
+    return scopeQuery;
 }
 
 function stripWrappingQuotes(value) {
@@ -2548,29 +2736,9 @@ function setupModeSwitch(query, sortFields) {
 }
 
 function setupSearchMatchToggle(query, sortFields) {
-    var permissiveBtn = document.getElementById('searchPermissiveBtn');
-    var strictBtn = document.getElementById('searchStrictBtn');
-    var bar = document.getElementById('searchStrictnessBar');
-    if (!permissiveBtn || !strictBtn || !bar) {
-        return;
-    }
+    // Legacy function - now handled by dropdown
+    // This is kept for compatibility but doesn't do anything
     searchMatchMode = resolveSearchMatchModeParam();
-    permissiveBtn.title = 'Flexible: tolerates spelling variants and partial matches.';
-    strictBtn.title = 'Exact: exact words and phrases only.';
-    if (!permissiveBtn.dataset.bound) {
-        permissiveBtn.addEventListener('click', function() {
-            applySearchMatchMode('permissive', query, sortFields);
-        });
-        permissiveBtn.dataset.bound = 'true';
-    }
-    if (!strictBtn.dataset.bound) {
-        strictBtn.addEventListener('click', function() {
-            applySearchMatchMode('strict', query, sortFields);
-        });
-        strictBtn.dataset.bound = 'true';
-    }
-    permissiveBtn.classList.toggle('active', searchMatchMode !== 'strict');
-    strictBtn.classList.toggle('active', searchMatchMode === 'strict');
 }
 
 function applySearchMatchMode(mode, query, sortFields) {
@@ -2581,11 +2749,9 @@ function applySearchMatchMode(mode, query, sortFields) {
     searchMatchMode = nextMode;
     var currentQuery = getQueryStringValue('q') || query || '';
     var currentSort = getQueryStringValue('sort_fields') || sortFields || '';
-    if (!currentQuery) {
-        setupSearchMatchToggle(query, sortFields);
-        return;
-    }
-    redirectToSearchResult(currentQuery, 1, currentSort, resolveModeParam(), '', nextMode, resolveEntryContextParam());
+
+    // Update UI but don't redirect - the new dropdown handles this differently
+    setupSearchMatchToggle(query, sortFields);
 }
 
 function setupReadingMode(query, sortFields) {
@@ -2983,6 +3149,22 @@ function escapeHtml(value) {
     return div.innerHTML;
 }
 
+function quranicCitationStyleAttr(source) {
+    var text = String(source || '').trim();
+    if (!text) {
+        return '';
+    }
+    var hash = 0;
+    for (var i = 0; i < text.length; i++) {
+        hash = ((hash << 5) - hash + text.charCodeAt(i)) | 0;
+    }
+    var hue = Math.abs(hash) % 360;
+    var bg = 'hsla(' + hue + ', 72%, 92%, 0.98)';
+    var border = 'hsla(' + hue + ', 42%, 56%, 0.36)';
+    var ink = 'hsl(' + hue + ', 58%, 34%)';
+    return ' style="background:' + bg + ';border-color:' + border + ';color:' + ink + ';"';
+}
+
 function buildPdfExportMarkup(options) {
     var opts = options || {};
     var narrations = Array.isArray(opts.narrations) ? opts.narrations : [];
@@ -3176,7 +3358,7 @@ var ARABIC_SUGGESTION_STOPWORDS = new Set([
     return !!term;
 }));
 var ARABIC_SUGGESTION_LIMIT = 3;
-var ARABIC_SUGGESTION_FETCH_SIZE = 10;
+var ARABIC_SUGGESTION_FETCH_SIZE = 3;
 
 function buildArabicSuggestionExistingMap(queryText) {
     var existing = Object.create(null);
@@ -3675,6 +3857,8 @@ function setupVue(query, page, sortFields) {
             collectionId: resolveCollectionIdParam(),
             collectionTitle: '',
             collectionMeta: null,
+            isEditingCollectionTitle: false,
+            editingCollectionTitle: '',
             entryContext: resolveEntryContextParam(),
             authStateProxy: authState,
             taxonomy: {},
@@ -3685,14 +3869,29 @@ function setupVue(query, page, sortFields) {
             searchResultOrdinalMap: {},
             visibleNarrationCount: INITIAL_VISIBLE_NARRATIONS,
             narrationRevealObserver: null,
+            arabicSuggestionObserver: null,
             arabicSuggestionLoading: false,
             arabicSuggestionTerms: [],
-            arabicSuggestionInputTerms: []
+            arabicSuggestionInputTerms: [],
+            arabicSuggestionToastShown: false,
+            arabicSuggestionThresholdPassed: false,
+            collections: userCollectionsCache,
+            collectionSearchQuery: ''
         },
         // runs when the Vue instance has initialized.
         mounted: function() {
             this.loadTaxonomy();
             this.fetchNarrations();
+            this.initCollectionSidebar();
+            var self = this;
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.chip-dropdown')) {
+                    self.narrations.forEach(function(n) {
+                        n.similarDropdownOpen = false;
+                        n.quranicDropdownOpen = false;
+                    });
+                }
+            });
         },
         beforeDestroy: function() {
         },
@@ -3710,7 +3909,14 @@ function setupVue(query, page, sortFields) {
                 return !!this.queryState.keywordQuery;
             },
             hasMoreNarrationsToReveal: function() {
-                return !this.collectionMode && this.narrations.length < this.filteredNarrationTotal;
+                if (this.collectionMode) {
+                    return false;
+                }
+                // When tags are active, compare against matching narrations count
+                var targetCount = this.activeTopicTags.length > 0
+                    ? this.matchingNarrationsTotal
+                    : this.filteredNarrationTotal;
+                return this.narrations.length < targetCount;
             },
             scopeBreadcrumbText: function() {
                 if (!this.hasActiveScope) {
@@ -3742,26 +3948,48 @@ function setupVue(query, page, sortFields) {
                 return 'Page ' + this.page + ' of ' + this.totalPages;
             },
             resultsHeadingText: function() {
-                if (this.activeTopicTags.length > 0) {
-                    if (this.collectionMode) {
-                        return 'Showing ' + this.filteredNarrationTotal + '/' + this.unfilteredNarrationTotal + ' saved hadith';
-                    }
-                    if (this.readingMode) {
-                        return 'Showing ' + this.filteredNarrationTotal + '/' + this.unfilteredNarrationTotal + ' hadith';
-                    }
-                    return 'Showing ' + this.filteredNarrationTotal + '/' + this.unfilteredNarrationTotal + ' results';
-                }
                 if (this.collectionMode) {
+                    if (this.activeTopicTags.length > 0) {
+                        return 'Showing ' + this.matchingNarrationsCount + '/' + this.filteredNarrationTotal + ' saved hadith';
+                    }
                     return this.collectionTitle || 'Saved Hadith';
                 }
-                var total = Number(this.totalHits) || 0;
                 if (this.readingMode) {
-                    return total + ' hadith found.';
+                    // In reading mode, use server counts (totalHits is filtered, baseNarrationTotal is total scope)
+                    if (this.activeTopicTags.length > 0) {
+                        var filteredCount = Number(this.totalHits) || 0;
+                        var baseCount = Number(this.baseNarrationTotal) || 0;
+                        return 'Showing ' + filteredCount + '/' + baseCount + ' hadith';
+                    }
+                    return (Number(this.baseNarrationTotal) || 0) + ' hadith found.';
                 }
-                return total + ' results found.';
+                if (this.activeTopicTags.length > 0) {
+                    return 'Showing ' + this.matchingNarrationsCount + '/' + this.filteredNarrationTotal + ' results';
+                }
+                return (Number(this.totalHits) || 0) + ' results found.';
+            },
+            matchingNarrationsCount: function() {
+                var self = this;
+                // In reading mode or collection mode, filtering is done server-side
+                // so totalHits/baseNarrationTotal is the correct count
+                if (this.readingMode || this.collectionMode) {
+                    var base = Number(this.baseNarrationTotal) || 0;
+                    if (base > 0) {
+                        return base;
+                    }
+                    return Number(this.totalHits) || 0;
+                }
+                // In search mode, count matching items from loaded results
+                if (!this.activeTopicTags.length) {
+                    return Array.isArray(this.allNarrations) ? this.allNarrations.length : 0;
+                }
+                return this.allNarrations.filter(function(item) {
+                    return self.matchesActiveTopicTags(item);
+                }).length;
             },
             filteredNarrationsAll: function() {
                 var self = this;
+                // Filter by active topic tags
                 if (!this.activeTopicTags.length) {
                     return this.allNarrations;
                 }
@@ -3770,7 +3998,12 @@ function setupVue(query, page, sortFields) {
                 });
             },
             filteredNarrationTotal: function() {
-                return Array.isArray(this.filteredNarrationsAll) ? this.filteredNarrationsAll.length : 0;
+                // Total results from server (not just the loaded page)
+                var base = Number(this.baseNarrationTotal) || 0;
+                if (base > 0) {
+                    return base;
+                }
+                return Number(this.totalHits) || 0;
             },
             unfilteredNarrationTotal: function() {
                 var base = Number(this.baseNarrationTotal) || 0;
@@ -3785,39 +4018,50 @@ function setupVue(query, page, sortFields) {
                     return 'Showing ' + visibleCount + ' / ' + this.filteredNarrationTotal + ' saved hadith';
                 }
                 if (this.readingMode) {
-                    return 'Showing ' + visibleCount + ' / ' + this.filteredNarrationTotal + ' hadith on this page';
+                    // When topic tags are active, show "X/Y hadith" where X=filtered, Y=base
+                    if (this.activeTopicTags.length > 0) {
+                        var filteredCount = this.totalHits || 0;
+                        var baseCount = this.baseNarrationTotal || 0;
+                        if (filteredCount !== baseCount) {
+                            return 'Showing ' + filteredCount + ' / ' + baseCount + ' hadith';
+                        }
+                    }
+                    return 'Showing ' + visibleCount + ' / ' + this.baseNarrationTotal + ' hadith';
                 }
                 return 'Showing ' + visibleCount + ' / ' + this.filteredNarrationTotal + ' results';
+            },
+            matchingNarrationsTotal: function() {
+                // When tags are active, show count of matching narrations
+                var self = this;
+                if (!this.activeTopicTags.length) {
+                    return this.filteredNarrationTotal;
+                }
+                return this.allNarrations.filter(function(item) {
+                    return self.matchesActiveTopicTags(item);
+                }).length;
             },
             tagFilterOptions: function() {
                 var taxonomy = this.taxonomy || {};
                 var activeTags = this.activeTopicTags || [];
                 var facetCounts = this.topicTagFacets || {};
                 var counts = {};
-                if (this.readingMode) {
-                    Object.keys(facetCounts).forEach(function(tag) {
-                        if (!tag) {
-                            return;
-                        }
-                        var count = Number(facetCounts[tag]);
-                        counts[tag] = isNaN(count) ? 0 : count;
-                    });
-                }
-                if (!Object.keys(counts).length) {
-                    var source = this.allNarrations;
-                    (Array.isArray(source) ? source : []).forEach(function(item) {
-                        (Array.isArray(item && item.topic_tags) ? item.topic_tags : []).forEach(function(tag) {
-                            if (!tag) {
-                                return;
-                            }
-                            counts[tag] = (counts[tag] || 0) + 1;
-                        });
-                    });
-                }
+                // Use backend facet counts for accurate totals across full result set
+                // (both in reading mode and search mode)
+                Object.keys(facetCounts).forEach(function(tag) {
+                    if (!tag) {
+                        return;
+                    }
+                    var count = Number(facetCounts[tag]);
+                    counts[tag] = isNaN(count) ? 0 : count;
+                });
                 return Object.keys(counts).concat(activeTags.filter(function(tag) {
                     return !(tag in counts);
                 })).filter(function(tag, index, tags) {
                     return !!tag && tags.indexOf(tag) === index;
+                }).filter(function(tag) {
+                    // Filter out parent tags that are not taggable (e.g., "prayer" when its children are the selectable tags)
+                    var tagInfo = taxonomy[tag];
+                    return !tagInfo || tagInfo.taggable !== false;
                 }).map(function(tag) {
                     return {
                         slug: tag,
@@ -3846,6 +4090,20 @@ function setupVue(query, page, sortFields) {
             hasCollapsedTagFilters: function() {
                 return Array.isArray(this.tagFilterOptions)
                     && this.tagFilterOptions.length > INITIAL_VISIBLE_TAG_FILTERS;
+            },
+            isAuthenticated: function() {
+                return this.authStateProxy && this.authStateProxy.authenticated;
+            },
+            filteredCollections: function() {
+                var self = this;
+                var collections = this.collections || [];
+                var query = (this.collectionSearchQuery || '').toLowerCase().trim();
+                if (!query) {
+                    return collections;
+                }
+                return collections.filter(function(col) {
+                    return (col.name || '').toLowerCase().indexOf(query) >= 0;
+                });
             }
         },
         methods: {
@@ -3919,7 +4177,8 @@ function setupVue(query, page, sortFields) {
                 } else {
                     this.activeTopicTags.push(slug);
                 }
-                this.tagFilterExpanded = this.tagFilterExpanded || this.activeTopicTags.length > 0;
+                // Keep tag filter collapsed when selecting tags
+                this.tagFilterExpanded = false;
                 this.visibleNarrationCount = INITIAL_VISIBLE_NARRATIONS;
                 this.syncTopicFilterUrl();
                 this.fetchNarrations();
@@ -3938,6 +4197,60 @@ function setupVue(query, page, sortFields) {
                 var queryState = extractQueryState(this.queryStr || '');
                 var nextQuery = queryState.keywordQuery || '*:*';
                 redirectToSearchResult(nextQuery, 1, this.sortFields || '', '', '', searchMatchMode, 'search');
+            },
+            buildCollectionViewUrl: function(collectionId) {
+                return '/collection/' + encodeURIComponent(collectionId);
+            },
+            isCollectionActive: function(collectionId) {
+                return this.collectionMode && this.collectionId === collectionId;
+            },
+            initCollectionSidebar: function() {
+                var self = this;
+                var sidebar = document.getElementById('collectionSidebar');
+                var collapseBtn = document.getElementById('sidebarCollapseBtn');
+                var expandBtn = document.getElementById('sidebarExpandBtn');
+                var searchInput = document.getElementById('collectionSearchInput');
+
+                if (!sidebar) return;
+
+                // Collapse button
+                if (collapseBtn) {
+                    collapseBtn.addEventListener('click', function() {
+                        sidebar.classList.add('is-collapsed');
+                        if (expandBtn) {
+                            expandBtn.style.display = 'flex';
+                        }
+                    });
+                }
+
+                // Expand button
+                if (expandBtn) {
+                    expandBtn.addEventListener('click', function() {
+                        sidebar.classList.remove('is-collapsed');
+                        expandBtn.style.display = 'none';
+                    });
+                }
+
+                // Search input
+                if (searchInput) {
+                    searchInput.addEventListener('input', function(e) {
+                        self.collectionSearchQuery = e.target.value;
+                    });
+                }
+
+                // Update collections when auth state changes
+                this.$watch('authStateProxy', function(newAuthState) {
+                    if (newAuthState && newAuthState.authenticated) {
+                        // Reload collections when user logs in
+                        apiJSON('/v1/collections', { method: 'GET' }).then(function(resp) {
+                            if (resp.ok && resp.data && resp.data.collections) {
+                                self.collections = resp.data.collections;
+                            }
+                        });
+                    } else {
+                        self.collections = [];
+                    }
+                });
             },
             searchResultOrdinalKey: function(narration) {
                 return narration ? String(narration._id || narration.id || '').trim() : '';
@@ -4110,10 +4423,15 @@ function setupVue(query, page, sortFields) {
                         item._similarPrefetched = true;
                         this.prefetchSimilarCount(item);
                     }
+                    if (!item._quranicInsightsPrefetched) {
+                        item._quranicInsightsPrefetched = true;
+                        this.prefetchQuranicInsightsCount(item);
+                    }
                 }, this);
                 var self = this;
                 this.$nextTick(function() {
                     self.setupNarrationRevealObserver();
+                    self.setupArabicSuggestionObserver();
                 });
             },
             increaseVisibleNarrations: function() {
@@ -4131,6 +4449,12 @@ function setupVue(query, page, sortFields) {
                     this.narrationRevealObserver.disconnect();
                 }
                 this.narrationRevealObserver = null;
+            },
+            teardownArabicSuggestionObserver: function() {
+                if (this.arabicSuggestionObserver && typeof this.arabicSuggestionObserver.disconnect === 'function') {
+                    this.arabicSuggestionObserver.disconnect();
+                }
+                this.arabicSuggestionObserver = null;
             },
             setupNarrationRevealObserver: function() {
                 this.teardownNarrationRevealObserver();
@@ -4151,10 +4475,52 @@ function setupVue(query, page, sortFields) {
                 }, { rootMargin: '280px 0px' });
                 this.narrationRevealObserver.observe(sentinel);
             },
+            setupArabicSuggestionObserver: function() {
+                this.teardownArabicSuggestionObserver();
+                if (this.readingMode || this.collectionMode || this.arabicSuggestionThresholdPassed
+                        || typeof IntersectionObserver === 'undefined') {
+                    return;
+                }
+                var thresholdNode = this.$el
+                    ? this.$el.querySelector('.hadith-entry[data-result-ordinal="21"]')
+                    : null;
+                if (!thresholdNode) {
+                    return;
+                }
+                var self = this;
+                this.arabicSuggestionObserver = new IntersectionObserver(function(entries) {
+                    entries.forEach(function(entry) {
+                        if (!entry || !entry.isIntersecting) {
+                            return;
+                        }
+                        self.arabicSuggestionThresholdPassed = true;
+                        self.maybeShowArabicSuggestionToast();
+                        self.teardownArabicSuggestionObserver();
+                    });
+                }, { rootMargin: '0px 0px -12% 0px', threshold: 0.35 });
+                this.arabicSuggestionObserver.observe(thresholdNode);
+            },
             dismissArabicSuggestion: function() {
                 this.arabicSuggestionLoading = false;
                 this.arabicSuggestionTerms = [];
                 this.arabicSuggestionInputTerms = [];
+                this.arabicSuggestionToastShown = false;
+                this.arabicSuggestionThresholdPassed = false;
+                this.teardownArabicSuggestionObserver();
+                closeArabicSuggestionToast();
+            },
+            maybeShowArabicSuggestionToast: function() {
+                if (this.readingMode || this.collectionMode || this.arabicSuggestionToastShown) {
+                    return;
+                }
+                if (!this.arabicSuggestionThresholdPassed) {
+                    return;
+                }
+                if (!Array.isArray(this.arabicSuggestionTerms) || this.arabicSuggestionTerms.length < 1) {
+                    return;
+                }
+                showArabicSuggestionToast(this.arabicSuggestionTerms.slice(0, 3));
+                this.arabicSuggestionToastShown = true;
             },
             addArabicSuggestionToSearchBar: function(suggestionInput) {
                 var suggestions = [];
@@ -4324,11 +4690,13 @@ function setupVue(query, page, sortFields) {
                         }
                         if (suggestions.length) {
                             self.arabicSuggestionTerms = suggestions;
+                            self.maybeShowArabicSuggestionToast();
                         }
                     })
                     .catch(function() {
                         if (fallbackSuggestions.length) {
                             self.arabicSuggestionTerms = fallbackSuggestions;
+                            self.maybeShowArabicSuggestionToast();
                             return;
                         }
                         self.dismissArabicSuggestion();
@@ -4341,6 +4709,7 @@ function setupVue(query, page, sortFields) {
             fetchNarrations: function() {
                 var self = this;
                 this.narrationsLoading = true;
+                this.dismissArabicSuggestion();
                 this.teardownNarrationRevealObserver();
                 this.narrations = [];
                 this.allNarrations = [];
@@ -4378,15 +4747,18 @@ function setupVue(query, page, sortFields) {
                         return self.assignSearchResultOrdinal(narration, idx + 1);
                     });
                     self.allNarrations = incoming;
-                    self.baseNarrationTotal = incoming.length;
                     if (!self.collectionMode) {
                         self.visibleNarrationCount = INITIAL_VISIBLE_NARRATIONS;
                     }
                     self.refreshVisibleNarrations();
-                    var actualResultCount = Number(respJSON.totalResultSetSize) || incoming.length;
-                    self.totalHits = actualResultCount;
-                    if (!self.readingMode && !self.collectionMode && self.totalHits > 50) {
-                        self.totalHits = 50;
+                    // totalResultSetSize is the filtered count (e.g., 368 matching topic tag)
+                    // baseResultSetSize is the unfiltered count (e.g., 1242 total in reading scope)
+                    var filteredCount = Number(respJSON.totalResultSetSize) || incoming.length;
+                    var baseCount = Number(respJSON.baseResultSetSize) || filteredCount;
+                    self.baseNarrationTotal = baseCount;
+                    self.totalHits = filteredCount;
+                    if (!self.readingMode && !self.collectionMode && self.totalHits > 100) {
+                        self.totalHits = 100;
                     }
                     self.topicTagFacets = respJSON.topicTagFacets || {};
                     self.requestArabicSuggestion(incoming);
@@ -4451,7 +4823,14 @@ function setupVue(query, page, sortFields) {
                 xhr.onloadend = function() {
                     self.narrationsLoading = false;
                 };
-                var reqUrl = '/v1/narrations?q=' + encodeURIComponent(this.queryStr) +
+                // Build query: in reading mode, include scope filters; in search mode, just use queryStr
+                var queryToUse = this.queryStr;
+                if (this.readingMode && this.hasActiveScope) {
+                    // Use keywordQuery if present, otherwise use null (buildScopedQuery will use only scope)
+                    var keywordPart = this.queryState.keywordQuery || null;
+                    queryToUse = buildScopedQuery(keywordPart, this.activeScopeFilters);
+                }
+                var reqUrl = '/v1/narrations?q=' + encodeURIComponent(queryToUse) +
                 '&page=' + (this.readingMode ? this.page : 1) +
                 '&per_page=' + (this.readingMode ? this.pageSize : SEARCH_FETCH_LIMIT);
                 if (this.sortFields) {
@@ -4541,19 +4920,26 @@ function setupVue(query, page, sortFields) {
                 if (narration.similarCountLoading || narration.similarCount === null) {
                     return;
                 }
-                if (narration.similarOpen) {
+                if (narration.similarDropdownOpen) {
                     this.clearSimilarHighlightState(narration);
+                    narration.similarDropdownOpen = false;
                     narration.similarOpen = false;
                     return;
                 }
                 this.narrations.forEach(function(item) {
                     if (item !== narration) {
                         item.similarOpen = false;
+                        item.similarDropdownOpen = false;
                         item.similarHighlightKey = '';
                         item.similarHighlightTone = '';
+                        item.quranicInsightsOpen = false;
+                        item.quranicDropdownOpen = false;
                     }
                 });
-                narration.similarOpen = true;
+                narration.quranicInsightsOpen = false;
+                narration.quranicDropdownOpen = false;
+                narration.similarDropdownOpen = true;
+                narration.similarOpen = false;
                 if (!narration.similarItemsLoaded) {
                     this.fetchSimilarNarrations(narration, 10);
                 }
@@ -4617,6 +5003,164 @@ function setupVue(query, page, sortFields) {
                 }
                 this.clearSimilarHighlightState(narration);
                 narration.similarActiveIndex = index;
+                narration.similarDropdownOpen = false;
+                narration.similarOpen = true;
+            },
+            quranicInsightsCountText: function(narration) {
+                if (!narration || typeof narration.quranicInsightsCount !== 'number' || narration.quranicInsightsCount <= 0) {
+                    return '';
+                }
+                return narration.quranicInsightsCount + ' Quranic verses matched';
+            },
+            showQuranicInsightsTrigger: function(narration) {
+                return !!(narration && typeof narration.quranicInsightsCount === 'number' && narration.quranicInsightsCount > 0);
+            },
+            prefetchQuranicInsightsCount: function(narration) {
+                if (!narration) {
+                    return;
+                }
+                if (narration.quranicInsightsCountLoading || narration.quranicInsightsCount !== null) {
+                    return;
+                }
+                var sourceId = narration._id || narration.id;
+                if (!sourceId) {
+                    narration.quranicInsightsCount = 0;
+                    return;
+                }
+                var loadingStartedAt = Date.now();
+                narration.quranicInsightsCountLoading = true;
+                fetch('/v1/narrations/quranic_insights?id=' + encodeURIComponent(sourceId) + '&count_only=true')
+                    .then(function(resp) { return resp.json(); })
+                    .then(function(data) {
+                        narration.quranicInsightsCount = Math.max(0, Number(data && data.count) || 0);
+                    })
+                    .catch(function() {
+                        narration.quranicInsightsCount = 0;
+                    })
+                    .finally(function() {
+                        finishQuranicInsightsCountLoadingState(narration, loadingStartedAt);
+                    });
+            },
+            toggleQuranicInsightsPanel: function(narration) {
+                if (!narration) {
+                    return;
+                }
+                if (narration.quranicInsightsCountLoading || narration.quranicInsightsCount === null || narration.quranicInsightsCount <= 0) {
+                    return;
+                }
+                if (narration.quranicDropdownOpen) {
+                    narration.quranicDropdownOpen = false;
+                    narration.quranicInsightsOpen = false;
+                    return;
+                }
+                this.narrations.forEach(function(item) {
+                    if (item !== narration) {
+                        item.quranicInsightsOpen = false;
+                        item.quranicDropdownOpen = false;
+                        item.similarOpen = false;
+                        item.similarDropdownOpen = false;
+                        item.similarHighlightKey = '';
+                        item.similarHighlightTone = '';
+                    }
+                });
+                narration.similarOpen = false;
+                narration.similarDropdownOpen = false;
+                narration.quranicDropdownOpen = true;
+                narration.quranicInsightsOpen = false;
+                if (!narration.quranicInsightsItemsLoaded) {
+                    this.fetchQuranicInsights(narration);
+                }
+            },
+            fetchQuranicInsights: function(narration) {
+                var sourceId = narration ? (narration._id || narration.id) : '';
+                if (!sourceId || narration.quranicInsightsItemsLoading) {
+                    return;
+                }
+                var self = this;
+                var loadingStartedAt = Date.now();
+                narration.quranicInsightsItemsLoading = true;
+                if (narration.quranicInsightsCount === null) {
+                    narration.quranicInsightsCountLoading = true;
+                }
+                narration.quranicInsightsError = '';
+                fetch('/v1/narrations/quranic_insights?id=' + encodeURIComponent(sourceId))
+                    .then(function(resp) { return resp.json(); })
+                    .then(function(data) {
+                        var incoming = Array.isArray(data && data.candidates) ? data.candidates : [];
+                        narration.quranicInsightsItems = incoming.map(function(item) {
+                            return {
+                                verse_key: item.verse_key || '',
+                                reference: item.reference || item.verse_key || '',
+                                surah_name_english: item.surah_name_english || '',
+                                surah_number: Number(item.surah_number) || 0,
+                                ayah_number: Number(item.ayah_number) || 0,
+                                text_english: item.text_english || '',
+                                text_arabic: item.text_arabic || '',
+                                combined_score: Number(item.combined_score) || 0,
+                                shared_tags: Array.isArray(item.shared_tags) ? item.shared_tags : [],
+                                tafsir_snippet_count: Number(item.tafsir_snippet_count) || 0,
+                                sources: Array.isArray(item.sources) ? item.sources : [],
+                                tafsir_snippets: Array.isArray(item.tafsir_snippets) ? item.tafsir_snippets.map(function(s) {
+                                    return {
+                                        tafsir_slug: s.tafsir_slug || '',
+                                        tafsir_name: s.tafsir_name || '',
+                                        commentary_text: s.commentary_text || '',
+                                        source_url: s.source_url || '',
+                                        section_title: s.section_title || '',
+                                        commentary_score: Number(s.commentary_score) || 0
+                                    };
+                                }) : []
+                            };
+                        });
+                        narration.quranicInsightsItemsLoaded = true;
+                        narration.quranicInsightsCount = Math.max(0, Number(data && data.count) || narration.quranicInsightsItems.length);
+                        if (!narration.quranicInsightsItems.length || narration.quranicInsightsCount <= 0) {
+                            narration.quranicInsightsItems = [];
+                            narration.quranicInsightsCount = 0;
+                            narration.quranicInsightsOpen = false;
+                            return;
+                        }
+                        if (narration.quranicInsightsActiveIndex >= narration.quranicInsightsItems.length) {
+                            narration.quranicInsightsActiveIndex = 0;
+                        }
+                        self.ensureActiveQuranicInsightSummary(narration);
+                    })
+                    .catch(function() {
+                        narration.quranicInsightsItems = [];
+                        narration.quranicInsightsItemsLoaded = true;
+                        narration.quranicInsightsCount = 0;
+                        narration.quranicInsightsError = 'Unable to load Quranic insights right now.';
+                    })
+                    .finally(function() {
+                        finishQuranicInsightsLoadingState(narration, loadingStartedAt);
+                    });
+            },
+            selectQuranicInsightTab: function(narration, index) {
+                if (!narration || !narration._id) {
+                    return;
+                }
+                if (index < 0 || index >= narration.quranicInsightsItems.length) {
+                    return;
+                }
+                narration.quranicInsightsActiveIndex = index;
+                narration.quranicDropdownOpen = false;
+                narration.quranicInsightsOpen = true;
+            },
+            quranicInsightTabTitle: function(item, index) {
+                if (!item) {
+                    return 'Verse ' + (index + 1);
+                }
+                return item.reference || item.verse_key || ('Verse ' + (index + 1));
+            },
+            activeQuranicInsight: function(narration) {
+                if (!narration || !narration.quranicInsightsItems || !narration.quranicInsightsItems.length) {
+                    return null;
+                }
+                var idx = narration.quranicInsightsActiveIndex || 0;
+                if (idx < 0 || idx >= narration.quranicInsightsItems.length) {
+                    idx = 0;
+                }
+                return narration.quranicInsightsItems[idx];
             },
             similarTabTitle: function(similar, index) {
                 if (similar && similar.book && similar.number) {
@@ -4649,7 +5193,7 @@ function setupVue(query, page, sortFields) {
                 return 'book';
             },
             jumpToSimilarHadith: function(similar, level) {
-                if (!similar || !similar._id || !similar.book) {
+                if (!similar || !similar.book) {
                     return;
                 }
                 var targetLevel = level || this.jumpLevelForSimilar(similar);
@@ -4674,29 +5218,9 @@ function setupVue(query, page, sortFields) {
                 }
                 var nextQuery = buildQueryFromFilters(selections);
                 var nextSort = buildSortFields(selections);
-                var perPage = this.pageSize || 20;
-                var lookupUrl = '/v1/narrations/page_for_id?id=' + encodeURIComponent(similar._id) +
-                    '&q=' + encodeURIComponent(nextQuery) +
-                    '&sort_fields=' + encodeURIComponent(nextSort) +
-                    '&per_page=' + perPage;
-                lookupUrl += '&mode=read';
-                if (resolveSearchMatchModeParam() === 'strict') {
-                    lookupUrl += '&match_mode=strict';
-                }
-                fetch(lookupUrl)
-                    .then(function(resp) { return resp.json(); })
-                    .then(function(data) {
-                        var pageNum = Number(data && data.page);
-                        if (isNaN(pageNum) || pageNum < 1) {
-                            pageNum = 1;
-                        }
-                        redirectToSearchResult(nextQuery, pageNum, nextSort, 'read', similar._id,
-                            resolveSearchMatchModeParam(), 'browse');
-                    })
-                    .catch(function() {
-                        redirectToSearchResult(nextQuery, 1, nextSort, 'read', similar._id,
-                            resolveSearchMatchModeParam(), 'browse');
-                    });
+                // Redirect to filtered search results (page 1), not to specific hadith in reading mode
+                redirectToSearchResult(nextQuery, 1, nextSort, null, null,
+                    resolveSearchMatchModeParam(), 'browse');
             },
             similarityScorePercent: function(similar) {
                 if (!similar) {
@@ -4759,15 +5283,6 @@ function setupVue(query, page, sortFields) {
                         highlightKey: Array.isArray(similar.sharedSyntacticTokens) && similar.sharedSyntacticTokens.length ? 'syntactic' : ''
                     });
                 }
-                var sharedDistinctiveTokenCount = Number(similar.sharedDistinctiveTokenCount);
-                if (!isNaN(sharedDistinctiveTokenCount) && sharedDistinctiveTokenCount > 0) {
-                    items.push({
-                        text: sharedDistinctiveTokenCount + ' shared distinctive '
-                            + (sharedDistinctiveTokenCount === 1 ? 'term' : 'terms'),
-                        tone: 'is-distinctive',
-                        highlightKey: Array.isArray(similar.sharedDistinctiveTokens) && similar.sharedDistinctiveTokens.length ? 'distinctive' : ''
-                    });
-                }
                 var sharedSignificantTerms = Array.isArray(similar.sharedSignificantTerms) ? similar.sharedSignificantTerms : [];
                 var sharedSignificantTermCount = Number(similar.sharedSignificantTermCount);
                 var significantCount = sharedSignificantTerms.length > 0 ? sharedSignificantTerms.length : sharedSignificantTermCount;
@@ -4817,8 +5332,6 @@ function setupVue(query, page, sortFields) {
                 var terms = [];
                 if (narration.similarHighlightKey === 'syntactic') {
                     terms = Array.isArray(similar.sharedSyntacticTokens) ? similar.sharedSyntacticTokens : [];
-                } else if (narration.similarHighlightKey === 'distinctive') {
-                    terms = Array.isArray(similar.sharedDistinctiveTokens) ? similar.sharedDistinctiveTokens : [];
                 } else if (narration.similarHighlightKey === 'significant') {
                     terms = Array.isArray(similar.sharedSignificantTerms) ? similar.sharedSignificantTerms : [];
                 }
@@ -4827,9 +5340,7 @@ function setupVue(query, page, sortFields) {
                     return null;
                 }
                 var toneSuffix = 'syntactic';
-                if (narration.similarHighlightTone === 'is-distinctive') {
-                    toneSuffix = 'distinctive';
-                } else if (narration.similarHighlightTone === 'is-significant') {
+                if (narration.similarHighlightTone === 'is-significant') {
                     toneSuffix = 'significant';
                 }
                 return {
@@ -4901,45 +5412,8 @@ function setupVue(query, page, sortFields) {
                 if (!hadithId) {
                     return;
                 }
-                var self = this;
-                this.ensureEditorTaxonomy()
-                    .then(function(taxonomy) {
-                        return apiJSON('/v1/narrations/' + encodeURIComponent(hadithId), { method: 'GET' })
-                            .then(function(resp) {
-                                if (!resp.ok || !resp.data || !resp.data.ok || !resp.data.narration) {
-                                    throw new Error((resp.data && resp.data.message) || 'Unable to load narration details.');
-                                }
-                                return {
-                                    taxonomy: taxonomy,
-                                    narration: resp.data.narration
-                                };
-                            });
-                    })
-                    .then(function(context) {
-                        openHadithEditorModal({
-                            narration: context.narration,
-                            taxonomy: context.taxonomy,
-                            onSave: function(payload) {
-                                return apiJSON('/v1/narrations/' + encodeURIComponent(hadithId), {
-                                    method: 'PUT',
-                                    body: JSON.stringify(payload || {})
-                                }).then(function(resp) {
-                                    if (resp.status === 401) {
-                                        openLoginModal();
-                                    }
-                                    if (!resp.ok || !resp.data || !resp.data.ok) {
-                                        throw new Error((resp.data && resp.data.message) || 'Unable to save narration.');
-                                    }
-                                    self.fetchNarrations();
-                                    showToast('Narration updated.', 'success');
-                                    return resp.data;
-                                });
-                            }
-                        });
-                    })
-                    .catch(function(err) {
-                        swal('Editor unavailable', (err && err.message) || 'Unable to open narration editor.', 'error');
-                    });
+                // Navigate to the dedicated edit page
+                window.location.href = '/edit?id=' + encodeURIComponent(hadithId);
             },
             removeNarrationFromCurrentCollection: function(narration) {
                 if (!this.collectionMode || !this.collectionId || !narration) {
@@ -4958,7 +5432,7 @@ function setupVue(query, page, sortFields) {
                         return;
                     }
                     var collection = resp.data.collection || self.collectionMeta || null;
-                    var totalRemaining = Array.isArray(collection && collection.hadithIds) ? collection.hadithIds.length : 0;
+                    var totalRemaining = Array.isArray(collection && collection.hadith_ids) ? collection.hadith_ids.length : 0;
                     self.collectionMeta = collection;
                     self.collectionTitle = (collection && collection.name) || self.collectionTitle;
                     loadAndRenderCollections(false);
@@ -4971,6 +5445,49 @@ function setupVue(query, page, sortFields) {
                     }
                     self.fetchNarrations();
                 });
+            },
+            startEditCollectionTitle: function() {
+                this.editingCollectionTitle = this.collectionTitle || '';
+                this.isEditingCollectionTitle = true;
+                var self = this;
+                this.$nextTick(function() {
+                    var input = self.$refs.collectionTitleInput;
+                    if (input) {
+                        input.focus();
+                        input.select();
+                    }
+                });
+            },
+            saveCollectionTitle: function() {
+                var newName = (this.editingCollectionTitle || '').trim();
+                if (!newName) {
+                    showToast('Collection name cannot be empty.', 'error');
+                    return;
+                }
+                if (newName === this.collectionTitle) {
+                    this.isEditingCollectionTitle = false;
+                    return;
+                }
+                var self = this;
+                apiJSON('/v1/collections/' + encodeURIComponent(this.collectionId), {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: newName })
+                }).then(function(resp) {
+                    if (!resp.ok || !resp.data || !resp.data.ok) {
+                        swal('Update failed', (resp.data && resp.data.message) || 'Unable to update collection name.', 'error');
+                        return;
+                    }
+                    self.collectionTitle = newName;
+                    self.collectionMeta = resp.data.collection || self.collectionMeta;
+                    self.isEditingCollectionTitle = false;
+                    loadAndRenderCollections(false);
+                    showToast('Collection name updated.', 'success');
+                });
+            },
+            cancelEditCollectionTitle: function() {
+                this.isEditingCollectionTitle = false;
+                this.editingCollectionTitle = '';
             },
             exportNarrationsPdf: function() {
                 var sourceNarrations = this.activeTopicTags.length > 0 ? this.filteredNarrationsAll : this.allNarrations;
@@ -5137,9 +5654,19 @@ function decorateNarrationForSimilarity(narration) {
     narration.similarItemsLoading = false;
     narration.similarError = '';
     narration.similarOpen = false;
+    narration.similarDropdownOpen = false;
     narration.similarActiveIndex = 0;
     narration.similarHighlightKey = '';
     narration.similarHighlightTone = '';
+    narration.quranicInsightsCount = null;
+    narration.quranicInsightsCountLoading = false;
+    narration.quranicInsightsItems = [];
+    narration.quranicInsightsItemsLoaded = false;
+    narration.quranicInsightsItemsLoading = false;
+    narration.quranicInsightsError = '';
+    narration.quranicInsightsOpen = false;
+    narration.quranicDropdownOpen = false;
+    narration.quranicInsightsActiveIndex = 0;
     narration.selectedForCollection = false;
     return narration;
 }
@@ -5159,6 +5686,25 @@ function finishSimilarCountLoadingState(narration, loadingStartedAt) {
     window.setTimeout(function() {
         if (!narration.similarItemsLoading) {
             narration.similarCountLoading = false;
+        }
+    }, remaining);
+}
+
+function finishQuranicInsightsLoadingState(narration, loadingStartedAt) {
+    var elapsed = Math.max(0, Date.now() - (loadingStartedAt || 0));
+    var remaining = Math.max(0, similarLoadingMinDurationMs - elapsed);
+    window.setTimeout(function() {
+        narration.quranicInsightsItemsLoading = false;
+        narration.quranicInsightsCountLoading = false;
+    }, remaining);
+}
+
+function finishQuranicInsightsCountLoadingState(narration, loadingStartedAt) {
+    var elapsed = Math.max(0, Date.now() - (loadingStartedAt || 0));
+    var remaining = Math.max(0, similarLoadingMinDurationMs - elapsed);
+    window.setTimeout(function() {
+        if (!narration.quranicInsightsItemsLoading) {
+            narration.quranicInsightsCountLoading = false;
         }
     }, remaining);
 }
@@ -5208,3 +5754,157 @@ function socialMediaDecoratedHadith(hadithObj) {
         hadithDesc + "&url=" + hadithURL;
     return hadithObj;
 }
+
+// ── New Search Mode Dropdown ───────────────────────────────────────────────
+function setupSearchModeDropdown() {
+    var dropdown = document.getElementById('searchModeDropdown');
+    var toggle = document.getElementById('searchModeToggle');
+    var menu = document.getElementById('searchModeDropdownMenu');
+    var searchBtn = document.getElementById('searchBtn1');
+    var isInitializing = true;
+
+    if (!dropdown || !toggle || !menu) {
+        return;
+    }
+
+    // Initialize with current mode
+    updateDropdownDisplay();
+
+    // Toggle dropdown
+    toggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var isOpen = menu.classList.contains('show');
+        if (isOpen) {
+            closeDropdown();
+        } else {
+            openDropdown();
+        }
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function() {
+        closeDropdown();
+    });
+
+    // Prevent dropdown from closing when clicking inside
+    menu.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+
+    // Handle mode selection
+    var options = menu.querySelectorAll('.search-mode-option');
+    options.forEach(function(option) {
+        option.addEventListener('click', function() {
+            var mode = this.dataset.mode;
+            if (mode) {
+                selectSearchMode(mode);
+            }
+        });
+    });
+
+    // Handle search button click
+    if (searchBtn) {
+        searchBtn.addEventListener('click', function() {
+            submitSearchQuery();
+        });
+    }
+
+    function openDropdown() {
+        menu.classList.add('show');
+        toggle.setAttribute('aria-expanded', 'true');
+
+        // Set active option
+        var currentMode = searchMatchMode || 'strict';
+        options.forEach(function(option) {
+            option.classList.toggle('active', option.dataset.mode === currentMode);
+            var checkIcon = option.querySelector('i.fa-check');
+            if (checkIcon) {
+                checkIcon.style.color = option.dataset.mode === currentMode ? 'var(--primary)' : 'transparent';
+            }
+        });
+    }
+
+    function closeDropdown() {
+        menu.classList.remove('show');
+        toggle.setAttribute('aria-expanded', 'false');
+    }
+
+    function selectSearchMode(mode) {
+        var normalizedMode = normalizeSearchMatchMode(mode);
+        if (searchMatchMode === normalizedMode) {
+            return;
+        }
+
+        searchMatchMode = normalizedMode;
+        updateDropdownDisplay();
+        closeDropdown();
+
+        // Removed glow effect - search button does not glow
+
+        // Show toast notification
+        showSearchToast();
+    }
+
+    function updateDropdownDisplay() {
+        var modeText = searchMatchMode === 'permissive' ? 'Flexible' : 'Exact';
+        toggle.querySelector('.search-mode-text').textContent = modeText;
+        toggle.classList.toggle('active', searchMatchMode === 'permissive');
+    }
+
+    // Mark initialization as complete
+    isInitializing = false;
+}
+
+function showSearchToast() {
+    // Remove existing toast if any
+    var existingToast = document.querySelector('.search-toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+
+    // Create new toast
+    var toast = document.createElement('div');
+    toast.className = 'search-toast';
+
+    // Get current search terms
+    var selectedTerms = getSelectedSearchTerms();
+    var pendingTerms = getPendingSearchTerms();
+    var allTerms = mergeSearchTerms(selectedTerms, pendingTerms.length ? pendingTerms : getSelectedSearchTerms());
+
+    // Suggested terms based on common search patterns
+    var suggestedTerms = ['حديث', 'سنة', 'علم', 'فضل', 'أحكام', 'تفسير', 'الإمام علي', 'الرسول'];
+
+    // Build toast content
+    toast.innerHTML = `
+        <div class="search-toast__title">Not finding what you're looking for?</div>
+        <div class="search-toast__subtitle">Consider adding one or more of these search terms to broaden your results.</div>
+        <div class="search-toast__suggestions">
+            <div class="search-toast__suggestions-title">Suggested terms:</div>
+            <div class="search-toast__suggestions-list">
+                ${suggestedTerms.slice(0, 6).map(term =>
+                    `<span class="search-toast__suggestion">${term}</span>`
+                ).join('')}
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(toast);
+
+    // Show toast
+    setTimeout(function() {
+        toast.classList.add('show');
+    }, 10);
+
+    // Hide toast after 5 seconds
+    setTimeout(function() {
+        toast.classList.remove('show');
+        setTimeout(function() {
+            toast.remove();
+        }, 300);
+    }, 5000);
+}
+
+// Initialize search mode dropdown when DOM is ready
+$(document).ready(function() {
+    setupSearchModeDropdown();
+});

@@ -8,19 +8,19 @@
           name="keywords"/>
     <meta content="HDP" name="author"/>
     <meta content="width=device-width, initial-scale=1, maximum-scale=1" name="viewport"/>
-    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/materia/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.css" rel="stylesheet"/>
     <link href="/css/sweetalert.css" rel="stylesheet" th:href="@{/css/sweetalert.css}"/>
     <link href="/css/noty.css" rel="stylesheet" th:href="@{/css/noty.css}"/>
-    <link href="/css/manuscript.css?v=120" rel="stylesheet" th:href="@{/css/manuscript.css?v=120}"/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700&family=Sora:wght@600;700&family=Scheherazade+New:wght@400;700&display=swap"
+    <link href="/css/manuscript.css?v=885" rel="stylesheet" th:href="@{/css/manuscript.css?v=885}"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600;700&family=Scheherazade+New:wght@400;700&display=swap"
           rel="stylesheet"/>
     <link href="/css/pace.css" rel="stylesheet" th:href="@{/css/pace.css}"/>
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
           rel="stylesheet"/>
 </head>
 
-<body class="bg-light">
+<body>
 <div id="latest-news-bar" class="small text-center py-1"></div>
 
 <nav class="navbar navbar-expand-lg sticky-top site-nav">
@@ -33,30 +33,40 @@
         <div id="queryBar" class="navbar-search">
             <div class="navbar-search__input">
                 <select class="form-control" id="searchTerms" multiple="multiple"></select>
-                <div class="search-actions">
-                    <div id="searchStrictnessBar" class="search-match-toggle search-match-toggle--inline" role="group" aria-label="Search strictness">
-                        <button id="searchPermissiveBtn" type="button" class="btn btn-sm search-match-toggle__btn search-match-toggle__btn--permissive">Flexible</button>
-                        <button id="searchStrictBtn" type="button" class="btn btn-sm search-match-toggle__btn search-match-toggle__btn--strict">Exact</button>
+                <div class="search-controls">
+                    <div class="search-mode-dropdown" id="searchModeDropdown">
+                        <button type="button" class="search-mode-toggle" id="searchModeToggle" aria-expanded="false" aria-haspopup="true" aria-label="Search mode">
+                            <span class="search-mode-text">Exact</span>
+                            <i class="fa fa-chevron-down" aria-hidden="true"></i>
+                        </button>
+                        <div class="search-mode-dropdown-menu" id="searchModeDropdownMenu" role="menu">
+                            <div class="search-mode-option" role="menuitem" data-mode="strict">
+                                <i class="fa fa-check" aria-hidden="true"></i>
+                                <div class="mode-content">
+                                    <div class="mode-title">Exact</div>
+                                    <div class="mode-description">Exact words</div>
+                                </div>
+                            </div>
+                            <div class="search-mode-option" role="menuitem" data-mode="permissive">
+                                <i class="fa fa-check" aria-hidden="true"></i>
+                                <div class="mode-content">
+                                    <div class="mode-title">Flexible</div>
+                                    <div class="mode-description">Partial matches</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <button type="button"
-                            id="searchModeHelpBtn"
-                            class="search-help"
-                            title="Exact: exact words and phrases. Flexible: tolerates spelling variants and partial matches."
-                            aria-label="Explain strict and permissive search modes">
-                        <i class="fa fa-question-circle" aria-hidden="true"></i>
+                    <button type="button" class="btn btn-primary search-btn-with-border" id="searchBtn1" onclick="submitSearchQuery()">
+                        <i class="fa fa-search" aria-hidden="true"></i>
                     </button>
                 </div>
             </div>
-            <button class="btn btn-primary btn-sm search-inline-btn search-inline-btn--outer" id="searchBtn1" onclick="submitSearchQuery()">
-                <i class="fa fa-search" aria-hidden="true"></i>
-                Search
-            </button>
         </div>
             <div class="menu-context-row">
                 <div id="menuReadingScope" class="menu-reading-scope d-none" aria-live="polite">
                     <span class="menu-reading-scope__value"></span>
                 </div>
-                <div class="d-flex flex-wrap gap-2 top-actions">
+                <div class="d-flex gap-2 top-actions flex-nowrap">
                     <button class="btn btn-dark btn-sm top-action auth-action" id="authSignInBtn" type="button">
                         <i class="fa fa-sign-in" aria-hidden="true"></i>
                         Sign In
@@ -79,9 +89,11 @@
 
 <main class="container py-3">
 
-    <section id="welcome"></section>
+<section id="welcome"></section>
 
-    <section id="hadithView" class="mb-4" v-cloak>
+<section id="hadithView" class="mb-4 v-cloak">
+    <div class="hadith-layout">
+        <div class="hadith-content">
         <div id="readingToolbar" class="reading-toolbar d-none">
             <div class="reading-controls browse-panel">
                 <div class="reading-field browse-field">
@@ -130,25 +142,6 @@
                 </button>
             </div>
         </div>
-        <div class="arabic-term-suggestion mb-3"
-             v-if="!readingMode && (arabicSuggestionLoading || arabicSuggestionTerms.length > 0)">
-            <div class="text-muted py-1" v-if="arabicSuggestionLoading">
-                Checking top significant Arabic terms...
-            </div>
-            <div class="d-flex flex-wrap align-items-center gap-2"
-                 v-if="arabicSuggestionTerms.length > 0">
-                <div>
-                    Consider adding these Arabic terms to improve relevance:
-                    <button type="button"
-                            class="arabic-term-suggestion__term arabic-text"
-                            v-for="term in arabicSuggestionTerms"
-                            v-bind:key="term"
-                            v-on:click="addArabicSuggestionToSearchBar(term)">
-                        {{term}}
-                    </button>
-                </div>
-            </div>
-        </div>
         <div class="tag-filter-bar tag-filter-bar--results mb-3"
              v-if="collectionMode || totalHits || allNarrations.length > 0">
             <div class="tag-filter-bar__results-head">
@@ -156,7 +149,37 @@
                     <div class="collection-hero" v-if="collectionMode">
                         <div class="collection-hero__eyebrow">Collection View</div>
                         <div class="results-heading-inline">
-                        <h2 class="collection-hero__title mb-1">{{ collectionTitle || 'Saved Hadith' }}</h2>
+                            <div class="collection-title-wrapper" v-if="!isEditingCollectionTitle">
+                                <h2 class="collection-hero__title mb-1">
+                                    {{ collectionTitle || 'Saved Hadith' }}
+                                    <button class="collection-title-edit" type="button"
+                                            v-on:click="startEditCollectionTitle"
+                                            aria-label="Edit collection name"
+                                            title="Edit collection name">
+                                        <i class="fa fa-pencil" aria-hidden="true"></i>
+                                    </button>
+                                </h2>
+                            </div>
+                            <div class="collection-title-edit-wrapper" v-else>
+                                <input type="text"
+                                       class="collection-title-input"
+                                       v-model="editingCollectionTitle"
+                                       v-on:keyup.enter="saveCollectionTitle"
+                                       v-on:keyup.esc="cancelEditCollectionTitle"
+                                       ref="collectionTitleInput">
+                                <button class="icon-action collection-title-save" type="button"
+                                        v-on:click="saveCollectionTitle"
+                                        aria-label="Save"
+                                        title="Save">
+                                    <i class="fa fa-check" aria-hidden="true"></i>
+                                </button>
+                                <button class="icon-action collection-title-cancel" type="button"
+                                        v-on:click="cancelEditCollectionTitle"
+                                        aria-label="Cancel"
+                                        title="Cancel">
+                                    <i class="fa fa-times" aria-hidden="true"></i>
+                                </button>
+                            </div>
                             <div class="dropdown export-inline-menu" v-if="filteredNarrationTotal > 0">
                                 <button class="icon-action export-inline-trigger"
                                         type="button"
@@ -182,6 +205,7 @@
                     </div>
                     <div class="results-heading-inline" v-else-if="totalHits">
                         <h2 class="results-heading-title mb-0">{{ resultsHeadingText }}</h2>
+                        <div class="results-heading-meta">{{ resultsStatusText }}</div>
                         <div class="dropdown export-inline-menu" v-if="filteredNarrationTotal > 0">
                             <button class="icon-action export-inline-trigger"
                                     type="button"
@@ -247,189 +271,139 @@
                      v-for="placeholder in 4"
                      v-bind:key="'loading-' + placeholder">
                 <div class="card-body">
-                    <div class="hadith-loading-label" v-if="placeholder === 1">Loading hadith results...</div>
+                    <div class="hadith-loading-skeleton" v-if="placeholder === 1">
+                        <div class="hadith-skeleton-bar hadith-skeleton-bar--title"></div>
+                        <div class="hadith-skeleton-bar hadith-skeleton-bar--long"></div>
+                        <div class="hadith-skeleton-bar hadith-skeleton-bar--long"></div>
+                        <div class="hadith-skeleton-bar hadith-skeleton-bar--medium"></div>
+                    </div>
+                    <div class="hadith-loading-label" v-else>Loading...</div>
                 </div>
             </article>
-            <article class="hadith-card"
-                     v-for="(narration, index) in narrations"
-                     v-bind:key="(narration._id || narration.id || index)"
-                     v-bind:id="narrationDomId(narration)">
-                <div class="card-body">
-                    <div class="row g-4">
-                        <aside class="col-12 col-lg-3 hadith-meta">
-                            <hadith-details v-bind:narration="narration"></hadith-details>
-                            <div class="similar-sidecar">
-                                <div class="similar-sidecar__title">Similar hadith</div>
-                                <button class="similar-trigger similar-trigger--side"
-                                        v-if="showSimilarTrigger(narration) || narration.similarCount === null || narration.similarCountLoading || narration.similarItemsLoading"
-                                        v-bind:class="{'similar-trigger--loading': narration.similarCount === null || narration.similarCountLoading || narration.similarItemsLoading}"
-                                        type="button"
-                                        v-on:click="toggleSimilarPanel(narration)"
-                                        v-bind:disabled="narration.similarCount === null || narration.similarCountLoading"
-                                        v-bind:aria-expanded="narration.similarOpen ? 'true' : 'false'"
-                                        v-bind:aria-label="narration.similarItemsLoading ? 'Fetching similar hadith' : ((narration.similarCountLoading || narration.similarCount === null) ? 'Finding similar hadith' : similarCountText(narration))">
-                                    <template v-if="narration.similarCount === null || narration.similarCountLoading || narration.similarItemsLoading">
-                                        <span class="similar-trigger__loading">
-                                            <span>{{narration.similarItemsLoading ? 'Fetching similar hadith' : 'Finding similar hadith'}}</span>
-                                            <span class="similar-loading-dots similar-loading-dots--inline" aria-hidden="true">
-                                                <span>.</span>
-                                                <span>.</span>
-                                                <span>.</span>
-                                            </span>
-                                        </span>
-                                    </template>
-                                    <template v-else>
-                                        <span class="similar-trigger__count">{{narration.similarCount}}</span>
-                                        <span class="similar-trigger__label">similar hadith found</span>
-                                    </template>
-                                        <span class="similar-trigger__arrow" aria-hidden="true" v-if="narration.similarOpen">&uarr;</span>
-                                        <span class="similar-trigger__arrow" aria-hidden="true" v-else>&darr;</span>
-                                </button>
-                                <div class="similar-sidecar__empty" v-else>No similar hadith found</div>
-                                <div class="similar-sidecar__tabs" v-if="narration.similarOpen">
-                                    <div class="similar-tab-strip similar-tab-strip--side similar-tab-strip--loading"
-                                         v-if="narration.similarItemsLoading"
-                                         aria-hidden="true">
-                                        <div class="similar-tab-btn similar-tab-btn--placeholder similar-tab-btn--side"
-                                             v-for="placeholder in 3"
-                                             v-bind:key="'side-sim-loading-' + placeholder">
-                                            <div class="similar-tab-btn__eyebrow">Result {{placeholder}}</div>
-                                            <div class="similar-tab-btn__line"></div>
-                                        </div>
+            <div class="hadith-entry"
+                 v-for="(narration, index) in narrations"
+                 v-bind:data-result-ordinal="resultOrdinal(narration, index)"
+                 v-bind:key="(narration._id || narration.id || index)">
+                <article class="hadith-card"
+                         v-bind:id="narrationDomId(narration)">
+                    <div class="card-body">
+                        <div class="row g-4 hadith-card__layout">
+                            <aside class="hadith-meta hadith-card__meta">
+                                <hadith-details v-bind:narration="narration"></hadith-details>
+                            </aside>
+                            <section class="hadith-card__main">
+                                <div class="hadith-header-row mb-3">
+                                    <div class="reading-number-banner mb-0">
+                                        <span class="reading-number-label">{{ readingMode ? 'Hadith' : 'Result' }}</span>
+                                        <span class="reading-number-value">#{{readingMode ? (narration.number || resultOrdinal(narration, index)) : resultOrdinal(narration, index)}}</span>
                                     </div>
-                                    <div class="similar-tab-strip similar-tab-strip--side"
-                                         v-else-if="!narration.similarError && narration.similarItems.length > 0">
-                                        <button type="button"
-                                                class="similar-tab-btn similar-tab-btn--side"
-                                                v-for="(similar, sidx) in narration.similarItems"
-                                                v-bind:key="'side-sim-' + (similar._id || sidx)"
-                                                v-bind:class="{active: sidx === narration.similarActiveIndex}"
-                                                v-on:click="selectSimilarTab(narration, sidx)">
-                                            <span class="similar-tab-btn__eyebrow">Result {{sidx + 1}}</span>
-                                            <span class="similar-tab-btn__text">{{similarTabTitle(similar, sidx)}}</span>
+                                    <div class="d-flex flex-wrap gap-2 hadith-header-actions">
+                                        <div class="dropdown hadith-copy-dropdown">
+                                            <button class="icon-action icon-action--copy hadith-copy-trigger"
+                                                    type="button"
+                                                    data-bs-toggle="dropdown"
+                                                    data-bs-auto-close="true"
+                                                    aria-expanded="false"
+                                                    aria-label="Copy hadith text"
+                                                    title="Copy hadith text">
+                                                <i class="fa fa-copy" aria-hidden="true"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end hadith-copy-menu">
+                                                <li>
+                                                    <button class="dropdown-item"
+                                                            type="button"
+                                                            v-on:click="copyNarrationField(narration, 'english')">
+                                                        Copy English
+                                                    </button>
+                                                </li>
+                                                <li>
+                                                    <button class="dropdown-item"
+                                                            type="button"
+                                                            v-on:click="copyNarrationField(narration, 'arabic')">
+                                                        Copy Arabic
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <button class="icon-action icon-action--save" type="button"
+                                                v-on:click.stop.prevent="saveNarrationToCollection(narration)"
+                                                aria-label="Save hadith" title="Save to collection">
+                                            <i class="fa fa-bookmark-o" aria-hidden="true"></i>
                                         </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </aside>
-                        <section class="col-12 col-lg-9">
-                            <div class="hadith-header-row mb-3">
-                                <div class="reading-number-banner mb-0">
-                                    <span class="reading-number-label">{{ readingMode ? 'Hadith' : 'Result' }}</span>
-                                    <span class="reading-number-value">#{{readingMode ? (narration.number || resultOrdinal(narration, index)) : resultOrdinal(narration, index)}}</span>
-                                </div>
-                                <div class="d-flex flex-wrap gap-2 hadith-header-actions">
-                                    <div class="dropdown hadith-copy-dropdown">
-                                        <button class="icon-action icon-action--copy hadith-copy-trigger"
-                                                type="button"
-                                                data-bs-toggle="dropdown"
-                                                data-bs-auto-close="true"
-                                                aria-expanded="false"
-                                                aria-label="Copy hadith text"
-                                                title="Copy hadith text">
-                                            <i class="fa fa-copy" aria-hidden="true"></i>
+                                        <button class="icon-action icon-action--edit" type="button"
+                                                v-if="canEditNarrations()"
+                                                v-on:click.stop.prevent="openNarrationEditor(narration)"
+                                                aria-label="Edit hadith" title="Edit hadith">
+                                            <i class="fa fa-pencil" aria-hidden="true"></i>
                                         </button>
-                                        <ul class="dropdown-menu dropdown-menu-end hadith-copy-menu">
-                                            <li>
-                                                <button class="dropdown-item"
-                                                        type="button"
-                                                        v-on:click="copyNarrationField(narration, 'english')">
-                                                    Copy English
-                                                </button>
-                                            </li>
-                                            <li>
-                                                <button class="dropdown-item"
-                                                        type="button"
-                                                        v-on:click="copyNarrationField(narration, 'arabic')">
-                                                    Copy Arabic
-                                                </button>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                    <button class="icon-action icon-action--save" type="button"
-                                            v-on:click.stop.prevent="saveNarrationToCollection(narration)"
-                                            aria-label="Save hadith" title="Save to collection">
-                                        <i class="fa fa-bookmark-o" aria-hidden="true"></i>
-                                    </button>
-                                    <button class="icon-action icon-action--edit" type="button"
-                                            v-if="canEditNarrations()"
-                                            v-on:click.stop.prevent="openNarrationEditor(narration)"
-                                            aria-label="Edit hadith" title="Edit hadith">
-                                        <i class="fa fa-pencil" aria-hidden="true"></i>
-                                    </button>
-                                    <button class="icon-action icon-action--remove" type="button"
-                                            v-if="collectionMode"
-                                            v-on:click="removeNarrationFromCurrentCollection(narration)"
-                                            aria-label="Remove from collection" title="Remove from collection">
-                                        <i class="fa fa-trash-o" aria-hidden="true"></i>
-                                    </button>
-                                    <a class="icon-action icon-action--report" target="_blank"
-                                       v-bind:href="reportNarrationHref(narration)"
-                                       v-on:click.stop
-                                       aria-label="Report hadith" title="Report">
-                                        <i class="fa fa-flag" aria-hidden="true"></i>
-                                    </a>
-                                    <div class="dropdown hadith-share-dropdown">
-                                        <button class="icon-action icon-action--share hadith-share-trigger"
-                                                type="button"
-                                                data-bs-toggle="dropdown"
-                                                data-bs-auto-close="true"
-                                                aria-expanded="false"
-                                                aria-label="Share hadith"
-                                                title="Share">
-                                            <i class="fa fa-share-square-o" aria-hidden="true"></i>
+                                        <button class="icon-action icon-action--remove" type="button"
+                                                v-if="collectionMode"
+                                                v-on:click="removeNarrationFromCurrentCollection(narration)"
+                                                aria-label="Remove from collection" title="Remove from collection">
+                                            <i class="fa fa-trash-o" aria-hidden="true"></i>
                                         </button>
-                                        <ul class="dropdown-menu dropdown-menu-end hadith-copy-menu">
-                                            <li>
-                                                <button class="dropdown-item"
-                                                        type="button"
-                                                        v-on:click="copyHadithStaticUrl(narration._id || narration.id)">
-                                                    Copy static URL
-                                                </button>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="p-3 hadith-content">
-                                <div class="row g-4">
-                                    <div class="col-12 col-lg-6">
-                                        <div class="hadith-text-block">
-                                            <div class="hadith-chain" v-if="narration.englishChain" v-html="narration.englishChain"></div>
-                                            <div class="hadith-english" v-html="narration.englishContent || narration.english"></div>
+                                        <a class="icon-action icon-action--report" target="_blank"
+                                           v-bind:href="reportNarrationHref(narration)"
+                                           v-on:click.stop
+                                           aria-label="Report hadith" title="Report">
+                                            <i class="fa fa-flag" aria-hidden="true"></i>
+                                        </a>
+                                        <div class="dropdown hadith-share-dropdown">
+                                            <button class="icon-action icon-action--share hadith-share-trigger"
+                                                    type="button"
+                                                    data-bs-toggle="dropdown"
+                                                    data-bs-auto-close="true"
+                                                    aria-expanded="false"
+                                                    aria-label="Share hadith"
+                                                    title="Share">
+                                                <i class="fa fa-share-square-o" aria-hidden="true"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end hadith-copy-menu">
+                                                <li>
+                                                    <button class="dropdown-item"
+                                                            type="button"
+                                                            v-on:click="copyHadithStaticUrl(narration._id || narration.id)">
+                                                        Copy static URL
+                                                    </button>
+                                                </li>
+                                            </ul>
                                         </div>
                                     </div>
-                                    <div class="col-12 col-lg-6">
-                                        <div class="hadith-text-block">
-                                            <div class="hadith-chain hadith-chain--arabic arabic-text"
-                                                 v-if="narration.arabicChain"
-                                                 v-html="narration.arabicChain"></div>
-                                            <div class="hadith-arabic arabic-text" v-html="renderNarrationArabicHtml(narration)"></div>
+                                </div>
+                                <div class="hadith-content">
+                                    <div class="hadith-card__ornament" aria-hidden="true">
+                                        <span class="hadith-card__ornament-line"></span>
+                                        <span class="hadith-card__ornament-mark">۞</span>
+                                        <span class="hadith-card__ornament-line"></span>
+                                    </div>
+                                    <div class="row g-4">
+                                        <div class="col-12 col-lg-6">
+                                            <div class="hadith-text-block">
+                                                <div class="hadith-chain" v-if="narration.englishChain" v-html="narration.englishChain"></div>
+                                                <div class="hadith-english" v-html="narration.englishContent || narration.english"></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-lg-6">
+                                            <div class="hadith-text-block">
+                                                <div class="hadith-chain hadith-chain--arabic arabic-text"
+                                                     v-if="narration.arabicChain"
+                                                     v-html="narration.arabicChain"></div>
+                                                <div class="hadith-arabic arabic-text" v-html="renderNarrationArabicHtml(narration)"></div>
+                                            </div>
                                         </div>
                                     </div>
+                                    <div class="hadith-notes mt-3" v-if="narration.notes" v-html="narration.notes"></div>
                                 </div>
-                                <div class="hadith-notes mt-3" v-if="narration.notes" v-html="narration.notes"></div>
-                            </div>
-                            <div class="similar-inline-panel similar-inline-panel--embedded mt-3" v-if="narration.similarOpen">
-                                <div class="similar-inline-panel__head">
-                                    <div>
-                                        <div class="similar-inline-panel__title">Similar hadith</div>
-                                        <div class="small text-muted similar-inline-status" v-if="narration.similarItemsLoading">
-                                            <span>Fetching similar hadith</span>
-                                            <span class="similar-loading-dots similar-loading-dots--inline" aria-hidden="true">
-                                                <span>.</span>
-                                                <span>.</span>
-                                                <span>.</span>
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <button type="button" class="btn btn-link btn-sm px-0" v-on:click="clearSimilarHighlightState(narration); narration.similarOpen = false">
-                                        Hide
-                                    </button>
-                                </div>
+                                <!-- Similar hadith expanded content -->
+                                <div class="accordion-body mt-2" v-if="narration.similarOpen">
                                 <div class="similar-loading-state py-2" v-if="narration.similarItemsLoading" role="status" aria-live="polite" aria-label="Loading similar hadith">
                                     <div class="similar-tab-body similar-tab-body--loading mt-2">
-                                        <p class="text-muted mb-0">Loading similar hadith...</p>
+                                        <div class="hadith-loading-label">Finding similar hadith</div>
+                                        <div class="hadith-loading-skeleton" style="margin-top: 12px;">
+                                            <div class="hadith-skeleton-bar hadith-skeleton-bar--short"></div>
+                                            <div class="hadith-skeleton-bar hadith-skeleton-bar--long"></div>
+                                            <div class="hadith-skeleton-bar hadith-skeleton-bar--medium"></div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="alert alert-warning py-2 my-2" role="alert" v-if="narration.similarError">
@@ -438,109 +412,138 @@
                                 <div class="text-muted py-2" v-if="!narration.similarItemsLoading && !narration.similarError && narration.similarItems.length === 0">
                                     No similar hadith were found for this narration.
                                 </div>
-                                <div v-if="!narration.similarItemsLoading && !narration.similarError && narration.similarItems.length > 0">
-                                    <div class="similar-tab-body mt-0"
-                                         v-if="activeSimilar(narration)">
-                                        <div class="similar-location-line mb-2">
-                                            <a href="#"
-                                                    class="similar-location-link"
-                                                    v-if="activeSimilar(narration).book"
-                                                    v-on:click.prevent="jumpToSimilarHadith(activeSimilar(narration), 'book')">
-                                                {{activeSimilar(narration).book}}
-                                            </a>
-                                            <span v-if="activeSimilar(narration).book && activeSimilar(narration).volume" class="similar-location-sep">·</span>
-                                            <a href="#"
-                                                    class="similar-location-link"
-                                                    v-if="activeSimilar(narration).volume"
-                                                    v-on:click.prevent="jumpToSimilarHadith(activeSimilar(narration), 'volume')">
-                                                {{activeSimilar(narration).volume}}
-                                            </a>
-                                            <span v-if="activeSimilar(narration).volume && activeSimilar(narration).part" class="similar-location-sep">·</span>
-                                            <a href="#"
-                                                    class="similar-location-link"
-                                                    v-if="activeSimilar(narration).part"
-                                                    v-on:click.prevent="jumpToSimilarHadith(activeSimilar(narration), 'part')">
-                                                {{activeSimilar(narration).part}}
-                                            </a>
-                                            <span v-if="activeSimilar(narration).part && activeSimilar(narration).section" class="similar-location-sep">·</span>
-                                            <a href="#"
-                                                    class="similar-location-link"
-                                                    v-if="activeSimilar(narration).section"
-                                                    v-on:click.prevent="jumpToSimilarHadith(activeSimilar(narration), 'section')">
-                                                {{activeSimilar(narration).section}}
-                                            </a>
-                                            <span v-if="activeSimilar(narration).section && activeSimilar(narration).chapter" class="similar-location-sep">·</span>
-                                            <a href="#"
-                                                    class="similar-location-link"
-                                                    v-if="activeSimilar(narration).chapter"
-                                                    v-on:click.prevent="jumpToSimilarHadith(activeSimilar(narration), 'chapter')">
-                                                {{activeSimilar(narration).chapter}}
-                                            </a>
-                                            <span v-if="activeSimilar(narration).chapter && activeSimilar(narration).number" class="similar-location-sep">·</span>
-                                            <a href="#"
-                                                    class="similar-location-link similar-location-link--id"
-                                                    v-if="activeSimilar(narration).number"
-                                                    v-on:click.prevent="jumpToSimilarHadith(activeSimilar(narration), jumpLevelForSimilar(activeSimilar(narration)))">
-                                                Hadith #{{activeSimilar(narration).number}}
-                                            </a>
+                                <div v-if="!narration.similarItemsLoading && !narration.similarError && narration.similarItems.length > 0 && activeSimilar(narration)">
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <div class="similar-location-line">
+                                            <a href="#" class="similar-location-link" v-if="activeSimilar(narration).book" v-on:click.prevent="jumpToSimilarHadith(activeSimilar(narration), 'book')">{{activeSimilar(narration).book}}</a>
+                                            <span v-if="activeSimilar(narration).book && activeSimilar(narration).volume" class="similar-location-sep">&middot;</span>
+                                            <a href="#" class="similar-location-link" v-if="activeSimilar(narration).volume" v-on:click.prevent="jumpToSimilarHadith(activeSimilar(narration), 'volume')">{{activeSimilar(narration).volume}}</a>
+                                            <span v-if="activeSimilar(narration).volume && activeSimilar(narration).part" class="similar-location-sep">&middot;</span>
+                                            <a href="#" class="similar-location-link" v-if="activeSimilar(narration).part" v-on:click.prevent="jumpToSimilarHadith(activeSimilar(narration), 'part')">{{activeSimilar(narration).part}}</a>
+                                            <span v-if="activeSimilar(narration).part && activeSimilar(narration).section" class="similar-location-sep">&middot;</span>
+                                            <a href="#" class="similar-location-link" v-if="activeSimilar(narration).section" v-on:click.prevent="jumpToSimilarHadith(activeSimilar(narration), 'section')">{{activeSimilar(narration).section}}</a>
+                                            <span v-if="activeSimilar(narration).section && activeSimilar(narration).chapter" class="similar-location-sep">&middot;</span>
+                                            <a href="#" class="similar-location-link" v-if="activeSimilar(narration).chapter" v-on:click.prevent="jumpToSimilarHadith(activeSimilar(narration), 'chapter')">{{activeSimilar(narration).chapter}}</a>
+                                            <span v-if="activeSimilar(narration).chapter && activeSimilar(narration).number" class="similar-location-sep">&middot;</span>
+                                            <a href="#" class="similar-location-link similar-location-link--id" v-if="activeSimilar(narration).number" v-on:click.prevent="jumpToSimilarHadith(activeSimilar(narration), jumpLevelForSimilar(activeSimilar(narration)))">Hadith #{{activeSimilar(narration).number}}</a>
                                         </div>
-                                        <div class="similar-why-match mb-2"
-                                             v-if="similarWhyMatchedItems(activeSimilar(narration)).length > 0">
-                                            <div class="similar-why-match__title">Why this matched</div>
-                                            <div class="similar-why-match__chips">
-                                                <template v-for="(item, idx) in similarWhyMatchedItems(activeSimilar(narration))">
-                                                    <button type="button"
-                                                            v-if="item.highlightKey"
-                                                            v-bind:key="'similar-why-btn-' + idx"
-                                                            v-bind:class="['similar-why-match__chip', item.tone, 'is-clickable', {'is-active': isSimilarHighlightActive(narration, item)}]"
-                                                            v-on:click="toggleSimilarHighlightState(narration, item)">
-                                                        {{item.text}}
-                                                    </button>
-                                                    <span class="similar-why-match__chip"
-                                                          v-else
-                                                          v-bind:key="'similar-why-label-' + idx"
-                                                          v-bind:class="item.tone">
-                                                        {{item.text}}
-                                                    </span>
-                                                </template>
+                                        <!-- Why matched lightbulb -->
+                                        <div class="dropdown" v-if="similarWhyMatchedItems(activeSimilar(narration)).length > 0">
+                                            <button class="why-match-bulb" type="button" data-bs-toggle="dropdown" data-bs-auto-close="true" aria-expanded="false" title="Why this matched">
+                                                <i class="fa fa-lightbulb-o"></i>
+                                            </button>
+                                            <div class="dropdown-menu dropdown-menu-end why-match-popover">
+                                                <div class="why-match-popover__title">Why this matched</div>
+                                                <div class="why-match-popover__chips">
+                                                    <template v-for="(item, idx) in similarWhyMatchedItems(activeSimilar(narration))">
+                                                        <button type="button"
+                                                                v-if="item.highlightKey"
+                                                                v-bind:key="'why-btn-' + idx"
+                                                                v-bind:class="['similar-why-match__chip', item.tone, 'is-clickable', {'is-active': isSimilarHighlightActive(narration, item)}]"
+                                                                v-on:click="toggleSimilarHighlightState(narration, item)">
+                                                            {{item.text}}
+                                                        </button>
+                                                        <span class="similar-why-match__chip"
+                                                              v-else
+                                                              v-bind:key="'why-label-' + idx"
+                                                              v-bind:class="item.tone">
+                                                            {{item.text}}
+                                                        </span>
+                                                    </template>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="similar-full-card">
-                                            <div class="hadith-chain"
-                                                 v-if="activeSimilar(narration).englishChain"
-                                                 v-html="activeSimilar(narration).englishChain"></div>
-                                            <div class="similar-full-english"
-                                                 v-if="activeSimilar(narration).englishContent || activeSimilar(narration).english"
-                                                 v-html="activeSimilar(narration).englishContent || activeSimilar(narration).english"></div>
-                                            <div class="hadith-chain hadith-chain--arabic arabic-text mt-3"
-                                                 v-if="activeSimilar(narration).arabicChain"
-                                                 v-html="activeSimilar(narration).arabicChain"></div>
-                                            <div class="similar-full-arabic arabic-text mt-3"
-                                                 v-if="activeSimilar(narration).arabicContent || activeSimilar(narration).arabic"
-                                                 v-html="renderSimilarArabicHtml(narration)"></div>
+                                        <button type="button" class="btn btn-link btn-sm px-0 text-muted ms-auto" v-on:click="clearSimilarHighlightState(narration); narration.similarOpen = false">
+                                            Close
+                                        </button>
+                                    </div>
+                                    <!-- Similar hadith: English left, Arabic right -->
+                                    <div class="row g-3">
+                                        <div class="col-12 col-lg-6">
+                                            <div class="hadith-text-block">
+                                                <div class="hadith-chain" v-if="activeSimilar(narration).englishChain" v-html="activeSimilar(narration).englishChain"></div>
+                                                <div class="similar-full-english" v-if="activeSimilar(narration).englishContent || activeSimilar(narration).english" v-html="activeSimilar(narration).englishContent || activeSimilar(narration).english"></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-lg-6">
+                                            <div class="hadith-text-block">
+                                                <div class="hadith-chain hadith-chain--arabic arabic-text" v-if="activeSimilar(narration).arabicChain" v-html="activeSimilar(narration).arabicChain"></div>
+                                                <div class="similar-full-arabic arabic-text" v-if="activeSimilar(narration).arabicContent || activeSimilar(narration).arabic" v-html="renderSimilarArabicHtml(narration)"></div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </section>
+                                <div class="accordion-body mt-2" v-if="narration.quranicInsightsOpen">
+                                <div class="similar-loading-state py-2" v-if="narration.quranicInsightsItemsLoading" role="status" aria-live="polite" aria-label="Loading Quranic insights">
+                                    <div class="similar-tab-body similar-tab-body--loading mt-2">
+                                        <div class="hadith-loading-label">Finding Quranic insights</div>
+                                        <div class="hadith-loading-skeleton" style="margin-top: 12px;">
+                                            <div class="hadith-skeleton-bar hadith-skeleton-bar--short"></div>
+                                            <div class="hadith-skeleton-bar hadith-skeleton-bar--long"></div>
+                                            <div class="hadith-skeleton-bar hadith-skeleton-bar--medium"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="alert alert-warning py-2 my-2" role="alert" v-if="narration.quranicInsightsError">
+                                    {{narration.quranicInsightsError}}
+                                </div>
+                                <div class="text-muted py-2" v-if="!narration.quranicInsightsItemsLoading && !narration.quranicInsightsError && narration.quranicInsightsItems.length === 0">
+                                    No Quranic insights were found for this narration.
+                                </div>
+                                <div v-if="!narration.quranicInsightsItemsLoading && !narration.quranicInsightsError && narration.quranicInsightsItems.length > 0 && activeQuranicInsight(narration)">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="quranic-verse-reference">{{activeQuranicInsight(narration).reference}}</div>
+                                        <button type="button" class="btn btn-link btn-sm px-0 text-muted" v-on:click="narration.quranicInsightsOpen = false">Close</button>
+                                    </div>
+                                    <div class="quranic-section quranic-section--verse">
+                                        <div class="quranic-verse-english" v-if="activeQuranicInsight(narration).text_english">
+                                            {{activeQuranicInsight(narration).text_english}}
+                                        </div>
+                                        <div class="quranic-verse-arabic arabic-text" v-if="activeQuranicInsight(narration).text_arabic">
+                                            {{activeQuranicInsight(narration).text_arabic}}
+                                        </div>
+                                    </div>
+                                    <div class="quranic-section quranic-section--snippets"
+                                         v-if="activeQuranicInsight(narration).tafsir_snippets && activeQuranicInsight(narration).tafsir_snippets.length > 0">
+                                        <div class="quranic-section__label">Tafsir Sources</div>
+                                        <div class="quranic-snippet"
+                                             v-for="(snippet, sidx) in activeQuranicInsight(narration).tafsir_snippets"
+                                             v-bind:key="'snippet-' + (snippet.tafsir_slug || sidx)">
+                                            <div class="quranic-snippet__head">
+                                                <span class="quranic-snippet__source">{{snippet.tafsir_name || snippet.tafsir_slug}}</span>
+                                                <span class="quranic-snippet__section" v-if="snippet.section_title">&mdash; {{snippet.section_title}}</span>
+                                            </div>
+                                            <div class="quranic-snippet__text">{{snippet.commentary_text}}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                </div>
+                            </section>
+                        </div>
+                        <div class="topic-tag-pills"
+                             v-if="narration.topic_tags && narration.topic_tags.length > 0">
+                            <span class="topic-tag-pills__label">Tags</span>
+                            <button type="button"
+                                    class="topic-pill"
+                                    v-for="slug in narration.topic_tags.slice(0, 5)"
+                                    v-bind:key="slug"
+                                    v-bind:class="{'topic-pill--active': activeTopicTags.includes(slug)}"
+                                    v-on:click.stop="applyTagFilter(slug)">
+                                {{ taxonomyLabel(slug) }}
+                            </button>
+                        </div>
                     </div>
-                    <div class="topic-tag-pills"
-                         v-if="narration.topic_tags && narration.topic_tags.length > 0">
-                        <span class="topic-tag-pills__label">Tags</span>
-                        <button type="button"
-                                class="topic-pill"
-                                v-for="slug in narration.topic_tags.slice(0, 5)"
-                                v-bind:key="slug"
-                                v-bind:class="{'topic-pill--active': activeTopicTags.includes(slug)}"
-                                v-on:click.stop="applyTagFilter(slug)">
-                            {{ taxonomyLabel(slug) }}
-                        </button>
-                    </div>
+                </article>
+                <div class="hadith-divider" v-if="index < narrations.length - 1" aria-hidden="true">
+                    <span class="hadith-divider__line"></span>
+                    <span class="hadith-divider__motif">۞</span>
+                    <span class="hadith-divider__line"></span>
                 </div>
-            </article>
+            </div>
         </div>
 
-        <div v-if="!collectionMode && hasMoreNarrationsToReveal"
+        <div v-if="!readingMode && !collectionMode && hasMoreNarrationsToReveal"
              ref="scrollSentinel"
              class="search-reveal-sentinel">
             Loading more results...
@@ -549,6 +552,8 @@
         <div class="mt-4" v-if="readingMode || collectionMode">
             <pagination class="pagination pagination--bottom"></pagination>
         </div>
+    </div>
+    </div>
     </section>
 </main>
 
@@ -558,7 +563,7 @@
             <div>
                 <div class="site-footer__title">Rewayaat</div>
                 <p class="site-footer__text">
-                    The ALI Hadith Database Project for searching and studying Shi'i narrations.
+                    A project of the <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" class="site-footer__link">Academy for Learning Islam</a>. Search, browse, and study Shi'i narrations in Arabic and English.
                 </p>
             </div>
             <div>
@@ -566,7 +571,7 @@
                 <div class="site-footer__links">
                     <a href="/#updates">Recent Updates</a>
                     <a href="/search_tips.html">Search Tips</a>
-                    <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer">API</a>
+                    <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer">API Documentation</a>
                 </div>
             </div>
             <div>
@@ -574,11 +579,12 @@
                 <div class="site-footer__links">
                     <a href="mailto:rewayaat.org@gmail.com">rewayaat.org@gmail.com</a>
                     <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
+                    <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer">Academy of Islam</a>
                 </div>
             </div>
         </div>
         <div class="site-footer__bottom">
-            <span>2026 Academy for Learning Islam (A.L.I.)</span>
+            <span>&copy; 2026 Academy for Learning Islam (A.L.I.)</span>
             <span>Content and translations remain the responsibility of their original sources.</span>
         </div>
     </div>
@@ -591,7 +597,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/noty/3.1.4/noty.min.js"></script>
 <script crossorigin="anonymous" src="https://cdn.lr-ingest.io/LogRocket.min.js"></script>
 <script src="/js/vue-components.js?v=3" th:src="@{/js/vue-components.js?v=3}"></script>
-<script src="/js/rewayaat.js?v=93" th:src="@{/js/rewayaat.js?v=93}"></script>
+<script src="/js/rewayaat.js?v=96" th:src="@{/js/rewayaat.js?v=96}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" th:async="async"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.6/marked.min.js" th:defer="defer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js" th:defer="defer"></script>
