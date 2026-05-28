@@ -5005,18 +5005,18 @@ main.container {
 }
 
 .hadith-card .hadith-card__main {
-    padding: 2rem 2.5rem !important;
+    padding: 0 !important;
 }
 
 .hadith-card .hadith-card__main .hadith-content {
-    padding: 2rem !important;
+    padding: 15px !important;
 }
 
 .hadith-card .hadith-meta {
     border-radius: 18px 0 0 18px;
     border: none;
     border-right: 0;
-    padding: 1.8rem 1.5rem;
+    padding: 2rem 1.5rem !important;
     min-height: 100%;
     grid-column: 1;
     grid-row: 1 / span 2;
@@ -5040,7 +5040,7 @@ main.container {
 
 .hadith-meta {
     height: 100%;
-    padding: 2.5rem 2rem;
+    padding: 2rem 1.5rem !important;
     border-radius: 18px 0 0 18px;
     background: linear-gradient(180deg, #1a3a6b 0%, #0b1728 100%);
     border: 1px solid rgba(247, 225, 166, 0.15);
