@@ -5603,6 +5603,24 @@ body.is-resizing-sidecar * {
     white-space: nowrap;
 }
 
+/* Match percentage neon colors */
+.hadith-sidecar__list-meta.match-red {
+    color: #ff3b5c;
+    text-shadow: 0 0 8px rgba(255, 59, 92, 0.5);
+}
+.hadith-sidecar__list-meta.match-orange {
+    color: #ff8c1a;
+    text-shadow: 0 0 8px rgba(255, 140, 26, 0.5);
+}
+.hadith-sidecar__list-meta.match-yellow {
+    color: #ffe03d;
+    text-shadow: 0 0 8px rgba(255, 224, 61, 0.5);
+}
+.hadith-sidecar__list-meta.match-green {
+    color: #39ff14;
+    text-shadow: 0 0 8px rgba(57, 255, 20, 0.5);
+}
+
 .hadith-sidecar .hadith-details,
 .hadith-sidecar .hadith-details * {
     color: rgba(255, 255, 255, 0.85);

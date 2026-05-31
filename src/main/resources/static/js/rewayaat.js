@@ -5358,6 +5358,10 @@ function setupVue(query, page, sortFields) {
                 if (index < 0 || index >= narration.quranicInsightsItems.length) {
                     return;
                 }
+                if (narration.quranicInsightsActiveIndex === index) {
+                    narration.quranicInsightsActiveIndex = -1;
+                    return;
+                }
                 narration.quranicInsightsActiveIndex = index;
                 narration.sidecarActiveTab = 'quran';
                 this.ensureQuranicInsightSourceSelection(narration.quranicInsightsItems[index]);
@@ -5554,6 +5558,14 @@ function setupVue(query, page, sortFields) {
                 redirectToSearchResult(nextQuery, 1, nextSort, null, null,
                     resolveSearchMatchModeParam(), 'browse');
             },
+            similarityColor: function(similar) {
+                var pct = this.similarityScorePercent(similar);
+                if (pct <= 60) return 'red';
+                if (pct <= 70) return 'orange';
+                if (pct < 80) return 'yellow';
+                return 'green';
+            },
+
             similarityScorePercent: function(similar) {
                 if (!similar) {
                     return 0;
