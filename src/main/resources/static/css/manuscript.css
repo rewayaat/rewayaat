@@ -6443,14 +6443,18 @@ body.is-resizing-sidecar * {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.9rem;
+    gap: 0;
     margin: 1.35rem 0 1.55rem;
 }
 
 .hadith-divider__line {
     flex: 1 1 auto;
     height: 1px;
-    background: linear-gradient(90deg, transparent 0%, rgba(30, 58, 95, 0.34) 22%, rgba(30, 58, 95, 0.34) 78%, transparent 100%);
+    background: linear-gradient(90deg, transparent 0%, rgba(30, 58, 95, 0.34) 100%);
+}
+
+.hadith-divider__line:last-child {
+    background: linear-gradient(90deg, rgba(30, 58, 95, 0.34) 0%, transparent 100%);
 }
 
 .hadith-divider__motif {
@@ -6458,20 +6462,63 @@ body.is-resizing-sidecar * {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 2.5rem;
-    height: 2.5rem;
+    min-width: 2.8rem;
+    height: 2.8rem;
     font-family: var(--font-arabic);
-    font-size: 1.25rem;
-    color: rgba(30, 58, 95, 0.62);
+    font-size: 1.2rem;
+    color: rgba(30, 58, 95, 0.55);
+    margin: 0 0.3rem;
 }
 
-.hadith-divider__motif::before,
+.hadith-divider__motif::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(30, 58, 95, 0.12);
+}
+
 .hadith-divider__motif::after {
     content: "";
     position: absolute;
-    inset: 0.26rem;
+    inset: 0.35rem;
     border-radius: 50%;
-    border: 1px solid rgba(30, 58, 95, 0.16);
+    border: 1px solid rgba(30, 58, 95, 0.18);
+}
+
+/* Ornamental side brackets */
+.hadith-divider__line:first-child {
+    position: relative;
+}
+
+.hadith-divider__line:first-child::before {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 18px;
+    border-right: 1.5px solid rgba(30, 58, 95, 0.28);
+    border-top: 1.5px solid rgba(30, 58, 95, 0.28);
+    border-bottom: 1.5px solid rgba(30, 58, 95, 0.28);
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+.hadith-divider__line:last-child::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 18px;
+    border-left: 1.5px solid rgba(30, 58, 95, 0.28);
+    border-top: 1.5px solid rgba(30, 58, 95, 0.28);
+    border-bottom: 1.5px solid rgba(30, 58, 95, 0.28);
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
 }
 
 .hadith-content {
