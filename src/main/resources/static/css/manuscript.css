@@ -4947,17 +4947,17 @@ main.container {
 
 .topic-pill--active {
     background: #f7e1a6;
-    border-color: #d4b96a;
+    border-color: #0f2440;
     color: #0f2440;
-    box-shadow: 0 0 0 2px #f7e1a6, 0 4px 12px rgba(247, 225, 166, 0.4);
+    box-shadow: 0 0 0 2px #0f2440, 0 4px 12px rgba(247, 225, 166, 0.4);
     font-weight: 700;
 }
 
 .topic-pill--active::before,
 .topic-pill--active::after {
-    background: #d4b96a;
+    background: #0f2440;
     border-color: #0f2440;
-    box-shadow: 0 0 6px rgba(212, 185, 106, 0.6);
+    box-shadow: 0 0 6px rgba(15, 36, 64, 0.5);
 }
 
 .topic-pill .tag-filter-bar__pill-label {
@@ -4977,17 +4977,17 @@ main.container {
 }
 
 .topic-pill--active .tag-filter-bar__pill-count {
-    background: rgba(23, 49, 85, 0.92);
-    color: #fff0bf;
-    border: 2px solid #d4b96a;
+    background: rgba(15, 36, 64, 0.92);
+    color: #f7e1a6;
+    border: 2px solid #0f2440;
 }
 
 /* Islamic ornamental frame for filter bar pills */
 
 .tag-filter-bar__pill {
     position: relative;
-    padding: 0.35rem 0.7rem !important;
-    background: linear-gradient(135deg, rgba(26, 58, 107, 0.95) 0%, rgba(15, 36, 64, 0.9) 100%);
+    padding: 0.42rem 0.82rem !important;
+    background: linear-gradient(135deg, rgba(10, 25, 47, 0.95) 0%, rgba(5, 15, 30, 0.9) 100%);
     border: 1px solid var(--gold-light);
     color: #f7e1a6;
     clip-path: polygon(
@@ -5033,9 +5033,9 @@ main.container {
 
 .topic-pill--active .tag-filter-bar__pill {
     background: #f7e1a6;
-    border-color: #d4b96a;
+    border-color: #0f2440;
     color: #0f2440;
-    box-shadow: 0 0 0 2px #f7e1a6, 0 4px 12px rgba(247, 225, 166, 0.4);
+    box-shadow: 0 0 0 2px #0f2440, 0 4px 12px rgba(247, 225, 166, 0.4);
 }
 
 .topic-pill--active .tag-filter-bar__pill::before,

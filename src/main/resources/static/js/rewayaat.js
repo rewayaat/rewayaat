@@ -4060,14 +4060,6 @@ function setupVue(query, page, sortFields) {
                     return 'Showing ' + visibleCount + ' / ' + this.filteredNarrationTotal + ' saved hadith';
                 }
                 if (this.readingMode) {
-                    // When topic tags are active, show "X/Y hadith" where X=filtered, Y=base
-                    if (this.activeTopicTags.length > 0) {
-                        var filteredCount = this.totalHits || 0;
-                        var baseCount = this.baseNarrationTotal || 0;
-                        if (filteredCount !== baseCount) {
-                            return filteredCount + ' of ' + baseCount + ' hadith match your tag filters';
-                        }
-                    }
                     return '';
                 }
                 return 'Showing ' + visibleCount + ' / ' + this.filteredNarrationTotal + ' results';
