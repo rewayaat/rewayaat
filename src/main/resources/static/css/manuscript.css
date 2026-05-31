@@ -5032,10 +5032,10 @@ main.container {
 }
 
 .topic-pill--active .tag-filter-bar__pill {
-    background: linear-gradient(135deg, rgba(243, 229, 184, 0.2) 0%, rgba(26, 58, 107, 0.95) 100%);
-    border-color: #f7e1a6;
-    color: #1a3a6b;
-    box-shadow: 0 0 0 1px #f7e1a6, 0 4px 12px rgba(247, 225, 166, 0.3);
+    background: #f7e1a6;
+    border-color: #d4b96a;
+    color: #0f2440;
+    box-shadow: 0 0 0 2px #f7e1a6, 0 4px 12px rgba(247, 225, 166, 0.4);
 }
 
 .topic-pill--active .tag-filter-bar__pill::before,
