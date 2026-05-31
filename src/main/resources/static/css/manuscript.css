@@ -2045,6 +2045,13 @@ main.container::before {
     animation: updateBtnGlow 1.8s ease-in-out infinite;
     border-color: var(--gold-light);
 }
+.reading-toolbar .reading-apply.needs-update .fa-refresh {
+    animation: spin 1.2s linear infinite;
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
 
 /* ========================================================================
    ARABIC TERM SUGGESTIONS
