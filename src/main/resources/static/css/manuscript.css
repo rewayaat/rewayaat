@@ -4889,7 +4889,7 @@ main.container {
     min-height: 2.1rem;
     padding: 0.42rem 0.82rem !important;
     border-radius: 999px;
-    background: linear-gradient(135deg, rgba(10, 25, 47, 0.95) 0%, rgba(5, 15, 30, 0.9) 100%);
+    background: linear-gradient(135deg, rgba(20, 45, 80, 0.95) 0%, rgba(10, 30, 55, 0.9) 100%);
     border: 1px solid var(--gold-light);
     color: #f7e1a6;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -4976,7 +4976,7 @@ main.container {
     border: 2px solid #0f2440;
 }
 
-.topic-pill--active .tag-filter-bar__pill-count {
+.topic-pill--active.tag-filter-bar__pill .tag-filter-bar__pill-count {
     background: rgba(15, 36, 64, 0.92);
     color: #f7e1a6;
     border: 2px solid #0f2440;
@@ -4987,7 +4987,7 @@ main.container {
 .tag-filter-bar__pill {
     position: relative;
     padding: 0.42rem 0.82rem !important;
-    background: linear-gradient(135deg, rgba(10, 25, 47, 0.95) 0%, rgba(5, 15, 30, 0.9) 100%);
+    background: linear-gradient(135deg, rgba(20, 45, 80, 0.95) 0%, rgba(10, 30, 55, 0.9) 100%);
     border: 1px solid var(--gold-light);
     color: #f7e1a6;
     clip-path: polygon(
@@ -5031,18 +5031,18 @@ main.container {
     opacity: 0.9;
 }
 
-.topic-pill--active .tag-filter-bar__pill {
-    background: #f7e1a6;
-    border-color: #0f2440;
-    color: #0f2440;
-    box-shadow: 0 0 0 2px #0f2440, 0 4px 12px rgba(247, 225, 166, 0.4);
+.topic-pill--active.tag-filter-bar__pill {
+    background: #f7e1a6 !important;
+    border-color: #0f2440 !important;
+    color: #0f2440 !important;
+    box-shadow: 0 0 0 2px #0f2440, 0 4px 12px rgba(247, 225, 166, 0.4) !important;
 }
 
-.topic-pill--active .tag-filter-bar__pill::before,
-.topic-pill--active .tag-filter-bar__pill::after {
-    background: linear-gradient(135deg, #f7e1a6 0%, #f3e5b8 100%);
-    border-color: #1a3a6b;
-    box-shadow: 0 0 8px rgba(247, 225, 166, 0.5);
+.topic-pill--active.tag-filter-bar__pill::before,
+.topic-pill--active.tag-filter-bar__pill::after {
+    background: #0f2440 !important;
+    border-color: #0f2440 !important;
+    box-shadow: 0 0 6px rgba(15, 36, 64, 0.5);
 }
 
 .tag-filter-bar__pill:hover {
@@ -5605,8 +5605,8 @@ body.is-resizing-sidecar * {
 
 /* Match percentage neon colors */
 .hadith-sidecar__list-meta.match-red {
-    color: #ff3b5c;
-    text-shadow: 0 0 8px rgba(255, 59, 92, 0.5);
+    color: #ff6b35;
+    text-shadow: 0 0 8px rgba(255, 107, 53, 0.5);
 }
 .hadith-sidecar__list-meta.match-orange {
     color: #ff8c1a;
@@ -5923,8 +5923,8 @@ body.is-resizing-sidecar * {
 
 .hadith-inline-context--quran {
     background:
-        linear-gradient(180deg, rgba(5, 150, 105, 0.09), rgba(16, 185, 129, 0.03)),
-        #f4fbf8;
+        linear-gradient(180deg, rgba(28, 57, 101, 0.08), rgba(247, 225, 166, 0.05)),
+        #f5f8fd;
 }
 
 .hadith-inline-context__head {
@@ -5944,7 +5944,7 @@ body.is-resizing-sidecar * {
 }
 
 .hadith-inline-context__eyebrow {
-    color: var(--text-muted);
+    color: #51627a;
     font-size: 0.64rem;
     font-weight: 800;
     letter-spacing: 0.12em;
@@ -5999,7 +5999,7 @@ body.is-resizing-sidecar * {
 }
 
 .hadith-inline-context__panel--quran {
-    border-top: 3px solid rgba(5, 150, 105, 0.82);
+    border-top: 3px solid rgba(213, 170, 77, 0.95);
 }
 
 .hadith-inline-context__body {
@@ -6130,8 +6130,8 @@ body.is-resizing-sidecar * {
 
 .hadith-inline-context__meta-band--quran {
     background:
-        linear-gradient(180deg, rgba(252, 255, 253, 0.86), rgba(244, 251, 248, 0.96)),
-        rgba(255, 255, 255, 0.92);
+        linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(244, 248, 255, 0.94)),
+        rgba(255, 255, 255, 0.9);
 }
 
 .hadith-inline-context__meta-grid {
@@ -6505,7 +6505,8 @@ body.is-resizing-sidecar * {
 }
 
 /* Ornamental side brackets */
-.hadith-divider__line:first-child {
+.hadith-divider__line:first-child,
+.hadith-divider__line:last-child {
     position: relative;
 }
 
@@ -6544,12 +6545,7 @@ body.is-resizing-sidecar * {
 }
 
 .hadith-content::after {
-    content: "";
-    position: absolute;
-    inset: 10px;
-    border-radius: 18px;
-    border: 1px solid rgba(255,255,255,0.28);
-    pointer-events: none;
+    display: none;
 }
 
 @media (max-width: 1200px) {
