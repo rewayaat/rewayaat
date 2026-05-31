@@ -29,6 +29,7 @@ var REVEAL_BATCH_SIZE = 12;
 var INITIAL_VISIBLE_TAG_FILTERS = 15;
 var similarLoadingMinDurationMs = 550;
 var scopeFieldKeys = ['book', 'volume', 'part', 'section', 'chapter'];
+var SIDECAR_WIDTH_STORAGE_KEY = 'rewayaat_sidecar_width';
 var pendingSearchUpdateToast = null;
 var pendingArabicSuggestionToast = null;
 var authState = {
@@ -2544,6 +2545,9 @@ function buildQueryFromFilters(filters) {
     if (filters.chapter) {
         parts.push('chapter:\"' + sanitizeQueryValue(filters.chapter) + '\"');
     }
+    if (filters.source) {
+        parts.push('source:\"' + sanitizeQueryValue(filters.source) + '\"');
+    }
     return parts.join(' ');
 }
 
@@ -3888,14 +3892,30 @@ function setupVue(query, page, sortFields) {
             arabicSuggestionToastShown: false,
             arabicSuggestionThresholdPassed: false,
             collections: userCollectionsCache,
-            collectionSearchQuery: ''
+            collectionSearchQuery: '',
+            sidecarWidth: 304,
+            sidecarResizeState: null
         },
         // runs when the Vue instance has initialized.
         mounted: function() {
             this.loadTaxonomy();
             this.fetchNarrations();
             this.initCollectionSidebar();
+            this.restoreSidecarWidthPreference();
             var self = this;
+            this._handleSidecarResizeMove = function(e) {
+                self.handleSidecarResizeMove(e);
+            };
+            this._handleSidecarResizeEnd = function() {
+                self.stopSidecarResize();
+            };
+            this._handleSidecarResizeWindow = function() {
+                self.handleSidecarResizeWindow();
+            };
+            window.addEventListener('pointermove', this._handleSidecarResizeMove);
+            window.addEventListener('pointerup', this._handleSidecarResizeEnd);
+            window.addEventListener('pointercancel', this._handleSidecarResizeEnd);
+            window.addEventListener('resize', this._handleSidecarResizeWindow);
             document.addEventListener('click', function(e) {
                 if (!e.target.closest('.chip-dropdown')) {
                     self.narrations.forEach(function(n) {
@@ -3906,10 +3926,20 @@ function setupVue(query, page, sortFields) {
             });
         },
         beforeDestroy: function() {
+            window.removeEventListener('pointermove', this._handleSidecarResizeMove);
+            window.removeEventListener('pointerup', this._handleSidecarResizeEnd);
+            window.removeEventListener('pointercancel', this._handleSidecarResizeEnd);
+            window.removeEventListener('resize', this._handleSidecarResizeWindow);
+            document.body.classList.remove('is-resizing-sidecar');
         },
         computed: {
             queryState: function() {
                 return extractQueryState(this.queryStr || '');
+            },
+            sidecarStyleVars: function() {
+                return {
+                    '--hadith-sidecar-width': this.clampSidecarWidth(this.sidecarWidth) + 'px'
+                };
             },
             activeScopeFilters: function() {
                 return this.queryState.scopeFilters;
@@ -4035,10 +4065,10 @@ function setupVue(query, page, sortFields) {
                         var filteredCount = this.totalHits || 0;
                         var baseCount = this.baseNarrationTotal || 0;
                         if (filteredCount !== baseCount) {
-                            return 'Showing ' + filteredCount + ' / ' + baseCount + ' hadith';
+                            return filteredCount + ' of ' + baseCount + ' hadith match your tag filters';
                         }
                     }
-                    return 'Showing ' + visibleCount + ' / ' + this.baseNarrationTotal + ' hadith';
+                    return '';
                 }
                 return 'Showing ' + visibleCount + ' / ' + this.filteredNarrationTotal + ' results';
             },
@@ -4351,6 +4381,78 @@ function setupVue(query, page, sortFields) {
             },
             arabicPreview: function(narration) {
                 return this.plainExcerpt((narration && (narration.arabicContent || narration.arabic)) || '', 28);
+            },
+            sidecarWidthLimits: function() {
+                var viewportWidth = Math.max(1024, window.innerWidth || 0);
+                return {
+                    min: 248,
+                    max: Math.max(296, Math.min(460, Math.round(viewportWidth * 0.36)))
+                };
+            },
+            clampSidecarWidth: function(value) {
+                var limits = this.sidecarWidthLimits();
+                var parsed = Number(value);
+                if (isNaN(parsed)) {
+                    parsed = 304;
+                }
+                return Math.max(limits.min, Math.min(limits.max, Math.round(parsed)));
+            },
+            restoreSidecarWidthPreference: function() {
+                var nextWidth = 304;
+                try {
+                    nextWidth = Number(window.localStorage.getItem(SIDECAR_WIDTH_STORAGE_KEY)) || nextWidth;
+                } catch (e) {
+                    nextWidth = 304;
+                }
+                this.sidecarWidth = this.clampSidecarWidth(nextWidth);
+            },
+            persistSidecarWidthPreference: function() {
+                try {
+                    window.localStorage.setItem(SIDECAR_WIDTH_STORAGE_KEY, String(this.clampSidecarWidth(this.sidecarWidth)));
+                } catch (e) {
+                    return;
+                }
+            },
+            startSidecarResize: function(evt) {
+                if ((window.innerWidth || 0) <= 768) {
+                    return;
+                }
+                var clientX = evt && typeof evt.clientX === 'number' ? evt.clientX : NaN;
+                if (!isFinite(clientX)) {
+                    return;
+                }
+                this.sidecarResizeState = {
+                    startX: clientX,
+                    startWidth: this.clampSidecarWidth(this.sidecarWidth)
+                };
+                document.body.classList.add('is-resizing-sidecar');
+            },
+            handleSidecarResizeMove: function(evt) {
+                if (!this.sidecarResizeState) {
+                    return;
+                }
+                var clientX = evt && typeof evt.clientX === 'number' ? evt.clientX : NaN;
+                if (!isFinite(clientX)) {
+                    return;
+                }
+                var nextWidth = this.sidecarResizeState.startWidth + (clientX - this.sidecarResizeState.startX);
+                this.sidecarWidth = this.clampSidecarWidth(nextWidth);
+            },
+            stopSidecarResize: function() {
+                if (!this.sidecarResizeState) {
+                    return;
+                }
+                this.sidecarWidth = this.clampSidecarWidth(this.sidecarWidth);
+                this.sidecarResizeState = null;
+                document.body.classList.remove('is-resizing-sidecar');
+                this.persistSidecarWidthPreference();
+            },
+            handleSidecarResizeWindow: function() {
+                this.sidecarWidth = this.clampSidecarWidth(this.sidecarWidth);
+            },
+            resetSidecarWidth: function() {
+                this.sidecarWidth = this.clampSidecarWidth(304);
+                this.persistSidecarWidthPreference();
             },
             toggleNarrationExpanded: function(narration) {
                 if (!narration) {
@@ -4886,6 +4988,101 @@ function setupVue(query, page, sortFields) {
                     element.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             },
+            activeNarrationSidecarTab: function(narration) {
+                if (!narration) {
+                    return 'metadata';
+                }
+                var activeTab = String(narration.sidecarActiveTab || 'metadata').trim();
+                if (activeTab !== 'similar' && activeTab !== 'quran') {
+                    return 'metadata';
+                }
+                return activeTab;
+            },
+            setNarrationSidecarTab: function(narration, tab) {
+                if (!narration) {
+                    return;
+                }
+                var nextTab = String(tab || 'metadata').trim();
+                if (nextTab !== 'similar' && nextTab !== 'quran') {
+                    nextTab = 'metadata';
+                }
+                if (this.isNarrationSidecarTabDisabled(narration, nextTab)) {
+                    return;
+                }
+                narration.sidecarActiveTab = nextTab;
+                if (nextTab !== 'similar') {
+                    this.clearSimilarHighlightState(narration);
+                }
+                if (nextTab === 'similar' && !narration.similarItemsLoaded && !narration.similarItemsLoading) {
+                    this.fetchSimilarNarrations(narration, null, true);
+                }
+                if (nextTab === 'quran' && !narration.quranicInsightsItemsLoaded && !narration.quranicInsightsItemsLoading) {
+                    this.fetchQuranicInsights(narration, true);
+                }
+            },
+            isNarrationSidecarTabActive: function(narration, tab) {
+                return this.activeNarrationSidecarTab(narration) === tab;
+            },
+            isNarrationSidecarTabDisabled: function(narration, tab) {
+                if (!narration) {
+                    return true;
+                }
+                if (tab === 'metadata') {
+                    return false;
+                }
+                if (tab === 'similar') {
+                    return narration.similarCountLoading
+                        || narration.similarCount === null
+                        || Number(narration.similarCount) <= 0;
+                }
+                if (tab === 'quran') {
+                    return narration.quranicInsightsCountLoading
+                        || narration.quranicInsightsCount === null
+                        || Number(narration.quranicInsightsCount) <= 0;
+                }
+                return true;
+            },
+            resolvedNarrationRailCount: function(narration, tab) {
+                if (!narration) {
+                    return 0;
+                }
+                var rawCount = null;
+                if (tab === 'similar') {
+                    rawCount = narration.similarCount;
+                } else if (tab === 'quran') {
+                    rawCount = narration.quranicInsightsCount;
+                }
+                if (rawCount === null || typeof rawCount === 'undefined') {
+                    return null;
+                }
+                return Math.max(0, Number(rawCount) || 0);
+            },
+            narrationRailCountLabel: function(narration, tab) {
+                if (!narration) {
+                    return '0';
+                }
+                if (tab === 'similar') {
+                    if (narration.similarCountLoading || narration.similarCount === null) {
+                        return '...';
+                    }
+                } else if (tab === 'quran') {
+                    if (narration.quranicInsightsCountLoading || narration.quranicInsightsCount === null) {
+                        return '...';
+                    }
+                }
+                var resolvedCount = this.resolvedNarrationRailCount(narration, tab);
+                return resolvedCount === null ? '0' : String(resolvedCount);
+            },
+            narrationSidecarTitle: function(narration) {
+                var activeTab = this.activeNarrationSidecarTab(narration);
+                if (activeTab === 'similar') {
+                    return 'Similar Hadith';
+                }
+                if (activeTab === 'quran') {
+                    return 'Quranic Insights';
+                }
+                return 'Hadith Metadata';
+            },
             similarCountText: function(narration) {
                 if (!narration || typeof narration.similarCount !== 'number' || narration.similarCount <= 0) {
                     return '';
@@ -4904,6 +5101,7 @@ function setupVue(query, page, sortFields) {
                 }
                 var sourceId = narration._id || narration.id;
                 if (!sourceId) {
+                    narration.similarCount = 0;
                     return;
                 }
                 var loadingStartedAt = Date.now();
@@ -4926,37 +5124,9 @@ function setupVue(query, page, sortFields) {
                     });
             },
             toggleSimilarPanel: function(narration) {
-                if (!narration) {
-                    return;
-                }
-                if (narration.similarCountLoading || narration.similarCount === null) {
-                    return;
-                }
-                if (narration.similarDropdownOpen) {
-                    this.clearSimilarHighlightState(narration);
-                    narration.similarDropdownOpen = false;
-                    narration.similarOpen = false;
-                    return;
-                }
-                this.narrations.forEach(function(item) {
-                    if (item !== narration) {
-                        item.similarOpen = false;
-                        item.similarDropdownOpen = false;
-                        item.similarHighlightKey = '';
-                        item.similarHighlightTone = '';
-                        item.quranicInsightsOpen = false;
-                        item.quranicDropdownOpen = false;
-                    }
-                });
-                narration.quranicInsightsOpen = false;
-                narration.quranicDropdownOpen = false;
-                narration.similarDropdownOpen = true;
-                narration.similarOpen = false;
-                if (!narration.similarItemsLoaded) {
-                    this.fetchSimilarNarrations(narration, 10);
-                }
+                this.setNarrationSidecarTab(narration, 'similar');
             },
-            fetchSimilarNarrations: function(narration, perPage) {
+            fetchSimilarNarrations: function(narration, perPage, includeAll) {
                 var sourceId = narration ? (narration._id || narration.id) : '';
                 if (!sourceId || narration.similarItemsLoading) {
                     return;
@@ -4968,7 +5138,13 @@ function setupVue(query, page, sortFields) {
                 }
                 narration.similarError = '';
                 var size = perPage || 10;
-                fetch('/v1/narrations/similar?id=' + encodeURIComponent(sourceId) + '&per_page=' + size)
+                var reqUrl = '/v1/narrations/similar?id=' + encodeURIComponent(sourceId);
+                if (includeAll) {
+                    reqUrl += '&all=true';
+                } else {
+                    reqUrl += '&per_page=' + size;
+                }
+                fetch(reqUrl)
                     .then(function(resp) { return resp.json(); })
                     .then(function(data) {
                         var incoming = (data && data.collection) ? data.collection : [];
@@ -4985,11 +5161,11 @@ function setupVue(query, page, sortFields) {
                         narration.similarItemsLoaded = true;
                         narration.similarCount = isNaN(total) ? narration.similarItems.length : Math.max(0, total);
                         if (!narration.similarItems.length || narration.similarCount <= 0) {
-                            // If pre-count overestimates, reconcile state and hide the stale trigger/panel.
                             narration.similarItems = [];
                             narration.similarCount = 0;
-                            narration.similarOpen = false;
-                            showToast('No similar hadith found for this narration.', 'information');
+                            if (narration.sidecarActiveTab === 'similar') {
+                                narration.sidecarActiveTab = 'metadata';
+                            }
                             return;
                         }
                         if (narration.similarActiveIndex >= narration.similarItems.length) {
@@ -5013,10 +5189,8 @@ function setupVue(query, page, sortFields) {
                 if (index < 0 || index >= narration.similarItems.length) {
                     return;
                 }
-                this.clearSimilarHighlightState(narration);
                 narration.similarActiveIndex = index;
-                narration.similarDropdownOpen = false;
-                narration.similarOpen = true;
+                narration.sidecarActiveTab = 'similar';
             },
             quranicInsightsCountText: function(narration) {
                 if (!narration || typeof narration.quranicInsightsCount !== 'number' || narration.quranicInsightsCount <= 0) {
@@ -5054,52 +5228,88 @@ function setupVue(query, page, sortFields) {
                     });
             },
             toggleQuranicInsightsPanel: function(narration) {
-                if (!narration) {
-                    return;
-                }
-                if (narration.quranicInsightsCountLoading || narration.quranicInsightsCount === null || narration.quranicInsightsCount <= 0) {
-                    return;
-                }
-                if (narration.quranicDropdownOpen) {
-                    narration.quranicDropdownOpen = false;
-                    narration.quranicInsightsOpen = false;
-                    return;
-                }
-                this.narrations.forEach(function(item) {
-                    if (item !== narration) {
-                        item.quranicInsightsOpen = false;
-                        item.quranicDropdownOpen = false;
-                        item.similarOpen = false;
-                        item.similarDropdownOpen = false;
-                        item.similarHighlightKey = '';
-                        item.similarHighlightTone = '';
-                    }
-                });
-                narration.similarOpen = false;
-                narration.similarDropdownOpen = false;
-                narration.quranicDropdownOpen = true;
-                narration.quranicInsightsOpen = false;
-                if (!narration.quranicInsightsItemsLoaded) {
-                    this.fetchQuranicInsights(narration);
-                }
+                this.setNarrationSidecarTab(narration, 'quran');
             },
-            fetchQuranicInsights: function(narration) {
+            fetchQuranicInsights: function(narration, includeAll) {
                 var sourceId = narration ? (narration._id || narration.id) : '';
                 if (!sourceId || narration.quranicInsightsItemsLoading) {
                     return;
                 }
-                var self = this;
                 var loadingStartedAt = Date.now();
                 narration.quranicInsightsItemsLoading = true;
                 if (narration.quranicInsightsCount === null) {
                     narration.quranicInsightsCountLoading = true;
                 }
                 narration.quranicInsightsError = '';
-                fetch('/v1/narrations/quranic_insights?id=' + encodeURIComponent(sourceId))
+                var reqUrl = '/v1/narrations/quranic_insights?id=' + encodeURIComponent(sourceId);
+                if (includeAll) {
+                    reqUrl += '&all=true';
+                }
+                fetch(reqUrl)
                     .then(function(resp) { return resp.json(); })
                     .then(function(data) {
                         var incoming = Array.isArray(data && data.candidates) ? data.candidates : [];
+                        function buildSourceOptions(tafsirSnippets, sources) {
+                            var options = [];
+                            var seenByAlias = {};
+                            function canonicalAlias(value) {
+                                return strip(value || '').trim().toLowerCase();
+                            }
+                            function ensureOption(slug, label) {
+                                var normalizedSlug = canonicalAlias(slug);
+                                var normalizedLabel = canonicalAlias(label);
+                                var existing = (normalizedSlug && seenByAlias[normalizedSlug]) || (normalizedLabel && seenByAlias[normalizedLabel]);
+                                if (!existing) {
+                                    existing = {
+                                        slug: strip(slug || label || '').trim(),
+                                        label: strip(label || slug || '').trim(),
+                                        count: 0
+                                    };
+                                    options.push(existing);
+                                }
+                                if (normalizedSlug) {
+                                    seenByAlias[normalizedSlug] = existing;
+                                }
+                                if (normalizedLabel) {
+                                    seenByAlias[normalizedLabel] = existing;
+                                }
+                                if (!existing.slug) {
+                                    existing.slug = strip(slug || label || '').trim();
+                                }
+                                if (!existing.label) {
+                                    existing.label = strip(label || slug || '').trim();
+                                }
+                                return existing;
+                            }
+                            (Array.isArray(tafsirSnippets) ? tafsirSnippets : []).forEach(function(snippet) {
+                                var slug = strip(snippet && snippet.tafsir_slug ? snippet.tafsir_slug : '').trim();
+                                var label = strip(snippet && snippet.tafsir_name ? snippet.tafsir_name : '').trim();
+                                if (!slug && !label) {
+                                    return;
+                                }
+                                ensureOption(slug, label).count += 1;
+                            });
+                            (Array.isArray(sources) ? sources : []).forEach(function(source) {
+                                var label = strip(source || '').trim();
+                                if (!label) {
+                                    return;
+                                }
+                                ensureOption('', label);
+                            });
+                            return options;
+                        }
                         narration.quranicInsightsItems = incoming.map(function(item) {
+                            var tafsirSnippets = Array.isArray(item.tafsir_snippets) ? item.tafsir_snippets.map(function(s) {
+                                return {
+                                    tafsir_slug: s.tafsir_slug || '',
+                                    tafsir_name: s.tafsir_name || '',
+                                    commentary_text: s.commentary_text || '',
+                                    source_url: s.source_url || '',
+                                    section_title: s.section_title || '',
+                                    commentary_score: Number(s.commentary_score) || 0
+                                };
+                            }) : [];
+                            var availableSources = buildSourceOptions(tafsirSnippets, item.sources);
                             return {
                                 verse_key: item.verse_key || '',
                                 reference: item.reference || item.verse_key || '',
@@ -5112,16 +5322,9 @@ function setupVue(query, page, sortFields) {
                                 shared_tags: Array.isArray(item.shared_tags) ? item.shared_tags : [],
                                 tafsir_snippet_count: Number(item.tafsir_snippet_count) || 0,
                                 sources: Array.isArray(item.sources) ? item.sources : [],
-                                tafsir_snippets: Array.isArray(item.tafsir_snippets) ? item.tafsir_snippets.map(function(s) {
-                                    return {
-                                        tafsir_slug: s.tafsir_slug || '',
-                                        tafsir_name: s.tafsir_name || '',
-                                        commentary_text: s.commentary_text || '',
-                                        source_url: s.source_url || '',
-                                        section_title: s.section_title || '',
-                                        commentary_score: Number(s.commentary_score) || 0
-                                    };
-                                }) : []
+                                tafsir_snippets: tafsirSnippets,
+                                availableSources: availableSources,
+                                activeSourceSlug: availableSources.length ? availableSources[0].slug : ''
                             };
                         });
                         narration.quranicInsightsItemsLoaded = true;
@@ -5129,13 +5332,14 @@ function setupVue(query, page, sortFields) {
                         if (!narration.quranicInsightsItems.length || narration.quranicInsightsCount <= 0) {
                             narration.quranicInsightsItems = [];
                             narration.quranicInsightsCount = 0;
-                            narration.quranicInsightsOpen = false;
+                            if (narration.sidecarActiveTab === 'quran') {
+                                narration.sidecarActiveTab = 'metadata';
+                            }
                             return;
                         }
                         if (narration.quranicInsightsActiveIndex >= narration.quranicInsightsItems.length) {
                             narration.quranicInsightsActiveIndex = 0;
                         }
-                        self.ensureActiveQuranicInsightSummary(narration);
                     })
                     .catch(function() {
                         narration.quranicInsightsItems = [];
@@ -5155,8 +5359,8 @@ function setupVue(query, page, sortFields) {
                     return;
                 }
                 narration.quranicInsightsActiveIndex = index;
-                narration.quranicDropdownOpen = false;
-                narration.quranicInsightsOpen = true;
+                narration.sidecarActiveTab = 'quran';
+                this.ensureQuranicInsightSourceSelection(narration.quranicInsightsItems[index]);
             },
             quranicInsightTabTitle: function(item, index) {
                 if (!item) {
@@ -5172,7 +5376,84 @@ function setupVue(query, page, sortFields) {
                 if (idx < 0 || idx >= narration.quranicInsightsItems.length) {
                     idx = 0;
                 }
-                return narration.quranicInsightsItems[idx];
+                var item = narration.quranicInsightsItems[idx];
+                this.ensureQuranicInsightSourceSelection(item);
+                return item;
+            },
+            ensureQuranicInsightSourceSelection: function(item) {
+                if (!item) {
+                    return '';
+                }
+                var sources = Array.isArray(item.availableSources) ? item.availableSources : [];
+                if ((!item.activeSourceSlug || sources.every(function(source) { return source.slug !== item.activeSourceSlug; })) && sources.length) {
+                    item.activeSourceSlug = sources[0].slug;
+                }
+                return item.activeSourceSlug || '';
+            },
+            quranicInsightSources: function(item) {
+                return item && Array.isArray(item.availableSources) ? item.availableSources : [];
+            },
+            selectQuranicInsightSource: function(narration, index, slug) {
+                if (!narration || !narration.quranicInsightsItems || index < 0 || index >= narration.quranicInsightsItems.length) {
+                    return;
+                }
+                var item = narration.quranicInsightsItems[index];
+                narration.quranicInsightsActiveIndex = index;
+                narration.sidecarActiveTab = 'quran';
+                item.activeSourceSlug = slug || this.ensureQuranicInsightSourceSelection(item);
+            },
+            isQuranicInsightSourceActive: function(item, source) {
+                if (!item || !source) {
+                    return false;
+                }
+                return this.ensureQuranicInsightSourceSelection(item) === source.slug;
+            },
+            activeQuranicInsightSource: function(narration) {
+                var item = this.activeQuranicInsight(narration);
+                if (!item) {
+                    return null;
+                }
+                var activeSlug = this.ensureQuranicInsightSourceSelection(item);
+                var sources = this.quranicInsightSources(item);
+                for (var i = 0; i < sources.length; i += 1) {
+                    if (sources[i].slug === activeSlug) {
+                        return sources[i];
+                    }
+                }
+                return sources.length ? sources[0] : null;
+            },
+            activeQuranicInsightSelectedSnippets: function(narration) {
+                var item = this.activeQuranicInsight(narration);
+                if (!item) {
+                    return [];
+                }
+                var activeSource = this.activeQuranicInsightSource(narration);
+                var snippets = Array.isArray(item.tafsir_snippets) ? item.tafsir_snippets : [];
+                if (!activeSource || !activeSource.slug) {
+                    return snippets;
+                }
+                return snippets.filter(function(snippet) {
+                    return (snippet.tafsir_slug || snippet.tafsir_name || '') === activeSource.slug
+                        || (snippet.tafsir_name || '') === activeSource.label;
+                });
+            },
+            quranContextSegments: function(narration) {
+                var insight = this.activeQuranicInsight(narration);
+                if (!insight) {
+                    return [];
+                }
+                var activeSource = this.activeQuranicInsightSource(narration);
+                var segments = [];
+                if (insight.reference) {
+                    segments.push(insight.reference);
+                }
+                if (insight.surah_name_english) {
+                    segments.push(insight.surah_name_english);
+                }
+                if (activeSource && activeSource.label) {
+                    segments.push(activeSource.label);
+                }
+                return segments;
             },
             similarTabTitle: function(similar, index) {
                 if (similar && similar.book && similar.number) {
@@ -5185,6 +5466,41 @@ function setupVue(query, page, sortFields) {
                     return 'Hadith #' + similar.number;
                 }
                 return 'Similar hadith #' + (index + 1);
+            },
+            similarMainTitle: function(similar) {
+                if (!similar) {
+                    return 'Similar hadith';
+                }
+                var parts = [];
+                if (similar.book) {
+                    parts.push(similar.book);
+                }
+                if (similar.number) {
+                    parts.push('Hadith #' + similar.number);
+                }
+                return parts.length ? parts.join(' · ') : this.similarTabTitle(similar, 0);
+            },
+            similarContextSegments: function(similar) {
+                if (!similar) {
+                    return [];
+                }
+                var segments = [];
+                function pushSegment(text, level, clickable) {
+                    if (!text) {
+                        return;
+                    }
+                    segments.push({
+                        text: text,
+                        level: level || '',
+                        clickable: clickable !== false
+                    });
+                }
+                pushSegment(similar.volume, 'volume');
+                pushSegment(similar.part, 'part');
+                pushSegment(similar.section, 'section');
+                pushSegment(similar.chapter, 'chapter');
+                pushSegment(similar.source, 'source');
+                return segments;
             },
             jumpLevelForSimilar: function(similar) {
                 if (!similar) {
@@ -5214,7 +5530,8 @@ function setupVue(query, page, sortFields) {
                     volume: '',
                     part: '',
                     section: '',
-                    chapter: ''
+                    chapter: '',
+                    source: ''
                 };
                 if (targetLevel === 'volume' || targetLevel === 'part' || targetLevel === 'section' || targetLevel === 'chapter') {
                     selections.volume = strip(similar.volume || '').replace(/^Volume\s+/i, '').trim();
@@ -5227,6 +5544,9 @@ function setupVue(query, page, sortFields) {
                 }
                 if (targetLevel === 'chapter') {
                     selections.chapter = strip(similar.chapter || '').trim();
+                }
+                if (targetLevel === 'source') {
+                    selections.source = strip(similar.source || '').trim();
                 }
                 var nextQuery = buildQueryFromFilters(selections);
                 var nextSort = buildSortFields(selections);
@@ -5679,6 +5999,7 @@ function decorateNarrationForSimilarity(narration) {
     narration.quranicInsightsOpen = false;
     narration.quranicDropdownOpen = false;
     narration.quranicInsightsActiveIndex = 0;
+    narration.sidecarActiveTab = 'metadata';
     narration.selectedForCollection = false;
     return narration;
 }
