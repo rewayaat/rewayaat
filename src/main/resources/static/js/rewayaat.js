@@ -2250,7 +2250,7 @@ function indicateActionButtonPending(buttonId) {
             type: 'info',
             timeout: 3500,
             theme: 'mint',
-            layout: 'bottomRight',
+            layout: 'topRight',
             killer: true
         }).show();
     }
