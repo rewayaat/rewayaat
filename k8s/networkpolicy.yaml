@@ -16,7 +16,7 @@ spec:
               kubernetes.io/metadata.name: ingress-nginx
       ports:
         - protocol: TCP
-          port: 8080
+          port: 8002
     - from:
         - namespaceSelector:
             matchLabels:
@@ -26,4 +26,4 @@ spec:
               kubernetes.io/metadata.name: monitoring
       ports:
         - protocol: TCP
-          port: 8081
+          port: 8003

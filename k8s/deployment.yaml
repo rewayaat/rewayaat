@@ -25,9 +25,9 @@ spec:
             allowPrivilegeEscalation: false
           ports:
             - name: http
-              containerPort: 8080
+              containerPort: 8002
             - name: management
-              containerPort: 8081
+              containerPort: 8003
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: "prod"
@@ -36,13 +36,13 @@ spec:
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness
-              port: 8081
+              port: 8003
             initialDelaySeconds: 20
             periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
-              port: 8081
+              port: 8003
             initialDelaySeconds: 60
             periodSeconds: 20
           resources:
