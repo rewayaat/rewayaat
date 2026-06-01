@@ -3300,11 +3300,17 @@ main.container::before {
 
 .home-search {
     width: min(100%, 920px);
-    background: transparent;
-    border: none;
+    background: transparent !important;
+    border: none !important;
     border-radius: 0;
     padding: 0;
     box-shadow: none;
+}
+
+.home-search .ts-wrapper,
+.home-search .ts-wrapper.form-control {
+    background: transparent !important;
+    border: none !important;
 }
 .home-search .ts-control {
     border: 1px solid rgba(247, 225, 166, 0.35) !important;
