@@ -12,7 +12,7 @@
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.css" rel="stylesheet"/>
     <link href="/css/sweetalert.css" rel="stylesheet" th:href="@{/css/sweetalert.css}"/>
     <link href="/css/noty.css" rel="stylesheet" th:href="@{/css/noty.css}"/>
-    <link href="/css/manuscript.css?v=911" rel="stylesheet" th:href="@{/css/manuscript.css?v=911}"/>
+    <link href="/css/manuscript.css?v=912" rel="stylesheet" th:href="@{/css/manuscript.css?v=912}"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600;700&family=Scheherazade+New:wght@400;700&display=swap"
           rel="stylesheet"/>
     <link href="/css/pace.css" rel="stylesheet" th:href="@{/css/pace.css}"/>
@@ -645,10 +645,9 @@
                                                     <span class="quranic-snippet__section" v-if="snippet.section_title">&mdash; {{snippet.section_title}}</span>
                                                     <button type="button"
                                                             class="quranic-snippet__expand"
-                                                            v-if="(snippet.commentary_text || '').length > 200"
-                                                            v-on:click="toggleSnippetExpand(narration, sidx)"
-                                                            v-bind:title="isSnippetExpanded(narration, sidx) ? 'Collapse' : 'Show full snippet'">
-                                                        <i class="fa" v-bind:class="isSnippetExpanded(narration, sidx) ? 'fa-minus' : 'fa-plus'"></i>
+                                                            v-if="snippetPreview(snippet.commentary_text).length < (snippet.commentary_text || '').replace(/<\/?em>/g,'').trim().length"
+                                                            v-on:click="toggleSnippetExpand(narration, sidx)">
+                                                        {{ isSnippetExpanded(narration, sidx) ? 'Collapse' : 'Expand' }}
                                                     </button>
                                                 </div>
                                                 <div class="quranic-snippet__text"

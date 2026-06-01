@@ -1,12 +1,31 @@
 <section class="home-hero">
     <div class="home-hero__card">
-        <div class="home-hero__eyebrow">The Academy for Learning Islam</div>
-        <h1 class="home-hero__title">Search the Hadith Collection</h1>
-        <p class="home-hero__lead">
-            Explore trusted narrations in Arabic and English. Search by phrase, topic, or book.
-        </p>
-        <div id="hero-search-slot" class="home-hero__search"></div>
-        <div class="home-hero__note">Tip: Use quotes for exact phrases, e.g. “pledge of allegiance”.</div>
+        <div class="home-hero__layout">
+            <div class="home-hero__content">
+                <div class="home-hero__eyebrow">The Hadith Database Project</div>
+                <h1 class="home-hero__title">Search the Collection</h1>
+                <p class="home-hero__lead">
+                    Explore trusted narrations in Arabic and English. Search by phrase, topic, or book.
+                </p>
+                <div class="home-hero__signals">
+                    <span class="home-hero__signal"><i class="fa fa-clone" aria-hidden="true"></i> View similar hadith</span>
+                    <span class="home-hero__signal"><i class="fa fa-tags" aria-hidden="true"></i> Explore hadith by topic</span>
+                </div>
+                <div class="home-hero__social">
+                    <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer" class="home-hero__social-link" title="GitHub">
+                        <i class="fa fa-github"></i>
+                    </a>
+                    <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer" class="home-hero__social-link" title="REST API Docs">
+                        <i class="fa fa-code"></i>
+                    </a>
+                    <a href="mailto:rewayaat.org@gmail.com" class="home-hero__social-link" title="Contact">
+                        <i class="fa fa-envelope"></i>
+                    </a>
+                </div>
+                <div id="hero-search-slot" class="home-hero__search"></div>
+                <div class="home-hero__note">Tip: Use quotes for exact phrases, e.g. “pledge of allegiance”.</div>
+            </div>
+        </div>
     </div>
 </section>
 
@@ -59,7 +78,10 @@
                 </select>
             </div>
         </div>
-        <button id="browseSubmitBtn" class="btn btn-primary btn-sm browse-action" disabled>Browse Hadith</button>
+        <button id="browseSubmitBtn" class="btn btn-primary btn-sm browse-action" disabled>
+            <i class="fa fa-refresh" aria-hidden="true" style="margin-right: 4px;"></i>
+            Browse Hadith
+        </button>
     </div>
     <div id="browseMeta" class="browse-meta text-muted"></div>
 </section>

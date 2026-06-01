@@ -454,13 +454,13 @@ a:hover {
 
 /* Search button with border instead of background - inside search bar */
 .search-btn-with-border {
-    border: none;
-    background: rgba(247, 225, 166, 0.12);
-    color: var(--gold-light);
-    width: 32px;
-    height: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.7);
+    width: 30px;
+    height: 30px;
     padding: 0;
-    font-size: 0.88rem;
+    font-size: 0.82rem;
     border-radius: 50%;
     transition: all 150ms ease;
     position: relative;
@@ -468,10 +468,12 @@ a:hover {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    margin: 0 0.2rem;
 }
 
 .search-btn-with-border:hover {
-    background: rgba(247, 225, 166, 0.2);
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.35);
     color: #fff;
 }
 
@@ -1154,8 +1156,8 @@ body.is-reading-mode .menu-context-row { flex: 1 1 auto; min-width: 0; max-width
 .ts-control {
     min-height: 44px;
     max-height: 68px;
-    padding: 6px 160px 6px 12px;
-    border-radius: var(--radius-md);
+    padding: 6px 140px 6px 12px;
+    border-radius: 6px;
     border: 1.5px solid var(--border-strong);
     background: var(--surface);
     font-family: var(--font-body);
@@ -3147,26 +3149,27 @@ main.container::before {
 
 .quranic-snippet__expand {
     margin-left: auto;
-    width: 22px;
-    height: 22px;
-    border: 1px solid rgba(213, 170, 77, 0.3);
-    border-radius: 50%;
-    background: rgba(213, 170, 77, 0.08);
-    color: rgba(213, 170, 77, 0.7);
-    font-size: 0.6rem;
-    padding: 0;
+    border: 1px solid rgba(16, 35, 63, 0.15);
+    border-radius: 4px;
+    background: rgba(16, 35, 63, 0.04);
+    color: #51627a;
+    font-size: 0.62rem;
+    font-weight: 700;
+    padding: 0.15rem 0.45rem;
     display: inline-flex;
     align-items: center;
-    justify-content: center;
+    gap: 0.2rem;
     cursor: pointer;
     transition: all 150ms ease;
     flex-shrink: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
 .quranic-snippet__expand:hover {
-    background: rgba(213, 170, 77, 0.18);
-    border-color: rgba(213, 170, 77, 0.5);
-    color: rgba(213, 170, 77, 0.95);
+    background: rgba(16, 35, 63, 0.08);
+    border-color: rgba(16, 35, 63, 0.25);
+    color: #193150;
 }
 .quranic-snippet__section {
     color: var(--text-muted);
@@ -3303,19 +3306,58 @@ main.container::before {
     box-shadow: none;
 }
 .home-search .ts-control {
-    border-color: rgba(255,255,255,0.25);
-    background: rgba(255,255,255,0.97);
+    border-color: rgba(247, 225, 166, 0.35);
+    background: rgba(255,255,255,0.10);
+    color: #fff;
     box-shadow: var(--shadow-lg);
     font-size: 1rem;
     min-height: 48px;
     outline: none;
+    border-radius: 6px;
 }
 .home-search .ts-control:focus-within {
-    border-color: rgba(255,255,255,0.5);
-    box-shadow: var(--shadow-lg), 0 0 0 2px rgba(255,255,255,0.2);
+    border-color: rgba(247, 225, 166, 0.5);
+    background: rgba(255,255,255,0.10);
+    box-shadow: var(--shadow-lg), 0 0 0 2px rgba(247, 225, 166, 0.15);
     outline: none;
 }
+.home-search .ts-control input {
+    color: rgba(255,255,255,0.9) !important;
+    font-size: 1rem;
+}
+.home-search .ts-control input::placeholder {
+    color: rgba(255,255,255,0.4) !important;
+}
 .home-search .ts-dropdown { border-color: var(--border-strong); }
+
+.home-hero__social {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.home-hero__social-link {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.65);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    transition: all 150ms ease;
+}
+
+.home-hero__social-link:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: #fff;
+}
 
 .home-hero__note {
     margin-top: 1.25rem;
@@ -3454,22 +3496,36 @@ main.container::before {
 }
 
 .home-browse .browse-action.btn-primary {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.88rem;
+    font-weight: 700;
+    background: linear-gradient(180deg, #1a3a6b 0%, #0f2440 100%);
+    border: 1px solid var(--gold-light);
+    color: var(--gold-light);
+    border-radius: 12px;
     box-shadow: var(--shadow-sm);
+    transition: all 250ms ease;
+    line-height: 1;
 }
 .home-browse .browse-action.btn-primary:hover:not(:disabled) {
-    background: var(--primary-light);
-    border-color: var(--primary-light);
+    background: linear-gradient(180deg, #1d467f 0%, #122945 100%);
+    border-color: #f7e1a6;
+    color: #f7e1a6;
     transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 6px 16px rgba(16, 35, 63, 0.2);
 }
 .home-browse .browse-action.btn-primary:disabled {
     background: var(--border-strong);
     border-color: var(--border-strong);
     color: var(--text-muted);
     box-shadow: none;
+}
+.home-browse .browse-action.btn-primary.needs-update .fa-refresh {
+    animation: spin 1.2s linear infinite;
 }
 
 .home-tips, .home-notice { margin-top: 1.5rem; }
@@ -4920,11 +4976,19 @@ main.container {
     justify-content: center;
     background:
         radial-gradient(circle at 30% 30%, rgba(255,255,255,0.55), transparent 55%),
-        linear-gradient(180deg, rgba(30, 58, 95, 0.12), rgba(30, 58, 95, 0.06));
-    border: 1px solid rgba(16, 35, 63, 0.1);
-    color: var(--primary);
+        linear-gradient(180deg, rgba(30, 58, 95, 0.15), rgba(30, 58, 95, 0.08));
+    border: 1px solid rgba(213, 170, 77, 0.2);
+    color: rgba(30, 58, 95, 0.75);
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
     line-height: 1;
+}
+
+.browse-book-item:hover .browse-book-icon,
+.browse-book-card:hover .browse-book-icon {
+    border-color: rgba(213, 170, 77, 0.4);
+    background:
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,0.55), transparent 55%),
+        linear-gradient(180deg, rgba(30, 58, 95, 0.18), rgba(30, 58, 95, 0.1));
 }
 
 .browse-book-icon i {
@@ -4954,9 +5018,11 @@ main.container {
     min-height: 1.8rem;
     padding: 0.25rem 0.6rem;
     border-radius: 999px;
-    background: rgba(16, 35, 63, 0.05);
-    color: var(--text-secondary);
+    border: 1px solid rgba(16, 35, 63, 0.12);
+    background: rgba(213, 170, 77, 0.08);
+    color: rgba(30, 58, 95, 0.7);
     font-size: 0.7rem;
+    font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
 }
@@ -6636,22 +6702,21 @@ body.is-resizing-sidecar * {
     justify-content: center;
     gap: 0.75rem;
     margin-bottom: 0.3rem;
-    color: rgba(213, 170, 77, 0.72);
+    color: rgba(30, 58, 95, 0.55);
 }
 
 .hadith-card__ornament-line {
     flex: 1 1 120px;
     max-width: 220px;
     height: 1px;
-    background: linear-gradient(90deg, transparent 0%, rgba(213, 170, 77, 0.45) 50%, transparent 100%);
+    background: linear-gradient(90deg, transparent 0%, rgba(30, 58, 95, 0.3) 50%, transparent 100%);
 }
 
 .hadith-card__ornament-mark {
     font-family: var(--font-arabic);
     font-size: 1.15rem;
     line-height: 1;
-    color: rgba(213, 170, 77, 0.85);
-    text-shadow: 0 0 8px rgba(213, 170, 77, 0.15);
+    color: rgba(30, 58, 95, 0.65);
 }
 
 .hadith-divider {
@@ -6681,9 +6746,8 @@ body.is-resizing-sidecar * {
     height: 2.8rem;
     font-family: var(--font-arabic);
     font-size: 1.2rem;
-    color: rgba(213, 170, 77, 0.85);
+    color: rgba(213, 170, 77, 0.9);
     margin: 0 0.3rem;
-    text-shadow: 0 0 6px rgba(213, 170, 77, 0.18);
 }
 
 .hadith-divider__motif::before {
@@ -6691,7 +6755,7 @@ body.is-resizing-sidecar * {
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    border: 1px solid rgba(30, 58, 95, 0.18);
+    background: rgba(30, 58, 95, 0.12);
 }
 
 .hadith-divider__motif::after {
@@ -6699,8 +6763,8 @@ body.is-resizing-sidecar * {
     position: absolute;
     inset: 0.35rem;
     border-radius: 50%;
-    border: 1.5px solid rgba(213, 170, 77, 0.4);
-    background: rgba(213, 170, 77, 0.06);
+    border: 1.5px solid rgba(213, 170, 77, 0.5);
+    background: rgba(213, 170, 77, 0.08);
 }
 
 /* Ornamental side brackets */
