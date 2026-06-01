@@ -1,6 +1,7 @@
-name: Java CI
+name: Java CI (v1 — disabled)
 
-on: [ push ]
+on:
+  workflow_dispatch:
 
 jobs:
   build:
