@@ -13,12 +13,11 @@ class TopicTagsBackfillToolTest {
     @Test
     void aiRefineAll_preservesExistingTagsWhenAiReturnsNothing() throws Exception {
         Object mode = mode("ai_refine_all");
-        Method chooseTags = mode.getClass().getDeclaredMethod("chooseTags", List.class, List.class, List.class);
+        Method chooseTags = mode.getClass().getDeclaredMethod("chooseTags", List.class, List.class);
         chooseTags.setAccessible(true);
 
         @SuppressWarnings("unchecked")
         List<String> chosen = (List<String>) chooseTags.invoke(mode,
-                List.of("knowledge"),
                 List.of("knowledge"),
                 List.of());
 
@@ -28,12 +27,11 @@ class TopicTagsBackfillToolTest {
     @Test
     void aiRefineAll_replacesExistingTagsWhenAiReturnsSpecificTags() throws Exception {
         Object mode = mode("ai_refine_all");
-        Method chooseTags = mode.getClass().getDeclaredMethod("chooseTags", List.class, List.class, List.class);
+        Method chooseTags = mode.getClass().getDeclaredMethod("chooseTags", List.class, List.class);
         chooseTags.setAccessible(true);
 
         @SuppressWarnings("unchecked")
         List<String> chosen = (List<String>) chooseTags.invoke(mode,
-                List.of("knowledge"),
                 List.of("knowledge"),
                 List.of("ghusl"));
 
