@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/rewayaat/rewayaat.git
-    targetRevision: master
+    targetRevision: v2.0
     path: k8s
   destination:
     server: https://kubernetes.default.svc
