@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - deployment.yaml
+  - pdb.yaml
+  - hpa.yaml
+  - networkpolicy.yaml
+  - service.yaml
+  - servicemonitor.yaml
+  - grafana-dashboard.yaml
+  - ingress.yaml
+  - prometheus-rules.yaml
+images:
+  - name: rewayaat/rewayaat-v2
+    newTag: "v2-base"

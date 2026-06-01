@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rewayaat-v2
+  namespace: rewayaat-v2
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: rewayaat-v2
+  template:
+    metadata:
+      labels:
+        app: rewayaat-v2
+    spec:
+      containers:
+        - name: rewayaat-v2
+          # Overridden by k8s/kustomization.yaml images.newTag during GitOps deploys.
+          image: rewayaat/rewayaat-v2:v2-base
+          imagePullPolicy: Always
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: management
+              containerPort: 8081
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+            - name: ELASTIC_HOST
+              value: "elasticsearch-v2.elastic-v2.svc.cluster.local"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8081
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8081
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "2"
+              memory: "2Gi"

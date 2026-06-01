@@ -1,0 +1,67 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: rewayaat-v2-alerts
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: rewayaat-v2.rules
+      rules:
+        - alert: RewayaatV2CrashLooping
+          expr: rate(kube_pod_container_status_restarts_total{container="rewayaat-v2"}[10m]) > 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "rewayaat-v2 pod is crash-looping"
+            description: "Container {{ $labels.pod }} has restarted in the last 10 minutes."
+
+        - alert: RewayaatV2Down
+          expr: kube_deployment_status_replicas_available{deployment="rewayaat-v2"} < 1
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "rewayaat-v2 has zero available replicas"
+
+        - alert: RewayaatV2HighErrorRate
+          expr: |
+            sum(rate(http_server_requests_seconds_count{job="rewayaat-v2",status=~"5.."}[5m]))
+            / sum(rate(http_server_requests_seconds_count{job="rewayaat-v2"}[5m]))
+            > 0.05
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "rewayaat-v2 5xx error rate above 5%"
+
+        - alert: RewayaatV2HighLatency
+          expr: |
+            histogram_quantile(0.95,
+              sum by (le) (rate(http_server_requests_seconds_bucket{job="rewayaat-v2"}[5m])))
+            > 10
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "rewayaat-v2 p95 latency above 10s"
+
+        - alert: RewayaatV2HeapPressure
+          expr: |
+            jvm_memory_used_bytes{area="heap",job="rewayaat-v2"}
+            / jvm_memory_max_bytes{area="heap",job="rewayaat-v2"} > 0.90
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "JVM heap above 90%"
+
+        - alert: RewayaatV2Unreachable
+          expr: up{job="rewayaat-v2"} == 0
+          for: 3m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Prometheus cannot scrape rewayaat-v2"
