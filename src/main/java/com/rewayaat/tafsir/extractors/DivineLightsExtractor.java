@@ -14,12 +14,11 @@ package com.rewayaat.tafsir.extractors;
  */
 public class DivineLightsExtractor extends AlIslamHtmlExtractor {
 
-    private static final String BASE_URL = "https://al-islam.org/glorious-quran-translated-commentary-divine-lights-set-";
     private static final int[] MANZIL_SETS = {1, 2, 3, 4, 5, 6, 7};
 
     @Override
     protected String getBaseUrl() {
-        return BASE_URL;
+        return "https://al-islam.org/glorious-quran-translated-commentary-divine-lights-set-";
     }
 
     @Override
@@ -39,7 +38,10 @@ public class DivineLightsExtractor extends AlIslamHtmlExtractor {
 
     @Override
     protected String getVolumeUrl(int manzil) {
-        return BASE_URL + manzil;
+        return switch (manzil) {
+            case 1, 2 -> getBaseUrl() + manzil;
+            default -> getBaseUrl() + manzil + "-ali-muhammad-fazil-chinoy";
+        };
     }
 
     @Override

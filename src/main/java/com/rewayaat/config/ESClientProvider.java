@@ -103,6 +103,26 @@ public class ESClientProvider implements AutoCloseable {
         return client;
     }
 
+    /**
+     * Resets the static INDEX field. This is primarily useful for tests
+     * that need to override the index after system properties have been set.
+     */
+    public static synchronized void resetIndex() {
+        INDEX = resolveFromEnv("REWAYAAT_INDEX", "rewayaat_updated_e5large_20260320");
+    }
+
+    /**
+     * Resets the shared client connection to use current system properties.
+     * This is primarily useful for tests that need to switch Elasticsearch
+     * configurations at runtime.
+     */
+    public static synchronized void resetSharedClient() {
+        resetIndex();
+        String host = resolveFromEnv("ELASTIC_HOST", "localhost");
+        int port = parsePort(resolveFromEnv("ELASTIC_PORT", "9200"));
+        initShared(host, port);
+    }
+
     // ---- Static helpers ----
 
     private static synchronized void initShared(String host, int port) {

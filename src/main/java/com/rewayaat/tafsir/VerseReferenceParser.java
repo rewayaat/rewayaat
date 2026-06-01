@@ -13,17 +13,28 @@ public class VerseReferenceParser {
 
     // Patterns for different verse reference formats
     private static final Pattern[] VERSE_PATTERNS = {
-        // "Surah Al-Baqarah, Verses 21-22" or "Surah Al-Baqarah, Verse 255"
-        Pattern.compile("surah\\s+([\\w\\s-]+)\\s*,\\s+verses?\\s+(\\d+)(?:\\s*-\\s*(\\d+))?", Pattern.CASE_INSENSITIVE),
+        // "Surah Al-Baqarah, Verses 21-22", "Surah At-Tawbah – Verse 30",
+        // "Sura An-Nur - Verse 1", or "Surah An-Nisa',Verse 1"
+        Pattern.compile(
+                "sura(?:h)?\\s+([\\p{L}\\p{M}'‘’`-]+(?:\\s+[\\p{L}\\p{M}'‘’`-]+)*)\\s*(?:,|[-–—])?\\s*verses?\\s+(\\d+)(?:\\s*(?:[-–—]|to|&)\\s*(\\d+))?",
+                Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE),
+
+        // "Al-Baqarah Verses 1 - 7"
+        Pattern.compile(
+                "([\\p{L}\\p{M}'‘’`-]+(?:\\s+[\\p{L}\\p{M}'‘’`-]+)*)\\s+verses?\\s+(\\d+)(?:\\s*(?:[-–—]|to|&)\\s*(\\d+))?",
+                Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE),
 
         // "Al-Baqarah 21:22" or "Al-Baqarah 21:22-30"
         Pattern.compile("([\\w\\s-]+)\\s+(\\d+):(\\d+)(?:\\s*-\\s*(\\d+))?"),
 
         // "Exegesis of Surah Baqarah: Verses 1-62"
-        Pattern.compile("exegesis\\s+of\\s+surah\\s+([\\w\\s-]+)\\s*:\\s*verses?\\s+(\\d+)(?:\\s*-\\s*(\\d+))?", Pattern.CASE_INSENSITIVE),
+        Pattern.compile("exegesis\\s+of\\s+sura(?:h)?\\s+([\\w\\s-]+)\\s*:\\s*verses?\\s+(\\d+)(?:\\s*-\\s*(\\d+))?", Pattern.CASE_INSENSITIVE),
 
-        // "Surah 2:255" or "2:255"
-        Pattern.compile("(?:surah\\s+)?(\\d+)[:\\s]+(\\d+)(?:\\s*-\\s*(\\d+))?", Pattern.CASE_INSENSITIVE),
+        // "Exegesis of Surah Baqarah: Verse 2:1-2"
+        Pattern.compile(".*?verses?\\s+(\\d+):(\\d+)(?:\\s*[-–—]\\s*(\\d+))?.*", Pattern.CASE_INSENSITIVE),
+
+        // "Surah 2:255", "Sura 2:255", or "2:255"
+        Pattern.compile("(?:sura(?:h)?\\s+)?(\\d+)[:\\s]+(\\d+)(?:\\s*-\\s*(\\d+))?", Pattern.CASE_INSENSITIVE),
 
         // Hub-e-Ali format: "[2:255]" or "(2:255)"
         Pattern.compile("[\\[\\(](\\d+):(\\d+)[\\]\\)]"),
@@ -141,7 +152,7 @@ public class VerseReferenceParser {
 
     private static ParsedReference tryPattern(Pattern pattern, String text) {
         Matcher matcher = pattern.matcher(text);
-        if (!matcher.find()) {
+        if (!matcher.matches()) {
             return null;
         }
 

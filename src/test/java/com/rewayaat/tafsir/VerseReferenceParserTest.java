@@ -41,6 +41,53 @@ public class VerseReferenceParserTest {
         assertEquals("Verse key should be 2:255", "2:255", result.getVerseKey());
     }
 
+    @Test
+    public void testSingleVerseWithEnDashSeparator() {
+        String input = "Surah At-Tawbah – Verse 30";
+        ParsedReference result = VerseReferenceParser.parse(input);
+
+        assertNotNull("Result should not be null", result);
+        assertTrue("Result should be valid", result.isValid());
+        assertEquals("Surah number should be 9", Integer.valueOf(9), result.surahNumber);
+        assertEquals("Ayah start should be 30", Integer.valueOf(30), result.ayahStart);
+        assertEquals("Ayah end should equal ayah start", result.ayahStart, result.ayahEnd);
+    }
+
+    @Test
+    public void testVerseRangeWithEnDashSeparator() {
+        String input = "Surah Al-Kahf – Verses 1 - 3";
+        ParsedReference result = VerseReferenceParser.parse(input);
+
+        assertNotNull("Result should not be null", result);
+        assertTrue("Result should be valid", result.isValid());
+        assertEquals("Surah number should be 18", Integer.valueOf(18), result.surahNumber);
+        assertEquals("Ayah start should be 1", Integer.valueOf(1), result.ayahStart);
+        assertEquals("Ayah end should be 3", Integer.valueOf(3), result.ayahEnd);
+    }
+
+    @Test
+    public void testSingleVerseWithoutSpaceAfterComma() {
+        String input = "Surah An-Nisa',Verse 1";
+        ParsedReference result = VerseReferenceParser.parse(input);
+
+        assertNotNull("Result should not be null", result);
+        assertTrue("Result should be valid", result.isValid());
+        assertEquals("Surah number should be 4", Integer.valueOf(4), result.surahNumber);
+        assertEquals("Ayah start should be 1", Integer.valueOf(1), result.ayahStart);
+    }
+
+    @Test
+    public void testSingleVerseWithSuraVariant() {
+        String input = "Sura An-Nur - Verse 1";
+        ParsedReference result = VerseReferenceParser.parse(input);
+
+        assertNotNull("Result should not be null", result);
+        assertTrue("Result should be valid", result.isValid());
+        assertEquals("Surah number should be 24", Integer.valueOf(24), result.surahNumber);
+        assertEquals("Ayah start should be 1", Integer.valueOf(1), result.ayahStart);
+        assertEquals("Ayah end should equal ayah start", result.ayahStart, result.ayahEnd);
+    }
+
     // TC-VRP-03: Hub-e-Ali bracket format
     @Test
     public void testHubeAliBracketFormat() {

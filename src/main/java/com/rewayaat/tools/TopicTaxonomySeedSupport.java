@@ -182,7 +182,41 @@ final class TopicTaxonomySeedSupport {
             Map.entry("consultation", List.of("consultation", "shura", "شورى", "الشورى", "مشاورة")),
             Map.entry("adoption", List.of("adoption", "adopted", "تبني", "التبني")),
             Map.entry("ramadan", List.of("ramadan", "رمضان", "شهر رمضان")),
-            Map.entry("karbala", List.of("karbala", "كربلاء", "مأساة كربلاء"))
+            Map.entry("karbala", List.of("karbala", "كربلاء", "مأساة كربلاء")),
+            // Phase 2: Tag migration - 33 new tags
+            Map.entry("imam-ja-far", List.of("jafar al-sadiq", "imam jafar", "الصادق", "الإمام الصادق")),
+            Map.entry("imam-zayn-al-abidin", List.of("zayn al-abidin", "zayn al-abideen", "ali zayn al-abidin", "زين العابدين", "سجاد")),
+            Map.entry("yunus", List.of("prophet yunus", "jonah the prophet", "النبي يونس", "ذي النون", "صاحب الحوت")),
+            Map.entry("prophet-ismail", List.of("prophet ismail", "isma'il the prophet", "النبي إسماعيل", "ذبيح الله")),
+            Map.entry("taqiyyah", List.of("taqiyyah", "taqiyya", "dissimulation", "تقية", "تقية")),
+            Map.entry("generosity", List.of("generosity", "karam al-nas", "كرم الناس", "الكرم")),
+            Map.entry("contentment", List.of("contentment", "qana'ah", "qanaah", "قناعة", "القناعة")),
+            Map.entry("trustworthiness", List.of("trustworthiness", "amanah", "أمانة", "ؤتمن")),
+            Map.entry("modesty", List.of("modesty", "haya", "حياء", "استحياء")),
+            Map.entry("silence", List.of("silence", "samt", "سكوت", "الصمت")),
+            Map.entry("alcohol", List.of("alcohol", "wine", "khamr", "intoxicant", "خمر", "مسكر", "شرب الخمر")),
+            Map.entry("gambling", List.of("gambling", "maysir", "qimar", "ميسر", "قمار", "أكل مال بالباطل")),
+            Map.entry("adultery", List.of("adultery", "zina", "زنا", "الزنا", "السفاح")),
+            Map.entry("wudu", List.of("wudu", "ablution", "وضوء", "الوضوء", "توضأ")),
+            Map.entry("tayammum", List.of("tayammum", "dry ablution", "تيمم", "الصعيد")),
+            Map.entry("burial", List.of("burial", "dafn", "دفن الميت", "الدفن")),
+            Map.entry("blood-money", List.of("blood money", "diya", "دية", "الدية", "دية القتل")),
+            Map.entry("will", List.of("will", "testament", "wasiyyah", "وصية", "الوصية")),
+            Map.entry("iddah-waiting-period", List.of("iddah", "waiting period", "عدة", "العدة", "عدة المتوفى")),
+            Map.entry("fitrah", List.of("fitrah", "zakat al-fitr", "fidya", "فطرة", "صدقة الفطر")),
+            Map.entry("menstruation", List.of("menstruation", "hayd", "حيض", "الحيض", "استحاضة")),
+            Map.entry("itikaf", List.of("itikaf", "spiritual retreat", "اعتكاف", "الاعتكاف", "في المساجد")),
+            Map.entry("tawaf", List.of("tawaf", "circumambulation", "طواف", "الطواف", "طواف البيت")),
+            Map.entry("sai", List.of("sa'i", "safa marwa", "سعي", "السعي", "سعي بين الصفا")),
+            Map.entry("day-of-judgement", List.of("day of judgment", "day of resurrection", "yawm al-din", "يوم القيامة", "يوم الدين", "الحساب")),
+            Map.entry("sirat-bridge", List.of("sirat", "sirat bridge", "bridge over hell", "صراط", "الصراط", "صراط المستقيم")),
+            Map.entry("certainty", List.of("yaqin", "certainty", "يقين")),
+            Map.entry("names-of-god", List.of("names of god", "beautiful names", "asma allah", "أسماء الله الحسنى")),
+            Map.entry("tanzih", List.of("tanzih", "divine transcendence", "تنزيه", "تنزيه الله")),
+            Map.entry("narrator-criticism", List.of("narrator criticism", "rijal", "al-jarh wa al-ta'dil", "جرح وتعديل", "رجال الحديث")),
+            Map.entry("imam-baqir", List.of("muhammad al-baqir", "imam baqir", "الباقر", "الإمام الباقر", "باقر العلوم")),
+            Map.entry("imam-jawad", List.of("muhammad al-jawad", "imam al-jawad", "imam al-taqi", "الجواد", "التقي")),
+            Map.entry("imam-hadi", List.of("ali al-hadi", "imam al-hadi", "الهادي", "الإمام الهادي"))
     );
 
     private static final Set<String> HEADING_ONLY_SLUGS = Set.of(
@@ -206,7 +240,15 @@ final class TopicTaxonomySeedSupport {
             "yusuf",
             "ayyub",
             "maryam",
-            "pharaoh"
+            "pharaoh",
+            // Phase 2: Tag migration - new Imams and prophets
+            "imam-ja-far",
+            "imam-zayn-al-abidin",
+            "imam-baqir",
+            "imam-jawad",
+            "imam-hadi",
+            "yunus",
+            "prophet-ismail"
     );
 
     private static final Set<String> SPECIALIZED_SEED_ONLY_SLUGS = Set.of(

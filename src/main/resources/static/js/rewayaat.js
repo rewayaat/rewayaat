@@ -5433,7 +5433,8 @@ function setupVue(query, page, sortFields) {
             },
             snippetPreview: function(text) {
                 if (!text) return '';
-                var t = String(text).trim();
+                // Strip em tags for plain-text preview
+                var t = String(text).replace(/<\/?em>/g, '').trim();
                 if (t.length <= 200) return t;
                 // Extract first ~2 sentences
                 var match = t.match(/^(.+?[.!?](?:\s|$)){1,2}/);
@@ -5446,19 +5447,11 @@ function setupVue(query, page, sortFields) {
                 return (this.snippetPreview(text) || '').length;
             },
             snippetFullHtml: function(snippet) {
+                // Return the commentary text as-is — it already has <em> excerpt highlights
                 var text = (snippet && snippet.commentary_text) || '';
                 if (!text) return '';
-                var preview = this.snippetPreview(text);
-                if (preview.length >= text.trim().length) return text;
-                // Find preview portion in full text and wrap in <strong>
-                var idx = text.indexOf(preview);
-                if (idx >= 0) {
-                    return text.substring(0, idx)
-                        + '<strong>' + preview + '</strong>'
-                        + text.substring(idx + preview.length);
-                }
-                // Fallback: bold first 2 sentences
-                return '<strong>' + preview + '</strong>' + text.substring(preview.length);
+                // Strip trailing ellipsis from truncated snippets
+                return text.replace(/\s*\.{3,}\s*$/, '');
             },
             snippetExpandKey: function(narration, sidx) {
                 return (narration._id || narration.id || '') + '-snippet-' + sidx;

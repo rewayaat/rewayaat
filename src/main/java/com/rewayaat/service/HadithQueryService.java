@@ -21,9 +21,35 @@ public class HadithQueryService {
 
     private static final Logger log = LoggerFactory.getLogger(HadithQueryService.class);
 
+    // Fields that are already keyword type (no .keyword subfield needed)
+    private static final String[] KEYWORD_ONLY_FIELDS = new String[]{"book", "volume", "part", "section", "number", "edition", "publisher"};
+
     private String[] docFields = new String[]{"_id:", "source:", "book:", "number:", "part:",
         "edition:", "chapter:", "publisher:", "section:", "tags:", "volume:", "notes:", "arabic:",
         "gradings:"};
+
+    private boolean isKeywordOnlyField(String fieldName) {
+        for (String kwField : KEYWORD_ONLY_FIELDS) {
+            if (kwField.equals(fieldName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String getSortField(String fieldName) {
+        // For keyword-only fields, use the field name directly
+        // For text fields with keyword subfields, use .keyword suffix
+        if (isKeywordOnlyField(fieldName)) {
+            return fieldName;
+        }
+        // For number field, keep as is (it's keyword type but we handle it specially)
+        if ("number".equals(fieldName)) {
+            return fieldName + ".keyword";
+        }
+        // Default: try .keyword subfield
+        return fieldName + ".keyword";
+    }
 
     public List<SortOptions> setupSortBuilders(String sortFields) {
         List<SortOptions> sortBuilders = new ArrayList<>();
@@ -32,16 +58,17 @@ public class HadithQueryService {
         } else {
             String[] fieldSorts = sortFields.split(",");
             for (String fieldSort : fieldSorts) {
-                String field = fieldSort.split(":")[0] + ".keyword";
+                String field = fieldSort.split(":")[0];
+                String sortField = getSortField(field);
                 if (field.startsWith("number")) {
                     sortBuilders.add(SortOptions.of(s -> s.script(ss -> ss
                             .type(ScriptSortType.Number)
                             .order(parseOrder(fieldSort))
                             .script(Script.of(sc -> sc.source(src -> src.scriptString(
-                                    "Integer.parseInt(doc['number.keyword'].value)")))))));
+                                    "Integer.parseInt(doc['number'].value)")))))));
                 } else {
                     sortBuilders.add(SortOptions.of(s -> s.field(f -> f
-                            .field(field)
+                            .field(sortField)
                             .order(parseOrder(fieldSort)))));
                 }
             }
@@ -89,10 +116,13 @@ public class HadithQueryService {
         splitted.add(result.toString());
         for (String s : splitted) {
             s = s.trim();
+            if (s.isEmpty()) {
+                continue; // Skip empty strings to avoid invalid "~" queries
+            }
             s = normalizeFieldAlias(s);
             if (!strictMatchMode &&
                     !s.contains("~") && !s.contains(":") && !s.contains("^") && !s.contains("(") && !s.contains("\"") &&
-                    !s.trim().startsWith("+") && !s.trim().startsWith("-")) {
+                    !s.startsWith("+") && !s.startsWith("-")) {
                 s += "~";
             }
             allFieldItems.add(s);

@@ -181,6 +181,37 @@ public class CollectionController {
     }
 
     @CrossOrigin(origins = {"*"}, allowCredentials = "false")
+    @Operation(summary = "Update collection name.")
+    @RequestMapping(value = "/{id}", method = RequestMethod.PATCH, produces = "application/json")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> updateCollection(
+            @CookieValue(value = AuthService.AUTH_COOKIE, required = false) String sessionToken,
+            @PathVariable("id") String collectionId,
+            @RequestBody Map<String, String> payload) throws Exception {
+        UserAccount user = authService.authenticatedUser(sessionToken);
+        if (user == null) {
+            return unauthorized();
+        }
+        String newName = valueStringMap(payload, "name");
+        if (newName.isEmpty()) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("ok", false);
+            error.put("message", "name is required.");
+            return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        }
+        UserCollection updated = userCollectionService.updateCollectionName(user.getEmail(), collectionId, newName);
+        Map<String, Object> response = new HashMap<>();
+        if (updated == null) {
+            response.put("ok", false);
+            response.put("message", "Collection not found.");
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+        response.put("ok", true);
+        response.put("collection", updated);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @CrossOrigin(origins = {"*"}, allowCredentials = "false")
     @Operation(summary = "Remove a hadith from a collection.")
     @RequestMapping(value = "/{id}/hadith/{hadithId}", method = RequestMethod.DELETE, produces = "application/json")
     @ResponseBody

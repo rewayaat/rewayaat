@@ -55,3 +55,34 @@ Thumbs.db
 
 # Application specific
 application-local.properties
+
+# Claude Code
+.claude/
+
+# Python
+__pycache__/
+*.pyc
+
+# Temp/session files
+tmp/
+*.txt.bak
+20*-local-command-caveat*
+
+# Notebooks (local data)
+notebooks/
+
+# Local scripts (debug/batch processing)
+debug_*.py
+process_batch_*.py
+judge_*.py
+check_*.py
+detailed_analysis.py
+extract_quotes.py
+manual_review_results.json
+remove-llm-rerank.patch
+
+# Binary docs
+*.docx
+
+# Misc local files
+v45-production-release-plan.md

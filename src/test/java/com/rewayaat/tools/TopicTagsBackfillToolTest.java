@@ -52,8 +52,9 @@ class TopicTagsBackfillToolTest {
         instructions.setAccessible(true);
         String text = (String) instructions.invoke(mode);
 
-        assertTrue(text.contains("Treat existing_tags and rule_suggestions as weak hints"));
-        assertTrue(text.contains("Each document must receive at least 1 slug"));
+        // Check for actual content in the AI_REFINE_ALL classification instructions
+        assertTrue(text.contains("classify Shia hadith into controlled taxonomy slugs"));
+        assertTrue(text.contains("Most hadith should receive 1-5 direct tags"));
     }
 
     private Object mode(String value) throws Exception {

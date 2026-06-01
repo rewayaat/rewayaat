@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Extractor for "An Enlightening Commentary into the Light of the Holy Quran".
@@ -28,6 +30,10 @@ public class EnlighteningCommentaryExtractor extends AlIslamHtmlExtractor {
     private static final Logger LOGGER = LoggerFactory.getLogger(EnlighteningCommentaryExtractor.class);
     private static final String BASE_URL = "https://al-islam.org/enlightening-commentary-light-holy-quran-vol-";
     private static final int[] VOLUMES = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
+    private static final Pattern RELATIVE_VERSE_HEADING =
+            Pattern.compile("^verses?\\s+(\\d+)(?:\\s*[-–—]\\s*(\\d+))?.*", Pattern.CASE_INSENSITIVE);
+    private static final Pattern INLINE_VERSE_KEY =
+            Pattern.compile("\\((\\d+):(\\d+)(?:\\s*[-–—]\\s*(\\d+))?\\)");
 
     @Override
     protected String getBaseUrl() {
@@ -91,17 +97,20 @@ public class EnlighteningCommentaryExtractor extends AlIslamHtmlExtractor {
             return super.extractFromSectionPage(page, url);
         }
 
+        VerseReferenceParser.ParsedReference previousReference = null;
+
         // Extract content for each verse
         for (Element heading : verseHeadings) {
             String headingText = heading.text();
+            String commentary = extractContentAfterHeading(page, heading, "h2");
 
-            // Try to parse verse reference from heading
-            VerseReferenceParser.ParsedReference parsedRef = VerseReferenceParser.parse(headingText);
+            // Try to parse verse reference from heading, then fall back to page-local context.
+            VerseReferenceParser.ParsedReference parsedRef =
+                    parseHeadingReference(headingText, commentary, previousReference);
             if (parsedRef != null && parsedRef.isValid()) {
                 LOGGER.debug("Parsed verse heading: {} -> {}", headingText, parsedRef);
+                previousReference = parsedRef;
 
-                // Extract content after this heading until next h2
-                String commentary = extractContentAfterHeading(page, heading, "h2");
                 if (commentary != null && commentary.length() > 50) {
                     TafsirDocument doc = createDocument(parsedRef, commentary, null, headingText, url);
                     documents.add(doc);
@@ -118,6 +127,48 @@ public class EnlighteningCommentaryExtractor extends AlIslamHtmlExtractor {
 
         LOGGER.info("Extracted {} documents from page", documents.size());
         return documents;
+    }
+
+    private VerseReferenceParser.ParsedReference parseHeadingReference(
+            String headingText,
+            String commentary,
+            VerseReferenceParser.ParsedReference previousReference
+    ) {
+        VerseReferenceParser.ParsedReference parsedRef = VerseReferenceParser.parse(headingText);
+        if (parsedRef != null && parsedRef.isValid()) {
+            return parsedRef;
+        }
+
+        Matcher relativeHeading = RELATIVE_VERSE_HEADING.matcher(headingText);
+        if (!relativeHeading.matches()) {
+            return null;
+        }
+
+        Integer ayahStart = Integer.parseInt(relativeHeading.group(1));
+        Integer ayahEnd = relativeHeading.group(2) != null
+                ? Integer.parseInt(relativeHeading.group(2))
+                : ayahStart;
+
+        if (previousReference != null && previousReference.isValid()) {
+            return new VerseReferenceParser.ParsedReference(previousReference.surahNumber, ayahStart, ayahEnd);
+        }
+
+        if (commentary != null) {
+            Matcher inlineReference = INLINE_VERSE_KEY.matcher(commentary);
+            if (inlineReference.find()) {
+                Integer surahNumber = Integer.parseInt(inlineReference.group(1));
+                Integer inlineAyahStart = Integer.parseInt(inlineReference.group(2));
+                Integer inlineAyahEnd = inlineReference.group(3) != null
+                        ? Integer.parseInt(inlineReference.group(3))
+                        : inlineAyahStart;
+                if (inlineAyahStart.equals(ayahStart)) {
+                    return new VerseReferenceParser.ParsedReference(surahNumber, ayahStart,
+                            relativeHeading.group(2) != null ? ayahEnd : inlineAyahEnd);
+                }
+            }
+        }
+
+        return null;
     }
 
     private String extractContentAfterHeading(Document page, Element heading, String stopTag) {

@@ -188,6 +188,18 @@ public class UserCollectionService {
         }
     }
 
+    public UserCollection updateCollectionName(String ownerEmail, String collectionId, String newName) throws Exception {
+        UserCollection collection = findCollectionById(collectionId);
+        if (collection == null || !ownerEmail.equals(collection.getOwnerEmail())) {
+            return null;
+        }
+        String cleanName = sanitizeName(newName);
+        collection.setName(cleanName);
+        collection.setUpdatedAt(System.currentTimeMillis());
+        saveCollection(collection);
+        return collection;
+    }
+
     public HadithObjectCollection collectionHadith(String ownerEmail, String collectionId, int page, int perPage,
             List<String> topicTags) throws Exception {
         UserCollection collection = findCollectionById(collectionId);

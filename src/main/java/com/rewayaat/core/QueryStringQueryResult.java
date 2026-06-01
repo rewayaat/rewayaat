@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -75,7 +77,20 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
         List<HadithObject> hadithes = new ArrayList<HadithObject>();
         Highlight highlightBuilder = getHighlightBuilder(this.query);
         SearchRequest searchRequest = buildSearchRequest(query, highlightBuilder);
+        boolean hasTopicTags = !topicTags.isEmpty() || !topicTagsAny.isEmpty();
+
         try (ESClientProvider provider = new ESClientProvider()) {
+            // If topic tags are applied, first get the base count without topic tag filters
+            long baseHits = 0;
+            if (hasTopicTags) {
+                SearchRequest baseRequest = buildBaseSearchRequest(query, highlightBuilder);
+                SearchResponse<Map> baseResp = provider.client().search(baseRequest, Map.class);
+                baseHits = baseResp.hits().total() == null ? 0 : baseResp.hits().total().value();
+                if (maxResultWindow > 0) {
+                    baseHits = Math.min(baseHits, maxResultWindow);
+                }
+            }
+
             SearchResponse<Map> resp = provider.client().search(searchRequest, Map.class);
             List<Hit<Map>> results = resp.hits().hits();
             LOGGER.debug("Query returned {} results", results.size());
@@ -86,8 +101,13 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
             if (maxResultWindow > 0) {
                 totalHits = Math.min(totalHits, maxResultWindow);
             }
+            // If no topic tags were applied, baseHits equals totalHits
+            if (!hasTopicTags) {
+                baseHits = totalHits;
+            }
+
             HadithObjectCollection collection = new HadithObjectCollection(
-                    new LinkedList<>(new LinkedHashSet<>(hadithes)), totalHits);
+                    new LinkedList<>(new LinkedHashSet<>(hadithes)), totalHits, baseHits);
             collection.setTopicTagFacets(extractTopicTagFacets(resp));
             return collection;
         }
@@ -126,17 +146,47 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
         // Use match_all for empty queries to avoid search_phase_execution_exception
         String finalQuery = (fuzziedQuery == null || fuzziedQuery.trim().isEmpty()) ? "*" : fuzziedQuery.trim();
 
+        LOGGER.debug("buildSearchRequest: strictMatchMode={}, finalQuery={}", strictMatchMode, finalQuery);
+
+        // Parse field-scoped queries for strict mode
+        List<FieldScope> fieldScopes = strictMatchMode ? parseFieldScopes(finalQuery) : List.of();
+
+        LOGGER.debug("buildSearchRequest: fieldScopes.size={}", fieldScopes.size());
+
         SearchRequest.Builder builder = new SearchRequest.Builder()
                 .index(ESClientProvider.INDEX)
                 .searchType(SearchType.DfsQueryThenFetch)
                 .query(q -> q.bool(b -> {
-                    b.must(s -> s.queryString(qs -> {
-                        qs.query(finalQuery);
-                        if (strictMatchMode) {
-                            qs.defaultOperator(Operator.And);
+                    // In strict mode with field scopes, use wildcard for exact field matching
+                    // This handles special characters better than match_phrase with search_analyzers
+                    if (strictMatchMode && !fieldScopes.isEmpty()) {
+                        LOGGER.debug("Using wildcard queries for {} field scopes", fieldScopes.size());
+                        for (FieldScope scope : fieldScopes) {
+                            // For keyword-only fields (book, volume, etc.), use term query
+                            // For text fields (chapter, etc.), use wildcard on .keyword subfield
+                            String field = isKeywordOnlyField(scope.field) ? scope.field : scope.field + ".keyword";
+                            String value = scope.field.equals("book") ? scope.value : "*" + scope.value + "*";
+                            LOGGER.debug("Adding query: {} = {}, using field: {}, value: {}", scope.field, scope.value, field, value);
+                            if (scope.field.equals("book") || isSimpleValueField(scope.field)) {
+                                // Use term query for simple fields - use original scope.value, not wildcard value
+                                LOGGER.debug("Using TERM query: {} = {}", field, scope.value);
+                                b.must(m -> m.term(t -> t.field(field).value(scope.value)));
+                            } else {
+                                // Use wildcard for text fields with special characters
+                                LOGGER.debug("Using WILDCARD query: {} = {}", field, value);
+                                b.must(m -> m.wildcard(w -> w.field(field).value(value)));
+                            }
                         }
-                        return qs;
-                    }));
+                    } else {
+                        // Standard query_string query for non-strict mode or no field scopes
+                        b.must(s -> s.queryString(qs -> {
+                            qs.query(finalQuery);
+                            if (strictMatchMode) {
+                                qs.defaultOperator(Operator.And);
+                            }
+                            return qs;
+                        }));
+                    }
                     for (String topicTag : topicTags) {
                         List<String> expanded = expandSelectedTag(topicTag);
                         if (expanded.size() == 1) {
@@ -172,6 +222,55 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
         return builder.build();
     }
 
+    /**
+     * Builds a search request without topic tag filters to get the base count.
+     * Used to calculate the denominator for "showing X/Y results" display.
+     */
+    private SearchRequest buildBaseSearchRequest(
+            String fuzziedQuery, Highlight highlightBuilder) throws UnknownHostException {
+        String finalQuery = (fuzziedQuery == null || fuzziedQuery.trim().isEmpty()) ? "*" : fuzziedQuery.trim();
+
+        // Parse field-scoped queries for strict mode
+        List<FieldScope> fieldScopes = strictMatchMode ? parseFieldScopes(finalQuery) : List.of();
+
+        SearchRequest.Builder builder = new SearchRequest.Builder()
+                .index(ESClientProvider.INDEX)
+                .searchType(SearchType.DfsQueryThenFetch)
+                .query(q -> q.bool(b -> {
+                    // In strict mode with field scopes, use wildcard for exact field matching
+                    if (strictMatchMode && !fieldScopes.isEmpty()) {
+                        for (FieldScope scope : fieldScopes) {
+                            String field = isKeywordOnlyField(scope.field) ? scope.field : scope.field + ".keyword";
+                            String value = scope.field.equals("book") ? scope.value : "*" + scope.value + "*";
+                            if (scope.field.equals("book") || isSimpleValueField(scope.field)) {
+                                // Use term query with original value, not wildcard value
+                                b.must(m -> m.term(t -> t.field(field).value(scope.value)));
+                            } else {
+                                b.must(m -> m.wildcard(w -> w.field(field).value(value)));
+                            }
+                        }
+                    } else {
+                        // Standard query_string query for non-strict mode or no field scopes
+                        b.must(s -> s.queryString(qs -> {
+                            qs.query(finalQuery);
+                            if (strictMatchMode) {
+                                qs.defaultOperator(Operator.And);
+                            }
+                            return qs;
+                        }));
+                    }
+                    // Note: No topic tag filters here - we want the base count
+                    return b;
+                }))
+                .from(0)
+                .size(0); // We only need the count, not actual results
+
+        for (SortOptions sort : this.sortBuilders) {
+            builder.sort(sort);
+        }
+        return builder.build();
+    }
+
     private Highlight getHighlightBuilder(String fuzziedQuery) {
         Highlight.Builder highlightBuilder = new Highlight.Builder()
                 .fields(
@@ -191,7 +290,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                 .highlightQuery(q -> {
                     String highlightQuery = (query == null || query.trim().isEmpty()) ? "*" : query.trim();
                     return q.queryString(qs -> {
-                        qs.query(highlightQuery).defaultField("*").analyzer("search_analyzer");
+                        qs.query(highlightQuery).defaultField("*");
                         if (strictMatchMode) {
                             qs.defaultOperator(Operator.And);
                         }
@@ -207,6 +306,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
             return new LinkedHashMap<>();
         }
         try {
+            long maxCount = maxResultWindow > 0 ? maxResultWindow : Long.MAX_VALUE;
             return response.aggregations()
                     .get("topic_tag_counts")
                     .sterms()
@@ -216,7 +316,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                     .filter(Objects::nonNull)
                     .collect(Collectors.toMap(
                             bucket -> bucket.key().stringValue(),
-                            bucket -> bucket.docCount(),
+                            bucket -> Math.min(bucket.docCount(), maxCount),
                             (left, right) -> left,
                             LinkedHashMap::new));
         } catch (Exception ex) {
@@ -242,10 +342,10 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
         if (slug.isBlank()) {
             return List.of();
         }
-        LinkedHashSet<String> expanded = new LinkedHashSet<>();
-        expanded.add(slug);
-        expanded.addAll(TopicTaxonomySupport.descendantsOf(slug, TAXONOMY_CHILDREN));
-        return List.copyOf(expanded);
+        // Only return the tag itself for exact matching - no hierarchical expansion
+        // This means parent tags like "prayer" only match hadith with "prayer" tag directly,
+        // not hadith with child tags like "friday-prayer"
+        return List.of(slug);
     }
 
     private static List<TopicTaxonomySupport.TopicTaxonomyEntry> loadTaxonomy() {
@@ -255,5 +355,69 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
             LOGGER.warn("Unable to load taxonomy for hierarchical topic-tag filters.", ex);
             return List.of();
         }
+    }
+
+    /**
+     * Represents a field-scoped query like field:"value"
+     */
+    private static class FieldScope {
+        String field;
+        String value;
+
+        FieldScope(String field, String value) {
+            this.field = field;
+            this.value = value;
+        }
+    }
+
+    /**
+     * Fields that are keyword type (no .keyword subfield needed).
+     * These fields use exact matching without text analysis.
+     */
+    private static final String[] KEYWORD_ONLY_FIELDS = new String[]{"book", "volume", "part", "section", "number", "edition", "publisher"};
+
+    private boolean isKeywordOnlyField(String fieldName) {
+        for (String kwField : KEYWORD_ONLY_FIELDS) {
+            if (kwField.equals(fieldName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Fields that have simple values (numbers, short strings) suitable for term queries.
+     */
+    private boolean isSimpleValueField(String fieldName) {
+        return "volume".equals(fieldName) || "section".equals(fieldName) || "number".equals(fieldName);
+    }
+
+    /**
+     * Parses field-scoped queries from the query string.
+     * Handles patterns like: field:"quoted value" joined by " AND "
+     * Returns a list of FieldScopes.
+     */
+    private static List<FieldScope> parseFieldScopes(String query) {
+        List<FieldScope> scopes = new ArrayList<>();
+        if (query == null || query.trim().isEmpty()) {
+            return scopes;
+        }
+
+        // Pattern to match field:"value" - handles quoted values with any characters
+        // The query may have " AND " between field scopes in strict mode
+        Pattern pattern = Pattern.compile("(\\w+):\"([^\"]*)\"");
+        Matcher matcher = pattern.matcher(query);
+
+        while (matcher.find()) {
+            String field = matcher.group(1);
+            String value = matcher.group(2);
+            if (field != null && value != null) {
+                LOGGER.debug("Parsed field scope: {} = {}", field, value);
+                scopes.add(new FieldScope(field, value));
+            }
+        }
+
+        LOGGER.debug("Total field scopes parsed: {}", scopes.size());
+        return scopes;
     }
 }

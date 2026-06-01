@@ -10,6 +10,7 @@ import com.rewayaat.core.data.UserAccount;
 import com.rewayaat.service.AuthService;
 import com.rewayaat.service.HadithEditorAccessService;
 import com.rewayaat.service.HadithQueryService;
+import com.rewayaat.service.QuranicInsightsService;
 import com.rewayaat.service.SimilarHadithService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -60,7 +61,7 @@ public class HadithController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HadithController.class);
     private static final com.fasterxml.jackson.databind.ObjectMapper JSON = new com.fasterxml.jackson.databind.ObjectMapper();
-    private static final int SEARCH_MODE_MAX_RESULTS = 50;
+    private static final int SEARCH_MODE_MAX_RESULTS = 100;
     private static final Set<String> NON_PERSISTED_FIELDS = Set.of(
             "_id",
             "id",
@@ -82,7 +83,17 @@ public class HadithController {
             "similarError",
             "similarHighlightKey",
             "similarHighlightTone",
-            "_similarPrefetched");
+            "_similarPrefetched",
+            "quranicInsightsCount",
+            "quranicInsightsCountLoading",
+            "quranicInsightsItemsLoading",
+            "quranicInsightsItemsLoaded",
+            "quranicInsightsItems",
+            "quranicInsightsOpen",
+            "quranicInsightsActiveIndex",
+            "quranicInsightsError",
+            "_quranicInsightsPrefetched",
+            "sidecarActiveTab");
     private static final List<String> TEXT_FIELDS = List.of(
             "source",
             "book",
@@ -101,6 +112,8 @@ public class HadithController {
     private HadithQueryService hadithQueryService;
     @Autowired
     private SimilarHadithService similarHadithService;
+    @Autowired
+    private QuranicInsightsService quranicInsightsService;
     @Autowired
     private AuthService authService;
     @Autowired
@@ -232,9 +245,14 @@ public class HadithController {
             @Parameter(name = "page", description = "The page to return.")
             @RequestParam(value = "page", defaultValue = "1", required = false) int page,
             @Parameter(name = "per_page", description = "Number of similar hadith to include per page.")
-            @RequestParam(value = "per_page", defaultValue = "8", required = false) int perPage) throws Exception {
+            @RequestParam(value = "per_page", defaultValue = "8", required = false) int perPage,
+            @Parameter(name = "all", description = "If true, returns the full similar-hadith collection.", required = false)
+            @RequestParam(value = "all", defaultValue = "false", required = false) boolean all) throws Exception {
         if (page < 1) {
             page = 1;
+        }
+        if (all) {
+            return similarHadithService.findSimilar(id, 0, Integer.MAX_VALUE);
         }
         if (perPage > 25) {
             perPage = 25;
@@ -243,6 +261,25 @@ public class HadithController {
             perPage = 0;
         }
         return similarHadithService.findSimilar(id, page - 1, perPage);
+    }
+
+    @CrossOrigin(origins = { "*" }, allowCredentials = "false")
+    @Operation(summary = "Returns Quranic insight verse candidates for a given narration id.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Returns Quranic insight candidates."),
+            @ApiResponse(responseCode = "400", description = "Bad request"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    @RequestMapping(value = "/quranic_insights", method = RequestMethod.GET, produces = "application/json")
+    @ResponseBody
+    public Map<String, Object> quranicInsights(
+            @Parameter(name = "id", description = "The source narration id.", required = true)
+            @RequestParam(value = "id") String id,
+            @Parameter(name = "count_only", description = "If true, returns only the candidate count.", required = false)
+            @RequestParam(value = "count_only", defaultValue = "false", required = false) boolean countOnly,
+            @Parameter(name = "all", description = "If true, returns the full Quranic insight candidate list.", required = false)
+            @RequestParam(value = "all", defaultValue = "false", required = false) boolean all) {
+        return quranicInsightsService.insightOverview(id, countOnly, all);
     }
 
     @CrossOrigin(origins = { "*" }, allowCredentials = "false")

@@ -1,11 +1,9 @@
 package com.rewayaat.tools;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.rewayaat.config.ESClientProvider;
 
 import java.io.IOException;
 import java.net.URI;
@@ -50,6 +48,7 @@ public final class QuranVerseTaggingTool {
     private static final String CHECKPOINT_FILE = readString("QURAN_TAGGING_CHECKPOINT_FILE",
             "/tmp/quran-tagging-checkpoint.json");
     private static final int RETRY_DELAY_MS = readInt("QURAN_TAGGING_RETRY_DELAY_MS", 2000);
+    private static final int BATCH_SIZE = readInt("QURAN_TAGGING_BATCH_SIZE", 50);
 
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
@@ -248,18 +247,11 @@ public final class QuranVerseTaggingTool {
                                 Map<String, TopicTaxonomySupport.TopicTaxonomyEntry> taxonomyBySlug) throws Exception {
 
         long changedCount = 0;
-        int batchSize = 50; // Process surahs in chunks of 50 verses
-
-        for (int i = 0; i < verses.size(); i += batchSize) {
-            int endIndex = Math.min(i + batchSize, verses.size());
+        for (int i = 0; i < verses.size(); i += BATCH_SIZE) {
+            int endIndex = Math.min(i + BATCH_SIZE, verses.size());
             List<JsonNode> batch = verses.subList(i, endIndex);
-
-            // Build AI payload for this batch
-            String aiPrompt = buildSurahAiPrompt(batch, taxonomy);
-
-            // Call AI agent
-            String completion = callAgent("quran_verse_tagging", aiPrompt, estimateMaxTokens(batch));
-            Map<String, List<String>> assignments = TopicTaxonomySupport.parseTagAssignments(completion, allowedSlugs);
+            Map<String, List<String>> assignments = classifyBatchWithAi(batch, taxonomy, allowedSlugs);
+            List<PendingUpdate> pending = new ArrayList<>();
 
             // Apply tags to verses in this batch
             for (JsonNode hit : batch) {
@@ -267,17 +259,27 @@ public final class QuranVerseTaggingTool {
                 JsonNode source = hit.path("_source");
                 List<String> existingTags = parseExistingTags(source.path("topic_tags"));
                 List<String> assignedTags = assignments.getOrDefault(verseId, List.of());
+                assignedTags = TopicTaxonomySupport.expandWithAncestors(assignedTags, taxonomyBySlug);
 
                 if (!assignedTags.equals(existingTags)) {
-                    if (!DRY_RUN) {
-                        updateVerseTags(verseId, assignedTags);
-                    }
+                    pending.add(new PendingUpdate(verseId, assignedTags));
                     changedCount++;
                 }
+            }
+            if (!DRY_RUN) {
+                bulkUpdateVerseTags(pending);
             }
         }
 
         return changedCount;
+    }
+
+    private Map<String, List<String>> classifyBatchWithAi(List<JsonNode> batch,
+                                                          List<TopicTaxonomySupport.TopicTaxonomyEntry> taxonomy,
+                                                          Set<String> allowedSlugs) throws Exception {
+        String aiPrompt = buildSurahAiPrompt(batch, taxonomy);
+        String completion = callAgent("quran_verse_tagging", aiPrompt, estimateMaxTokens(batch));
+        return TopicTaxonomySupport.parseTagAssignments(completion, allowedSlugs);
     }
 
     /**
@@ -320,19 +322,25 @@ public final class QuranVerseTaggingTool {
                 5. Choose the most specific child tag when the verse clearly supports it; otherwise choose the narrowest defensible parent.
                 6. Do not add both a parent and its child—the system adds ancestors automatically.
                 7. Do not invent slugs—only use tags from the provided taxonomy.
+                8. Prefer precise tags over broad tags, and avoid taxonomy-adjacent guesses.
 
                 QURAN-SPECIFIC GUIDELINES:
-                - Prophet tags (musa, ibrahim, isa, nuh, etc.): Use when the verse narrates stories or lessons about specific prophets
-                - Theological tags (tawhid, signs-of-god, creation, unseen): Use for verses about God's attributes, creation, or metaphysical concepts
-                - Ethical tags (taqwa, justice, charity, patience): Use for verses prescribing moral behavior or character traits
-                - Social/legal tags (family, warfare-jihad, halal, equality): Use for verses with social rulings or guidance
-                - Worship tags (prayer, fasting, hajj, zakat): Use for verses about ritual worship
-                - Narrative tags (previous-nations, pharaoh): Use for verses containing historical stories
+                - Use direct verse content first. Do not import distant tafsir associations unless the verse is conventionally and strongly identified with that theme.
+                - Prophet tags (musa, ibrahim, isa, nuh, etc.): Use only when the verse materially narrates, addresses, or draws a lesson about that specific prophet.
+                - Theological tags (tawhid, signs-of-god, creation, unseen): Use for verses substantially about God's attributes, creation, or metaphysical concepts.
+                - Ethical tags (taqwa, justice, charity, patience): Use for verses prescribing moral behavior or character traits.
+                - Social/legal tags (family, warfare-jihad, halal, equality): Use for verses with social rulings or guidance.
+                - Worship tags (prayer, fasting, hajj, zakat): Use for verses about ritual worship.
+                - Narrative tags (previous-nations, pharaoh): Use for verses containing historical stories.
+                - Never substitute one prophet for another. For example, do not use isa for Isaac. If a named prophet appears but that prophet does not exist as a taxonomy slug, prefer prophethood or another fitting non-person tag rather than the wrong prophet.
+                - Do not use person tags solely from pronouns or ambiguous references.
 
                 AVOID generic umbrella tags unless the verse is explicitly about that umbrella topic:
                 - Do NOT use faith merely because the verse mentions belief
                 - Do NOT use knowledge merely because the verse mentions knowing or learning
                 - Do NOT use quran for verses that are self-referential (about the Quran itself)
+                - Do NOT use tawhid on ordinary legal or exhortative verses merely because Allah is mentioned
+                - Do NOT use signs-of-god for isolated letters, brief oaths, or verses with no explicit evidentiary content
 
                 For well-known verses with established Shia tafsir:
                 - 2:255 (Ayat al-Kursi): tawhid, signs-of-god, knowledge, throne-of-god
@@ -354,23 +362,40 @@ public final class QuranVerseTaggingTool {
         return MAPPER.writeValueAsString(payload);
     }
 
-    /**
-     * Updates the topic_tags field for a single verse using the Elasticsearch client.
-     */
-    private void updateVerseTags(String verseId, List<String> tags) throws Exception {
-        ElasticsearchClient client = new ESClientProvider().client();
-
-        // Build the update document
-        Map<String, Object> doc = new LinkedHashMap<>();
-        doc.put("topic_tags", tags);
-
-        // Use the ES client's update method which handles ID encoding properly
-        client.update(u -> u
-                        .index(index)
-                        .id(verseId)
-                        .doc(doc),
-                Map.class
-        );
+    private void bulkUpdateVerseTags(List<PendingUpdate> updates) throws Exception {
+        if (updates == null || updates.isEmpty()) {
+            return;
+        }
+        StringBuilder payload = new StringBuilder();
+        for (PendingUpdate update : updates) {
+            ObjectNode action = MAPPER.createObjectNode();
+            action.putObject("update")
+                    .put("_index", index)
+                    .put("_id", update.verseId());
+            ObjectNode docNode = MAPPER.createObjectNode();
+            ArrayNode tagsNode = docNode.putArray("topic_tags");
+            for (String tag : update.tags()) {
+                tagsNode.add(tag);
+            }
+            ObjectNode updateNode = MAPPER.createObjectNode();
+            updateNode.set("doc", docNode);
+            payload.append(MAPPER.writeValueAsString(action)).append('\n');
+            payload.append(MAPPER.writeValueAsString(updateNode)).append('\n');
+        }
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(baseUrl + "/_bulk?filter_path=errors,items.*.update.error"))
+                .header("Content-Type", "application/x-ndjson")
+                .timeout(REQUEST_TIMEOUT)
+                .POST(HttpRequest.BodyPublishers.ofString(payload.toString()))
+                .build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() < 200 || response.statusCode() >= 300) {
+            throw new IOException("Bulk verse tag update failed: " + response.statusCode() + " " + response.body());
+        }
+        JsonNode root = MAPPER.readTree(response.body());
+        if (root.path("errors").asBoolean(false)) {
+            throw new IOException("Bulk verse tag update returned item errors: " + response.body());
+        }
     }
 
     private String callAgent(String task, String userPrompt, int maxCompletionTokens) throws Exception {
@@ -379,7 +404,6 @@ public final class QuranVerseTaggingTool {
 
     private String callAgentWithRetry(String task, String userPrompt, int maxCompletionTokens, int attempt) throws Exception {
         List<Map<String, Object>> messages = new ArrayList<>();
-        messages.add(message("system", "task=" + task));
         messages.add(message("user", userPrompt));
 
         Map<String, Object> requestBody = new LinkedHashMap<>();
@@ -510,4 +534,8 @@ public final class QuranVerseTaggingTool {
         }
         return Boolean.parseBoolean(value);
     }
+
+    private record PendingUpdate(String verseId, List<String> tags) {
+    }
+
 }

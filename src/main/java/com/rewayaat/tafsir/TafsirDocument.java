@@ -1,6 +1,11 @@
 package com.rewayaat.tafsir;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 /**
@@ -9,6 +14,9 @@ import java.util.List;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TafsirDocument {
+
+    @JsonIgnore
+    private String documentId;
 
     private String tafsirSlug;
     private String tafsirName;
@@ -19,6 +27,8 @@ public class TafsirDocument {
     private List<String> verseKeys;
     private String verseTextEnglish;
     private String commentaryText;
+    private String commentaryTextArabic;
+    private String commentaryTextEnglish;
     private String sectionTitle;
     private Integer commentaryWordCount;
     private String volume;
@@ -26,11 +36,20 @@ public class TafsirDocument {
     private String language;
 
     public TafsirDocument() {
-        this.language = "en";
+        // Language not set by default - must be explicitly set by extractor
+        this.language = null;
     }
 
     public String getTafsirSlug() {
         return tafsirSlug;
+    }
+
+    public String getDocumentId() {
+        return documentId;
+    }
+
+    public void setDocumentId(String documentId) {
+        this.documentId = documentId;
     }
 
     public void setTafsirSlug(String tafsirSlug) {
@@ -101,6 +120,22 @@ public class TafsirDocument {
         this.commentaryText = commentaryText;
     }
 
+    public String getCommentaryTextArabic() {
+        return commentaryTextArabic;
+    }
+
+    public void setCommentaryTextArabic(String commentaryTextArabic) {
+        this.commentaryTextArabic = commentaryTextArabic;
+    }
+
+    public String getCommentaryTextEnglish() {
+        return commentaryTextEnglish;
+    }
+
+    public void setCommentaryTextEnglish(String commentaryTextEnglish) {
+        this.commentaryTextEnglish = commentaryTextEnglish;
+    }
+
     public String getSectionTitle() {
         return sectionTitle;
     }
@@ -147,20 +182,45 @@ public class TafsirDocument {
      * For multi-verse sections, uses the first verse (ayah_start).
      */
     public String getId() {
+        if (documentId != null && !documentId.isBlank()) {
+            return documentId;
+        }
         if (tafsirSlug != null && verseKey != null) {
             return tafsirSlug + "_" + verseKey;
+        }
+        if (tafsirSlug != null) {
+            String fallback = sourceUrl != null ? sourceUrl : sectionTitle;
+            if (fallback != null && !fallback.isBlank()) {
+                return tafsirSlug + "_" + sha1Hex(fallback).substring(0, 16);
+            }
         }
         return null;
     }
 
     /**
      * Computes the commentary word count from the text.
+     * Handles both English and Arabic text (whitespace-delimited in both languages).
      */
     public void computeWordCount() {
         if (commentaryText != null && !commentaryText.isEmpty()) {
-            this.commentaryWordCount = commentaryText.split("\\s+").length;
+            // Both Arabic and English use whitespace as word delimiter
+            this.commentaryWordCount = commentaryText.trim().split("\\s+").length;
         } else {
             this.commentaryWordCount = 0;
+        }
+    }
+
+    private static String sha1Hex(String value) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-1");
+            byte[] bytes = digest.digest(value.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder(bytes.length * 2);
+            for (byte b : bytes) {
+                hex.append(String.format("%02x", b));
+            }
+            return hex.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-1 algorithm not available", e);
         }
     }
 }

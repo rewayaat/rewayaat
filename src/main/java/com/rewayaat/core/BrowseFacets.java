@@ -17,7 +17,7 @@ import java.util.Map;
 public class BrowseFacets {
 
     private static final int MAX_BUCKETS = 500;
-    private static final String BOOK_FIELD = "book.keyword";
+    private static final String BOOK_FIELD = "book";
     private static final Map<String, Integer> FACET_ORDER = new LinkedHashMap<>();
 
     static {
@@ -28,7 +28,21 @@ public class BrowseFacets {
     }
 
     public JSONArray books() throws IOException {
-        return termsAgg("book.keyword", null, null, null);
+        return termsAgg("book", null, null, null);
+    }
+
+    /**
+     * Returns the correct field name for aggregation.
+     * For text fields with keyword subfields, returns field.keyword.
+     * For keyword fields, returns the field name directly.
+     */
+    private String aggField(String fieldName) {
+        // Fields that are text with keyword subfield
+        if ("chapter".equals(fieldName)) {
+            return fieldName + ".keyword";
+        }
+        // Fields that are already keyword type
+        return fieldName;
     }
 
     public JSONObject facets(String book) throws IOException {
@@ -54,10 +68,10 @@ public class BrowseFacets {
         }
 
         JSONObject facets = new JSONObject();
-        facets.put("section", termsAgg("section.keyword", book, filters, "section"));
-        facets.put("chapter", termsAgg("chapter.keyword", book, filters, "chapter"));
-        facets.put("volume", termsAgg("volume.keyword", book, filters, "volume"));
-        facets.put("part", termsAgg("part.keyword", book, filters, "part"));
+        facets.put("section", termsAgg(aggField("section"), book, filters, "section"));
+        facets.put("chapter", termsAgg(aggField("chapter"), book, filters, "chapter"));
+        facets.put("volume", termsAgg(aggField("volume"), book, filters, "volume"));
+        facets.put("part", termsAgg(aggField("part"), book, filters, "part"));
 
         response.put("facets", facets);
         response.put("primaryFacet", resolvePrimaryFacet(facets));
@@ -100,7 +114,9 @@ public class BrowseFacets {
                                 if (value == null || value.trim().isEmpty()) {
                                     continue;
                                 }
-                                b.filter(f -> f.term(t -> t.field(key + ".keyword").value(value)));
+                                // Use correct field name for filtering (same as aggregation)
+                                String filterField = aggField(key);
+                                b.filter(f -> f.term(t -> t.field(filterField).value(value)));
                             }
                         }
                         return b;

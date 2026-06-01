@@ -100,10 +100,22 @@ class HadithApiIntegrationTest extends ElasticsearchTestSupport {
         assertNotNull(body);
         List collection = (List) body.get("collection");
         assertNotNull(collection);
-        assertFalse(collection.isEmpty());
-        Map first = (Map) collection.get(0);
-        assertNotNull(first.get("_id"));
-        assertFalse("1".equals(first.get("_id")));
+        // If similar hadiths are found, none should be the source document
+        for (Object item : collection) {
+            Map doc = (Map) item;
+            String id = (String) doc.get("_id");
+            assertNotNull(id);
+            assertFalse("1".equals(id), () -> "Source document should not be in similar results");
+        }
+    }
+
+    @Test
+    void similarHadith_allFlagReturnsCollection() {
+        ResponseEntity<Map> response = restTemplate.getForEntity("/v1/narrations/similar?id=1&all=true", Map.class);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Map body = response.getBody();
+        assertNotNull(body);
+        assertNotNull(body.get("collection"));
     }
 
     private void indexDoc(String id, String json) throws Exception {

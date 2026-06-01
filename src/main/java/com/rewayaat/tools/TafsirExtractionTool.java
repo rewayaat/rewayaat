@@ -1,8 +1,12 @@
 package com.rewayaat.tools;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.rewayaat.tafsir.TafsirDocument;
 import com.rewayaat.tafsir.TafsirIndexManager;
+import com.rewayaat.tafsir.TafsirSnippetSanitizer;
 import com.rewayaat.tafsir.extractors.*;
+import com.rewayaat.tafsir.extractors.HodaAlQuranExtractor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,8 +108,33 @@ public final class TafsirExtractionTool {
             extractors.add(SingleSurahExtractor.forMaryam());
             extractors.add(new FatimaZahraExtractor());
             extractors.add(new AlBayanExtractor());
+            extractors.add(new QuranicReflectionsExtractor());
             // PDF extractor
             extractors.add(new HubEAliExtractor());
+
+            // Arabic tafsirs from hodaalquran.com
+            extractors.add(HodaAlQuranExtractor.amthal());
+            extractors.add(HodaAlQuranExtractor.majmaBayan());
+            extractors.add(HodaAlQuranExtractor.qummi());
+            extractors.add(HodaAlQuranExtractor.khomeini());
+            extractors.add(HodaAlQuranExtractor.jawami());
+            extractors.add(HodaAlQuranExtractor.tibyan());
+            extractors.add(HodaAlQuranExtractor.safi());
+            extractors.add(HodaAlQuranExtractor.kanz());
+            extractors.add(HodaAlQuranExtractor.noor());
+            extractors.add(HodaAlQuranExtractor.ghareeb());
+        } else if ("arabic-all".equalsIgnoreCase(EXTRACTOR_NAME) || "arabic".equalsIgnoreCase(EXTRACTOR_NAME)) {
+            // Only Arabic tafsirs
+            extractors.add(HodaAlQuranExtractor.amthal());
+            extractors.add(HodaAlQuranExtractor.majmaBayan());
+            extractors.add(HodaAlQuranExtractor.qummi());
+            extractors.add(HodaAlQuranExtractor.khomeini());
+            extractors.add(HodaAlQuranExtractor.jawami());
+            extractors.add(HodaAlQuranExtractor.tibyan());
+            extractors.add(HodaAlQuranExtractor.safi());
+            extractors.add(HodaAlQuranExtractor.kanz());
+            extractors.add(HodaAlQuranExtractor.noor());
+            extractors.add(HodaAlQuranExtractor.ghareeb());
         } else {
             String[] names = EXTRACTOR_NAME.split(",");
             for (String name : names) {
@@ -137,6 +166,24 @@ public final class TafsirExtractionTool {
             case "maryam", "surah-maryam" -> SingleSurahExtractor.forMaryam();
             case "fatima-zahra", "fatima" -> new FatimaZahraExtractor();
             case "al-bayan", "bayan" -> new AlBayanExtractor();
+            case "quranic-reflections", "reflections" -> new QuranicReflectionsExtractor();
+
+            // Arabic tafsirs from hodaalquran.com
+            case "ar-amthal", "amthal" -> HodaAlQuranExtractor.amthal();
+            case "ar-majma-al-bayan", "majma-bayan" -> HodaAlQuranExtractor.majmaBayan();
+            case "ar-tafsir-al-qummi", "qummi" -> HodaAlQuranExtractor.qummi();
+            case "ar-khomeini-tafsir", "khomeini-arabic" -> HodaAlQuranExtractor.khomeini();
+            case "ar-jawami-al-jami", "jawami" -> HodaAlQuranExtractor.jawami();
+            case "ar-al-tibyan", "tibyan" -> HodaAlQuranExtractor.tibyan();
+            case "ar-tafsir-al-safi", "safi" -> HodaAlQuranExtractor.safi();
+            case "ar-kanz-al-daqaiq", "kanz" -> HodaAlQuranExtractor.kanz();
+            case "ar-noor-al-thaqalayn", "noor" -> HodaAlQuranExtractor.noor();
+            case "ar-ghareeb-al-quran", "ghareeb" -> HodaAlQuranExtractor.ghareeb();
+            case "arabic-all", "arabic" -> {
+                // Handled in createExtractors() method
+                LOGGER.warn("Use 'arabic-all' as TAFSIR_EXTRACTOR value directly, not in comma-separated list");
+                yield null;
+            }
 
             default -> {
                 LOGGER.warn("Unknown extractor: {}", name);
@@ -152,24 +199,35 @@ public final class TafsirExtractionTool {
 
         try {
             List<TafsirDocument> documents = extractor.extract();
+            documents.forEach(TafsirSnippetSanitizer::sanitize);
             LOGGER.info("Extracted {} documents from {}", documents.size(), extractor.getTafsirName());
+            TOTAL_EXTRACTED.addAndGet(documents.size());
 
             if (DRY_RUN) {
                 LOGGER.info("DRY RUN: Skipping indexing of {} documents", documents.size());
                 logSampleDocuments(documents, 3);
-                TOTAL_EXTRACTED.addAndGet(documents.size());
+                dumpDocumentsToJson(documents, extractor.getTafsirSlug());
                 return;
             }
 
             // Index in batches
             List<TafsirDocument> batch = new ArrayList<>(BATCH_SIZE);
             for (TafsirDocument doc : documents) {
-                if (shouldProcess(doc)) {
+                boolean indexable = TafsirSnippetSanitizer.isIndexable(doc);
+                if (!indexable) {
+                    LOGGER.info("NOT INDEXABLE: id={}, wordCount={}, isSubstantive={}, textPreview={}",
+                            doc.getId(), doc.getCommentaryWordCount(),
+                            TafsirSnippetSanitizer.isArabicText(doc.getCommentaryText()),
+                            doc.getCommentaryText() != null ? doc.getCommentaryText().substring(0, Math.min(30, doc.getCommentaryText().length())) : "null");
+                }
+                if (indexable && shouldProcess(doc)) {
                     batch.add(doc);
                     if (batch.size() >= BATCH_SIZE) {
                         indexBatch(batch, indexManager);
                         batch.clear();
                     }
+                } else if (!TafsirSnippetSanitizer.isIndexable(doc)) {
+                    TOTAL_SKIPPED.incrementAndGet();
                 }
             }
 
@@ -223,6 +281,50 @@ public final class TafsirExtractionTool {
                     doc.getVerseKey(),
                     doc.getSectionTitle() != null ? doc.getSectionTitle() : "No title",
                     doc.getCommentaryWordCount());
+        }
+    }
+
+    private static final String JSON_DUMP_DIR = readString("TAFSIR_JSON_DUMP_DIR", "tmp/tafsir-json");
+
+    private static void dumpDocumentsToJson(List<TafsirDocument> documents, String slug) {
+        try {
+            java.nio.file.Path dumpDir = java.nio.file.Path.of(JSON_DUMP_DIR);
+            java.nio.file.Files.createDirectories(dumpDir);
+            java.nio.file.Path dumpFile = dumpDir.resolve(slug + ".json");
+
+            ObjectMapper mapper = new ObjectMapper()
+                    .enable(SerializationFeature.INDENT_OUTPUT);
+
+            // Filter to indexable docs and include their computed ID
+            List<java.util.Map<String, Object>> exportDocs = new ArrayList<>();
+            for (TafsirDocument doc : documents) {
+                if (!TafsirSnippetSanitizer.isIndexable(doc)) {
+                    continue;
+                }
+                java.util.Map<String, Object> map = new java.util.LinkedHashMap<>();
+                map.put("_id", doc.getId());
+                map.put("tafsir_slug", doc.getTafsirSlug());
+                map.put("tafsir_name", doc.getTafsirName());
+                map.put("surah_number", doc.getSurahNumber());
+                map.put("ayah_start", doc.getAyahStart());
+                map.put("ayah_end", doc.getAyahEnd());
+                map.put("verse_key", doc.getVerseKey());
+                map.put("verse_keys", doc.getVerseKeys());
+                map.put("commentary_text", doc.getCommentaryText());
+                map.put("commentary_text_arabic", doc.getCommentaryTextArabic());
+                map.put("commentary_text_english", doc.getCommentaryTextEnglish());
+                map.put("section_title", doc.getSectionTitle());
+                map.put("commentary_word_count", doc.getCommentaryWordCount());
+                map.put("volume", doc.getVolume());
+                map.put("source_url", doc.getSourceUrl());
+                map.put("language", doc.getLanguage());
+                exportDocs.add(map);
+            }
+
+            mapper.writeValue(dumpFile.toFile(), exportDocs);
+            LOGGER.info("Dumped {} indexable documents to {}", exportDocs.size(), dumpFile);
+        } catch (Exception e) {
+            LOGGER.error("Failed to dump documents to JSON", e);
         }
     }
 

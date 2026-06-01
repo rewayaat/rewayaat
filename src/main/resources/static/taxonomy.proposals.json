@@ -1,0 +1,356 @@
+[
+  {
+    "slug": "puberty",
+    "en": "Puberty",
+    "category": "jurisprudence",
+    "taggable": true
+  },
+  {
+    "slug": "plague",
+    "en": "Plague",
+    "category": "jurisprudence",
+    "taggable": true
+  },
+  {
+    "slug": "protection-from-devils",
+    "en": "Protection from Devils",
+    "category": "practices",
+    "taggable": true
+  },
+  {
+    "slug": "jurisprudence-animals",
+    "en": "Jurisprudence on Animals and Spirits",
+    "category": "jurisprudence",
+    "taggable": true
+  },
+  {
+    "slug": "historical-event",
+    "en": "Historical Event",
+    "category": "history",
+    "taggable": true
+  },
+  {
+    "slug": "historical-figure",
+    "en": "Historical Figure",
+    "category": "persons",
+    "taggable": true
+  },
+  {
+    "slug": "jealousy",
+    "en": "Jealousy",
+    "category": "ethics",
+    "taggable": true
+  },
+  {
+    "slug": "jurisprudence",
+    "en": "Jurisprudence",
+    "category": "jurisprudence",
+    "taggable": true
+  },
+  {
+    "slug": "hudud",
+    "en": "Hudud (Islamic fixed punishments)",
+    "category": "jurisprudence",
+    "taggable": true
+  },
+  {
+    "slug": "women-obedience",
+    "en": "Obedience to Women",
+    "category": "ethics",
+    "taggable": true
+  },
+  {
+    "slug": "slavery",
+    "en": "Slavery Law",
+    "category": "jurisprudence",
+    "taggable": true
+  },
+  {
+    "slug": "marital-permissibility",
+    "en": "Marital Permissibility",
+    "category": "jurisprudence",
+    "taggable": true
+  },
+  {
+    "slug": "waqf",
+    "en": "Endowment (Waqf)",
+    "category": "jurisprudence",
+    "taggable": true
+  },
+  {
+    "slug": "arbitration",
+    "en": "Arbitration",
+    "category": "jurisprudence",
+    "taggable": true
+  },
+  {
+    "slug": "breastfeeding",
+    "en": "Breastfeeding",
+    "category": "family",
+    "taggable": true
+  },
+  {
+    "slug": "milk-kinship",
+    "en": "Milk Kinship (Rada)",
+    "category": "jurisprudence",
+    "taggable": true
+  },
+  {
+    "slug": "prophetic-medicine",
+    "en": "Prophetic Medicine",
+    "category": "jurisprudence",
+    "taggable": true
+  },
+  {
+    "slug": "kaaba-garments",
+    "en": "Use of Kaaba Coverings",
+    "category": "jurisprudence",
+    "taggable": true
+  },
+  {
+    "slug": "taxation",
+    "en": "Taxation (Kharaj)",
+    "category": "jurisprudence",
+    "taggable": true
+  },
+  {
+    "slug": "gift-return",
+    "en": "Gift Return",
+    "category": "jurisprudence",
+    "taggable": true
+  },
+  {
+    "slug": "jurisprudence-financial",
+    "en": "Financial Jurisprudence",
+    "category": "jurisprudence",
+    "taggable": true
+  },
+  {
+    "slug": "collateral",
+    "en": "Collateral (Rahn)",
+    "category": "jurisprudence",
+    "taggable": true
+  },
+  {
+    "slug": "vow",
+    "en": "Vow (Nadhr)",
+    "category": "jurisprudence",
+    "taggable": true
+  },
+  {
+    "slug": "animal-welfare",
+    "en": "Animal Welfare",
+    "category": "jurisprudence",
+    "taggable": true
+  },
+  {
+    "slug": "dhimma-protection",
+    "en": "Dhimma Protection and Jizya Conditions",
+    "category": "jurisprudence",
+    "taggable": true
+  },
+  {
+    "slug": "jizyah",
+    "en": "Jizyah (poll tax)",
+    "category": "jurisprudence",
+    "taggable": true
+  },
+  {
+    "slug": "kindness",
+    "en": "Kindness",
+    "category": "ethics",
+    "taggable": true
+  },
+  {
+    "slug": "diyah",
+    "en": "Compensation for bodily injury (Diyah)",
+    "category": "jurisprudence",
+    "taggable": true
+  },
+  {
+    "slug": "sexual-ethics",
+    "en": "Sexual Ethics",
+    "category": "ethics",
+    "taggable": true
+  },
+  {
+    "slug": "bad-company",
+    "englishLabel": "Bad Company",
+    "isTaggable": true
+  },
+  {
+    "slug": "evil-behavior",
+    "englishLabel": "Evil Behavior",
+    "isTaggable": true
+  },
+  {
+    "slug": "family-care",
+    "englishLabel": "Family Care",
+    "isTaggable": true
+  },
+  {
+    "slug": "poverty",
+    "englishLabel": "Poverty",
+    "isTaggable": true
+  },
+  {
+    "slug": "laziness",
+    "englishLabel": "Laziness",
+    "isTaggable": true
+  },
+  {
+    "slug": "respect-elderly",
+    "englishLabel": "Respect Elderly",
+    "isTaggable": true
+  },
+  {
+    "slug": "beauty",
+    "englishLabel": "Beauty",
+    "isTaggable": true
+  },
+  {
+    "slug": "miracle",
+    "englishLabel": "Miracle",
+    "isTaggable": true
+  },
+  {
+    "slug": "martyrdom",
+    "englishLabel": "Martyrdom",
+    "isTaggable": true
+  },
+  {
+    "slug": "manhood",
+    "englishLabel": "Manhood",
+    "isTaggable": true
+  },
+  {
+    "slug": "courage",
+    "englishLabel": "Courage",
+    "isTaggable": true
+  },
+  {
+    "slug": "honesty",
+    "englishLabel": "Honesty",
+    "isTaggable": true
+  },
+  {
+    "slug": "honoring",
+    "englishLabel": "Honoring",
+    "isTaggable": true
+  },
+  {
+    "slug": "humor",
+    "englishLabel": "Humor",
+    "isTaggable": true
+  },
+  {
+    "slug": "images",
+    "englishLabel": "Images",
+    "isTaggable": true
+  },
+  {
+    "slug": "abrogation",
+    "englishLabel": "Abrogation",
+    "isTaggable": true
+  },
+  {
+    "slug": "afterlight",
+    "englishLabel": "Afterlight",
+    "isTaggable": true
+  },
+  {
+    "slug": "analogy",
+    "englishLabel": "Analogy",
+    "isTaggable": true
+  },
+  {
+    "slug": "animals",
+    "englishLabel": "Animals",
+    "isTaggable": true
+  },
+  {
+    "slug": "compensatory-prayer",
+    "englishLabel": "Compensatory Prayer",
+    "isTaggable": true
+  },
+  {
+    "slug": "deception",
+    "englishLabel": "Deception",
+    "isTaggable": true
+  },
+  {
+    "slug": "delivery",
+    "englishLabel": "Delivery",
+    "isTaggable": true
+  },
+  {
+    "slug": "eclipse-prayer",
+    "englishLabel": "Eclipse Prayer",
+    "isTaggable": true
+  },
+  {
+    "slug": "funeral-procession",
+    "englishLabel": "Funeral Procession",
+    "isTaggable": true
+  },
+  {
+    "slug": "jihad",
+    "englishLabel": "Jihad",
+    "isTaggable": true
+  },
+  {
+    "slug": "law",
+    "englishLabel": "Law",
+    "isTaggable": true
+  },
+  {
+    "slug": "li-an",
+    "englishLabel": "Li An",
+    "isTaggable": true
+  },
+  {
+    "slug": "nahj-al-balagha",
+    "englishLabel": "Nahj Al Balagha",
+    "isTaggable": true
+  },
+  {
+    "slug": "salat-jaafar",
+    "englishLabel": "Salat Jaafar",
+    "isTaggable": true
+  },
+  {
+    "slug": "secrecy",
+    "englishLabel": "Secrecy",
+    "isTaggable": true
+  },
+  {
+    "slug": "sermons",
+    "englishLabel": "Sermons",
+    "isTaggable": true
+  },
+  {
+    "slug": "travel-preparation",
+    "englishLabel": "Travel Preparation",
+    "isTaggable": true
+  },
+  {
+    "slug": "ulul-azm",
+    "englishLabel": "Ulul Azm",
+    "isTaggable": true
+  },
+  {
+    "slug": "water-rights",
+    "englishLabel": "Water Rights",
+    "isTaggable": true
+  },
+  {
+    "slug": "witnesses-vows",
+    "englishLabel": "Witnesses Vows",
+    "isTaggable": true
+  },
+  {
+    "slug": "humidity",
+    "englishLabel": "Humidity",
+    "isTaggable": true
+  }
+]

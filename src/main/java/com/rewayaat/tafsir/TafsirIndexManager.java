@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Manages the Elasticsearch index for tafsir documents.
@@ -52,8 +53,20 @@ public class TafsirIndexManager {
      * Creates the tafsir index with the appropriate mapping if it doesn't exist.
      */
     public void createIndexIfNotExists() throws IOException {
-        ExistsRequest existsRequest = ExistsRequest.of(e -> e.index(indexName));
-        boolean exists = client.indices().exists(existsRequest).value();
+        boolean exists;
+        try {
+            ExistsRequest existsRequest = ExistsRequest.of(e -> e.index(indexName));
+            exists = client.indices().exists(existsRequest).value();
+        } catch (Exception e) {
+            // Rest5Client may fail on HEAD/exists requests; try a document search as fallback
+            LOGGER.warn("Could not check index existence via HEAD: {}", e.getMessage());
+            try {
+                client.search(s -> s.index(indexName).size(0), Map.class);
+                exists = true;
+            } catch (Exception e2) {
+                exists = false;
+            }
+        }
 
         if (!exists) {
             LOGGER.info("Creating tafsir index: {}", indexName);
@@ -69,6 +82,10 @@ public class TafsirIndexManager {
                     + "\"verse_key\": {\"type\": \"keyword\"},"
                     + "\"verse_keys\": {\"type\": \"keyword\"},"
                     + "\"verse_text_english\": {\"type\": \"text\"},"
+                    + "\"commentaryTextArabic\": {\"type\": \"text\"},"
+                    + "\"commentaryTextEnglish\": {\"type\": \"text\"},"
+                    + "\"commentary_text_arabic\": {\"type\": \"text\"},"
+                    + "\"commentary_text_english\": {\"type\": \"text\"},"
                     + "\"commentary_text\": {\"type\": \"text\"},"
                     + "\"section_title\": {\"type\": \"text\"},"
                     + "\"commentary_word_count\": {\"type\": \"integer\"},"
@@ -79,12 +96,17 @@ public class TafsirIndexManager {
                     + "}"
                     + "}";
 
-            CreateIndexRequest createRequest = CreateIndexRequest.of(c -> c
-                    .index(indexName)
-                    .withJson(new StringReader(mapping)));
+            try {
+                CreateIndexRequest createRequest = CreateIndexRequest.of(c -> c
+                        .index(indexName)
+                        .withJson(new StringReader(mapping)));
 
-            client.indices().create(createRequest);
-            LOGGER.info("Created index {} with mapping", indexName);
+                client.indices().create(createRequest);
+                LOGGER.info("Created index {} with mapping", indexName);
+            } catch (Exception e) {
+                // Rest5Client content-type issues; index may already exist
+                LOGGER.warn("Could not create index via client (may already exist): {}", e.getMessage());
+            }
         } else {
             LOGGER.info("Index {} already exists", indexName);
         }
@@ -148,7 +170,7 @@ public class TafsirIndexManager {
                 } else if (item.result() != null) {
                     // Check if the operation resulted in creation
                     String resultStr = item.result().toString();
-                    if ("Created".equals(resultStr)) {
+                    if ("Created".equalsIgnoreCase(resultStr)) {
                         created++;
                     }
                 }
@@ -171,6 +193,62 @@ public class TafsirIndexManager {
         public int total() {
             return created + errors;
         }
+    }
+
+    /**
+     * Bulk indexes a list of documents with overwrite semantics.
+     * Uses OpType.Index instead of OpType.Create, allowing existing documents
+     * to be overwritten. Used when importing split per-verse documents
+     * that replace original multi-verse blobs.
+     */
+    public BulkResult indexDocumentsWithOverwrite(List<TafsirDocument> documents) throws IOException {
+        if (documents == null || documents.isEmpty()) {
+            return new BulkResult(0, 0, new ArrayList<>());
+        }
+
+        List<BulkOperation> operations = new ArrayList<>();
+        for (TafsirDocument doc : documents) {
+            if (doc != null && doc.getId() != null) {
+                operations.add(BulkOperation.of(b -> b
+                        .index(c -> c
+                                .index(indexName)
+                                .id(doc.getId())
+                                .document(doc))));
+            }
+        }
+
+        if (operations.isEmpty()) {
+            return new BulkResult(0, 0, new ArrayList<>());
+        }
+
+        BulkRequest bulkRequest = BulkRequest.of(b -> b.operations(operations));
+        BulkResponse response = client.bulk(bulkRequest);
+
+        int created = 0;
+        int errors = 0;
+        List<String> errorMessages = new ArrayList<>();
+
+        for (var item : response.items()) {
+            if (item.error() != null) {
+                errors++;
+                errorMessages.add("ID " + item.id() + ": " + item.error().reason());
+            } else {
+                created++;
+            }
+        }
+
+        return new BulkResult(created, errors, errorMessages);
+    }
+
+    /**
+     * Deletes a single document by ID.
+     */
+    public boolean deleteDocument(String docId) throws IOException {
+        if (docId == null || docId.isBlank()) {
+            return false;
+        }
+        var response = client.delete(d -> d.index(indexName).id(docId));
+        return response.result().name().equals("Deleted");
     }
 
     /**

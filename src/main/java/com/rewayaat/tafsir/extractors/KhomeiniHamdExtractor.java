@@ -2,11 +2,14 @@ package com.rewayaat.tafsir.extractors;
 
 import com.rewayaat.tafsir.TafsirDocument;
 import com.rewayaat.tafsir.VerseReferenceParser;
+import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Extractor for "A Commentary on the Chapter of Praise (Tafsir Surah al-Hamd)"
@@ -53,39 +56,131 @@ public class KhomeiniHamdExtractor extends AlIslamHtmlExtractor {
 
     @Override
     protected List<String> extractSectionUrls(org.jsoup.nodes.Document volumeIndex) {
-        List<String> urls = new ArrayList<>();
+        Set<String> urls = new LinkedHashSet<>();
 
         // Look for the 4 parts of the commentary
         Elements links = volumeIndex.select("a[href]");
 
         for (Element link : links) {
             String href = link.attr("href");
-            String linkText = link.text().toLowerCase();
-
-            // Look for section/part links
-            if (linkText.contains("part") || linkText.contains("section") ||
-                linkText.contains("chapter") || linkText.matches(".*\\d+.*")) {
-                String fullUrl = ensureAbsoluteUrl(href);
-                if (isSectionPage(fullUrl)) {
-                    urls.add(fullUrl);
-                }
+            String fullUrl = stripFragment(ensureAbsoluteUrl(href));
+            if (isSectionPage(fullUrl)) {
+                urls.add(fullUrl);
             }
         }
 
-        // If no sections found, the main page might have all content
+        // If no parts were found, the main page might contain all content.
         if (urls.isEmpty()) {
             urls.add(BASE_URL);
         }
 
-        return urls;
+        return new ArrayList<>(urls);
     }
 
     @Override
     protected boolean isSectionPage(String url) {
-        // Include the main page and any section pages
-        return url.contains("al-islam.org") &&
-               (url.contains("chapter-of-praise") || url.contains("tafsir-surah-al-hamd")) &&
-               !url.contains("/print") && !url.contains("/download");
+        if (!url.startsWith(BASE_URL)) {
+            return false;
+        }
+        if (url.contains("/print") || url.contains("/download")) {
+            return false;
+        }
+        return url.matches("^" + java.util.regex.Pattern.quote(BASE_URL) + "/part-[^?#/]+.*$");
+    }
+
+    @Override
+    protected List<TafsirDocument> extractFromSectionPage(Document page, String url) {
+        List<TafsirDocument> documents = new ArrayList<>();
+        Element body = selectPrimaryBody(page);
+        if (body != null) {
+            List<TafsirDocument> sections = extractStructuredSections(body, url);
+            if (!sections.isEmpty()) {
+                return sections;
+            }
+        }
+
+        String commentary = extractCommentaryText(page);
+        if (commentary == null || commentary.isBlank()) {
+            return documents;
+        }
+        String sectionTitle = extractSectionTitle(page);
+        TafsirDocument doc = createDocument(null, commentary, null, sectionTitle, url);
+        if (doc != null) {
+            documents.add(doc);
+        }
+        return documents;
+    }
+
+    private List<TafsirDocument> extractStructuredSections(Element body, String url) {
+        List<TafsirDocument> documents = new ArrayList<>();
+        Element currentHeading = null;
+        StringBuilder currentContent = new StringBuilder();
+
+        for (Element child : body.children()) {
+            if (isSectionHeading(child)) {
+                addStructuredDocument(documents, currentHeading, currentContent, url);
+                currentHeading = child;
+                currentContent = new StringBuilder();
+                continue;
+            }
+
+            String text = child.text().trim();
+            if (!text.isEmpty()) {
+                if (currentContent.length() > 0) {
+                    currentContent.append("\n\n");
+                }
+                currentContent.append(text);
+            }
+        }
+
+        addStructuredDocument(documents, currentHeading, currentContent, url);
+        return documents;
+    }
+
+    private Element selectPrimaryBody(Document page) {
+        Element body = page.selectFirst(".field-name-body .field-item, .field-name-body .field-item.even");
+        if (body != null) {
+            return body;
+        }
+        body = page.selectFirst("article .field-item.even, article, main");
+        return body != null ? body : page.body();
+    }
+
+    private void addStructuredDocument(List<TafsirDocument> documents,
+                                       Element heading,
+                                       StringBuilder content,
+                                       String baseUrl) {
+        if (heading == null) {
+            return;
+        }
+        String commentary = content.toString().trim();
+        if (commentary.length() < 120) {
+            return;
+        }
+
+        String sourceUrl = buildFragmentUrl(baseUrl, heading);
+        TafsirDocument doc = createDocument(null, commentary, null, heading.text().trim(), sourceUrl);
+        if (doc != null) {
+            documents.add(doc);
+        }
+    }
+
+    private boolean isSectionHeading(Element element) {
+        String tag = element.tagName();
+        return "h2".equals(tag) || "h3".equals(tag) || "h4".equals(tag);
+    }
+
+    private String buildFragmentUrl(String baseUrl, Element heading) {
+        Element anchor = heading.selectFirst("[id], a[id], a[name]");
+        if (anchor == null) {
+            return baseUrl;
+        }
+        String fragment = anchor.hasAttr("id") ? anchor.attr("id") : anchor.attr("name");
+        return fragment == null || fragment.isBlank() ? baseUrl : baseUrl + "#" + fragment;
+    }
+
+    private String stripFragment(String url) {
+        return url.replaceFirst("#.*$", "");
     }
 
     @Override
@@ -100,7 +195,6 @@ public class KhomeiniHamdExtractor extends AlIslamHtmlExtractor {
         doc.setSurahNumber(1);
         doc.setAyahStart(1);
         doc.setAyahEnd(7);
-        doc.setVerseKey("1:1");
         doc.setVerseKeys(java.util.Arrays.asList("1:1", "1:2", "1:3", "1:4", "1:5", "1:6", "1:7"));
         doc.setCommentaryText(commentary.trim());
         doc.setSectionTitle(sectionTitle);

@@ -1,5 +1,8 @@
 package com.rewayaat.tafsir.extractors;
 
+import com.rewayaat.tafsir.TafsirDocument;
+import com.rewayaat.tafsir.VerseReferenceParser;
+import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
@@ -78,5 +81,39 @@ public class ImamAskariExtractor extends AlIslamHtmlExtractor {
                 && !url.equals(BASE_URL)
                 && !url.matches(".*/$")
                 && (url.contains("surah") || url.contains("verse") || url.contains("aya"));
+    }
+
+    @Override
+    protected List<TafsirDocument> extractFromSectionPage(Document page, String url) {
+        List<TafsirDocument> documents = new ArrayList<>();
+        Element body = page.selectFirst(".field-name-body .field-item, .field-item.even, article, main, body");
+        if (body == null) {
+            return super.extractFromSectionPage(page, url);
+        }
+
+        Elements headings = body.select("h2, h3");
+        for (Element heading : headings) {
+            String headingText = heading.text().trim();
+            if (headingText.isEmpty()) {
+                continue;
+            }
+
+            VerseReferenceParser.ParsedReference parsedRef = VerseReferenceParser.parse(headingText);
+            if (parsedRef == null || !parsedRef.isValid()) {
+                continue;
+            }
+
+            String commentary = extractContentAfterHeading(heading);
+            if (commentary == null || commentary.length() < 120) {
+                continue;
+            }
+
+            TafsirDocument doc = createDocument(parsedRef, commentary, extractVerseText(page), headingText, url);
+            if (doc != null) {
+                documents.add(doc);
+            }
+        }
+
+        return documents.isEmpty() ? super.extractFromSectionPage(page, url) : documents;
     }
 }

@@ -13,11 +13,19 @@ public class HadithObjectCollection {
 
     private List<HadithObject> collection;
     private long totalResultSetSize;
+    private long baseResultSetSize;
     private Map<String, Long> topicTagFacets = new LinkedHashMap<>();
 
     public HadithObjectCollection(List<HadithObject> collection, long totalResultSize) {
         this.setCollection(collection);
         this.setTotalResultSetSize(totalResultSize);
+        this.baseResultSetSize = totalResultSize;
+    }
+
+    public HadithObjectCollection(List<HadithObject> collection, long totalResultSize, long baseResultSize) {
+        this.setCollection(collection);
+        this.setTotalResultSetSize(totalResultSize);
+        this.setBaseResultSetSize(baseResultSize);
     }
 
     public long getTotalResultSetSize() {
@@ -26,6 +34,14 @@ public class HadithObjectCollection {
 
     public void setTotalResultSetSize(long totalResultSetSize) {
         this.totalResultSetSize = totalResultSetSize;
+    }
+
+    public long getBaseResultSetSize() {
+        return baseResultSetSize;
+    }
+
+    public void setBaseResultSetSize(long baseResultSetSize) {
+        this.baseResultSetSize = baseResultSetSize;
     }
 
     public List<HadithObject> getCollection() {

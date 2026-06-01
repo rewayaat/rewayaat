@@ -1,0 +1,414 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Edit Hadith - Rewayaat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/materia/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet"/>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
+    <link href="/css/manuscript.css?v=120" rel="stylesheet" th:href="@{/css/manuscript.css?v=120}"/>
+    <style>
+        body {
+            background: #f7f4ed;
+        }
+        .edit-page {
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        .edit-header-bar {
+            background: linear-gradient(180deg, rgba(255, 251, 243, 0.98), rgba(245, 235, 214, 0.96));
+            border: 1px solid rgba(23, 50, 71, 0.12);
+            border-radius: 1rem;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 24px rgba(24, 34, 43, 0.08);
+        }
+        .edit-header-bar__title {
+            font-family: var(--font-ui);
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #173247;
+        }
+        .edit-header-bar__meta {
+            font-size: 0.75rem;
+            color: #6a7a8a;
+            margin-top: 0.15rem;
+        }
+        .btn-back {
+            background: linear-gradient(135deg, #183b56 0%, #2b678f 100%);
+            border: none;
+            color: #fff8eb;
+            padding: 0.5rem 1rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-back:hover {
+            background: linear-gradient(135deg, #1a4263 0%, #3277a8 100%);
+            color: #fff8eb;
+        }
+        .edit-card {
+            background: white;
+            border: 1px solid rgba(23, 50, 71, 0.12);
+            border-radius: 1rem;
+            box-shadow: 0 8px 24px rgba(24, 34, 43, 0.08);
+            overflow: hidden;
+        }
+        .edit-card__section {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid rgba(23, 50, 71, 0.08);
+        }
+        .edit-card__section:last-child {
+            border-bottom: none;
+        }
+        .section-title {
+            font-family: var(--font-ui);
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: #7a5d2c;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .form-field label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #3a4a5a;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .form-field input,
+        .form-field textarea,
+        .form-field select {
+            min-height: 2.7rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(25, 62, 91, 0.16);
+            background: #fffdf9;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        .form-field input:focus,
+        .form-field textarea:focus,
+        .form-field select:focus {
+            border-color: #2b678f;
+            box-shadow: 0 0 0 3px rgba(43, 103, 143, 0.1);
+            outline: none;
+        }
+        .form-field textarea {
+            min-height: 100px;
+            resize: vertical;
+            font-family: 'Scheherazade New', serif;
+            font-size: 1.05rem;
+            line-height: 1.8;
+        }
+        .arabic-text {
+            direction: rtl;
+            text-align: right;
+            font-family: 'Scheherazade New', serif;
+            font-size: 1.15rem;
+            line-height: 2;
+        }
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            padding: 0.5rem;
+            border: 1px solid rgba(25, 62, 91, 0.16);
+            border-radius: 0.75rem;
+            background: #fffdf9;
+            min-height: 42px;
+        }
+        .tag-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: linear-gradient(135deg, #183b56 0%, #2b678f 100%);
+            color: #fff8eb;
+            padding: 0.2rem 0.65rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .tag-pill .remove-tag {
+            cursor: pointer;
+            opacity: 0.8;
+        }
+        .tag-pill .remove-tag:hover {
+            opacity: 1;
+        }
+        .tag-input {
+            border: none;
+            outline: none;
+            flex: 1;
+            min-width: 100px;
+            padding: 0.25rem;
+            font-size: 0.85rem;
+            background: transparent;
+        }
+        .topic-suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-top: 0.5rem;
+        }
+        .topic-suggestion {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(23, 50, 71, 0.12);
+            padding: 0.25rem 0.65rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .topic-suggestion:hover {
+            background: #2b678f;
+            color: #fff8eb;
+            border-color: #2b678f;
+        }
+        .edit-footer {
+            background: linear-gradient(180deg, rgba(255, 251, 243, 0.98), rgba(245, 235, 214, 0.96));
+            border-top: 1px solid rgba(23, 50, 71, 0.12);
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .save-status {
+            font-size: 0.8rem;
+            color: #6a7a8a;
+        }
+        .save-status.saved {
+            color: #2f6f4f;
+        }
+        .save-status.error {
+            color: #b42318;
+        }
+        .btn-save {
+            background: linear-gradient(135deg, #183b56 0%, #2b678f 100%);
+            border: none;
+            color: #fff8eb;
+            padding: 0.6rem 1.5rem;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            box-shadow: 0 8px 16px rgba(43, 103, 143, 0.25);
+            transition: all 0.2s;
+        }
+        .btn-save:hover {
+            background: linear-gradient(135deg, #1a4263 0%, #3277a8 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 20px rgba(43, 103, 143, 0.3);
+        }
+        .btn-save:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .alert {
+            border-radius: 0.75rem;
+            border: none;
+            padding: 0.75rem 1rem;
+            font-size: 0.85rem;
+        }
+        .alert-danger {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+        .alert-success {
+            background: #f0fdf4;
+            color: #166534;
+        }
+        [v-cloak] { display: none; }
+    </style>
+</head>
+<body>
+<div class="edit-page" v-cloak>
+    <div class="edit-header-bar">
+        <div>
+            <div class="edit-header-bar__title">
+                <i class="fa fa-pencil"></i> Edit Hadith
+            </div>
+            <div class="edit-header-bar__meta" v-if="narration">
+                {{ narration.book || 'Unknown Book' }}
+                <span v-if="narration.number"> #{{ narration.number }}</span>
+            </div>
+        </div>
+        <a href="/" class="btn-back">
+            <i class="fa fa-arrow-left"></i> Back
+        </a>
+    </div>
+
+    <div class="edit-card" v-if="!loading">
+        <div class="edit-card__section" style="padding: 1rem 1.5rem;">
+            <div class="alert alert-danger" v-if="error">
+                <i class="fa fa-exclamation-circle"></i> {{ error }}
+            </div>
+
+            <div class="alert alert-success" v-if="saveSuccess">
+                <i class="fa fa-check-circle"></i> Hadith saved successfully!
+            </div>
+        </div>
+
+        <form @submit.prevent="saveHadith">
+            <!-- Metadata Section -->
+            <div class="edit-card__section">
+                <div class="section-title">
+                    <i class="fa fa-book"></i> Metadata
+                </div>
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label>Book</label>
+                        <input type="text" class="form-control" v-model="form.book" placeholder="Book name">
+                    </div>
+                    <div class="form-field">
+                        <label>Volume</label>
+                        <input type="text" class="form-control" v-model="form.volume" placeholder="Volume">
+                    </div>
+                </div>
+                <div class="form-grid" style="margin-top: 1rem;">
+                    <div class="form-field">
+                        <label>Part</label>
+                        <input type="text" class="form-control" v-model="form.part" placeholder="Part">
+                    </div>
+                    <div class="form-field">
+                        <label>Section</label>
+                        <input type="text" class="form-control" v-model="form.section" placeholder="Section">
+                    </div>
+                </div>
+                <div class="form-grid" style="margin-top: 1rem;">
+                    <div class="form-field">
+                        <label>Chapter</label>
+                        <input type="text" class="form-control" v-model="form.chapter" placeholder="Chapter">
+                    </div>
+                    <div class="form-field">
+                        <label>Number</label>
+                        <input type="text" class="form-control" v-model="form.number" placeholder="Hadith number">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Section -->
+            <div class="edit-card__section">
+                <div class="section-title">
+                    <i class="fa fa-align-left"></i> Content
+                </div>
+                <div class="form-field">
+                    <label>English Text</label>
+                    <textarea class="form-control" rows="5" v-model="form.english" placeholder="English translation"></textarea>
+                </div>
+                <div class="form-field" style="margin-top: 1rem;">
+                    <label>Arabic Text</label>
+                    <textarea class="form-control arabic-text" rows="5" v-model="form.arabic" placeholder="النص العربي"></textarea>
+                </div>
+                <div class="form-field" style="margin-top: 1rem;">
+                    <label>Notes</label>
+                    <textarea class="form-control" rows="3" v-model="form.notes" placeholder="Additional notes"></textarea>
+                </div>
+            </div>
+
+            <!-- Tags Section -->
+            <div class="edit-card__section">
+                <div class="section-title">
+                    <i class="fa fa-tags"></i> Topic Tags
+                </div>
+                <div class="form-field">
+                    <label>Selected Tags</label>
+                    <div class="tags-container" @click="focusTagInput">
+                        <span class="tag-pill" v-for="(tag, index) in form.topic_tags" :key="index">
+                            {{ taxonomyLabel(tag) }}
+                            <span class="remove-tag" @click.stop="removeTopicTag(index)">&times;</span>
+                        </span>
+                        <input type="text" class="tag-input" v-model="tagInput" @keydown="handleTagKeydown" ref="tagInputRef" placeholder="Type to search tags...">
+                    </div>
+                    <div class="topic-suggestions" v-if="filteredTopicSuggestions.length > 0">
+                        <span class="topic-suggestion"
+                              v-for="tag in filteredTopicSuggestions"
+                              :key="tag.slug"
+                              @click="addTopicTag(tag.slug)">
+                            {{ tag.en || tag.slug }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Source Section -->
+            <div class="edit-card__section">
+                <div class="section-title">
+                    <i class="fa fa-info-circle"></i> Source Information
+                </div>
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label>Source</label>
+                        <input type="text" class="form-control" v-model="form.source" placeholder="Source">
+                    </div>
+                    <div class="form-field">
+                        <label>Publisher</label>
+                        <input type="text" class="form-control" v-model="form.publisher" placeholder="Publisher">
+                    </div>
+                </div>
+                <div class="form-field" style="margin-top: 1rem;">
+                    <label>Edition</label>
+                    <input type="text" class="form-control" v-model="form.edition" placeholder="Edition">
+                </div>
+            </div>
+        </form>
+
+        <div class="edit-footer">
+            <div class="save-status" :class="{ saved: saveSuccess, error: saveError }">
+                <span v-if="saving"><span class="loading-spinner"></span> Saving...</span>
+                <span v-else-if="saveSuccess"><i class="fa fa-check"></i> All changes saved</span>
+                <span v-else-if="saveError"><i class="fa fa-times"></i> Save failed</span>
+                <span v-else><i class="fa fa-info-circle"></i> Click Save to apply changes</span>
+            </div>
+            <button class="btn-save" @click="saveHadith" :disabled="saving">
+                <span v-if="saving"><span class="loading-spinner"></span> Saving...</span>
+                <span v-else><i class="fa fa-save"></i> Save Changes</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="edit-card" v-else style="padding: 3rem; text-align: center;">
+        <div class="loading-spinner" style="width: 3rem; height: 3rem; margin: 0 auto 1rem; border-color: #2b678f; border-top-color: transparent;"></div>
+        <p style="color: #6a7a8a;">Loading hadith...</p>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios@0.27.2/dist/axios.min.js"></script>
+<script th:inline="javascript">
+    var hadithId = /*[[${hadithId}]]*/ null;
+</script>
+<script src="/js/hadith-editor.js?v=3" th:src="@{/js/hadith-editor.js?v=3}"></script>
+</body>
+</html>

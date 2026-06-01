@@ -1,6 +1,7 @@
 package com.rewayaat.loader.quran;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch.core.BulkResponse;
 import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -139,6 +140,7 @@ public class QuranVerseLoader {
                 globalAyahIndex++;
                 int ayahNumberInSurah = ayah.path("numberInSurah").asInt();
                 String textArabic = ayah.path("text").asText("");
+                String textEnglish = ayah.path("text_english").asText("");
                 int juz = ayah.path("juz").asInt(0);
                 int page = ayah.path("page").asInt(0);
                 int hizbQuarter = ayah.path("hizbQuarter").asInt(0);
@@ -151,7 +153,7 @@ public class QuranVerseLoader {
                         .ayahNumber(ayahNumberInSurah)
                         .ayahIndex(globalAyahIndex)
                         .textArabic(textArabic)
-                        .textEnglish("") // Will be loaded from translation file
+                        .textEnglish(textEnglish)
                         .surahNameArabic(surahNameArabic)
                         .surahNameEnglish(surahNameEnglish)
                         .surahNameEnglishTransliteration(surahNameTransliteration)
@@ -172,37 +174,41 @@ public class QuranVerseLoader {
      * Creates the rewayaat_quran index if it doesn't exist.
      */
     private void ensureIndexExists() throws IOException {
-        if (client.indices().exists(e -> e.index(QURAN_INDEX)).value()) {
-            System.out.println("Index " + QURAN_INDEX + " already exists");
-            return;
+        try {
+            System.out.println("Creating index " + QURAN_INDEX);
+
+            client.indices().create(c -> c
+                    .index(QURAN_INDEX)
+                    .mappings(m -> m
+                            .properties("surah_number", p -> p.integer(i -> i))
+                            .properties("ayah_number", p -> p.integer(i -> i))
+                            .properties("ayah_index", p -> p.integer(i -> i))
+                            .properties("text_arabic", p -> p.text(t -> t
+                                    .analyzer("standard")
+                                    .fielddata(true)))
+                            .properties("text_english", p -> p.text(t -> t
+                                    .analyzer("standard")
+                                    .fielddata(true)))
+                            .properties("surah_name_arabic", p -> p.keyword(k -> k))
+                            .properties("surah_name_english", p -> p.keyword(k -> k))
+                            .properties("surah_name_english_transliteration", p -> p.text(t -> t))
+                            .properties("juz_number", p -> p.integer(i -> i))
+                            .properties("hizb_number", p -> p.integer(i -> i))
+                            .properties("page_number", p -> p.integer(i -> i))
+                            .properties("revelation_type", p -> p.keyword(k -> k))
+                            .properties("topic_tags", p -> p.keyword(k -> k))
+                    )
+            );
+
+            System.out.println("Index " + QURAN_INDEX + " created successfully");
+        } catch (ElasticsearchException ex) {
+            if (ex.response() != null && ex.response().error() != null
+                    && "resource_already_exists_exception".equals(ex.response().error().type())) {
+                System.out.println("Index " + QURAN_INDEX + " already exists");
+                return;
+            }
+            throw ex;
         }
-
-        System.out.println("Creating index " + QURAN_INDEX);
-
-        client.indices().create(c -> c
-                .index(QURAN_INDEX)
-                .mappings(m -> m
-                        .properties("surah_number", p -> p.integer(i -> i))
-                        .properties("ayah_number", p -> p.integer(i -> i))
-                        .properties("ayah_index", p -> p.integer(i -> i))
-                        .properties("text_arabic", p -> p.text(t -> t
-                                .analyzer("standard")
-                                .fielddata(true)))
-                        .properties("text_english", p -> p.text(t -> t
-                                .analyzer("standard")
-                                .fielddata(true)))
-                        .properties("surah_name_arabic", p -> p.keyword(k -> k))
-                        .properties("surah_name_english", p -> p.keyword(k -> k))
-                        .properties("surah_name_english_transliteration", p -> p.text(t -> t))
-                        .properties("juz_number", p -> p.integer(i -> i))
-                        .properties("hizb_number", p -> p.integer(i -> i))
-                        .properties("page_number", p -> p.integer(i -> i))
-                        .properties("revelation_type", p -> p.keyword(k -> k))
-                        .properties("topic_tags", p -> p.keyword(k -> k))
-                )
-        );
-
-        System.out.println("Index " + QURAN_INDEX + " created successfully");
     }
 
     /**
@@ -243,9 +249,10 @@ public class QuranVerseLoader {
     }
 
     public static void main(String[] args) throws Exception {
-        // Load from filesystem for large files
-        String jsonPath = "/root/git/hadi/rewayaat/src/main/resources/static/quran.json";
-        QuranVerseLoader loader = new QuranVerseLoader(jsonPath);
-        loader.loadFromPath(jsonPath);
+        if (args.length > 0 && !args[0].isBlank()) {
+            new QuranVerseLoader(args[0]).loadFromPath(args[0]);
+            return;
+        }
+        new QuranVerseLoader().load();
     }
 }

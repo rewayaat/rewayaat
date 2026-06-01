@@ -44,6 +44,14 @@ public class HomeController {
         return redirectToSigninWithToken("reset_token", token);
     }
 
+    @RequestMapping(value = "/edit", method = RequestMethod.GET)
+    public String editPage(@RequestParam(value = "id", required = false) String id, Model model) {
+        if (id != null && !id.isBlank()) {
+            model.addAttribute("hadithId", id);
+        }
+        return "edit";
+    }
+
     private String redirectToSigninWithToken(String queryKey, String token) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/signin.html");
         if (token != null && !token.isBlank()) {

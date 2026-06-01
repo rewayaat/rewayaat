@@ -60,6 +60,18 @@ public class SurahNameResolverTest {
     }
 
     @Test
+    public void testHyphenAndSpaceNormalization() {
+        assertEquals(Integer.valueOf(20), SurahNameResolver.resolve("Ta-Ha"));
+        assertEquals(Integer.valueOf(20), SurahNameResolver.resolve("Ta Ha"));
+        assertEquals(Integer.valueOf(3), SurahNameResolver.resolve("Ali-Imran"));
+        assertEquals(Integer.valueOf(3), SurahNameResolver.resolve("Ali Imran"));
+        assertEquals(Integer.valueOf(30), SurahNameResolver.resolve("Ar-Room"));
+        assertEquals(Integer.valueOf(30), SurahNameResolver.resolve("Room"));
+        assertEquals(Integer.valueOf(34), SurahNameResolver.resolve("As-Saba"));
+        assertEquals(Integer.valueOf(35), SurahNameResolver.resolve("Al-Fatir"));
+    }
+
+    @Test
     public void testYasin() {
         assertEquals(Integer.valueOf(36), SurahNameResolver.resolve("Ya-Sin"));
         assertEquals(Integer.valueOf(36), SurahNameResolver.resolve("Yasin"));

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.rewayaat.config.ESClientProvider;
+import com.rewayaat.core.HadithSemanticText;
 
 import java.io.IOException;
 import java.net.URI;
@@ -18,7 +19,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -28,8 +28,7 @@ import java.util.Set;
 import java.util.StringJoiner;
 
 /**
- * Backfills the `topic_tags` field using a frozen taxonomy. The default path is conservative:
- * deterministic rule matches first, with optional AI refinement if TOPIC_TAGS_AI_AGENT_KEY is set.
+ * Backfills the `topic_tags` field using a frozen taxonomy and an LLM-only classifier.
  *
  * Checkpointing for resumable progress:
  * - TOPIC_TAGS_CHECKPOINT_FILE: Path to checkpoint file (default: /tmp/topic-tags-backfill-checkpoint.json)
@@ -43,32 +42,39 @@ public final class TopicTagsBackfillTool {
     private static final int LIMIT = readInt("TOPIC_TAGS_LIMIT", 0);
     private static final boolean FORCE = readBoolean("TOPIC_TAGS_FORCE", false);
     private static final boolean DRY_RUN = readBoolean("TOPIC_TAGS_DRY_RUN", false);
-    private static final boolean USE_AI = readBoolean("TOPIC_TAGS_USE_AI", false);
-    private static final boolean AI_ONLY_WHEN_EMPTY = readBoolean("TOPIC_TAGS_AI_ONLY_WHEN_EMPTY", true);
     private static final String CLASSIFIER_MODE = readString("TOPIC_TAGS_CLASSIFIER_MODE", "");
     private static final int AI_BATCH_SIZE = readInt("TOPIC_TAGS_AI_BATCH_SIZE", 4);
     private static final Duration AI_REQUEST_TIMEOUT = Duration.ofSeconds(readInt("TOPIC_TAGS_AI_TIMEOUT_SECONDS", 90));
     private static final long AI_RETRY_DELAY_MS = readInt("TOPIC_TAGS_AI_RETRY_DELAY_MS", 1500);
-    private static final int PROGRESS_EVERY = readInt("TOPIC_TAGS_PROGRESS_EVERY", 500);
+    private static final boolean AI_SEND_REASONING_EFFORT = readBoolean("TOPIC_TAGS_AI_SEND_REASONING_EFFORT", true);
+    private static final double AI_TEMPERATURE = readDouble("TOPIC_TAGS_AI_TEMPERATURE", 0.0d);
+    private static final int AI_MAX_COMPLETION_TOKENS_OVERRIDE = readInt("TOPIC_TAGS_AI_MAX_COMPLETION_TOKENS", 0);
+    private static final int AI_ENGLISH_MAX_CHARS = readInt("TOPIC_TAGS_AI_ENGLISH_MAX_CHARS", 2200);
+    private static final int AI_ARABIC_MATN_MAX_CHARS = readInt("TOPIC_TAGS_AI_ARABIC_MATN_MAX_CHARS", 2200);
+    private static final int AI_MAX_PROMPT_TOKENS = readInt("TOPIC_TAGS_AI_MAX_PROMPT_TOKENS", 16000);
+    private static final String AI_PARSE_DEBUG_FILE = readString("TOPIC_TAGS_AI_PARSE_DEBUG_FILE", "/tmp/topic-tags-ai-parse-failures.log");
+    private static final String AI_PROPOSAL_DEBUG_FILE = readString("TOPIC_TAGS_AI_PROPOSAL_DEBUG_FILE", "/tmp/topic-tags-ai-proposals.log");
+    private static final int PROGRESS_EVERY = readInt("TOPIC_TAGS_PROGRESS_EVERY", 10);
     private static final String SCROLL_KEEPALIVE = readString("TOPIC_TAGS_SCROLL", "6h");
-    private static final String DEFAULT_FALLBACK_TAG = readString("TOPIC_TAGS_DEFAULT_FALLBACK_TAG", "knowledge");
     private static final int SLICE_ID = readInt("TOPIC_TAGS_SLICE_ID", -1);
     private static final int SLICE_MAX = readInt("TOPIC_TAGS_SLICE_MAX", 0);
     private static final String CHECKPOINT_FILE = readString("TOPIC_TAGS_CHECKPOINT_FILE", "/tmp/topic-tags-backfill-checkpoint.json");
-    private static final int CHECKPOINT_INTERVAL = readInt("TOPIC_TAGS_CHECKPOINT_INTERVAL", 100);
-
-    private static final Map<String, List<String>> EXTRA_SEEDS = TopicTaxonomySeedSupport.extraSeedsBySlug();
-    private static final Set<String> HEADING_ONLY_SLUGS = TopicTaxonomySeedSupport.headingOnlySlugs();
+    private static final int CHECKPOINT_INTERVAL = readInt("TOPIC_TAGS_CHECKPOINT_INTERVAL", 10);
+    private static final boolean USE_OLLAMA = readBoolean("TOPIC_TAGS_USE_OLLAMA", false);
+    private static final boolean ALLOW_PROPOSALS = readBoolean("TOPIC_TAGS_ALLOW_PROPOSALS", false);
+    private static final String OLLAMA_URL = readString("TOPIC_TAGS_OLLAMA_URL", "http://localhost:11434/api/chat");
+    private static final String OLLAMA_MODEL = readString("TOPIC_TAGS_OLLAMA_MODEL", "qwen2.5:14b");
 
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
             .build();
     private final String baseUrl = buildBaseUrl();
     private final String index = readString("REWAYAAT_INDEX", ESClientProvider.INDEX);
-    private final String agentUrl = readString("TOPIC_TAGS_AI_AGENT_URL",
+    private final String agentUrl = USE_OLLAMA ? OLLAMA_URL : readString("TOPIC_TAGS_AI_AGENT_URL",
             readString("SUMMARY_AI_AGENT_URL",
                     "https://kbm2sc4qjqcubxjmkawniaei.agents.do-ai.run/api/v1/chat/completions"));
-    private final String agentKey = readString("TOPIC_TAGS_AI_AGENT_KEY", readString("SUMMARY_AI_AGENT_KEY", ""));
+    private final String agentKey = USE_OLLAMA ? "" : readString("TOPIC_TAGS_AI_AGENT_KEY", readString("SUMMARY_AI_AGENT_KEY", ""));
+    private final String ollamaModel = USE_OLLAMA ? OLLAMA_MODEL : "";
 
     /**
      * Checkpoint state for resumable progress tracking.
@@ -77,6 +83,7 @@ public final class TopicTagsBackfillTool {
         private long seen = 0;
         private long changed = 0;
         private long aiClassified = 0;
+        private long untagged = 0;
         private final Set<String> processedIds = new LinkedHashSet<>();
         private final long startTime = System.currentTimeMillis();
 
@@ -112,11 +119,20 @@ public final class TopicTagsBackfillTool {
             return aiClassified;
         }
 
+        public synchronized void incrementUntagged() {
+            untagged++;
+        }
+
+        public synchronized long getUntagged() {
+            return untagged;
+        }
+
         public synchronized String toJson() throws Exception {
             return MAPPER.writeValueAsString(Map.of(
                 "seen", seen,
                 "changed", changed,
                 "aiClassified", aiClassified,
+                "untagged", untagged,
                 "processedIds", new ArrayList<>(processedIds),
                 "startTime", startTime
             ));
@@ -150,19 +166,18 @@ public final class TopicTagsBackfillTool {
     }
 
     private void run() throws Exception {
-        List<TopicTaxonomySupport.TopicTaxonomyEntry> taxonomy = TopicTaxonomySupport.loadBundledTaxonomy();
+        List<TopicTaxonomySupport.TopicTaxonomyEntry> taxonomy = new ArrayList<>(TopicTaxonomySupport.loadBundledTaxonomy());
         if (taxonomy.isEmpty()) {
             throw new IllegalStateException("Bundled taxonomy.json is empty.");
         }
         TopicTaggingMode mode = classifierMode();
-        if (mode.requiresAi() && agentKey.isBlank()) {
-            throw new IllegalStateException("TOPIC_TAGS_AI_AGENT_KEY is required when AI topic tagging is enabled.");
+        if (mode.requiresAi() && !USE_OLLAMA && agentKey.isBlank()) {
+            throw new IllegalStateException("TOPIC_TAGS_AI_AGENT_KEY is required when AI topic tagging is enabled (unless using Ollama).");
         }
         validateSliceConfig();
         ensureTopicTagsMapping();
-        Set<String> allowedSlugs = TopicTaxonomySupport.slugSet(taxonomy);
-        Map<String, TopicTaxonomySupport.TopicTaxonomyEntry> taxonomyBySlug = TopicTaxonomySupport.indexBySlug(taxonomy);
-        Map<String, SeedProfile> seedProfiles = buildSeedProfiles(taxonomy);
+        Set<String> allowedSlugs = new LinkedHashSet<>(TopicTaxonomySupport.taggableSlugSet(taxonomy));
+        Map<String, TopicTaxonomySupport.TopicTaxonomyEntry> taxonomyBySlug = new LinkedHashMap<>(TopicTaxonomySupport.indexBySlug(taxonomy));
 
         // Load or initialize checkpoint
         CheckpointState checkpoint = loadCheckpoint();
@@ -193,36 +208,30 @@ public final class TopicTagsBackfillTool {
                         continue;
                     }
 
-                    PreparedNarration prepared = classify(hit, seedProfiles, taxonomyBySlug, mode);
+                    PreparedNarration prepared = classify(hit, mode);
                     if (prepared == null) {
                         continue;
                     }
                     checkpoint.incrementSeen();
                     checkpoint.addProcessed(docId);
 
-                    if (prepared.requiresAi(mode)) {
+                    if (prepared.requiresAi()) {
                         aiPending.add(prepared);
-                        if (aiPending.size() >= Math.max(1, AI_BATCH_SIZE)) {
-                            // Process AI batch sequentially
-                            Map<String, List<String>> assignments = classifyWithAiBatch(
-                                    aiPending, allowedSlugs, taxonomy, mode);
-                            for (PreparedNarration narration : aiPending) {
-                                List<String> assignedTags = assignments.getOrDefault(narration.id(), List.of());
-                                PendingUpdate update = narration.resolve(assignedTags, taxonomyBySlug, mode);
+                        List<PreparedNarration> flushableBatch = flushableAiBatch(aiPending, taxonomy, mode);
+                        if (!flushableBatch.isEmpty()) {
+                            AiBatchResult result = classifyWithAiBatch(
+                                    flushableBatch, allowedSlugs, taxonomy, mode);
+                            mergeAcceptedProposals(result.proposals(), taxonomy, allowedSlugs, taxonomyBySlug);
+                            for (PreparedNarration narration : flushableBatch) {
+                                List<String> assignedTags = result.assignments().getOrDefault(narration.id(), List.of());
+                                PendingUpdate update = narration.resolve(assignedTags, result.taxonomyBySlug(), mode);
                                 if (update.changed()) {
                                     pending.add(update);
                                 }
                                 checkpoint.incrementAiClassified(1);
                             }
-                            aiPending.clear();
-                        }
-                    } else {
-                        PendingUpdate update = prepared.resolve(List.of(), taxonomyBySlug, mode);
-                        if (update.changed()) {
-                            pending.add(update);
                         }
                     }
-
                     // Flush pending updates
                     if (pending.size() >= BATCH_SIZE) {
                         long flushed = flushUpdates(pending);
@@ -256,11 +265,12 @@ public final class TopicTagsBackfillTool {
 
             // Process remaining AI batch
             if (!aiPending.isEmpty()) {
-                Map<String, List<String>> assignments = classifyWithAiBatch(
+                AiBatchResult result = classifyWithAiBatch(
                         aiPending, allowedSlugs, taxonomy, mode);
+                mergeAcceptedProposals(result.proposals(), taxonomy, allowedSlugs, taxonomyBySlug);
                 for (PreparedNarration narration : aiPending) {
-                    List<String> assignedTags = assignments.getOrDefault(narration.id(), List.of());
-                    PendingUpdate update = narration.resolve(assignedTags, taxonomyBySlug, mode);
+                    List<String> assignedTags = result.assignments().getOrDefault(narration.id(), List.of());
+                    PendingUpdate update = narration.resolve(assignedTags, result.taxonomyBySlug(), mode);
                     if (update.changed()) {
                         pending.add(update);
                     }
@@ -318,10 +328,7 @@ public final class TopicTagsBackfillTool {
         }
     }
 
-    private PreparedNarration classify(JsonNode hit,
-                                       Map<String, SeedProfile> seedProfiles,
-                                       Map<String, TopicTaxonomySupport.TopicTaxonomyEntry> taxonomyBySlug,
-                                       TopicTaggingMode mode) {
+    private PreparedNarration classify(JsonNode hit, TopicTaggingMode mode) {
         if (hit == null || hit.isMissingNode()) {
             return null;
         }
@@ -337,119 +344,7 @@ public final class TopicTagsBackfillTool {
         if (!FORCE && !existing.isEmpty() && !mode.reclassifiesTaggedDocs()) {
             return PreparedNarration.resolved(id, existing, existing);
         }
-
-        String headingEnglish = TopicTaxonomySupport.normalizeEnglishForMatch(joinFields(
-                source.path("book").asText(""),
-                source.path("chapter").asText(""),
-                source.path("section").asText("")));
-        String bodyEnglish = TopicTaxonomySupport.normalizeEnglishForMatch(joinFields(
-                source.path("semantic_significant_terms_source").asText("")));
-        String headingArabic = TopicTaxonomySupport.normalizeArabicForMatch(joinFields(
-                source.path("book").asText(""),
-                source.path("chapter").asText(""),
-                source.path("section").asText("")));
-        String bodyArabic = TopicTaxonomySupport.normalizeArabicForMatch(joinFields(
-                source.path("semantic_matn_source").asText(""),
-                source.path("semantic_significant_terms_source").asText("")));
-
-        List<ScoredTag> scoredTags = scoreTags(seedProfiles, headingEnglish, bodyEnglish, headingArabic, bodyArabic);
-        List<String> ruleTags = chooseStrongRuleTags(scoredTags);
-        if (ruleTags.isEmpty()) {
-            ruleTags = chooseFallbackTags(scoredTags, source.path("book").asText(""), headingEnglish, headingArabic);
-        }
-        ruleTags = TopicTaxonomySeedSupport.refineSuggestedTags(
-                source.path("book").asText(""),
-                source.path("chapter").asText(""),
-                joinFields(source.path("english").asText(""), source.path("semantic_significant_terms_source").asText("")),
-                joinFields(source.path("arabic").asText(""), source.path("semantic_matn_source").asText("")),
-                ruleTags,
-                taxonomyBySlug);
-        if (ruleTags.isEmpty()) {
-            ruleTags = chooseFallbackTags(scoredTags, source.path("book").asText(""), headingEnglish, headingArabic);
-        }
-        return PreparedNarration.pending(id, existing, ruleTags, buildAiNarration(id, source, ruleTags, existing));
-    }
-
-    private List<ScoredTag> scoreTags(Map<String, SeedProfile> seedProfiles,
-                                      String headingEnglish,
-                                      String bodyEnglish,
-                                      String headingArabic,
-                                      String bodyArabic) {
-        List<ScoredTag> scored = new ArrayList<>();
-        for (Map.Entry<String, SeedProfile> entry : seedProfiles.entrySet()) {
-            int score = entry.getValue().score(
-                    headingEnglish,
-                    bodyEnglish,
-                    headingArabic,
-                    bodyArabic,
-                    !HEADING_ONLY_SLUGS.contains(entry.getKey()));
-            if (score > 0) {
-                scored.add(new ScoredTag(entry.getKey(), score));
-            }
-        }
-        scored.sort(Comparator.comparingInt(ScoredTag::score).reversed().thenComparing(ScoredTag::slug));
-        return scored;
-    }
-
-    private List<String> chooseStrongRuleTags(List<ScoredTag> scored) {
-        List<String> tags = new ArrayList<>();
-        for (ScoredTag item : scored) {
-            if (item.score() < TopicTaxonomySeedSupport.minimumSuggestionScore(item.slug())) {
-                continue;
-            }
-            tags.add(item.slug());
-        }
-        return tags;
-    }
-
-    private List<String> chooseFallbackTags(List<ScoredTag> scored,
-                                            String book,
-                                            String headingEnglish,
-                                            String headingArabic) {
-        if (scored != null && !scored.isEmpty()) {
-            return List.of(scored.get(0).slug());
-        }
-        String bookEnglish = TopicTaxonomySupport.normalizeEnglishForMatch(book);
-        String inferred = inferFallbackTag(bookEnglish, headingEnglish, headingArabic);
-        if (!inferred.isBlank()) {
-            return List.of(inferred);
-        }
-        return List.of(DEFAULT_FALLBACK_TAG);
-    }
-
-    private String inferFallbackTag(String bookEnglish,
-                                    String headingEnglish,
-                                    String headingArabic) {
-        String combinedEnglish = (bookEnglish + " " + (headingEnglish == null ? "" : headingEnglish)).trim();
-        String combinedArabic = headingArabic == null ? "" : headingArabic.trim();
-        if (combinedEnglish.contains("ghayba") || combinedEnglish.contains("mahdi") || combinedArabic.contains("غيبه") || combinedArabic.contains("مهدي")) {
-            return "imamate";
-        }
-        if (combinedEnglish.contains("tawhid") || combinedEnglish.contains("unity") || combinedArabic.contains("توحيد")) {
-            return "faith";
-        }
-        if (combinedEnglish.contains("ziyarat") || combinedArabic.contains("زياره")) {
-            return "ziyarat";
-        }
-        if (combinedEnglish.contains("zuhd") || combinedEnglish.contains("ascetic")) {
-            return "asceticism";
-        }
-        if (combinedEnglish.contains("nahj") || combinedEnglish.contains("malik al ashtar") || combinedEnglish.contains("governor")) {
-            return "leadership";
-        }
-        if (combinedEnglish.contains("faqih") || combinedEnglish.contains("permissible") || combinedEnglish.contains("impermissible")) {
-            return "halal";
-        }
-        if (combinedEnglish.contains("ridha")) {
-            return "imam-ridha";
-        }
-        if (combinedEnglish.contains("mumin")) {
-            return "good-character";
-        }
-        if (combinedEnglish.contains("khisal") || combinedEnglish.contains("maani") || combinedEnglish.contains("amali") || combinedEnglish.contains("rare ahadith")) {
-            return "knowledge";
-        }
-        return "";
+        return PreparedNarration.pending(id, existing, buildAiNarration(id, source));
     }
 
     private long appendResolvedAiUpdates(List<PreparedNarration> aiCandidates,
@@ -461,9 +356,12 @@ public final class TopicTagsBackfillTool {
         if (aiCandidates.isEmpty()) {
             return 0L;
         }
-        Map<String, List<String>> assignments = classifyWithAiBatch(aiCandidates, allowedSlugs, taxonomy, mode);
+        AiBatchResult result = classifyWithAiBatch(aiCandidates, allowedSlugs, taxonomy, mode);
         for (PreparedNarration candidate : aiCandidates) {
-            PendingUpdate update = candidate.resolve(assignments.getOrDefault(candidate.id(), List.of()), taxonomyBySlug, mode);
+            PendingUpdate update = candidate.resolve(
+                    result.assignments().getOrDefault(candidate.id(), List.of()),
+                    result.taxonomyBySlug().isEmpty() ? taxonomyBySlug : result.taxonomyBySlug(),
+                    mode);
             if (update.changed()) {
                 pending.add(update);
             }
@@ -471,70 +369,130 @@ public final class TopicTagsBackfillTool {
         return aiCandidates.size();
     }
 
-    private Map<String, List<String>> classifyWithAiBatch(List<PreparedNarration> aiCandidates,
-                                                          Set<String> allowedSlugs,
-                                                          List<TopicTaxonomySupport.TopicTaxonomyEntry> taxonomy,
-                                                          TopicTaggingMode mode) throws Exception {
+    private AiBatchResult classifyWithAiBatch(List<PreparedNarration> aiCandidates,
+                                              Set<String> allowedSlugs,
+                                              List<TopicTaxonomySupport.TopicTaxonomyEntry> taxonomy,
+                                              TopicTaggingMode mode) throws Exception {
         return classifyWithAiBatch(aiCandidates, allowedSlugs, taxonomy, mode, 0);
     }
 
-    private Map<String, List<String>> classifyWithAiBatch(List<PreparedNarration> aiCandidates,
-                                                          Set<String> allowedSlugs,
-                                                          List<TopicTaxonomySupport.TopicTaxonomyEntry> taxonomy,
-                                                          TopicTaggingMode mode,
-                                                          int depth) throws Exception {
+    private AiBatchResult classifyWithAiBatch(List<PreparedNarration> aiCandidates,
+                                              Set<String> allowedSlugs,
+                                              List<TopicTaxonomySupport.TopicTaxonomyEntry> taxonomy,
+                                              TopicTaggingMode mode,
+                                              int depth) throws Exception {
         if (aiCandidates.isEmpty()) {
-            return Map.of();
+            return new AiBatchResult(Map.of(), taxonomyBySlug(taxonomy), List.of());
         }
         String text = buildAiBatchPromptPayload(aiCandidates, taxonomy, mode);
         if (text.isBlank()) {
-            return Map.of();
+            return new AiBatchResult(Map.of(), taxonomyBySlug(taxonomy), List.of());
         }
-        int maxCompletionTokens = mode == TopicTaggingMode.AI_REFINE_ALL
-                ? Math.max(900, aiCandidates.size() * 220)
-                : Math.max(600, aiCandidates.size() * 140);
+        Integer maxCompletionTokens = AI_MAX_COMPLETION_TOKENS_OVERRIDE > 0
+                ? AI_MAX_COMPLETION_TOKENS_OVERRIDE
+                : null;
         try {
             String completion = callAgent("topic_tag_classification", text, maxCompletionTokens,
                     mode == TopicTaggingMode.AI_REFINE_ALL ? "high" : "medium");
-            Map<String, List<String>> assignments = TopicTaxonomySupport.parseTagAssignments(completion, allowedSlugs);
+            Map<String, List<String>> assignments;
+            Map<String, TopicTaxonomySupport.TopicTaxonomyEntry> effectiveTaxonomyBySlug = taxonomyBySlug(taxonomy);
+            List<TopicTaxonomySupport.TopicTaxonomyEntry> acceptedProposals = List.of();
+            try {
+                TopicTaxonomySupport.ParsedTagAssignments parsed =
+                        TopicTaxonomySupport.parseTagAssignmentsWithProposals(completion, allowedSlugs);
+                assignments = parsed.assignments();
+                if (!parsed.proposals().isEmpty()) {
+                    acceptedProposals = filterNovelProposals(parsed.proposals(), effectiveTaxonomyBySlug);
+                    if (!acceptedProposals.isEmpty()) {
+                        logTaxonomyProposalResponse(aiCandidates, text, completion, acceptedProposals);
+                    }
+                    for (TopicTaxonomySupport.TopicTaxonomyEntry proposal : acceptedProposals) {
+                        effectiveTaxonomyBySlug.put(proposal.slug(), proposal);
+                    }
+                }
+            } catch (Exception parseEx) {
+                logMalformedAiResponse(aiCandidates, text, completion, parseEx);
+                throw parseEx;
+            }
             if (assignments.isEmpty() && aiCandidates.size() > 1) {
                 return splitAiBatch(aiCandidates, allowedSlugs, taxonomy, mode, depth,
                         new IllegalStateException("AI classifier returned no usable document assignments."));
             }
-            return assignments;
+            return new AiBatchResult(assignments, effectiveTaxonomyBySlug, acceptedProposals);
         } catch (Exception ex) {
             if (AI_RETRY_DELAY_MS > 0) {
                 Thread.sleep(AI_RETRY_DELAY_MS);
             }
             if (aiCandidates.size() <= 1) {
                 System.err.printf(Locale.ROOT,
-                        "AI classification failed for %s; falling back to rule tags. Reason=%s%n",
+                        "AI classification failed for %s; leaving tags empty for this pass. Reason=%s%n",
                         aiCandidates.get(0).id(), rootMessage(ex));
-                return Map.of();
+                return new AiBatchResult(Map.of(aiCandidates.get(0).id(), List.of()), taxonomyBySlug(taxonomy), List.of());
             }
             return splitAiBatch(aiCandidates, allowedSlugs, taxonomy, mode, depth, ex);
         }
     }
 
-    private Map<String, List<String>> splitAiBatch(List<PreparedNarration> aiCandidates,
-                                                   Set<String> allowedSlugs,
-                                                   List<TopicTaxonomySupport.TopicTaxonomyEntry> taxonomy,
-                                                   TopicTaggingMode mode,
-                                                   int depth,
-                                                   Exception ex) throws Exception {
+    private AiBatchResult splitAiBatch(List<PreparedNarration> aiCandidates,
+                                       Set<String> allowedSlugs,
+                                       List<TopicTaxonomySupport.TopicTaxonomyEntry> taxonomy,
+                                       TopicTaggingMode mode,
+                                       int depth,
+                                       Exception ex) throws Exception {
         int midpoint = Math.max(1, aiCandidates.size() / 2);
         System.err.printf(Locale.ROOT,
                 "AI batch classification failed at size=%d depth=%d; splitting batch. Reason=%s%n",
                 aiCandidates.size(), depth, rootMessage(ex));
+        AiBatchResult left = classifyWithAiBatch(new ArrayList<>(aiCandidates.subList(0, midpoint)), allowedSlugs, taxonomy, mode, depth + 1);
+        AiBatchResult right = classifyWithAiBatch(new ArrayList<>(aiCandidates.subList(midpoint, aiCandidates.size())), allowedSlugs, taxonomy, mode, depth + 1);
         Map<String, List<String>> assignments = new LinkedHashMap<>();
-        assignments.putAll(classifyWithAiBatch(new ArrayList<>(aiCandidates.subList(0, midpoint)), allowedSlugs, taxonomy, mode, depth + 1));
-        assignments.putAll(classifyWithAiBatch(new ArrayList<>(aiCandidates.subList(midpoint, aiCandidates.size())), allowedSlugs, taxonomy, mode, depth + 1));
-        return assignments;
+        assignments.putAll(left.assignments());
+        assignments.putAll(right.assignments());
+        Map<String, TopicTaxonomySupport.TopicTaxonomyEntry> mergedTaxonomy = new LinkedHashMap<>();
+        mergedTaxonomy.putAll(left.taxonomyBySlug());
+        mergedTaxonomy.putAll(right.taxonomyBySlug());
+        List<TopicTaxonomySupport.TopicTaxonomyEntry> mergedProposals = new ArrayList<>();
+        mergedProposals.addAll(left.proposals());
+        mergedProposals.addAll(right.proposals());
+        return new AiBatchResult(assignments, mergedTaxonomy, List.copyOf(mergedProposals));
+    }
+
+    private List<PreparedNarration> flushableAiBatch(List<PreparedNarration> aiPending,
+                                                     List<TopicTaxonomySupport.TopicTaxonomyEntry> taxonomy,
+                                                     TopicTaggingMode mode) throws IOException {
+        if (aiPending.isEmpty()) {
+            return List.of();
+        }
+        int maxDocs = Math.max(1, AI_BATCH_SIZE);
+        if (aiPending.size() >= maxDocs) {
+            List<PreparedNarration> batch = new ArrayList<>(aiPending.subList(0, maxDocs));
+            aiPending.subList(0, maxDocs).clear();
+            return batch;
+        }
+        if (aiPending.size() == 1) {
+            return List.of();
+        }
+        String rawPayload = buildAiBatchPromptPayload(aiPending, taxonomy, mode, false);
+        if (estimatePromptTokens(rawPayload) <= AI_MAX_PROMPT_TOKENS) {
+            return List.of();
+        }
+        PreparedNarration overflow = aiPending.remove(aiPending.size() - 1);
+        List<PreparedNarration> batch = new ArrayList<>(aiPending);
+        aiPending.clear();
+        aiPending.add(overflow);
+        return batch;
     }
 
     private String buildAiBatchPromptPayload(List<PreparedNarration> aiCandidates,
                                              List<TopicTaxonomySupport.TopicTaxonomyEntry> taxonomy,
                                              TopicTaggingMode mode) throws IOException {
+        return buildAiBatchPromptPayload(aiCandidates, taxonomy, mode, true);
+    }
+
+    private String buildAiBatchPromptPayload(List<PreparedNarration> aiCandidates,
+                                             List<TopicTaxonomySupport.TopicTaxonomyEntry> taxonomy,
+                                             TopicTaggingMode mode,
+                                             boolean enforceMaxTokens) throws IOException {
         ArrayNode documents = MAPPER.createArrayNode();
         for (PreparedNarration candidate : aiCandidates) {
             if (candidate.aiPayload() == null) {
@@ -550,15 +508,81 @@ public final class TopicTagsBackfillTool {
         payload.put("instructions", mode.classificationInstructions());
         payload.put("taxonomy", TopicTaxonomySupport.compactPromptTaxonomy(taxonomy));
         payload.put("documents", documents);
+        String serialized = MAPPER.writeValueAsString(payload);
+        if (!enforceMaxTokens || estimatePromptTokens(serialized) <= AI_MAX_PROMPT_TOKENS) {
+            return serialized;
+        }
+        trimDocumentsToFit(documents, payload, AI_MAX_PROMPT_TOKENS);
         return MAPPER.writeValueAsString(payload);
     }
 
-    private ObjectNode buildAiNarration(String id, JsonNode source, List<String> suggestedTags, List<String> existingTags) {
-        String english = cleanText(source.path("english").asText(""));
-        String arabic = cleanText(source.path("arabic").asText(""));
-        String semanticTerms = cleanText(source.path("semantic_significant_terms_source").asText(""));
+    private void logMalformedAiResponse(List<PreparedNarration> aiCandidates,
+                                        String userPayload,
+                                        String completion,
+                                        Exception parseEx) {
+        try {
+            ObjectNode node = MAPPER.createObjectNode();
+            ArrayNode ids = node.putArray("ids");
+            for (PreparedNarration candidate : aiCandidates) {
+                ids.add(candidate.id());
+            }
+            node.put("error", rootMessage(parseEx));
+            node.put("user_payload", userPayload == null ? "" : userPayload);
+            node.put("raw_completion", completion == null ? "" : completion);
+            String line = MAPPER.writeValueAsString(node) + System.lineSeparator();
+            Files.writeString(Paths.get(AI_PARSE_DEBUG_FILE), line,
+                    StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        } catch (Exception logEx) {
+            System.err.printf(Locale.ROOT,
+                    "Failed to write AI parse debug log: %s%n", rootMessage(logEx));
+        }
+    }
+
+    private void logTaxonomyProposalResponse(List<PreparedNarration> aiCandidates,
+                                             String userPayload,
+                                             String completion,
+                                             List<TopicTaxonomySupport.TopicTaxonomyEntry> proposals) {
+        try {
+            ObjectNode node = MAPPER.createObjectNode();
+            ArrayNode ids = node.putArray("ids");
+            for (PreparedNarration candidate : aiCandidates) {
+                ids.add(candidate.id());
+            }
+            ArrayNode proposalNodes = node.putArray("proposed_taxonomy");
+            for (TopicTaxonomySupport.TopicTaxonomyEntry proposal : proposals) {
+                if (proposal == null) {
+                    continue;
+                }
+                ObjectNode proposalNode = proposalNodes.addObject();
+                proposalNode.put("slug", proposal.slug());
+                proposalNode.put("en", proposal.englishLabel());
+                if (!proposal.arabicLabel().isBlank()) {
+                    proposalNode.put("ar", proposal.arabicLabel());
+                }
+                proposalNode.put("category", proposal.category());
+                if (!proposal.parentSlug().isBlank()) {
+                    proposalNode.put("parent", proposal.parentSlug());
+                }
+            }
+            node.put("user_payload", userPayload == null ? "" : userPayload);
+            node.put("raw_completion", completion == null ? "" : completion);
+            String line = MAPPER.writeValueAsString(node) + System.lineSeparator();
+            Files.writeString(Paths.get(AI_PROPOSAL_DEBUG_FILE), line,
+                    StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        } catch (Exception logEx) {
+            System.err.printf(Locale.ROOT,
+                    "Failed to write AI taxonomy proposal log: %s%n", rootMessage(logEx));
+        }
+    }
+
+    private ObjectNode buildAiNarration(String id, JsonNode source) {
+        Map<String, Object> sourceMap = MAPPER.convertValue(source, Map.class);
+        String english = cleanText(source.path("semantic_english_hint_source").asText(""));
+        if (english.isBlank()) {
+            english = cleanText(HadithSemanticText.extractEnglishHint(sourceMap, AI_ENGLISH_MAX_CHARS));
+        }
         String semanticMatn = cleanText(source.path("semantic_matn_source").asText(""));
-        if (english.isBlank() && arabic.isBlank() && semanticTerms.isBlank() && semanticMatn.isBlank()) {
+        if (english.isBlank() && semanticMatn.isBlank()) {
             return null;
         }
         ObjectNode node = MAPPER.createObjectNode();
@@ -566,13 +590,68 @@ public final class TopicTagsBackfillTool {
         node.put("book", cleanText(source.path("book").asText("")));
         node.put("chapter", cleanText(source.path("chapter").asText("")));
         node.put("section", cleanText(source.path("section").asText("")));
-        addArray(node.putArray("existing_tags"), existingTags);
-        addArray(node.putArray("rule_suggestions"), suggestedTags);
-        node.put("english", cap(english, 700));
-        node.put("arabic", cap(arabic, 520));
-        node.put("semantic_matn", cap(semanticMatn, 520));
-        node.put("semantic_terms", cap(semanticTerms, 280));
+        node.put("english", cap(english, AI_ENGLISH_MAX_CHARS));
+        node.put("arabic_matn", cap(semanticMatn, AI_ARABIC_MATN_MAX_CHARS));
         return node;
+    }
+
+    private List<TopicTaxonomySupport.TopicTaxonomyEntry> filterNovelProposals(
+            List<TopicTaxonomySupport.TopicTaxonomyEntry> proposals,
+            Map<String, TopicTaxonomySupport.TopicTaxonomyEntry> taxonomyBySlug) {
+        if (proposals == null || proposals.isEmpty()) {
+            return List.of();
+        }
+        List<TopicTaxonomySupport.TopicTaxonomyEntry> filtered = new ArrayList<>();
+        Set<String> seen = new LinkedHashSet<>();
+        for (TopicTaxonomySupport.TopicTaxonomyEntry proposal : proposals) {
+            if (proposal == null) {
+                continue;
+            }
+            String slug = TopicTaxonomySupport.normalizeSlug(proposal.slug());
+            if (slug.isBlank() || !seen.add(slug) || taxonomyBySlug.containsKey(slug)) {
+                continue;
+            }
+            filtered.add(new TopicTaxonomySupport.TopicTaxonomyEntry(
+                    slug,
+                    proposal.englishLabel(),
+                    proposal.arabicLabel(),
+                    proposal.category(),
+                    proposal.description(),
+                    TopicTaxonomySupport.normalizeSlug(proposal.parentSlug()),
+                    proposal.tagType(),
+                    proposal.isTaggable()));
+        }
+        return List.copyOf(filtered);
+    }
+
+    private void trimDocumentsToFit(ArrayNode documents,
+                                    Map<String, Object> payload,
+                                    int maxTokens) throws IOException {
+        if (documents == null || documents.isEmpty()) {
+            return;
+        }
+        while (documents.size() > 1 && estimatePromptTokens(MAPPER.writeValueAsString(payload)) > maxTokens) {
+            documents.remove(documents.size() - 1);
+        }
+    }
+
+    private int estimatePromptTokens(String text) {
+        if (text == null || text.isBlank()) {
+            return 0;
+        }
+        int asciiChars = 0;
+        int nonAsciiChars = 0;
+        for (int i = 0; i < text.length(); i++) {
+            char ch = text.charAt(i);
+            if (ch <= 0x7F) {
+                asciiChars += 1;
+            } else {
+                nonAsciiChars += 1;
+            }
+        }
+        int asciiTokens = (int) Math.ceil(asciiChars / 4.0d);
+        int nonAsciiTokens = (int) Math.ceil(nonAsciiChars / 1.5d);
+        return asciiTokens + nonAsciiTokens;
     }
 
     private void addArray(ArrayNode array, List<String> values) {
@@ -586,18 +665,28 @@ public final class TopicTagsBackfillTool {
         }
     }
 
-    private String callAgent(String task, String userPrompt, int maxCompletionTokens, String reasoningEffort) throws Exception {
+    private String callAgent(String task, String userPrompt, Integer maxCompletionTokens, String reasoningEffort) throws Exception {
+        if (USE_OLLAMA) {
+            return callOllama(task, userPrompt);
+        }
+        return callOpenAiCompatible(task, userPrompt, maxCompletionTokens, reasoningEffort);
+    }
+
+    private String callOpenAiCompatible(String task, String userPrompt, Integer maxCompletionTokens, String reasoningEffort) throws Exception {
         List<Map<String, Object>> messages = new ArrayList<>();
-        messages.add(message("system", "task=" + task));
         messages.add(message("user", userPrompt));
 
         Map<String, Object> requestBody = new LinkedHashMap<>();
         requestBody.put("messages", messages);
-        requestBody.put("temperature", 0.1);
-        requestBody.put("max_completion_tokens", maxCompletionTokens);
+        requestBody.put("temperature", AI_TEMPERATURE);
+        if (maxCompletionTokens != null && maxCompletionTokens > 0) {
+            requestBody.put("max_tokens", maxCompletionTokens);
+        }
         requestBody.put("stream", false);
         requestBody.put("retrieval_method", "none");
-        requestBody.put("reasoning_effort", reasoningEffort);
+        if (AI_SEND_REASONING_EFFORT && reasoningEffort != null && !reasoningEffort.isBlank()) {
+            requestBody.put("reasoning_effort", reasoningEffort);
+        }
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(agentUrl))
@@ -610,7 +699,37 @@ public final class TopicTagsBackfillTool {
         if (response.statusCode() < 200 || response.statusCode() >= 300) {
             throw new IllegalStateException("Topic tag classifier upstream returned status " + response.statusCode());
         }
-        return extractContent(response.body());
+        return extractContentOpenAi(response.body());
+    }
+
+    private String callOllama(String task, String userPrompt) throws Exception {
+        Map<String, Object> requestBody = new LinkedHashMap<>();
+        requestBody.put("model", ollamaModel);
+        requestBody.put("stream", false);
+
+        List<Map<String, Object>> messages = new ArrayList<>();
+        messages.add(message("user", userPrompt));
+        requestBody.put("messages", messages);
+
+        // Ollama-specific options
+        Map<String, Object> options = new LinkedHashMap<>();
+        options.put("temperature", AI_TEMPERATURE);
+        if (AI_MAX_COMPLETION_TOKENS_OVERRIDE > 0) {
+            options.put("num_predict", AI_MAX_COMPLETION_TOKENS_OVERRIDE);
+        }
+        requestBody.put("options", options);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(agentUrl))
+                .timeout(AI_REQUEST_TIMEOUT)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(MAPPER.writeValueAsString(requestBody), StandardCharsets.UTF_8))
+                .build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() < 200 || response.statusCode() >= 300) {
+            throw new IllegalStateException("Ollama returned status " + response.statusCode() + ": " + response.body());
+        }
+        return extractContentOllama(response.body());
     }
 
     private long flushUpdates(List<PendingUpdate> updates) throws Exception {
@@ -662,31 +781,6 @@ public final class TopicTagsBackfillTool {
         putJson("/" + encode(index) + "/_mapping", body.toString());
     }
 
-    private Map<String, SeedProfile> buildSeedProfiles(List<TopicTaxonomySupport.TopicTaxonomyEntry> taxonomy) {
-        Map<String, SeedProfile> profiles = new LinkedHashMap<>();
-        for (TopicTaxonomySupport.TopicTaxonomyEntry entry : taxonomy) {
-            LinkedHashSet<String> englishSeeds = new LinkedHashSet<>();
-            LinkedHashSet<String> arabicSeeds = new LinkedHashSet<>();
-
-            if (TopicTaxonomySeedSupport.useDefaultLiteralSeeds(entry.slug())) {
-                addEnglishSeed(englishSeeds, entry.slug().replace('-', ' '));
-                addEnglishSeed(englishSeeds, entry.englishLabel());
-                addArabicSeed(arabicSeeds, entry.arabicLabel());
-            }
-
-            List<String> extra = EXTRA_SEEDS.getOrDefault(entry.slug(), List.of());
-            for (String seed : extra) {
-                if (TopicTaxonomySeedSupport.looksArabic(seed)) {
-                    addArabicSeed(arabicSeeds, seed);
-                } else {
-                    addEnglishSeed(englishSeeds, seed);
-                }
-            }
-            profiles.put(entry.slug(), new SeedProfile(List.copyOf(englishSeeds), List.copyOf(arabicSeeds)));
-        }
-        return profiles;
-    }
-
     private void validateSliceConfig() {
         boolean hasSliceId = SLICE_ID >= 0;
         boolean hasSliceMax = SLICE_MAX > 0;
@@ -702,18 +796,11 @@ public final class TopicTagsBackfillTool {
         return SLICE_MAX > 0 ? SLICE_ID + "/" + SLICE_MAX : "all";
     }
 
-    private boolean shouldUseAi() {
-        return classifierMode().requiresAi();
-    }
-
     private TopicTaggingMode classifierMode() {
         if (!CLASSIFIER_MODE.isBlank()) {
             return TopicTaggingMode.fromExternal(CLASSIFIER_MODE);
         }
-        if (!USE_AI) {
-            return TopicTaggingMode.RULES_ONLY;
-        }
-        return AI_ONLY_WHEN_EMPTY ? TopicTaggingMode.HYBRID_WHEN_EMPTY : TopicTaggingMode.HYBRID_ALL;
+        return TopicTaggingMode.AI_ONLY;
     }
 
     private void logProgress(long seen, long changed, int pendingUpdates, int pendingAi, TopicTaggingMode mode) {
@@ -741,6 +828,7 @@ public final class TopicTagsBackfillTool {
         source.add("english");
         source.add("arabic");
         source.add("semantic_matn_source");
+        source.add("semantic_english_hint_source");
         source.add("semantic_significant_terms_source");
         source.add("topic_tags");
         body.set("query", MAPPER.createObjectNode().set("match_all", MAPPER.createObjectNode()));
@@ -820,7 +908,7 @@ public final class TopicTagsBackfillTool {
         return parsed;
     }
 
-    private String extractContent(String json) throws Exception {
+    private String extractContentOpenAi(String json) throws Exception {
         if (json == null || json.trim().isEmpty()) {
             return "";
         }
@@ -835,6 +923,14 @@ public final class TopicTagsBackfillTool {
             return fromMessage;
         }
         return extractTextContent(first.path("delta").path("content"));
+    }
+
+    private String extractContentOllama(String json) throws Exception {
+        if (json == null || json.trim().isEmpty()) {
+            return "";
+        }
+        JsonNode root = MAPPER.readTree(json);
+        return extractTextContent(root.path("message").path("content"));
     }
 
     private String extractTextContent(JsonNode node) {
@@ -876,6 +972,43 @@ public final class TopicTagsBackfillTool {
         return map;
     }
 
+    private void mergeAcceptedProposals(List<TopicTaxonomySupport.TopicTaxonomyEntry> proposals,
+                                        List<TopicTaxonomySupport.TopicTaxonomyEntry> taxonomy,
+                                        Set<String> allowedSlugs,
+                                        Map<String, TopicTaxonomySupport.TopicTaxonomyEntry> taxonomyBySlug) throws IOException {
+        if (proposals == null || proposals.isEmpty()) {
+            return;
+        }
+        List<TopicTaxonomySupport.TopicTaxonomyEntry> newEntries = new ArrayList<>();
+        for (TopicTaxonomySupport.TopicTaxonomyEntry proposal : proposals) {
+            if (proposal == null || proposal.slug().isBlank() || taxonomyBySlug.containsKey(proposal.slug())) {
+                continue;
+            }
+            taxonomy.add(proposal);
+            taxonomyBySlug.put(proposal.slug(), proposal);
+            if (proposal.isTaggable()) {
+                allowedSlugs.add(proposal.slug());
+            }
+            newEntries.add(proposal);
+        }
+        if (!newEntries.isEmpty()) {
+            TopicTaxonomySupport.persistSupplementalProposals(newEntries);
+            for (TopicTaxonomySupport.TopicTaxonomyEntry entry : newEntries) {
+                System.out.printf(Locale.ROOT,
+                        "Topic tag backfill new_slug: slug=%s en=%s category=%s parent=%s%n",
+                        entry.slug(),
+                        entry.englishLabel(),
+                        entry.category(),
+                        entry.parentSlug());
+            }
+        }
+    }
+
+    private Map<String, TopicTaxonomySupport.TopicTaxonomyEntry> taxonomyBySlug(
+            List<TopicTaxonomySupport.TopicTaxonomyEntry> taxonomy) {
+        return new LinkedHashMap<>(TopicTaxonomySupport.indexBySlug(taxonomy));
+    }
+
     private static List<String> readStringArray(JsonNode node) {
         if (node == null || !node.isArray()) {
             return List.of();
@@ -901,20 +1034,6 @@ public final class TopicTagsBackfillTool {
             }
         }
         return joiner.toString();
-    }
-
-    private static void addEnglishSeed(Set<String> seeds, String raw) {
-        String normalized = TopicTaxonomySupport.normalizeEnglishForMatch(raw);
-        if (!normalized.isBlank() && normalized.length() > 2) {
-            seeds.add(normalized);
-        }
-    }
-
-    private static void addArabicSeed(Set<String> seeds, String raw) {
-        String normalized = TopicTaxonomySupport.normalizeArabicForMatch(raw);
-        if (!normalized.isBlank()) {
-            seeds.add(normalized);
-        }
     }
 
     private static String cleanText(String raw) {
@@ -961,6 +1080,18 @@ public final class TopicTagsBackfillTool {
         }
     }
 
+    private static double readDouble(String key, double defaultValue) {
+        String value = readString(key, null);
+        if (value == null || value.isBlank()) {
+            return defaultValue;
+        }
+        try {
+            return Double.parseDouble(value.trim());
+        } catch (NumberFormatException ignored) {
+            return defaultValue;
+        }
+    }
+
     private static String readString(String key, String defaultValue) {
         String value = firstNonEmpty(System.getProperty(key), System.getenv(key));
         return value == null || value.isBlank() ? defaultValue : value.trim();
@@ -986,41 +1117,38 @@ public final class TopicTagsBackfillTool {
         }
     }
 
-    private record ScoredTag(String slug, int score) {
+    private record AiBatchResult(Map<String, List<String>> assignments,
+                                 Map<String, TopicTaxonomySupport.TopicTaxonomyEntry> taxonomyBySlug,
+                                 List<TopicTaxonomySupport.TopicTaxonomyEntry> proposals) {
     }
 
     private record PreparedNarration(String id,
                                      List<String> existingTags,
-                                     List<String> fallbackTags,
                                      ObjectNode aiPayload) {
         private static PreparedNarration resolved(String id, List<String> existingTags, List<String> resolvedTags) {
-            return new PreparedNarration(id, List.copyOf(existingTags), List.copyOf(resolvedTags), null);
+            return new PreparedNarration(id, List.copyOf(resolvedTags), null);
         }
 
         private static PreparedNarration pending(String id,
                                                  List<String> existingTags,
-                                                 List<String> fallbackTags,
                                                  ObjectNode aiPayload) {
-            return new PreparedNarration(id, List.copyOf(existingTags), List.copyOf(fallbackTags), aiPayload);
+            return new PreparedNarration(id, List.copyOf(existingTags), aiPayload);
         }
 
-        private boolean requiresAi(TopicTaggingMode mode) {
-            return aiPayload != null && mode.shouldUseAi(fallbackTags);
+        private boolean requiresAi() {
+            return aiPayload != null;
         }
 
         private PendingUpdate resolve(List<String> aiTags,
                                       Map<String, TopicTaxonomySupport.TopicTaxonomyEntry> taxonomyBySlug,
                                       TopicTaggingMode mode) {
-            List<String> chosen = mode.chooseTags(existingTags, fallbackTags, aiTags);
+            List<String> chosen = mode.chooseTags(existingTags, aiTags);
             List<String> expanded = TopicTaxonomySupport.expandWithAncestors(chosen, taxonomyBySlug);
             return new PendingUpdate(id, existingTags, expanded);
         }
     }
 
     private enum TopicTaggingMode {
-        RULES_ONLY("rules"),
-        HYBRID_WHEN_EMPTY("hybrid_when_empty"),
-        HYBRID_ALL("hybrid_all"),
         AI_ONLY("ai_only"),
         AI_REFINE_ALL("ai_refine_all");
 
@@ -1033,9 +1161,6 @@ public final class TopicTagsBackfillTool {
         private static TopicTaggingMode fromExternal(String raw) {
             String normalized = raw == null ? "" : raw.trim().toLowerCase(Locale.ROOT).replace('-', '_');
             return switch (normalized) {
-                case "rules", "rules_only" -> RULES_ONLY;
-                case "hybrid", "hybrid_when_empty" -> HYBRID_WHEN_EMPTY;
-                case "hybrid_all", "ai_review" -> HYBRID_ALL;
                 case "ai", "ai_only" -> AI_ONLY;
                 case "ai_refine_all", "refine_all", "high_precision_ai", "precision_ai" -> AI_REFINE_ALL;
                 default -> throw new IllegalArgumentException("Unsupported TOPIC_TAGS_CLASSIFIER_MODE: " + raw);
@@ -1047,107 +1172,68 @@ public final class TopicTagsBackfillTool {
         }
 
         private boolean requiresAi() {
-            return this != RULES_ONLY;
+            return true;
         }
 
         private boolean reclassifiesTaggedDocs() {
             return this == AI_REFINE_ALL;
         }
 
-        private boolean shouldUseAi(List<String> fallbackTags) {
-            return switch (this) {
-                case RULES_ONLY -> false;
-                case HYBRID_WHEN_EMPTY -> fallbackTags == null || fallbackTags.isEmpty();
-                case HYBRID_ALL, AI_ONLY, AI_REFINE_ALL -> true;
-            };
-        }
-
-        private List<String> chooseTags(List<String> existingTags, List<String> fallbackTags, List<String> aiTags) {
+        private List<String> chooseTags(List<String> existingTags, List<String> aiTags) {
             List<String> normalizedExisting = existingTags == null ? List.of() : existingTags;
-            List<String> normalizedFallback = fallbackTags == null ? List.of() : fallbackTags;
             List<String> normalizedAi = aiTags == null ? List.of() : aiTags;
             return switch (this) {
-                case RULES_ONLY -> normalizedFallback;
-                case HYBRID_WHEN_EMPTY, HYBRID_ALL -> normalizedAi.isEmpty() ? normalizedFallback : normalizedAi;
                 case AI_ONLY -> normalizedAi;
-                case AI_REFINE_ALL -> normalizedAi.isEmpty()
-                        ? (!normalizedExisting.isEmpty() ? normalizedExisting : normalizedFallback)
-                        : normalizedAi;
+                case AI_REFINE_ALL -> normalizedAi.isEmpty() ? normalizedExisting : normalizedAi;
             };
         }
 
         private String classificationInstructions() {
-            return switch (this) {
-                case AI_REFINE_ALL ->
-                        "Reclassify every narration into taxonomy slugs with high precision. " +
-                                "Return only JSON with this schema: {\"documents\":[{\"id\":\"...\",\"tags\":[\"slug-1\",\"slug-2\"]}]}. " +
-                                "Use the narration text and heading context as the primary evidence. " +
-                                "Treat existing_tags and rule_suggestions as weak hints that may be wrong. " +
-                                "Assign all tags that genuinely apply where the hadith substantively addresses that theme—not just because a word is mentioned in passing. " +
-                                "Most hadith will have 2-5 primary tags; rich narrative hadith may legitimately have 8-12 tags when they span multiple themes (e.g., a hadith about Prophet Ibrahim discussing idols, with lessons about patience and trust in God, maps to: ibrahim, shirk, tawhid, patience, trust-in-god, creation, afterlife, prophethood, previous-nations). " +
-                                "Every hadith must receive at least one primary tag for Quran matching purposes. " +
-                                "Choose the most specific child tag when the narration clearly supports it; otherwise choose the narrowest defensible parent. " +
-                                "Avoid generic umbrella tags such as knowledge, faith, good-character, family, leadership, livelihood, and halal unless the narration is explicitly about that umbrella topic itself and no more specific child tag fits. " +
-                                "Do not use quran merely because the narration quotes or references a verse. " +
-                                "Do not use knowledge merely because the narration teaches something or contains a chain of transmission. " +
-                                "Do not use good-character merely because the narration has a moral lesson. " +
-                                "When a narration is explicitly about Ahl al-Bayt, Imam Husayn, ziyarat, wilayah, imamate, or related martyrdom/reappearance themes, prefer those tags over generic doctrinal or knowledge labels. " +
-                                "Do not add both a parent and its child because the system adds ancestors automatically. " +
-                                "Do not add parent rollups because the system adds ancestors automatically. " +
-                                "Do not invent slugs. " +
-                                "Each document must receive at least 1 slug unless the text is truly unusable.";
-                default ->
-                        "Classify each narration into 0 to 4 taxonomy slugs. Return only JSON with this schema: " +
-                                "{\"documents\":[{\"id\":\"...\",\"tags\":[\"slug-1\",\"slug-2\"]}]}. " +
-                                "Choose the most specific child tag when a child clearly applies. " +
-                                "Do not add parent rollups because the system adds ancestors automatically. " +
-                                "Do not invent slugs. If nothing fits, return an empty tags array for that document.";
-            };
-        }
-    }
+            // Base instructions common to all modes
+            String baseInstructions =
+                "You classify Shia hadith into controlled taxonomy slugs. " +
+                "You will receive id, book, chapter, section, english, arabic_matn, and taxonomy. " +
+                "The english field is only a short semantic hint, not the full narration, so rely on arabic_matn first and use english only as support. " +
+                "Tag only themes the hadith substantively addresses. " +
+                "Do not tag based on passing mentions, chains, incidental names, weak associations, or taxonomy-adjacent guesses. " +
+                "Prefer fewer correct tags over many weak tags. " +
+                "Most hadith should receive 1-5 direct tags; use more only when the hadith clearly spans multiple major themes. " +
+                "The taxonomy contains only directly taggable slugs. Parent and ancestor tags are added by the system later. " +
+                "Prefer the most specific supported direct tag. " +
+                "Do not output parent or ancestor rollups. " +
+                "Use chapter and section headings as supporting context, especially for terse legal narrations, but do not tag from heading alone when the body clearly points elsewhere. " +
+                "If the entry is only transmission metadata, rijal evaluation, bibliographic boilerplate, or chain material without substantive hadith content, return an empty tags array. " +
+                "Do not use quran just because a verse is quoted or referenced. " +
+                "Do not use knowledge just because the hadith teaches something, includes a chain, or is a transmission-chain notice. " +
+                "Do not use good-character if a more specific ethical tag fits. " +
+                "Do not use faith, halal, or similar umbrella tags unless they are the explicit central subject of the hadith. " +
+                "Avoid broad umbrella tags such as knowledge, faith, good-character, family, leadership, livelihood, and halal unless the hadith is truly about that umbrella topic. " +
+                "Do not infer a specific Imam from kunyah, title, or weak contextual clues alone. " +
+                "Use person tags only when the hadith is materially about that figure, their words, their role, their example, or an event centered on them. " +
+                "Do not assign ahl-al-bayt by default to every Imam narration. " +
+                "Do not assign leadership unless governance, authority, rule, rights, or public authority are actually central. " +
+                "Do not assign legal or ritual tags unless the hadith is actually discussing that legal or ritual matter. " +
+                "Do not choose the nearest available devotional or legal tag when the exact fit is missing; prefer an empty tags array over a near miss. " +
+                "When a secondary theme is explicit in the body, include it along with the primary legal or ritual tag, for example taqiyyah in an oath narration or wilayah in an authority narration. " +
+                "When clearly supported, prefer specific Shia tags such as imamate, wilayah, ghadir, imam-ali, imam-husayn, karbala, ziyarat, occultation, imam-mahdi, and reappearance-signs over generic doctrinal tags. " +
+                "Use evidence in this order: arabic_matn, then english. " +
+                "Return only valid JSON with this schema: {\"documents\":[{\"id\":\"doc-id\",\"tags\":[\"slug-1\",\"slug-2\"]}]}. " +
+                "Do not output prose, markdown, explanations, or code fences.";
 
-    private static final class SeedProfile {
-        private final List<String> englishSeeds;
-        private final List<String> arabicSeeds;
-
-        private SeedProfile(List<String> englishSeeds, List<String> arabicSeeds) {
-            this.englishSeeds = englishSeeds;
-            this.arabicSeeds = arabicSeeds;
-        }
-
-        private int score(String headingEnglish,
-                          String bodyEnglish,
-                          String headingArabic,
-                          String bodyArabic,
-                          boolean allowBodyMatches) {
-            int score = 0;
-            String paddedHeadingEnglish = " " + (headingEnglish == null ? "" : headingEnglish) + " ";
-            String paddedBodyEnglish = " " + (bodyEnglish == null ? "" : bodyEnglish) + " ";
-            String paddedHeadingArabic = " " + (headingArabic == null ? "" : headingArabic) + " ";
-            String paddedBodyArabic = " " + (bodyArabic == null ? "" : bodyArabic) + " ";
-            for (String seed : englishSeeds) {
-                if (seed.isBlank()) {
-                    continue;
-                }
-                if (paddedHeadingEnglish.contains(" " + seed + " ")) {
-                    score += seed.contains(" ") ? 4 : 2;
-                }
-                if (allowBodyMatches && paddedBodyEnglish.contains(" " + seed + " ")) {
-                    score += seed.contains(" ") ? 2 : 0;
-                }
+            if (ALLOW_PROPOSALS) {
+                return baseInstructions +
+                        "If no existing tag is a reasonable fit for the hadith, you MAY propose a new tag. " +
+                        "Only propose new tags when you are confident the taxonomy is genuinely missing a necessary concept. " +
+                        "When proposing a new tag, include it in the document tags AND add it to the proposed_taxonomy array. " +
+                        "Each proposed tag must have: slug (lowercase-with-hyphens), en (English label), category (one of: beliefs, practices, persons, ethics, history, koran, family, acts-of-worship, jurisprudence, other), and optionally parent (if it belongs under another tag). " +
+                        "Be conservative with proposals - quality matters more than coverage. " +
+                        "Example: {\"slug\":\"new-concept\",\"en\":\"New Concept\",\"category\":\"ethics\",\"parent\":\"ethics\"} " +
+                        "If nothing fits well and no new tag is clearly justified, return an empty tags array.";
+            } else {
+                return baseInstructions +
+                        "IMPORTANT: You MUST ONLY USE TAGS FROM THE PROVIDED TAXONOMY. Do NOT suggest, propose, or invent new tags. " +
+                        "If no existing tag is a reasonable fit, return an empty tags array for that document; quality matters more than coverage.";
             }
-            for (String seed : arabicSeeds) {
-                if (seed.isBlank()) {
-                    continue;
-                }
-                if (paddedHeadingArabic.contains(" " + seed + " ")) {
-                    score += seed.contains(" ") ? 4 : 3;
-                }
-                if (allowBodyMatches && paddedBodyArabic.contains(" " + seed + " ")) {
-                    score += seed.contains(" ") ? 2 : 1;
-                }
-            }
-            return score;
         }
     }
 }

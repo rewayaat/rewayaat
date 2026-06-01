@@ -74,6 +74,7 @@ public class TermsController {
             @Parameter(name = "inputTerms", description = "Comma separated list of input terms for which to retrieve highly significant terms.")
             @RequestParam(value = "inputTerms", required = true) String inputTerms) throws Exception {
 
+        size = Math.max(1, Math.min(size, 3));
         String[] inputTermArr = inputTerms.split(",");
         if (inputTermArr.length < 1) {
             return new ResponseEntity<>("Input Terms parameter is empty!", HttpStatus.BAD_REQUEST);

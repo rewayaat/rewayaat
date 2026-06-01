@@ -24,11 +24,11 @@ adaa, ada
 adab, etiquette, rite, أدب
 adam, ادم
 adl, justice, equity
-adil, aadil, just, fair
+adil, aadil
 adhaab, azaab, punishment, torture, عذاب
 adhan, azan
-ahkam, jurisprudence, rules, laws, rites, أحكام
-ahd, commitment, covenant, oath, pledge, promise, vow
+ahkam, jurisprudence, أحكام
+ahd, covenant, oath, pledge, وعد
 aimma, Imams
 aakhira, afterlife, الآخرة
 al-hamd, Alhamd, الحمد
@@ -37,88 +37,263 @@ aalim, alim, scholar
 anbiya, ambiyaa, prophets, apostles, رسول, نبي
 ansar, helpers, freinds, supporters, أنصار
 aqd, agreement, marriage
-aqidah, aqeeda, faith, belief, creed
-aql, aaqil, intelligent, sane, wise, rational, intellect, sanity, العقل
-ashaab, companions, supporters, أصحاب
+aqidah, aqeeda, creed, العقيدة
+aql, intellect, العقل
+ashaab, companions, أصحاب
 ashoora, ashura, عاشوراء
-awliya, friends, guardians, protectors, saints
-ayah, ayat, sign, أية
+awliya, saints, أولياء
+ayah, ayat, verse, آية
 ayyam, days, أيام
 bāligh, baaligh, mature
 barakah, blessing
 basmalah, bismillāh, bismila
-batil, baatil, invalid, void, falsehood, باطل
-bātin, batin, baatin, hidden, esoteric, secret
+batil, baatil, falsehood, باطل
+bātin, batin, baatin, esoteric, باطن
 barzakh, barrier
-bay‘ah, bayat, allegiance, oath
-bayt, house
+bay‘ah, bayat, allegiance, بيعة
+bayt, household, بيت
 bayyinah, bayina, evidence
-bi‘thah, bi’that, apostleship, messengership, commissioning
+bi‘thah, bi’that, messengership, بعثة
 bulūgh, bulug, buloog, puberty
 dafan, burial
-Dajjāl, Dajjal, anti-Christ
-dalīl, daleel, proof, evidence, دليل , الدليل
-da‘wah, call, invite, dawa
+Dajjāl, Dajjal, الدجال
+dalīl, daleel, proof, دليل , الدليل
+da‘wah, dawa, دعوة
 Dāwūd, Dawud, Dawood, Daawud, David, داود
 dayn, debt
 death, mawt, intikal, موت ,الموت
 dhabī‘hah, dhabeeah, dhabee’a, zabiha, zabeeha
 dhāll, dhaal, astray, lost
-dhanb, zanb, sin, disobedience
-dharar, zarar, harm, damage
-dharīh, zaree, dhareeh, dareeh, tomb, mausoleum, grave, قبر
-dhākir, dhaakir, zaakir, reciter
-dhikr, zikr, remembrance, litany
+dhanb, zanb, sin, ذنب
+dharar, zarar, harm, ضرر
+dharīh, zaree, dhareeh, dareeh, shrine, ضريح
+dhākir, dhaakir, zaakir, ذاكر
+dhikr, zikr, remembrance, ذكر
 dhulfiqaar, Zulfiqar
 Dinār, Dinaar, currency
 din, deen, religion, الدين
 dirham, currency, درهم
-Du’ā, Duaa, prayer, invocation, supplication
+Du’ā, Duaa, supplication, invocation, دعاء
 dunyā, dunyaa, world
 dunyawī, dunyawi, dunyawee, secular, wordly
-Fadl, fadhal, fazl, distinction, preference, favor, grace
+Fadl, fadhal, fazl, فضل
 āhishah, fahisha, fornication, adultery
 fajr, Alfajr, dawn, subhfājir, الفجر
 faajir, immoral, wicked, الفاجر
-falāh, falaah, success, prosperity, successful, الفلاح
-faqīh, faqeeh, mujtahid, marja‘, jurist
-faraj, freedom, ease, release, comfort
-fard, obligatory, mandatory
-fasād, Fasaad, corruption, immorality, depravity, wrongness, فساد, الفساد
-fāsiq, faasiq, sinner, untrustworthy
+falāh, falaah, success, الفلاح
+faqīh, faqeeh, jurist, فقيه
+faraj, relief, deliverance, فرج
+fard, obligatory, فرض
+fasād, Fasaad, corruption, فساد, الفساد
+fāsiq, faasiq, sinner, فاسق
 fātiha, fātiha, alfaatiha
-fatwa, ruling, hukm, rukam
+fatwa, ruling, hukm, فتوى
 fir‘awn, Firoun, pharoah
-firdaws, firdous, paradise
-firqah, Firka, sect, denomination
+firdaws, firdous, الفردوس
+firqah, Firka, sect, فرقة
 fisk, sinfulness, immorality
-fitnah, persecution, sedition, dissention, allurement, temptation, affliction, test, trial
+fitnah, sedition, temptation, affliction, فتنة
 fujūr, fujoor, immorality, depravation 
-furū‘, furu, furoo, branches
-hadīth, hadees, hadis, Tradition, saying
+furū‘, furu, furoo, فروع
+hadīth, hadees, hadis, حديث
 hā’idh, haai’dh, haydh, haaedh, haez, menstruating
 hābil, haabil, Habel, Abel
-hādī, haadi, guide
+hādī, haadi, guide, هادي
 hāfiz, haafiz, hafidh
-hājj, hajj, hāji, pilgrim, pilgrimage
+hājj, hajj, hāji, pilgrimage, حج
 hākim, haakim, judge
-halāl, halaal, permissible, lawful, حلال
+halāl, halaal, lawful, حلال
 halq, halak
 hanif, haneef, upright
-haqq, truth, true
-harām, haraam, sacred, forbidden, unlawful
-harbī, harbee, hostile, enemy
-harf, letter, sound, hurūf
+haqq, truth, حق
+harām, haraam, forbidden, unlawful, حرام
+harbī, harbee, hostile, حربي
+harf, hurūf, حرف
 Hārūn, Haroon, Haarun, Aaron
-hasanah, merit, reward
-hashr, resurrection, gathering, assembling
+hasanah, reward, حسنة
+hashr, resurrection, gathering, حشر
 hawāriyyūn, hawariyun, hawariyoon
-hayā’, hayaa, modesty, shyness
-hidāyah, huda, hidaya, guidance
-hijāb, veil, separation, حجاب
-hikmah, wisdom
-hisāb, hisaab, accountability
+hayā’, hayaa, modesty, حياء
+hidāyah, huda, hidaya, guidance, هداية
+hijāb, veil, حجاب
+hikmah, wisdom, حكمة
+hisāb, hisaab, accountability, حساب
 hizb, party
-hujjah, hujat, proof, evidence, excuse
-huqūq, huqooq, hukuk, rights
-hurmah, sanctity
+hujjah, hujat, proof, حجة
+huqūq, huqooq, hukuk, حقوق
+hurmah, sanctity, حرمة
+husayn, hussain, husain, حسين
+husn, beauty, حسن
+ibadah, ibadat, worship, عبادة
+iblis, devil, satan, إبليس
+iftar, breakfasting, إفطار
+ikhlas, sincerity, إخلاص
+ilah, deity, إله
+ilm, knowledge, علم
+imam, إمام
+iman, eemaan, إيمان
+inqilab, revolt, uprising
+insaf, fairness, إنصاف
+inshaallah, inshallah, إن شاء الله
+iqamah, إقامة
+iqra, اقرأ
+irfan, gnosis, عرفان
+isa, عيسى, jesus
+ishq, عشق
+islah, reform, إصلاح
+ismah, infallibility, عصمة
+isnad, chain, isnad, إسناد
+istighfar, استغفار
+i'tikaf, itikaf, اعتكاف
+jahannam, hellfire, جهنم
+jahil, ignorant, جاهل
+jahiliyyah, paganism, جاهلية
+jamaah, congregation, جماعة
+jannah, paradise, جنة
+jihad, jihaad, جهاد
+jizyah, tribute, جزية
+junub, impure, جنابة
+kaaba, kaabah, ka'ba, كعبة
+kafir, kaafir, disbeliever, كافر
+kafur, camphor, كافور
+kalam, theology, كلام
+karam, generosity, كرم
+karbala, كربلاء
+kawthar, abundance, كوثر
+khabar, narration, خبر
+khadijah, خديجة
+khalifah, khalifa, caliph, خليفة
+khalq, creation, خلق
+khamr, intoxicant, خمر
+khandaq, trench, moat, خندق
+khashyah, awe, خشية
+khatam, seal, خاتم
+khauf, fear, خوف
+khayr, goodness, خير
+khidr, khizar, خضر
+khilafah, caliphate, خلافة
+khums, خمس
+khushu, devotion, خشوع
+kibr, arrogance, كبر
+kitab, scripture, كتاب
+kufr, disbelief, كفر
+laylat, ليلة
+liqa, meeting, لقاء
+luqman, لقمان
+maad, return, resurrection, معاد
+maarifah, ma'rifah, gnosis, معرفة
+mahdi, mahdy, مهدي
+mahr, dowry, مهر
+makruh, reprehensible, مكروه
+malak, angel, ملك
+malakut, dominion, ملكوت
+marja, jurist, مرجع
+masjid, mosque, مسجد
+matn, text, متن
+mawlid, birth, مولد
+mawla, patron, مولى
+miqat, boundary, ميقات
+mihrab, prayer-niche, محراب
+minbar, pulpit, منبر
+miraj, mi'raj, ascension, معراج
+mizan, scale, ميزان
+muadhdhin, muezzin, مؤذن
+muhsin, beneficent, محسن
+muhkam, decisive, محكم
+mujtahid, jurist, مجتهد
+mulk, dominion, ملك
+munafiq, hypocrite, منافق
+munkar, objectionable, منكر
+musibah, calamity, مصيبة
+mustahabb, recommended, مستحب
+mutahhar, purified, مطهر
+nabi, prophet, نبي
+nafs, soul, نفس
+najis, impure, نجس
+najwa, whisper, نجوى
+nār, fire, نار
+nifaq, hypocrisy, نفاق
+niyyah, intention, نية
+nubuwwah, prophethood, نبوة
+nur, noor, light, نور
+qabr, grave, قبر
+qadar, destiny, قدر
+qadi, judge, قاضي
+qaim, قائم
+qalb, heart, قلب
+qasas, stories, قصص
+qasd, intention, قصد
+qisas, retaliation, قصاص
+qiyam, قيام
+qiyamah, resurrection, قيامة
+quds, holiness, قدس
+qunut, قنوت
+qurbah, nearness, قربه
+qurban, sacrifice, قربان
+rahmah, mercy, رحمة
+rajah, return, رجعة
+rajm, stoning, رجم
+rakah, rakaat, ركعة
+ramadan, ramazan, رمضان
+rasul, messenger, رسول
+riba, الربا, usury
+ridha, رضا
+riya, ostentation, رياء
+rizq, sustenance, رزق
+ruh, spirit, روح
+sabr, patience, صبر
+sadaqah, charity, صدقة
+sadiq, صادق
+sahabah, companions, صحابة
+sahifah, scroll, صحيفة
+sajdah, sajda, prostration, سجدة
+sakinah, tranquility, سكينة
+salam, peace, سلام
+salat, salah, صلاة
+sawm, fasting, صوم
+shafaah, shafa'a, intercession, شفاعة
+shahadah, testimony, شهادة
+shahid, martyr, شهيد
+shariah, sharia, شريعة
+shaytan, satan, شيطان
+shirk, idolatry, شرك
+shura, consultation, شورى
+sidq, truthfulness, صدق
+sirat, path, bridge, صراط
+siyam, fasting, صيام
+sunnah, tradition, سنة
+surah, سورة
+tabarruk, blessing, تبرك
+tabut, ark, coffin, تابوت
+tafsir, exegesis, commentary, تفسير
+tahajjud, night-prayer, تهجد
+taharah, purity, purification, طهارة
+tahrif, distortion, تحريف
+takbir, تكبير
+taqiyyah, dissimulation, precaution, تقية
+taqwa, piety, تقوى
+tawaf, circumambulation, طواف
+tawbah, repentance, توبة
+tawhid, توحيد, monotheism
+tazkiyah, purification, تزكية
+thawab, reward, ثواب
+ukhuwah, brotherhood, اخوة
+ulama, scholars, علماء
+ummah, الأمة
+umrah, عمرة
+usul, اصول
+wali, saint, ولي
+waqf, endowment, وقف
+wara, scrupulousness, ورع
+wasiyyah, testament, وصية
+witr, وتر
+wiladah, birth, ولادة
+wilayah, walayah, ولاية
+yaqin, certainty, يقين
+yawm, يوم
+zakat, زكاة
+zalim, oppressor, ظالم
+zina, fornication, adultery, زنا
+ziyarah, ziyara, زيارة
+zuhd, asceticism, renunciation, زهد
+zulm, injustice, oppression, ظلم

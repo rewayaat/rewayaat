@@ -42,7 +42,6 @@ public class SimilarHadithService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SimilarHadithService.class);
 
-    private static final String SEMANTIC_INFERENCE_ID = readStringSetting("SIMILAR_SEMANTIC_INFERENCE_ID", "rewayaat-multilingual-e5-large");
     private static final String SEMANTIC_VECTOR_FIELD = "semantic_vector";
     private static final String ARABIC_FIELD = "arabic";
     private static final String SEMANTIC_TEXT_FIELD = "semantic_text";
@@ -51,20 +50,20 @@ public class SimilarHadithService {
     private static final int SIGNIFICANT_TERMS_STORED_LIMIT = readIntSetting("SIMILAR_SIGNIFICANT_TERMS_STORED_LIMIT", 6);
     private static final int SIGNIFICANT_TERMS_QUERY_LIMIT = readIntSetting("SIMILAR_SIGNIFICANT_TERMS_QUERY_LIMIT", 10);
 
-    private static final float SEMANTIC_MIN_SIMILARITY = readFloatSetting("SIMILAR_SEMANTIC_MIN_SIMILARITY", 0.72f);
-    private static final int SEMANTIC_POOL_SIZE = readIntSetting("SIMILAR_SEMANTIC_POOL_SIZE", 220);
-    private static final int SEMANTIC_NUM_CANDIDATES = readIntSetting("SIMILAR_SEMANTIC_NUM_CANDIDATES", 500);
+    private static final float SEMANTIC_MIN_SIMILARITY = readFloatSetting("SIMILAR_SEMANTIC_MIN_SIMILARITY", 0.60f);
+    private static final int SEMANTIC_POOL_SIZE = readIntSetting("SIMILAR_SEMANTIC_POOL_SIZE", 300);
+    private static final int SEMANTIC_NUM_CANDIDATES = readIntSetting("SIMILAR_SEMANTIC_NUM_CANDIDATES", 750);
     private static final int LEXICAL_POOL_SIZE = readIntSetting("SIMILAR_LEXICAL_POOL_SIZE", 220);
     private static final int CANDIDATE_LIMIT = readIntSetting("SIMILAR_HYBRID_CANDIDATE_LIMIT", 280);
     private static final int RERANK_INPUT_LIMIT = readIntSetting("SIMILAR_RERANK_INPUT_LIMIT", 24);
     private static final int MAX_RESULT_ITEMS = readIntSetting("SIMILAR_MAX_RESULT_ITEMS", 40);
 
-    private static final float FINAL_MIN_PERCENT = readFloatSetting("SIMILAR_FINAL_MIN_PERCENT", 70f);
+    private static final float FINAL_MIN_PERCENT = readFloatSetting("SIMILAR_FINAL_MIN_PERCENT", 45f);
     private static final float FINAL_LLM_WEIGHT = readFloatSetting("SIMILAR_FINAL_LLM_WEIGHT", 0.88f);
     private static final int QUICK_COUNT_VERIFY_THRESHOLD = readIntSetting("SIMILAR_QUICK_COUNT_VERIFY_THRESHOLD", 3);
-    private static final float RETRIEVAL_SYNTACTIC_WEIGHT = readFloatSetting("SIMILAR_RETRIEVAL_SYNTACTIC_WEIGHT", 0.08f);
-    private static final float RETRIEVAL_CONTENT_WEIGHT = readFloatSetting("SIMILAR_RETRIEVAL_CONTENT_WEIGHT", 0.16f);
-    private static final float RETRIEVAL_TOPIC_WEIGHT = readFloatSetting("SIMILAR_RETRIEVAL_TOPIC_WEIGHT", 0.10f);
+    private static final float RETRIEVAL_SYNTACTIC_WEIGHT = readFloatSetting("SIMILAR_RETRIEVAL_SYNTACTIC_WEIGHT", 0.10f);
+    private static final float RETRIEVAL_CONTENT_WEIGHT = readFloatSetting("SIMILAR_RETRIEVAL_CONTENT_WEIGHT", 0.15f);
+    private static final float RETRIEVAL_TOPIC_WEIGHT = readFloatSetting("SIMILAR_RETRIEVAL_TOPIC_WEIGHT", 0.25f);
     private static final float RRF_SEMANTIC_WEIGHT = readFloatSetting("SIMILAR_RRF_SEMANTIC_WEIGHT", 0.85f);
     private static final float RRF_LEXICAL_WEIGHT = readFloatSetting("SIMILAR_RRF_LEXICAL_WEIGHT", 0.15f);
     private static final int RRF_K = readIntSetting("SIMILAR_RRF_K", 60);
@@ -78,13 +77,14 @@ public class SimilarHadithService {
     private static final float LEXICAL_TOPIC_TAGS_BOOST = readFloatSetting("SIMILAR_LEXICAL_TOPIC_TAGS_BOOST", 3.0f);
     private static final float SIGNIFICANT_TERMS_SUPPORT_WEIGHT = readFloatSetting("SIMILAR_SIGNIFICANT_TERMS_SUPPORT_WEIGHT", 0.55f);
     private static final int DISTINCTIVE_TOKEN_GATE_MIN = readIntSetting("SIMILAR_DISTINCTIVE_TOKEN_GATE_MIN", 3);
-    private static final int DISTINCTIVE_TOKEN_HIGH_CONTEXT_MIN = readIntSetting("SIMILAR_DISTINCTIVE_TOKEN_HIGH_CONTEXT_MIN", 6);
+    private static final int DISTINCTIVE_TOKEN_HIGH_CONTEXT_MIN = readIntSetting("SIMILAR_DISTINCTIVE_TOKEN_HIGH_CONTEXT_MIN", 12);
     private static final float DISTINCTIVE_CONTENT_MIN_PERCENT = readFloatSetting("SIMILAR_DISTINCTIVE_CONTENT_MIN_PERCENT", 12f);
     private static final float DISTINCTIVE_CONTENT_TRACE_PERCENT = readFloatSetting("SIMILAR_DISTINCTIVE_CONTENT_TRACE_PERCENT", 8f);
     private static final float DISTINCTIVE_SYNTACTIC_MIN_PERCENT = readFloatSetting("SIMILAR_DISTINCTIVE_SYNTACTIC_MIN_PERCENT", 20f);
     private static final float DISTINCTIVE_SYNTACTIC_HIGH_CONTEXT_MIN_PERCENT = readFloatSetting("SIMILAR_DISTINCTIVE_SYNTACTIC_HIGH_CONTEXT_MIN_PERCENT", 26f);
-    private static final int TOPIC_TAG_RESCUE_MIN = readIntSetting("SIMILAR_TOPIC_TAG_RESCUE_MIN", 2);
+    private static final int TOPIC_TAG_RESCUE_MIN = readIntSetting("SIMILAR_TOPIC_TAG_RESCUE_MIN", 3);
     private static final float NEAR_DUPLICATE_SYNTACTIC_PERCENT = readFloatSetting("SIMILAR_NEAR_DUPLICATE_SYNTACTIC_PERCENT", 92f);
+    private static final float MIN_CONTENT_OVERLAP_PERCENT = readFloatSetting("SIMILAR_MIN_CONTENT_OVERLAP_PERCENT", 12f);
 
     private final SimilarHadithRerankerService rerankerService;
     private final ObjectMapper mapper = new ObjectMapper();
@@ -374,20 +374,20 @@ public class SimilarHadithService {
     }
 
     private SemanticCandidatePool semanticHits(ESClientProvider provider, SourceNarration source) throws Exception {
-        String embeddingText = HadithSemanticText.toQueryText(
-                source.matnArabic(),
-                source.englishHint(),
-                source.significantTermsText(),
-                MAX_MATN_CHARS);
-        if (embeddingText.isBlank()) {
-            return new SemanticCandidatePool(new ArrayList<>(), true);
+        // Use the source hadith's pre-computed embedding vector directly as the query vector.
+        // This avoids the ES inference dependency and ensures query/doc vectors are in the
+        // same fine-tuned embedding space.
+        List<Float> queryVector = source.semanticVector();
+        if (queryVector == null || queryVector.isEmpty()) {
+            LOGGER.debug("No semantic_vector found for hadith {}, falling back to lexical only", source.id());
+            return new SemanticCandidatePool(new ArrayList<>(), false);
         }
         int poolSize = Math.max(1, SEMANTIC_POOL_SIZE);
         int numCandidates = Math.max(Math.max(poolSize * 2, poolSize), SEMANTIC_NUM_CANDIDATES);
         SearchRequest request = new SearchRequest.Builder()
                 .index(ESClientProvider.INDEX)
                 .size(poolSize)
-                .knn(buildSemanticKnn(embeddingText, source.id(), poolSize, numCandidates))
+                .knn(buildSemanticKnn(queryVector, source.id(), poolSize, numCandidates))
                 .build();
         try {
             SearchResponse<Map> response = provider.client().search(request, Map.class);
@@ -398,12 +398,10 @@ public class SimilarHadithService {
         }
     }
 
-    private KnnSearch buildSemanticKnn(String text, String sourceId, int poolSize, int numCandidates) {
+    private KnnSearch buildSemanticKnn(List<Float> queryVector, String sourceId, int poolSize, int numCandidates) {
         KnnSearch.Builder builder = new KnnSearch.Builder()
                 .field(SEMANTIC_VECTOR_FIELD)
-                .queryVectorBuilder(qvb -> qvb.textEmbedding(te -> te
-                        .modelId(SEMANTIC_INFERENCE_ID)
-                        .modelText(text)))
+                .queryVector(queryVector)
                 .k(poolSize)
                 .numCandidates(numCandidates)
                 .filter(f -> f.exists(e -> e.field(SEMANTIC_VECTOR_FIELD)))
@@ -471,8 +469,10 @@ public class SimilarHadithService {
         String lexicalQueryText = buildLexicalQueryText(significantTerms, normalizedMatn, LEXICAL_CONTENT_QUERY_TOKEN_LIMIT);
         String englishHint = HadithSemanticText.extractEnglishHint(sourceResp.source());
         List<String> topicTags = readTopicTags(sourceResp.source());
+        List<Float> semanticVector = readSemanticVector(sourceResp.source());
         return new SourceNarration(hadithId, matnArabic, normalizedMatn, lexicalQueryText,
-                distinctiveTokenCount, significantTerms, significantTermsText, englishHint, topicTags, sourceResp.source());
+                distinctiveTokenCount, significantTerms, significantTermsText, englishHint, topicTags, sourceResp.source(),
+                semanticVector);
     }
 
     private HadithObject mapCandidate(SimilarCandidate candidate, SimilarHadithRanking.CandidateScore score) {
@@ -489,9 +489,6 @@ public class SimilarHadithService {
                 continue;
             }
             hadithes.add(mapCandidate(candidate, candidate.retrievalPercent(), null, candidate.retrievalPercent()));
-            if (hadithes.size() >= MAX_RESULT_ITEMS) {
-                break;
-            }
         }
         return hadithes;
     }
@@ -551,7 +548,16 @@ public class SimilarHadithService {
     static double computeRetrievalPercent(double semanticPercent, double syntacticPercent, double contentOverlapPercent, double topicOverlapPercent) {
         double syntacticWeight = Math.max(0d, RETRIEVAL_SYNTACTIC_WEIGHT);
         double contentWeight = Math.max(0d, RETRIEVAL_CONTENT_WEIGHT);
+        // Dampen topic weight when content overlap is low — broad tags alone
+        // should not carry candidates that share no actual textual content.
+        // Quadratic dampening below 20%: at 10% content, topic weight is 25%;
+        // at 5% content, topic weight is ~6%.
         double topicWeight = Math.max(0d, RETRIEVAL_TOPIC_WEIGHT);
+        double contentClamped = SimilarHadithRanking.clampPercent(contentOverlapPercent);
+        if (contentClamped < 20d) {
+            double ratio = contentClamped / 20d;
+            topicWeight = topicWeight * ratio * ratio;
+        }
         double semanticWeight = Math.max(0d, 1.0d - syntacticWeight - contentWeight - topicWeight);
         double totalWeight = semanticWeight + syntacticWeight + contentWeight + topicWeight;
         if (totalWeight <= 0d) {
@@ -715,15 +721,37 @@ public class SimilarHadithService {
         if (candidate == null || source == null) {
             return false;
         }
-        if (source.significantTerms() != null && !source.significantTerms().isEmpty()
-                && candidate.sharedSignificantTermCount <= 0
-                && candidate.sharedDistinctiveTokenCount <= 1
+        // Content overlap floor — candidates sharing no actual text content are
+        // likely noise from broad tag matching or embedding false positives.
+        // Skip this check if syntactic similarity is high (near-duplicate variants
+        // may have low token overlap but high character similarity).
+        if (candidate.contentOverlapPercent < MIN_CONTENT_OVERLAP_PERCENT
                 && candidate.syntacticPercent < DISTINCTIVE_SYNTACTIC_MIN_PERCENT
                 && candidate.sharedTopicTagCount < TOPIC_TAG_RESCUE_MIN) {
             return false;
         }
+        // Even semantic hits must show SOME textual evidence — the embedding can
+        // produce false positives from shared broad vocabulary. Candidates with
+        // near-zero content overlap and no shared distinctive tokens are noise
+        // regardless of how they were retrieved.
+        if (candidate.semanticRank > 0
+                && candidate.contentOverlapPercent < MIN_CONTENT_OVERLAP_PERCENT
+                && candidate.sharedDistinctiveTokenCount <= 1) {
+            return false;
+        }
+        // Semantic hits that pass the content/distinctive gate are trusted
+        if (candidate.semanticRank > 0) {
+            return true;
+        }
+        // No semantic hit — require some shared signal to avoid noise
         if (candidate.sharedTopicTagCount >= TOPIC_TAG_RESCUE_MIN) {
-            return isEligibleCandidate(candidate.semanticRank > 0, semanticSearchAvailable);
+            return true;
+        }
+        if (source.significantTerms() != null && !source.significantTerms().isEmpty()
+                && candidate.sharedSignificantTermCount <= 0
+                && candidate.sharedDistinctiveTokenCount <= 1
+                && candidate.syntacticPercent < DISTINCTIVE_SYNTACTIC_MIN_PERCENT) {
+            return false;
         }
         return isEligibleCandidate(
                 candidate.semanticRank > 0,
@@ -806,9 +834,6 @@ public class SimilarHadithService {
                 seenMatns.add(dedupKey);
             }
             displayCandidates.add(candidate);
-            if (displayCandidates.size() >= MAX_RESULT_ITEMS) {
-                break;
-            }
         }
         return displayCandidates;
     }
@@ -926,10 +951,30 @@ public class SimilarHadithService {
         return tags.isEmpty() ? List.of() : tags;
     }
 
+    @SuppressWarnings("unchecked")
+    private static List<Float> readSemanticVector(Map source) {
+        if (source == null || source.isEmpty()) {
+            return null;
+        }
+        Object raw = source.get(SEMANTIC_VECTOR_FIELD);
+        if (raw instanceof List<?> rawList && !rawList.isEmpty()) {
+            // ES stores dense_vector as List<Number>; convert to Float
+            List<Float> vector = new ArrayList<>(rawList.size());
+            for (Object item : rawList) {
+                if (item instanceof Number num) {
+                    vector.add(num.floatValue());
+                }
+            }
+            return vector.isEmpty() ? null : vector;
+        }
+        return null;
+    }
+
     private record SourceNarration(String id, String matnArabic, String normalizedMatn,
                                    String lexicalQueryText, int distinctiveTokenCount,
                                    List<String> significantTerms, String significantTermsText,
-                                   String englishHint, List<String> topicTags, Map source) {
+                                   String englishHint, List<String> topicTags, Map source,
+                                   List<Float> semanticVector) {
     }
 
     private record SimilarCandidate(String id, Map source, double semanticPercent, double lexicalPercent,

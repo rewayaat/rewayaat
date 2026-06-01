@@ -8,12 +8,13 @@ import org.jsoup.select.Elements;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Extractor for "Tafsir al-Mizan (WOFIS)".
  *
  * Source: al-islam.org
- * Coverage: Surahs 1-3 only (13 volumes)
+ * Coverage: Surahs 1-3 only (7 published English volumes currently reachable on al-islam.org)
  * Format: HTML with section-based pages
  *
  * Features:
@@ -23,8 +24,9 @@ import java.util.List;
  */
 public class AlMizanExtractor extends AlIslamHtmlExtractor {
 
-    private static final String BASE_URL = "https://al-islam.org/tafsir-al-mizan-vol-";
-    private static final int[] VOLUMES = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
+    private static final String BASE_URL = "https://al-islam.org/al-mizan-exegesis-quran-volume-";
+    private static final int[] VOLUMES = {1, 2, 3, 4, 5, 6, 7};
+    private static final Pattern GLOSS_ONLY = Pattern.compile("^[^\\n]{1,120}\\s*=\\s*[^\\n]{1,120}$");
 
     @Override
     protected String getBaseUrl() {
@@ -48,7 +50,7 @@ public class AlMizanExtractor extends AlIslamHtmlExtractor {
 
     @Override
     protected String getVolumeUrl(int volume) {
-        return BASE_URL + volume;
+        return BASE_URL + volume + "-sayyid-muhammad-husayn-tabatabai";
     }
 
     @Override
@@ -133,5 +135,88 @@ public class AlMizanExtractor extends AlIslamHtmlExtractor {
         }
 
         return doc;
+    }
+
+    @Override
+    protected List<TafsirDocument> extractMultiSectionDocuments(Document page, String url) {
+        List<TafsirDocument> baseDocuments = super.extractMultiSectionDocuments(page, url);
+        if (baseDocuments.size() < 2) {
+            return baseDocuments;
+        }
+        return mergeThinAdjacentDocuments(baseDocuments);
+    }
+
+    private List<TafsirDocument> mergeThinAdjacentDocuments(List<TafsirDocument> documents) {
+        List<TafsirDocument> merged = new ArrayList<>();
+        TafsirDocument pending = null;
+
+        for (TafsirDocument current : documents) {
+            if (pending == null) {
+                pending = current;
+                continue;
+            }
+
+            if (shouldMerge(pending, current)) {
+                pending = mergeDocuments(pending, current);
+                continue;
+            }
+
+            merged.add(pending);
+            pending = current;
+        }
+
+        if (pending != null) {
+            merged.add(pending);
+        }
+
+        return merged;
+    }
+
+    private boolean shouldMerge(TafsirDocument current, TafsirDocument next) {
+        if (!current.getSurahNumber().equals(next.getSurahNumber())) {
+            return false;
+        }
+        if (current.getAyahEnd() + 1 != next.getAyahStart()) {
+            return false;
+        }
+        if (current.getCommentaryWordCount() != null && current.getCommentaryWordCount() >= 25) {
+            return false;
+        }
+        if (!isGlossOnly(current.getCommentaryText()) && (current.getCommentaryWordCount() == null
+                || current.getCommentaryWordCount() >= 18)) {
+            return false;
+        }
+        return next.getCommentaryWordCount() != null && next.getCommentaryWordCount() >= 25;
+    }
+
+    private boolean isGlossOnly(String text) {
+        String normalized = text == null ? "" : text.replace('\n', ' ').trim();
+        return GLOSS_ONLY.matcher(normalized).matches();
+    }
+
+    private TafsirDocument mergeDocuments(TafsirDocument first, TafsirDocument second) {
+        TafsirDocument merged = new TafsirDocument();
+        merged.setTafsirSlug(first.getTafsirSlug());
+        merged.setTafsirName(first.getTafsirName());
+        merged.setSurahNumber(first.getSurahNumber());
+        merged.setAyahStart(first.getAyahStart());
+        merged.setAyahEnd(second.getAyahEnd());
+        merged.setVerseKey(first.getSurahNumber() + ":" + first.getAyahStart());
+        merged.setVerseKeys(buildVerseKeys(first.getSurahNumber(), first.getAyahStart(), second.getAyahEnd()));
+        merged.setVerseTextEnglish(second.getVerseTextEnglish());
+        merged.setCommentaryText(first.getCommentaryText().trim() + "\n\n" + second.getCommentaryText().trim());
+        merged.setSectionTitle("Verses " + first.getSurahNumber() + ":" + first.getAyahStart() + "-" + second.getAyahEnd());
+        merged.setSourceUrl(first.getSourceUrl());
+        merged.setLanguage(first.getLanguage());
+        merged.computeWordCount();
+        return merged;
+    }
+
+    private List<String> buildVerseKeys(int surahNumber, int ayahStart, int ayahEnd) {
+        List<String> verseKeys = new ArrayList<>();
+        for (int ayah = ayahStart; ayah <= ayahEnd; ayah++) {
+            verseKeys.add(surahNumber + ":" + ayah);
+        }
+        return verseKeys;
     }
 }

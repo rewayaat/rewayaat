@@ -10,6 +10,7 @@ public final class HadithSemanticText {
 
     private static final String ARABIC_FIELD = "arabic";
     private static final String ENGLISH_FIELD = "english";
+    private static final String SEMANTIC_MATN_FIELD = "semantic_matn_source";
     private static final int DEFAULT_ENGLISH_HINT_CHARS = 120;
     private static final int MAX_ARABIC_SCAN_CHARS = 2200;
     private static final String[] CHAIN_CUES = new String[] {
@@ -86,7 +87,16 @@ public final class HadithSemanticText {
         if (chainCueScore(direct) > 0) {
             direct = "";
         }
-        return chooseBestMatn(segmented.trim(), heuristic.trim(), direct.trim());
+        String result = chooseBestMatn(segmented.trim(), heuristic.trim(), direct.trim());
+        if (result.isBlank()) {
+            // Fallback to pre-computed semantic_matn_source which was extracted
+            // by SemanticMatnSourceBackfillTool using the less strict extractMatn()
+            String storedMatn = valueAsString(source.get(SEMANTIC_MATN_FIELD));
+            if (!storedMatn.isBlank()) {
+                result = SemanticTextNormalizer.normalizeMatn(storedMatn, maxChars);
+            }
+        }
+        return result;
     }
 
     public static String toQueryText(String matn, int maxChars) {
@@ -125,7 +135,7 @@ public final class HadithSemanticText {
         return extractEnglishHint(source, DEFAULT_ENGLISH_HINT_CHARS);
     }
 
-    public static String extractEnglishHint(Map source, int maxChars) {
+    public static String extractEnglishMatn(Map source, int maxChars) {
         if (source == null || source.isEmpty()) {
             return "";
         }
@@ -134,6 +144,24 @@ public final class HadithSemanticText {
             return "";
         }
         return SemanticTextNormalizer.normalizeMatn(english, maxChars);
+    }
+
+    public static String extractEnglishHint(Map source, int maxChars) {
+        if (source == null || source.isEmpty()) {
+            return "";
+        }
+        String english = valueAsString(source.get(ENGLISH_FIELD));
+        if (english.isBlank()) {
+            return "";
+        }
+        Map<String, Object> temp = new HashMap<>();
+        temp.put(ENGLISH_FIELD, english);
+        HadithDisplaySegmenter.enrich(temp);
+
+        String contentFirst = valueAsString(temp.get("englishContent"));
+        String segmented = SemanticTextNormalizer.normalizeMatn(contentFirst, maxChars);
+        String direct = SemanticTextNormalizer.normalizeMatn(english, maxChars);
+        return chooseBestEnglishHint(segmented, direct);
     }
 
     private static String valueAsString(Object value) {
@@ -182,6 +210,14 @@ public final class HadithSemanticText {
             }
         }
         return best;
+    }
+
+    private static String chooseBestEnglishHint(String segmented, String direct) {
+        String cleanSegmented = segmented == null ? "" : segmented.trim();
+        if (!cleanSegmented.isBlank()) {
+            return cleanSegmented;
+        }
+        return direct == null ? "" : direct.trim();
     }
 
     private static boolean isLongerBetter(String candidate, String currentBest) {

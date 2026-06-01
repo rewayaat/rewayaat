@@ -57,7 +57,7 @@ class HadithQueryServiceTest {
         List<SortOptions> sorts = service.setupSortBuilders("book:asc");
         assertEquals(1, sorts.size());
         assertEquals(SortOptions.Kind.Field, sorts.get(0)._kind());
-        assertEquals("book.keyword", sorts.get(0).field().field());
+        assertEquals("book", sorts.get(0).field().field());
     }
 
     @Test
@@ -66,7 +66,7 @@ class HadithQueryServiceTest {
         List<SortOptions> sorts = service.setupSortBuilders("number:desc");
         assertEquals(1, sorts.size());
         assertEquals(SortOptions.Kind.Script, sorts.get(0)._kind());
-        assertTrue(sorts.get(0).script().script().source().scriptString().contains("number.keyword"));
+        assertTrue(sorts.get(0).script().script().source().scriptString().contains("doc['number'].value"));
     }
 
     @Test

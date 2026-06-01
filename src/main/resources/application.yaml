@@ -1,3 +1,6 @@
+server:
+  port: 8002
+
 spring:
   mvc:
     async:
@@ -6,11 +9,11 @@ spring:
 elasticsearch:
   host: ${ELASTIC_HOST:localhost}
   port: ${ELASTIC_PORT:9200}
-  index: ${REWAYAAT_INDEX:rewayaat_updated_e5large_20260320}
+  index: ${REWAYAAT_INDEX:rewayaat_thaqalayn_20260320_syn_v1}
 
 rewayaat:
   users-index: ${REWAYAAT_USERS_INDEX:rewayaat_users}
-  app-base-url: ${APP_BASE_URL:http://localhost:8080}
+  app-base-url: ${APP_BASE_URL:http://localhost:8002}
   mail-from: ${MAIL_FROM:no-reply@rewayaat.local}
   auth:
     verify-token-hours: ${AUTH_VERIFY_TOKEN_HOURS:48}
@@ -51,3 +54,13 @@ tafsir:
   force: ${TAFSIR_FORCE:false}
   extractor: ${TAFSIR_EXTRACTOR:enlightening-commentary}
   batch-size: ${TAFSIR_BATCH_SIZE:100}
+
+quranic:
+  insights:
+    enabled: ${QURANIC_INSIGHTS_ENABLED:true}
+    index: ${QURANIC_INSIGHTS_INDEX:rewayaat_quranic_light}
+    max-candidates: ${QURANIC_INSIGHTS_MAX_CANDIDATES:10}
+    agent:
+      url: ${QURANIC_INSIGHTS_AGENT_URL:}
+      key: ${QURANIC_INSIGHTS_AGENT_KEY:}
+      max-input-tokens: ${QURANIC_INSIGHTS_AGENT_MAX_INPUT_TOKENS:30000}

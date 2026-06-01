@@ -4,6 +4,7 @@ import com.rewayaat.core.data.UserAccount;
 import com.rewayaat.service.AuthService;
 import com.rewayaat.service.HadithEditorAccessService;
 import com.rewayaat.service.HadithQueryService;
+import com.rewayaat.service.QuranicInsightsService;
 import com.rewayaat.service.SimilarHadithService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +35,9 @@ class HadithControllerTest {
     private SimilarHadithService similarHadithService;
 
     @Mock
+    private QuranicInsightsService quranicInsightsService;
+
+    @Mock
     private AuthService authService;
 
     @Mock
@@ -51,9 +55,23 @@ class HadithControllerTest {
 
     @Test
     void similarHadith_clampsInputsAndDelegates() throws Exception {
-        controller.similarHadith("hadith-1", 0, 99);
+        controller.similarHadith("hadith-1", 0, 99, false);
 
         org.mockito.Mockito.verify(similarHadithService).findSimilar("hadith-1", 0, 25);
+    }
+
+    @Test
+    void similarHadith_allBypassesPaginationClamp() throws Exception {
+        controller.similarHadith("hadith-1", 1, 8, true);
+
+        org.mockito.Mockito.verify(similarHadithService).findSimilar("hadith-1", 0, Integer.MAX_VALUE);
+    }
+
+    @Test
+    void quranicInsights_forwardsCountOnlyAndAllFlags() {
+        controller.quranicInsights("hadith-1", true, true);
+
+        org.mockito.Mockito.verify(quranicInsightsService).insightOverview("hadith-1", true, true);
     }
 
     @Test

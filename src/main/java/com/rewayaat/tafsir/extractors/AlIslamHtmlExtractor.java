@@ -10,13 +10,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Base class for extracting tafsir content from al-islam.org HTML sources.
@@ -31,6 +38,15 @@ public abstract class AlIslamHtmlExtractor implements TafsirExtractor {
 
     private static final String DEFAULT_SOURCE_DIR = "/tmp/tafsir-sources";
     private static final int DEFAULT_FETCH_DELAY = 1000; // ms
+    private static final Pattern RELATIVE_VERSE_HEADING =
+            Pattern.compile("^(?:section\\s+[\\p{L}\\p{M}0-9]+\\s*:\\s*)?verses?\\s+(\\d+)(?:\\s*(?:[-–—]|to|&)\\s*(\\d+))?.*",
+                    Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+    private static final Pattern CHAPTER_PAGE_HEADING =
+            Pattern.compile("surah\\s+([\\p{L}\\p{M}'‘’`-]+(?:\\s+[\\p{L}\\p{M}'‘’`-]+)*)\\s*,?\\s+chapter\\s+\\d+.*",
+                    Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+    private static final Pattern SURAH_PAGE_HEADING =
+            Pattern.compile("surah\\s+([\\p{L}\\p{M}'‘’`-]+(?:\\s+[\\p{L}\\p{M}'‘’`-]+)*).*",
+                    Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
 
     protected final String sourceDir;
     protected final int fetchDelay;
@@ -94,8 +110,10 @@ public abstract class AlIslamHtmlExtractor implements TafsirExtractor {
             String href = link.attr("href");
             // Filter for section pages (exclude external links, downloads, etc.)
             if (href.startsWith("/") || href.startsWith("http")) {
-                // Note: This will be resolved against the volume URL in the calling code
-                urls.add(href);
+                String fullUrl = ensureAbsoluteUrl(href);
+                if (isSectionPage(fullUrl)) {
+                    urls.add(fullUrl);
+                }
             }
         }
         return urls;
@@ -117,7 +135,10 @@ public abstract class AlIslamHtmlExtractor implements TafsirExtractor {
         String[] excludePatterns = {
             "/print", "/download", "/export", "/pdf",
             "/library/", "/ask", "/tv", "/donate", "/contact", "/about",
-            "/search", "/user", "/node/"
+            "/search", "/user", "/node/", "/content/please-loginregister-node",
+            "addtoany.com", "facebook.com", "twitter.com", "accounts.google.com",
+            "/fboauth/", "/google/callback", "/taxonomy/term/", "/person/",
+            "/saved", "/tags/"
         };
 
         for (String pattern : excludePatterns) {
@@ -139,6 +160,11 @@ public abstract class AlIslamHtmlExtractor implements TafsirExtractor {
      * Subclasses can override for source-specific parsing.
      */
     protected List<TafsirDocument> extractFromSectionPage(Document page, String url) {
+        List<TafsirDocument> sectionDocuments = extractMultiSectionDocuments(page, url);
+        if (!sectionDocuments.isEmpty()) {
+            return sectionDocuments;
+        }
+
         List<TafsirDocument> documents = new ArrayList<>();
 
         LOGGER.debug("Processing page: {}", url);
@@ -186,6 +212,110 @@ public abstract class AlIslamHtmlExtractor implements TafsirExtractor {
         return documents;
     }
 
+    protected List<TafsirDocument> extractMultiSectionDocuments(Document page, String url) {
+        List<TafsirDocument> documents = new ArrayList<>();
+        Element body = page.selectFirst(".field-name-body .field-item, .field-item.even, article, main, body");
+        if (body == null) {
+            return documents;
+        }
+
+        VerseReferenceParser.ParsedReference pageContext = parsePageContext(page);
+        VerseReferenceParser.ParsedReference previousReference = null;
+
+        for (Element heading : body.select("h2, h3, h4")) {
+            String headingText = heading.text().trim();
+            if (headingText.isEmpty()) {
+                continue;
+            }
+
+            VerseReferenceParser.ParsedReference parsedRef = VerseReferenceParser.parse(headingText);
+            if (parsedRef == null || !parsedRef.isValid()) {
+                parsedRef = parseRelativeReference(headingText, pageContext, previousReference);
+            }
+            if (parsedRef == null || !parsedRef.isValid()) {
+                continue;
+            }
+
+            String commentary = extractContentAfterHeading(heading);
+            if (commentary == null || commentary.length() < 50) {
+                continue;
+            }
+
+            TafsirDocument doc = createDocument(parsedRef, commentary, extractVerseText(page), headingText, url);
+            if (doc != null) {
+                documents.add(doc);
+                previousReference = parsedRef;
+            }
+        }
+
+        return documents;
+    }
+
+    protected String extractContentAfterHeading(Element heading) {
+        StringBuilder content = new StringBuilder();
+        Element current = heading.nextElementSibling();
+
+        while (current != null && !current.tagName().matches("h1|h2|h3|h4")) {
+            String text = current.text();
+            if (!text.isBlank()) {
+                if (content.length() > 0) {
+                    content.append("\n\n");
+                }
+                content.append(text.trim());
+            }
+            current = current.nextElementSibling();
+        }
+
+        return content.toString().trim();
+    }
+
+    protected VerseReferenceParser.ParsedReference parsePageContext(Document page) {
+        Element title = page.selectFirst(
+                ".field-name-body h2, .field-name-body h3, article h2, article h3, main h2, main h3, h1, h2, title");
+        if (title == null) {
+            return null;
+        }
+
+        Matcher matcher = CHAPTER_PAGE_HEADING.matcher(title.text());
+        if (matcher.matches()) {
+            Integer surahNumber = com.rewayaat.tafsir.SurahNameResolver.resolve(matcher.group(1));
+            if (surahNumber != null) {
+                return new VerseReferenceParser.ParsedReference(surahNumber, 1, 1);
+            }
+        }
+
+        matcher = SURAH_PAGE_HEADING.matcher(title.text());
+        if (matcher.matches()) {
+            Integer surahNumber = com.rewayaat.tafsir.SurahNameResolver.resolve(matcher.group(1));
+            if (surahNumber != null) {
+                return new VerseReferenceParser.ParsedReference(surahNumber, 1, 1);
+            }
+        }
+
+        return VerseReferenceParser.parse(title.text());
+    }
+
+    protected VerseReferenceParser.ParsedReference parseRelativeReference(
+            String headingText,
+            VerseReferenceParser.ParsedReference pageContext,
+            VerseReferenceParser.ParsedReference previousReference
+    ) {
+        Matcher matcher = RELATIVE_VERSE_HEADING.matcher(headingText);
+        if (!matcher.matches()) {
+            return null;
+        }
+
+        Integer ayahStart = Integer.parseInt(matcher.group(1));
+        Integer ayahEnd = matcher.group(2) != null ? Integer.parseInt(matcher.group(2)) : ayahStart;
+        Integer surahNumber = previousReference != null ? previousReference.surahNumber
+                : pageContext != null ? pageContext.surahNumber : null;
+        if (surahNumber == null) {
+            return null;
+        }
+
+        return new VerseReferenceParser.ParsedReference(surahNumber, ayahStart, ayahEnd);
+    }
+
     /**
      * Creates a TafsirDocument from parsed elements.
      */
@@ -201,12 +331,67 @@ public abstract class AlIslamHtmlExtractor implements TafsirExtractor {
         doc.setVerseKey(parsedRef.getVerseKey());
         doc.setVerseKeys(parsedRef.getVerseKeys());
         doc.setVerseTextEnglish(verseText);
-        doc.setCommentaryText(commentary.trim());
+        doc.setCommentaryText(normalizeCommentary(commentary));
         doc.setSectionTitle(sectionTitle);
         doc.setSourceUrl(url);
         doc.setLanguage("en");
         doc.computeWordCount();
         return doc;
+    }
+
+    protected String normalizeCommentary(String commentary) {
+        if (commentary == null) {
+            return "";
+        }
+        String normalized = commentary
+                .replace('\u00A0', ' ')
+                .replaceAll("(?m)^\\*{5,}\\s*$", "")
+                .replaceAll("[ \\t]+", " ")
+                .replaceAll(" *\\n *", "\n")
+                .replaceAll("\\n{3,}", "\n\n")
+                .replaceAll("([.!?\"”’')])\\d{1,2}$", "$1")
+                .trim();
+        return stripTrailingReferenceParagraphs(normalized);
+    }
+
+    private String stripTrailingReferenceParagraphs(String commentary) {
+        List<String> paragraphs = new ArrayList<>(List.of(commentary.split("\\n\\n+")));
+        while (!paragraphs.isEmpty() && isReferenceParagraph(paragraphs.get(paragraphs.size() - 1))) {
+            paragraphs.remove(paragraphs.size() - 1);
+        }
+        return String.join("\n\n", paragraphs).trim();
+    }
+
+    private boolean isReferenceParagraph(String paragraph) {
+        String trimmed = paragraph.trim();
+        if (trimmed.isEmpty()) {
+            return false;
+        }
+
+        int noteMarkers = countMatches(trimmed, "\\b\\d+\\.");
+        int verseRefs = countMatches(trimmed, "\\b\\d+:\\d+\\b");
+        String lower = trimmed.toLowerCase(Locale.ROOT);
+        boolean hasReferenceKeywords = lower.contains("surah ")
+                || lower.contains("verse ")
+                || lower.contains("refer to ")
+                || lower.contains("see ")
+                || lower.contains("tafsir")
+                || lower.contains("vol.")
+                || lower.contains("p.")
+                || lower.contains("nahj")
+                || lower.contains("majma")
+                || lower.contains("kafi");
+
+        return trimmed.matches("^\\d+\\..*") && (noteMarkers >= 3 || verseRefs >= 2 || hasReferenceKeywords);
+    }
+
+    private int countMatches(String input, String pattern) {
+        Matcher matcher = Pattern.compile(pattern).matcher(input);
+        int count = 0;
+        while (matcher.find()) {
+            count++;
+        }
+        return count;
     }
 
     /**
@@ -400,7 +585,7 @@ public abstract class AlIslamHtmlExtractor implements TafsirExtractor {
     protected Document fetchDocument(String url) {
         try {
             // Check cache first
-            String cacheKey = url.replaceAll("[^a-zA-Z0-9]", "_");
+            String cacheKey = sha1Hex(url);
             Path cachePath = Paths.get(sourceDir, getTafsirSlug(), cacheKey + ".html");
 
             if (Files.exists(cachePath)) {
@@ -453,6 +638,20 @@ public abstract class AlIslamHtmlExtractor implements TafsirExtractor {
             // Fallback: simple concatenation
             String base = baseUrl.replaceAll("/[^/]*$", "");
             return base + (url.startsWith("/") ? "" : "/") + url;
+        }
+    }
+
+    private static String sha1Hex(String value) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-1");
+            byte[] bytes = digest.digest(value.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder(bytes.length * 2);
+            for (byte b : bytes) {
+                hex.append(String.format("%02x", b));
+            }
+            return hex.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-1 algorithm not available", e);
         }
     }
 }
