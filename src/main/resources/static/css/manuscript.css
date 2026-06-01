@@ -4871,15 +4871,35 @@ main.container {
 }
 
 .home-search .ts-control {
-    background: rgba(250, 252, 255, 0.98);
-    border-color: rgba(255, 255, 255, 0.12);
-    box-shadow: none;
+    background: rgba(255,255,255,0.10) !important;
+    border: 1px solid rgba(247, 225, 166, 0.35) !important;
+    color: #fff !important;
+    box-shadow: var(--shadow-lg);
     min-height: 58px;
     padding-right: 168px;
+    border-radius: 6px;
 }
 
 .home-search .ts-control:focus-within {
-    box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.18);
+    border-color: rgba(247, 225, 166, 0.5) !important;
+    background: rgba(255,255,255,0.10) !important;
+    box-shadow: var(--shadow-lg), 0 0 0 2px rgba(247, 225, 166, 0.15) !important;
+}
+
+.home-search .ts-control input {
+    color: rgba(255,255,255,0.9) !important;
+    font-size: 1rem !important;
+}
+
+.home-search .ts-control input::placeholder {
+    color: rgba(255,255,255,0.4) !important;
+}
+
+.home-search .ts-control .item {
+    background: rgba(247,225,166,0.1) !important;
+    border: 1px solid rgba(247,225,166,0.3) !important;
+    color: var(--gold-light) !important;
+    border-radius: var(--radius-sm) !important;
 }
 
 .home-hero__search .search-inline-btn {
