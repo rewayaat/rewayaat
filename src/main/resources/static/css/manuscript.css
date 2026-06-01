@@ -1462,6 +1462,25 @@ main.container::before {
     padding: 1.25rem;
 }
 
+.hadith-card--loading .hadith-card__main {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 2.45rem 2.15rem 1.8rem 1.85rem !important;
+    grid-column: 3;
+    grid-row: 1;
+}
+
+.hadith-card--loading .hadith-card__meta {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+}
+
+.hadith-card--loading .hadith-card__resizer {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+}
+
 /* Spacing between cards */
 .vstack.gap-3 > .hadith-card {
     margin-bottom: 0.75rem;
@@ -1512,59 +1531,147 @@ main.container::before {
 }
 
 /* ── Realistic card skeleton ─────────────────────────────────────────────── */
+
+/* Sidebar (matches .hadith-sidecar) */
 .skeleton-sidebar {
     background: linear-gradient(180deg, #1a3a6b 0%, #0b1728 100%) !important;
-}
-.skeleton-meta-item {
-    display: flex;
-    gap: 0.55rem;
-    padding: 0.42rem 0;
-    align-items: flex-start;
-}
-.skeleton-meta-text {
+    padding: 0 !important;
+    min-height: 100%;
     display: flex;
     flex-direction: column;
-    gap: 0.3rem;
-    flex: 1;
+    grid-column: 1;
+    grid-row: 1 / span 2;
 }
+
+/* Rail (matches .hadith-sidecar__rail) */
+.skeleton-rail {
+    display: flex;
+    flex-direction: row;
+    gap: 0.45rem;
+    padding: 0.58rem 0.6rem 0.54rem;
+    background: linear-gradient(180deg, rgba(12, 28, 49, 0.99), rgba(21, 43, 70, 0.98));
+    border-bottom: 1px solid rgba(248, 244, 231, 0.24);
+}
+
+.skeleton-rail-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 0;
+    min-height: 46px;
+    border-radius: 10px;
+}
+
+.skeleton-rail-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: linear-gradient(90deg, rgba(247,225,166,0.08) 0%, rgba(247,225,166,0.22) 50%, rgba(247,225,166,0.08) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.8s infinite;
+}
+
+/* Panel (matches .hadith-sidecar__panel) */
+.skeleton-panel {
+    flex: 1;
+    padding: 0.74rem 0.56rem 0.8rem 0.52rem;
+}
+
+.skeleton-panel-meta {
+    display: flex;
+    gap: 0.55rem;
+    padding: 0.48rem 0;
+    align-items: flex-start;
+}
+
+.skeleton-panel-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 0.32rem;
+    flex: 1;
+    min-width: 0;
+}
+
 .skeleton-bar {
     background: linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.04) 100%);
     background-size: 200% 100%;
     border-radius: 4px;
-    animation: shimmer 1.5s infinite;
+    animation: shimmer 1.8s infinite;
 }
-.skeleton-bar--icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
+
+/* Sidebar panel items */
+.skeleton-bar--dot {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
     background: linear-gradient(90deg, rgba(247,225,166,0.06) 0%, rgba(247,225,166,0.15) 50%, rgba(247,225,166,0.06) 100%);
     background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
     flex-shrink: 0;
 }
-.skeleton-bar--label {
-    height: 6px;
-    width: 45%;
+
+.skeleton-bar--sm {
+    height: 5px;
+    width: 40%;
     background: linear-gradient(90deg, rgba(247,225,166,0.08) 0%, rgba(247,225,166,0.2) 50%, rgba(247,225,166,0.08) 100%);
     background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
 }
-.skeleton-bar--value {
-    height: 8px;
-    width: 70%;
+
+.skeleton-bar--md {
+    height: 7px;
+    width: 65%;
     background: linear-gradient(90deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.14) 50%, rgba(255,255,255,0.06) 100%);
     background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
 }
+
+/* Resizer */
+.skeleton-resizer {
+    background: repeating-linear-gradient(
+        135deg,
+        rgba(247, 225, 166, 0) 0 4px,
+        rgba(247, 225, 166, 0.08) 4px 6px
+    ) !important;
+}
+
+/* Ornament */
 .skeleton-bar--ornament {
     height: 2px;
     width: 80px;
     margin: 0 auto 0.8rem;
 }
+
+/* English text lines */
 .skeleton-bar--line {
     height: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 11px;
+    background: linear-gradient(90deg, rgba(30,58,95,0.08) 0%, rgba(30,58,95,0.18) 50%, rgba(30,58,95,0.08) 100%);
+    background-size: 200% 100%;
 }
+
+/* Chain line (shorter, lighter - simulates isnad) */
+.skeleton-chain {
+    margin-bottom: 0.65rem;
+    padding-bottom: 0.55rem;
+    border-bottom: 1px solid rgba(30,58,95,0.06);
+}
+
+.skeleton-bar--chain {
+    height: 7px;
+    width: 72%;
+    background: linear-gradient(90deg, rgba(30,58,95,0.06) 0%, rgba(30,58,95,0.12) 50%, rgba(30,58,95,0.06) 100%);
+    background-size: 200% 100%;
+    border-radius: 3px;
+    animation: shimmer 2s infinite;
+}
+
+/* Arabic text lines (shorter segments, slight gold tint) */
+.skeleton-bar--line-ar {
+    height: 13px;
+    margin-bottom: 9px;
+    background: linear-gradient(90deg, rgba(30,58,95,0.06) 0%, rgba(30,58,95,0.16) 50%, rgba(30,58,95,0.06) 100%);
+    background-size: 200% 100%;
+    border-radius: 3px;
+}
+
 .skeleton-bar--w100 { width: 100%; }
 .skeleton-bar--w95  { width: 95%; }
 .skeleton-bar--w90  { width: 90%; }
@@ -1573,29 +1680,39 @@ main.container::before {
 .skeleton-bar--w75  { width: 75%; }
 .skeleton-bar--w70  { width: 70%; }
 .skeleton-bar--w60  { width: 60%; }
+
+/* Text blocks */
 .skeleton-text-block {
-    padding: 0.5rem 0;
+    padding: 0.35rem 0 0.25rem;
 }
-.skeleton-text-block--rtl {
+
+.skeleton-text-block--arabic {
     direction: rtl;
 }
+
 .skeleton-ornament {
     display: flex;
     justify-content: center;
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.5rem;
 }
+
+/* Tags (matches .hadith-card__footer tags) */
 .skeleton-tags {
     display: flex;
     gap: 0.4rem;
-    margin-top: 1rem;
-    justify-content: flex-end;
+    margin-top: 0.9rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid rgba(16,35,63,0.07);
+    justify-content: flex-start;
 }
+
 .skeleton-bar--tag {
-    height: 26px;
-    width: 70px;
+    height: 24px;
+    width: 68px;
     border-radius: 999px;
-    background: linear-gradient(180deg, #1a3a6b 0%, #0f2440 100%);
-    border: 1px solid rgba(247, 225, 166, 0.15);
+    background: linear-gradient(90deg, rgba(10,30,55,0.06) 0%, rgba(10,30,55,0.14) 50%, rgba(10,30,55,0.06) 100%);
+    background-size: 200% 100%;
+    border: 1px solid rgba(247, 225, 166, 0.12);
 }
 
 .hadith-card.hadith-focus {
@@ -2928,22 +3045,22 @@ main.container::before {
 }
 
 .quranic-inline-panel {
-    border-color: rgba(5, 150, 105, 0.2);
+    border-color: rgba(213, 170, 77, 0.2);
 }
 .quranic-inline-panel__title {
-    color: var(--success);
+    color: rgba(247, 225, 166, 0.92);
 }
 
 .quranic-tab-btn {
-    border-color: rgba(5, 150, 105, 0.15);
+    border-color: rgba(213, 170, 77, 0.15);
 }
 .quranic-tab-btn:hover {
-    border-color: rgba(5, 150, 105, 0.3);
-    background: var(--success-bg);
+    border-color: rgba(213, 170, 77, 0.3);
+    background: rgba(247, 225, 166, 0.06);
 }
 .quranic-tab-btn.active {
-    border-color: var(--success);
-    background: var(--success-bg);
+    border-color: rgba(213, 170, 77, 0.7);
+    background: rgba(247, 225, 166, 0.08);
 }
 
 .quranic-tab-body {
@@ -2961,7 +3078,7 @@ main.container::before {
     font-family: var(--font-ui);
     font-size: 0.95rem;
     font-weight: 800;
-    color: var(--success);
+    color: rgba(247, 225, 166, 0.92);
 }
 
 .quranic-section {
@@ -2972,7 +3089,7 @@ main.container::before {
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: var(--text-muted);
+    color: #51627a;
     margin-bottom: 0.35rem;
 }
 .quranic-verse-english {
@@ -2988,8 +3105,8 @@ main.container::before {
 .quranic-snippet {
     margin-bottom: 0.75rem;
     padding: 0.6rem 0.75rem;
-    border-left: 3px solid var(--success);
-    background: var(--success-bg);
+    border-left: 3px solid rgba(213, 170, 77, 0.7);
+    background: rgba(244, 248, 255, 0.6);
     border-radius: 0 4px 4px 0;
 }
 .quranic-snippet__head {
@@ -2997,7 +3114,7 @@ main.container::before {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--success);
+    color: rgba(213, 170, 77, 0.9);
     margin-bottom: 0.3rem;
 }
 .quranic-snippet__section {
@@ -5483,6 +5600,11 @@ body.is-resizing-sidecar * {
     transform: translateY(-1px);
 }
 
+.hadith-sidecar__list-item:hover .hadith-sidecar__list-eyebrow {
+    color: rgba(247, 225, 166, 0.95);
+    text-shadow: 0 0 8px rgba(247, 225, 166, 0.25);
+}
+
 .hadith-sidecar__list-item:focus-visible {
     outline: none;
     box-shadow: 0 0 0 2px rgba(247, 225, 166, 0.18);
@@ -6283,6 +6405,11 @@ body.is-resizing-sidecar * {
     background: rgba(255, 255, 255, 0.08);
     border-color: var(--gold-light);
     transform: translateY(-1px);
+}
+
+.hadith-sidecar__source-node:hover .hadith-sidecar__source-name {
+    color: rgba(247, 225, 166, 0.92);
+    text-shadow: 0 0 8px rgba(247, 225, 166, 0.22);
 }
 
 .hadith-sidecar__source-node.is-active {
