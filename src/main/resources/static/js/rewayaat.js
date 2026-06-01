@@ -3891,6 +3891,7 @@ function setupVue(query, page, sortFields) {
             arabicSuggestionInputTerms: [],
             arabicSuggestionToastShown: false,
             arabicSuggestionThresholdPassed: false,
+            snippetExpandedKeys: {},
             collections: userCollectionsCache,
             collectionSearchQuery: '',
             sidecarWidth: 304,
@@ -5429,6 +5430,45 @@ function setupVue(query, page, sortFields) {
                     return (snippet.tafsir_slug || snippet.tafsir_name || '') === activeSource.slug
                         || (snippet.tafsir_name || '') === activeSource.label;
                 });
+            },
+            snippetPreview: function(text) {
+                if (!text) return '';
+                var t = String(text).trim();
+                if (t.length <= 200) return t;
+                // Extract first ~2 sentences
+                var match = t.match(/^(.+?[.!?](?:\s|$)){1,2}/);
+                if (match && match[0].length > 30 && match[0].length <= 350) {
+                    return match[0].trim();
+                }
+                return t.substring(0, 180).trim() + '...';
+            },
+            snippetPreviewLength: function(text) {
+                return (this.snippetPreview(text) || '').length;
+            },
+            snippetFullHtml: function(snippet) {
+                var text = (snippet && snippet.commentary_text) || '';
+                if (!text) return '';
+                var preview = this.snippetPreview(text);
+                if (preview.length >= text.trim().length) return text;
+                // Find preview portion in full text and wrap in <strong>
+                var idx = text.indexOf(preview);
+                if (idx >= 0) {
+                    return text.substring(0, idx)
+                        + '<strong>' + preview + '</strong>'
+                        + text.substring(idx + preview.length);
+                }
+                // Fallback: bold first 2 sentences
+                return '<strong>' + preview + '</strong>' + text.substring(preview.length);
+            },
+            snippetExpandKey: function(narration, sidx) {
+                return (narration._id || narration.id || '') + '-snippet-' + sidx;
+            },
+            isSnippetExpanded: function(narration, sidx) {
+                return !!this.snippetExpandedKeys[this.snippetExpandKey(narration, sidx)];
+            },
+            toggleSnippetExpand: function(narration, sidx) {
+                var key = this.snippetExpandKey(narration, sidx);
+                Vue.set(this.snippetExpandedKeys, key, !this.snippetExpandedKeys[key]);
             },
             quranContextSegments: function(narration) {
                 var insight = this.activeQuranicInsight(narration);
