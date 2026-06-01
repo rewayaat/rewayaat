@@ -348,10 +348,10 @@ a:hover {
     align-items: center;
     gap: 0.2rem;
     padding: 0.3rem 0.5rem;
-    border: 1px solid var(--gold-light);
+    border: 1px solid rgba(247, 225, 166, 0.3);
     border-radius: var(--radius-sm);
-    background: var(--primary-dark);
-    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(247, 225, 166, 0.9);
     font-family: var(--font-ui);
     font-size: 0.65rem;
     font-weight: 700;
@@ -363,14 +363,15 @@ a:hover {
 
 .search-mode-toggle:hover,
 .search-mode-toggle:focus {
-    border-color: var(--gold-light);
-    box-shadow: 0 0 0 2px rgba(243, 229, 196, 0.2);
+    border-color: rgba(247, 225, 166, 0.5);
+    background: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 0 0 2px rgba(243, 229, 196, 0.15);
 }
 
 .search-mode-toggle.active {
-    background: var(--gold-light);
-    border-color: var(--gold-light);
-    color: var(--primary-dark);
+    background: rgba(247, 225, 166, 0.18);
+    border-color: rgba(247, 225, 166, 0.5);
+    color: #fff;
 }
 
 .search-mode-text {
@@ -383,10 +384,11 @@ a:hover {
     top: calc(100% + 0.2rem);
     right: 0;
     min-width: 180px;
-    border: 1px solid var(--gold-light);
+    border: 1px solid rgba(247, 225, 166, 0.25);
     border-radius: var(--radius-sm);
-    background: var(--primary-dark);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    background: rgba(15, 36, 64, 0.97);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
     opacity: 0;
     visibility: hidden;
     transform: translateY(-0.2rem);
@@ -452,21 +454,25 @@ a:hover {
 
 /* Search button with border instead of background - inside search bar */
 .search-btn-with-border {
-    border: 2px solid var(--gold-light);
-    background: transparent;
+    border: none;
+    background: rgba(247, 225, 166, 0.12);
     color: var(--gold-light);
-    padding: 0.6rem 0.8rem;
-    font-size: 1rem;
-    border-radius: var(--radius-md);
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    font-size: 0.88rem;
+    border-radius: 50%;
     transition: all 150ms ease;
     position: relative;
     z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .search-btn-with-border:hover {
-    background: transparent;
-    color: var(--gold-light);
-    border-color: var(--gold-light);
+    background: rgba(247, 225, 166, 0.2);
+    color: #fff;
 }
 
 /* Removed glow effect - search button does not glow */
@@ -2098,6 +2104,22 @@ main.container::before {
     transition: border-color 150ms ease, box-shadow 150ms ease;
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8.5L1 3.5h10z'/%3E%3C/svg%3E");
+}
+
+.reading-field .form-select:disabled,
+.reading-field select:disabled {
+    opacity: 0.45;
+    background-color: var(--border);
+    color: var(--text-muted);
+    cursor: not-allowed;
+}
+
+.reading-field.is-hidden label,
+.reading-field select:disabled + label,
+.reading-field:has(select:disabled) label {
+    opacity: 0.45;
+    color: var(--text-muted);
+}
     background-repeat: no-repeat;
     background-position: right 0.6rem center;
     background-size: 10px;
@@ -6388,29 +6410,7 @@ body.is-resizing-sidecar * {
 }
 
 .hadith-sidecar__source-tree-children::before {
-    content: "";
-    position: absolute;
-    left: 0.34rem;
-    top: 0.15rem;
-    bottom: 0.15rem;
-    width: 1px;
-    background: linear-gradient(180deg, rgba(247, 225, 166, 0.38), rgba(213, 229, 248, 0.12));
-}
-
-.hadith-sidecar__source-node {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-    margin-left: 0;
-    padding: 0.46rem 0.56rem 0.46rem 0.72rem;
-    border: 1px solid rgba(247, 225, 166, 0.15);
-    border-left: 3px solid var(--gold-light);
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.04);
-    color: rgba(255, 255, 255, 0.84);
-    text-align: left;
-    transition: background 150ms ease, border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+    display: none;
 }
 
 .hadith-sidecar__source-node:hover {
@@ -6431,15 +6431,33 @@ body.is-resizing-sidecar * {
 }
 
 .hadith-sidecar__source-branch {
-    position: absolute;
-    left: -1.16rem;
-    top: 50%;
-    width: 0.82rem;
-    height: 0.7rem;
-    border-left: 1px solid rgba(247, 225, 166, 0.36);
-    border-bottom: 1px solid rgba(247, 225, 166, 0.36);
-    border-bottom-left-radius: 8px;
-    transform: translateY(-50%);
+    display: none;
+}
+
+.hadith-sidecar__source-node {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-left: 0;
+    padding: 0.46rem 0.56rem 0.46rem 0.72rem;
+    border: 1px solid rgba(247, 225, 166, 0.15);
+    border-left: 3px solid var(--gold-light);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.84);
+    text-align: left;
+    transition: background 150ms ease, border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+}
+
+.hadith-sidecar__source-node::before {
+    content: "›";
+    position: static;
+    color: rgba(247, 225, 166, 0.5);
+    font-size: 0.85rem;
+    font-weight: 700;
+    line-height: 1;
+    flex-shrink: 0;
 }
 
 .hadith-sidecar__source-node-icon {
@@ -6465,7 +6483,7 @@ body.is-resizing-sidecar * {
 }
 
 .hadith-inline-context__meta-band--quran .hadith-inline-context__meta-inline-text {
-    color: rgba(255, 255, 255, 0.85);
+    color: #193150;
 }
 
 .similar-sidecar {
@@ -6608,11 +6626,11 @@ body.is-resizing-sidecar * {
 .hadith-divider__line {
     flex: 1 1 auto;
     height: 1px;
-    background: linear-gradient(90deg, transparent 0%, rgba(213, 170, 77, 0.4) 100%);
+    background: linear-gradient(90deg, transparent 0%, rgba(30, 58, 95, 0.35) 100%);
 }
 
 .hadith-divider__line:last-child {
-    background: linear-gradient(90deg, rgba(213, 170, 77, 0.4) 0%, transparent 100%);
+    background: linear-gradient(90deg, rgba(30, 58, 95, 0.35) 0%, transparent 100%);
 }
 
 .hadith-divider__motif {
@@ -6624,9 +6642,9 @@ body.is-resizing-sidecar * {
     height: 2.8rem;
     font-family: var(--font-arabic);
     font-size: 1.2rem;
-    color: rgba(213, 170, 77, 0.75);
+    color: rgba(213, 170, 77, 0.85);
     margin: 0 0.3rem;
-    text-shadow: 0 0 6px rgba(213, 170, 77, 0.12);
+    text-shadow: 0 0 6px rgba(213, 170, 77, 0.18);
 }
 
 .hadith-divider__motif::before {
@@ -6634,7 +6652,7 @@ body.is-resizing-sidecar * {
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    border: 1px solid rgba(213, 170, 77, 0.22);
+    border: 1px solid rgba(30, 58, 95, 0.18);
 }
 
 .hadith-divider__motif::after {
@@ -6642,7 +6660,8 @@ body.is-resizing-sidecar * {
     position: absolute;
     inset: 0.35rem;
     border-radius: 50%;
-    border: 1px solid rgba(213, 170, 77, 0.32);
+    border: 1.5px solid rgba(213, 170, 77, 0.4);
+    background: rgba(213, 170, 77, 0.06);
 }
 
 /* Ornamental side brackets */
@@ -6659,9 +6678,9 @@ body.is-resizing-sidecar * {
     transform: translateY(-50%);
     width: 10px;
     height: 18px;
-    border-right: 1.5px solid rgba(213, 170, 77, 0.35);
-    border-top: 1.5px solid rgba(213, 170, 77, 0.35);
-    border-bottom: 1.5px solid rgba(213, 170, 77, 0.35);
+    border-right: 1.5px solid rgba(30, 58, 95, 0.3);
+    border-top: 1.5px solid rgba(30, 58, 95, 0.3);
+    border-bottom: 1.5px solid rgba(30, 58, 95, 0.3);
     border-top-right-radius: 4px;
     border-bottom-right-radius: 4px;
 }
@@ -6674,9 +6693,9 @@ body.is-resizing-sidecar * {
     transform: translateY(-50%);
     width: 10px;
     height: 18px;
-    border-left: 1.5px solid rgba(213, 170, 77, 0.35);
-    border-top: 1.5px solid rgba(213, 170, 77, 0.35);
-    border-bottom: 1.5px solid rgba(213, 170, 77, 0.35);
+    border-left: 1.5px solid rgba(30, 58, 95, 0.3);
+    border-top: 1.5px solid rgba(30, 58, 95, 0.3);
+    border-bottom: 1.5px solid rgba(30, 58, 95, 0.3);
     border-top-left-radius: 4px;
     border-bottom-left-radius: 4px;
 }

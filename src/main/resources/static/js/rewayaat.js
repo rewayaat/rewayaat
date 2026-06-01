@@ -4059,10 +4059,7 @@ function setupVue(query, page, sortFields) {
                 if (this.collectionMode) {
                     return 'Showing ' + visibleCount + ' / ' + this.filteredNarrationTotal + ' saved hadith';
                 }
-                if (this.readingMode) {
-                    return '';
-                }
-                return 'Showing ' + visibleCount + ' / ' + this.filteredNarrationTotal + ' results';
+                return '';
             },
             matchingNarrationsTotal: function() {
                 // When tags are active, show count of matching narrations
