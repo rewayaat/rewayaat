@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /edit
+Disallow: /v1/
+Disallow: /swagger-ui.html
+Disallow: /signin.html
+
+Sitemap: https://hadith.academyofislam.com/sitemap.xml

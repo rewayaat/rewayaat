@@ -5909,11 +5909,7 @@ function setupVue(query, page, sortFields) {
                 if (!hadithId) {
                     return location.protocol + '//' + location.host + '/';
                 }
-                var baseQuery = 'id:"' + escapeSearchTermQuotes(hadithId) + '"';
-                var params = new URLSearchParams();
-                params.set('q', baseQuery);
-                params.set('match_mode', 'strict');
-                return location.protocol + '//' + location.host + '/?' + params.toString();
+                return location.protocol + '//' + location.host + '/hadith/' + encodeURIComponent(hadithId);
             },
             resolveHadithShareUrl: function(id) {
                 var hadithId = (id || '').toString().trim();

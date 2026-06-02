@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="${seoTitle}">Hadith — Rewayaat</title>
+    <meta name="description" th:content="${seoDescription}"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+    <link rel="canonical" th:href="${canonicalUrl}"/>
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="article"/>
+    <meta property="og:site_name" content="Rewayaat"/>
+    <meta property="og:title" th:content="${seoTitle}"/>
+    <meta property="og:description" th:content="${seoDescription}"/>
+    <meta property="og:url" th:content="${canonicalUrl}"/>
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary"/>
+    <meta name="twitter:title" th:content="${seoTitle}"/>
+    <meta name="twitter:description" th:content="${seoDescription}"/>
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json" th:utext="${jsonLd}"></script>
+
+    <!-- Styles -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.css" rel="stylesheet"/>
+    <link href="/css/sweetalert.css" rel="stylesheet" th:href="@{/css/sweetalert.css}"/>
+    <link href="/css/noty.css" rel="stylesheet" th:href="@{/css/noty.css}"/>
+    <link href="/css/manuscript.css?v=916" rel="stylesheet" th:href="@{/css/manuscript.css?v=916}"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600;700&family=Scheherazade+New:wght@400;700&display=swap"
+          rel="stylesheet"/>
+    <link href="/css/pace.css" rel="stylesheet" th:href="@{/css/pace.css}"/>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg sticky-top site-nav">
+    <div class="container">
+        <div class="navbar-top w-100 d-flex align-items-center flex-wrap gap-3">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+                <img src="/img/ALI-Logo.png" class="brand-logo--full d-none d-md-block" alt="ALI Logo"/>
+                <img src="/img/ali_icon.png" class="brand-logo--icon d-md-none" alt="ALI"/>
+            </a>
+            <a href="/" class="navbar-search text-decoration-none">
+                <div class="navbar-search__input">
+                    <input type="text" class="form-control" placeholder="Search hadith..." aria-label="Search hadith"/>
+                    <div class="search-controls">
+                        <button type="button" class="btn btn-primary search-btn-with-border">
+                            <i class="fa fa-search" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<main class="container py-4">
+    <article class="hadith-page">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page"
+                    th:text="${bookRef}">Book #Number</li>
+            </ol>
+        </nav>
+
+        <!-- Hadith Content -->
+        <div class="hadith-page__card">
+            <div class="hadith-card__ornament" aria-hidden="true">
+                <span class="hadith-card__ornament-line"></span>
+                <span class="hadith-card__ornament-mark">۞</span>
+                <span class="hadith-card__ornament-line"></span>
+            </div>
+
+            <div class="hadith-page__content">
+                <!-- Arabic text (h1 for SEO) -->
+                <h1 class="hadith-page__arabic arabic-text"
+                    th:if="${hadith.arabic != null and !hadith.arabic.isBlank()}"
+                    th:utext="${hadith.arabic}">Arabic text</h1>
+
+                <!-- English text -->
+                <div class="hadith-page__english"
+                     th:if="${hadith.english != null and !hadith.english.isBlank()}"
+                     th:utext="${hadith.english}">English text</div>
+            </div>
+
+            <!-- Metadata -->
+            <div class="hadith-page__meta mt-4" th:if="${hadith.book != null or hadith.chapter != null or hadith.section != null or hadith.number != null}">
+                <h2 class="h6 text-muted mb-2">Source</h2>
+                <ul class="list-unstyled">
+                    <li th:if="${hadith.book != null and !hadith.book.isBlank()}">
+                        <strong>Book:</strong> <span th:text="${hadith.book}">Book Name</span>
+                    </li>
+                    <li th:if="${hadith.number != null and !hadith.number.isBlank()}">
+                        <strong>Number:</strong> <span th:text="${hadith.number}">123</span>
+                    </li>
+                    <li th:if="${hadith.volume != null and !hadith.volume.isBlank()}">
+                        <strong>Volume:</strong> <span th:text="${hadith.volume}">1</span>
+                    </li>
+                    <li th:if="${hadith.part != null and !hadith.part.isBlank()}">
+                        <strong>Part:</strong> <span th:text="${hadith.part}">1</span>
+                    </li>
+                    <li th:if="${hadith.chapter != null and !hadith.chapter.isBlank()}">
+                        <strong>Chapter:</strong> <span th:text="${hadith.chapter}">Chapter Name</span>
+                    </li>
+                    <li th:if="${hadith.section != null and !hadith.section.isBlank()}">
+                        <strong>Section:</strong> <span th:text="${hadith.section}">Section Name</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Topic Tags -->
+            <div class="hadith-page__tags mt-3"
+                 th:if="${hadith.topicTags != null and !hadith.topicTags.isEmpty()}">
+                <span class="topic-tag-pills__label">Topics</span>
+                <div class="d-flex flex-wrap gap-2 mt-1">
+                    <span class="topic-pill" th:each="tag : ${hadith.topicTags}"
+                          th:text="${tag}">tag</span>
+                </div>
+            </div>
+
+            <!-- Gradings -->
+            <div class="hadith-page__gradings mt-3"
+                 th:if="${hadith.gradings != null and !hadith.gradings.isEmpty()}">
+                <h2 class="h6 text-muted mb-2">Gradings</h2>
+                <ul class="list-unstyled">
+                    <li th:each="g : ${hadith.gradings}">
+                        <span th:text="${g.grading}"> grading</span>
+                        <span class="text-muted" th:if="${g.grader != null}"
+                              th:text="'(' + ${g.grader} + ')'">(grader)</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Notes -->
+            <div class="hadith-page__notes mt-3"
+                 th:if="${hadith.notes != null and !hadith.notes.isBlank()}">
+                <h2 class="h6 text-muted mb-2">Notes</h2>
+                <div th:utext="${hadith.notes}">Notes content</div>
+            </div>
+        </div>
+
+        <!-- Back to search -->
+        <div class="mt-4">
+            <a href="/" class="hadith-page__back-link">
+                <i class="fa fa-arrow-left" aria-hidden="true"></i> Search more hadith
+            </a>
+        </div>
+    </article>
+</main>
+
+<footer class="site-footer">
+    <div class="container">
+        <div class="site-footer__grid">
+            <div>
+                <div class="site-footer__title">Rewayaat</div>
+                <p class="site-footer__text">
+                    A project of the <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" class="site-footer__link">Academy for Learning Islam</a>. Search, browse, and study Shi'i narrations in Arabic and English.
+                </p>
+            </div>
+            <div>
+                <div class="site-footer__label">Explore</div>
+                <div class="site-footer__links">
+                    <a href="/#updates">Recent Updates</a>
+                    <a href="/search_tips.html">Search Tips</a>
+                    <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer">API Documentation</a>
+                </div>
+            </div>
+            <div>
+                <div class="site-footer__label">Contact</div>
+                <div class="site-footer__links">
+                    <a href="mailto:rewayaat.org@gmail.com">rewayaat.org@gmail.com</a>
+                    <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
+                    <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer">Academy of Islam</a>
+                </div>
+            </div>
+        </div>
+        <div class="site-footer__bottom">
+            <span>&copy; 2026 Academy for Learning Islam (A.L.I.)</span>
+            <div class="site-footer__social">
+                <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer" title="GitHub"><i class="fa fa-github"></i></a>
+                <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer" title="REST API"><i class="fa fa-code"></i></a>
+                <a href="mailto:rewayaat.org@gmail.com" title="Email"><i class="fa fa-envelope"></i></a>
+            </div>
+            <span>Content and translations remain the responsibility of their original sources.</span>
+        </div>
+    </div>
+</footer>
+
+<!-- GA4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-3HSRTQD7GM"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-3HSRTQD7GM');
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

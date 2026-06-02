@@ -1,13 +1,22 @@
 <!doctype html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="UTF-8"/>
-    <meta content="The ALI Hadith Database Project" name="description"/>
-    <meta content="hadith, sayings, hadith database project, shia, search, islam, narration, quran"
-          name="keywords"/>
-    <meta content="HDP" name="author"/>
-    <meta content="width=device-width, initial-scale=1, maximum-scale=1" name="viewport"/>
+    <title>Rewayaat — Shia Hadith Database | Search 32,000+ Narrations in Arabic &amp; English</title>
+    <meta name="description" content="Search over 32,000 Shia hadith narrations in Arabic and English. Browse Al-Kafi, Nahj al-Balagha, Ghurar al-Hikam and more. Find similar narrations and Quranic insights."/>
+    <meta name="keywords" content="shia hadith, hadith database, shia hadith search, islamic narrations, al-kafi, nahj al-balagha, ghurar al-hikam, ahlul bayt hadith, arabic english hadith"/>
+    <meta name="author" content="Academy for Learning Islam"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+    <link rel="canonical" th:href="@{${#request.requestURI}}"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:site_name" content="Rewayaat"/>
+    <meta property="og:title" content="Rewayaat — Shia Hadith Database"/>
+    <meta property="og:description" content="Search over 32,000 Shia hadith narrations in Arabic and English. Browse Al-Kafi, Nahj al-Balagha, and more with similar narrations and Quranic insights."/>
+    <meta property="og:url" th:content="@{${#request.requestURI}}"/>
+    <meta name="twitter:card" content="summary"/>
+    <meta name="twitter:title" content="Rewayaat — Shia Hadith Database"/>
+    <meta name="twitter:description" content="Search over 32,000 Shia hadith narrations in Arabic and English."/>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.css" rel="stylesheet"/>
     <link href="/css/sweetalert.css" rel="stylesheet" th:href="@{/css/sweetalert.css}"/>
@@ -836,20 +845,12 @@
     /*]]>*/
 
 </script>
-<script th:inline="javascript" type="text/javascript">
-    (function (i, s, o, g, r, a, m) {
-        i['GoogleAnalyticsObject'] = r;
-        i[r] = i[r] || function () {
-            (i[r].q = i[r].q || []).push(arguments)
-        }, i[r].l = 1 * new Date();
-        a = s.createElement(o), m = s.getElementsByTagName(o)[0];
-        a.async = 1;
-        a.src = g;
-        m.parentNode.insertBefore(a, m)
-    })(window, document, 'script',
-        'https://www.google-analytics.com/analytics.js', 'ga');
-    ga('create', 'UA-99916919-1', 'auto');
-    ga('send', 'pageview');
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-3HSRTQD7GM"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-3HSRTQD7GM');
 </script>
 <script type="text/javascript">
     if (location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
