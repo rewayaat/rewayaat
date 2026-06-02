@@ -20,7 +20,7 @@ public final class HadithDisplaySegmenter {
     private static final Pattern ENGLISH_DIALOGUE_BOUNDARY_PATTERN = Pattern.compile(
             "(?i)(?:\\bthen\\s+i\\s+said\\b|\\bi\\s+said\\b|\\bthen\\s+i\\s+asked\\b|\\bi\\s+asked\\b|"
                     + "\\bi\\s+heard\\b|\\bhe\\s+heard\\b|\\bshe\\s+heard\\b|"
-                    + "\\bi\\s+saw\\b|\\bi\\s+entered\\b|\\bi\\s+wrote\\b|\\bi\\s+was\\b|"
+                    + "\\bi\\s+saw\\b|\\bi\\s+entered\\b|\\bi\\s+wrote\\b|\\bi\\s+was\\s+(?!told\\b|informed\\b)\\w|"
                     + "\\bmy\\s+father\\s+(?:once\\s+)?(?:asked|said|heard|saw|entered|wrote)\\b|"
                     + "\\ba\\s+man\\s+(?:entered|came)\\b|\\ba\\s+woman\\s+(?:entered|came)\\b|"
                     + "\\bwhen\\s+a\\s+man\\s+(?:entered|came)\\b|\\bon\\s+the\\s+day\\s+when\\b)");
@@ -88,6 +88,9 @@ public final class HadithDisplaySegmenter {
             " saying:",
             " said the following:",
             " said:",
+            // "that he said:" / "that he said " — chain attribution ending before matn
+            " that he said: ",
+            " that he said ",
             // Split markers for "that he [narrative action]" where action ≠ said
             " that he mentioned ",
             " that he saw ",
@@ -106,7 +109,10 @@ public final class HadithDisplaySegmenter {
             // When followed by proper name + action (not "said"), split at "that"
             "it has been narrated that ",
             "it has been reported that ",
-            "it was narrated that "
+            "it was narrated that ",
+            "it is narrated that ",
+            "it is narrated from ",
+            "it is reported that "
     };
 
     private static final String[] ENGLISH_CHAIN_CUES = new String[] {
@@ -128,8 +134,13 @@ public final class HadithDisplaySegmenter {
             " it has been reported that ",
             " it has been related that ",
             " it is narrated from ",
+            " it is reported that ",
             " reported from",
             " on the authority of ",
+            " were told by ",
+            " was told by ",
+            " told by ",
+            " quoted ",
             " from "
     };
 
@@ -143,6 +154,9 @@ public final class HadithDisplaySegmenter {
             " narrated that ",
             " quoted ",
             " related ",
+            " were told by ",
+            " was told by ",
+            " told by ",
             " by this chain",
             " through this chain",
             " through the same chain",
@@ -157,6 +171,7 @@ public final class HadithDisplaySegmenter {
             " it has been reported that ",
             " it has been related that ",
             " it is narrated from ",
+            " it is reported that ",
             " reported from",
             " reported by ",
             " on the authority of "
@@ -378,6 +393,11 @@ public final class HadithDisplaySegmenter {
                         split = index + " that ".length();
                     }
                     if (isLikelyMatnBoundary(lower, split, ENGLISH_CHAIN_CUES, maxTailSignals)) {
+                        // Skip "said:" when it's part of "that he said:" / "who said:" / etc.
+                        if (isSubsumedByLongerMarker(lower, index, marker)) {
+                            index = lower.indexOf(marker, index + marker.length());
+                            continue;
+                        }
                         if (bestSplit < 0 || index < bestIndex || (index == bestIndex && split > bestSplit)) {
                             bestIndex = index;
                             bestSplit = split;
@@ -455,6 +475,7 @@ public final class HadithDisplaySegmenter {
                             bestSplit = split;
                         }
                     } else if (!startsWithAnyCue(tail, ARABIC_CHAIN_CUES)
+                            && prefix.length() <= 200
                             && (fallbackSplit < 0 || index < fallbackIndex || (index == fallbackIndex && split > fallbackSplit))) {
                         fallbackIndex = index;
                         fallbackSplit = split;
@@ -514,7 +535,7 @@ public final class HadithDisplaySegmenter {
             int index = normalized.indexOf(marker);
             while (index >= 0 && index <= MAX_SCAN_CHARS) {
                 String prefix = normalized.substring(0, index);
-                if (arabicChainSignalScore(prefix) >= 3) {
+                if (arabicChainSignalScore(prefix) >= 3 && prefix.length() <= 200) {
                     int split = matchText.toRawBoundary(index + marker.length());
                     String tail = trimContent(raw.substring(Math.min(split, raw.length())));
                     if (!startsWithAnyCue(tail, ARABIC_CHAIN_CUES)) {
@@ -603,6 +624,17 @@ public final class HadithDisplaySegmenter {
         if (normalized.contains("the following")) {
             return 4;
         }
+        // "said" markers (except "that he said") frequently precede matn that contains
+        // narrative language (e.g., "The Prophet narrated to us that Allah said...").
+        // Allow up to 2 tail chain signals to avoid rejecting the split point prematurely.
+        if (normalized.contains("said") && !normalized.contains("that he said")) {
+            return 2;
+        }
+        // "that he said" pattern: allow 0 tail chain signals to ensure the split is at
+        // the actual chain→content boundary, not mid-chain between narrators.
+        if (normalized.contains("that he said")) {
+            return 0;
+        }
         return 1;
     }
 
@@ -610,13 +642,21 @@ public final class HadithDisplaySegmenter {
         if (raw == null || raw.isEmpty() || splitIndex <= 0) {
             return -1;
         }
+        String lower = raw.toLowerCase(Locale.ROOT);
         var matcher = ENGLISH_DIALOGUE_BOUNDARY_PATTERN.matcher(raw);
         int earliest = -1;
         while (matcher.find()) {
             int idx = matcher.start();
             if (idx > 0 && idx < splitIndex) {
-                if (earliest < 0 || idx < earliest) {
-                    earliest = idx;
+                // Only consider dialogue boundary if there are enough chain signals
+                // before this point — "I was told by my grandfather" is chain continuation,
+                // not dialogue start.
+                String prefix = lower.substring(0, idx);
+                int chainScore = englishChainSignalScore(prefix);
+                if (chainScore >= minEnglishChainScore(prefix)) {
+                    if (earliest < 0 || idx < earliest) {
+                        earliest = idx;
+                    }
                 }
             }
         }
@@ -722,6 +762,7 @@ public final class HadithDisplaySegmenter {
                 || simplified.startsWith(" it has been reported that ")
                 || simplified.startsWith(" it has been related that ")
                 || simplified.startsWith(" it is narrated from ")
+                || simplified.startsWith(" it is reported that ")
                 || simplified.startsWith(" a number of our people has narrated ")
                 || simplified.startsWith(" by this isnad ")
                 || simplified.startsWith(" with this isnad ")
@@ -794,6 +835,11 @@ public final class HadithDisplaySegmenter {
                 || trimmed.startsWith("روى")
                 || trimmed.startsWith("وروى")) {
             return 1;
+        }
+        // For very long prefixes (likely book prefaces), require stronger chain signals
+        // to avoid treating praise/preamble text as narrator chain.
+        if (prefix.length() > 200) {
+            return 5;
         }
         return 2;
     }
@@ -900,6 +946,25 @@ public final class HadithDisplaySegmenter {
         }
         // Pad boundaries so space-delimited cue tokens match at the start/end.
         return " " + normalized + " ";
+    }
+
+    private static boolean isSubsumedByLongerMarker(String lower, int index, String marker) {
+        // Check if "said:" at this position is part of a longer pattern like
+        // "that he said:" or "who said:" which has its own dedicated split marker.
+        if (" said:".equals(marker) || " he said:".equals(marker) || " she said:".equals(marker)) {
+            // For " he said:", the marker starts at "he". Check if preceded by "that "
+            // For " said:", the marker starts at the space before "said". Check if preceded by "that he"/"who"
+            String before = lower.substring(Math.max(0, index - 25), index);
+            if (" he said:".equals(marker) || " she said:".equals(marker)) {
+                // Marker starts with space before pronoun. Position is at that space.
+                // Text before position has "that" right before the space.
+                return before.endsWith("that") || before.endsWith("who");
+            }
+            return before.endsWith("that he") || before.endsWith("that she")
+                    || before.endsWith("who") || before.endsWith("who has")
+                    || before.endsWith("he has") || before.endsWith("she has");
+        }
+        return false;
     }
 
     private static int countOccurrences(String text, String token) {
@@ -1015,6 +1080,13 @@ public final class HadithDisplaySegmenter {
         for (int i = 0; i < raw.length(); i++) {
             char ch = raw.charAt(i);
             if (isArabicDiacritic(ch) || ch == '\u0640') {
+                continue;
+            }
+            // Strip brackets so [قال] matches split markers
+            if (ch == '[' || ch == ']' || ch == '(' || ch == ')' || ch == '\u300A' || ch == '\u300B') {
+                normalized.append(' ');
+                rawIndexByNormalized[normalizedLength] = i;
+                normalizedLength++;
                 continue;
             }
             if (ch == '\u0623' || ch == '\u0625' || ch == '\u0622') {

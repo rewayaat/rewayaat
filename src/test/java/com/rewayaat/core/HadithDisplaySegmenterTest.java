@@ -1436,6 +1436,668 @@ class HadithDisplaySegmenterTest {
         // In production, this is handled by displaying the full text when chain/content are null
     }
 
+    // ====================================================================
+    // NEW BUG-DRIVEN TESTS — found via ES sampling June 2026
+    // ====================================================================
+
+    @Test
+    void splitsArabicChainBeforeBracketsSaidAfterImamName() {
+        // BUG: Ma'ani al-Akhbar #71 — "[قال]" in brackets after Imam name should
+        // be recognized as a split point. Currently the chain extends 1955 chars
+        // into the letter-by-letter content because the bracketed "قال" is not matched.
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "حدثنا محمد بن بكران النقاش - رحمه الله - بالكوفة، قال: حدثنا أحمد بن محمد الهمداني، "
+                + "قال: حدثنا علي بن الحسن بن علي بن فضال، عن أبيه، عن أبي الحسن علي ابن موسى الرضا "
+                + "عليه السلام[قال] إن أول ما خلق الله عز وجل ليعرف به خلقه الكتابة حروف المعجم");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain, "Chain should be extracted");
+        assertNotNull(content, "Content should be extracted");
+        assertTrue(chain.contains("الرضا"), "Chain should contain Imam name");
+        assertFalse(chain.contains("إن أول ما خلق"), "Chain should not include matn content");
+        assertTrue(content.contains("إن أول ما خلق"), "Content should start with actual matn");
+    }
+
+    @Test
+    void splitsArabicAtDoubleQalaAfterChainEnd() {
+        // BUG: Ma'ani al-Akhbar #72 — "عليهم السلام، قال: قال:" (double قال).
+        // The chain should end before the second "قال" which starts the matn.
+        // Currently the chain extends into the narrative.
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "حدثنا أحمد بن محمد بن عبد الرحمن المقري الحاكم، قال: حدثنا أبو عمرو محمد بن جعفر "
+                + "المقري الجرجاني، قال: حدثنا أبو بكر محمد بن الحسن الموصلي ببغداد، قال: حدثنا محمد بن عاصم "
+                + "الطريفي، قال: حدثنا أبو زيد عياش بن يزيد بن الحسن، قال: حدثني علي الكحال مولى زيد بن علي "
+                + "قال: أخبرني أبي، عن يزيد بن الحسن، قال: حدثني موسى بن جعفر، عن أبيه جعفر بن محمد، عن أبيه "
+                + "محمد بن علي، عن أبيه علي بن الحسين، عن أبيه الحسين بن علي عليهم السلام، قال: "
+                + "قال: جاء يهودي إلى النبي صلى الله عليه وآله و عنده أمير المؤمنين علي بن أبي طالب");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("الحسين بن علي عليهم السلام"));
+        assertFalse(chain.contains("جاء يهودي"), "Chain should not include matn");
+        assertTrue(content.contains("جاء يهودي"), "Content should include the story");
+    }
+
+    @Test
+    void splitsArabicAtDoubleQalaWithWabiIsnad() {
+        // BUG: Al-Tawhid #200 — "وبهذا الإسناد قال: قال أبو عبد الله"
+        // The second "قال" introduces the Imam's statement (matn), not a chain continuation.
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "4 - وبهذا الإسناد قال: قال أبو عبد الله عليه السلام: نحن وجه الله الذي لا يهلك.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("وبهذا الإسناد"));
+        assertFalse(chain.contains("نحن وجه الله"), "Chain should not include the Imam's statement");
+        assertTrue(content.contains("نحن وجه الله"), "Content should contain the Imam's statement");
+    }
+
+    @Test
+    void doesNotIncludeBookPrefaceInChain() {
+        // BUG: Thawab al-A'mal #1 — The book's Bismillah + preamble is included
+        // in the chain. The segmenter should recognize this has no proper isnad
+        // and either not split, or split at "قال محمد بن علي".
+        // Minimal reproduction: long preamble followed by author attribution
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "بِسْمِ اللّهِ الرَّحْمنِ الرَّحِيمِ الحمد لله الواحد القديم الأزلي الذي لا يوصف "
+                + "بحد و لا نهاية و أشهد أن لا إله إلا الله وحده لا شريك له و أشهد أن محمدا عبده و رسوله "
+                + "و أشهد أن أمير المؤمنين علي بن أبي طالب و الأئمة الطاهرين من ولده حجج الله على خلقه "
+                + "قال محمد بن علي بن الحسين بن موسى بن بابويه القمي رحمه الله إن الذي دعاني إلى تأليف كتابي "
+                + "هذا أنه روي عن النبي ص أنه قال الدال على الخير كفاعله");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        // The preamble (Bismillah, praise, testimony) is NOT a narrator chain
+        // Either: no split at all (acceptable), or chain starts with "قال محمد بن علي"
+        if (chain != null && content != null) {
+            assertFalse(chain.startsWith("بِسْمِ"), "Chain should not start with Bismillah preamble");
+            assertFalse(chain.contains("الحمد لله الواحد"), "Chain should not contain preamble praise");
+        }
+    }
+
+    @Test
+    void splitsEnglishBeforeContentAfterLongChain() {
+        // BUG: Al-Khisal — Very long English chain (449+ chars) where the chain
+        // includes content text. "on the authority of Jabir... "I heard..."
+        // The "I heard" should be content, not chain.
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "2-85 أخبرني محمد بن الحسن بن أحمد بن الوليد رضي الله عنه قال: حدثنا محمد بن الحسن الصفار "
+                + "عن أحمد بن محمد بن عيسى عن أحمد بن محمد بن أبي نصر عن أبان بن عثمان الأحمر "
+                + "عن أبي جعفر الأحول عن جابر بن عبد الله الأنصاري قال سمعت رسول الله صلى الله عليه وآله يقول");
+        source.put("english", "2-85 Muhammad ibn al-Hasan ibn Ahmad ibn al-Walid, may Allah be pleased with him, "
+                + "narrated that Muhammad ibn al-Hasan al-Saffar from Ahmad ibn Muhammad ibn Isa from Ahmad ibn Muhammad "
+                + "ibn Abi Nasr from Aban ibn Uthman al-Ahmar from Abu Ja'far al-Ahwal, on the authority of Abdullah "
+                + "ibn Muhammad ibn Aqeel, on the authority of Jabir ibn Abdullah al-Ansari, "
+                + "\"I heard God's Prophet mention several nobilities of Ali.\"");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String enChain = (String) source.get("englishChain");
+        String enContent = (String) source.get("englishContent");
+        assertNotNull(enChain);
+        assertNotNull(enContent);
+        assertTrue(enChain.contains("Jabir ibn Abdullah"), "Chain should end with last narrator");
+        assertFalse(enChain.contains("I heard God's Prophet"), "Chain should not include the quoted content");
+        assertTrue(enContent.contains("I heard God's Prophet"), "Content should contain the quote");
+    }
+
+    @Test
+    void splitsEnglishAtThatHeSaidAfterChain() {
+        // BUG: English "that he said" after full chain — the "that he said" should
+        // be treated as part of chain/content boundary, not extended chain.
+        Map<String, Object> source = new HashMap<>();
+        source.put("english", "3. We were told by Ahmad bin Muhammed bin Abdul-Rahman al-Maqarri, that he said: "
+                + "We were told by Abu'l-Abbas, Ali bin Hasan bin Bandar, that he said: "
+                + "We were told by Abu'l-Hasan bin Haysun, that he said: "
+                + "We were told by al-Qasim bin Ibrahim, that he said: "
+                + "The Prophet (sawa) said: Whoever dies without an Imam dies the death of ignorance.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("englishChain");
+        String content = (String) source.get("englishContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("al-Qasim bin Ibrahim"));
+        assertFalse(chain.contains("The Prophet"), "Chain should not extend into the Prophet's statement");
+        assertTrue(content.contains("The Prophet"), "Content should contain the Prophet's statement");
+    }
+
+    @Test
+    void splitsArabicForWaRawaAnhuQalaPattern() {
+        // "وروي عنه أنه قال" — passive narration pattern
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "4 - وروي عن أبي عبد الله (عليه السلام)، أنه قال: صبيحة يوم ليلة القدر مثل ليلة القدر "
+                + "فاعمل واجتهد.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("وروي عن أبي عبد الله"));
+        assertTrue(content.contains("صبيحة يوم ليلة القدر"));
+        assertFalse(chain.contains("صبيحة يوم ليلة القدر"));
+    }
+
+    @Test
+    void splitsEnglishForItIsNarratedThatImamSaidPattern() {
+        // Pattern: "It is narrated from Imam X (as) that he said: [content]"
+        Map<String, Object> source = new HashMap<>();
+        source.put("english", "Hadith.3125 - It is narrated from Imam Jafar ibn Muhammad Al-Sadiq (as) that he said: "
+                + "\"Shaving the head outside of Hajj or Umrah is disfigurement for your enemies "
+                + "and beauty for you.\"");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("englishChain");
+        String content = (String) source.get("englishContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("Al-Sadiq"));
+        assertFalse(chain.contains("Shaving the head"), "Chain should not include matn content");
+        assertTrue(content.contains("Shaving the head"), "Content should contain the ruling");
+    }
+
+    @Test
+    void doesNotSplitWhenChainCueIsInsideContentQuote() {
+        // Regression test: Make sure "narrated" inside a quoted matn doesn't
+        // cause a false split.
+        Map<String, Object> source = new HashMap<>();
+        source.put("english", "1. Ali ibn Ibrahim has narrated from his father from Ibn Abi Umayr from Hisham "
+                + "from Abu Abdillah (as) who said: The Messenger of Allah (sawa) narrated to us that "
+                + "Allah the Exalted said: I am the best partner; whoever associates anyone with me "
+                + "in his deeds, I leave him to his associate.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("englishChain");
+        String content = (String) source.get("englishContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("Ali ibn Ibrahim has narrated"));
+        assertFalse(chain.contains("The Messenger of Allah"), "Chain should end before the Prophet's statement");
+        assertTrue(content.contains("The Messenger of Allah"), "Content should have the Prophet's statement");
+        assertFalse(chain.contains("I am the best partner"), "Chain should not include divine speech");
+    }
+
+    @Test
+    void splitsArabicForQalaQalaDoubleSaidNarration() {
+        // From Al-Kafi #34: "...قال قال رسول الله" — chain ends at the second قال
+        // which starts the actual matn via the Prophet
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "2ـ عِدَّةٌ مِنْ أَصْحَابِنَا عَنْ أَحْمَدَ بْنِ أَبِي عَبْدِ الله عَنْ أَبِيهِ "
+                + "رَفَعَهُ إِلَى أَبِي جَعْفَرٍ (عَلَيهِ السَّلام) قَالَ قَالَ رَسُولُ الله "
+                + "(صَلَّى اللهُ عَلَيْهِ وآلِه) يَا أَيُّهَا النَّاسُ إِنَّمَا هُوَ الله وَالشَّيْطَانُ");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("أَبِي جَعْفَر"));
+        assertFalse(chain.contains("يَا أَيُّهَا النَّاسُ"), "Chain should not include the Prophet's address");
+        assertTrue(content.contains("يَا أَيُّهَا النَّاسُ"), "Content should include the Prophet's address");
+    }
+
+    @Test
+    void splitsArabicAtSecondQalaWhenFirstIsAttribution() {
+        // BUG: "...عنه قال: حدثنا...عن النبي قال: [matn]"
+        // The "قال" before "حدثنا" is chain continuation, but the "قال" after "النبي"
+        // starts the actual matn.
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "5-253 أخبرني الخليل بن أحمد قال: أخبرنا ابن خزيمة قال: حدثنا أبو موسى "
+                + "قال: حدثنا عبد الرحمن قال: حدثنا سفيان، عن الأعمش، عن سليمان بن مسهر، "
+                + "عن خرشة بن الحر، عن أبي ذر قال: قال رسول الله صلى الله عليه وآله "
+                + "ما من يوم يصبح العباد فيه إلا وملكان ينزلان");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("أبي ذر"), "Chain should contain last narrator");
+        assertFalse(chain.contains("ما من يوم"), "Chain should not include the Prophet's hadith");
+        assertTrue(content.contains("ما من يوم"), "Content should start with the Prophet's hadith");
+    }
+
+    @Test
+    void splitsEnglishForReportedFromImamThatSaidPattern() {
+        // BUG: "It is reported that Abi `Abdillah (as) said:" —
+        // passive attribution should be treated as chain, and the said: as split point
+        Map<String, Object> source = new HashMap<>();
+        source.put("english", "It is reported that Abi `Abdillah (as) said: "
+                + "The morning of the day of the Night of Power is like the Night of Power, "
+                + "so act and strive in worship.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("englishChain");
+        String content = (String) source.get("englishContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("Abi `Abdillah"));
+        assertTrue(content.contains("The morning of the day"));
+        assertFalse(chain.contains("The morning of the day"));
+    }
+
+    @Test
+    void splitsArabicForRawyAnhuAnnaQalaPattern() {
+        // "وروي عنه أنه قال:" — passive narration followed by "أنه قال"
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "170 - وعن أبي جعفر عليه السلام أنه قال: إطعام مسلم يعدل عتق نسمة.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("أبي جعفر"));
+        assertTrue(content.contains("إطعام مسلم"));
+        assertFalse(chain.contains("إطعام مسلم"));
+    }
+
+    @Test
+    void splitsEnglishForHeSaidColonAfterChainAttribution() {
+        // "Muhammed bin... that he said: [content]" — the "that he said:" is a chain ending
+        // marker and the content should start after the colon
+        Map<String, Object> source = new HashMap<>();
+        source.put("english", "1. We were told by Muhammed bin Bakran al-Naqqash, may Allah grant him mercy, "
+                + "that he said: We were told by Ahmad bin Muhammed al-Hamdani, that he said: "
+                + "We were told by Ali bin Hasan bin Ali bin Faddal, from his father, "
+                + "from Abu'l-Hasan, Ali ibn Musa al-Rida, peace be upon him, that he said: "
+                + "Indeed, the first which Allah created were the letters of the alphabet.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("englishChain");
+        String content = (String) source.get("englishContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("al-Rida"));
+        assertFalse(chain.contains("Indeed, the first"), "Chain should not include matn content");
+        assertTrue(content.contains("Indeed, the first"), "Content should contain actual matn");
+    }
+
+    @Test
+    void splitsArabicForSamiTuPatternInsideContent() {
+        // "...عن أبي عبد الله عليه السلام قال: سمعت رسول الله يقول..."
+        // The "سمعت" is a dialogue cue that should move the boundary to before "سمعت"
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "145- محمد بن علي عن عثمان بن أحمد السماك عن إبراهيم بن عبد الله الهاشمي "
+                + "عن أم سلمة قالت: سمعت رسول الله صلى الله عليه وآله وسلم يقول: المهدي من عترتي");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("عن أم سلمة قالت"));
+        assertTrue(content.contains("سمعت رسول الله"));
+        assertFalse(chain.contains("سمعت رسول الله"));
+    }
+
+    @Test
+    void splitsEnglishChainForQuotedThenWhoSaidChainContinuation() {
+        // Pattern: "X from Y from Z who said: I heard W saying..."
+        // The "I heard" should be in content, not chain
+        Map<String, Object> source = new HashMap<>();
+        source.put("english", "17. Ma'mar bin Sulayman narrated from Issma'eel bin Abu Khalid from Mujalid "
+                + "from ash-Shi'bi from Jabir bin Samra that the Prophet (S) had said: "
+                + "This religion will remain dominant and no harm will come to it from those who oppose it.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("englishChain");
+        String content = (String) source.get("englishContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("Jabir bin Samra"));
+        assertFalse(chain.contains("This religion will remain"), "Chain should not include matn");
+        assertTrue(content.contains("This religion"), "Content should include the Prophet's statement");
+    }
+
+    @Test
+    void doesNotSplitGhurarStyleWisdomWithoutChain() {
+        // Nahj al-Balagha / Ghurar style: "Imam Ali said: [wisdom]" — no chain
+        // Should not produce a split since there's no narrator chain
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "وَقَالَ أَمِيرُ الْمُؤْمِنِينَ عَلَيْهِ السَّلَامُ: قِيمَةُ كُلِّ امْرِئٍ مَا يُحْسِنُهُ.");
+        source.put("english", "Amir al-Mu'minin (as) said: The value of every person is what they do well.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String arChain = (String) source.get("arabicChain");
+        String enChain = (String) source.get("englishChain");
+        // No proper chain — should not split
+        assertTrue(arChain == null || arChain.isBlank(),
+                "Arabic should not split for wisdom without isnad");
+        assertTrue(enChain == null || enChain.isBlank(),
+                "English should not split for wisdom without isnad");
+    }
+
+    @Test
+    void splitsEnglishForNarratedFromImamSaidPattern() {
+        // Pattern: "Narrated to me X from Y: Z said: [content]"
+        Map<String, Object> source = new HashMap<>();
+        source.put("english", "H 27 - Musawi said: Narrated to me Ahmad bin Hasan Mithami from his father "
+                + "from Abu Saeed Madayani who heard Imam Muhammad Baqir (a.s) say: "
+                + "The Almighty Allah saved Bani Israel from the mischief of Firon through Musa (a.s).");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("englishChain");
+        String content = (String) source.get("englishContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("Narrated to me Ahmad"));
+        assertFalse(chain.contains("The Almighty Allah saved"), "Chain should not include the matn");
+        assertTrue(content.contains("The Almighty Allah saved"), "Content should contain the matn");
+    }
+
+    @Test
+    void splitsArabicForBiIsnadihiQalaQalaPattern() {
+        // Pattern: "وَبِإِسْنادِهِ عَنْ ... قالَ: [content]"
+        // The chain should end before the content
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "272 - وَبِإِسْنادِهِ عَنْ عَلِيِّ عَلَيْهِ السَّلامُ قالَ: "
+                + "نَهَىالنَّبِيُّ صَلَّى اللهُ عَلَيْهِ وَآلِهِ عَنْ وَطْءِ الْحُبَالَى حَتَّى يَضَعْنَ.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("وَبِإِسْنادِهِ"));
+        assertTrue(content.contains("نَهَىالنَّبِيُّ"));
+        assertFalse(chain.contains("نَهَىالنَّبِيُّ"));
+    }
+
+    @Test
+    void splitsArabicForSahabaQalaQalaRasulPattern() {
+        // "...عن أبي ذر قال: قال رسول الله..." — أبو ذر is last narrator,
+        // then double قال leads to Prophet's matn
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "حدثنا محمد بن إبراهيم بن إسحاق قال: حدثنا أحمد بن محمد الهمداني، "
+                + "قال: حدثنا جعفر بن عبد الله، عن أبي زيد عياش بن يزيد، عن أبي ذر "
+                + "قال: قال رسول الله صلى الله عليه وآله: ما من يوم يصبح العباد فيه");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("أبي ذر"), "Chain should include Abu Dharr");
+        assertFalse(chain.contains("ما من يوم"), "Chain should not include matn");
+        assertTrue(content.contains("ما من يوم"), "Content should include matn");
+    }
+
+    @Test
+    void splitsArabicChainBeforeContentWhenQalaContinuesToContent() {
+        // BUG: When chain has "عن أبي عبد الله عليه السلام قال: قال رسول الله..."
+        // the split should happen before "قال رسول الله", not extend chain past it
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "حدثنا أبي رحمه الله، قال: حدثنا سعد بن عبد الله، عن أحمد بن محمد، "
+                + "عن أبيه عن محمد بن أبي عمير، عن عمر بن أذينة، عن محمد بن مسلم، "
+                + "عن أبي عبد الله عليه السلام قال: قال رسول الله صلى الله عليه وآله: "
+                + "من مات ولم يعرف إمام زمانه مات ميتة جاهلية.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("عن أبي عبد الله عليه السلام"));
+        assertFalse(chain.contains("من مات ولم يعرف"), "Chain should not include the matn");
+        assertTrue(content.contains("من مات ولم يعرف"), "Content should contain the matn");
+    }
+
+    @Test
+    void splitsArabicChainForMaqamStyleNestedHadathana() {
+        // BUG: Ma'ani al-Akhbar #89 — long chain with nested "قال حدثنا" where the
+        // final "عن أبي عبد الله قال" should end the chain
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "حدثنا الحسن بن محمد بن يحيى العلوي - رحمه الله - قال: حدثني جدي قال: "
+                + "حدثنا داود بن القاسم، قال: أخبرنا عيسى، قال أخبرنا يوسف بن يعقوب، قال: "
+                + "حدثنا عنبسة بن عبد الواحد، عن هشام بن عروة، عن أبيه، عن عائشة قالت: "
+                + "سمعت رسول الله صلى الله عليه وآله يقول: فاطمة بضعة مني");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("عائشة"));
+        assertFalse(chain.contains("سمعت رسول الله"), "Chain should not extend past dialogue cue");
+        assertTrue(content.contains("سمعت رسول الله"), "Content should include Aisha's narration");
+    }
+
+    @Test
+    void splitsEnglishForLongChainWithThatHeSaidRepeating() {
+        // BUG: Ma'ani al-Akhbar English — repeated "that he said:" pattern
+        // where the final "that he said:" before the Imam should end the chain
+        Map<String, Object> source = new HashMap<>();
+        source.put("english", "7. We were told by Hasan bin Muhammed bin Yahya al-Alawi, may Allah grant him mercy, "
+                + "that he said: I was told by my grandfather, that he said: We were told by Dawood bin al-Qasim, "
+                + "that he said: We were informed by Isa, that he said: We were informed by Yusuf bin Yaqub, "
+                + "that he said: We were told by Anbasah bin Abdul Wahid, from Hisham bin Urwah, "
+                + "from his father, from Aisha who said: I heard the Messenger of Allah say: "
+                + "Fatima is a piece of me.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("englishChain");
+        String content = (String) source.get("englishContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("Aisha"));
+        assertFalse(chain.contains("Fatima is a piece"), "Chain should not include the Prophet's statement");
+        assertTrue(content.contains("Fatima is a piece"), "Content should contain the matn");
+    }
+
+    @Test
+    void splitsArabicForAnnaQalaAfterRida() {
+        // BUG: "...الرضا ع أنه قال من كذب" — The "أنه قال" is currently handled
+        // by dialogue cues, but verify the split point is correct
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "حَدَّثَنَا مُحَمَّدُ بْنُ إِسْحَاقَ الطَّالَقَانِيُّ رَحِمَهُ اللَّهُ قَالَ "
+                + "حَدَّثَنَا عَلِيُّ بْنُ الْحَسَنِ بْنِ عَلِيِّ بْنِ فَضَّالٍ عَنْ أَبِيهِ عَنْ "
+                + "أَبِي الْحَسَنِ عَلِيِّ بْنِ مُوسَى الرِّضَا ع أَنَّهُ قَالَ مَنْ كَذَّبَ "
+                + "بالمعراج فَقَدْ كَذَّبَ رَسُولَ اللَّهِ ص");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("الرِّضَا"));
+        assertFalse(chain.contains("مَنْ كَذَّبَ"), "Chain should not include the ruling");
+        assertTrue(content.contains("مَنْ كَذَّبَ"), "Content should contain the ruling");
+    }
+
+    @Test
+    void splitsArabicForHasrallaQuestionPattern() {
+        // Pattern: "...عن أبي عبد الله (ع) في رجل..." — "في رجل" is a dialogue cue
+        // and should start the content section
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "3- مُحَمَّدُ بْنُ يَحْيَى عَنْ أَحْمَدَ بْنِ مُحَمَّدٍ عَنْ مُحَمَّدِ بْنِ "
+                + "إِسْمَاعِيلَ عَنْ مُحَمَّدِ بْنِ الْفُضَيْلِ عَنْ أَبِي الصَّبَّاحِ الْكِنَانِيِّ "
+                + "عَنْ أَبِي عَبْدِ اللهِ (عَلَيْهِ السَّلام) فِي رَجُلٍ يَحْمِلُ الْمَتَاعَ "
+                + "لأهْلِ السُّوقِ فَيَقُولُونَ بِعْ فَمَا ازْدَدْتَ فَلَكَ قَالَ لا بَأْسَ بِذَلِكَ.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("أَبِي الصَّبَّاحِ"));
+        assertTrue(content.startsWith("فِي رَجُلٍ"));
+        assertFalse(chain.contains("فِي رَجُلٍ"));
+    }
+
+    @Test
+    void splitsEnglishForLongChainEndingWithSaidColon() {
+        // Al-Khisal style: very long chain ending with "...that the Commander..."
+        // should split before the content
+        Map<String, Object> source = new HashMap<>();
+        source.put("english", "3-217 Abu Ahmad Muhammad ibn Ja'far al-Bandar al-Shafe'ee in Furqan narrated "
+                + "that Abul Abbas al-Himady quoted Salih ibn Muhammad al-Baghdady, on the authority of "
+                + "Ali ibn al-Ja'd, on the authority of Shu'bah, on the authority of Qatadah, "
+                + "on the authority of Anas, on the authority of the Prophet (MGB) that he said: "
+                + "The one who is asked about knowledge and conceals it will be bridled with a rein of fire.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("englishChain");
+        String content = (String) source.get("englishContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("Anas"));
+        assertFalse(chain.contains("The one who is asked"), "Chain should not include the matn");
+        assertTrue(content.contains("The one who is asked"), "Content should contain the matn");
+    }
+
+    @Test
+    void splitsArabicForWabiIsnadQalaQala() {
+        // BUG: "وبهذا الإسناد قال: قال أبو عبد الله" — the double قال
+        // should split at the second قال (which introduces the matn)
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "4 - وبهذا الإسناد قال: قال أبو عبد الله عليه السلام: "
+                + "نحن وجه الله الذي لا يهلك.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("وبهذا الإسناد"));
+        assertFalse(chain.contains("نحن وجه الله"), "Chain should not include Imam's statement");
+        assertTrue(content.contains("نحن وجه الله"), "Content should contain the Imam's statement");
+    }
+
+    @Test
+    void splitsArabicForSahabaQaluPluralPattern() {
+        // "...قالوا: لما مضى خمس عشرة سنة..." — plural "قالوا" starts content
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "4 - حدثنا محمد بن إبراهيم قال: حدثنا الحسن بن علي قال: حدثني محمد بن خليلان "
+                + "قال: حدثني أبي، عن أبيه، عن جده، عن عتاب بن أسيد، عن جماعة من مشايخ أهل المدينة "
+                + "قالوا: لما مضى خمس عشرة سنة من ملك الرشيد استشهد ولي الله موسى بن جعفر عليهما السلام.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("جماعة من مشايخ أهل المدينة"));
+        assertTrue(content.startsWith("لما مضى خمس عشرة سنة"));
+        assertFalse(chain.contains("لما مضى"));
+    }
+
+    @Test
+    void splitsEnglishForAuthorityChainEndingWithQuotedContent() {
+        // Pattern: "...on the authority of X, \"quoted content\""
+        // The quoted material should be content, not chain
+        Map<String, Object> source = new HashMap<>();
+        source.put("english", "4-36 Muhammad ibn Ali Majiluyih narrated that Ali ibn Ibrahim ibn Hashim quoted "
+                + "his father, on the authority of Muhammad ibn Abi Umayr, \"During the long time I "
+                + "have associated with Hisham ibn al-Hakam, I never heard him attribute a lie to Allah.\"");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("englishChain");
+        String content = (String) source.get("englishContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("Muhammad ibn Abi Umayr"));
+        assertTrue(content.startsWith("\"During the long time"));
+        assertFalse(chain.contains("During the long time"));
+    }
+
+    @Test
+    void splitsArabicForBisanadihiIlaPattern() {
+        // Pattern: "بإسناده إلى..." (by his chain to...) — should be chain-only
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "3 - حدثنا أبو أحمد هاني بن محمد قال: حدثنا محمد بن محمود بإسناده "
+                + "إلى موسى بن جعفر عليه السلام أنه قال: لما أدخلت على الرشيد سلمت عليه.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("بإسناده"));
+        assertTrue(content.contains("أنه قال"));
+        assertTrue(content.contains("لما أدخلت"));
+    }
+
+    @Test
+    void splitsEnglishForThroughSameChainNarratorsPattern() {
+        // Pattern: "Through the same chain of narrators that..." — should split after the chain ref
+        Map<String, Object> source = new HashMap<>();
+        source.put("english", "13. Through the same chain of narrators the following is narrated: "
+                + "\"Amir al-Mu'minin (a.s.) one day said to Abu Bakr, "
+                + "Do not think of those slain for the cause of God as dead.\"");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("englishChain");
+        String content = (String) source.get("englishContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("Through the same chain"));
+        assertFalse(chain.contains("Amir al-Mu'minin"), "Chain should not include the content");
+        assertTrue(content.contains("Amir al-Mu'minin"), "Content should include the matn");
+    }
+
+    @Test
+    void doesNotTreatWholeMatnAsChainWhenQalaAppearsInContent() {
+        // Regression: Hadith where "قال" appears in the matn text (e.g., "قال موسى")
+        // should not cause the entire matn to be treated as chain
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "3 - حدثنا محمد بن إبراهيم بن إسحاق، قال: حدثنا أحمد بن محمد الهمداني، "
+                + "قال: حدثنا جعفر بن عبد الله، عن أبي الجارود، عن أبي جعفر الباقر عليهما السلام قال: "
+                + "لما ولد عيسى ابن مريم عليه السلام كان ابن يوم كأنه ابن شهرين، "
+                + "فلما كان ابن سبعة أشهر أخذت والدته بيده وجاءت به إلى الكتاب "
+                + "فقال المؤدب: قل: بسم الله الرحمن الرحيم. فقال عيسى عليه السلام");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("أبي جعفر الباقر"));
+        assertFalse(chain.contains("لما ولد عيسى"), "Chain should not include the birth narrative");
+        assertTrue(content.contains("لما ولد عيسى"), "Content should include the birth narrative");
+    }
+
     @Test
     void splitsArabicForSaelaPattern() {
         // CORRECT: "سأل عمر بن يزيد عن أبي عبد الله (عليه السلام)" - question pattern, no قال at split point
