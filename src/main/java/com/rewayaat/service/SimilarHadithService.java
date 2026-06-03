@@ -55,11 +55,9 @@ public class SimilarHadithService {
     private static final int SEMANTIC_NUM_CANDIDATES = readIntSetting("SIMILAR_SEMANTIC_NUM_CANDIDATES", 750);
     private static final int LEXICAL_POOL_SIZE = readIntSetting("SIMILAR_LEXICAL_POOL_SIZE", 220);
     private static final int CANDIDATE_LIMIT = readIntSetting("SIMILAR_HYBRID_CANDIDATE_LIMIT", 280);
-    private static final int RERANK_INPUT_LIMIT = readIntSetting("SIMILAR_RERANK_INPUT_LIMIT", 24);
     private static final int MAX_RESULT_ITEMS = readIntSetting("SIMILAR_MAX_RESULT_ITEMS", 40);
 
     private static final float FINAL_MIN_PERCENT = readFloatSetting("SIMILAR_FINAL_MIN_PERCENT", 45f);
-    private static final float FINAL_LLM_WEIGHT = readFloatSetting("SIMILAR_FINAL_LLM_WEIGHT", 0.88f);
     private static final int QUICK_COUNT_VERIFY_THRESHOLD = readIntSetting("SIMILAR_QUICK_COUNT_VERIFY_THRESHOLD", 3);
     private static final float RETRIEVAL_SYNTACTIC_WEIGHT = readFloatSetting("SIMILAR_RETRIEVAL_SYNTACTIC_WEIGHT", 0.10f);
     private static final float RETRIEVAL_CONTENT_WEIGHT = readFloatSetting("SIMILAR_RETRIEVAL_CONTENT_WEIGHT", 0.15f);
@@ -86,14 +84,10 @@ public class SimilarHadithService {
     private static final float NEAR_DUPLICATE_SYNTACTIC_PERCENT = readFloatSetting("SIMILAR_NEAR_DUPLICATE_SYNTACTIC_PERCENT", 92f);
     private static final float MIN_CONTENT_OVERLAP_PERCENT = readFloatSetting("SIMILAR_MIN_CONTENT_OVERLAP_PERCENT", 12f);
 
-    private final SimilarHadithRerankerService rerankerService;
-    private final ObjectMapper mapper = new ObjectMapper();
-
-    @Value("${similar.rerank.enabled:true}")
-    private boolean rerankEnabled;
-
     @Value("${similar.retrieval.min-percent:-1}")
     private double retrievalOnlyMinPercent;
+
+    private final ObjectMapper mapper = new ObjectMapper();
 
     private final Cache<String, List<HadithObject>> rerankedCache = Caffeine.newBuilder()
             .maximumSize(5000)
@@ -111,8 +105,7 @@ public class SimilarHadithService {
             .build();
 
     @Autowired
-    public SimilarHadithService(SimilarHadithRerankerService rerankerService) {
-        this.rerankerService = rerankerService;
+    public SimilarHadithService() {
     }
 
     public HadithObjectCollection findSimilar(String hadithId, int page, int pageSize) {
@@ -191,34 +184,7 @@ public class SimilarHadithService {
             if (displayCandidates.isEmpty()) {
                 return new ArrayList<>();
             }
-            if (!rerankEnabled) {
-                LOGGER.info("Similar hadith LLM reranking disabled. Returning retrieval-ranked results for id {} with minimum percent {}", hadithId, retrievalMinPercent);
-                return mapRetrievalOrderedResults(displayCandidates);
-            }
-            int rerankLimit = Math.min(RERANK_INPUT_LIMIT, displayCandidates.size());
-
-            List<SimilarHadithRerankerService.RerankCandidate> rerankInputs = new ArrayList<>();
-            for (int i = 0; i < rerankLimit; i++) {
-                SimilarCandidate candidate = displayCandidates.get(i);
-                rerankInputs.add(new SimilarHadithRerankerService.RerankCandidate(
-                        candidate.id(),
-                        candidate.matnArabic(),
-                        candidate.retrievalPercent()));
-            }
-
-            SimilarHadithRerankerService.RerankDecision reranked = rerankerService.rerank(
-                    hadithId,
-                    source.matnArabic(),
-                    rerankInputs);
-            if (!reranked.success()) {
-                LOGGER.info("Reranker unavailable for id {}. Falling back to retrieval-ranked results.", hadithId);
-                return mapRetrievalOrderedResults(displayCandidates);
-            }
-            if (reranked.rankedScores().isEmpty()) {
-                LOGGER.info("Reranker returned no ranking scores for id {}. Falling back to retrieval-ranked results.", hadithId);
-                return mapRetrievalOrderedResults(displayCandidates);
-            }
-            return buildLlmRerankedResults(displayCandidates, rerankLimit, reranked.rankedScores());
+            return mapRetrievalOrderedResults(displayCandidates);
         } catch (Exception ex) {
             LOGGER.warn("Unable to compute similar hadith for id {}", hadithId, ex);
             return new ArrayList<>();
@@ -493,29 +459,6 @@ public class SimilarHadithService {
         return hadithes;
     }
 
-    private List<HadithObject> buildLlmRerankedResults(List<SimilarCandidate> displayCandidates,
-            int rerankLimit, Map<String, Double> rankedScores) {
-        List<HadithObject> hadithes = new ArrayList<>();
-        if (displayCandidates == null || displayCandidates.isEmpty()) {
-            return hadithes;
-        }
-        List<RerankedDisplayCandidate> rerankedHead = rerankDisplayCandidates(
-                displayCandidates.subList(0, Math.max(0, Math.min(rerankLimit, displayCandidates.size()))),
-                rankedScores);
-        for (RerankedDisplayCandidate rankedCandidate : rerankedHead) {
-            hadithes.add(mapCandidate(
-                    rankedCandidate.candidate(),
-                    rankedCandidate.combinedPercent(),
-                    rankedCandidate.llmPercent(),
-                    rankedCandidate.candidate().retrievalPercent()));
-        }
-        for (int i = Math.max(0, rerankLimit); i < displayCandidates.size(); i++) {
-            SimilarCandidate candidate = displayCandidates.get(i);
-            hadithes.add(mapCandidate(candidate, candidate.retrievalPercent(), null, candidate.retrievalPercent()));
-        }
-        return hadithes;
-    }
-
     private HadithObject mapCandidate(SimilarCandidate candidate, double similarityPercent, Double llmPercent, double retrievalPercent) {
         Map<String, Object> mutableSource = new HashMap<>(candidate.source());
         mutableSource.put("_id", candidate.id());
@@ -538,7 +481,7 @@ public class SimilarHadithService {
         mutableSource.put("sharedTopicTags", candidate.sharedTopicTags());
         mutableSource.put("similarityScore", SimilarHadithRanking.round(similarityPercent / 100.0d, 6));
         HadithDisplaySegmenter.enrich(mutableSource);
-        return mapper.convertValue(mutableSource, HadithObject.class);
+        return new ObjectMapper().convertValue(mutableSource, HadithObject.class);
     }
 
     static double semanticPercentFromRawScore(Double rawScore) {
@@ -593,46 +536,6 @@ public class SimilarHadithService {
         return SimilarHadithRanking.round(Math.max(
                 SimilarHadithRanking.clampPercent(lexicalPercent),
                 structuralSupport), 2);
-    }
-
-    static List<SimilarHadithRanking.CandidateScore> rerankDisplayOrder(List<SimilarHadithRanking.CandidateInput> candidates,
-            Map<String, Double> rankedScores, double llmWeight) {
-        List<SimilarHadithRanking.CandidateScore> result = new ArrayList<>();
-        if (candidates == null || candidates.isEmpty()) {
-            return result;
-        }
-        Map<String, Double> safeScores = rankedScores == null ? Map.of() : rankedScores;
-        Set<String> seen = new HashSet<>();
-        for (SimilarHadithRanking.CandidateInput input : candidates) {
-            if (input == null || input.id() == null || input.id().isBlank()) {
-                continue;
-            }
-            if (!seen.add(input.id())) {
-                continue;
-            }
-            double llmPercent = SimilarHadithRanking.round(
-                    SimilarHadithRanking.clampPercent(safeScores.getOrDefault(input.id(), input.retrievalPercent())),
-                    2);
-            double retrievalPercent = SimilarHadithRanking.round(
-                    SimilarHadithRanking.clampPercent(input.retrievalPercent()),
-                    2);
-            double combined = SimilarHadithRanking.combinePercent(
-                    llmPercent,
-                    llmWeight,
-                    retrievalPercent,
-                    1.0d - llmWeight);
-            result.add(new SimilarHadithRanking.CandidateScore(
-                    input.id(),
-                    llmPercent,
-                    retrievalPercent,
-                    combined));
-        }
-        result.sort(Comparator
-                .comparingDouble(SimilarHadithRanking.CandidateScore::combinedPercent)
-                .thenComparingDouble(SimilarHadithRanking.CandidateScore::llmPercent)
-                .thenComparingDouble(SimilarHadithRanking.CandidateScore::retrievalPercent)
-                .reversed());
-        return result;
     }
 
     static String buildLexicalQueryText(List<String> significantTerms, String normalizedMatn, int maxTokens) {
@@ -838,36 +741,6 @@ public class SimilarHadithService {
         return displayCandidates;
     }
 
-    private static List<RerankedDisplayCandidate> rerankDisplayCandidates(List<SimilarCandidate> candidates,
-            Map<String, Double> rankedScores) {
-        List<RerankedDisplayCandidate> reranked = new ArrayList<>();
-        if (candidates == null || candidates.isEmpty()) {
-            return reranked;
-        }
-        Map<String, Double> safeScores = rankedScores == null ? Map.of() : rankedScores;
-        List<SimilarHadithRanking.CandidateInput> scoreInputs = new ArrayList<>();
-        Map<String, SimilarCandidate> lookup = new HashMap<>();
-        for (SimilarCandidate candidate : candidates) {
-            if (candidate == null || candidate.id() == null || candidate.id().isBlank()) {
-                continue;
-            }
-            lookup.put(candidate.id(), candidate);
-            scoreInputs.add(new SimilarHadithRanking.CandidateInput(
-                    candidate.id(),
-                    candidate.retrievalPercent(),
-                    candidate.retrievalPercent()));
-        }
-        for (SimilarHadithRanking.CandidateScore score : rerankDisplayOrder(scoreInputs, safeScores, FINAL_LLM_WEIGHT)) {
-            SimilarCandidate candidate = lookup.get(score.id());
-            if (candidate == null) {
-                continue;
-            }
-            Double llmPercent = safeScores.containsKey(score.id()) ? score.llmPercent() : null;
-            reranked.add(new RerankedDisplayCandidate(candidate, llmPercent, score.combinedPercent()));
-        }
-        return reranked;
-    }
-
     static boolean meetsDisplayThreshold(double retrievalPercent, double minPercent) {
         if (minPercent <= 0d) {
             return true;
@@ -989,9 +862,6 @@ public class SimilarHadithService {
     }
 
     private record SemanticCandidatePool(List<Hit<Map>> hits, boolean available) {
-    }
-
-    private record RerankedDisplayCandidate(SimilarCandidate candidate, Double llmPercent, double combinedPercent) {
     }
 
     private static final class MutableCandidate {

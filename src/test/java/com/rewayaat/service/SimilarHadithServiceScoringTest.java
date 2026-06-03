@@ -95,22 +95,6 @@ class SimilarHadithServiceScoringTest {
     }
 
     @Test
-    void rerankDisplayOrderKeepsCandidatesWithoutLlmScores() {
-        List<SimilarHadithRanking.CandidateScore> reranked = SimilarHadithService.rerankDisplayOrder(
-                List.of(
-                        new SimilarHadithRanking.CandidateInput("h1", 0d, 72d),
-                        new SimilarHadithRanking.CandidateInput("h2", 0d, 68d),
-                        new SimilarHadithRanking.CandidateInput("h3", 0d, 61d)),
-                java.util.Map.of("h2", 95d, "h1", 40d),
-                0.88d);
-
-        assertEquals(3, reranked.size());
-        assertEquals(List.of("h2", "h3", "h1"), reranked.stream().map(SimilarHadithRanking.CandidateScore::id).toList());
-        assertEquals(61d, reranked.get(1).llmPercent());
-        assertEquals(40d, reranked.get(2).llmPercent());
-    }
-
-    @Test
     void displayThresholdRequiresSeventyPercentOrHigher() {
         assertFalse(SimilarHadithService.meetsDisplayThreshold(69.99d, 70d));
         assertTrue(SimilarHadithService.meetsDisplayThreshold(70d, 70d));
