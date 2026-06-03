@@ -2708,4 +2708,143 @@ class HadithDisplaySegmenterTest {
         assertFalse(chain.contains("سمعت أبا جعفر"), "Chain should not include the hearing");
         assertTrue(content.contains("سمعت") || content.contains("سَمِعْتُ"), "Content should include the hearing");
     }
+
+    // ==================== Round 4: Integration tests from ES sampling ====================
+
+    @Test
+    void splitsArabicAncestorChainWithQalaAmir() {
+        // BUG: Ghayba #674 — "...عن جده قال: قال أمير المؤمنين عليه السلام: صاحب هذا الامر..."
+        // "قال أمير المؤمنين" is chain attribution, not content. Split at second colon.
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "409- وروى الفضل بن شاذان، عن أحمد بن عيسى العلوي، عن أبيه، عن جده قال: "
+                + "قال أمير المؤمنين عليه السلام: صاحب هذا الامر من ولدي (الذي) يقال:مات! قتل! لا،بل هلك!");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("عن جده"), "Chain should include ancestor chain");
+        assertFalse(chain.contains("صاحب هذا"), "Chain should not include the prophecy");
+        assertTrue(content.contains("صاحب هذا الامر"), "Content should include the prophecy");
+    }
+
+    @Test
+    void splitsArabicChainWithQalaRasulAllahAfterQala() {
+        // BUG: Khisal #494 — "...عن نافع بن عبد الحارث قال: قال رسول الله صلى الله عليه وآله: من سعادة..."
+        // "قال رسول الله" is chain attribution. Split at the second colon.
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "3-252 أخبرني الخليل بن أحمد قال: أخبرني ابن خزيمة قال: حدثنا أبوموسى قال: "
+                + "حدثنا الضحاك بن مخلد، عن سفيان، عن حبيب، عن جميل مولى عبد الحارث عن نافع بن عبد الحارث "
+                + "قال: قال رسول الله صلى الله عليه وآله:من سعادة المسلم سعة المسكن والجار الصالح، والمركب الهنئ");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("نافع بن عبد الحارث"), "Chain should include last narrator");
+        assertFalse(chain.contains("سعادة المسلم"), "Chain should not include the matn");
+        assertTrue(content.contains("سعادة المسلم"), "Content should include the hadith text");
+    }
+
+    @Test
+    void splitsEnglishFromChainWithSaidAttribution() {
+        // BUG: Mu'jam #475 — English "from X who said: The Messenger of Allah said: content"
+        // "The Messenger of Allah said:" is still chain attribution, content starts after it
+        Map<String, Object> source = new HashMap<>();
+        source.put("english", "9. [9/358] al-Tawhid: al-Hamdani from Ali from his father from al-Harawi "
+                + "from Ali b. Musa al-Ridha from his father from his forefathers from Ali عليهم السلام "
+                + "who said: The Messenger of Allah صلى الله عليه واله said: Allah Mighty and Majestic "
+                + "has ninety-nine names. Whoever asks Allah through them is answered.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("englishChain");
+        String content = (String) source.get("englishContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("Ali"), "Chain should include narrators");
+        assertFalse(chain.contains("ninety-nine"), "Chain should not include the matn");
+        assertTrue(content.contains("ninety-nine names"), "Content should include the matn");
+    }
+
+    @Test
+    void splitsArabicKhisalChainWithAmirQala() {
+        // BUG: Khisal #348 — "...عن آبائه عليهم السلام قال: قال أمير المؤمنين عليه السلام: تحل الفروج..."
+        // Double قال with "أمير المؤمنين" attribution
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "3-106 حدثنا أحمد بن علي بن إبراهيم بن هاشم رضي الله عنه. عن أبيه، عن جده، "
+                + "عن النوفلي، عن السكوني عن جعفر بن محمد، عن أبيه، عن آبائه عليهم السلام قال: "
+                + "قال أمير المؤمنين عليه السلام: تحل الفروج بثلاثة وجوه: نكاح بميراث، ونكاح بملك اليمين");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("السكوني"), "Chain should include narrator");
+        assertFalse(chain.contains("تحل الفروج"), "Chain should not include the ruling");
+        assertTrue(content.contains("تحل الفروج"), "Content should include the ruling");
+    }
+
+    @Test
+    void splitsArabicRajulChainWithSamiTu() {
+        // Zuhd #63 — "...عن رجل من بني هاشم قال: سمعته يقول:..." — "سمعته" starts content
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "النضر بن سويد عن عبد الله بن سنان عن رجل من بني هاشم قال: "
+                + "سمعته يقول: أربع من كن فيه كمل اسلامه ولو كان ما بين قرنه وقدمه خطايا "
+                + "لم ينقصه ذلك : الصدق والحيا وحسن الخلق والشكر.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("عبد الله بن سنان"), "Chain should include narrator");
+        assertFalse(chain.contains("أربع من"), "Chain should not include the saying");
+        assertTrue(content.contains("أربع") || content.contains("أَرْبَع"), "Content should include the saying");
+    }
+
+    @Test
+    void splitsArabicReferenceChainWithDialogue() {
+        // Ghayba #335 — "بهذا الإسناد عن هشام بن سالم، قال: سمعت أبا عبد الله يقول..."
+        // "سمعت" in content is dialogue boundary
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "31 - أخبرنا أحمد بن محمد بن سعيد بهذا الإسناد عن هشام بن سالم، قال: "
+                + "سمعت أبا عبد الله يقول: هما صيحتان صيحة في أول الليل، وصيحة في آخر اللية الثانية.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("هشام بن سالم"), "Chain should include narrator");
+        assertFalse(chain.contains("صيحتان"), "Chain should not include the prophecy");
+        assertTrue(content.contains("صيحتان"), "Content should include the prophecy");
+    }
+
+    @Test
+    void splitsArabicShortRajulChainWithQuestion() {
+        // Zuhd #102 — "...عن رجل من أصحابنا قال: قلت لأبي عبد الله..." — dialogue in content
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "القاسم عن عبد الصمد بن هلال عن رجل من أصحابنا قال: "
+                + "قلت لأبي عبد الله عليه السلام: ان آل فلان يبر بعضهم بعضا ويتواصلون "
+                + "قال: إذا (اذن) ينمون وتنموا أموالهم");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("عبد الصمد بن هلال"), "Chain should include narrator");
+        assertFalse(chain.contains("قلت لأبي"), "Chain should not include the question");
+        assertTrue(content.contains("قلت"), "Content should include the question");
+    }
 }
