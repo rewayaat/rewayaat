@@ -267,6 +267,35 @@ public final class HadithDisplaySegmenter {
             " سمعت "
     };
 
+    // Stricter chain cues for tail analysis — excludes "عن" which is ambiguous in matn
+    // (e.g., "سأله عن كذا" means "about", not a chain link)
+    private static final String[] ARABIC_CHAIN_CUES_STRICT = new String[] {
+            " وحدثنا ",
+            " وحدّثنا ",
+            " وحدثني ",
+            " وحدّثني ",
+            " حدثنا ",
+            " حدّثنا ",
+            " حدثني ",
+            " حدّثني ",
+            " واخبرنا ",
+            " وأخبرنا ",
+            " واخبرني ",
+            " وأخبرني ",
+            " اخبرنا ",
+            " أخبرنا ",
+            " اخبرني ",
+            " أخبرني ",
+            " بهذا الاسناد ",
+            " وبهذا الاسناد ",
+            " بهذا الإسناد ",
+            " وبهذا الإسناد ",
+            " بإسناده ",
+            " وبإسناده ",
+            " باسناده ",
+            " وباسناده "
+    };
+
     private static final String[] ARABIC_DIALOGUE_CUES = new String[] {
             "انه سمع",
             "اخبرني من",
@@ -469,7 +498,7 @@ public final class HadithDisplaySegmenter {
                             && (startsWithAnyCue(rawTail, ARABIC_DIRECT_CHAIN_CONTINUATIONS)
                             || startsWithAnyCue(trimmedRawTail, ARABIC_DIRECT_CHAIN_CONTINUATIONS));
                     if (!directChainContinuation
-                            && isLikelyMatnBoundary(normalized, markerEnd, ARABIC_CHAIN_CUES, maxTailSignals)) {
+                            && isLikelyMatnBoundary(normalized, markerEnd, ARABIC_CHAIN_CUES_STRICT, maxTailSignals)) {
                         if (bestSplit < 0 || index < bestIndex || (index == bestIndex && split > bestSplit)) {
                             bestIndex = index;
                             bestSplit = split;
@@ -506,6 +535,14 @@ public final class HadithDisplaySegmenter {
             SplitResult adjusted = buildSplit(raw, adjustedBoundary);
             if (adjusted.hasSplit()) {
                 return adjustedBoundary;
+            }
+        }
+        // Extend past "قال لي/له [name with بن]:" chain continuations in the content
+        int extended = extendPastQalaLiChainLinks(raw, bestSplit);
+        if (extended > bestSplit) {
+            SplitResult extendedSplit = buildSplit(raw, extended);
+            if (extendedSplit.hasSplit()) {
+                return extended;
             }
         }
         return bestSplit;
@@ -725,6 +762,11 @@ public final class HadithDisplaySegmenter {
                 }
                 int rawBoundary = rawIndexByNormalized[idx];
                 if (rawBoundary > 0 && rawBoundary < splitIndex) {
+                    // Skip "قال لي/له" when followed by a name with "بن" — chain continuation
+                    if (isQalaLiChainContinuation(normalized, idx, cue)) {
+                        idx = findCueIndex(normalized, cue, idx + 1);
+                        continue;
+                    }
                     if (earliest < 0 || rawBoundary < earliest) {
                         earliest = rawBoundary;
                     }
@@ -734,6 +776,77 @@ public final class HadithDisplaySegmenter {
             }
         }
         return earliest;
+    }
+
+    /** Returns true if "قال لي/له" is followed by a name containing "بن" (chain link). */
+    private static boolean isQalaLiChainContinuation(String normalized, int cueIndex, String cue) {
+        String stripped = cue.replace(" ", "");
+        if (!stripped.equals("قاللي") && !stripped.equals("قالله")
+                && !stripped.equals("قاللها") && !stripped.equals("قاللهم")) {
+            return false;
+        }
+        int afterCue = cueIndex + cue.length();
+        if (afterCue >= normalized.length()) return false;
+        String tail = normalized.substring(afterCue, Math.min(afterCue + 60, normalized.length()));
+        // Check if the next ~60 chars contain " بن " or " ابن " — indicates a narrator name
+        return tail.contains(" بن ") || tail.contains(" ابن ");
+    }
+
+    /**
+     * Extends the split past "قال لي/له [name with بن]:" chain links in the content.
+     * E.g., if content starts with "قال لي أبو علي بن الجنيد: قال لي أبو جعفر...: content",
+     * moves the split past all "قال لي [name]:" chain continuations.
+     */
+    private static int extendPastQalaLiChainLinks(String raw, int splitIndex) {
+        if (raw == null || splitIndex <= 0 || splitIndex >= raw.length()) {
+            return splitIndex;
+        }
+        ArabicMatchText matchText = normalizeArabicForMatching(raw);
+        String normalized = matchText.normalized();
+        int[] rawIndexByNormalized = matchText.rawIndexByNormalized();
+
+        // Map splitIndex (raw) to normalized position
+        int normPos = 0;
+        for (int i = 0; i < rawIndexByNormalized.length && rawIndexByNormalized[i] < splitIndex; i++) {
+            normPos = i + 1;
+        }
+
+        int currentPos = normPos;
+        int maxIterations = 5; // prevent infinite loops
+        for (int iter = 0; iter < maxIterations; iter++) {
+            // Skip whitespace in normalized
+            while (currentPos < normalized.length() && normalized.charAt(currentPos) == ' ') {
+                currentPos++;
+            }
+            // Check if current position starts with "قال لي" or "قال له"
+            boolean found = false;
+            for (String cue : new String[] { "قال لي", "قال له", "قال لها", "قال لهم" }) {
+                if (normalized.startsWith(cue, currentPos)) {
+                    int afterCue = currentPos + cue.length();
+                    if (afterCue >= normalized.length()) break;
+                    String tail = normalized.substring(afterCue, Math.min(afterCue + 80, normalized.length()));
+                    // Must contain " بن " to be a name (chain link)
+                    if (tail.contains(" بن ") || tail.contains(" ابن ")) {
+                        // Find the colon after this name to skip past "قال لي [name]:"
+                        int colonInTail = tail.indexOf(':');
+                        if (colonInTail >= 0) {
+                            currentPos = afterCue + colonInTail + 1;
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (!found) break;
+        }
+
+        if (currentPos > normPos && currentPos < rawIndexByNormalized.length) {
+            int newSplit = rawIndexByNormalized[currentPos];
+            if (newSplit > splitIndex) {
+                return newSplit;
+            }
+        }
+        return splitIndex;
     }
 
     private static int arabicChainSignalScore(String prefix) {
