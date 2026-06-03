@@ -18,11 +18,11 @@ var facetHierarchy = ['volume', 'part', 'section', 'chapter'];
 var facetKeys = ['volume', 'part', 'section', 'chapter'];
 var readingNavOrder = ['chapter', 'section', 'part', 'volume'];
 var optionalFiltersHint = '';
-var searchMatchMode = 'strict';
+var searchMatchMode = 'permissive';
 var suppressSearchGlow = false;
 var welcomeContentLoading = false;
 var welcomeContentInitialized = false;
-var SEARCH_FETCH_LIMIT = 50;
+var SEARCH_FETCH_LIMIT = 10000;
 var READING_PAGE_SIZE = 50;
 var INITIAL_VISIBLE_NARRATIONS = 16;
 var REVEAL_BATCH_SIZE = 12;
@@ -58,6 +58,10 @@ function loadQuery(query, page = 1, sortFields) {
     if (query) {
         // validate query
         if (validQuery(query)) {
+            // track search event
+            if (typeof gtag === 'function') {
+                gtag('event', 'search', { search_term: query });
+            }
             // display query in search bar
             displayQuery(query);
             // load book blurbs
@@ -718,7 +722,7 @@ function applyAuthState() {
     var profileInitial = document.getElementById('authProfileInitial');
     if (signInBtn) {
         signInBtn.classList.toggle('d-none', isAuthed);
-        signInBtn.innerHTML = '<i class="fa fa-sign-in" aria-hidden="true"></i> Sign In';
+        signInBtn.innerHTML = '<i class="fa fa-right-to-bracket" aria-hidden="true"></i> Sign In';
     }
     if (profileShell) {
         profileShell.classList.toggle('d-none', !isAuthed);
@@ -826,13 +830,13 @@ function renderUserProfileMenu(collections) {
     panel.appendChild(header);
 
     var totalSaved = collections.reduce(function(total, item) {
-        return total + (Array.isArray(item.hadithIds) ? item.hadithIds.length : 0);
+        return total + (Array.isArray(item.hadith_ids) ? item.hadith_ids.length : 0);
     }, 0);
     var stats = document.createElement('div');
     stats.className = 'profile-dropdown__stats';
     stats.innerHTML =
-        '<div class="profile-dropdown__stat"><span class="profile-dropdown__stat-value">' + collections.length + '</span><span class="profile-dropdown__stat-label">Collections</span></div>' +
-        '<div class="profile-dropdown__stat"><span class="profile-dropdown__stat-value">' + totalSaved + '</span><span class="profile-dropdown__stat-label">Saved hadith</span></div>';
+        '<div class="profile-dropdown__stat"><span class="profile-dropdown__stat-inline">' + collections.length + ' Collections</span></div>' +
+        '<div class="profile-dropdown__stat"><span class="profile-dropdown__stat-inline">' + totalSaved + ' Saved hadith</span></div>';
     panel.appendChild(stats);
 
     var list = document.createElement('div');
@@ -860,12 +864,34 @@ function renderUserProfileMenu(collections) {
             var count = Array.isArray(collection.hadith_ids) ? collection.hadith_ids.length : 0;
             item.innerHTML =
                 '<span class="profile-dropdown__collection-name">' + escapeHtml(collection.name || 'Collection') + '</span>' +
-                '<span class="profile-dropdown__collection-meta">' + count + ' hadith</span>';
+                '<span class="profile-dropdown__collection-meta">' + count + ' hadith</span>' +
+                '<button class="profile-dropdown__delete-btn" type="button" aria-label="Delete collection"><i class="fa fa-trash-can"></i></button>';
+
+            // Click on the item opens the collection
             item.addEventListener('click', function(event) {
+                if (event.target.closest('.profile-dropdown__delete-btn')) return;
                 event.preventDefault();
                 closeUserProfileMenu();
                 openCollectionPage(collection.id, 1, []);
             });
+
+            // Delete button
+            var deleteBtn = item.querySelector('.profile-dropdown__delete-btn');
+            deleteBtn.addEventListener('click', function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                if (confirm('Delete "' + (collection.name || 'Collection') + '"? This cannot be undone.')) {
+                    apiJSON('/v1/collections/' + collection.id, { method: 'DELETE' }).then(function(resp) {
+                        if (resp.ok && resp.data.ok) {
+                            loadAndRenderCollections(false);
+                            showToast('Collection deleted.', 'success');
+                        } else {
+                            showToast('Could not delete collection.', 'error');
+                        }
+                    });
+                }
+            });
+
             collectionsSubmenu.appendChild(item);
         });
 
@@ -1173,24 +1199,34 @@ function openCollectionPickerModal(hadithId, collections) {
 
     // Create a select dropdown for existing collections
     var select = document.createElement('select');
-    select.className = 'form-control auth-modal-input collection-picker-modal__input';
+    select.className = 'form-control auth-modal-input collection-picker-modal__select';
     select.id = 'collectionPickerSelect';
     select.style.marginBottom = '0.75rem';
 
-    // Add "New Collection" option at the top
-    var newOption = document.createElement('option');
-    newOption.value = '';
-    newOption.textContent = '+ New Collection';
-    select.appendChild(newOption);
+    // Add placeholder option
+    var placeholderOption = document.createElement('option');
+    placeholderOption.value = '';
+    placeholderOption.textContent = 'Select a collection\u2026';
+    placeholderOption.disabled = true;
+    placeholderOption.selected = true;
+    select.appendChild(placeholderOption);
 
-    // Add existing collections
-    (Array.isArray(collections) ? collections : []).forEach(function(collection) {
+    // Add existing collections first
+    var collectionsArray = Array.isArray(collections) ? collections : [];
+    collectionsArray.forEach(function(collection) {
         var option = document.createElement('option');
         option.value = collection.name || 'Collection';
         var count = Array.isArray(collection.hadith_ids) ? collection.hadith_ids.length : 0;
         option.textContent = (collection.name || 'Collection') + ' (' + count + ' hadith)';
         select.appendChild(option);
     });
+
+    // Add "New Collection" option LAST
+    var newOption = document.createElement('option');
+    newOption.value = '';
+    newOption.textContent = '+ New Collection';
+    select.appendChild(newOption);
+
     wrapper.appendChild(select);
 
     // Container for new collection name input (hidden by default)
@@ -1232,18 +1268,19 @@ function openCollectionPickerModal(hadithId, collections) {
     submitBtn.textContent = 'Save Hadith';
     submitBtn.addEventListener('click', function() {
         var selectedValue = select.value;
+        var selectedIndex = select.selectedIndex;
         var newCollectionName = (newInput.value || '').trim();
 
         var collectionName;
-        if (selectedValue === '' && newCollectionName) {
-            // User selected "New Collection" and entered a name
-            collectionName = newCollectionName;
-        } else if (selectedValue !== '') {
+        if (selectedIndex > 0 && selectedIndex < select.options.length - 1) {
             // User selected an existing collection
             collectionName = selectedValue;
+        } else if (selectedIndex === select.options.length - 1) {
+            // User selected "+ New Collection"
+            collectionName = newCollectionName || 'New Collection';
         } else {
-            // No selection made, use default
-            collectionName = 'New Collection';
+            // No selection made
+            collectionName = newCollectionName || 'New Collection';
         }
 
         apiJSON('/v1/collections/quick-save', {
@@ -1264,8 +1301,8 @@ function openCollectionPickerModal(hadithId, collections) {
 
     // Show/hide new collection input based on dropdown selection
     select.addEventListener('change', function() {
-        if (select.value === '') {
-            // "New Collection" selected
+        if (select.selectedIndex === select.options.length - 1) {
+            // "+ New Collection" selected (last option)
             newCollectionContainer.style.display = 'block';
             newInput.focus();
         } else {
@@ -1314,6 +1351,15 @@ function openCreateCollectionModal() {
         placeholder: 'e.g. Purification Narrations',
         submitLabel: 'Create',
         onSubmit: function(name) {
+            // Check for duplicate name
+            var existing = userCollectionsCache || [];
+            var duplicate = existing.some(function(c) {
+                return c.name && c.name.trim().toLowerCase() === name.trim().toLowerCase();
+            });
+            if (duplicate) {
+                swal('Duplicate name', 'You already have a collection named "' + escapeHtml(name.trim()) + '". Please choose a different name.', 'warning');
+                return;
+            }
             apiJSON('/v1/collections', {
                 method: 'POST',
                 body: JSON.stringify({ name: name })
@@ -2082,11 +2128,11 @@ function getQueryStringValue(key) {
     }
 }
 
+function hasScopeSelections(filters) {
+    return !!(filters && (filters.book || filters.volume || filters.part || filters.section || filters.chapter || filters.source));
+}
 
-// processes the user's query by redirecting with query parameter.
-function submitSearchQuery() {
-    clearPendingSearchTermsIndicator();
-    // searchTerms corresponds to the main search bar
+function buildSearchSubmissionState(scopeOverride) {
     var selectedTerms = getSelectedSearchTerms();
     var pendingTerms = getPendingSearchTerms();
     if (pendingTerms.length) {
@@ -2094,15 +2140,50 @@ function submitSearchQuery() {
     }
     var terms = mergeSearchTerms(selectedTerms, pendingTerms.length ? pendingTerms : getSelectedSearchTerms());
     var queryState = extractQueryState(getQueryStringValue('q') || '');
-    if (!terms.length && !queryState.hasScope) {
+    var scopeFilters = cloneFacetSelections(queryState.scopeFilters);
+    if (scopeOverride && hasScopeSelections(scopeOverride)) {
+        scopeFilters = cloneFacetSelections(scopeOverride);
+    } else {
+        var browseSelections = cloneFacetSelections(getBrowseSelections());
+        if (hasScopeSelections(browseSelections)) {
+            scopeFilters = browseSelections;
+        }
+    }
+    return {
+        terms: terms,
+        scopeFilters: scopeFilters,
+        hasScope: hasScopeSelections(scopeFilters),
+        queryState: queryState,
+        query: buildScopedQuery(terms, scopeFilters)
+    };
+}
+
+function executeSearchSubmission(scopeOverride) {
+    clearPendingSearchTermsIndicator();
+    var submission = buildSearchSubmissionState(scopeOverride);
+    if (!submission.terms.length && !submission.hasScope) {
         return;
     }
-    var query = buildScopedQuery(terms, queryState.scopeFilters);
-    if (!query) {
+    if (!submission.query) {
         return;
     }
-    var nextEntry = queryState.hasScope ? 'browse' : resolveEntryContextParam();
-    redirectToSearchResult(query, '', '', '', '', searchMatchMode, nextEntry);
+    var browseOnly = submission.hasScope && !submission.terms.length;
+    var nextEntry = submission.hasScope ? 'browse' : resolveEntryContextParam();
+    redirectToSearchResult(
+        submission.query,
+        browseOnly ? 1 : '',
+        browseOnly ? buildSortFields(submission.scopeFilters) : '',
+        browseOnly ? 'read' : '',
+        '',
+        searchMatchMode,
+        nextEntry
+    );
+}
+
+
+// processes the user's query by redirecting with query parameter.
+function submitSearchQuery() {
+    executeSearchSubmission();
 }
 
 function redirectToSearchResult(query, page, sortFields, mode, focusId, matchMode, entryContext) {
@@ -2188,7 +2269,7 @@ function displayWelcomeContent() {
     vueApp = new Vue({
         el: '#hadithView'
     });
-    $("#welcome").load("/welcome.html?v=16", function(responseData, statusText) {
+    $("#welcome").load("/welcome.html?v=25", function(responseData, statusText) {
         welcomeContentLoading = false;
         welcomeContentInitialized = statusText === 'success';
         var queryBar = document.getElementById('queryBar');
@@ -2269,24 +2350,7 @@ function clearActionButtonPending(buttonId) {
 }
 // processes the user's query by redirecting with query parameter.
 function submitSearchQuery() {
-    clearPendingSearchTermsIndicator();
-    // searchTerms corresponds to the main search bar
-    var selectedTerms = getSelectedSearchTerms();
-    var pendingTerms = getPendingSearchTerms();
-    if (pendingTerms.length) {
-        commitPendingSearchTermsToControl(pendingTerms);
-    }
-    var terms = mergeSearchTerms(selectedTerms, pendingTerms.length ? pendingTerms : getSelectedSearchTerms());
-    var queryState = extractQueryState(getQueryStringValue('q') || '');
-    if (!terms.length && !queryState.hasScope) {
-        return;
-    }
-    var query = buildScopedQuery(terms, queryState.scopeFilters);
-    if (!query) {
-        return;
-    }
-    var nextEntry = queryState.hasScope ? 'browse' : resolveEntryContextParam();
-    redirectToSearchResult(query, '', '', '', '', searchMatchMode, nextEntry);
+    executeSearchSubmission();
 }
 
 function showBookBlurb(bookName) {
@@ -2611,6 +2675,16 @@ function buildFacetsUrl(filters) {
     return queryParamString;
 }
 
+function getBrowseFacetPlaceholder(key) {
+    var placeholders = {
+        volume: 'All Volumes',
+        part: 'All Parts',
+        section: 'All Sections',
+        chapter: 'All Chapters'
+    };
+    return placeholders[key] || ('All ' + humanizeFacetLabel(key) + 's');
+}
+
 function normalizeFacetItemValue(item) {
     if (!item) {
         return '';
@@ -2646,13 +2720,16 @@ function facetSelectionsChanged(before, after) {
     return false;
 }
 
-function updateFacetSelect(config, items, selectedValue) {
+function updateFacetSelect(config, items, selectedValue, placeholderOverride) {
     var select = document.getElementById(config.selectId);
     if (!select) {
         return '';
     }
     var field = document.querySelector('[' + config.fieldAttr + '="' + config.key + '"]');
-    var placeholder = 'Select a ' + humanizeFacetLabel(config.key).toLowerCase();
+    var persistVisible = !!(field && field.dataset.persistVisible === 'true');
+    var placeholder = placeholderOverride || (config.selectId.indexOf('browse') === 0
+        ? getBrowseFacetPlaceholder(config.key)
+        : ('Select a ' + humanizeFacetLabel(config.key).toLowerCase()));
     var normalizedItems = (items || []).map(function(item) {
         return {
             value: normalizeFacetItemValue(item),
@@ -2662,27 +2739,20 @@ function updateFacetSelect(config, items, selectedValue) {
         return item.value !== '';
     });
     var hasItems = normalizedItems.length > 0;
-    select.innerHTML = '';
-    if (normalizedItems.length > 1) {
-        select.innerHTML = '<option value=\"\">' + placeholder + '</option>';
-    }
+    select.innerHTML = '<option value=\"\">' + placeholder + '</option>';
     normalizedItems.forEach(function(item) {
         var option = document.createElement('option');
         option.value = item.value;
         option.textContent = formatFacetDisplay(config.key, item.value) + ' (' + formatHadithCount(item.count) + ')';
         select.appendChild(option);
     });
-    select.disabled = !hasItems;
+    select.disabled = persistVisible ? false : !hasItems;
     if (field) {
-        field.classList.toggle('is-hidden', !hasItems);
+        field.classList.toggle('is-hidden', !persistVisible && !hasItems);
     }
     if (!hasItems) {
+        select.value = '';
         return '';
-    }
-    if (normalizedItems.length === 1) {
-        select.value = normalizedItems[0].value;
-        select.disabled = true;
-        return normalizedItems[0].value;
     }
     var normalizedSelected = (selectedValue || '').trim();
     if (normalizedSelected && normalizedItems.some(function(item) { return item.value === normalizedSelected; })) {
@@ -2690,7 +2760,6 @@ function updateFacetSelect(config, items, selectedValue) {
         return normalizedSelected;
     }
     select.value = '';
-    select.disabled = false;
     return '';
 }
 
@@ -2878,7 +2947,8 @@ function loadReadingBooks(selectedBook) {
 
 function resetReadingFacetSelects() {
     readingFacetConfig.forEach(function(config) {
-        updateFacetSelect(config, [], '');
+        var ph = (config.key === 'part' || config.key === 'section' || config.key === 'chapter') ? 'Show All' : undefined;
+        updateFacetSelect(config, [], '', ph);
     });
     readingFacetData = {};
     updateReadingNav();
@@ -2918,7 +2988,8 @@ function applyReadingFacets(data, selections) {
     readingFacetConfig.forEach(function(config) {
         var items = facets[config.key] || [];
         var selectedValue = resolvedSelections[config.key];
-        resolvedSelections[config.key] = updateFacetSelect(config, items, selectedValue);
+        var ph = (config.key === 'part' || config.key === 'section' || config.key === 'chapter') ? 'Show All' : undefined;
+        resolvedSelections[config.key] = updateFacetSelect(config, items, selectedValue, ph);
     });
     updateReadingMeta(facets);
     updateReadingApplyState(resolvedSelections);
@@ -3133,7 +3204,8 @@ function loadRecentUpdates() {
                 return;
             }
             container.innerHTML = '';
-            updates.forEach(function(update) {
+            var displayUpdates = updates.slice(0, 4);
+            displayUpdates.forEach(function(update) {
                 var card = document.createElement('article');
                 card.className = 'recent-update-card';
                 var highlights = Array.isArray(update.highlights) ? update.highlights : [];
@@ -3611,7 +3683,7 @@ function loadBrowseBooks() {
     updateBrowseSubmitState({ book: '' });
     var meta = document.getElementById('browseMeta');
     if (meta) {
-        meta.textContent = 'Select a book card, then choose optional filters and submit.';
+        meta.textContent = 'Choose a book to unlock volume, part, section, and chapter filters.';
     }
     if (!bookSelect.dataset.bound) {
         bookSelect.addEventListener('change', function() {
@@ -3653,12 +3725,21 @@ function setBrowseBookFieldVisible(visible) {
     if (!field) {
         return;
     }
+    if (field.dataset.persistVisible === 'true') {
+        field.classList.remove('is-hidden');
+        return;
+    }
     field.classList.toggle('is-hidden', !visible);
 }
 
 function setBrowsePanelVisible(visible) {
     var panel = document.getElementById('browseFacetPanel');
     if (!panel) {
+        return;
+    }
+    if (panel.classList.contains('browse-panel--hero')) {
+        panel.classList.remove('is-hidden');
+        panel.classList.toggle('is-refining', !!visible);
         return;
     }
     panel.classList.toggle('is-hidden', !visible);
@@ -3670,7 +3751,7 @@ function populateBrowseBooks(books) {
     if (!bookSelect) {
         return;
     }
-    bookSelect.innerHTML = '<option value=\"\">Select a book</option>';
+    bookSelect.innerHTML = '<option value=\"\">All Books</option>';
     if (bookList) {
         bookList.innerHTML = '';
     }
@@ -3706,9 +3787,9 @@ function populateBrowseBooks(books) {
                     });
                 }
                 handleBrowseSelectionChange(true);
-                var panel = document.getElementById('browse');
-                if (panel) {
-                    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                var heroCard = document.querySelector('.home-hero__card');
+                if (heroCard) {
+                    heroCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             });
             bookList.appendChild(card);
@@ -3726,10 +3807,12 @@ function handleBrowseSelectionChange(resetFacets) {
     var selections = getBrowseSelections();
     var meta = document.getElementById('browseMeta');
     if (!selections.book) {
+        setBrowsePanelVisible(false);
+        setBrowseBookFieldVisible(false);
         resetBrowseFacetSelects();
         updateBrowseSubmitState(selections);
         if (meta) {
-            meta.textContent = 'Select a book card, then choose optional filters and submit.';
+            meta.textContent = 'Choose a book to unlock volume, part, section, and chapter filters.';
         }
         return;
     }
@@ -3817,9 +3900,7 @@ function startBrowseFlow(scopedSelections) {
     if (!selections.book) {
         return;
     }
-    var query = buildQueryFromFilters(selections);
-    var sortFields = buildSortFields(selections);
-    redirectToSearchResult(query, 1, sortFields, 'read', '', searchMatchMode, 'browse');
+    executeSearchSubmission(selections);
 }
 
 function sanitizeQueryValue(value) {
@@ -4926,6 +5007,7 @@ function setupVue(query, page, sortFields) {
                 };
                 xhr.onloadend = function() {
                     self.narrationsLoading = false;
+                    clearPendingSearchTermsIndicator();
                 };
                 // Build query: in reading mode, include scope filters; in search mode, just use queryStr
                 var queryToUse = this.queryStr;
@@ -5245,7 +5327,7 @@ function setupVue(query, page, sortFields) {
                             function canonicalAlias(value) {
                                 return strip(value || '').trim().toLowerCase();
                             }
-                            function ensureOption(slug, label) {
+                            function ensureOption(slug, label, url) {
                                 var normalizedSlug = canonicalAlias(slug);
                                 var normalizedLabel = canonicalAlias(label);
                                 var existing = (normalizedSlug && seenByAlias[normalizedSlug]) || (normalizedLabel && seenByAlias[normalizedLabel]);
@@ -5253,6 +5335,7 @@ function setupVue(query, page, sortFields) {
                                     existing = {
                                         slug: strip(slug || label || '').trim(),
                                         label: strip(label || slug || '').trim(),
+                                        url: '',
                                         count: 0
                                     };
                                     options.push(existing);
@@ -5269,15 +5352,19 @@ function setupVue(query, page, sortFields) {
                                 if (!existing.label) {
                                     existing.label = strip(label || slug || '').trim();
                                 }
+                                if (url && !existing.url) {
+                                    existing.url = url;
+                                }
                                 return existing;
                             }
                             (Array.isArray(tafsirSnippets) ? tafsirSnippets : []).forEach(function(snippet) {
                                 var slug = strip(snippet && snippet.tafsir_slug ? snippet.tafsir_slug : '').trim();
                                 var label = strip(snippet && snippet.tafsir_name ? snippet.tafsir_name : '').trim();
+                                var url = strip(snippet && snippet.source_url ? snippet.source_url : '').trim();
                                 if (!slug && !label) {
                                     return;
                                 }
-                                ensureOption(slug, label).count += 1;
+                                ensureOption(slug, label, url).count += 1;
                             });
                             (Array.isArray(sources) ? sources : []).forEach(function(source) {
                                 var label = strip(source || '').trim();
@@ -5778,8 +5865,9 @@ function setupVue(query, page, sortFields) {
                 if (!hadithId) {
                     return;
                 }
-                // Navigate to the dedicated edit page
-                window.location.href = '/edit?id=' + encodeURIComponent(hadithId);
+                // Navigate to the dedicated edit page with return URL
+                var returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+                window.location.href = '/edit?id=' + encodeURIComponent(hadithId) + '&returnTo=' + returnUrl;
             },
             removeNarrationFromCurrentCollection: function(narration) {
                 if (!this.collectionMode || !this.collectionId || !narration) {
@@ -6201,11 +6289,6 @@ function setupSearchModeDropdown() {
         searchMatchMode = normalizedMode;
         updateDropdownDisplay();
         closeDropdown();
-
-        // Removed glow effect - search button does not glow
-
-        // Show toast notification
-        showSearchToast();
     }
 
     function updateDropdownDisplay() {

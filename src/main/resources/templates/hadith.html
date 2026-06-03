@@ -31,13 +31,36 @@
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.css" rel="stylesheet"/>
     <link href="/css/sweetalert.css" rel="stylesheet" th:href="@{/css/sweetalert.css}"/>
     <link href="/css/noty.css" rel="stylesheet" th:href="@{/css/noty.css}"/>
-    <link href="/css/manuscript.css?v=916" rel="stylesheet" th:href="@{/css/manuscript.css?v=916}"/>
+    <link href="/css/manuscript.css?v=917" rel="stylesheet" th:href="@{/css/manuscript.css?v=917}"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600;700&family=Scheherazade+New:wght@400;700&display=swap"
           rel="stylesheet"/>
     <link href="/css/pace.css" rel="stylesheet" th:href="@{/css/pace.css}"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
           integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
           crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    <style>
+        .hp-hero { padding-top: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--bs-border-color); margin-bottom: 2rem; }
+        .hp-hero__book { font-family: 'Cormorant Garamond', serif; font-weight: 700; font-size: 1.75rem; line-height: 1.2; color: var(--bs-body-color); margin-bottom: 0.25rem; }
+        .hp-hero__number { font-family: 'Source Serif 4', serif; font-size: 1.1rem; color: var(--bs-secondary-color); }
+        .hp-hero__path { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin-top: 0.75rem; font-size: 0.9rem; color: var(--bs-secondary-color); }
+        .hp-hero__path-sep { opacity: 0.4; }
+        .hp-hero__path-link { color: var(--bs-secondary-color); text-decoration: none; }
+        .hp-hero__path-link:hover { color: var(--bs-body-color); text-decoration: underline; }
+        .hp-hero__path-current { color: var(--bs-body-color); font-weight: 500; }
+        .hp-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+        .hp-tag { display: inline-block; padding: 0.15rem 0.6rem; font-size: 0.78rem; border-radius: 999px; background: var(--bs-tertiary-bg); color: var(--bs-secondary-color); }
+        .hp-text-block { padding: 0; }
+        .hp-text-block__arabic { font-family: 'Scheherazade New', serif; font-size: 1.6rem; line-height: 2.2; direction: rtl; text-align: right; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--bs-border-color); }
+        .hp-text-block__english { font-family: 'Source Serif 4', serif; font-size: 1.1rem; line-height: 1.75; }
+        .hp-meta-row { display: flex; flex-wrap: wrap; gap: 1rem 2rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--bs-border-color); }
+        .hp-meta-item { font-size: 0.85rem; }
+        .hp-meta-item__label { color: var(--bs-secondary-color); font-weight: 500; }
+        .hp-gradings { margin-top: 1rem; }
+        .hp-grading { display: inline-block; padding: 0.2rem 0.65rem; font-size: 0.82rem; border-radius: 0.375rem; background: var(--bs-tertiary-bg); margin-right: 0.5rem; margin-bottom: 0.35rem; }
+        .hp-notes { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--bs-border-color); font-size: 0.9rem; color: var(--bs-secondary-color); }
+        .hp-back { display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 2rem; font-size: 0.9rem; color: var(--bs-secondary-color); text-decoration: none; }
+        .hp-back:hover { color: var(--bs-body-color); }
+    </style>
 </head>
 
 <body>
@@ -49,113 +72,118 @@
                 <img src="/img/ALI-Logo.png" class="brand-logo--full d-none d-md-block" alt="ALI Logo"/>
                 <img src="/img/ali_icon.png" class="brand-logo--icon d-md-none" alt="ALI"/>
             </a>
-            <a href="/" class="navbar-search text-decoration-none">
-                <div class="navbar-search__input">
-                    <input type="text" class="form-control" placeholder="Search hadith..." aria-label="Search hadith"/>
+            <div id="queryBar" class="navbar-search">
+                <form action="/" method="get" class="navbar-search__input">
+                    <input type="text" class="form-control" name="q" placeholder="Search hadith..." aria-label="Search hadith"/>
                     <div class="search-controls">
-                        <button type="button" class="btn btn-primary search-btn-with-border">
+                        <button type="submit" class="btn btn-primary search-btn-with-border">
                             <i class="fa fa-search" aria-hidden="true"></i>
                         </button>
                     </div>
+                </form>
+            </div>
+            <div class="menu-context-row">
+                <div class="d-flex gap-2 top-actions flex-nowrap">
+                    <a class="btn btn-dark btn-sm top-action" href="/signin.html">
+                        <i class="fa fa-sign-in" aria-hidden="true"></i>
+                        Sign In
+                    </a>
                 </div>
-            </a>
+            </div>
         </div>
     </div>
 </nav>
 
 <main class="container py-4">
     <article class="hadith-page">
-        <!-- Breadcrumb -->
-        <nav aria-label="breadcrumb" class="mb-3">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="/">Home</a></li>
-                <li class="breadcrumb-item active" aria-current="page"
-                    th:text="${bookRef}">Book #Number</li>
-            </ol>
-        </nav>
+        <!-- Source Header — Book, hierarchy, hadith number -->
+        <header class="hp-hero">
+            <h1 class="hp-hero__book" th:if="${hadith.book != null and !hadith.book.isBlank()}"
+                th:text="${hadith.book}">Book Name</h1>
+            <span class="hp-hero__number"
+                  th:if="${hadith.number != null and !hadith.number.isBlank()}">
+                Hadith <span th:text="${hadith.number}">123</span>
+            </span>
+
+            <!-- Breadcrumb path: Part > Section > Chapter -->
+            <div class="hp-hero__path" th:if="${hadith.part != null and !hadith.part.isBlank()}">
+                <span th:if="${hadith.volume != null and !hadith.volume.isBlank()}"
+                      class="hp-hero__path-segment">Volume <span th:text="${hadith.volume}">1</span></span>
+                <span th:if="${hadith.volume != null and !hadith.volume.isBlank()}"
+                      class="hp-hero__path-sep">/</span>
+                <span th:if="${hadith.part != null and !hadith.part.isBlank()}"
+                      class="hp-hero__path-current" th:text="${hadith.part}">Part Name</span>
+                <span th:if="${hadith.section != null and !hadith.section.isBlank()}"
+                      class="hp-hero__path-sep">/</span>
+                <span th:if="${hadith.section != null and !hadith.section.isBlank()}"
+                      class="hp-hero__path-current" th:text="${hadith.section}">Section</span>
+                <span th:if="${hadith.chapter != null and !hadith.chapter.isBlank()}"
+                      class="hp-hero__path-sep">/</span>
+                <span th:if="${hadith.chapter != null and !hadith.chapter.isBlank()}"
+                      class="hp-hero__path-current" th:text="${hadith.chapter}">Chapter</span>
+            </div>
+
+            <!-- Topic Tags -->
+            <div class="hp-tags" th:if="${hadith.topicTags != null and !hadith.topicTags.isEmpty()}">
+                <span class="hp-tag" th:each="tag : ${hadith.topicTags}" th:text="${tag}">tag</span>
+            </div>
+        </header>
 
         <!-- Hadith Content -->
-        <div class="hadith-page__card">
-            <div class="hadith-card__ornament" aria-hidden="true">
+        <div class="hp-text-block">
+            <div class="hadith-card__ornament mb-4" aria-hidden="true">
                 <span class="hadith-card__ornament-line"></span>
                 <span class="hadith-card__ornament-mark">۞</span>
                 <span class="hadith-card__ornament-line"></span>
             </div>
 
-            <div class="hadith-page__content">
-                <!-- Arabic text (h1 for SEO) -->
-                <h1 class="hadith-page__arabic arabic-text"
-                    th:if="${hadith.arabic != null and !hadith.arabic.isBlank()}"
-                    th:utext="${hadith.arabic}">Arabic text</h1>
+            <!-- Arabic text -->
+            <div class="hp-text-block__arabic arabic-text"
+                 th:if="${hadith.arabic != null and !hadith.arabic.isBlank()}"
+                 th:utext="${hadith.arabic}">Arabic text</div>
 
-                <!-- English text -->
-                <div class="hadith-page__english"
-                     th:if="${hadith.english != null and !hadith.english.isBlank()}"
-                     th:utext="${hadith.english}">English text</div>
-            </div>
+            <!-- English text -->
+            <div class="hp-text-block__english"
+                 th:if="${hadith.english != null and !hadith.english.isBlank()}"
+                 th:utext="${hadith.english}">English text</div>
+        </div>
 
-            <!-- Metadata -->
-            <div class="hadith-page__meta mt-4" th:if="${hadith.book != null or hadith.chapter != null or hadith.section != null or hadith.number != null}">
-                <h2 class="h6 text-muted mb-2">Source</h2>
-                <ul class="list-unstyled">
-                    <li th:if="${hadith.book != null and !hadith.book.isBlank()}">
-                        <strong>Book:</strong> <span th:text="${hadith.book}">Book Name</span>
-                    </li>
-                    <li th:if="${hadith.number != null and !hadith.number.isBlank()}">
-                        <strong>Number:</strong> <span th:text="${hadith.number}">123</span>
-                    </li>
-                    <li th:if="${hadith.volume != null and !hadith.volume.isBlank()}">
-                        <strong>Volume:</strong> <span th:text="${hadith.volume}">1</span>
-                    </li>
-                    <li th:if="${hadith.part != null and !hadith.part.isBlank()}">
-                        <strong>Part:</strong> <span th:text="${hadith.part}">1</span>
-                    </li>
-                    <li th:if="${hadith.chapter != null and !hadith.chapter.isBlank()}">
-                        <strong>Chapter:</strong> <span th:text="${hadith.chapter}">Chapter Name</span>
-                    </li>
-                    <li th:if="${hadith.section != null and !hadith.section.isBlank()}">
-                        <strong>Section:</strong> <span th:text="${hadith.section}">Section Name</span>
-                    </li>
-                </ul>
-            </div>
+        <!-- Gradings -->
+        <div class="hp-gradings"
+             th:if="${hadith.gradings != null and !hadith.gradings.isEmpty()}">
+            <span class="hp-grading" th:each="g : ${hadith.gradings}">
+                <span th:text="${g.grading}">grading</span>
+                <span class="text-muted" th:if="${g.grader != null}"
+                      th:text="'(' + ${g.grader} + ')'">(grader)</span>
+            </span>
+        </div>
 
-            <!-- Topic Tags -->
-            <div class="hadith-page__tags mt-3"
-                 th:if="${hadith.topicTags != null and !hadith.topicTags.isEmpty()}">
-                <span class="topic-tag-pills__label">Topics</span>
-                <div class="d-flex flex-wrap gap-2 mt-1">
-                    <span class="topic-pill" th:each="tag : ${hadith.topicTags}"
-                          th:text="${tag}">tag</span>
-                </div>
+        <!-- Additional metadata row -->
+        <div class="hp-meta-row" th:if="${hadith.source != null and !hadith.source.isBlank()}">
+            <div class="hp-meta-item">
+                <span class="hp-meta-item__label">Source: </span>
+                <span th:text="${hadith.source}">Source</span>
             </div>
+            <div class="hp-meta-item" th:if="${hadith.edition != null and !hadith.edition.isBlank()}">
+                <span class="hp-meta-item__label">Edition: </span>
+                <span th:text="${hadith.edition}">Edition</span>
+            </div>
+            <div class="hp-meta-item" th:if="${hadith.publisher != null and !hadith.publisher.isBlank()}">
+                <span class="hp-meta-item__label">Publisher: </span>
+                <span th:text="${hadith.publisher}">Publisher</span>
+            </div>
+        </div>
 
-            <!-- Gradings -->
-            <div class="hadith-page__gradings mt-3"
-                 th:if="${hadith.gradings != null and !hadith.gradings.isEmpty()}">
-                <h2 class="h6 text-muted mb-2">Gradings</h2>
-                <ul class="list-unstyled">
-                    <li th:each="g : ${hadith.gradings}">
-                        <span th:text="${g.grading}"> grading</span>
-                        <span class="text-muted" th:if="${g.grader != null}"
-                              th:text="'(' + ${g.grader} + ')'">(grader)</span>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- Notes -->
-            <div class="hadith-page__notes mt-3"
-                 th:if="${hadith.notes != null and !hadith.notes.isBlank()}">
-                <h2 class="h6 text-muted mb-2">Notes</h2>
-                <div th:utext="${hadith.notes}">Notes content</div>
-            </div>
+        <!-- Notes -->
+        <div class="hp-notes"
+             th:if="${hadith.notes != null and !hadith.notes.isBlank()}">
+            <div th:utext="${hadith.notes}">Notes content</div>
         </div>
 
         <!-- Back to search -->
-        <div class="mt-4">
-            <a href="/" class="hadith-page__back-link">
-                <i class="fa fa-arrow-left" aria-hidden="true"></i> Search more hadith
-            </a>
-        </div>
+        <a href="/" class="hp-back">
+            <i class="fa fa-arrow-left" aria-hidden="true"></i> Search more hadith
+        </a>
     </article>
 </main>
 
@@ -205,7 +233,12 @@
     gtag('js', new Date());
     gtag('config', 'G-3HSRTQD7GM');
 </script>
-
+<script crossorigin="anonymous" src="https://cdn.lr-ingest.io/LogRocket.min.js"></script>
+<script type="text/javascript">
+    if (location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
+        window.LogRocket && window.LogRocket.init('ctebns/rewyaat');
+    }
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

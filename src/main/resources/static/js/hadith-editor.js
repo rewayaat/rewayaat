@@ -173,9 +173,13 @@ new Vue({
                     }
                     self.saveSuccess = true;
                     self.narration = response.data.narration;
+                    if (typeof gtag === 'function') {
+                        gtag('event', 'edit_save', { hadith_id: self.hadithId });
+                    }
                     setTimeout(function() {
                         self.saveSuccess = false;
-                    }, 3000);
+                        window.location.href = returnToUrl || '/';
+                    }, 1500);
                 })
                 .catch(function(err) {
                     self.saveError = true;

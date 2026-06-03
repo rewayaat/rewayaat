@@ -408,7 +408,15 @@
 <script src="https://cdn.jsdelivr.net/npm/axios@0.27.2/dist/axios.min.js"></script>
 <script th:inline="javascript">
     var hadithId = /*[[${hadithId}]]*/ null;
+    var returnToUrl = /*[[${returnTo}]]*/ '/';
 </script>
 <script src="/js/hadith-editor.js?v=3" th:src="@{/js/hadith-editor.js?v=3}"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-3HSRTQD7GM"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-3HSRTQD7GM');
+</script>
 </body>
 </html>
