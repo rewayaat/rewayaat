@@ -2360,7 +2360,8 @@ function buildSearchSubmissionState(scopeOverride, options) {
     var terms = termQueryState.keywordTerms;
     var queryState = extractQueryState(getQueryStringValue('q') || '');
     var scopeFilters = cloneFacetSelections(termQueryState.scopeFilters);
-    if (!hasScopeSelections(scopeFilters)) {
+    var hasUserTerms = mergedTerms.length > 0;
+    if (!hasScopeSelections(scopeFilters) && !hasUserTerms) {
         scopeFilters = cloneFacetSelections(queryState.scopeFilters);
     }
     if (scopeOverride && hasScopeSelections(scopeOverride)) {
@@ -4528,7 +4529,9 @@ function setupVue(query, page, sortFields) {
                     return (Number(this.baseNarrationTotal) || 0) + ' hadith found.';
                 }
                 if (this.activeTopicTags.length > 0) {
-                    return 'Showing ' + this.matchingNarrationsCount + '/' + this.filteredNarrationTotal + ' results';
+                    var tagTotal = this.topicTagTotalForActive;
+                    var totalCount = Number(this.baseNarrationTotal) || Number(this.totalHits) || 0;
+                    return 'Showing ' + (tagTotal || this.matchingNarrationsCount) + '/' + totalCount + ' results';
                 }
                 return (Number(this.totalHits) || 0) + ' results found.';
             },
@@ -4592,6 +4595,17 @@ function setupVue(query, page, sortFields) {
                 return this.allNarrations.filter(function(item) {
                     return self.matchesActiveTopicTags(item);
                 }).length;
+            },
+            topicTagTotalForActive: function() {
+                // Sum facet counts for all active topic tags (server-side accurate total)
+                var facetCounts = this.topicTagFacets || {};
+                var activeTags = this.activeTopicTags || [];
+                var total = 0;
+                activeTags.forEach(function(tag) {
+                    var c = Number(facetCounts[tag]);
+                    if (c > total) { total = c; }
+                });
+                return total;
             },
             tagFilterOptions: function() {
                 var taxonomy = this.taxonomy || {};
