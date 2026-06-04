@@ -33,6 +33,8 @@ spec:
               value: "prod"
             - name: ELASTIC_HOST
               value: "elasticsearch-v2.elastic-v2.svc.cluster.local"
+            - name: REWAYAAT_INDEX
+              value: "rewayaat_updated"
             - name: APP_BASE_URL
               value: "https://v2.rewayaat.info"
             - name: SPRING_MAIL_HOST
