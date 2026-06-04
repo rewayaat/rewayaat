@@ -158,7 +158,7 @@
                                 label: 'Book',
                                 html: this.narration.book,
                                 clickable: true,
-                                onClick: this.showBookBlurb.bind(this, this.narration.book)
+                                onClick: this.showSpecific.bind(this, this.narration, 'book')
                             });
                         }
                         if (this.isRealValue(this.narration.volume)) {
