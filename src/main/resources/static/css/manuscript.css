@@ -4531,8 +4531,11 @@ code.welcome {
         width: 100%;
         flex: 0 0 auto;
     }
-    .search-inline-btn--outer {
+    .menu-context-row {
         order: 2;
+    }
+    .search-inline-btn--outer {
+        order: 3;
         flex: 0 0 auto;
     }
 
@@ -7532,7 +7535,7 @@ body.is-resizing-sidecar * {
     .pagination__number { display: none !important; }
     .pagination__first { display: none !important; }
     .pagination__last { display: none !important; }
-    .pagination__mobile-label { display: list-item !important; }
+    .pagination__mobile-label { display: block !important; }
     .pagination__mobile-label .page-link {
         border: none;
         background: transparent;
