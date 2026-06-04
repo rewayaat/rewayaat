@@ -890,7 +890,7 @@ body.is-reading-mode .menu-context-row { flex: 1 1 auto; min-width: 0; max-width
 
 .profile-dropdown__panel {
     border: none;
-    border-radius: var(--radius-md);
+    border-radius: 0;
     background: var(--surface);
     box-shadow: none;
     padding: 0;
@@ -3721,6 +3721,105 @@ main.container::before {
     overflow: hidden;
 }
 .home-updates > * { position: relative; z-index: 1; }
+
+/* ── Home page skeleton loaders ──────────────────────────────────────────── */
+.home-skeleton-card {
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 1rem;
+    background: linear-gradient(180deg, rgba(255,255,255,0.93), rgba(245,248,252,0.96));
+    overflow: hidden;
+    position: relative;
+}
+
+.home-skeleton-bar {
+    height: 12px;
+    background: linear-gradient(90deg, var(--border) 0%, var(--surface-cool) 50%, var(--border) 100%);
+    background-size: 200% 100%;
+    border-radius: 6px;
+    animation: shimmer 1.5s infinite;
+}
+
+.home-skeleton-bar--title {
+    height: 16px;
+    width: 55%;
+    margin-bottom: 10px;
+}
+
+.home-skeleton-bar--date {
+    height: 8px;
+    width: 30%;
+    margin-bottom: 12px;
+}
+
+.home-skeleton-bar--line1 { height: 10px; width: 100%; margin-bottom: 8px; }
+.home-skeleton-bar--line2 { height: 10px; width: 85%; margin-bottom: 8px; }
+.home-skeleton-bar--line3 { height: 10px; width: 60%; }
+
+.home-skeleton-book {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.93), rgba(245,248,252,0.96));
+    min-height: 102px;
+    overflow: hidden;
+    position: relative;
+}
+
+.home-skeleton-book-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+
+.home-skeleton-book-copy {
+    flex: 1;
+}
+
+.home-skeleton-book-title {
+    height: 14px;
+    width: 70%;
+    margin-bottom: 8px;
+}
+
+.home-skeleton-book-count {
+    height: 8px;
+    width: 40%;
+}
+
+.home-skeleton-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 0;
+}
+
+.home-skeleton-nav-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+}
+
+.home-skeleton-nav-search {
+    flex: 1;
+    height: 45px;
+    border-radius: 11px;
+}
+
+.home-skeleton-nav-actions {
+    width: 80px;
+    height: 32px;
+    border-radius: 8px;
+}
+
+/* Mobile pagination: hide label on desktop */
+.pagination__mobile-label {
+    display: none;
+}
 
 .recent-updates-grid {
     display: grid;
@@ -7430,6 +7529,20 @@ body.is-resizing-sidecar * {
 }
 
 @media (max-width: 768px) {
+    .pagination__number { display: none !important; }
+    .pagination__first { display: none !important; }
+    .pagination__last { display: none !important; }
+    .pagination__mobile-label { display: list-item !important; }
+    .pagination__mobile-label .page-link {
+        border: none;
+        background: transparent;
+        color: var(--text);
+        font-weight: 700;
+        font-size: 0.85rem;
+        padding: 0.35rem 0.6rem;
+        cursor: default;
+    }
+
     .hadith-card {
         --hadith-content-min-height: auto;
         --hadith-reading-max-height: var(--hadith-reading-mobile-max-height);

@@ -4,7 +4,7 @@
                 template: `
                     <nav v-if="showList" aria-label="Page navigation">
                         <ul class="pagination pagination-sm justify-content-center">
-                            <li class="page-item" :class="{disabled: currentPage <= 1}">
+                            <li class="page-item pagination__first" :class="{disabled: currentPage <= 1}">
                                 <a class="page-link" href="#" @click.prevent="goToPage(1)" aria-label="First">
                                     <span aria-hidden="true">&laquo;</span>
                                 </a>
@@ -14,16 +14,19 @@
                                     <span aria-hidden="true">&lsaquo;</span>
                                 </a>
                             </li>
-                            <li v-for="page in visiblePages" :key="page" class="page-item" :class="{active: page === currentPage}">
+                            <li v-for="page in visiblePages" :key="page" class="page-item pagination__number" :class="{active: page === currentPage}">
                                 <a v-if="page !== '...'" class="page-link" href="#" @click.prevent="goToPage(page)">{{ page }}</a>
                                 <span v-else class="page-link">...</span>
+                            </li>
+                            <li class="page-item pagination__mobile-label">
+                                <span class="page-link">{{ currentPage }} / {{ totalPages }}</span>
                             </li>
                             <li class="page-item" :class="{disabled: currentPage >= totalPages}">
                                 <a class="page-link" href="#" @click.prevent="goToPage(currentPage + 1)" aria-label="Next">
                                     <span aria-hidden="true">&rsaquo;</span>
                                 </a>
                             </li>
-                            <li class="page-item" :class="{disabled: currentPage >= totalPages}">
+                            <li class="page-item pagination__last" :class="{disabled: currentPage >= totalPages}">
                                 <a class="page-link" href="#" @click.prevent="goToPage(totalPages)" aria-label="Last">
                                     <span aria-hidden="true">&raquo;</span>
                                 </a>

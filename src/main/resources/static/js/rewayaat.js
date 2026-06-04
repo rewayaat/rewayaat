@@ -683,7 +683,7 @@ function showToast(message, type) {
         theme: 'mint',
         type: type || 'information',
         layout: 'topRight',
-        timeout: 2600,
+        timeout: type === 'success' ? 6000 : 2600,
         progressBar: false,
         closeWith: ['click', 'button']
     }).show();
@@ -1497,7 +1497,8 @@ function openCollectionPickerModal(hadithId, collections) {
             }
             swal.close();
             loadAndRenderCollections(false);
-            showToast('Saved to ' + (((resp.data.collection && resp.data.collection.name) || collectionName)) + '.', 'success');
+            refreshAuthState();
+            showToast('<i class="fa fa-circle-check" style="margin-right:6px;"></i>Saved to ' + (((resp.data.collection && resp.data.collection.name) || collectionName)) + '.', 'success');
         });
     });
     footer.appendChild(submitBtn);
@@ -1574,7 +1575,8 @@ function openCreateCollectionModal() {
                 }
                 swal.close();
                 loadAndRenderCollections(false);
-                showToast('Collection created.', 'success');
+                refreshAuthState();
+                showToast('<i class="fa fa-circle-check" style="margin-right:6px;"></i>Collection created! You can now save hadith to it using the <i class="fa fa-bookmark"></i> button on any narration.', 'success');
             });
         }
     });
@@ -3458,7 +3460,16 @@ function loadRecentUpdates() {
     if (!container) {
         return;
     }
-    container.innerHTML = '<div class="text-muted">Loading updates...</div>';
+    container.innerHTML = '';
+    for (var si = 0; si < 4; si++) {
+        var skel = document.createElement('div');
+        skel.className = 'home-skeleton-card';
+        skel.innerHTML = '<div class="home-skeleton-bar home-skeleton-bar--date"></div>' +
+            '<div class="home-skeleton-bar home-skeleton-bar--title"></div>' +
+            '<div class="home-skeleton-bar home-skeleton-bar--line1"></div>' +
+            '<div class="home-skeleton-bar home-skeleton-bar--line2"></div>';
+        container.appendChild(skel);
+    }
     fetch('/recent_updates.json?v=2')
         .then(function(resp) { return resp.json(); })
         .then(function(items) {
@@ -4006,6 +4017,11 @@ function loadBrowseBooks() {
     fetch('/v1/browse/books')
         .then(function(resp) { return resp.json(); })
         .then(function(data) {
+            var bookList = document.getElementById('browseBookList');
+            if (bookList && bookList.dataset.skeleton) {
+                bookList.innerHTML = '';
+                delete bookList.dataset.skeleton;
+            }
             populateBrowseBooks(data || []);
         })
         .catch(function() {
