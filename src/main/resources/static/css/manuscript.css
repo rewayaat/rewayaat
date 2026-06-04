@@ -882,7 +882,7 @@ body.is-reading-mode .menu-context-row { flex: 1 1 auto; min-width: 0; max-width
     z-index: 2200;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
+    border-radius: 0;
     box-shadow: var(--shadow-xl);
     padding: 1rem;
     overflow-y: auto;
@@ -1361,7 +1361,7 @@ body.is-reading-mode .menu-context-row { flex: 1 1 auto; min-width: 0; max-width
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-lg);
-    z-index: 2100;
+    z-index: 100;
 }
 .ts-dropdown .option {
     padding: 6px 10px;
