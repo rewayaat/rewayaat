@@ -1361,7 +1361,7 @@ body.is-reading-mode .menu-context-row { flex: 1 1 auto; min-width: 0; max-width
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-lg);
-    z-index: 100;
+    z-index: 100 !important;
 }
 .ts-dropdown .option {
     padding: 6px 10px;
