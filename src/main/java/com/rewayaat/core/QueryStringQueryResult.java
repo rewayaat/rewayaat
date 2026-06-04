@@ -39,6 +39,10 @@ import java.util.stream.Collectors;
 public class QueryStringQueryResult implements RewayaatQueryResult {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(QueryStringQueryResult.class);
+    private static final Pattern BOOST_PATTERN = Pattern.compile("\\^(\\d+(?:\\.\\d+)?)");
+    private static final Pattern FUZZY_SUFFIX_PATTERN = Pattern.compile("~\\d*");
+    private static final Pattern BOOLEAN_OPERATOR_PATTERN = Pattern.compile("(?i)\\b(?:AND|OR|NOT)\\b");
+    private static final Pattern HIGHLIGHT_TOKEN_PATTERN = Pattern.compile("\"[^\"]+\"|\\S+");
     private static final List<TopicTaxonomySupport.TopicTaxonomyEntry> TAXONOMY = loadTaxonomy();
     private static final Map<String, List<TopicTaxonomySupport.TopicTaxonomyEntry>> TAXONOMY_CHILDREN =
             TopicTaxonomySupport.childrenByParent(TAXONOMY);
@@ -265,7 +269,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                 .postTags("</span>")
                 .preTags("<span class=\"highlight\">")
                 .highlightQuery(q -> {
-                    String highlightQuery = (query == null || query.trim().isEmpty()) ? "*" : query.trim();
+                    String highlightQuery = buildHighlightQueryString(query);
                     return q.queryString(qs -> {
                         qs.query(highlightQuery).defaultField("*");
                         if (strictMatchMode) {
@@ -276,6 +280,37 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                 })
                 .numberOfFragments(0);
         return highlightBuilder.build();
+    }
+
+    private static String buildHighlightQueryString(String query) {
+        String raw = (query == null || query.trim().isEmpty()) ? "*" : query.trim();
+        if ("*".equals(raw)) {
+            return raw;
+        }
+        String residual = removeFieldScopes(raw);
+        if (residual.isBlank()) {
+            return "*";
+        }
+        String normalized = BOOST_PATTERN.matcher(residual).replaceAll("");
+        normalized = FUZZY_SUFFIX_PATTERN.matcher(normalized).replaceAll("");
+        normalized = BOOLEAN_OPERATOR_PATTERN.matcher(normalized).replaceAll(" ");
+        normalized = normalized.replace("(", " ").replace(")", " ");
+        normalized = normalized.replaceAll("\\s+", " ").trim();
+        if (normalized.isBlank()) {
+            return "*";
+        }
+        Matcher matcher = HIGHLIGHT_TOKEN_PATTERN.matcher(normalized);
+        LinkedHashSet<String> uniqueTokens = new LinkedHashSet<>();
+        while (matcher.find()) {
+            String token = matcher.group().trim();
+            if (!token.isEmpty()) {
+                uniqueTokens.add(token);
+            }
+        }
+        if (uniqueTokens.isEmpty()) {
+            return "*";
+        }
+        return String.join(" ", uniqueTokens);
     }
 
     private Map<String, Long> extractTopicTagFacets(SearchResponse<Map> response) {

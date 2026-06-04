@@ -69,6 +69,15 @@ class QueryStringQueryResultTest {
         assertEquals("", method.invoke(null, "book:\"Nahj al-Balāgha\""));
     }
 
+    @Test
+    void highlightQueryStringStripsFlexibleBoostsAndFuzzySyntax() throws Exception {
+        Method method = QueryStringQueryResult.class.getDeclaredMethod("buildHighlightQueryString", String.class);
+        method.setAccessible(true);
+
+        assertEquals("غدير", method.invoke(null, "(غدير^6 OR غدير~)"));
+        assertEquals("anger", method.invoke(null, "(anger^6 OR anger~) book:\"Nahj al-Balāgha\""));
+    }
+
     private SearchRequest buildSearchRequest(String query, boolean strictMatchMode) throws Exception {
         QueryStringQueryResult result = new QueryStringQueryResult(
                 query,

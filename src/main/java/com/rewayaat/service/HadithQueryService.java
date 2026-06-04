@@ -20,6 +20,7 @@ import java.util.List;
 public class HadithQueryService {
 
     private static final Logger log = LoggerFactory.getLogger(HadithQueryService.class);
+    private static final int FLEXIBLE_EXACT_BOOST = 6;
 
     // Fields that are already keyword type (no .keyword subfield needed)
     private static final String[] KEYWORD_ONLY_FIELDS = new String[]{"book", "volume", "part", "section", "number", "edition", "publisher"};
@@ -123,7 +124,7 @@ public class HadithQueryService {
             if (!strictMatchMode &&
                     !s.contains("~") && !s.contains(":") && !s.contains("^") && !s.contains("(") && !s.contains("\"") &&
                     !s.startsWith("+") && !s.startsWith("-")) {
-                s += "~";
+                s = "(" + s + "^" + FLEXIBLE_EXACT_BOOST + " OR " + s + "~)";
             }
             allFieldItems.add(s);
         }

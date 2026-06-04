@@ -96,69 +96,28 @@
             'hadith-details', {
                 template: `
                     <div class="hadith-details">
-                       <div class="meta-item" v-if="hadithNumber !== null && hadithNumber !== undefined && hadithNumber !== ''">
-                          <div class="meta-icon"><i class="fa fa-hashtag" aria-hidden="true"></i></div>
+                       <div class="meta-item"
+                            v-for="item in visibleMetadataItems"
+                            v-bind:key="item.key">
+                          <div class="meta-icon"><i v-bind:class="item.icon" aria-hidden="true"></i></div>
                           <div>
-                             <div class="meta-label">Hadith #</div>
-                             <div class="meta-text">{{hadithNumber}}</div>
+                             <div class="meta-label">{{ item.label }}</div>
+                             <div class="meta-text"
+                                  v-bind:class="{link: item.clickable}"
+                                  v-html="item.html"
+                                  v-on:click="handleMetadataClick(item)"></div>
                           </div>
                        </div>
-                       <div class="meta-item" v-if="isRealValue(narration.book)">
-                          <div class="meta-icon"><i class="fa fa-book" aria-hidden="true"></i></div>
-                          <div>
-                             <div class="meta-label">Book</div>
-                             <div class="meta-text link" v-html="narration.book" v-on:click="showBookBlurb(narration.book)"></div>
-                          </div>
-                       </div>
-                       <div class="meta-item" v-if="isRealValue(narration.volume)">
-                          <div class="meta-icon"><i class="fa fa-layer-group" aria-hidden="true"></i></div>
-                          <div>
-                             <div class="meta-label">Volume</div>
-                             <div class="meta-text link" v-html="narration.volume" v-on:click="showSpecific(narration, 'volume')"></div>
-                          </div>
-                       </div>
-                       <div class="meta-item" v-if="isRealValue(narration.section)">
-                          <div class="meta-icon"><i class="fa fa-bookmark" aria-hidden="true"></i></div>
-                          <div>
-                             <div class="meta-label">Section</div>
-                             <div class="meta-text link" v-html="narration.section" v-on:click="showSpecific(narration, 'section')"></div>
-                          </div>
-                       </div>
-                       <div class="meta-item" v-if="isRealValue(narration.part)">
-                          <div class="meta-icon"><i class="fa fa-clone" aria-hidden="true"></i></div>
-                          <div>
-                             <div class="meta-label">Part</div>
-                             <div class="meta-text link" v-html="narration.part" v-on:click="showSpecific(narration, 'part')"></div>
-                          </div>
-                       </div>
-                       <div class="meta-item" v-if="isRealValue(narration.chapter)">
-                          <div class="meta-icon"><i class="fa fa-heading" aria-hidden="true"></i></div>
-                          <div>
-                             <div class="meta-label">Chapter</div>
-                             <div class="meta-text link" v-html="narration.chapter" v-on:click="showSpecific(narration, 'chapter')"></div>
-                          </div>
-                       </div>
-                       <div class="meta-item" v-if="isRealValue(narration.source)">
-                          <div class="meta-icon"><i class="fa fa-arrow-right-from-bracket" aria-hidden="true"></i></div>
-                          <div>
-                             <div class="meta-label">Source</div>
-                             <div class="meta-text" v-html="narration.source"></div>
-                          </div>
-                       </div>
-                       <div class="meta-item" v-if="isRealValue(narration.edition)">
-                          <div class="meta-icon"><i class="fa fa-pen-to-square" aria-hidden="true"></i></div>
-                          <div>
-                             <div class="meta-label">Edition</div>
-                             <div class="meta-text">({{narration.edition}})</div>
-                          </div>
-                       </div>
-                       <div class="meta-item" v-if="isRealValue(narration.publisher)">
-                          <div class="meta-icon"><i class="fa fa-building" aria-hidden="true"></i></div>
-                          <div>
-                             <div class="meta-label">Publisher</div>
-                             <div class="meta-text" v-html="narration.publisher"></div>
-                          </div>
-                       </div>
+                       <button type="button"
+                               class="hadith-details__mobile-toggle"
+                               v-if="hasCollapsedMobileMetadata"
+                               v-bind:aria-expanded="mobileExpanded ? 'true' : 'false'"
+                               v-on:click="mobileExpanded = !mobileExpanded">
+                          <span>{{ mobileExpanded ? 'Show fewer details' : 'Show all details' }}</span>
+                          <i class="fa"
+                             v-bind:class="mobileExpanded ? 'fa-angle-up' : 'fa-angle-down'"
+                             aria-hidden="true"></i>
+                       </button>
                     </div>
                 `,
                 props: {
@@ -171,11 +130,146 @@
                         default: null
                     }
                 },
+                data: function() {
+                    return {
+                        mobileExpanded: false,
+                        mobileViewport: typeof window !== 'undefined' ? window.innerWidth <= 768 : false
+                    };
+                },
+                computed: {
+                    metadataItems: function() {
+                        var items = [];
+                        if (this.hadithNumber !== null && this.hadithNumber !== undefined && this.hadithNumber !== '') {
+                            items.push({
+                                key: 'hadith-number',
+                                icon: 'fa fa-hashtag',
+                                label: 'Hadith #',
+                                html: this.escapeHtml(this.hadithNumber),
+                                clickable: false
+                            });
+                        }
+                        if (this.isRealValue(this.narration.book)) {
+                            items.push({
+                                key: 'book',
+                                icon: 'fa fa-book',
+                                label: 'Book',
+                                html: this.narration.book,
+                                clickable: true,
+                                onClick: this.showBookBlurb.bind(this, this.narration.book)
+                            });
+                        }
+                        if (this.isRealValue(this.narration.volume)) {
+                            items.push({
+                                key: 'volume',
+                                icon: 'fa fa-layer-group',
+                                label: 'Volume',
+                                html: this.narration.volume,
+                                clickable: true,
+                                onClick: this.showSpecific.bind(this, this.narration, 'volume')
+                            });
+                        }
+                        if (this.isRealValue(this.narration.section)) {
+                            items.push({
+                                key: 'section',
+                                icon: 'fa fa-bookmark',
+                                label: 'Section',
+                                html: this.narration.section,
+                                clickable: true,
+                                onClick: this.showSpecific.bind(this, this.narration, 'section')
+                            });
+                        }
+                        if (this.isRealValue(this.narration.part)) {
+                            items.push({
+                                key: 'part',
+                                icon: 'fa fa-clone',
+                                label: 'Part',
+                                html: this.narration.part,
+                                clickable: true,
+                                onClick: this.showSpecific.bind(this, this.narration, 'part')
+                            });
+                        }
+                        if (this.isRealValue(this.narration.chapter)) {
+                            items.push({
+                                key: 'chapter',
+                                icon: 'fa fa-heading',
+                                label: 'Chapter',
+                                html: this.narration.chapter,
+                                clickable: true,
+                                onClick: this.showSpecific.bind(this, this.narration, 'chapter')
+                            });
+                        }
+                        if (this.isRealValue(this.narration.source)) {
+                            items.push({
+                                key: 'source',
+                                icon: 'fa fa-arrow-right-from-bracket',
+                                label: 'Source',
+                                html: this.narration.source,
+                                clickable: false
+                            });
+                        }
+                        if (this.isRealValue(this.narration.edition)) {
+                            items.push({
+                                key: 'edition',
+                                icon: 'fa fa-pen-to-square',
+                                label: 'Edition',
+                                html: this.escapeHtml('(' + this.narration.edition + ')'),
+                                clickable: false
+                            });
+                        }
+                        if (this.isRealValue(this.narration.publisher)) {
+                            items.push({
+                                key: 'publisher',
+                                icon: 'fa fa-building',
+                                label: 'Publisher',
+                                html: this.narration.publisher,
+                                clickable: false
+                            });
+                        }
+                        return items;
+                    },
+                    visibleMetadataItems: function() {
+                        if (!this.mobileViewport || this.mobileExpanded || this.metadataItems.length <= 2) {
+                            return this.metadataItems;
+                        }
+                        return this.metadataItems.slice(0, 2);
+                    },
+                    hasCollapsedMobileMetadata: function() {
+                        return this.mobileViewport && this.metadataItems.length > 2;
+                    }
+                },
+                mounted: function() {
+                    if (typeof window !== 'undefined') {
+                        this._handleMobileViewportResize = this.handleViewportResize.bind(this);
+                        window.addEventListener('resize', this._handleMobileViewportResize);
+                        this.handleViewportResize();
+                    }
+                },
+                beforeDestroy: function() {
+                    if (typeof window !== 'undefined' && this._handleMobileViewportResize) {
+                        window.removeEventListener('resize', this._handleMobileViewportResize);
+                    }
+                },
                 methods: {
                     isRealValue: function(val) {
                         if (!val) return false;
                         var s = String(val).replace(/<[^>]*>/g, '').trim().toLowerCase();
                         return s !== '' && s !== 'content';
+                    },
+                    escapeHtml: function(value) {
+                        var div = document.createElement('div');
+                        div.textContent = value == null ? '' : String(value);
+                        return div.innerHTML;
+                    },
+                    handleViewportResize: function() {
+                        this.mobileViewport = window.innerWidth <= 768;
+                        if (!this.mobileViewport) {
+                            this.mobileExpanded = false;
+                        }
+                    },
+                    handleMetadataClick: function(item) {
+                        if (item && item.clickable && typeof item.onClick === 'function') {
+                            item.onClick();
+                        }
                     },
                     showBookBlurb: function(bookName) {
                         showBookBlurb(bookName)

@@ -24,7 +24,7 @@
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.css" rel="stylesheet"/>
     <link href="/css/sweetalert.css" rel="stylesheet" th:href="@{/css/sweetalert.css}"/>
     <link href="/css/noty.css" rel="stylesheet" th:href="@{/css/noty.css}"/>
-    <link href="/css/manuscript.css?v=1001" rel="stylesheet" th:href="@{/css/manuscript.css?v=1001}"/>
+    <link href="/css/manuscript.css?v=1005" rel="stylesheet" th:href="@{/css/manuscript.css?v=1005}"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600;700&family=Scheherazade+New:wght@400;700&family=Aref+Ruqaa+Ink:wght@400;700&display=swap"
           rel="stylesheet"/>
     <link href="/css/pace.css" rel="stylesheet" th:href="@{/css/pace.css}"/>
@@ -702,11 +702,17 @@
                                             <span class="topic-tag-pills__label">Tags</span>
                                             <button type="button"
                                                     class="topic-pill"
-                                                    v-for="slug in narration.topic_tags.slice(0, 5)"
+                                                    v-for="slug in visibleNarrationTopicTags(narration)"
                                                     v-bind:key="slug"
                                                     v-bind:class="{'topic-pill--active': activeTopicTags.includes(slug)}"
                                                     v-on:click.stop="applyTagFilter(slug)">
                                                 {{ taxonomyLabel(slug) }}
+                                            </button>
+                                            <button type="button"
+                                                    class="hadith-tags-toggle"
+                                                    v-if="shouldShowNarrationTagToggle(narration)"
+                                                    v-on:click.stop="toggleNarrationTags(narration)">
+                                                {{ narration.mobileTagsExpanded ? 'Show less' : 'Show more' }}
                                             </button>
                                         </div>
                                         <div class="d-flex flex-wrap gap-2 hadith-header-actions hadith-card__actions">
@@ -789,7 +795,7 @@
                 </article>
                 <div class="hadith-divider" v-if="index < narrations.length - 1" aria-hidden="true">
                     <span class="hadith-divider__line"></span>
-                    <span class="hadith-divider__motif">✦</span>
+                    <span class="hadith-divider__motif">۞</span>
                     <span class="hadith-divider__line"></span>
                 </div>
             </div>
@@ -838,7 +844,7 @@
         <div class="site-footer__bottom">
             <span>&copy; 2026 Academy for Learning Islam (A.L.I.)</span>
             <div class="site-footer__social">
-                <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer" title="GitHub"><i class="fa fa-github"></i></a>
+                <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer" title="GitHub"><i class="fa-brands fa-github"></i></a>
                 <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer" title="REST API"><i class="fa fa-code"></i></a>
                 <a href="mailto:rewayaat.org@gmail.com" title="Email"><i class="fa fa-envelope"></i></a>
             </div>
@@ -853,8 +859,8 @@
 <script crossorigin="anonymous" src="https://cdn.ravenjs.com/3.22.3/raven.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/noty/3.1.4/noty.min.js"></script>
 <script crossorigin="anonymous" src="https://cdn.lr-ingest.io/LogRocket.min.js"></script>
-<script src="/js/vue-components.js?v=5" th:src="@{/js/vue-components.js?v=5}"></script>
-<script src="/js/rewayaat.js?v=131" th:src="@{/js/rewayaat.js?v=131}"></script>
+<script src="/js/vue-components.js?v=6" th:src="@{/js/vue-components.js?v=6}"></script>
+<script src="/js/rewayaat.js?v=133" th:src="@{/js/rewayaat.js?v=133}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" th:async="async"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.6/marked.min.js" th:defer="defer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js" th:defer="defer"></script>

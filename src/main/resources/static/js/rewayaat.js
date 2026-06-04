@@ -4058,7 +4058,8 @@ function populateBrowseBooks(books) {
     if (bookList) {
         bookList.innerHTML = '';
     }
-    books.forEach(function(item) {
+    var MOBILE_BOOK_LIMIT = 4;
+    books.forEach(function(item, idx) {
         var name = item.name || item.key || '';
         if (!name) {
             return;
@@ -4067,6 +4068,9 @@ function populateBrowseBooks(books) {
         if (bookList) {
             var card = document.createElement('div');
             card.className = 'browse-book-card';
+            if (idx >= MOBILE_BOOK_LIMIT) {
+                card.className += ' browse-book-card--overflow';
+            }
             card.setAttribute('data-book', name);
             card.innerHTML = '<div class=\"browse-book-head\">' +
                 '<span class=\"browse-book-icon\" aria-hidden=\"true\"><i class=\"fa fa-book\"></i></span>' +
@@ -4095,6 +4099,17 @@ function populateBrowseBooks(books) {
             bookList.appendChild(card);
         }
     });
+    if (bookList && books.length > MOBILE_BOOK_LIMIT) {
+        var toggle = document.createElement('button');
+        toggle.className = 'browse-book-drawer-toggle';
+        toggle.type = 'button';
+        toggle.textContent = 'Show all ' + books.length + ' books';
+        toggle.addEventListener('click', function() {
+            var expanded = bookList.classList.toggle('is-expanded');
+            toggle.textContent = expanded ? 'Show fewer books' : 'Show all ' + books.length + ' books';
+        });
+        bookList.appendChild(toggle);
+    }
 }
 
 function populateBookSelect(select, books, placeholder) {
@@ -4375,7 +4390,8 @@ function setupVue(query, page, sortFields) {
             collections: userCollectionsCache,
             collectionSearchQuery: '',
             sidecarWidth: 304,
-            sidecarResizeState: null
+            sidecarResizeState: null,
+            mobileViewport: typeof window !== 'undefined' ? window.innerWidth <= 768 : false
         },
         // runs when the Vue instance has initialized.
         mounted: function() {
@@ -4393,10 +4409,15 @@ function setupVue(query, page, sortFields) {
             this._handleSidecarResizeWindow = function() {
                 self.handleSidecarResizeWindow();
             };
+            this._handleViewportResize = function() {
+                self.handleViewportResize();
+            };
             window.addEventListener('pointermove', this._handleSidecarResizeMove);
             window.addEventListener('pointerup', this._handleSidecarResizeEnd);
             window.addEventListener('pointercancel', this._handleSidecarResizeEnd);
             window.addEventListener('resize', this._handleSidecarResizeWindow);
+            window.addEventListener('resize', this._handleViewportResize);
+            this.handleViewportResize();
             document.addEventListener('click', function(e) {
                 if (!e.target.closest('.chip-dropdown')) {
                     self.narrations.forEach(function(n) {
@@ -4411,6 +4432,7 @@ function setupVue(query, page, sortFields) {
             window.removeEventListener('pointerup', this._handleSidecarResizeEnd);
             window.removeEventListener('pointercancel', this._handleSidecarResizeEnd);
             window.removeEventListener('resize', this._handleSidecarResizeWindow);
+            window.removeEventListener('resize', this._handleViewportResize);
             document.body.classList.remove('is-resizing-sidecar');
         },
         computed: {
@@ -4594,14 +4616,16 @@ function setupVue(query, page, sortFields) {
             },
             visibleTagFilterOptions: function() {
                 var options = Array.isArray(this.tagFilterOptions) ? this.tagFilterOptions : [];
+                var visibleCount = this.mobileViewport ? 5 : INITIAL_VISIBLE_TAG_FILTERS;
                 if (this.tagFilterExpanded) {
                     return options;
                 }
-                return options.slice(0, INITIAL_VISIBLE_TAG_FILTERS);
+                return options.slice(0, visibleCount);
             },
             hasCollapsedTagFilters: function() {
+                var visibleCount = this.mobileViewport ? 5 : INITIAL_VISIBLE_TAG_FILTERS;
                 return Array.isArray(this.tagFilterOptions)
-                    && this.tagFilterOptions.length > INITIAL_VISIBLE_TAG_FILTERS;
+                    && this.tagFilterOptions.length > visibleCount;
             },
             isAuthenticated: function() {
                 return this.authStateProxy && this.authStateProxy.authenticated;
@@ -4642,6 +4666,29 @@ function setupVue(query, page, sortFields) {
             },
             toggleTagFilterExpansion: function() {
                 this.tagFilterExpanded = !this.tagFilterExpanded;
+            },
+            handleViewportResize: function() {
+                this.mobileViewport = typeof window !== 'undefined' && window.innerWidth <= 768;
+            },
+            isMobileViewport: function() {
+                return this.mobileViewport;
+            },
+            visibleNarrationTopicTags: function(narration) {
+                var tags = Array.isArray(narration && narration.topic_tags) ? narration.topic_tags : [];
+                if (!this.isMobileViewport() || narration.mobileTagsExpanded || tags.length <= 5) {
+                    return tags;
+                }
+                return tags.slice(0, 5);
+            },
+            shouldShowNarrationTagToggle: function(narration) {
+                var tags = Array.isArray(narration && narration.topic_tags) ? narration.topic_tags : [];
+                return this.isMobileViewport() && tags.length > 5;
+            },
+            toggleNarrationTags: function(narration) {
+                if (!narration) {
+                    return;
+                }
+                this.$set(narration, 'mobileTagsExpanded', !narration.mobileTagsExpanded);
             },
             taxonomyLabel: function(slug) {
                 return (this.taxonomy[slug] && this.taxonomy[slug].en) || slug;
