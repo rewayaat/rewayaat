@@ -2087,7 +2087,11 @@ main.container::before {
     border-top: 1px solid var(--border);
 }
 
-.highlight {
+.hadith-content .highlight,
+.hadith-text-block .highlight,
+.hadith-english .highlight,
+.hadith-arabic .highlight,
+.hadith-inline-context .highlight {
     background: #1a3a6b20;
     border-radius: 3px;
     padding: 0 2px;
@@ -2096,8 +2100,7 @@ main.container::before {
 }
 
 .hadith-sidecar .highlight,
-.hadith-sidecar__panel-body .highlight,
-.hadith-card--metadata .highlight {
+.hadith-sidecar__panel-body .highlight {
     background: #ffffff4f;
 }
 
