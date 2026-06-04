@@ -1493,8 +1493,8 @@ body.is-reading-mode .menu-context-row { flex: 1 1 auto; min-width: 0; max-width
     background: rgba(255, 255, 255, 0.92);
     color: var(--text-secondary);
     font-family: var(--font-arabic);
-    font-size: 0.92rem;
-    line-height: 1.25;
+    font-size: 1.15rem;
+    line-height: 1.35;
     direction: rtl;
     cursor: pointer;
     transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
@@ -2088,7 +2088,7 @@ main.container::before {
 }
 
 .highlight {
-    background: #ffe06640;
+    background: #1a3a6b20;
     border-radius: 3px;
     padding: 0 2px;
     box-decoration-break: clone;
