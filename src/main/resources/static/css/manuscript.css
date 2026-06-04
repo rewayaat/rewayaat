@@ -2088,7 +2088,7 @@ main.container::before {
 }
 
 .highlight {
-    background: #006ff724;
+    background: #ffe06640;
     border-radius: 3px;
     padding: 0 2px;
     box-decoration-break: clone;
