@@ -65,6 +65,11 @@ jobs:
             --namespace=rewayaat-v2 \
             --dry-run=client -o yaml | kubectl apply -f -
 
+          kubectl create secret generic rewayaat-v2-sentry \
+            --from-literal=SENTRY_DSN="${{ secrets.SENTRY_DSN }}" \
+            --namespace=rewayaat-v2 \
+            --dry-run=client -o yaml | kubectl apply -f -
+
       - name: Update kustomization image tag
         run: |
           sed -i "s|newTag: .*|newTag: \"${GITHUB_RUN_ID}\"|" k8s/kustomization.yaml

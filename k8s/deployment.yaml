@@ -54,6 +54,11 @@ spec:
                 secretKeyRef:
                   name: rewayaat-v2-mail
                   key: MAIL_FROM
+            - name: SENTRY_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: rewayaat-v2-sentry
+                  key: SENTRY_DSN
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness
