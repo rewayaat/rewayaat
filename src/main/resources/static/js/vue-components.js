@@ -97,63 +97,63 @@
                 template: `
                     <div class="hadith-details">
                        <div class="meta-item" v-if="hadithNumber !== null && hadithNumber !== undefined && hadithNumber !== ''">
-                          <div class="meta-icon"><i class="fa fa-pencil-square-o" aria-hidden="true"></i></div>
+                          <div class="meta-icon"><i class="fa fa-hashtag" aria-hidden="true"></i></div>
                           <div>
                              <div class="meta-label">Hadith #</div>
                              <div class="meta-text">{{hadithNumber}}</div>
                           </div>
                        </div>
-                       <div class="meta-item" v-if="narration.book">
+                       <div class="meta-item" v-if="isRealValue(narration.book)">
                           <div class="meta-icon"><i class="fa fa-book" aria-hidden="true"></i></div>
                           <div>
                              <div class="meta-label">Book</div>
                              <div class="meta-text link" v-html="narration.book" v-on:click="showBookBlurb(narration.book)"></div>
                           </div>
                        </div>
-                       <div class="meta-item" v-if="narration.volume">
-                          <div class="meta-icon"><i class="fa fa-calendar-o" aria-hidden="true"></i></div>
+                       <div class="meta-item" v-if="isRealValue(narration.volume)">
+                          <div class="meta-icon"><i class="fa fa-layer-group" aria-hidden="true"></i></div>
                           <div>
                              <div class="meta-label">Volume</div>
                              <div class="meta-text link" v-html="narration.volume" v-on:click="showSpecific(narration, 'volume')"></div>
                           </div>
                        </div>
-                       <div class="meta-item" v-if="narration.section">
-                          <div class="meta-icon"><i class="fa fa-bookmark-o" aria-hidden="true"></i></div>
+                       <div class="meta-item" v-if="isRealValue(narration.section)">
+                          <div class="meta-icon"><i class="fa fa-bookmark" aria-hidden="true"></i></div>
                           <div>
                              <div class="meta-label">Section</div>
                              <div class="meta-text link" v-html="narration.section" v-on:click="showSpecific(narration, 'section')"></div>
                           </div>
                        </div>
-                       <div class="meta-item" v-if="narration.part">
+                       <div class="meta-item" v-if="isRealValue(narration.part)">
                           <div class="meta-icon"><i class="fa fa-clone" aria-hidden="true"></i></div>
                           <div>
                              <div class="meta-label">Part</div>
                              <div class="meta-text link" v-html="narration.part" v-on:click="showSpecific(narration, 'part')"></div>
                           </div>
                        </div>
-                       <div class="meta-item" v-if="narration.chapter">
-                          <div class="meta-icon"><i class="fa fa-superpowers" aria-hidden="true"></i></div>
+                       <div class="meta-item" v-if="isRealValue(narration.chapter)">
+                          <div class="meta-icon"><i class="fa fa-heading" aria-hidden="true"></i></div>
                           <div>
                              <div class="meta-label">Chapter</div>
                              <div class="meta-text link" v-html="narration.chapter" v-on:click="showSpecific(narration, 'chapter')"></div>
                           </div>
                        </div>
-                       <div class="meta-item" v-if="narration.source">
-                          <div class="meta-icon"><i class="fa fa-share-square-o" aria-hidden="true"></i></div>
+                       <div class="meta-item" v-if="isRealValue(narration.source)">
+                          <div class="meta-icon"><i class="fa fa-arrow-right-from-bracket" aria-hidden="true"></i></div>
                           <div>
                              <div class="meta-label">Source</div>
                              <div class="meta-text" v-html="narration.source"></div>
                           </div>
                        </div>
-                       <div class="meta-item" v-if="narration.edition">
-                          <div class="meta-icon"><i class="fa fa-pencil-square-o" aria-hidden="true"></i></div>
+                       <div class="meta-item" v-if="isRealValue(narration.edition)">
+                          <div class="meta-icon"><i class="fa fa-pen-to-square" aria-hidden="true"></i></div>
                           <div>
                              <div class="meta-label">Edition</div>
                              <div class="meta-text">({{narration.edition}})</div>
                           </div>
                        </div>
-                       <div class="meta-item" v-if="narration.publisher">
-                          <div class="meta-icon"><i class="fa fa-medium" aria-hidden="true"></i></div>
+                       <div class="meta-item" v-if="isRealValue(narration.publisher)">
+                          <div class="meta-icon"><i class="fa fa-building" aria-hidden="true"></i></div>
                           <div>
                              <div class="meta-label">Publisher</div>
                              <div class="meta-text" v-html="narration.publisher"></div>
@@ -172,6 +172,11 @@
                     }
                 },
                 methods: {
+                    isRealValue: function(val) {
+                        if (!val) return false;
+                        var s = String(val).replace(/<[^>]*>/g, '').trim().toLowerCase();
+                        return s !== '' && s !== 'content';
+                    },
                     showBookBlurb: function(bookName) {
                         showBookBlurb(bookName)
                     },

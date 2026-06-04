@@ -2,6 +2,7 @@ package com.rewayaat.controllers.rest;
 
 import com.rewayaat.core.data.UserAccount;
 import com.rewayaat.service.AuthService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -26,6 +27,7 @@ import java.util.Map;
 /**
  * Authentication APIs backed by Elasticsearch.
  */
+@Hidden
 @Service
 @org.springframework.stereotype.Controller
 @RequestMapping("/v1/auth")

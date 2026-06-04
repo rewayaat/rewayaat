@@ -38,28 +38,9 @@ mvn exec:java -Dexec.mainClass="com.rewayaat.tools.TagMigrationTool" \
     -DTAG_MIGRATION_DRY_RUN="$DRY_RUN"
 echo ""
 
-# Step 4: Re-tag orphaned hadith
-if [[ -f "/tmp/tag_migration_retag_queue.json" ]]; then
-    echo "Step 4: Re-tagging orphaned hadith..."
-    # Extract hadith IDs and run TopicTagsBackfillTool
-    HADITH_IDS=$(jq -r '.hadith_ids[]' /tmp/tag_migration_retag_queue.json | tr '\n' ',' | sed 's/,$//')
-
-    if [[ -n "$HADITH_IDS" && "$HADITH_IDS" != "," ]]; then
-        echo "Found hadith to re-tag: $(jq '.hadith_ids | length' /tmp/tag_migration_retag_queue.json)"
-
-        mvn exec:java -Dexec.mainClass="com.rewayaat.tools.TopicTagsBackfillTool" \
-            -DREWAYAAT_INDEX="$INDEX_NAME" \
-            -DTOPIC_TAGS_CLASSIFIER_MODE="ai_refine_all" \
-            -DTOPIC_TAGS_USE_AI="true" \
-            -DTOPIC_TAGS_DRY_RUN="$DRY_RUN"
-    else
-        echo "No hadith to re-tag"
-    fi
-    echo ""
-else
-    echo "Step 4: No orphaned hadith to re-tag"
-    echo ""
-fi
+# Step 4: Re-tag orphaned hadith (disabled — tagging now done via sub-agents)
+echo "Step 4: Skipped (tagging now done via sub-agents)"
+echo ""
 
 # Step 5: Parent tag inference
 echo "Step 5: Parent tag inference..."

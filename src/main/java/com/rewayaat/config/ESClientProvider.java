@@ -28,7 +28,7 @@ public class ESClientProvider implements AutoCloseable {
     private static final Logger LOGGER = LoggerFactory.getLogger(ESClientProvider.class);
 
     // Mutable static so that Spring's @PostConstruct can update it from config.
-    public static volatile String INDEX = resolveFromEnv("REWAYAAT_INDEX", "rewayaat_updated_e5large_20260320");
+    public static volatile String INDEX = resolveFromEnv("REWAYAAT_INDEX", "rewayaat_updated");
 
     // Shared static connection – initialised from env vars at class-load time and
     // then overwritten by the Spring singleton's @PostConstruct if Spring is active.
@@ -108,7 +108,7 @@ public class ESClientProvider implements AutoCloseable {
      * that need to override the index after system properties have been set.
      */
     public static synchronized void resetIndex() {
-        INDEX = resolveFromEnv("REWAYAAT_INDEX", "rewayaat_updated_e5large_20260320");
+        INDEX = resolveFromEnv("REWAYAAT_INDEX", "rewayaat_updated");
     }
 
     /**

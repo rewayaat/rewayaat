@@ -12,6 +12,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -45,6 +47,23 @@ jobs:
           docker build -f src/main/docker/Dockerfile.v2 -t rewayaat/rewayaat-v2:$GITHUB_RUN_ID -t rewayaat/rewayaat-v2:latest src/main/docker/
           docker push rewayaat/rewayaat-v2:$GITHUB_RUN_ID
           docker push rewayaat/rewayaat-v2:latest
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Configure kubectl
+        run: doctl kubernetes cluster kubeconfig save k8s-c1
+
+      - name: Sync Kubernetes secrets
+        run: |
+          kubectl create secret generic rewayaat-v2-mail \
+            --from-literal=SPRING_MAIL_USERNAME="${{ secrets.SPRING_MAIL_USERNAME }}" \
+            --from-literal=SPRING_MAIL_PASSWORD="${{ secrets.SPRING_MAIL_PASSWORD }}" \
+            --from-literal=MAIL_FROM="${{ secrets.MAIL_FROM }}" \
+            --namespace=rewayaat-v2 \
+            --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Update kustomization image tag
         run: |

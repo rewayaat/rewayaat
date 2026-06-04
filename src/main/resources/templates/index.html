@@ -3,20 +3,20 @@
 
 <head>
     <meta charset="UTF-8"/>
-    <title>Rewayaat — Shia Hadith Database | Search 32,000+ Narrations in Arabic &amp; English</title>
-    <meta name="description" content="Search over 32,000 Shia hadith narrations in Arabic and English. Browse Al-Kafi, Nahj al-Balagha, Ghurar al-Hikam and more. Find similar narrations and Quranic insights."/>
+    <title>Rewayaat — Hadith Database | Search 32,000+ Narrations in Arabic &amp; English</title>
+    <meta name="description" content="Search over 32,000 hadith narrations in Arabic and English. Browse Al-Kafi, Nahj al-Balagha, Ghurar al-Hikam and more. Find similar narrations and Quranic insights."/>
     <meta name="keywords" content="shia hadith, hadith database, shia hadith search, islamic narrations, al-kafi, nahj al-balagha, ghurar al-hikam, ahlul bayt hadith, arabic english hadith"/>
     <meta name="author" content="Academy for Learning Islam"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
-    <link rel="canonical" th:href="@{${#request.requestURI}}"/>
+    <link rel="canonical" href="/"/>
     <meta property="og:type" content="website"/>
     <meta property="og:site_name" content="Rewayaat"/>
-    <meta property="og:title" content="Rewayaat — Shia Hadith Database"/>
-    <meta property="og:description" content="Search over 32,000 Shia hadith narrations in Arabic and English. Browse Al-Kafi, Nahj al-Balagha, and more with similar narrations and Quranic insights."/>
-    <meta property="og:url" th:content="@{${#request.requestURI}}"/>
+    <meta property="og:title" content="Rewayaat — Hadith Database"/>
+    <meta property="og:description" content="Search over 32,000 hadith narrations in Arabic and English. Browse Al-Kafi, Nahj al-Balagha, and more with similar narrations and Quranic insights."/>
+    <meta property="og:url" content="https://rewayaat.info/"/>
     <meta name="twitter:card" content="summary"/>
-    <meta name="twitter:title" content="Rewayaat — Shia Hadith Database"/>
-    <meta name="twitter:description" content="Search over 32,000 Shia hadith narrations in Arabic and English."/>
+    <meta name="twitter:title" content="Rewayaat — Hadith Database"/>
+    <meta name="twitter:description" content="Search over 32,000 hadith narrations in Arabic and English."/>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -24,8 +24,8 @@
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.css" rel="stylesheet"/>
     <link href="/css/sweetalert.css" rel="stylesheet" th:href="@{/css/sweetalert.css}"/>
     <link href="/css/noty.css" rel="stylesheet" th:href="@{/css/noty.css}"/>
-    <link href="/css/manuscript.css?v=916" rel="stylesheet" th:href="@{/css/manuscript.css?v=916}"/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600;700&family=Scheherazade+New:wght@400;700&display=swap"
+    <link href="/css/manuscript.css?v=1001" rel="stylesheet" th:href="@{/css/manuscript.css?v=1001}"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600;700&family=Scheherazade+New:wght@400;700&family=Aref+Ruqaa+Ink:wght@400;700&display=swap"
           rel="stylesheet"/>
     <link href="/css/pace.css" rel="stylesheet" th:href="@{/css/pace.css}"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
@@ -34,54 +34,65 @@
 </head>
 
 <body>
+<div id="eid-banner" class="eid-banner">
+    <div class="eid-banner__inner">
+        <span class="eid-banner__ornament">&#10022;</span>
+        <span class="eid-banner__text">Eid al-Ghadeer Mubarak! &#8212; We've launched new features to mark this occasion. <a href="/updates.html" class="eid-banner__link">See what's new &#8594;</a></span>
+        <span class="eid-banner__ornament">&#10022;</span>
+        <button type="button" class="eid-banner__close" id="eidBannerClose" aria-label="Dismiss banner">&times;</button>
+    </div>
+</div>
+
 <div id="latest-news-bar" class="small text-center py-1"></div>
 
 <nav class="navbar navbar-expand-lg sticky-top site-nav">
     <div class="container">
         <div class="navbar-top w-100 d-flex align-items-center flex-wrap gap-3">
             <a class="navbar-brand d-flex align-items-center gap-2" href="/">
-                <img src="img/ALI-Logo.png" class="brand-logo--full d-none d-md-block" alt="ALI Logo"/>
+                <img src="img/Alilogov2-transparent.png" class="brand-logo--full brand-logo--full-v2 d-none d-md-block" alt="ALI Logo"/>
                 <img src="img/ali_icon.png" class="brand-logo--icon d-md-none" alt="ALI"/>
             </a>
-        <div id="queryBar" class="navbar-search">
-            <div class="navbar-search__input">
-                <select class="form-control" id="searchTerms" multiple="multiple"></select>
-                <div class="search-controls">
-                    <div class="search-mode-dropdown" id="searchModeDropdown">
-                        <button type="button" class="search-mode-toggle" id="searchModeToggle" aria-expanded="false" aria-haspopup="true" aria-label="Search mode">
-                            <span class="search-mode-text">Exact</span>
-                            <i class="fa fa-chevron-down" aria-hidden="true"></i>
-                        </button>
-                        <div class="search-mode-dropdown-menu" id="searchModeDropdownMenu" role="menu">
-                            <div class="search-mode-option" role="menuitem" data-mode="strict">
-                                <i class="fa fa-check" aria-hidden="true"></i>
-                                <div class="mode-content">
-                                    <div class="mode-title">Exact</div>
-                                    <div class="mode-description">Exact words</div>
-                                </div>
-                            </div>
-                            <div class="search-mode-option" role="menuitem" data-mode="permissive">
-                                <i class="fa fa-check" aria-hidden="true"></i>
-                                <div class="mode-content">
-                                    <div class="mode-title">Flexible</div>
-                                    <div class="mode-description">Partial matches</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <button type="button" class="btn btn-primary search-btn-with-border" id="searchBtn1" onclick="submitSearchQuery()">
-                        <i class="fa fa-search" aria-hidden="true"></i>
-                    </button>
-                </div>
+            <div class="d-none d-md-flex home-nav-links">
+                <a href="#welcome" class="home-nav-link">Search</a>
+                <span class="home-nav-dot" aria-hidden="true">&middot;</span>
+                <a href="#browse" class="home-nav-link">Browse</a>
+                <span class="home-nav-dot" aria-hidden="true">&middot;</span>
+                <a href="#updates" class="home-nav-link">Updates</a>
             </div>
-        </div>
+	        <div id="queryBar" class="navbar-search">
+	            <div class="navbar-search__input">
+	                <div class="search-entry-shell">
+	                    <i class="fa fa-search search-magnifier" aria-hidden="true"></i>
+	                    <select class="form-control" id="searchTerms" multiple="multiple"></select>
+	                    <span id="searchGhostText" class="search-ghost-text" aria-hidden="true"></span>
+	                    <div class="search-entry-actions">
+	                        <div class="search-submit-menu">
+	                        <button type="button" class="btn btn-primary search-btn-with-border" id="searchBtn1">
+	                            <span>Search</span>
+	                            <i class="fa fa-chevron-down search-btn-caret" aria-hidden="true"></i>
+	                        </button>
+	                        <div class="search-mode-menu" id="searchModeDropdown" role="menu" aria-label="Search mode">
+	                            <button type="button" class="search-mode-option" data-mode="flexible" role="menuitem">
+	                                <span class="search-mode-option__label">Flexible</span>
+	                                <span class="search-mode-option__meta">includes broader wording matches</span>
+	                            </button>
+	                            <button type="button" class="search-mode-option" data-mode="precise" role="menuitem">
+	                                <span class="search-mode-option__label">Precise</span>
+	                                <span class="search-mode-option__meta">keeps results closer to your wording</span>
+	                            </button>
+	                        </div>
+	                        </div>
+	                    </div>
+	                </div>
+	            </div>
+	        </div>
             <div class="menu-context-row">
                 <div id="menuReadingScope" class="menu-reading-scope d-none" aria-live="polite">
                     <span class="menu-reading-scope__value"></span>
                 </div>
                 <div class="d-flex gap-2 top-actions flex-nowrap">
                     <button class="btn btn-dark btn-sm top-action auth-action" id="authSignInBtn" type="button">
-                        <i class="fa fa-sign-in" aria-hidden="true"></i>
+                        <i class="fa fa-right-to-bracket" aria-hidden="true"></i>
                         Sign In
                     </button>
                     <div class="profile-menu d-none" id="authProfileShell">
@@ -102,10 +113,10 @@
 
 <main class="container py-3">
 
-<h1 class="visually-hidden">Rewayaat — Shia Hadith Database: Search 32,000+ Narrations in Arabic and English</h1>
+<h1 class="visually-hidden">Rewayaat — Hadith Database: Search 32,000+ Narrations in Arabic and English</h1>
 <section id="welcome"></section>
 
-<section id="hadithView" class="mb-4 v-cloak">
+<section id="hadithView" class="mb-4" v-cloak>
     <div class="hadith-layout">
         <div class="hadith-content">
         <div id="readingToolbar" class="reading-toolbar d-none">
@@ -130,7 +141,7 @@
                     <label for="readingPartSelect">Part</label>
                     <div class="facet-select-wrap">
                         <select id="readingPartSelect" class="form-select form-select-sm" disabled>
-                            <option value="">Select a part</option>
+                            <option value="">Show All</option>
                         </select>
                     </div>
                 </div>
@@ -138,7 +149,7 @@
                     <label for="readingSectionSelect">Section</label>
                     <div class="facet-select-wrap">
                         <select id="readingSectionSelect" class="form-select form-select-sm" disabled>
-                            <option value="">Select a section</option>
+                            <option value="">Show All</option>
                         </select>
                     </div>
                 </div>
@@ -146,7 +157,7 @@
                     <label for="readingChapterSelect">Chapter</label>
                     <div class="facet-select-wrap">
                         <select id="readingChapterSelect" class="form-select form-select-sm" disabled>
-                            <option value="">Select a chapter</option>
+                            <option value="">Show All</option>
                         </select>
                     </div>
                 </div>
@@ -348,6 +359,7 @@
                          v-bind:class="'hadith-card--' + activeNarrationSidecarTab(narration)"
                          v-bind:style="sidecarStyleVars"
                          v-bind:id="narrationDomId(narration)">
+                    <div class="hadith-card__result-num">{{ collectionMode || readingMode ? 'Hadith' : 'Result' }} {{ resultOrdinal(narration, index) }}/{{ totalHits }}</div>
                     <div class="card-body">
                         <div class="row g-4 hadith-card__layout">
                             <aside class="hadith-sidecar hadith-card__meta">
@@ -433,25 +445,30 @@
                                                  aria-label="Similar hadith list">
                                                 <div class="hadith-sidecar__accordion-item"
                                                      v-for="(similar, sidx) in narration.similarItems"
-                                                    v-bind:key="'similar-' + (similar._id || similar.id || sidx)"
+                                                    v-bind:key="'similar-' + sidx"
                                                     v-bind:class="{'is-active': sidx === narration.similarActiveIndex}">
                                                     <button type="button"
-                                                            class="hadith-sidecar__list-item hadith-sidecar__list-item--similar"
+                                                            class="hadith-sidecar__list-item hadith-sidecar__accordion-toggle hadith-sidecar__list-item--similar"
                                                             v-bind:class="{'is-active': sidx === narration.similarActiveIndex}"
+                                                            v-bind:aria-expanded="sidx === narration.similarActiveIndex ? 'true' : 'false'"
                                                             v-on:click="selectSimilarTab(narration, sidx)">
                                                         <span class="hadith-sidecar__list-line">
                                                             <span class="hadith-sidecar__list-eyebrow">{{ similar.book || ('Similar hadith ' + (sidx + 1)) }}</span>
                                                             <span class="hadith-sidecar__list-separator" aria-hidden="true">•</span>
                                                             <span class="hadith-sidecar__list-text">{{ similar.number ? ('#' + similar.number) : similarTabTitle(similar, sidx) }}</span>
-                                                            <template v-if="similarityScorePercent(similar) > 0">
+                                                            <template v-if="similar.matchType">
                                                                 <span class="hadith-sidecar__list-separator" aria-hidden="true">•</span>
-                                                                <span class="hadith-sidecar__list-meta"
-                                                                      v-bind:class="'match-' + similarityColor(similar)">
-                                                                    {{ similarityScorePercent(similar).toFixed(1) }}% match
+                                                                <span class="hadith-sidecar__list-meta match-type-badge"
+                                                                      v-bind:class="'match-type--' + similar.matchType">
+                                                                    {{ similar.matchType }}
                                                                 </span>
                                                             </template>
                                                         </span>
                                                     </button>
+                                                    <div class="hadith-sidecar__accordion-body hadith-sidecar__accordion-body--similar"
+                                                         v-if="sidx === narration.similarActiveIndex && similar.matchReason">
+                                                        <div class="similar-reason-text">{{ similar.matchReason }}</div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -510,6 +527,9 @@
                                                              v-if="item.text_arabic">
                                                             {{item.text_arabic}}
                                                         </div>
+                                                        <a class="quranic-verse-link"
+                                                           v-bind:href="'https://quran.com/' + item.verse_key"
+                                                           target="_blank" rel="noopener">View on Quran.com <i class="fa fa-external-link-alt fa-xs"></i></a>
                                                         <div class="hadith-sidecar__source-tree"
                                                              v-if="quranicInsightSources(item).length > 0">
                                                             <div class="hadith-sidecar__source-tree-label">Tafsir Sources</div>
@@ -521,7 +541,7 @@
                                                                         v-bind:class="{'is-active': isQuranicInsightSourceActive(item, source)}"
                                                                         v-on:click.stop="selectQuranicInsightSource(narration, qidx, source.slug)">
                                                                     <span class="hadith-sidecar__source-branch" aria-hidden="true"></span>
-                                                                    <span class="hadith-sidecar__source-node-icon" aria-hidden="true"><i class="fa fa-file-text-o"></i></span>
+                                                                    <span class="hadith-sidecar__source-node-icon" aria-hidden="true"><i class="fa fa-file-lines"></i></span>
                                                                     <span class="hadith-sidecar__source-name">{{ source.label }}</span>
                                                                     <span class="hadith-sidecar__source-count"
                                                                           v-if="source.count > 0">{{ source.count }}</span>
@@ -655,7 +675,8 @@
                                                  v-for="(snippet, sidx) in activeQuranicInsightSelectedSnippets(narration)"
                                                  v-bind:key="'snippet-inline-' + (snippet.tafsir_slug || sidx)">
                                                 <div class="quranic-snippet__head">
-                                                    <span class="quranic-snippet__source">{{snippet.tafsir_name || snippet.tafsir_slug}}</span>
+                                                    <a v-if="snippet.source_url" v-bind:href="snippet.source_url" class="quranic-snippet__source-link" target="_blank" rel="noopener">{{snippet.tafsir_name || snippet.tafsir_slug}}</a>
+                                                    <span v-else class="quranic-snippet__source">{{snippet.tafsir_name || snippet.tafsir_slug}}</span>
                                                     <span class="quranic-snippet__section" v-if="snippet.section_title">&mdash; {{snippet.section_title}}</span>
                                                     <button type="button"
                                                             class="quranic-snippet__expand"
@@ -719,7 +740,7 @@
                                             <button class="icon-action icon-action--save" type="button"
                                                     v-on:click.stop.prevent="saveNarrationToCollection(narration)"
                                                     aria-label="Save hadith" title="Save to collection">
-                                                <i class="fa fa-bookmark-o" aria-hidden="true"></i>
+                                                <i class="fa fa-bookmark" aria-hidden="true"></i>
                                             </button>
                                             <button class="icon-action icon-action--edit" type="button"
                                                     v-if="canEditNarrations()"
@@ -731,7 +752,7 @@
                                                     v-if="collectionMode"
                                                     v-on:click="removeNarrationFromCurrentCollection(narration)"
                                                     aria-label="Remove from collection" title="Remove from collection">
-                                                <i class="fa fa-trash-o" aria-hidden="true"></i>
+                                                <i class="fa fa-trash-can" aria-hidden="true"></i>
                                             </button>
                                             <a class="icon-action icon-action--report" target="_blank"
                                                v-bind:href="reportNarrationHref(narration)"
@@ -747,7 +768,7 @@
                                                         aria-expanded="false"
                                                         aria-label="Share hadith"
                                                         title="Share">
-                                                    <i class="fa fa-share-square-o" aria-hidden="true"></i>
+                                                    <i class="fa fa-share-from-square" aria-hidden="true"></i>
                                                 </button>
                                                 <ul class="dropdown-menu dropdown-menu-end hadith-copy-menu">
                                                     <li>
@@ -768,7 +789,7 @@
                 </article>
                 <div class="hadith-divider" v-if="index < narrations.length - 1" aria-hidden="true">
                     <span class="hadith-divider__line"></span>
-                    <span class="hadith-divider__motif">۞</span>
+                    <span class="hadith-divider__motif">✦</span>
                     <span class="hadith-divider__line"></span>
                 </div>
             </div>
@@ -800,7 +821,7 @@
             <div>
                 <div class="site-footer__label">Explore</div>
                 <div class="site-footer__links">
-                    <a href="/#updates">Recent Updates</a>
+                    <a href="/updates.html">Updates</a>
                     <a href="/search_tips.html">Search Tips</a>
                     <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer">API Documentation</a>
                 </div>
@@ -833,7 +854,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/noty/3.1.4/noty.min.js"></script>
 <script crossorigin="anonymous" src="https://cdn.lr-ingest.io/LogRocket.min.js"></script>
 <script src="/js/vue-components.js?v=5" th:src="@{/js/vue-components.js?v=5}"></script>
-<script src="/js/rewayaat.js?v=104" th:src="@{/js/rewayaat.js?v=104}"></script>
+<script src="/js/rewayaat.js?v=131" th:src="@{/js/rewayaat.js?v=131}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" th:async="async"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.6/marked.min.js" th:defer="defer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js" th:defer="defer"></script>
@@ -849,6 +870,14 @@
     });
     /*]]>*/
 
+    // Eid banner dismiss
+    (function() {
+        var banner = document.getElementById('eid-banner');
+        var btn = document.getElementById('eidBannerClose');
+        if (banner && btn) {
+            btn.addEventListener('click', function() { banner.classList.add('is-hidden'); });
+        }
+    })();
 </script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-3HSRTQD7GM"></script>
 <script>

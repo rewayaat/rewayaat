@@ -11,7 +11,7 @@ import java.util.List;
 
 /**
  * Loads a small test dataset of Quranic verses with English translations.
- * Used for testing the QuranVerseTaggingTool before processing all 6,236 verses.
+ * Used for loading a small test dataset of Quranic verses.
  */
 public class LoadTestQuranData {
 

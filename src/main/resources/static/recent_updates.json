@@ -1,32 +1,98 @@
 [
   {
-    "date": "2026-02-17",
-    "title": "Sign In and Account Access",
-    "summary": "The top navigation now uses a single Sign In entry, and account creation is available directly from the sign-in flow.",
+    "date": "2026-06-02",
+    "title": "Eid al-Ghadeer Release",
+    "summary": "Major release coinciding with Eid al-Ghadeer: fully redesigned interface, SEO overhaul, and significant new features across the platform.",
     "highlights": [
-      "Single Sign In button in the main menu",
-      "Create account action inside the sign-in dialog",
-      "Password reset remains available in the same flow"
+      "Complete visual redesign with new typography and ornament system",
+      "SEO-optimized individual hadith pages for 32,000+ narrations",
+      "Dynamic sitemap for full search engine coverage",
+      "Quranic Insights panel connecting hadith to Quranic verses with tafsir sources",
+      "Tag-based topic filtering across search results"
     ]
   },
   {
-    "date": "2026-02-17",
-    "title": "Search Mode and Reading Mode",
-    "summary": "We introduced two clear working modes so users can either explore broadly or read in sequence.",
+    "date": "2026-05-15",
+    "title": "Filter by Topic Tags",
+    "summary": "Search results now include topic tags that you can click to instantly filter narrations by theme.",
     "highlights": [
-      "Prominent mode switch in the top navigation",
-      "Reading controls optimized for book/chapter navigation",
-      "Optional filter guidance in reading and browse views"
+      "Topic tag pills on each hadith card",
+      "Click any tag to filter results to that topic",
+      "Clear all filters with one click",
+      "Coverage across 50+ topic categories"
+    ]
+  },
+  {
+    "date": "2026-04-20",
+    "title": "Quranic Insights — Hadith to Tafsir Connections",
+    "summary": "Each hadith now shows related Quranic verses with tafsir commentary, connecting narrations to their scriptural roots.",
+    "highlights": [
+      "Quranic verse panel under each hadith card",
+      "Tafsir source tree for exploring multiple commentaries",
+      "Verse count shown upfront on the trigger tab",
+      "Supported by a curated filter pipeline for accuracy"
+    ]
+  },
+  {
+    "date": "2026-03-10",
+    "title": "Revamped UI and Typography",
+    "summary": "A ground-up redesign of the reading experience with new fonts, ornaments, and a cleaner layout.",
+    "highlights": [
+      "New font stack: Inter, Source Serif 4, Cormorant Garamond, Scheherazade New",
+      "Arabic calligraphy ornaments between hadith cards",
+      "Improved readability with better spacing and contrast",
+      "Responsive design improvements for mobile"
     ]
   },
   {
     "date": "2026-02-17",
     "title": "Find Similar Hadith",
-    "summary": "Each narration now shows similar hadith using semantic retrieval in Elasticsearch.",
+    "summary": "Each narration now shows similar hadith using semantic retrieval powered by a fine-tuned multilingual embedding model.",
     "highlights": [
       "Inline similar hadith panel under each card",
       "Upfront similar count shown on the trigger",
-      "Tabbed similar hadith browsing with full text display"
+      "Tabbed similar hadith browsing with full text display",
+      "Hybrid retrieval combining semantic similarity and lexical matching"
+    ]
+  },
+  {
+    "date": "2026-02-17",
+    "title": "Search Mode and Reading Mode",
+    "summary": "Two clear working modes so users can either explore broadly or read in sequence.",
+    "highlights": [
+      "Flexible (default) and Exact search modes",
+      "Reading controls for book/chapter/volume navigation",
+      "Optional filter guidance in reading and browse views"
+    ]
+  },
+  {
+    "date": "2026-02-17",
+    "title": "Sign In and Account Access",
+    "summary": "Single sign-in entry with account creation and password reset in a streamlined flow.",
+    "highlights": [
+      "Single Sign In button in the main menu",
+      "Create account action inside the sign-in dialog",
+      "Password reset available in the same flow"
+    ]
+  },
+  {
+    "date": "2026-01-05",
+    "title": "Browse by Book",
+    "summary": "A visual book selector on the home page with cascading filters for volume, part, section, and chapter.",
+    "highlights": [
+      "Clickable book cards with narration counts",
+      "Cascading dropdown filters",
+      "Direct jump to any section or chapter"
+    ]
+  },
+  {
+    "date": "2025-11-01",
+    "title": "Expanded Collection — Al-Amali, Al-Khisal, Uyun Akhbar Al-Rida",
+    "summary": "Added three major Shia hadith collections to the database, expanding coverage significantly.",
+    "highlights": [
+      "Al-Amali by Shaykh al-Mufid",
+      "Al-Khisal by Shaykh al-Saduq",
+      "Uyun Akhbar Al-Rida by Shaykh al-Saduq"
     ]
   }
 ]

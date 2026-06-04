@@ -12,6 +12,7 @@ import com.rewayaat.service.HadithEditorAccessService;
 import com.rewayaat.service.HadithQueryService;
 import com.rewayaat.service.QuranicInsightsService;
 import com.rewayaat.service.SimilarHadithService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -61,7 +62,6 @@ public class HadithController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HadithController.class);
     private static final com.fasterxml.jackson.databind.ObjectMapper JSON = new com.fasterxml.jackson.databind.ObjectMapper();
-    private static final int SEARCH_MODE_MAX_RESULTS = 100;
     private static final Set<String> NON_PERSISTED_FIELDS = Set.of(
             "_id",
             "id",
@@ -133,14 +133,14 @@ public class HadithController {
             @Parameter(name = "q", description = "The query to execute.") @RequestParam(value = "q", defaultValue = "") String query,
             @Parameter(name = "sort_fields", description = "Sort fields for lookup queries.", required = false) @RequestParam(value = "sort_fields", defaultValue = "", required = false) String sortFields,
             @Parameter(name = "mode", description = "Display mode: search (default) or read.", required = false) @RequestParam(value = "mode", defaultValue = "search", required = false) String mode,
-            @Parameter(name = "match_mode", description = "Search strictness: permissive (default) or strict.", required = false) @RequestParam(value = "match_mode", defaultValue = "permissive", required = false) String matchMode,
+            @Parameter(name = "match_mode", description = "Search strictness: flexible (default) or precise.", required = false) @RequestParam(value = "match_mode", defaultValue = "flexible", required = false) String matchMode,
             @Parameter(name = "page", description = "The number of the page to return.", required = false) @RequestParam(value = "page", defaultValue = "1") int page,
-            @Parameter(name = "per_page", description = "Number of hadith to include per page. Maximum of 100.") @RequestParam(value = "per_page", defaultValue = "20") int perPage,
+            @Parameter(name = "per_page", description = "Number of hadith to include per page.") @RequestParam(value = "per_page", defaultValue = "20") int perPage,
             @Parameter(name = "topic_tags", description = "Controlled topic tags that all must match.", required = false) @RequestParam(value = "topic_tags", required = false) List<String> topicTags,
             @Parameter(name = "topic_tags_any", description = "Controlled topic tags where any may match.", required = false) @RequestParam(value = "topic_tags_any", required = false) List<String> topicTagsAny)
             throws Exception {
-        if (perPage > 100) {
-            perPage = 100;
+        if (perPage < 1) {
+            perPage = 20;
         }
         LOGGER.debug("Hadith query: q='{}', page={}, per_page={}, sort_fields='{}', topic_tags={}, topic_tags_any={}",
                 query, page, perPage, sortFields, topicTags, topicTagsAny);
@@ -150,15 +150,14 @@ public class HadithController {
             // Assumption: If sort values are provided, a lookup query is required.
             queryMode = QueryMode.LOOKUP;
         }
-        boolean strictMatchMode = isStrictMatchMode(matchMode);
-        int maxResults = isReadingMode(mode) ? 0 : SEARCH_MODE_MAX_RESULTS;
+        boolean strictMatchMode = isPreciseMatchMode(matchMode);
         return new QueryStringQueryResult(
                 hadithQueryService.enhanceQuery(query, queryMode, strictMatchMode),
                 page - 1,
                 perPage,
                 sortBuilders,
                 strictMatchMode,
-                maxResults,
+                0,
                 topicTags,
                 topicTagsAny).result();
     }
@@ -184,15 +183,8 @@ public class HadithController {
         return new ResponseEntity<>(payload, HttpStatus.OK);
     }
 
+    @Hidden
     @CrossOrigin(origins = { "*" }, allowCredentials = "false")
-    @Operation(summary = "Updates one narration by id.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Narration updated."),
-            @ApiResponse(responseCode = "400", description = "Invalid payload"),
-            @ApiResponse(responseCode = "401", description = "Authentication required"),
-            @ApiResponse(responseCode = "403", description = "User is not allowed to edit narrations"),
-            @ApiResponse(responseCode = "404", description = "Narration not found")
-    })
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT, produces = "application/json")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> updateHadith(
@@ -300,18 +292,15 @@ public class HadithController {
             @RequestParam(value = "sort_fields", defaultValue = "", required = false) String sortFields,
             @Parameter(name = "mode", description = "Display mode: search (default) or read.", required = false)
             @RequestParam(value = "mode", defaultValue = "search", required = false) String mode,
-            @Parameter(name = "match_mode", description = "Search strictness: permissive (default) or strict.", required = false)
-            @RequestParam(value = "match_mode", defaultValue = "permissive", required = false) String matchMode,
+            @Parameter(name = "match_mode", description = "Search strictness: flexible (default) or precise.", required = false)
+            @RequestParam(value = "match_mode", defaultValue = "flexible", required = false) String matchMode,
             @Parameter(name = "per_page", description = "Number of hadith per page.")
             @RequestParam(value = "per_page", defaultValue = "20", required = false) int perPage) throws Exception {
         if (perPage < 1) {
             perPage = 20;
         }
-        if (perPage > 100) {
-            perPage = 100;
-        }
         Map<String, Object> payload = new HashMap<>();
-        int maxScanned = isReadingMode(mode) ? 10000 : SEARCH_MODE_MAX_RESULTS;
+        int maxScanned = 10000;
         payload.put("ok", true);
         payload.put("page", 1);
         payload.put("per_page", perPage);
@@ -326,7 +315,7 @@ public class HadithController {
 
         List<SortOptions> sortBuilders = hadithQueryService.setupSortBuilders(sortFields);
         QueryMode queryMode = sortFields == null || sortFields.isEmpty() ? QueryMode.SEARCH : QueryMode.LOOKUP;
-        boolean strictMatchMode = isStrictMatchMode(matchMode);
+        boolean strictMatchMode = isPreciseMatchMode(matchMode);
         String enhancedQuery = hadithQueryService.enhanceQuery(safeQuery, queryMode, strictMatchMode);
 
         SearchRequest.Builder searchBuilder = new SearchRequest.Builder()
@@ -353,8 +342,9 @@ public class HadithController {
         return payload;
     }
 
-    private boolean isStrictMatchMode(String matchMode) {
-        return "strict".equalsIgnoreCase(matchMode == null ? "" : matchMode.trim());
+    private boolean isPreciseMatchMode(String matchMode) {
+        String normalized = matchMode == null ? "" : matchMode.trim().toLowerCase();
+        return "precise".equals(normalized) || "strict".equals(normalized) || "exact".equals(normalized);
     }
 
     private boolean isReadingMode(String mode) {

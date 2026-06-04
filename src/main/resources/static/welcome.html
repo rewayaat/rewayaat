@@ -1,21 +1,68 @@
 <section class="home-hero">
     <div class="home-hero__card">
         <div class="home-hero__layout">
-            <div class="home-hero__content">
-                <div class="home-hero__eyebrow">The Hadith Database Project</div>
-                <h1 class="home-hero__title">Search the Collection</h1>
-                <p class="home-hero__lead">
-                    Explore trusted narrations in Arabic and English. Search by phrase, topic, or book.
-                </p>
-                <div class="home-hero__signals">
-                    <span class="home-hero__signal">Arabic and English</span>
-                    <span class="home-hero__signal">Search by phrase or topic</span>
-                    <span class="home-hero__signal">Browse by book, volume, part, section, chapter</span>
-                    <span class="home-hero__signal"><i class="fa fa-clone" aria-hidden="true"></i> View similar hadith</span>
-                    <span class="home-hero__signal"><i class="fa fa-tags" aria-hidden="true"></i> Explore hadith by topic</span>
+            <div class="home-hero__content home-hero__content--stacked">
+                <div class="home-hero__brand">
+                    <img src="/img/mainlogo-transparent.png" class="home-hero__logo" alt="The Hadith Database logo" />
                 </div>
+                <p class="home-hero__search-note">
+                    Search in <span>English</span> or <span>Arabic</span> by single terms or phrases wrapped in quotations.
+                </p>
                 <div id="hero-search-slot" class="home-hero__search"></div>
-                <div class="home-hero__note">Tip: Use quotes for exact phrases, e.g. “pledge of allegiance”.</div>
+                <div class="home-hero__refine-toggle-row">
+                    <button type="button" id="heroRefineToggle" class="home-hero__refine-toggle" aria-expanded="false" aria-controls="heroRefinePanel">
+                        <i class="fa fa-sliders" aria-hidden="true"></i>
+                        <span>Refine Search</span>
+                        <i class="fa fa-chevron-down home-hero__refine-caret" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="home-hero__refine is-hidden" id="heroRefinePanel">
+                    <div class="browse-panel browse-panel--hero">
+                        <div class="browse-panel__advanced">
+                            <div class="browse-field browse-field--hero" data-hero-facet="book" data-persist-visible="true">
+                                <label for="heroBookSelect">Book</label>
+                                <div class="facet-select-wrap">
+                                    <select id="heroBookSelect" class="form-select form-select-sm">
+                                        <option value="">All Books</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="browse-field" data-hero-facet="volume" data-persist-visible="true">
+                                <label for="heroVolumeSelect">Volume</label>
+                                <div class="facet-select-wrap">
+                                    <select id="heroVolumeSelect" class="form-select form-select-sm" disabled>
+                                        <option value="">All Volumes</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="browse-field" data-hero-facet="part" data-persist-visible="true">
+                                <label for="heroPartSelect">Part</label>
+                                <div class="facet-select-wrap">
+                                    <select id="heroPartSelect" class="form-select form-select-sm" disabled>
+                                        <option value="">All Parts</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="browse-field" data-hero-facet="section" data-persist-visible="true">
+                                <label for="heroSectionSelect">Section</label>
+                                <div class="facet-select-wrap">
+                                    <select id="heroSectionSelect" class="form-select form-select-sm" disabled>
+                                        <option value="">All Sections</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="browse-field" data-hero-facet="chapter" data-persist-visible="true">
+                                <label for="heroChapterSelect">Chapter</label>
+                                <div class="facet-select-wrap">
+                                    <select id="heroChapterSelect" class="form-select form-select-sm" disabled>
+                                        <option value="">All Chapters</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="heroBrowseMeta" class="browse-meta browse-meta--hero text-muted">Choose optional filters to refine your search.</div>
+                </div>
             </div>
         </div>
     </div>
@@ -42,7 +89,7 @@
             <label for="browseVolumeSelect">Volume</label>
             <div class="facet-select-wrap">
                 <select id="browseVolumeSelect" class="form-select form-select-sm" disabled>
-                    <option value="">Select a volume</option>
+                    <option value="">All Volumes</option>
                 </select>
             </div>
         </div>
@@ -50,7 +97,7 @@
             <label for="browsePartSelect">Part</label>
             <div class="facet-select-wrap">
                 <select id="browsePartSelect" class="form-select form-select-sm" disabled>
-                    <option value="">Select a part</option>
+                    <option value="">All Parts</option>
                 </select>
             </div>
         </div>
@@ -58,7 +105,7 @@
             <label for="browseSectionSelect">Section</label>
             <div class="facet-select-wrap">
                 <select id="browseSectionSelect" class="form-select form-select-sm" disabled>
-                    <option value="">Select a section</option>
+                    <option value="">All Sections</option>
                 </select>
             </div>
         </div>
@@ -66,12 +113,12 @@
             <label for="browseChapterSelect">Chapter</label>
             <div class="facet-select-wrap">
                 <select id="browseChapterSelect" class="form-select form-select-sm" disabled>
-                    <option value="">Select a chapter</option>
+                    <option value="">All Chapters</option>
                 </select>
             </div>
         </div>
         <button id="browseSubmitBtn" class="btn btn-primary btn-sm browse-action" disabled>
-            <i class="fa fa-refresh" aria-hidden="true" style="margin-right: 8px;"></i>
+            <i class="fa fa-sliders" aria-hidden="true"></i>
             Browse Hadith
         </button>
     </div>
@@ -82,7 +129,7 @@
     <div class="home-section-header">
         <div>
             <h2 class="home-section-title">Recent Updates</h2>
-            <p class="home-section-subtitle">What changed recently in the experience.</p>
+            <p class="home-section-subtitle">What changed recently in the experience. <a href="/updates.html" class="recent-updates-more">View all updates &#8594;</a></p>
         </div>
     </div>
     <div id="recentUpdatesList" class="recent-updates-grid"></div>

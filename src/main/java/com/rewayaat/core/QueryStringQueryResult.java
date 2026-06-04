@@ -148,44 +148,29 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
 
         LOGGER.debug("buildSearchRequest: strictMatchMode={}, finalQuery={}", strictMatchMode, finalQuery);
 
-        // Parse field-scoped queries for strict mode
-        List<FieldScope> fieldScopes = strictMatchMode ? parseFieldScopes(finalQuery) : List.of();
+        List<FieldScope> fieldScopes = parseFieldScopes(finalQuery);
+        String residualQuery = removeFieldScopes(finalQuery);
 
-        LOGGER.debug("buildSearchRequest: fieldScopes.size={}", fieldScopes.size());
+        LOGGER.debug("buildSearchRequest: fieldScopes.size={}, residualQuery='{}'", fieldScopes.size(), residualQuery);
 
         SearchRequest.Builder builder = new SearchRequest.Builder()
                 .index(ESClientProvider.INDEX)
                 .searchType(SearchType.DfsQueryThenFetch)
                 .query(q -> q.bool(b -> {
-                    // In strict mode with field scopes, use wildcard for exact field matching
-                    // This handles special characters better than match_phrase with search_analyzers
-                    if (strictMatchMode && !fieldScopes.isEmpty()) {
-                        LOGGER.debug("Using wildcard queries for {} field scopes", fieldScopes.size());
-                        for (FieldScope scope : fieldScopes) {
-                            // For keyword-only fields (book, volume, etc.), use term query
-                            // For text fields (chapter, etc.), use wildcard on .keyword subfield
-                            String field = isKeywordOnlyField(scope.field) ? scope.field : scope.field + ".keyword";
-                            String value = scope.field.equals("book") ? scope.value : "*" + scope.value + "*";
-                            LOGGER.debug("Adding query: {} = {}, using field: {}, value: {}", scope.field, scope.value, field, value);
-                            if (scope.field.equals("book") || isSimpleValueField(scope.field)) {
-                                // Use term query for simple fields - use original scope.value, not wildcard value
-                                LOGGER.debug("Using TERM query: {} = {}", field, scope.value);
-                                b.must(m -> m.term(t -> t.field(field).value(scope.value)));
-                            } else {
-                                // Use wildcard for text fields with special characters
-                                LOGGER.debug("Using WILDCARD query: {} = {}", field, value);
-                                b.must(m -> m.wildcard(w -> w.field(field).value(value)));
-                            }
-                        }
-                    } else {
-                        // Standard query_string query for non-strict mode or no field scopes
+                    if (!residualQuery.isBlank()) {
                         b.must(s -> s.queryString(qs -> {
-                            qs.query(finalQuery);
+                            qs.query(residualQuery);
                             if (strictMatchMode) {
                                 qs.defaultOperator(Operator.And);
                             }
                             return qs;
                         }));
+                    } else if (fieldScopes.isEmpty()) {
+                        b.must(s -> s.queryString(qs -> qs.query("*")));
+                    }
+                    if (!fieldScopes.isEmpty()) {
+                        LOGGER.debug("Applying {} field scopes", fieldScopes.size());
+                        applyFieldScopes(b, fieldScopes);
                     }
                     for (String topicTag : topicTags) {
                         List<String> expanded = expandSelectedTag(topicTag);
@@ -230,34 +215,26 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
             String fuzziedQuery, Highlight highlightBuilder) throws UnknownHostException {
         String finalQuery = (fuzziedQuery == null || fuzziedQuery.trim().isEmpty()) ? "*" : fuzziedQuery.trim();
 
-        // Parse field-scoped queries for strict mode
-        List<FieldScope> fieldScopes = strictMatchMode ? parseFieldScopes(finalQuery) : List.of();
+        List<FieldScope> fieldScopes = parseFieldScopes(finalQuery);
+        String residualQuery = removeFieldScopes(finalQuery);
 
         SearchRequest.Builder builder = new SearchRequest.Builder()
                 .index(ESClientProvider.INDEX)
                 .searchType(SearchType.DfsQueryThenFetch)
                 .query(q -> q.bool(b -> {
-                    // In strict mode with field scopes, use wildcard for exact field matching
-                    if (strictMatchMode && !fieldScopes.isEmpty()) {
-                        for (FieldScope scope : fieldScopes) {
-                            String field = isKeywordOnlyField(scope.field) ? scope.field : scope.field + ".keyword";
-                            String value = scope.field.equals("book") ? scope.value : "*" + scope.value + "*";
-                            if (scope.field.equals("book") || isSimpleValueField(scope.field)) {
-                                // Use term query with original value, not wildcard value
-                                b.must(m -> m.term(t -> t.field(field).value(scope.value)));
-                            } else {
-                                b.must(m -> m.wildcard(w -> w.field(field).value(value)));
-                            }
-                        }
-                    } else {
-                        // Standard query_string query for non-strict mode or no field scopes
+                    if (!residualQuery.isBlank()) {
                         b.must(s -> s.queryString(qs -> {
-                            qs.query(finalQuery);
+                            qs.query(residualQuery);
                             if (strictMatchMode) {
                                 qs.defaultOperator(Operator.And);
                             }
                             return qs;
                         }));
+                    } else if (fieldScopes.isEmpty()) {
+                        b.must(s -> s.queryString(qs -> qs.query("*")));
+                    }
+                    if (!fieldScopes.isEmpty()) {
+                        applyFieldScopes(b, fieldScopes);
                     }
                     // Note: No topic tag filters here - we want the base count
                     return b;
@@ -419,5 +396,56 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
 
         LOGGER.debug("Total field scopes parsed: {}", scopes.size());
         return scopes;
+    }
+
+    private static String removeFieldScopes(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return "";
+        }
+        String stripped = query.replaceAll("(\\w+):\"([^\"]*)\"", " ");
+        stripped = stripped.replaceAll("\\s+", " ").trim();
+        if (stripped.isEmpty()) {
+            return "";
+        }
+        String[] tokens = stripped.split("\\s+");
+        List<String> cleaned = new ArrayList<>();
+        boolean expectingTerm = true;
+        for (String token : tokens) {
+            if (token == null || token.isBlank()) {
+                continue;
+            }
+            String upper = token.toUpperCase();
+            boolean isBoolean = "AND".equals(upper) || "OR".equals(upper);
+            if (isBoolean) {
+                if (expectingTerm || cleaned.isEmpty()) {
+                    continue;
+                }
+                cleaned.add(upper);
+                expectingTerm = true;
+                continue;
+            }
+            cleaned.add(token);
+            expectingTerm = false;
+        }
+        if (!cleaned.isEmpty()) {
+            String tail = cleaned.get(cleaned.size() - 1);
+            if ("AND".equalsIgnoreCase(tail) || "OR".equalsIgnoreCase(tail)) {
+                cleaned.remove(cleaned.size() - 1);
+            }
+        }
+        return String.join(" ", cleaned).trim();
+    }
+
+    private void applyFieldScopes(co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery.Builder boolBuilder,
+                                  List<FieldScope> fieldScopes) {
+        for (FieldScope scope : fieldScopes) {
+            String field = isKeywordOnlyField(scope.field) ? scope.field : scope.field + ".keyword";
+            String wildcardValue = scope.field.equals("book") ? scope.value : "*" + scope.value + "*";
+            if (scope.field.equals("book") || isSimpleValueField(scope.field)) {
+                boolBuilder.filter(f -> f.term(t -> t.field(field).value(scope.value)));
+            } else {
+                boolBuilder.filter(f -> f.wildcard(w -> w.field(field).value(wildcardValue)));
+            }
+        }
     }
 }

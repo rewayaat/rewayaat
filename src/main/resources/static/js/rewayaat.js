@@ -2,6 +2,12 @@ var vueApp;
 var currentQueryText = '';
 var bookBlurbs;
 var readingFacetData = {};
+var heroFacetConfig = [
+    { key: 'volume', selectId: 'heroVolumeSelect', fieldAttr: 'data-hero-facet' },
+    { key: 'part', selectId: 'heroPartSelect', fieldAttr: 'data-hero-facet' },
+    { key: 'section', selectId: 'heroSectionSelect', fieldAttr: 'data-hero-facet' },
+    { key: 'chapter', selectId: 'heroChapterSelect', fieldAttr: 'data-hero-facet' }
+];
 var browseFacetConfig = [
     { key: 'volume', selectId: 'browseVolumeSelect', fieldAttr: 'data-browse-facet' },
     { key: 'part', selectId: 'browsePartSelect', fieldAttr: 'data-browse-facet' },
@@ -18,11 +24,22 @@ var facetHierarchy = ['volume', 'part', 'section', 'chapter'];
 var facetKeys = ['volume', 'part', 'section', 'chapter'];
 var readingNavOrder = ['chapter', 'section', 'part', 'volume'];
 var optionalFiltersHint = '';
-var searchMatchMode = 'permissive';
+var searchMatchMode = 'flexible';
 var suppressSearchGlow = false;
+var suppressKeyboardSearchSubmitUntil = 0;
+var searchSuggestionNavigationArmed = false;
 var welcomeContentLoading = false;
 var welcomeContentInitialized = false;
-var SEARCH_FETCH_LIMIT = 10000;
+var SEARCH_PLACEHOLDER_DEFAULT = '';
+var SEARCH_PLACEHOLDER_EXAMPLES = ['anger', '"Household of the Prophet"', 'اهل البيت'];
+var searchPlaceholderAnimation = {
+    timer: null,
+    control: null,
+    exampleIndex: 0,
+    charIndex: 0,
+    deleting: false
+};
+var SEARCH_PAGE_SIZE = 100;
 var READING_PAGE_SIZE = 50;
 var INITIAL_VISIBLE_NARRATIONS = 16;
 var REVEAL_BATCH_SIZE = 12;
@@ -184,10 +201,137 @@ function updateSearchPlaceholder(control) {
         return;
     }
     var hasItems = Array.isArray(control.items) && control.items.length > 0;
-    control.control_input.placeholder = hasItems ? '' : '"Household of the prophet"  Ahlulbayt  "اهل البيت"';
-    if (typeof control.inputState === 'function') {
-        control.inputState();
+    if (hasItems) {
+        stopSearchPlaceholderAnimation(control, '');
+        return;
     }
+    syncSearchPlaceholderAnimation(control);
+}
+
+function isHomeSearchPlaceholderContext(control) {
+    var queryBar = document.getElementById('queryBar');
+    if (!control || !control.control_input || !queryBar) {
+        return false;
+    }
+    return queryBar.classList.contains('home-search') && queryBar.contains(control.control_input);
+}
+
+function getSearchGhostElement(control) {
+    var queryBar = document.getElementById('queryBar');
+    if (!control || !queryBar || !queryBar.querySelector) {
+        return null;
+    }
+    return queryBar.querySelector('#searchGhostText');
+}
+
+function canAnimateSearchPlaceholder(control) {
+    if (!isHomeSearchPlaceholderContext(control) || !control || !control.control_input) {
+        return false;
+    }
+    if (Array.isArray(control.items) && control.items.length > 0) {
+        return false;
+    }
+    if ((control.control_input.value || '').trim()) {
+        return false;
+    }
+    return true;
+}
+
+function stopSearchPlaceholderAnimation(control, placeholderText) {
+    if (searchPlaceholderAnimation.timer) {
+        clearTimeout(searchPlaceholderAnimation.timer);
+        searchPlaceholderAnimation.timer = null;
+    }
+    var ghost = getSearchGhostElement(control);
+    if (ghost) {
+        ghost.textContent = '';
+        ghost.classList.remove('is-visible');
+    }
+    if (control && control.control_input) {
+        control.control_input.placeholder = placeholderText == null ? '' : placeholderText;
+        if (typeof control.inputState === 'function') {
+            control.inputState();
+        }
+    }
+    if (!control || searchPlaceholderAnimation.control === control) {
+        searchPlaceholderAnimation.control = control || null;
+        searchPlaceholderAnimation.charIndex = 0;
+        searchPlaceholderAnimation.deleting = false;
+    }
+}
+
+function scheduleSearchPlaceholderAnimation(control, delay) {
+    if (searchPlaceholderAnimation.timer) {
+        clearTimeout(searchPlaceholderAnimation.timer);
+    }
+    searchPlaceholderAnimation.timer = setTimeout(function() {
+        tickSearchPlaceholderAnimation(control);
+    }, delay);
+}
+
+function startSearchPlaceholderAnimation(control) {
+    if (!control || !control.control_input) {
+        return;
+    }
+    if (searchPlaceholderAnimation.control !== control) {
+        searchPlaceholderAnimation.control = control;
+        searchPlaceholderAnimation.exampleIndex = 0;
+        searchPlaceholderAnimation.charIndex = 0;
+        searchPlaceholderAnimation.deleting = false;
+    }
+    scheduleSearchPlaceholderAnimation(control, 240);
+}
+
+function tickSearchPlaceholderAnimation(control) {
+    if (!control || !control.control_input) {
+        return;
+    }
+    if (!canAnimateSearchPlaceholder(control)) {
+        stopSearchPlaceholderAnimation(control, '');
+        return;
+    }
+    var ghost = getSearchGhostElement(control);
+    if (!ghost) {
+        stopSearchPlaceholderAnimation(control, '');
+        return;
+    }
+    ghost.classList.add('is-visible');
+    var example = SEARCH_PLACEHOLDER_EXAMPLES[searchPlaceholderAnimation.exampleIndex % SEARCH_PLACEHOLDER_EXAMPLES.length] || '';
+    if (!searchPlaceholderAnimation.deleting) {
+        searchPlaceholderAnimation.charIndex = Math.min(example.length, searchPlaceholderAnimation.charIndex + 1);
+        ghost.textContent = example.slice(0, searchPlaceholderAnimation.charIndex);
+        if (searchPlaceholderAnimation.charIndex >= example.length) {
+            searchPlaceholderAnimation.deleting = true;
+            scheduleSearchPlaceholderAnimation(control, 1300);
+            return;
+        }
+        scheduleSearchPlaceholderAnimation(control, 84);
+        return;
+    }
+    searchPlaceholderAnimation.charIndex = Math.max(0, searchPlaceholderAnimation.charIndex - 1);
+    ghost.textContent = example.slice(0, searchPlaceholderAnimation.charIndex);
+    if (searchPlaceholderAnimation.charIndex <= 0) {
+        searchPlaceholderAnimation.deleting = false;
+        searchPlaceholderAnimation.exampleIndex = (searchPlaceholderAnimation.exampleIndex + 1) % SEARCH_PLACEHOLDER_EXAMPLES.length;
+        scheduleSearchPlaceholderAnimation(control, 260);
+        return;
+    }
+    scheduleSearchPlaceholderAnimation(control, 56);
+}
+
+function syncSearchPlaceholderAnimation(control) {
+    if (!control || !control.control_input) {
+        return;
+    }
+    if (canAnimateSearchPlaceholder(control)) {
+        control.control_input.placeholder = '';
+        if (typeof control.inputState === 'function') {
+            control.inputState();
+        }
+        startSearchPlaceholderAnimation(control);
+        return;
+    }
+    stopSearchPlaceholderAnimation(control, SEARCH_PLACEHOLDER_DEFAULT);
 }
 
 function setupSelect2EnterKeyListener(select2_id) {
@@ -200,12 +344,30 @@ function setupSelect2EnterKeyListener(select2_id) {
     }
     input.dataset.boundSearchInput = 'true';
     input.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            searchSuggestionNavigationArmed = true;
+            return;
+        }
+        if (e.key === 'Escape') {
+            searchSuggestionNavigationArmed = false;
+            return;
+        }
         if (e.key === 'Enter') {
+            if (searchSuggestionNavigationArmed && hasActiveSearchSuggestionSelection()) {
+                searchSuggestionNavigationArmed = false;
+                return;
+            }
             e.preventDefault();
             e.stopPropagation();
+            e.stopImmediatePropagation();
             var pendingForEnter = (input.value || '').trim();
             if (pendingForEnter) {
-                autocompletePendingSearchTerm(pendingForEnter);
+                markKeyboardSearchTermCommit();
+                commitPendingSearchTermsToControl([pendingForEnter]);
+                indicatePendingSearchTerms();
+                if (searchSelectControl && searchSelectControl.control_input) {
+                    searchSelectControl.control_input.focus();
+                }
                 return;
             }
             submitSearchQuery();
@@ -218,14 +380,41 @@ function setupSelect2EnterKeyListener(select2_id) {
             }
             e.preventDefault();
             e.stopPropagation();
+            markKeyboardSearchTermCommit();
             autocompletePendingSearchTerm(pending);
         }
-    });
+    }, true);
     input.addEventListener('input', function() {
+        searchSuggestionNavigationArmed = false;
         if ((input.value || '').trim()) {
             indicatePendingSearchTerms();
         }
+        updateSearchPlaceholder(searchSelectControl);
     });
+    input.addEventListener('focus', function() {
+        searchSuggestionNavigationArmed = false;
+        updateSearchPlaceholder(searchSelectControl);
+    });
+    input.addEventListener('blur', function() {
+        searchSuggestionNavigationArmed = false;
+        setTimeout(function() {
+            updateSearchPlaceholder(searchSelectControl);
+        }, 40);
+    });
+}
+
+function hasActiveSearchSuggestionSelection() {
+    if (!searchSelectControl) {
+        return false;
+    }
+    if (searchSelectControl.activeOption && searchSelectControl.activeOption.getAttribute && searchSelectControl.activeOption.getAttribute('data-selectable') !== null) {
+        return true;
+    }
+    var dropdown = searchSelectControl.dropdown_content;
+    if (!dropdown || !dropdown.querySelector) {
+        return false;
+    }
+    return !!dropdown.querySelector('.active[data-selectable]');
 }
 
 function autocompletePendingSearchTerm(pendingText) {
@@ -348,6 +537,17 @@ function isSearchBarFocused() {
     return false;
 }
 
+function markKeyboardSearchTermCommit() {
+    suppressKeyboardSearchSubmitUntil = Date.now() + 400;
+}
+
+function shouldTriggerSearchOnEnter(pendingTerms, suppressUntil, now) {
+    if (Array.isArray(pendingTerms) && pendingTerms.length) {
+        return false;
+    }
+    return Number(now || Date.now()) >= Number(suppressUntil || 0);
+}
+
 function setupGlobalSearchSubmit() {
     document.addEventListener('keydown', function(e) {
         if (e.key !== 'Enter') {
@@ -357,6 +557,10 @@ function setupGlobalSearchSubmit() {
             return;
         }
         if (isSearchBarFocused()) {
+            return;
+        }
+        if (!shouldTriggerSearchOnEnter(getPendingSearchTerms(), suppressKeyboardSearchSubmitUntil, Date.now())) {
+            e.preventDefault();
             return;
         }
         submitSearchQuery();
@@ -370,7 +574,7 @@ function setupSearchHelpHint() {
     }
     btn.addEventListener('click', function(e) {
         e.preventDefault();
-        var msg = "Exact: exact words and exact phrases.\n\nFlexible: tolerates spelling variants and partial matches.";
+        var msg = "Precise: exact words and exact phrases.\n\nFlexible: tolerates spelling variants and partial matches.";
         if (typeof swal === 'function') {
             swal('Search Modes', msg, 'info');
         } else {
@@ -1979,12 +2183,13 @@ function initSelect2(select2_id) {
         },
         persist: false,
         create: true,
+        createOnBlur: false,
         hideSelected: true,
         closeAfterSelect: true,
         dropdownParent: 'body',
         hidePlaceholder: true,
         maxItems: null,
-        placeholder: '"Household of the prophet"  Ahlulbayt  "اهل البيت"',
+        placeholder: SEARCH_PLACEHOLDER_DEFAULT,
         loadThrottle: 250,
         load: function(query, callback) {
             var term = (query || '').trim();
@@ -2025,6 +2230,10 @@ function initSelect2(select2_id) {
         },
         onInitialize: function() {
             updateSearchPlaceholder(this);
+            var self = this;
+            setTimeout(function() {
+                updateSearchPlaceholder(self);
+            }, 180);
         }
     });
     return searchSelectControl;
@@ -2132,58 +2341,83 @@ function hasScopeSelections(filters) {
     return !!(filters && (filters.book || filters.volume || filters.part || filters.section || filters.chapter || filters.source));
 }
 
-function buildSearchSubmissionState(scopeOverride) {
-    var selectedTerms = getSelectedSearchTerms();
-    var pendingTerms = getPendingSearchTerms();
-    if (pendingTerms.length) {
+function buildSearchSubmissionState(scopeOverride, options) {
+    var ignoreSearchTerms = !!(options && options.ignoreSearchTerms);
+    var selectedTerms = ignoreSearchTerms ? [] : getSelectedSearchTerms();
+    var pendingTerms = ignoreSearchTerms ? [] : getPendingSearchTerms();
+    if (!ignoreSearchTerms && pendingTerms.length) {
         commitPendingSearchTermsToControl(pendingTerms);
     }
-    var terms = mergeSearchTerms(selectedTerms, pendingTerms.length ? pendingTerms : getSelectedSearchTerms());
+    var mergedTerms = ignoreSearchTerms
+        ? []
+        : mergeSearchTerms(selectedTerms, pendingTerms.length ? pendingTerms : getSelectedSearchTerms());
+    var termQueryState = extractQueryState(mergedTerms.join(' '));
+    var terms = termQueryState.keywordTerms;
     var queryState = extractQueryState(getQueryStringValue('q') || '');
-    var scopeFilters = cloneFacetSelections(queryState.scopeFilters);
+    var scopeFilters = cloneFacetSelections(termQueryState.scopeFilters);
+    if (!hasScopeSelections(scopeFilters)) {
+        scopeFilters = cloneFacetSelections(queryState.scopeFilters);
+    }
     if (scopeOverride && hasScopeSelections(scopeOverride)) {
         scopeFilters = cloneFacetSelections(scopeOverride);
     } else {
-        var browseSelections = cloneFacetSelections(getBrowseSelections());
-        if (hasScopeSelections(browseSelections)) {
-            scopeFilters = browseSelections;
+        var heroSelections = cloneFacetSelections(getHeroSelections());
+        if (hasScopeSelections(heroSelections)) {
+            scopeFilters = heroSelections;
+        } else {
+            var browseSelections = cloneFacetSelections(getBrowseSelections());
+            if (hasScopeSelections(browseSelections)) {
+                scopeFilters = browseSelections;
+            }
         }
     }
     return {
         terms: terms,
         scopeFilters: scopeFilters,
         hasScope: hasScopeSelections(scopeFilters),
-        queryState: queryState,
+        queryState: termQueryState,
         query: buildScopedQuery(terms, scopeFilters)
     };
 }
 
-function executeSearchSubmission(scopeOverride) {
+function isHomeHeroSearchContext() {
+    return !!document.getElementById('hero-search-slot');
+}
+
+function executeSearchSubmission(scopeOverride, options) {
     clearPendingSearchTermsIndicator();
-    var submission = buildSearchSubmissionState(scopeOverride);
+    var submission = buildSearchSubmissionState(scopeOverride, options);
     if (!submission.terms.length && !submission.hasScope) {
         return;
     }
     if (!submission.query) {
         return;
     }
-    var browseOnly = submission.hasScope && !submission.terms.length;
-    var nextEntry = submission.hasScope ? 'browse' : resolveEntryContextParam();
+    var forceSearchMode = !!(options && options.forceSearchMode);
+    var submissionMatchMode = normalizeSearchMatchMode((options && options.matchMode) || searchMatchMode);
+    var hasTerms = submission.terms.length > 0;
+    var browseOnly = submission.hasScope && !hasTerms && !forceSearchMode;
+    var nextEntry = (forceSearchMode || hasTerms)
+        ? 'search'
+        : (submission.hasScope ? 'browse' : resolveEntryContextParam());
     redirectToSearchResult(
         submission.query,
         browseOnly ? 1 : '',
         browseOnly ? buildSortFields(submission.scopeFilters) : '',
         browseOnly ? 'read' : '',
         '',
-        searchMatchMode,
+        submissionMatchMode,
         nextEntry
     );
 }
 
 
 // processes the user's query by redirecting with query parameter.
-function submitSearchQuery() {
-    executeSearchSubmission();
+function submitSearchQuery(modeOverride) {
+    executeSearchSubmission(null, {
+        forceSearchMode: isHomeHeroSearchContext(),
+        matchMode: modeOverride || searchMatchMode
+    });
 }
 
 function redirectToSearchResult(query, page, sortFields, mode, focusId, matchMode, entryContext) {
@@ -2269,7 +2503,7 @@ function displayWelcomeContent() {
     vueApp = new Vue({
         el: '#hadithView'
     });
-    $("#welcome").load("/welcome.html?v=25", function(responseData, statusText) {
+    $("#welcome").load("/welcome.html?v=33", function(responseData, statusText) {
         welcomeContentLoading = false;
         welcomeContentInitialized = statusText === 'success';
         var queryBar = document.getElementById('queryBar');
@@ -2326,8 +2560,11 @@ function indicateActionButtonPending(buttonId) {
     button.classList.add("needs-update");
     button.classList.remove("button-glow");
     if (typeof Noty !== 'undefined') {
+        var actionLabel = (button.textContent || '')
+            .replace(/\s+/g, ' ')
+            .trim() || 'Update Results';
         new Noty({
-            text: 'Click <b>Update Results</b> to apply your changes',
+            text: 'Click <b>' + actionLabel + '</b> to apply your changes',
             type: 'info',
             timeout: 3500,
             theme: 'mint',
@@ -2348,11 +2585,6 @@ function clearActionButtonPending(buttonId) {
     button.classList.remove("needs-update");
     button.classList.remove("button-glow");
 }
-// processes the user's query by redirecting with query parameter.
-function submitSearchQuery() {
-    executeSearchSubmission();
-}
-
 function showBookBlurb(bookName) {
     for (blurb in bookBlurbs) {
         if (strip(bookName).toUpperCase().includes(bookBlurbs[blurb].book.toUpperCase())) {
@@ -2390,9 +2622,10 @@ function select2SelectHandler(select2_id) {
 }
 
 function displayQuery(query) {
-    // 1 --> split keyword query on spaces and quotes (scope filters stay outside the input)
-    var queryState = extractQueryState(query);
-    var searchTermsArray = queryState.keywordTerms;
+    var searchTermsArray = splitQuery(query).filter(function(term) {
+        var cleaned = (term || '').trim();
+        return cleaned && cleaned !== '*:*';
+    });
     // 2 --> populate search bar with options
     var selectSearchTerms = document.getElementById("searchTerms");
     selectSearchTerms.innerHTML = '';
@@ -2445,11 +2678,43 @@ function isReadingMode(query) {
 }
 
 function normalizeSearchMatchMode(mode) {
-    return (mode || '').toLowerCase() === 'permissive' ? 'permissive' : 'strict';
+    var normalized = String(mode || '').trim().toLowerCase();
+    if (normalized === 'precise' || normalized === 'strict' || normalized === 'exact') {
+        return 'precise';
+    }
+    return 'flexible';
+}
+
+function resolveSearchMatchModeValue(requestedMode, fallbackMode) {
+    if (requestedMode && String(requestedMode).trim()) {
+        return normalizeSearchMatchMode(requestedMode);
+    }
+    return normalizeSearchMatchMode(fallbackMode);
 }
 
 function resolveSearchMatchModeParam() {
-    return normalizeSearchMatchMode(getQueryStringValue('match_mode') || searchMatchMode);
+    return resolveSearchMatchModeValue(getQueryStringValue('match_mode'), searchMatchMode);
+}
+
+function getSearchModeLabel(mode) {
+    return normalizeSearchMatchMode(mode) === 'flexible' ? 'Flexible' : 'Precise';
+}
+
+function updateSearchModeDropdownDisplay() {
+    var control = document.getElementById('searchModeDropdown');
+    var searchBtn = document.getElementById('searchBtn1');
+    if (!control) {
+        return;
+    }
+    control.setAttribute('data-current-mode', searchMatchMode);
+    Array.prototype.forEach.call(control.querySelectorAll('.search-mode-option'), function(choice) {
+        var active = choice.dataset.mode === searchMatchMode;
+        choice.classList.toggle('is-active', active);
+        choice.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+    if (searchBtn) {
+        searchBtn.setAttribute('data-current-mode', searchMatchMode);
+    }
 }
 
 function resolveModeParam() {
@@ -2727,7 +2992,7 @@ function updateFacetSelect(config, items, selectedValue, placeholderOverride) {
     }
     var field = document.querySelector('[' + config.fieldAttr + '="' + config.key + '"]');
     var persistVisible = !!(field && field.dataset.persistVisible === 'true');
-    var placeholder = placeholderOverride || (config.selectId.indexOf('browse') === 0
+    var placeholder = placeholderOverride || ((config.selectId.indexOf('browse') === 0 || config.selectId.indexOf('hero') === 0)
         ? getBrowseFacetPlaceholder(config.key)
         : ('Select a ' + humanizeFacetLabel(config.key).toLowerCase()));
     var normalizedItems = (items || []).map(function(item) {
@@ -2789,6 +3054,7 @@ function syncReadingModeUI(query, sortFields) {
     if (document && document.body) {
         document.body.classList.toggle('is-reading-mode', activeReadingMode);
         document.body.classList.toggle('is-collection-mode', activeCollectionMode);
+        document.body.classList.toggle('is-search-mode', !!query && !activeReadingMode && !activeCollectionMode);
     }
     if (queryBar) {
         queryBar.classList.toggle('is-hidden', activeReadingMode || activeCollectionMode);
@@ -2824,6 +3090,7 @@ function setupSearchMatchToggle(query, sortFields) {
     // Legacy function - now handled by dropdown
     // This is kept for compatibility but doesn't do anything
     searchMatchMode = resolveSearchMatchModeParam();
+    updateSearchModeDropdownDisplay();
 }
 
 function applySearchMatchMode(mode, query, sortFields) {
@@ -3673,9 +3940,12 @@ function truncateWordsPreservingFormatting(text, maxWords) {
 }
 
 function loadBrowseBooks() {
+    var heroRefineToggle = document.getElementById('heroRefineToggle');
+    var heroRefinePanel = document.getElementById('heroRefinePanel');
+    var heroBookSelect = document.getElementById('heroBookSelect');
     var bookSelect = document.getElementById('browseBookSelect');
     var submitBtn = document.getElementById('browseSubmitBtn');
-    if (!bookSelect) {
+    if (!heroBookSelect && !bookSelect) {
         return;
     }
     setBrowsePanelVisible(false);
@@ -3684,6 +3954,31 @@ function loadBrowseBooks() {
     var meta = document.getElementById('browseMeta');
     if (meta) {
         meta.textContent = 'Choose a book to unlock volume, part, section, and chapter filters.';
+    }
+    var heroMeta = document.getElementById('heroBrowseMeta');
+    if (heroMeta) {
+        heroMeta.textContent = 'Choose optional filters to refine your search.';
+    }
+    if (heroRefineToggle && heroRefinePanel && !heroRefineToggle.dataset.bound) {
+        heroRefineToggle.addEventListener('click', function() {
+            setHeroRefinePanelVisible(heroRefinePanel.classList.contains('is-hidden'));
+        });
+        heroRefineToggle.dataset.bound = 'true';
+    }
+    if (heroBookSelect && !heroBookSelect.dataset.bound) {
+        heroBookSelect.addEventListener('change', function() {
+            handleHeroSelectionChange(true);
+        });
+        heroFacetConfig.forEach(function(config) {
+            var select = document.getElementById(config.selectId);
+            if (select) {
+                select.addEventListener('change', function() {
+                    setHeroRefinePanelVisible(true);
+                    handleHeroSelectionChange(false);
+                });
+            }
+        });
+        heroBookSelect.dataset.bound = 'true';
     }
     if (!bookSelect.dataset.bound) {
         bookSelect.addEventListener('change', function() {
@@ -3720,6 +4015,17 @@ function loadBrowseBooks() {
         });
 }
 
+function setHeroRefinePanelVisible(visible) {
+    var panel = document.getElementById('heroRefinePanel');
+    var toggle = document.getElementById('heroRefineToggle');
+    if (!panel || !toggle) {
+        return;
+    }
+    panel.classList.toggle('is-hidden', !visible);
+    toggle.classList.toggle('is-open', !!visible);
+    toggle.setAttribute('aria-expanded', visible ? 'true' : 'false');
+}
+
 function setBrowseBookFieldVisible(visible) {
     var field = document.getElementById('browseBookField');
     if (!field) {
@@ -3737,21 +4043,18 @@ function setBrowsePanelVisible(visible) {
     if (!panel) {
         return;
     }
-    if (panel.classList.contains('browse-panel--hero')) {
-        panel.classList.remove('is-hidden');
-        panel.classList.toggle('is-refining', !!visible);
-        return;
-    }
     panel.classList.toggle('is-hidden', !visible);
 }
 
 function populateBrowseBooks(books) {
+    var heroBookSelect = document.getElementById('heroBookSelect');
     var bookSelect = document.getElementById('browseBookSelect');
     var bookList = document.getElementById('browseBookList');
-    if (!bookSelect) {
+    if (!heroBookSelect && !bookSelect) {
         return;
     }
-    bookSelect.innerHTML = '<option value=\"\">All Books</option>';
+    populateBookSelect(heroBookSelect, books, 'All Books');
+    populateBookSelect(bookSelect, books, 'Select a book');
     if (bookList) {
         bookList.innerHTML = '';
     }
@@ -3761,11 +4064,6 @@ function populateBrowseBooks(books) {
             return;
         }
         var count = item.count || 0;
-        var option = document.createElement('option');
-        option.value = name;
-        option.textContent = name + ' (' + formatHadithCount(count) + ')';
-        bookSelect.appendChild(option);
-
         if (bookList) {
             var card = document.createElement('div');
             card.className = 'browse-book-card';
@@ -3779,7 +4077,9 @@ function populateBrowseBooks(books) {
             card.addEventListener('click', function() {
                 setBrowsePanelVisible(true);
                 setBrowseBookFieldVisible(true);
-                bookSelect.value = name;
+                if (bookSelect) {
+                    bookSelect.value = name;
+                }
                 indicateActionButtonPending('browseSubmitBtn');
                 if (bookList) {
                     Array.prototype.slice.call(bookList.querySelectorAll('.browse-book-card')).forEach(function(node) {
@@ -3787,9 +4087,9 @@ function populateBrowseBooks(books) {
                     });
                 }
                 handleBrowseSelectionChange(true);
-                var heroCard = document.querySelector('.home-hero__card');
-                if (heroCard) {
-                    heroCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                var browsePanel = document.getElementById('browseFacetPanel');
+                if (browsePanel) {
+                    browsePanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 }
             });
             bookList.appendChild(card);
@@ -3797,10 +4097,57 @@ function populateBrowseBooks(books) {
     });
 }
 
+function populateBookSelect(select, books, placeholder) {
+    if (!select) {
+        return;
+    }
+    select.innerHTML = '<option value=\"\">' + placeholder + '</option>';
+    (books || []).forEach(function(item) {
+        var name = item.name || item.key || '';
+        if (!name) {
+            return;
+        }
+        var count = item.count || 0;
+        var option = document.createElement('option');
+        option.value = name;
+        option.textContent = name + ' (' + formatHadithCount(count) + ')';
+        select.appendChild(option);
+    });
+}
+
+function resetHeroFacetSelects() {
+    heroFacetConfig.forEach(function(config) {
+        updateFacetSelect(config, [], '');
+    });
+}
+
 function resetBrowseFacetSelects() {
     browseFacetConfig.forEach(function(config) {
         updateFacetSelect(config, [], '');
     });
+}
+
+function handleHeroSelectionChange(resetFacets) {
+    var selections = getHeroSelections();
+    var meta = document.getElementById('heroBrowseMeta');
+    setHeroRefinePanelVisible(true);
+    if (!selections.book) {
+        resetHeroFacetSelects();
+        if (meta) {
+            meta.textContent = 'Choose optional filters to refine your search.';
+        }
+        return;
+    }
+    if (resetFacets) {
+        selections.volume = '';
+        selections.part = '';
+        selections.section = '';
+        selections.chapter = '';
+    }
+    if (meta) {
+        meta.textContent = 'Loading filters...';
+    }
+    fetchHeroFacets(selections);
 }
 
 function handleBrowseSelectionChange(resetFacets) {
@@ -3831,6 +4178,24 @@ function handleBrowseSelectionChange(resetFacets) {
     fetchBrowseFacets(selections);
 }
 
+function fetchHeroFacets(filters) {
+    var activeFilters = cloneFacetSelections(filters || getHeroSelections());
+    activeFilters.book = (filters && filters.book) ? filters.book : getSelectValue('heroBookSelect');
+    var url = buildFacetsUrl(activeFilters);
+    fetch(url)
+        .then(function(resp) { return resp.json(); })
+        .then(function(data) {
+            applyHeroFacets(data, activeFilters);
+        })
+        .catch(function() {
+            var meta = document.getElementById('heroBrowseMeta');
+            if (meta) {
+                meta.textContent = 'Unable to load filters for this book.';
+            }
+            resetHeroFacetSelects();
+        });
+}
+
 function fetchBrowseFacets(filters) {
     var activeFilters = cloneFacetSelections(filters || getBrowseSelections());
     activeFilters.book = (filters && filters.book) ? filters.book : getSelectValue('browseBookSelect');
@@ -3848,6 +4213,27 @@ function fetchBrowseFacets(filters) {
             resetBrowseFacetSelects();
             updateBrowseSubmitState(activeFilters);
         });
+}
+
+function applyHeroFacets(data, selections) {
+    var facets = (data && data.facets) ? data.facets : {};
+    var currentSelections = cloneFacetSelections(selections || getHeroSelections());
+    currentSelections.book = (selections && selections.book) ? selections.book : getSelectValue('heroBookSelect');
+    var resolvedSelections = cloneFacetSelections(currentSelections);
+    resolvedSelections.book = currentSelections.book;
+    heroFacetConfig.forEach(function(config) {
+        var items = facets[config.key] || [];
+        var selectedValue = resolvedSelections[config.key];
+        resolvedSelections[config.key] = updateFacetSelect(config, items, selectedValue);
+    });
+    var meta = document.getElementById('heroBrowseMeta');
+    if (meta) {
+        var summary = buildFacetSummary(facets);
+        meta.textContent = summary ? ('Available: ' + summary + '.') : 'No extra filters found for this book.';
+    }
+    if (facetSelectionsChanged(currentSelections, resolvedSelections)) {
+        fetchHeroFacets(resolvedSelections);
+    }
 }
 
 function applyBrowseFacets(data, selections) {
@@ -3871,6 +4257,16 @@ function applyBrowseFacets(data, selections) {
         return;
     }
     updateBrowseSubmitState(resolvedSelections);
+}
+
+function getHeroSelections() {
+    return {
+        book: getSelectValue('heroBookSelect'),
+        volume: getSelectValue('heroVolumeSelect'),
+        part: getSelectValue('heroPartSelect'),
+        section: getSelectValue('heroSectionSelect'),
+        chapter: getSelectValue('heroChapterSelect')
+    };
 }
 
 function getBrowseSelections() {
@@ -3900,7 +4296,9 @@ function startBrowseFlow(scopedSelections) {
     if (!selections.book) {
         return;
     }
-    executeSearchSubmission(selections);
+    executeSearchSubmission(selections, {
+        ignoreSearchTerms: true
+    });
 }
 
 function sanitizeQueryValue(value) {
@@ -3947,7 +4345,7 @@ function setupVue(query, page, sortFields) {
             sortFields: sortFields,
             page: (isReadingMode(query) || isCollectionMode()) ? page : 1,
             totalHits: 0,
-            pageSize: isReadingMode(query) ? READING_PAGE_SIZE : 20,
+            pageSize: isReadingMode(query) ? READING_PAGE_SIZE : SEARCH_PAGE_SIZE,
             book_blurbs: bookBlurbs,
             readingMode: isReadingMode(query),
             collectionMode: isCollectionMode(),
@@ -3965,6 +4363,7 @@ function setupVue(query, page, sortFields) {
             baseNarrationTotal: 0,
             searchResultOrdinalMap: {},
             visibleNarrationCount: INITIAL_VISIBLE_NARRATIONS,
+            searchAppendInFlight: false,
             narrationRevealObserver: null,
             arabicSuggestionObserver: null,
             arabicSuggestionLoading: false,
@@ -4623,10 +5022,21 @@ function setupVue(query, page, sortFields) {
                 if (this.collectionMode || !this.hasMoreNarrationsToReveal) {
                     return;
                 }
-                this.visibleNarrationCount = Math.min(
+                var nextVisibleCount = Math.min(
                     this.filteredNarrationTotal,
                     (Math.max(0, Number(this.visibleNarrationCount) || 0) + REVEAL_BATCH_SIZE)
                 );
+                if (!this.readingMode
+                        && nextVisibleCount > this.allNarrations.length
+                        && this.allNarrations.length < this.totalHits) {
+                    this.visibleNarrationCount = nextVisibleCount;
+                    if (!this.searchAppendInFlight) {
+                        this.page = Math.max(1, Number(this.page) || 1) + 1;
+                        this.fetchNarrations({ append: true });
+                    }
+                    return;
+                }
+                this.visibleNarrationCount = nextVisibleCount;
                 this.refreshVisibleNarrations();
             },
             teardownNarrationRevealObserver: function() {
@@ -4891,17 +5301,30 @@ function setupVue(query, page, sortFields) {
                     });
             },
             // fetches more narrations to display using the API.
-            fetchNarrations: function() {
+            fetchNarrations: function(options) {
                 var self = this;
+                var appendMode = !!(options && options.append);
+                if (appendMode && (this.readingMode || this.collectionMode || this.searchAppendInFlight)) {
+                    return;
+                }
+                if (appendMode) {
+                    this.searchAppendInFlight = true;
+                }
                 this.narrationsLoading = true;
                 this.dismissArabicSuggestion();
                 this.teardownNarrationRevealObserver();
-                this.narrations = [];
-                this.allNarrations = [];
-                this.topicTagFacets = {};
-                this.baseNarrationTotal = 0;
-                this.collectionTitle = '';
-                this.collectionMeta = null;
+                if (!appendMode) {
+                    this.narrations = [];
+                    this.allNarrations = [];
+                    this.topicTagFacets = {};
+                    this.baseNarrationTotal = 0;
+                    this.collectionTitle = '';
+                    this.collectionMeta = null;
+                    this.searchResultOrdinalMap = {};
+                    if (!this.readingMode && !this.collectionMode) {
+                        this.page = 1;
+                    }
+                }
                 var applyIncomingNarrations = function(respJSON) {
                     if (respJSON.error) {
                         self.dismissArabicSuggestion();
@@ -4927,12 +5350,15 @@ function setupVue(query, page, sortFields) {
                             "error");
                         return;
                     }
+                    var ordinalOffset = appendMode ? self.allNarrations.length : 0;
                     var incoming = items.map(function(value, idx) {
                         var narration = self.decorateNarration(value);
-                        return self.assignSearchResultOrdinal(narration, idx + 1);
+                        return self.assignSearchResultOrdinal(narration, ordinalOffset + idx + 1);
                     });
-                    self.allNarrations = incoming;
-                    if (!self.collectionMode) {
+                    self.allNarrations = appendMode
+                        ? self.allNarrations.concat(incoming)
+                        : incoming;
+                    if (!self.collectionMode && !appendMode) {
                         self.visibleNarrationCount = INITIAL_VISIBLE_NARRATIONS;
                     }
                     self.refreshVisibleNarrations();
@@ -4942,9 +5368,6 @@ function setupVue(query, page, sortFields) {
                     var baseCount = Number(respJSON.baseResultSetSize) || filteredCount;
                     self.baseNarrationTotal = baseCount;
                     self.totalHits = filteredCount;
-                    if (!self.readingMode && !self.collectionMode && self.totalHits > 100) {
-                        self.totalHits = 100;
-                    }
                     self.topicTagFacets = respJSON.topicTagFacets || {};
                     self.requestArabicSuggestion(incoming);
                     self.$nextTick(function() {
@@ -5007,6 +5430,7 @@ function setupVue(query, page, sortFields) {
                 };
                 xhr.onloadend = function() {
                     self.narrationsLoading = false;
+                    self.searchAppendInFlight = false;
                     clearPendingSearchTermsIndicator();
                 };
                 // Build query: in reading mode, include scope filters; in search mode, just use queryStr
@@ -5016,9 +5440,11 @@ function setupVue(query, page, sortFields) {
                     var keywordPart = this.queryState.keywordQuery || null;
                     queryToUse = buildScopedQuery(keywordPart, this.activeScopeFilters);
                 }
+                var requestPage = this.readingMode ? this.page : Math.max(1, Number(this.page) || 1);
+                var requestPageSize = this.readingMode ? this.pageSize : SEARCH_PAGE_SIZE;
                 var reqUrl = '/v1/narrations?q=' + encodeURIComponent(queryToUse) +
-                '&page=' + (this.readingMode ? this.page : 1) +
-                '&per_page=' + (this.readingMode ? this.pageSize : SEARCH_FETCH_LIMIT);
+                '&page=' + requestPage +
+                '&per_page=' + requestPageSize;
                 if (this.sortFields) {
                     reqUrl += '&sort_fields=' + this.sortFields
                 }
@@ -5028,9 +5454,7 @@ function setupVue(query, page, sortFields) {
                 if (this.readingMode) {
                     reqUrl += '&mode=read';
                 }
-                if (resolveSearchMatchModeParam() === 'strict') {
-                    reqUrl += '&match_mode=strict';
-                }
+                reqUrl += '&match_mode=' + encodeURIComponent(resolveSearchMatchModeParam());
                 xhr.open('GET', reqUrl);
                 xhr.send();
             },
@@ -5082,9 +5506,6 @@ function setupVue(query, page, sortFields) {
                     return;
                 }
                 narration.sidecarActiveTab = nextTab;
-                if (nextTab !== 'similar') {
-                    this.clearSimilarHighlightState(narration);
-                }
                 if (nextTab === 'similar' && !narration.similarItemsLoaded && !narration.similarItemsLoading) {
                     this.fetchSimilarNarrations(narration, null, true);
                 }
@@ -5225,9 +5646,6 @@ function setupVue(query, page, sortFields) {
                             if (item.volume && String(item.volume).indexOf('Volume') !== 0) {
                                 item.volume = 'Volume ' + item.volume;
                             }
-                            item.sharedSyntacticTokens = Array.isArray(item.sharedSyntacticTokens) ? item.sharedSyntacticTokens : [];
-                            item.sharedDistinctiveTokens = Array.isArray(item.sharedDistinctiveTokens) ? item.sharedDistinctiveTokens : [];
-                            item.sharedSignificantTerms = Array.isArray(item.sharedSignificantTerms) ? item.sharedSignificantTerms : [];
                             return item;
                         });
                         narration.similarItemsLoaded = true;
@@ -5668,105 +6086,11 @@ function setupVue(query, page, sortFields) {
                     resolveSearchMatchModeParam(), 'browse');
             },
             similarityColor: function(similar) {
-                var pct = this.similarityScorePercent(similar);
-                if (pct <= 60) return 'red';
-                if (pct <= 70) return 'orange';
-                if (pct < 80) return 'yellow';
                 return 'green';
             },
 
             similarityScorePercent: function(similar) {
-                if (!similar) {
-                    return 0;
-                }
-                var retrievalPercent = Number(similar.retrievalSimilarityPercent);
-                if (!isNaN(retrievalPercent) && retrievalPercent > 0) {
-                    return Math.max(0, Math.min(100, retrievalPercent));
-                }
-                var percent = Number(similar.similarityPercent);
-                if (!isNaN(percent) && percent > 0) {
-                    return Math.max(0, Math.min(100, percent));
-                }
-                var raw = Number(similar.similarityScore);
-                if (isNaN(raw) || raw <= 0) {
-                    return 0;
-                }
-                if (raw <= 1) {
-                    return Math.max(0, Math.min(100, raw * 100));
-                }
-                return Math.max(0, Math.min(100, raw));
-            },
-            similarityScoreClass: function(similar) {
-                var percent = this.similarityScorePercent(similar);
-                if (percent >= 90) {
-                    return 'is-high';
-                }
-                if (percent >= 82) {
-                    return 'is-good';
-                }
-                if (percent >= 74) {
-                    return 'is-medium';
-                }
-                return 'is-low';
-            },
-            similarWhyMatchedItems: function(similar) {
-                if (!similar) {
-                    return [];
-                }
-                var items = [];
-                var similarityPercent = this.similarityScorePercent(similar);
-                if (similarityPercent > 0) {
-                    items.push({
-                        text: 'Similarity ' + similarityPercent.toFixed(1) + '%',
-                        tone: 'is-similarity'
-                    });
-                }
-                var semanticPercent = this.safeSimilarPercent(similar.semanticSimilarityPercent);
-                if (semanticPercent > 0) {
-                    items.push({
-                        text: 'Theme match ' + semanticPercent.toFixed(1) + '%',
-                        tone: 'is-theme'
-                    });
-                }
-                var syntacticPercent = this.safeSimilarPercent(similar.syntacticSimilarityPercent);
-                if (syntacticPercent > 0) {
-                    items.push({
-                        text: 'Wording overlap ' + syntacticPercent.toFixed(1) + '%',
-                        tone: 'is-syntactic',
-                        highlightKey: Array.isArray(similar.sharedSyntacticTokens) && similar.sharedSyntacticTokens.length ? 'syntactic' : ''
-                    });
-                }
-                var sharedSignificantTerms = Array.isArray(similar.sharedSignificantTerms) ? similar.sharedSignificantTerms : [];
-                var sharedSignificantTermCount = Number(similar.sharedSignificantTermCount);
-                var significantCount = sharedSignificantTerms.length > 0 ? sharedSignificantTerms.length : sharedSignificantTermCount;
-                if (!isNaN(significantCount) && significantCount > 0) {
-                    items.push({
-                        text: significantCount + ' shared major '
-                            + (significantCount === 1 ? 'term' : 'terms'),
-                        tone: 'is-significant',
-                        highlightKey: sharedSignificantTerms.length ? 'significant' : ''
-                    });
-                }
-                return items;
-            },
-            toggleSimilarHighlightState: function(narration, item) {
-                if (!narration || !item || !item.highlightKey) {
-                    return;
-                }
-                if (narration.similarHighlightKey === item.highlightKey) {
-                    narration.similarHighlightKey = '';
-                    narration.similarHighlightTone = '';
-                    return;
-                }
-                narration.similarHighlightKey = item.highlightKey;
-                narration.similarHighlightTone = item.tone || '';
-            },
-            clearSimilarHighlightState: function(narration) {
-                if (!narration) {
-                    return;
-                }
-                narration.similarHighlightKey = '';
-                narration.similarHighlightTone = '';
+                return 0;
             },
             isSimilarHighlightActive: function(narration, item) {
                 if (!narration || !item || !item.highlightKey) {
@@ -5775,41 +6099,14 @@ function setupVue(query, page, sortFields) {
                 return narration.similarHighlightKey === item.highlightKey;
             },
             similarHighlightSpec: function(narration) {
-                if (!narration || !narration.similarHighlightKey) {
-                    return null;
-                }
-                var similar = this.activeSimilar(narration);
-                if (!similar) {
-                    return null;
-                }
-                var terms = [];
-                if (narration.similarHighlightKey === 'syntactic') {
-                    terms = Array.isArray(similar.sharedSyntacticTokens) ? similar.sharedSyntacticTokens : [];
-                } else if (narration.similarHighlightKey === 'significant') {
-                    terms = Array.isArray(similar.sharedSignificantTerms) ? similar.sharedSignificantTerms : [];
-                }
-                var termSet = buildSimilarHighlightTermSet(terms);
-                if (!termSet.size) {
-                    return null;
-                }
-                var toneSuffix = 'syntactic';
-                if (narration.similarHighlightTone === 'is-significant') {
-                    toneSuffix = 'significant';
-                }
-                return {
-                    key: narration.similarHighlightKey,
-                    toneSuffix: toneSuffix,
-                    termSet: termSet
-                };
+                return null;
             },
             renderNarrationArabicHtml: function(narration) {
-                var html = narration ? (narration.arabicContent || narration.arabic || '') : '';
-                return applySimilarArabicHighlight(html, this.similarHighlightSpec(narration));
+                return narration ? (narration.arabicContent || narration.arabic || '') : '';
             },
             renderSimilarArabicHtml: function(narration) {
                 var similar = this.activeSimilar(narration);
-                var html = similar ? (similar.arabicContent || similar.arabic || '') : '';
-                return applySimilarArabicHighlight(html, this.similarHighlightSpec(narration));
+                return similar ? (similar.arabicContent || similar.arabic || '') : '';
             },
             safeSimilarPercent: function(value) {
                 var percent = Number(value);
@@ -6166,7 +6463,7 @@ function finishQuranicInsightsCountLoadingState(narration, loadingStartedAt) {
 function socialMediaDecoratedHadith(hadithObj) {
     var hadithId = escapeSearchTermQuotes(hadithObj && (hadithObj._id || hadithObj.id || ''));
     var hadithURL = encodeURIComponent(location.protocol + "//" + location.host +
-        "/?q=" + encodeURIComponent('id:"' + hadithId + '"') + "&match_mode=strict");
+        "/?q=" + encodeURIComponent('id:"' + hadithId + '"') + "&match_mode=precise");
     var hadithDesc = "";
     if (hadithObj.book) {
         hadithDesc += hadithObj.book + " ";
@@ -6206,99 +6503,51 @@ function socialMediaDecoratedHadith(hadithObj) {
     return hadithObj;
 }
 
-// ── New Search Mode Dropdown ───────────────────────────────────────────────
 function setupSearchModeDropdown() {
-    var dropdown = document.getElementById('searchModeDropdown');
-    var toggle = document.getElementById('searchModeToggle');
-    var menu = document.getElementById('searchModeDropdownMenu');
+    var control = document.getElementById('searchModeDropdown');
     var searchBtn = document.getElementById('searchBtn1');
-    var isInitializing = true;
+    var choices;
 
-    if (!dropdown || !toggle || !menu) {
+    if (!control) {
+        return;
+    }
+    choices = control.querySelectorAll('.search-mode-option');
+    if (!choices.length) {
         return;
     }
 
-    // Initialize with current mode
-    updateDropdownDisplay();
+    searchMatchMode = resolveSearchMatchModeParam();
+    updateSearchModeDropdownDisplay();
 
-    // Toggle dropdown
-    toggle.addEventListener('click', function(e) {
-        e.stopPropagation();
-        var isOpen = menu.classList.contains('show');
-        if (isOpen) {
-            closeDropdown();
-        } else {
-            openDropdown();
-        }
-    });
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function() {
-        closeDropdown();
-    });
-
-    // Prevent dropdown from closing when clicking inside
-    menu.addEventListener('click', function(e) {
-        e.stopPropagation();
-    });
-
-    // Handle mode selection
-    var options = menu.querySelectorAll('.search-mode-option');
-    options.forEach(function(option) {
-        option.addEventListener('click', function() {
+    Array.prototype.forEach.call(choices, function(option) {
+        option.addEventListener('click', function(event) {
+            event.preventDefault();
+            event.stopPropagation();
             var mode = this.dataset.mode;
             if (mode) {
                 selectSearchMode(mode);
+                submitSearchQuery(mode);
             }
         });
     });
 
-    // Handle search button click
     if (searchBtn) {
         searchBtn.addEventListener('click', function() {
-            submitSearchQuery();
+            selectSearchMode('flexible');
+            submitSearchQuery('flexible');
         });
-    }
-
-    function openDropdown() {
-        menu.classList.add('show');
-        toggle.setAttribute('aria-expanded', 'true');
-
-        // Set active option
-        var currentMode = searchMatchMode || 'strict';
-        options.forEach(function(option) {
-            option.classList.toggle('active', option.dataset.mode === currentMode);
-            var checkIcon = option.querySelector('i.fa-check');
-            if (checkIcon) {
-                checkIcon.style.color = option.dataset.mode === currentMode ? 'var(--primary)' : 'transparent';
-            }
-        });
-    }
-
-    function closeDropdown() {
-        menu.classList.remove('show');
-        toggle.setAttribute('aria-expanded', 'false');
     }
 
     function selectSearchMode(mode) {
         var normalizedMode = normalizeSearchMatchMode(mode);
         if (searchMatchMode === normalizedMode) {
+            updateSearchModeDropdownDisplay();
             return;
         }
 
         searchMatchMode = normalizedMode;
-        updateDropdownDisplay();
-        closeDropdown();
+        updateSearchModeDropdownDisplay();
     }
-
-    function updateDropdownDisplay() {
-        var modeText = searchMatchMode === 'permissive' ? 'Flexible' : 'Exact';
-        toggle.querySelector('.search-mode-text').textContent = modeText;
-        toggle.classList.toggle('active', searchMatchMode === 'permissive');
-    }
-
-    // Mark initialization as complete
-    isInitializing = false;
 }
 
 function showSearchToast() {
@@ -6351,6 +6600,17 @@ function showSearchToast() {
 }
 
 // Initialize search mode dropdown when DOM is ready
-$(document).ready(function() {
-    setupSearchModeDropdown();
-});
+if (typeof $ === 'function' && typeof document !== 'undefined') {
+    $(document).ready(function() {
+        setupSearchModeDropdown();
+    });
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        normalizeSearchMatchMode: normalizeSearchMatchMode,
+        resolveSearchMatchModeValue: resolveSearchMatchModeValue,
+        getSearchModeLabel: getSearchModeLabel,
+        shouldTriggerSearchOnEnter: shouldTriggerSearchOnEnter
+    };
+}

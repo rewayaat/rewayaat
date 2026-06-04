@@ -45,10 +45,13 @@ public class HomeController {
     }
 
     @RequestMapping(value = "/edit", method = RequestMethod.GET)
-    public String editPage(@RequestParam(value = "id", required = false) String id, Model model) {
+    public String editPage(@RequestParam(value = "id", required = false) String id,
+                           @RequestParam(value = "returnTo", required = false) String returnTo,
+                           Model model) {
         if (id != null && !id.isBlank()) {
             model.addAttribute("hadithId", id);
         }
+        model.addAttribute("returnTo", returnTo != null ? returnTo : "/");
         return "edit";
     }
 

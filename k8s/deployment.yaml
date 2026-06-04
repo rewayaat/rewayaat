@@ -33,6 +33,27 @@ spec:
               value: "prod"
             - name: ELASTIC_HOST
               value: "elasticsearch-v2.elastic-v2.svc.cluster.local"
+            - name: APP_BASE_URL
+              value: "https://v2.rewayaat.info"
+            - name: SPRING_MAIL_HOST
+              value: "smtp.gmail.com"
+            - name: SPRING_MAIL_PORT
+              value: "587"
+            - name: SPRING_MAIL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: rewayaat-v2-mail
+                  key: SPRING_MAIL_USERNAME
+            - name: SPRING_MAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rewayaat-v2-mail
+                  key: SPRING_MAIL_PASSWORD
+            - name: MAIL_FROM
+              valueFrom:
+                secretKeyRef:
+                  name: rewayaat-v2-mail
+                  key: MAIL_FROM
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness

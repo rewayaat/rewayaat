@@ -5,6 +5,7 @@ import com.rewayaat.core.data.UserAccount;
 import com.rewayaat.core.data.UserCollection;
 import com.rewayaat.service.AuthService;
 import com.rewayaat.service.UserCollectionService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -29,6 +30,7 @@ import java.util.Map;
 /**
  * APIs for user-owned hadith collections.
  */
+@Hidden
 @Service
 @org.springframework.stereotype.Controller
 @RequestMapping("/v1/collections")

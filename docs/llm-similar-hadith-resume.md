@@ -10,7 +10,7 @@ We use Claude Code sub-agents (Sonnet) to judge whether pairs of hadith are genu
 
 | File | Purpose |
 |------|---------|
-| `tmp/pairs_cache.json` | Master cache of all judged pairs (~280K entries). Dict: `{"id_a\|\|id_b": {verdict, match_type, reason, source}}` |
+| `tmp/pairs_cache.json` | Master cache of all judged pairs (~296K entries). Dict: `{"id_a\|\|id_b": {verdict, match_type, reason, source}}` |
 | `tmp/processed_hadith.txt` | List of hadith IDs that have been fully processed |
 | `tmp/batches/batch_XXXX.json` | Batch files (6,000 total). Format: `{"batch_id": N, "entries": [...]}` |
 | `tmp/batches_new/batch_XXXX.json` | Secondary batch files (5,090 total). Same format. |
@@ -217,7 +217,14 @@ These batches have historically timed out. Skip them if they appear:
 829, 887, 1397, 1459, 1335, 1040, 910, 873, 1839, 2080, 1202, 2444, 2334,
 2535, 2541, 1084, 2579, 687, 2588, 598, 781, 1265, 2644, 1258, 2641, 2731,
 780, 1247, 2629, 2631, 1065, 2515, 691, 2618, 2627, 3061, 3425, 3962, 4804,
-4118, 1945, 698, 699, 700, 4832, 2511, 2067
+4118, 1945, 698, 699, 700, 4832, 2511, 2067, 4365, 3969, 4126, 4964, 5046,
+3873, 4817, 4859, 4375, 5023, 4716, 4593, 4035, 1811, 4503, 3839, 3877, 4582,
+4304, 4226, 4936, 4238, 3022, 4176, 2954, 4611, 3985, 3868, 2768, 2479, 4979,
+4302, 2574, 3992, 4818, 1996, 4596, 4839, 4643, 4757, 2144, 247, 3264, 3885,
+3806, 2652, 4551, 4165, 1493, 4214, 1505, 2958, 4115, 4403, 3913, 2604, 4246,
+4554, 5276, 4323, 2716, 4633, 2902, 4458, 4055, 4726, 4541, 5485, 3217, 2801,
+5011, 2201, 2990, 4631, 4370, 1018, 4113, 3124, 3995, 4322, 4650, 4427, 4268,
+3856, 2000, 2778, 4730, 4553, 1644, 3895, 44, 2428
 ```
 
 ## Troubleshooting
@@ -233,9 +240,18 @@ These batches have historically timed out. Skip them if they appear:
 ## Expected Performance
 
 - **Throughput**: ~7 agents × ~2 min/batch = ~3.5 batches/min
-- **Similar rate**: ~15% of pairs judged similar (Sonnet)
+- **Similar rate**: ~13.8% of pairs judged similar (Sonnet)
 - **Success rate**: ~100% with batches <45KB
-- **Time to completion**: At ~5,000 remaining batches, ~20-25 hours
+- **Remaining**: ~7,784 uncached batches (as of June 3, session 3)
+- **Time to completion**: ~25-30 hours of continuous running
+
+## Context Window Conservation
+
+The main conversation context fills up quickly. To maximize session length:
+- Keep status reports to one line (cache/similar/remaining)
+- Don't re-read this doc every cycle — you already know the drill
+- Don't print verbose batch listings — just pick smallest and go
+- Merge → find → spawn in one tight cycle, minimal text output
 
 ## When Done
 
