@@ -14,9 +14,31 @@ spec:
   tls:
     - hosts:
         - v2.rewayaat.info
+        - rewayaat.info
+        - hadith.academyofislam.com
       secretName: rewayaat-v2-tls
   rules:
     - host: v2.rewayaat.info
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: rewayaat-v2
+                port:
+                  number: 80
+    - host: rewayaat.info
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: rewayaat-v2
+                port:
+                  number: 80
+    - host: hadith.academyofislam.com
       http:
         paths:
           - path: /
