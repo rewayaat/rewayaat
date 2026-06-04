@@ -8444,7 +8444,7 @@ body.is-search-mode .site-nav .search-entry-shell {
 .site-nav .search-entry-shell .ts-control,
 .home-search .search-entry-shell .ts-control {
     min-height: var(--search-shell-height) !important;
-    max-height: var(--search-shell-height);
+    max-height: 120px;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
     padding-left: 1.92rem !important;
@@ -8458,6 +8458,7 @@ body.is-search-mode .site-nav .search-entry-shell {
     background: transparent !important;
     border: 0 !important;
     box-shadow: none !important;
+    overflow-y: auto;
 }
 
 .navbar-search .search-entry-shell .ts-control input,
@@ -8704,7 +8705,7 @@ body.is-search-mode .site-nav .search-entry-shell {
     visibility: hidden;
     transform: translateY(-4px);
     transition: opacity 160ms ease, transform 160ms ease, visibility 160ms ease;
-    z-index: 120;
+    z-index: 2200;
 }
 
 .search-submit-menu:hover .search-mode-menu,
@@ -8729,7 +8730,7 @@ body.is-search-mode .site-nav .search-entry-shell {
     row-gap: 0.1rem;
     border-radius: 7px;
     background: transparent;
-    color: #173964;
+    color: #0b0b0b;
     font-family: var(--font-ui);
     font-size: 0.72rem;
     font-weight: 700;
@@ -8748,6 +8749,7 @@ body.is-search-mode .site-nav .search-entry-shell {
     letter-spacing: 0.04em;
     text-transform: uppercase;
     line-height: 1.05;
+    color: #0b0b0b;
 }
 
 .search-mode-option__label,
@@ -8764,19 +8766,19 @@ body.is-search-mode .site-nav .search-entry-shell {
     font-weight: 600;
     letter-spacing: 0.02em;
     line-height: 1.12;
-    color: rgba(23, 57, 100, 0.68);
+    color: rgba(11, 11, 11, 0.72);
     white-space: normal;
 }
 
 .search-mode-option:hover,
 .search-mode-option:focus-visible {
     background: transparent;
-    color: #0b1728;
+    color: #0b0b0b;
 }
 
 .search-mode-option:hover .search-mode-option__meta,
 .search-mode-option:focus-visible .search-mode-option__meta {
-    color: rgba(11, 23, 40, 0.72);
+    color: rgba(11, 11, 11, 0.82);
 }
 
 .search-mode-option::after {
