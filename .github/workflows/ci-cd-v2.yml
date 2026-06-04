@@ -59,9 +59,8 @@ jobs:
       - name: Sync Kubernetes secrets
         run: |
           kubectl create secret generic rewayaat-v2-mail \
-            --from-literal=SPRING_MAIL_USERNAME="${{ secrets.SPRING_MAIL_USERNAME }}" \
-            --from-literal=SPRING_MAIL_PASSWORD="${{ secrets.SPRING_MAIL_PASSWORD }}" \
             --from-literal=MAIL_FROM="${{ secrets.MAIL_FROM }}" \
+            --from-literal=RESEND_API_KEY="${{ secrets.RESEND_API_KEY }}" \
             --namespace=rewayaat-v2 \
             --dry-run=client -o yaml | kubectl apply -f -
 

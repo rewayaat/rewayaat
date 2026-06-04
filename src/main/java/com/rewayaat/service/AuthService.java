@@ -11,11 +11,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -62,8 +65,10 @@ public class AuthService {
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final ObjectMapper mapper = new ObjectMapper();
 
-    @Autowired(required = false)
-    private JavaMailSender mailSender;
+    @Value("${rewayaat.resend-api-key:}")
+    private String resendApiKey;
+
+    private final HttpClient httpClient = HttpClient.newHttpClient();
 
     @Autowired
     private HadithEditorAccessService hadithEditorAccessService;
@@ -382,19 +387,30 @@ public class AuthService {
     }
 
     private void sendEmail(String to, String subject, String body, String fallbackLink) {
-        if (mailSender == null) {
-            LOGGER.warn("Mail sender is not configured. Email link for {}: {}", to, fallbackLink);
+        if (resendApiKey == null || resendApiKey.isBlank()) {
+            LOGGER.warn("Resend API key not configured. Email link for {}: {}", to, fallbackLink);
             return;
         }
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(to);
-            message.setFrom(mailFrom);
-            message.setSubject(subject);
-            message.setText(body);
-            mailSender.send(message);
+            String jsonBody = mapper.writeValueAsString(Map.of(
+                    "from", mailFrom,
+                    "to", List.of(to),
+                    "subject", subject,
+                    "text", body));
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://api.resend.com/emails"))
+                    .header("Authorization", "Bearer " + resendApiKey)
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody, StandardCharsets.UTF_8))
+                    .build();
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                LOGGER.info("Email sent to {} via Resend.", to);
+            } else {
+                LOGGER.warn("Resend API returned {} for {}: {}", response.statusCode(), to, response.body());
+            }
         } catch (Exception ex) {
-            LOGGER.warn("Unable to send email to {}.", to, ex);
+            LOGGER.warn("Unable to send email to {} via Resend.", to, ex);
         }
     }
 

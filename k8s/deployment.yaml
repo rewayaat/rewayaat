@@ -37,25 +37,16 @@ spec:
               value: "rewayaat_updated"
             - name: APP_BASE_URL
               value: "https://v2.rewayaat.info"
-            - name: SPRING_MAIL_HOST
-              value: "smtp.gmail.com"
-            - name: SPRING_MAIL_PORT
-              value: "587"
-            - name: SPRING_MAIL_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: rewayaat-v2-mail
-                  key: SPRING_MAIL_USERNAME
-            - name: SPRING_MAIL_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: rewayaat-v2-mail
-                  key: SPRING_MAIL_PASSWORD
             - name: MAIL_FROM
               valueFrom:
                 secretKeyRef:
                   name: rewayaat-v2-mail
                   key: MAIL_FROM
+            - name: RESEND_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: rewayaat-v2-mail
+                  key: RESEND_API_KEY
             - name: SENTRY_DSN
               valueFrom:
                 secretKeyRef:
