@@ -8633,8 +8633,7 @@ body.is-search-mode .site-nav .navbar-search__input {
     position: relative;
     flex: 1 1 auto;
     min-width: 0;
-    min-height: var(--search-shell-height);
-    max-height: 120px;
+    height: var(--search-shell-height);
     border-radius: 11px;
     overflow: hidden;
     background: rgba(255, 255, 255, 0.98);
@@ -8661,7 +8660,7 @@ body.is-search-mode .site-nav .search-entry-shell {
 .search-entry-shell .ts-wrapper,
 .search-entry-shell .ts-wrapper.form-control {
     width: 100%;
-    min-height: var(--search-shell-height);
+    height: 100%;
     display: flex;
     align-items: center;
 }
@@ -8684,8 +8683,9 @@ body.is-search-mode .site-nav .search-entry-shell {
 .navbar-search .search-entry-shell .ts-control,
 .site-nav .search-entry-shell .ts-control,
 .home-search .search-entry-shell .ts-control {
-    min-height: var(--search-shell-height) !important;
+    min-height: 100% !important;
     max-height: 100% !important;
+    height: 100% !important;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
     padding-left: 1.92rem !important;
@@ -8700,6 +8700,7 @@ body.is-search-mode .site-nav .search-entry-shell {
     border: 0 !important;
     box-shadow: none !important;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .navbar-search .search-entry-shell .ts-control input,
