@@ -850,6 +850,32 @@ function initAuthUI() {
         });
         signInBtn.dataset.bound = 'true';
     }
+
+    var mobileToggle = document.getElementById('authMobileToggle');
+    if (mobileToggle && !mobileToggle.dataset.bound) {
+        mobileToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var dropdown = document.getElementById('authMobileDropdown');
+            if (dropdown) {
+                var isOpen = dropdown.classList.contains('is-open');
+                dropdown.classList.toggle('is-open');
+                dropdown.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
+                mobileToggle.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+            }
+        });
+        mobileToggle.dataset.bound = 'true';
+    }
+
+    // Close mobile dropdown on outside click
+    document.addEventListener('click', function(e) {
+        var dropdown = document.getElementById('authMobileDropdown');
+        var toggle = document.getElementById('authMobileToggle');
+        if (dropdown && dropdown.classList.contains('is-open') && !dropdown.contains(e.target) && e.target !== toggle) {
+            dropdown.classList.remove('is-open');
+            dropdown.setAttribute('aria-hidden', 'true');
+            if (toggle) toggle.setAttribute('aria-expanded', 'false');
+        }
+    });
     if (profileBtn && !profileBtn.dataset.bound) {
         profileBtn.addEventListener('click', function(event) {
             event.preventDefault();

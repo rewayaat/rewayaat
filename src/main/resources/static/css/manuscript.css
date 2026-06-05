@@ -714,7 +714,37 @@ a:hover {
     margin-right: 0.25rem;
 }
 
-.auth-action__hamburger { display: none !important; }
+.auth-mobile-menu-wrapper { position: relative; }
+.auth-mobile-toggle { display: none !important; }
+.auth-mobile-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    min-width: 160px;
+    padding: 0.35rem;
+    z-index: 1100;
+}
+.auth-mobile-dropdown.is-open { display: block; }
+.auth-mobile-dropdown__item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.85rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1a3a6b;
+    text-decoration: none;
+    border-radius: 8px;
+}
+.auth-mobile-dropdown__item:hover {
+    background: #eef3fb;
+}
+.search-btn__icon-mobile { display: none; }
 
 /* ── Context Row / Reading Scope ────────────────────────────────────────── */
 .menu-context-row {
@@ -9353,19 +9383,22 @@ body.is-search-mode .site-nav .search-entry-shell {
     }
 
     .search-btn-with-border {
-        min-width: 72px !important;
-        padding: 0 0.68rem !important;
+        min-width: 34px !important;
+        width: 34px !important;
+        padding: 0 !important;
         font-size: 0.68rem !important;
         letter-spacing: 0.06em;
     }
+    .search-btn__text { display: none !important; }
+    .search-btn-caret { display: none !important; }
+    .search-btn__icon-mobile { display: inline-block !important; font-size: 0.82rem; }
 
     .top-actions {
         width: auto !important;
     }
 
-    .auth-action__label { display: none !important; }
-    .auth-action .fa-right-to-bracket { display: none !important; }
-    .auth-action__hamburger { display: inline-block !important; font-size: 1rem; margin-right: 0 !important; }
+    .auth-action { display: none !important; }
+    .auth-mobile-toggle { display: inline-flex !important; font-size: 1rem; margin-right: 0 !important; }
 
     .profile-chip {
         width: 40px;

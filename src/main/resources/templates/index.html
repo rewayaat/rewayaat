@@ -24,7 +24,7 @@
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.css" rel="stylesheet"/>
     <link href="/css/sweetalert.css" rel="stylesheet" th:href="@{/css/sweetalert.css}"/>
     <link href="/css/noty.css" rel="stylesheet" th:href="@{/css/noty.css}"/>
-    <link href="/css/manuscript.css?v=1016" rel="stylesheet" th:href="@{/css/manuscript.css?v=1016}"/>
+    <link href="/css/manuscript.css?v=1017" rel="stylesheet" th:href="@{/css/manuscript.css?v=1017}"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600;700&family=Scheherazade+New:wght@400;700&family=Aref+Ruqaa+Ink:wght@400;700&display=swap"
           rel="stylesheet"/>
     <link href="/css/pace.css" rel="stylesheet" th:href="@{/css/pace.css}"/>
@@ -68,7 +68,8 @@
 	                    <div class="search-entry-actions">
 	                        <div class="search-submit-menu">
 	                        <button type="button" class="btn btn-primary search-btn-with-border" id="searchBtn1">
-	                            <span>Search</span>
+	                            <i class="fa fa-search search-btn__icon-mobile" aria-hidden="true"></i>
+	                            <span class="search-btn__text">Search</span>
 	                            <i class="fa fa-chevron-down search-btn-caret" aria-hidden="true"></i>
 	                        </button>
 	                        <div class="search-mode-menu" id="searchModeDropdown" role="menu" aria-label="Search mode">
@@ -91,11 +92,20 @@
                     <span class="menu-reading-scope__value"></span>
                 </div>
                 <div class="d-flex gap-2 top-actions flex-nowrap">
-                    <button class="btn btn-dark btn-sm top-action auth-action" id="authSignInBtn" type="button">
-                        <i class="fa fa-right-to-bracket" aria-hidden="true"></i>
-                        <span class="auth-action__label">Sign In</span>
-                        <i class="fa fa-bars auth-action__hamburger" aria-hidden="true"></i>
-                    </button>
+                    <div class="auth-mobile-menu-wrapper">
+                        <button class="btn btn-dark btn-sm top-action auth-action" id="authSignInBtn" type="button">
+                            <i class="fa fa-right-to-bracket" aria-hidden="true"></i>
+                            <span class="auth-action__label">Sign In</span>
+                        </button>
+                        <button class="btn btn-dark btn-sm top-action auth-action__mobile-toggle" id="authMobileToggle" type="button" aria-label="Menu" aria-expanded="false">
+                            <i class="fa fa-bars" aria-hidden="true"></i>
+                        </button>
+                        <div class="auth-mobile-dropdown" id="authMobileDropdown" aria-hidden="true">
+                            <a href="/signin.html" class="auth-mobile-dropdown__item">
+                                <i class="fa fa-right-to-bracket" aria-hidden="true"></i> Sign In
+                            </a>
+                        </div>
+                    </div>
                     <div class="profile-menu d-none" id="authProfileShell">
                         <button class="top-action profile-chip" id="authProfileBtn" type="button" aria-label="Open profile" aria-expanded="false">
                             <span class="profile-chip__avatar" id="authProfileInitial">R</span>
@@ -861,7 +871,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/noty/3.1.4/noty.min.js"></script>
 <script crossorigin="anonymous" src="https://cdn.lr-ingest.io/LogRocket.min.js"></script>
 <script src="/js/vue-components.js?v=7" th:src="@{/js/vue-components.js?v=7}"></script>
-<script src="/js/rewayaat.js?v=141" th:src="@{/js/rewayaat.js?v=141}"></script>
+<script src="/js/rewayaat.js?v=142" th:src="@{/js/rewayaat.js?v=142}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" th:async="async"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.6/marked.min.js" th:defer="defer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js" th:defer="defer"></script>
