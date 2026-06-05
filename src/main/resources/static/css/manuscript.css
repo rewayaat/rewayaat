@@ -5931,18 +5931,14 @@ main.container {
 
 .hadith-card .hadith-card__main {
     padding: 0 !important;
+    max-height: min(72dvh, 40rem);
+    overflow-y: auto;
 }
 
 .hadith-card .hadith-card__main .hadith-content {
     padding: 15px !important;
     max-height: none !important;
     overflow: visible !important;
-}
-
-.hadith-card .hadith-card__main .hadith-inline-context {
-    max-height: min(50dvh, 28rem) !important;
-    overflow-y: auto !important;
-    overscroll-behavior: contain;
 }
 
 .hadith-card .hadith-sidecar {
@@ -6766,9 +6762,6 @@ body.is-resizing-sidecar * {
     border-radius: 18px;
     border: 1px solid rgba(16, 35, 63, 0.1);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
-    max-height: min(50dvh, 28rem);
-    overflow-y: auto;
-    overscroll-behavior: contain;
 }
 
 .hadith-inline-context--similar {
