@@ -5929,12 +5929,6 @@ main.container {
     padding-right: 0 !important;
 }
 
-.hadith-card .hadith-card__main {
-    padding: 0 !important;
-    max-height: min(72dvh, 40rem);
-    overflow-y: auto;
-}
-
 .hadith-card .hadith-card__main .hadith-content {
     padding: 15px !important;
     max-height: none !important;
@@ -5955,6 +5949,8 @@ main.container {
     padding: 2.45rem 2.15rem 1.8rem 1.85rem !important;
     grid-column: 3;
     grid-row: 1;
+    max-height: min(72dvh, 40rem);
+    overflow-y: auto;
 }
 
 .hadith-card__main {
