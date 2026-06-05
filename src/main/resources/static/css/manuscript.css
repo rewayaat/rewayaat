@@ -5939,6 +5939,12 @@ main.container {
     overflow: visible !important;
 }
 
+.hadith-card .hadith-card__main .hadith-inline-context {
+    max-height: min(50dvh, 28rem) !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+}
+
 .hadith-card .hadith-sidecar {
     padding: 0;
     min-height: 100%;
