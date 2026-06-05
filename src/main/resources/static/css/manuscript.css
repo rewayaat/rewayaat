@@ -715,7 +715,7 @@ a:hover {
 }
 
 .auth-mobile-menu-wrapper { position: relative; }
-.auth-mobile-toggle { display: none !important; }
+.auth-action__mobile-toggle { display: none !important; }
 .auth-mobile-dropdown {
     display: none;
     position: absolute;
@@ -7706,6 +7706,16 @@ body.is-resizing-sidecar * {
         min-height: 0;
     }
 
+    /* On mobile, hide main hadith text when similar/quran tab is active */
+    .hadith-content.sidecar-active--similar .hadith-reading-scroll,
+    .hadith-content.sidecar-active--quran .hadith-reading-scroll {
+        display: none;
+    }
+    .hadith-content.sidecar-active--similar .hadith-card__ornament,
+    .hadith-content.sidecar-active--quran .hadith-card__ornament {
+        display: none;
+    }
+
     .hadith-sidecar__rail {
         flex-direction: row;
         gap: 0.55rem;
@@ -8606,7 +8616,7 @@ body.is-search-mode .site-nav .navbar-search__input {
     min-width: 0;
     height: var(--search-shell-height);
     border-radius: 11px;
-    overflow: visible;
+    overflow: hidden;
     background: rgba(255, 255, 255, 0.98);
     border: 1px solid rgba(79, 88, 101, 0.5);
     align-self: center;
@@ -8655,7 +8665,7 @@ body.is-search-mode .site-nav .search-entry-shell {
 .site-nav .search-entry-shell .ts-control,
 .home-search .search-entry-shell .ts-control {
     min-height: var(--search-shell-height) !important;
-    max-height: 120px;
+    max-height: var(--search-shell-height) !important;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
     padding-left: 1.92rem !important;
@@ -9382,6 +9392,29 @@ body.is-search-mode .site-nav .search-entry-shell {
         right: 4px;
     }
 
+    .site-nav .search-entry-shell {
+        overflow: hidden;
+        max-height: var(--search-shell-height);
+    }
+
+    .site-nav .search-entry-shell .ts-control,
+    .site-nav .ts-wrapper .ts-control,
+    .site-nav .navbar-search .ts-control {
+        background: transparent !important;
+        border: 0 !important;
+        box-shadow: none !important;
+        max-height: var(--search-shell-height);
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+
+    .site-nav .search-entry-shell .ts-control .item {
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
     .search-btn-with-border {
         min-width: 34px !important;
         width: 34px !important;
@@ -9398,7 +9431,7 @@ body.is-search-mode .site-nav .search-entry-shell {
     }
 
     .auth-action { display: none !important; }
-    .auth-mobile-toggle { display: inline-flex !important; font-size: 1rem; margin-right: 0 !important; }
+    .auth-action__mobile-toggle { display: inline-flex !important; font-size: 1rem; margin-right: 0 !important; }
 
     .profile-chip {
         width: 40px;
