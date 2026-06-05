@@ -6760,6 +6760,9 @@ body.is-resizing-sidecar * {
     border-radius: 18px;
     border: 1px solid rgba(16, 35, 63, 0.1);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    max-height: min(50dvh, 28rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
 .hadith-inline-context--similar {
