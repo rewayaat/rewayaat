@@ -5962,7 +5962,7 @@ main.container {
     display: grid;
     grid-template-columns: minmax(248px, var(--hadith-sidecar-width, 304px)) 18px minmax(0, 3fr);
     align-items: start;
-    max-height: min(78dvh, 46rem);
+    max-height: min(90dvh, 60rem);
     overflow: hidden;
 }
 
@@ -5995,7 +5995,7 @@ main.container {
     padding: 0;
     min-height: 100%;
     align-self: stretch;
-    max-height: min(78dvh, 46rem);
+    max-height: min(90dvh, 60rem);
     grid-column: 1;
     grid-row: 1 / span 2;
 }
@@ -6007,7 +6007,7 @@ main.container {
     padding: 2.45rem 2.15rem 1.8rem 1.85rem !important;
     grid-column: 3;
     grid-row: 1;
-    max-height: min(78dvh, 46rem);
+    max-height: min(90dvh, 60rem);
     overflow-y: auto;
 }
 
