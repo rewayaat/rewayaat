@@ -7913,6 +7913,7 @@ body.is-resizing-sidecar * {
     background: rgba(255, 255, 255, 0.08);
     padding: 0.3rem 0.9rem;
     border-radius: 999px;
+    border: 1px solid #ffffff1a;
     display: inline-block;
 }
 .home-hero__presents a {
