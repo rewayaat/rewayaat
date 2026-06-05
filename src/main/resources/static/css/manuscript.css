@@ -5962,6 +5962,8 @@ main.container {
     display: grid;
     grid-template-columns: minmax(248px, var(--hadith-sidecar-width, 304px)) 18px minmax(0, 3fr);
     align-items: start;
+    max-height: min(78dvh, 46rem);
+    overflow: hidden;
 }
 
 .hadith-card .card-body > .row {
@@ -5993,6 +5995,7 @@ main.container {
     padding: 0;
     min-height: 100%;
     align-self: stretch;
+    max-height: min(78dvh, 46rem);
     grid-column: 1;
     grid-row: 1 / span 2;
 }
@@ -6004,7 +6007,7 @@ main.container {
     padding: 2.45rem 2.15rem 1.8rem 1.85rem !important;
     grid-column: 3;
     grid-row: 1;
-    max-height: min(72dvh, 40rem);
+    max-height: min(78dvh, 46rem);
     overflow-y: auto;
 }
 
@@ -7694,6 +7697,11 @@ body.is-resizing-sidecar * {
         display: none;
     }
 
+    .hadith-card .card-body {
+        max-height: none;
+        overflow: visible;
+    }
+
     .hadith-card .card-body > .row {
         display: block;
         margin: 0;
@@ -7714,6 +7722,17 @@ body.is-resizing-sidecar * {
     .hadith-content.sidecar-active--similar .hadith-card__ornament,
     .hadith-content.sidecar-active--quran .hadith-card__ornament {
         display: none;
+    }
+
+    .hadith-content.sidecar-active--similar .hadith-inline-context,
+    .hadith-content.sidecar-active--quran .hadith-inline-context {
+        max-height: min(60dvh, 24rem);
+        overflow-y: auto;
+    }
+
+    .hadith-content.sidecar-active--similar .hadith-inline-context__scroll,
+    .hadith-content.sidecar-active--quran .hadith-inline-context__scroll {
+        max-height: none;
     }
 
     .hadith-sidecar__rail {
