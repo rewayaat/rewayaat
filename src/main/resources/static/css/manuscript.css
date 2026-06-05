@@ -7247,7 +7247,7 @@ body.is-resizing-sidecar * {
 }
 .quranic-verse-link:hover {
     opacity: 1;
-    color: var(--text-primary);
+    color: var(--gold);
 }
 
 .hadith-sidecar__source-count {
