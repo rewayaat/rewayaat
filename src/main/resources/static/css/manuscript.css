@@ -693,6 +693,8 @@ a:hover {
     margin-right: 0.25rem;
 }
 
+.auth-action__hamburger { display: none !important; }
+
 /* ── Context Row / Reading Scope ────────────────────────────────────────── */
 .menu-context-row {
     display: flex;
@@ -9332,6 +9334,10 @@ body.is-search-mode .site-nav .search-entry-shell {
     .top-actions {
         width: auto !important;
     }
+
+    .auth-action__label { display: none !important; }
+    .auth-action .fa-right-to-bracket { display: none !important; }
+    .auth-action__hamburger { display: inline-block !important; font-size: 1rem; margin-right: 0 !important; }
 
     .profile-chip {
         width: 40px;
