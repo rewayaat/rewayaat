@@ -364,8 +364,8 @@ function setupSelect2EnterKeyListener(select2_id) {
             if (pendingForEnter) {
                 markKeyboardSearchTermCommit();
                 commitPendingSearchTermsToControl([pendingForEnter]);
+                indicatePendingSearchTerms();
             }
-            submitSearchQuery();
             return;
         }
         if (e.key === 'Tab' && !e.shiftKey) {
@@ -2228,7 +2228,7 @@ function initSelect2(select2_id) {
         onInitialize: function() {
             updateSearchPlaceholder(this);
             if (this.dropdown) {
-                this.dropdown.style.setProperty('z-index', '100', 'important');
+                this.dropdown.style.setProperty('z-index', '1030', 'important');
             }
             var self = this;
             setTimeout(function() {
