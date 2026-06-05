@@ -6666,20 +6666,9 @@ function setupSearchModeDropdown() {
     });
 
     if (searchBtn) {
-        var savedPendingTerms = null;
-        searchBtn.addEventListener('mousedown', function() {
-            savedPendingTerms = getPendingSearchTerms();
-            if (savedPendingTerms.length) {
-                commitPendingSearchTermsToControl(savedPendingTerms);
-            }
-        });
         searchBtn.addEventListener('click', function() {
-            if (savedPendingTerms && savedPendingTerms.length) {
-                // already committed on mousedown, just search
-            }
             selectSearchMode('flexible');
             submitSearchQuery('flexible');
-            savedPendingTerms = null;
         });
     }
 
