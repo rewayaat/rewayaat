@@ -687,8 +687,8 @@
                                                 </div>
                                                 <div class="quranic-snippet__text"
                                                      v-if="isSnippetExpanded(narration, sidx)"
-                                                     v-html="snippetFullHtml(snippet)"></div>
-                                                <div class="quranic-snippet__text" v-else>{{ snippetPreview(snippet.commentary_text) }}</div>
+                                                     v-html="snippetFullHtml(snippet, narration)"></div>
+                                                <div class="quranic-snippet__text" v-else v-html="snippetPreview(snippet.commentary_text, narration)"></div>
                                             </div>
                                         </div>
                                         <div class="text-muted" v-else>

@@ -3343,6 +3343,14 @@ main.container::before {
     font-weight: 700;
     color: #193150;
 }
+.quranic-snippet__text mark.tag-highlight {
+    background: rgba(199, 154, 59, 0.18);
+    color: inherit;
+    padding: 0.05em 0.25em;
+    border-radius: 3px;
+    font-style: inherit;
+    font-weight: 600;
+}
 .quranic-snippet__text em {
     font-style: normal;
     color: var(--text-primary);

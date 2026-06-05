@@ -6016,27 +6016,45 @@ function setupVue(query, page, sortFields) {
                         || (snippet.tafsir_name || '') === activeSource.label;
                 });
             },
-            snippetPreview: function(text) {
+            snippetPreview: function(text, narration) {
                 if (!text) return '';
                 // Strip em tags for plain-text preview
                 var t = String(text).replace(/<\/?em>/g, '').trim();
-                if (t.length <= 200) return t;
+                if (t.length <= 200) return this.highlightTopicTags(t, narration);
                 // Extract first ~2 sentences
                 var match = t.match(/^(.+?[.!?](?:\s|$)){1,2}/);
                 if (match && match[0].length > 30 && match[0].length <= 350) {
-                    return match[0].trim();
+                    return this.highlightTopicTags(match[0].trim(), narration);
                 }
-                return t.substring(0, 180).trim() + '...';
+                return this.highlightTopicTags(t.substring(0, 180).trim() + '...', narration);
             },
             snippetPreviewLength: function(text) {
                 return (this.snippetPreview(text) || '').length;
             },
-            snippetFullHtml: function(snippet) {
+            snippetFullHtml: function(snippet, narration) {
                 // Return the commentary text as-is — it already has <em> excerpt highlights
                 var text = (snippet && snippet.commentary_text) || '';
                 if (!text) return '';
                 // Strip trailing ellipsis from truncated snippets
-                return text.replace(/\s*\.{3,}\s*$/, '');
+                text = text.replace(/\s*\.{3,}\s*$/, '');
+                return this.highlightTopicTags(text, narration);
+            },
+            highlightTopicTags: function(text, narration) {
+                if (!text || !narration || !narration.topic_tags || !narration.topic_tags.length) return text;
+                var tags = narration.topic_tags.filter(function(t) { return t && t.length > 2; });
+                if (!tags.length) return text;
+                // Sort by length descending to match longer tags first
+                tags.sort(function(a, b) { return b.length - a.length; });
+                var escaped = tags.map(function(t) { return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); });
+                var regex = new RegExp('\\b(' + escaped.join('|') + ')\\b', 'gi');
+                // Split on HTML tags, only highlight in text portions
+                var parts = text.split(/(<[^>]*>)/);
+                for (var i = 0; i < parts.length; i++) {
+                    if (parts[i].charAt(0) !== '<') {
+                        parts[i] = parts[i].replace(regex, '<mark class="tag-highlight">$1</mark>');
+                    }
+                }
+                return parts.join('');
             },
             snippetExpandKey: function(narration, sidx) {
                 return (narration._id || narration.id || '') + '-snippet-' + sidx;
