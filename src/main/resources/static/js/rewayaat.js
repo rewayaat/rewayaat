@@ -365,7 +365,9 @@ function setupSelect2EnterKeyListener(select2_id) {
                 markKeyboardSearchTermCommit();
                 commitPendingSearchTermsToControl([pendingForEnter]);
                 indicatePendingSearchTerms();
+                return;
             }
+            submitSearchQuery();
             return;
         }
         if (e.key === 'Tab' && !e.shiftKey) {
