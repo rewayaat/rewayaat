@@ -8686,12 +8686,12 @@ body.is-search-mode .site-nav .search-entry-shell {
     min-height: 100% !important;
     max-height: 100% !important;
     height: 100% !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
     padding-left: 1.92rem !important;
     padding-right: var(--search-entry-side-pad) !important;
     border-radius: 11px !important;
-    align-content: center;
+    align-content: flex-start;
     display: flex !important;
     align-items: center !important;
     flex-wrap: wrap !important;
@@ -8701,6 +8701,7 @@ body.is-search-mode .site-nav .search-entry-shell {
     box-shadow: none !important;
     overflow-y: auto;
     overflow-x: hidden;
+    scrollbar-width: thin;
 }
 
 .navbar-search .search-entry-shell .ts-control input,
