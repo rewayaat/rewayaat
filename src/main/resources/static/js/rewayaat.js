@@ -2227,6 +2227,15 @@ function initSelect2(select2_id) {
             indicatePendingSearchTerms();
             updateSearchPlaceholder(this);
         },
+        onBlur: function() {
+            var pending = (this.control_input && this.control_input.value || '').trim();
+            if (pending) {
+                commitPendingSearchTermsToControl([pending]);
+                this.control_input.value = '';
+                indicatePendingSearchTerms();
+                updateSearchPlaceholder(this);
+            }
+        },
         onInitialize: function() {
             updateSearchPlaceholder(this);
             if (this.dropdown) {
@@ -6627,7 +6636,8 @@ function setupSearchModeDropdown() {
     });
 
     if (searchBtn) {
-        searchBtn.addEventListener('click', function() {
+        searchBtn.addEventListener('mousedown', function(e) {
+            e.preventDefault();
             var pending = getPendingSearchTerms();
             if (pending.length) {
                 commitPendingSearchTermsToControl(pending);
