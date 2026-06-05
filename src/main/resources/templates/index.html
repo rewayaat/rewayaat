@@ -372,7 +372,7 @@
                                             title="Metadata"
                                             v-on:click="setNarrationSidecarTab(narration, 'metadata')">
                                         <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
-                                        <span class="hadith-sidecar__rail-label">METADATA</span>
+                                        <span class="hadith-sidecar__rail-label">DETAILS</span>
                                         <span class="hadith-sidecar__rail-icon"><i class="fa fa-info-circle" aria-hidden="true"></i></span>
                                     </button>
                                     <button type="button"
@@ -384,7 +384,7 @@
                                             v-bind:disabled="isNarrationSidecarTabDisabled(narration, 'similar')"
                                             v-on:click="setNarrationSidecarTab(narration, 'similar')">
                                         <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
-                                        <span class="hadith-sidecar__rail-label">SIMILAR</span>
+                                        <span class="hadith-sidecar__rail-label">RELATED</span>
                                         <span class="hadith-sidecar__rail-icon"><i class="fa fa-clone" aria-hidden="true"></i></span>
                                         <span class="hadith-sidecar__rail-badge"
                                               v-bind:class="{'is-zero': resolvedNarrationRailCount(narration, 'similar') === 0, 'is-loading': narration.similarCountLoading || narration.similarCount === null}">
@@ -400,7 +400,7 @@
                                             v-bind:disabled="isNarrationSidecarTabDisabled(narration, 'quran')"
                                             v-on:click="setNarrationSidecarTab(narration, 'quran')">
                                         <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
-                                        <span class="hadith-sidecar__rail-label">QURAN</span>
+                                        <span class="hadith-sidecar__rail-label">TAFSIR</span>
                                         <span class="hadith-sidecar__rail-icon"><i class="fa fa-book" aria-hidden="true"></i></span>
                                         <span class="hadith-sidecar__rail-badge"
                                               v-bind:class="{'is-zero': resolvedNarrationRailCount(narration, 'quran') === 0, 'is-loading': narration.quranicInsightsCountLoading || narration.quranicInsightsCount === null}">
