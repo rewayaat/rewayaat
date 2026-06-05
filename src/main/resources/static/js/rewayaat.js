@@ -694,7 +694,7 @@ function showSearchUpdateToast() {
         pendingSearchUpdateToast.close();
     }
     pendingSearchUpdateToast = new Noty({
-        text: '<div class="search-update-toast"><span class="search-update-toast__label">Search changed</span><span class="search-update-toast__cta">Press Search to update your results</span></div>',
+        text: '<div class="search-update-toast"><span class="search-update-toast__label">Search updated</span><span class="search-update-toast__cta">Click Search to update your results</span></div>',
         theme: 'mint',
         type: 'information',
         layout: 'topRight',
