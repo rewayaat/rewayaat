@@ -6666,6 +6666,12 @@ function setupSearchModeDropdown() {
     });
 
     if (searchBtn) {
+        searchBtn.addEventListener('mousedown', function() {
+            var pending = getPendingSearchTerms();
+            if (pending.length) {
+                commitPendingSearchTermsToControl(pending);
+            }
+        });
         searchBtn.addEventListener('click', function() {
             selectSearchMode('flexible');
             submitSearchQuery('flexible');
