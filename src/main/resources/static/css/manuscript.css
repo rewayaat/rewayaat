@@ -7910,6 +7910,10 @@ body.is-resizing-sidecar * {
     color: rgba(255, 255, 255, 0.7);
     margin-bottom: 0.5rem;
     letter-spacing: 0.03em;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 0.3rem 0.9rem;
+    border-radius: 999px;
+    display: inline-block;
 }
 .home-hero__presents a {
     color: rgba(255, 255, 255, 0.92);
