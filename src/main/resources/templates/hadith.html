@@ -3,14 +3,14 @@
 
 <head>
     <meta charset="UTF-8"/>
-    <title th:text="${seoTitle}">Hadith — Rewayaat</title>
+    <title th:text="${seoTitle}">Hadith — HDP</title>
     <meta name="description" th:content="${seoDescription}"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
     <link rel="canonical" th:href="${canonicalUrl}"/>
 
     <!-- Open Graph -->
     <meta property="og:type" content="article"/>
-    <meta property="og:site_name" content="Rewayaat"/>
+    <meta property="og:site_name" content="HDP - The Hadith Database"/>
     <meta property="og:title" th:content="${seoTitle}"/>
     <meta property="og:description" th:content="${seoDescription}"/>
     <meta property="og:url" th:content="${canonicalUrl}"/>
@@ -55,8 +55,6 @@
         .hp-meta-row { display: flex; flex-wrap: wrap; gap: 1rem 2rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--bs-border-color); }
         .hp-meta-item { font-size: 0.85rem; }
         .hp-meta-item__label { color: var(--bs-secondary-color); font-weight: 500; }
-        .hp-gradings { margin-top: 1rem; }
-        .hp-grading { display: inline-block; padding: 0.2rem 0.65rem; font-size: 0.82rem; border-radius: 0.375rem; background: var(--bs-tertiary-bg); margin-right: 0.5rem; margin-bottom: 0.35rem; }
         .hp-notes { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--bs-border-color); font-size: 0.9rem; color: var(--bs-secondary-color); }
         .hp-back { display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 2rem; font-size: 0.9rem; color: var(--bs-secondary-color); text-decoration: none; }
         .hp-back:hover { color: var(--bs-body-color); }
@@ -146,16 +144,6 @@
             <div class="hp-text-block__english"
                  th:if="${hadith.english != null and !hadith.english.isBlank()}"
                  th:utext="${hadith.english}">English text</div>
-        </div>
-
-        <!-- Gradings -->
-        <div class="hp-gradings"
-             th:if="${hadith.gradings != null and !hadith.gradings.isEmpty()}">
-            <span class="hp-grading" th:each="g : ${hadith.gradings}">
-                <span th:text="${g.grading}">grading</span>
-                <span class="text-muted" th:if="${g.grader != null}"
-                      th:text="'(' + ${g.grader} + ')'">(grader)</span>
-            </span>
         </div>
 
         <!-- Additional metadata row -->

@@ -63,9 +63,6 @@ def build_adjacency(cache):
         raw_mt = val.get("match_type", "")
         match_type = MATCH_TYPE_MAP.get(raw_mt, "conceptual")
         reason = val.get("reason", "")
-        # Truncate very long reasons
-        if len(reason) > 300:
-            reason = reason[:297] + "..."
         entry = {"id": parts[1], "match_type": match_type, "reason": reason}
         reverse_entry = {"id": parts[0], "match_type": match_type, "reason": reason}
         # Use partner ID as key to deduplicate

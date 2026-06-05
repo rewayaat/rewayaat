@@ -294,7 +294,7 @@
                         if (targetLevel === 'part' || targetLevel === 'section' || targetLevel === 'chapter') {
                             selections.part = strip(narration.part || '').trim();
                         }
-                        if (targetLevel === 'section' || targetLevel === 'chapter') {
+                        if (targetLevel === 'section') {
                             selections.section = strip(narration.section || '').trim();
                         }
                         if (targetLevel === 'chapter') {

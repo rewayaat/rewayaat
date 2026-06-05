@@ -40,7 +40,7 @@ public class HadithPageController {
         String englishText = stripHtml(hadith.getEnglish());
         String titlePrefix = truncate(englishText, 80);
         String bookRef = buildBookRef(hadith);
-        String seoTitle = titlePrefix + (bookRef.isEmpty() ? "" : " \u2014 " + bookRef) + " | Rewayaat Hadith Database";
+        String seoTitle = titlePrefix + (bookRef.isEmpty() ? "" : " \u2014 " + bookRef) + " | HDP - The Hadith Database";
 
         // SEO description: first 160 chars of English text
         String seoDescription = truncate(englishText, 160);
