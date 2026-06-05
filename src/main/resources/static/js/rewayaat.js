@@ -364,11 +364,6 @@ function setupSelect2EnterKeyListener(select2_id) {
             if (pendingForEnter) {
                 markKeyboardSearchTermCommit();
                 commitPendingSearchTermsToControl([pendingForEnter]);
-                indicatePendingSearchTerms();
-                if (searchSelectControl && searchSelectControl.control_input) {
-                    searchSelectControl.control_input.focus();
-                }
-                return;
             }
             submitSearchQuery();
             return;
@@ -6631,6 +6626,10 @@ function setupSearchModeDropdown() {
 
     if (searchBtn) {
         searchBtn.addEventListener('click', function() {
+            var pending = getPendingSearchTerms();
+            if (pending.length) {
+                commitPendingSearchTermsToControl(pending);
+            }
             selectSearchMode('flexible');
             submitSearchQuery('flexible');
         });
