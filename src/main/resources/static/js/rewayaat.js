@@ -5979,6 +5979,10 @@ function setupVue(query, page, sortFields) {
                 }
                 return item.reference || item.verse_key || ('Verse ' + (index + 1));
             },
+            alIslamSurahSlug: function(item) {
+                if (!item || !item.surah_name_english) return '';
+                return item.surah_name_english.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            },
             activeQuranicInsight: function(narration) {
                 if (!narration || !narration.quranicInsightsItems || !narration.quranicInsightsItems.length) {
                     return null;

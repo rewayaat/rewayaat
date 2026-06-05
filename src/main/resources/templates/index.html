@@ -539,8 +539,8 @@
                                                             {{item.text_arabic}}
                                                         </div>
                                                         <a class="quranic-verse-link"
-                                                           v-bind:href="'https://quran.com/' + item.verse_key"
-                                                           target="_blank" rel="noopener">View on Quran.com <i class="fa fa-external-link-alt fa-xs"></i></a>
+                                                           v-bind:href="'https://al-islam.org/quran/surah/' + item.surah_number + '/' + alIslamSurahSlug(item) + '/ayat/' + item.ayah_number"
+                                                           target="_blank" rel="noopener">View on Al-Islam.org <i class="fa fa-external-link-alt fa-xs"></i></a>
                                                         <div class="hadith-sidecar__source-tree"
                                                              v-if="quranicInsightSources(item).length > 0">
                                                             <div class="hadith-sidecar__source-tree-label">Tafsir Sources</div>
