@@ -7832,11 +7832,11 @@ body.is-resizing-sidecar * {
     }
 
     .hadith-card .hadith-card__main {
-        padding: 1.4rem 0.5rem 0.8rem !important;
+        padding: 1.2rem 0.4rem 0.6rem !important;
     }
 
     .hadith-card .hadith-card__main .hadith-content {
-        padding: 6px !important;
+        padding: 5px !important;
     }
 
     .hadith-sidecar .meta-item {
@@ -9385,8 +9385,8 @@ body.is-search-mode .site-nav .search-entry-shell {
 
     main.container.py-3 {
         max-width: 100%;
-        padding-left: 0.25rem !important;
-        padding-right: 0.25rem !important;
+        padding-left: 0.15rem !important;
+        padding-right: 0.15rem !important;
     }
 
     .browse-book-card--overflow {
