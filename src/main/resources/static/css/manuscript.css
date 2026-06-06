@@ -8517,6 +8517,15 @@ body.is-resizing-sidecar * {
 }
 
 @media (max-width: 768px) {
+    .home-hero,
+    .home-browse,
+    .home-updates,
+    .home-collections,
+    .home-notice {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
     .home-hero__card {
         padding: 1.25rem;
         border-radius: 26px;
@@ -9399,8 +9408,7 @@ body.is-search-mode .site-nav .search-entry-shell {
         height: auto;
         min-height: 44px;
         max-height: 88px;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
+        overflow: hidden;
     }
 
     .search-entry-shell .ts-wrapper,
@@ -9414,8 +9422,8 @@ body.is-search-mode .site-nav .search-entry-shell {
     .home-search .search-entry-shell .ts-control {
         height: auto !important;
         min-height: 44px !important;
-        max-height: none !important;
-        overflow-y: visible;
+        max-height: 88px !important;
+        overflow-y: auto;
         -webkit-overflow-scrolling: touch;
     }
 
@@ -9488,7 +9496,7 @@ body.is-search-mode .site-nav .search-entry-shell {
 
     .site-nav .search-entry-shell {
         overflow: hidden;
-        max-height: var(--search-shell-height);
+        max-height: 88px;
     }
 
     .site-nav .search-entry-shell .ts-control,
@@ -9497,9 +9505,9 @@ body.is-search-mode .site-nav .search-entry-shell {
         background: transparent !important;
         border: 0 !important;
         box-shadow: none !important;
-        max-height: var(--search-shell-height);
-        overflow-x: auto;
-        overflow-y: hidden;
+        max-height: 88px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     .site-nav .search-entry-shell .ts-control .item {
