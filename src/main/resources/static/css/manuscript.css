@@ -8635,7 +8635,7 @@ body.is-search-mode .site-nav .navbar-search__input {
     min-width: 0;
     height: var(--search-shell-height);
     border-radius: 11px;
-    overflow: hidden;
+    overflow: visible;
     background: rgba(255, 255, 255, 0.98);
     border: 1px solid rgba(79, 88, 101, 0.5);
     align-self: center;
@@ -8663,6 +8663,8 @@ body.is-search-mode .site-nav .search-entry-shell {
     height: 100%;
     display: flex;
     align-items: center;
+    overflow: hidden;
+    border-radius: 11px;
 }
 
 .search-entry-shell .search-magnifier {
