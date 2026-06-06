@@ -9382,9 +9382,33 @@ body.is-search-mode .site-nav .search-entry-shell {
 
 @media (max-width: 768px) {
     :root {
-        --search-shell-height: 40px;
-        --search-action-height: 30px;
+        --search-shell-height: 44px;
+        --search-action-height: 34px;
         --search-entry-side-pad: 5.5rem;
+    }
+
+    .search-entry-shell {
+        height: auto;
+        min-height: 44px;
+        max-height: 88px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .search-entry-shell .ts-wrapper,
+    .search-entry-shell .ts-wrapper.form-control {
+        height: auto;
+        min-height: 44px;
+    }
+
+    .navbar-search .search-entry-shell .ts-control,
+    .site-nav .search-entry-shell .ts-control,
+    .home-search .search-entry-shell .ts-control {
+        height: auto !important;
+        min-height: 44px !important;
+        max-height: none !important;
+        overflow-y: visible;
+        -webkit-overflow-scrolling: touch;
     }
 
     main.container,
