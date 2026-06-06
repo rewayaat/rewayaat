@@ -7702,6 +7702,11 @@ body.is-resizing-sidecar * {
         overflow: visible;
     }
 
+    .hadith-card .hadith-card__main {
+        max-height: none;
+        overflow: visible;
+    }
+
     .hadith-card .card-body > .row {
         display: block;
         margin: 0;
@@ -7712,6 +7717,7 @@ body.is-resizing-sidecar * {
         display: grid;
         grid-template-columns: 1fr;
         min-height: 0;
+        max-height: none;
     }
 
     /* On mobile, hide main hadith text when similar/quran tab is active */
@@ -7728,11 +7734,19 @@ body.is-resizing-sidecar * {
     .hadith-content.sidecar-active--quran .hadith-inline-context {
         max-height: min(60dvh, 24rem);
         overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     .hadith-content.sidecar-active--similar .hadith-inline-context__scroll,
     .hadith-content.sidecar-active--quran .hadith-inline-context__scroll {
         max-height: none;
+        overflow: visible;
+    }
+
+    .hadith-content.sidecar-active--similar .hadith-inline-context__snippets,
+    .hadith-content.sidecar-active--quran .hadith-inline-context__snippets {
+        max-height: none;
+        overflow: visible;
     }
 
     .hadith-sidecar__rail {
