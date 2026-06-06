@@ -2569,6 +2569,10 @@ function displayWelcomeContent() {
         select2SelectHandler('searchTerms');
         // setup enter key listener
         setupSelect2EnterKeyListener('searchTerms');
+        // auto-focus search input on home page
+        if (searchSelectControl && searchSelectControl.control_input) {
+            searchSelectControl.control_input.focus();
+        }
         // refresh auth bindings for dynamically loaded welcome content
         initAuthUI();
         if (authState.authenticated) {
