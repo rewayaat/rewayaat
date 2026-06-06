@@ -2312,12 +2312,6 @@ main.container::before {
     opacity: 0.45;
     color: var(--text-muted);
 }
-    background-repeat: no-repeat;
-    background-position: right 0.6rem center;
-    background-size: 10px;
-    padding-right: 1.8rem;
-    min-height: 36px;
-}
 
 .reading-field .form-select:focus,
 .reading-field select:focus {
@@ -7707,7 +7701,6 @@ body.is-resizing-sidecar * {
         right: 0.75rem;
         left: auto;
         transform: translate(0, -50%);
-    }
     }
 
     .hadith-sidecar,
