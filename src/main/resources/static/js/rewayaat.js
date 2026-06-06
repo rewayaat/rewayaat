@@ -953,7 +953,7 @@ function applyAuthState() {
     }
     var mobileToggle = document.getElementById('authMobileToggle');
     if (mobileToggle) {
-        mobileToggle.classList.toggle('d-none', isAuthed);
+        mobileToggle.classList.toggle('is-hidden', isAuthed);
     }
     if (profileShell) {
         profileShell.classList.toggle('d-none', !isAuthed);

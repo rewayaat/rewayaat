@@ -9534,6 +9534,7 @@ body.is-search-mode .site-nav .search-entry-shell {
 
     .auth-action { display: none !important; }
     .auth-action__mobile-toggle { display: inline-flex !important; font-size: 1rem; margin-right: 0 !important; }
+    .auth-action__mobile-toggle.is-hidden { display: none !important; }
 
     .profile-chip {
         width: 40px;
