@@ -7702,6 +7702,14 @@ body.is-resizing-sidecar * {
         padding: 1rem;
     }
 
+    .hadith-card__result-num {
+        top: 0;
+        right: 0.75rem;
+        left: auto;
+        transform: translate(0, -50%);
+    }
+    }
+
     .hadith-sidecar,
     .hadith-content {
         border-radius: 18px;
