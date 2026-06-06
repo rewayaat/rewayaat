@@ -951,6 +951,10 @@ function applyAuthState() {
         signInBtn.classList.toggle('d-none', isAuthed);
         signInBtn.innerHTML = '<i class="fa fa-right-to-bracket" aria-hidden="true"></i> Sign In';
     }
+    var mobileToggle = document.getElementById('authMobileToggle');
+    if (mobileToggle) {
+        mobileToggle.classList.toggle('d-none', isAuthed);
+    }
     if (profileShell) {
         profileShell.classList.toggle('d-none', !isAuthed);
     }
