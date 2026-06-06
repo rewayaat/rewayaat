@@ -7835,8 +7835,12 @@ body.is-resizing-sidecar * {
         padding: 1.2rem 0.4rem 0.6rem !important;
     }
 
+    .hadith-content {
+        padding: 1rem !important;
+    }
+
     .hadith-card .hadith-card__main .hadith-content {
-        padding: 5px !important;
+        padding: 1rem !important;
     }
 
     .hadith-sidecar .meta-item {
