@@ -9385,8 +9385,8 @@ body.is-search-mode .site-nav .search-entry-shell {
 
     main.container.py-3 {
         max-width: 100%;
-        padding-left: 0.15rem !important;
-        padding-right: 0.15rem !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
     }
 
     .browse-book-card--overflow {
