@@ -6322,6 +6322,25 @@ body.is-resizing-sidecar * {
     gap: 0.55rem;
 }
 
+.hadith-sidecar__show-more {
+    display: block;
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.3rem;
+    border: 1px dashed rgba(247, 225, 166, 0.35);
+    border-radius: 8px;
+    background: transparent;
+    color: rgba(242, 247, 255, 0.7);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 150ms ease, color 150ms ease;
+}
+.hadith-sidecar__show-more:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(242, 247, 255, 0.9);
+}
+
 .hadith-sidecar__accordion-item {
     position: relative;
     border-radius: 12px;

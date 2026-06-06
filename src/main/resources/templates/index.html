@@ -455,7 +455,7 @@
                                                  role="listbox"
                                                  aria-label="Similar hadith list">
                                                 <div class="hadith-sidecar__accordion-item"
-                                                     v-for="(similar, sidx) in narration.similarItems"
+                                                     v-for="(similar, sidx) in narration.similarItems.slice(0, narration.similarShowAll ? narration.similarItems.length : 10)"
                                                     v-bind:key="'similar-' + sidx"
                                                     v-bind:class="{'is-active': sidx === narration.similarActiveIndex}">
                                                     <button type="button"
@@ -481,6 +481,11 @@
                                                         <div class="similar-reason-text">{{ similar.matchReason }}</div>
                                                     </div>
                                                 </div>
+                                                <button type="button" class="hadith-sidecar__show-more"
+                                                        v-if="narration.similarItems.length > 10 && !narration.similarShowAll"
+                                                        v-on:click="$set(narration, 'similarShowAll', true)">
+                                                    Show all {{ narration.similarItems.length }} similar hadith <i class="fa fa-chevron-down" aria-hidden="true"></i>
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -514,7 +519,7 @@
                                                  role="listbox"
                                                  aria-label="Quranic insights list">
                                                 <div class="hadith-sidecar__accordion-item"
-                                                     v-for="(item, qidx) in narration.quranicInsightsItems"
+                                                     v-for="(item, qidx) in narration.quranicInsightsItems.slice(0, narration.quranShowAll ? narration.quranicInsightsItems.length : 10)"
                                                      v-bind:key="'quran-' + (item.verse_key || qidx)"
                                                      v-bind:class="{'is-active': qidx === narration.quranicInsightsActiveIndex}">
                                                     <button type="button"
@@ -561,6 +566,11 @@
                                                         </div>
                                                     </div>
                                                 </div>
+                                                <button type="button" class="hadith-sidecar__show-more"
+                                                        v-if="narration.quranicInsightsItems.length > 10 && !narration.quranShowAll"
+                                                        v-on:click="$set(narration, 'quranShowAll', true)">
+                                                    Show all {{ narration.quranicInsightsItems.length }} verses <i class="fa fa-chevron-down" aria-hidden="true"></i>
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
