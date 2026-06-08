@@ -469,7 +469,7 @@
                                                     </button>
                                                     <div class="hadith-sidecar__accordion-body hadith-sidecar__accordion-body--similar"
                                                          v-if="sidx === narration.similarActiveIndex && similar.matchReason">
-                                                        <div class="similar-reason-text">{{ similar.matchReason }}</div>
+                                                        <div class="similar-reason-text"><span class="similar-reason-label">Why this matched:</span> {{ similar.matchReason }}</div>
                                                     </div>
                                                 </div>
                                                 <button type="button" class="hadith-sidecar__show-more"
