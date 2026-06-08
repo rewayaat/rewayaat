@@ -121,6 +121,7 @@ public class QuranicInsightsService {
                 safeText(source.get("tafsir_slug")),
                 safeText(source.get("tafsir_name")),
                 safeText(source.get("commentary_text")),
+                safeText(source.get("commentary_text_highlighted")),
                 safeText(source.get("source_url")),
                 safeText(source.get("section_title")),
                 doubleValue(source.get("commentary_score"))
@@ -146,6 +147,7 @@ public class QuranicInsightsService {
             s.put("tafsir_slug", snippet.tafsirSlug());
             s.put("tafsir_name", snippet.tafsirName());
             s.put("commentary_text", snippet.commentaryText());
+            s.put("commentary_text_highlighted", snippet.commentaryTextHighlighted());
             s.put("source_url", snippet.sourceUrl());
             s.put("section_title", snippet.sectionTitle());
             s.put("commentary_score", snippet.commentaryScore());
@@ -280,6 +282,7 @@ public class QuranicInsightsService {
             String tafsirSlug,
             String tafsirName,
             String commentaryText,
+            String commentaryTextHighlighted,
             String sourceUrl,
             String sectionTitle,
             double commentaryScore) {

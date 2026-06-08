@@ -692,7 +692,7 @@
                                                     <span class="quranic-snippet__section" v-if="snippet.section_title">&mdash; {{snippet.section_title}}</span>
                                                     <button type="button"
                                                             class="quranic-snippet__expand"
-                                                            v-if="snippetPreview(snippet.commentary_text).length < (snippet.commentary_text || '').replace(/<\/?em>/g,'').trim().length"
+                                                            v-if="snippetPreview(snippet.commentary_text).length < snippet.commentary_text.replace(/<\/?em>/g,'').trim().length"
                                                             v-on:click="toggleSnippetExpand(narration, sidx)">
                                                         {{ isSnippetExpanded(narration, sidx) ? 'Collapse' : 'Expand' }}
                                                     </button>

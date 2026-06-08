@@ -5918,7 +5918,7 @@ function setupVue(query, page, sortFields) {
                                 return {
                                     tafsir_slug: s.tafsir_slug || '',
                                     tafsir_name: s.tafsir_name || '',
-                                    commentary_text: s.commentary_text || '',
+                                    commentary_text: s.commentary_text_highlighted || s.commentary_text || '',
                                     source_url: s.source_url || '',
                                     section_title: s.section_title || '',
                                     commentary_score: Number(s.commentary_score) || 0
@@ -6062,8 +6062,32 @@ function setupVue(query, page, sortFields) {
             },
             snippetPreview: function(text, narration) {
                 if (!text) return '';
+                var s = String(text);
+                // If text has <em> tags, show context around first highlight
+                var emIdx = s.indexOf('<em>');
+                if (emIdx >= 0) {
+                    var CONTEXT = 80;
+                    var lastEmEnd = s.lastIndexOf('</em>');
+                    // If the full text is short enough, just return it all
+                    if (s.length <= 400) {
+                        return this.highlightTopicTags(s, narration);
+                    }
+                    // Extract context before <em>
+                    var rawBefore = s.substring(Math.max(0, emIdx - CONTEXT), emIdx);
+                    var firstSpace = rawBefore.indexOf(' ');
+                    var before = firstSpace > 0 ? rawBefore.substring(firstSpace + 1) : rawBefore;
+                    // Extract context after last </em>
+                    var rawAfter = s.substring(lastEmEnd + 5, Math.min(s.length, lastEmEnd + 5 + CONTEXT));
+                    var lastSpace = rawAfter.lastIndexOf(' ');
+                    var after = lastSpace > 0 ? rawAfter.substring(0, lastSpace) : rawAfter;
+                    // Build preview
+                    var emBlock = s.substring(emIdx, lastEmEnd + 5);
+                    var prefix = (emIdx > CONTEXT) ? '...' + before : s.substring(0, emIdx);
+                    var suffix = (lastEmEnd + 5 + CONTEXT < s.length) ? after + '...' : s.substring(lastEmEnd + 5);
+                    return this.highlightTopicTags(prefix + emBlock + suffix, narration);
+                }
                 // Strip em tags for plain-text preview
-                var t = String(text).replace(/<\/?em>/g, '').trim();
+                var t = s.replace(/<\/?em>/g, '').trim();
                 if (t.length <= 200) return this.highlightTopicTags(t, narration);
                 // Extract first ~2 sentences
                 var match = t.match(/^(.+?[.!?](?:\s|$)){1,2}/);

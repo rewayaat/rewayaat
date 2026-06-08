@@ -3404,7 +3404,7 @@ main.container::before {
 .quranic-snippet__text em {
     font-style: normal;
     color: var(--text-primary);
-    font-weight: 500;
+    font-weight: 700;
     background: rgba(139, 92, 246, 0.08);
     border-radius: 2px;
     padding: 0 2px;
@@ -4593,7 +4593,8 @@ code.welcome {
         flex: 0 0 auto;
     }
     .menu-context-row {
-        order: 2;
+        order: 0;
+        margin-left: auto;
     }
     .search-inline-btn--outer {
         order: 3;
@@ -6774,8 +6775,14 @@ body.is-resizing-sidecar * {
     overflow-y: auto;
     overflow-x: hidden;
     padding-right: 0.35rem;
-    overscroll-behavior: contain;
+    overscroll-behavior-y: contain;
     margin-top: -15px;
+}
+
+@media (max-width: 768px) {
+    .hadith-reading-scroll {
+        overscroll-behavior-y: auto;
+    }
 }
 
 .hadith-reading-scroll::-webkit-scrollbar,
@@ -6898,7 +6905,13 @@ body.is-resizing-sidecar * {
     overflow-y: auto;
     overflow-x: hidden;
     padding-right: 0.3rem;
-    overscroll-behavior: contain;
+    overscroll-behavior-y: contain;
+}
+
+@media (max-width: 768px) {
+    .hadith-inline-context__scroll {
+        overscroll-behavior-y: auto;
+    }
 }
 
 .hadith-inline-context__panel {
@@ -6940,7 +6953,13 @@ body.is-resizing-sidecar * {
     max-height: var(--hadith-inline-snippet-max-height);
     overflow-y: auto;
     padding-right: 0.25rem;
-    overscroll-behavior: contain;
+    overscroll-behavior-y: contain;
+}
+
+@media (max-width: 768px) {
+    .hadith-inline-context__snippets {
+        overscroll-behavior-y: auto;
+    }
 }
 
 .hadith-inline-context__body .similar-full-english {
