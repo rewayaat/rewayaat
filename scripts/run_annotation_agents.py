@@ -26,16 +26,21 @@ AGENT_PROMPT_TEMPLATE = """You are annotating hadith (Islamic narrations) with f
 ## Annotation Types
 
 ### 1. God References
-Wrap ALL names and titles referring to God. For pronouns, be VERY careful — only wrap when the pronoun clearly refers to God Himself.
+Wrap names and titles referring to God. For pronouns, be VERY careful — only wrap when the pronoun clearly refers to God Himself.
 - Names/titles: use `<span class="god-ref" data-type="name">Name</span>` — e.g., Allah, God, the Almighty, the Most High, the Exalted, Lord (only when referring to God, not human masters)
-- Pronouns: use `<span class="god-ref" data-type="pronoun">He</span>` — ONLY when the pronoun directly refers to God (e.g., "Allah, He is the Most High" — He = God). Do NOT wrap pronouns in passive/impersonal constructions about God's actions (e.g., "he will be rewarded" — he = the person, not God). When in doubt, do NOT wrap.
+- Pronouns: use `<span class="god-ref" data-type="pronoun">He</span>` — ONLY when the pronoun directly refers to God (e.g., "Allah, He is the Most High" — He = God). When in doubt, do NOT wrap.
 - Arabic: same tags for names of God (الله, الرحمن, etc.)
 - Arabic: for detached pronouns ONLY when clearly referring to God (هو، هي، هم، نحن، أنتَ) — do NOT wrap attached pronouns
+- IMPORTANT — PERSONAL NAMES: Do NOT wrap "الله" when it appears as part of a personal name or title:
+  - عبد الله / Abd Allah / Abu 'Abdallah → "الله" is part of a person's name, NOT a reference to God in the discourse
+  - عبد الرحمن / Abd al-Rahman → same rule
+  - These are proper nouns referring to people, treat them like any other name
+  - Be CONSISTENT between Arabic and English — if English "Abu 'Abdallah" does not wrap Allah, Arabic should not either
 - COMMON MISTAKES TO AVOID:
   - "he will be rewarded" → "he" is the person, NOT God
   - "he said" about a narrator or Imam → NOT God
-  - "his messenger" → "his" could be God, but the phrase is a formula — use judgment
-  - Passive voice like "it was revealed" → no pronoun to wrap
+  - Passive constructions like "it was revealed" → no pronoun to wrap
+  - "عبد الله" in a narrator's name → NOT a god-ref, it's a personal name
 
 ### 2. Quranic Verse References
 Detect Quranic verse references in the text — explicit quotes, explicit mentions of surahs/verses, and strong allusions/paraphrases.
@@ -43,24 +48,33 @@ Detect Quranic verse references in the text — explicit quotes, explicit mentio
 - `quote`: direct Quranic quotation in the hadith
 - `mention`: explicit mention of a verse/surah by name or reference
 - `allusion`: clear paraphrase of a specific Quranic passage
-- You MUST identify the surah and ayah number. If you cannot identify them, do NOT annotate.
+- You MUST identify the surah and ayah number. Verify the reference carefully. If you cannot confidently identify them, do NOT annotate.
+- BOUNDARY RULE: The English span and Arabic span should wrap the exact same text. Do not extend the English translation beyond what the Arabic quotes from the Quran.
+- These hadith are from Shia sources (Al-Kafi, etc.). Some Quranic references may reflect Shia-specific readings. If the quoted text differs from the standard Quranic text, note this.
 
 ### 3. Translation Verification
-Compare the Arabic original with the English translation. Flag ONLY major errors:
-- Missing clauses or sentences
+Compare the Arabic original with the English translation systematically. Flag errors:
+- Missing clauses, sentences, or words
 - Wrong meaning (not just different wording)
-- Significant factual errors
+- Significant factual errors (wrong numbers, names, etc.)
+- Grammatical errors that make the text incomprehensible: subject-verb disagreement, garbled phrases, missing words, than/then confusion
+- ALSO flag: garbled or meaningless English phrases that do not correspond to the Arabic
 - Do NOT flag: stylistic preferences, minor phrasing differences, honorific translations
 - Store in translation_suggestions array with: original, suggested, reason
+- Be thorough — review the ENTIRE English text systematically, not just the most obvious errors
 
 ### 4. Footnotes
 Identify any term, name, place, event, or concept that a reader learning about hadith would benefit from having explained.
 - Wrap the exact word/phrase: `<span class="fn-word" data-id="N">term</span>`
 - Number footnotes starting from 1 per hadith
-- Store in footnotes array: {id, term, note}
+- Store in footnotes array: {{id, term, note}}
 - Keep notes concise (1-3 sentences)
 - ONLY add footnotes when you are 100% certain of the explanation
-- Good candidates: Islamic/Arabic terminology, historical figures, places, events, sects, legal concepts, cultural practices
+- These hadith are primarily from SHIA sources. When defining hadith terminology, consider the Shia context:
+  - marfu' (مرفوع) means "raised" — can be raised to the Prophet OR to an Imam, not exclusively the Prophet
+  - Terms like taqiyya, naskh, qiyas, bid'ah, hadd, arsh, bar'ah should all receive footnotes
+  - Jurisprudential terms (fiqh, faqih, fatwa) should be explained
+- Good candidates: Islamic/Arabic terminology, historical figures, places, events, sects, legal concepts, cultural practices, hadith science terms (isnad, matn, rijal)
 
 ## Output Format
 
