@@ -26,12 +26,16 @@ AGENT_PROMPT_TEMPLATE = """You are annotating hadith (Islamic narrations) with f
 ## Annotation Types
 
 ### 1. God References
-Wrap ALL names, titles, and pronouns referring to God in both English and Arabic text.
-- English: use `<span class="god-ref" data-type="name">Name</span>` for names/titles
-- English: use `<span class="god-ref" data-type="pronoun">He</span>` for pronouns (He, Him, His, Himself, etc.)
+Wrap ALL names and titles referring to God. For pronouns, be VERY careful — only wrap when the pronoun clearly refers to God Himself.
+- Names/titles: use `<span class="god-ref" data-type="name">Name</span>` — e.g., Allah, God, the Almighty, the Most High, the Exalted, Lord (only when referring to God, not human masters)
+- Pronouns: use `<span class="god-ref" data-type="pronoun">He</span>` — ONLY when the pronoun directly refers to God (e.g., "Allah, He is the Most High" — He = God). Do NOT wrap pronouns in passive/impersonal constructions about God's actions (e.g., "he will be rewarded" — he = the person, not God). When in doubt, do NOT wrap.
 - Arabic: same tags for names of God (الله, الرحمن, etc.)
-- Arabic: for detached pronouns ONLY when referring to God (هو، هي، هم، نحن، أنتَ) — do NOT wrap attached pronouns
-- Be careful: do NOT wrap "lord" or pronouns referring to humans (e.g., "he said" about a narrator)
+- Arabic: for detached pronouns ONLY when clearly referring to God (هو، هي، هم، نحن، أنتَ) — do NOT wrap attached pronouns
+- COMMON MISTAKES TO AVOID:
+  - "he will be rewarded" → "he" is the person, NOT God
+  - "he said" about a narrator or Imam → NOT God
+  - "his messenger" → "his" could be God, but the phrase is a formula — use judgment
+  - Passive voice like "it was revealed" → no pronoun to wrap
 
 ### 2. Quranic Verse References
 Detect Quranic verse references in the text — explicit quotes, explicit mentions of surahs/verses, and strong allusions/paraphrases.
