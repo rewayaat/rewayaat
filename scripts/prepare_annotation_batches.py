@@ -61,6 +61,8 @@ def main():
     parser = argparse.ArgumentParser(description="Prepare annotation batches")
     parser.add_argument("--batch-size", type=int, default=DEFAULT_BATCH_SIZE)
     parser.add_argument("--force", action="store_true", help="Don't skip already annotated")
+    parser.add_argument("--max-chars", type=int, default=20000,
+                        help="Max total chars per batch (flushes early if exceeded)")
     parser.add_argument("--es-host", default="http://localhost:9200")
     args = parser.parse_args()
 
@@ -81,8 +83,7 @@ def main():
     print(f"Total hadith: {total}")
     print(f"Already annotated: {annotated}")
     print(f"To process: {to_process}")
-    print(f"Batch size: {args.batch_size}")
-    print(f"Expected batches: {(to_process + args.batch_size - 1) // args.batch_size}")
+    print(f"Batch size: {args.batch_size}, max chars: {args.max_chars}")
 
     if to_process == 0:
         print("Nothing to do!")
@@ -91,6 +92,7 @@ def main():
     batch_num = 0
     total_exported = 0
     current_batch = []
+    current_chars = 0
 
     for hits in scroll_hadith(es, batch_size=1000, skip_annotated=not args.force):
         for hit in hits:
@@ -106,8 +108,11 @@ def main():
             if not doc["english"] and not doc["arabic"]:
                 continue
 
+            doc_chars = len(doc["english"]) + len(doc["arabic"])
             current_batch.append(doc)
-            if len(current_batch) >= args.batch_size:
+            current_chars += doc_chars
+
+            if len(current_batch) >= args.batch_size or current_chars >= args.max_chars:
                 batch_num += 1
                 batch_file = BATCH_DIR / f"batch_{batch_num:04d}.jsonl"
                 with open(batch_file, "w") as f:
@@ -115,9 +120,11 @@ def main():
                         f.write(json.dumps(item, ensure_ascii=False) + "\n")
                 total_exported += len(current_batch)
                 current_batch = []
+                current_chars = 0
 
     # Flush remaining
     if current_batch:
+        batch_num += 1
         batch_num += 1
         batch_file = BATCH_DIR / f"batch_{batch_num:04d}.jsonl"
         with open(batch_file, "w") as f:
