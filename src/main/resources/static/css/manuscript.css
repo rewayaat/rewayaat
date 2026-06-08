@@ -6538,8 +6538,8 @@ body.is-resizing-sidecar * {
 }
 
 .similar-reason-label {
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.5);
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.7);
 }
 
 .hadith-sidecar .hadith-details,
