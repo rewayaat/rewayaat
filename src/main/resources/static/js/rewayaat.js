@@ -6100,8 +6100,8 @@ function setupVue(query, page, sortFields) {
                 return (this.snippetPreview(text) || '').length;
             },
             snippetFullHtml: function(snippet, narration) {
-                // Return the commentary text as-is — it already has <em> excerpt highlights
-                var text = (snippet && snippet.commentary_text) || '';
+                // Prefer commentary_text_highlighted (has <em> tags), fall back to commentary_text
+                var text = (snippet && (snippet.commentary_text_highlighted || snippet.commentary_text)) || '';
                 if (!text) return '';
                 // Strip trailing ellipsis from truncated snippets
                 text = text.replace(/\s*\.{3,}\s*$/, '');
