@@ -1,6 +1,7 @@
 package com.rewayaat.controllers;
 
 import com.rewayaat.config.ESClientProvider;
+import com.rewayaat.core.HadithDisplaySegmenter;
 import com.rewayaat.core.data.HadithObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Hidden;
@@ -36,14 +37,21 @@ public class HadithPageController {
             return "redirect:/error/404.html";
         }
 
-        // SEO title: "English excerpt — Book #Number | Rewayaat"
-        String englishText = stripHtml(hadith.getEnglish());
-        String titlePrefix = truncate(englishText, 80);
-        String bookRef = buildBookRef(hadith);
-        String seoTitle = titlePrefix + (bookRef.isEmpty() ? "" : " \u2014 " + bookRef) + " | HDP - The Hadith Database";
+        // Split chain from matn using the display segmenter
+        Map<String, Object> segMap = new LinkedHashMap<>();
+        segMap.put("english", hadith.getEnglish());
+        segMap.put("arabic", hadith.getArabic());
+        HadithDisplaySegmenter.enrich(segMap);
 
-        // SEO description: first 160 chars of English text
-        String seoDescription = truncate(englishText, 160);
+        String englishContent = stripHtml((String) segMap.getOrDefault("englishContent", hadith.getEnglish()));
+        String englishFull = stripHtml(hadith.getEnglish());
+
+        // SEO title: "Book #Number | HDP"
+        String bookRef = buildBookRef(hadith);
+        String seoTitle = (bookRef.isEmpty() ? truncate(englishFull, 80) : bookRef) + " | HDP - The Hadith Database";
+
+        // SEO description: matn text (not chain), first 160 chars
+        String seoDescription = truncate(englishContent.isEmpty() ? englishFull : englishContent, 160);
 
         // Canonical URL
         String canonicalUrl = BASE_URL + "/hadith/" + id;

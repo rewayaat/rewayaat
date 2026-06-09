@@ -9,7 +9,7 @@ spring:
 elasticsearch:
   host: ${ELASTIC_HOST:localhost}
   port: ${ELASTIC_PORT:9200}
-  index: ${REWAYAAT_INDEX:rewayaat_thaqalayn_20260320_syn_v1}
+  index: ${REWAYAAT_INDEX:rewayaat_updated}
 
 rewayaat:
   users-index: ${REWAYAAT_USERS_INDEX:rewayaat_users}
