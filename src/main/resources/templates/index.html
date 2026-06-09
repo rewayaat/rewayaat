@@ -908,16 +908,29 @@
             t.id = 'feedbackToast';
             t.setAttribute('role', 'dialog');
             t.setAttribute('aria-label', 'Feedback');
+            var selectedRating = 0;
             t.innerHTML =
                 '<div style="display:flex;align-items:flex-start;gap:12px;">' +
                     '<i class="fa fa-comment-dots" style="font-size:1.4rem;color:#d4940a;margin-top:2px;flex-shrink:0;"></i>' +
                     '<div style="flex:1;min-width:0;">' +
-                        '<div style="font-weight:600;font-size:0.95rem;margin-bottom:4px;">Enjoying HDP?</div>' +
-                        '<div style="font-size:0.84rem;color:#c0c0c0;margin-bottom:12px;">We\'d love to hear your feedback, feature ideas, or bug reports.</div>' +
-                        '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
-                            '<a id="feedbackLink" href="mailto:rewayaat.org@gmail.com?subject=HDP%20Feedback%20%E2%80%94%20The%20Hadith%20Database&body=Hi%20HDP%20team%2C%0A%0A" ' +
-                               'style="display:inline-block;padding:6px 16px;border-radius:6px;background:#d4940a;color:#fff;font-size:0.84rem;font-weight:600;text-decoration:none;-webkit-tap-highlight-color:transparent;">Share feedback</a>' +
+                        '<div style="font-weight:600;font-size:0.95rem;margin-bottom:8px;">How are you finding HDP?</div>' +
+                        '<div id="feedbackStars" style="display:flex;gap:4px;margin-bottom:10px;font-size:1.4rem;cursor:pointer;">' +
+                            '<span data-star="1" style="color:#555;transition:color .15s;">&#9733;</span>' +
+                            '<span data-star="2" style="color:#555;transition:color .15s;">&#9733;</span>' +
+                            '<span data-star="3" style="color:#555;transition:color .15s;">&#9733;</span>' +
+                            '<span data-star="4" style="color:#555;transition:color .15s;">&#9733;</span>' +
+                            '<span data-star="5" style="color:#555;transition:color .15s;">&#9733;</span>' +
+                        '</div>' +
+                        '<input id="feedbackName" type="text" placeholder="Name (optional)" ' +
+                            'style="width:100%;box-sizing:border-box;padding:7px 10px;border-radius:8px;border:1px solid #3a3a55;background:#252540;color:#e0e0e0;font-size:0.84rem;font-family:inherit;margin-bottom:6px;-webkit-appearance:none;" />' +
+                        '<input id="feedbackEmail" type="email" placeholder="Email (optional)" ' +
+                            'style="width:100%;box-sizing:border-box;padding:7px 10px;border-radius:8px;border:1px solid #3a3a55;background:#252540;color:#e0e0e0;font-size:0.84rem;font-family:inherit;margin-bottom:6px;-webkit-appearance:none;" />' +
+                        '<textarea id="feedbackComment" rows="2" placeholder="Any features you\'d like or bugs to report? (optional)" ' +
+                            'style="width:100%;box-sizing:border-box;padding:8px 10px;border-radius:8px;border:1px solid #3a3a55;background:#252540;color:#e0e0e0;font-size:0.84rem;font-family:inherit;resize:vertical;min-height:48px;-webkit-appearance:none;"></textarea>' +
+                        '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center;">' +
+                            '<button id="feedbackSubmit" disabled style="padding:6px 18px;border-radius:6px;background:#d4940a;color:#fff;font-size:0.84rem;font-weight:600;border:none;cursor:pointer;opacity:0.4;-webkit-tap-highlight-color:transparent;">Submit</button>' +
                             '<button id="feedbackDismiss" style="padding:6px 12px;border-radius:6px;background:transparent;border:1px solid rgba(255,255,255,0.15);color:#aaa;font-size:0.8rem;cursor:pointer;-webkit-tap-highlight-color:transparent;">Maybe later</button>' +
+                            '<span id="feedbackThanks" style="display:none;color:#4ade80;font-size:0.84rem;font-weight:500;">Thanks for your feedback!</span>' +
                         '</div>' +
                     '</div>' +
                     '<button id="feedbackClose" style="background:none;border:none;color:#888;font-size:1.2rem;cursor:pointer;padding:0 0 0 8px;line-height:1;-webkit-tap-highlight-color:transparent;" aria-label="Dismiss">&times;</button>' +
@@ -939,6 +952,62 @@
                 t.style.opacity = '1';
                 t.style.transform = 'translateY(0)';
             });
+
+            var stars = t.querySelectorAll('#feedbackStars span');
+            var submitBtn = document.getElementById('feedbackSubmit');
+            stars.forEach(function(s) {
+                s.addEventListener('click', function() {
+                    selectedRating = parseInt(this.getAttribute('data-star'));
+                    stars.forEach(function(star) {
+                        star.style.color = parseInt(star.getAttribute('data-star')) <= selectedRating ? '#d4940a' : '#555';
+                    });
+                    submitBtn.disabled = false;
+                    submitBtn.style.opacity = '1';
+                });
+                s.addEventListener('mouseenter', function() {
+                    var hoverVal = parseInt(this.getAttribute('data-star'));
+                    stars.forEach(function(star) {
+                        star.style.color = parseInt(star.getAttribute('data-star')) <= hoverVal ? '#e8b84a' : '#555';
+                    });
+                });
+            });
+            document.getElementById('feedbackStars').addEventListener('mouseleave', function() {
+                stars.forEach(function(star) {
+                    star.style.color = parseInt(star.getAttribute('data-star')) <= selectedRating ? '#d4940a' : '#555';
+                });
+            });
+
+            submitBtn.addEventListener('click', function() {
+                if (selectedRating < 1) return;
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Sending...';
+                var comment = (document.getElementById('feedbackComment').value || '').trim();
+                var fbName = (document.getElementById('feedbackName').value || '').trim();
+                var fbEmail = (document.getElementById('feedbackEmail').value || '').trim();
+                var payload = { rating: selectedRating, comment: comment };
+                if (fbName) payload.name = fbName;
+                if (fbEmail) payload.email = fbEmail;
+                fetch('/v1/feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).then(function(r) { return r.json(); }).then(function(data) {
+                    if (data.ok) {
+                        document.getElementById('feedbackThanks').style.display = 'inline';
+                        submitBtn.style.display = 'none';
+                        document.getElementById('feedbackDismiss').style.display = 'none';
+                        storageSet('hdp_feedback_dismissed', '1');
+                        setTimeout(function() { dismiss(); }, 2500);
+                    } else {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Submit';
+                    }
+                }).catch(function() {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit';
+                });
+            });
+
             function dismiss() {
                 t.style.opacity = '0';
                 t.style.transform = 'translateY(12px)';
@@ -947,10 +1016,8 @@
             }
             var closeBtn = document.getElementById('feedbackClose');
             var dismissBtn = document.getElementById('feedbackDismiss');
-            var linkBtn = document.getElementById('feedbackLink');
             if (closeBtn) closeBtn.addEventListener('click', dismiss);
             if (dismissBtn) dismissBtn.addEventListener('click', dismiss);
-            if (linkBtn) linkBtn.addEventListener('click', dismiss);
         }, 5 * 60 * 1000);
     })();
 </script>
