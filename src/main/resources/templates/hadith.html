@@ -284,13 +284,29 @@
             navigator.share({ title: SHARE_TITLE, url: SHARE_URL }).catch(function() {});
         } else {
             var text = SHARE_TITLE + '\n' + SHARE_URL;
-            navigator.clipboard.writeText(text).then(function() {
-                var toast = document.getElementById('shareToast');
-                toast.style.display = 'inline-block';
-                toast.classList.add('show');
-                setTimeout(function() { toast.classList.remove('show'); setTimeout(function() { toast.style.display = 'none'; }, 300); }, 2000);
-            });
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(showShareToast).catch(fallbackCopy);
+            } else {
+                fallbackCopy();
+            }
         }
+    }
+    function showShareToast() {
+        var toast = document.getElementById('shareToast');
+        if (!toast) return;
+        toast.style.display = 'inline-block';
+        toast.classList.add('show');
+        setTimeout(function() { toast.classList.remove('show'); setTimeout(function() { toast.style.display = 'none'; }, 300); }, 2000);
+    }
+    function fallbackCopy() {
+        var ta = document.createElement('textarea');
+        ta.value = SHARE_TITLE + '\n' + SHARE_URL;
+        ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try { document.execCommand('copy'); showShareToast(); } catch(e) {}
+        document.body.removeChild(ta);
     }
 
     // Search bar — navigate to results page

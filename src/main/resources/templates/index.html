@@ -899,23 +899,28 @@
 
     // Feedback toast — shows once after 5 min
     (function() {
-        if (localStorage.getItem('hdp_feedback_dismissed')) return;
+        function storageGet(k) { try { return localStorage.getItem(k); } catch(e) { return null; } }
+        function storageSet(k, v) { try { localStorage.setItem(k, v); } catch(e) {} }
+        if (storageGet('hdp_feedback_dismissed')) return;
         setTimeout(function() {
+            if (document.getElementById('feedbackToast')) return;
             var t = document.createElement('div');
             t.id = 'feedbackToast';
+            t.setAttribute('role', 'dialog');
+            t.setAttribute('aria-label', 'Feedback');
             t.innerHTML =
                 '<div style="display:flex;align-items:flex-start;gap:12px;">' +
-                    '<i class="fa fa-comment-dots" style="font-size:1.4rem;color:#d4940a;margin-top:2px;"></i>' +
-                    '<div style="flex:1;">' +
+                    '<i class="fa fa-comment-dots" style="font-size:1.4rem;color:#d4940a;margin-top:2px;flex-shrink:0;"></i>' +
+                    '<div style="flex:1;min-width:0;">' +
                         '<div style="font-weight:600;font-size:0.95rem;margin-bottom:4px;">Enjoying HDP?</div>' +
                         '<div style="font-size:0.84rem;color:#c0c0c0;margin-bottom:12px;">We\'d love to hear your feedback, feature ideas, or bug reports.</div>' +
                         '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
-                            '<a href="mailto:rewayaat.org@gmail.com?subject=HDP%20Feedback&body=Hi%20HDP%20team%2C%0A%0A' + encodeURIComponent(window.location.href) + '" ' +
-                               'style="display:inline-block;padding:6px 16px;border-radius:6px;background:#d4940a;color:#fff;font-size:0.84rem;font-weight:600;text-decoration:none;">Share feedback</a>' +
-                            '<button id="feedbackDismiss" style="padding:6px 12px;border-radius:6px;background:transparent;border:1px solid rgba(255,255,255,0.15);color:#aaa;font-size:0.8rem;cursor:pointer;">Maybe later</button>' +
+                            '<a id="feedbackLink" href="mailto:rewayaat.org@gmail.com?subject=HDP%20Feedback%20%E2%80%94%20The%20Hadith%20Database&body=Hi%20HDP%20team%2C%0A%0A%5BShare%20your%20feedback%20here%5D%0A%0APage%20I%20was%20on%3A%20' + encodeURIComponent(window.location.href) + '" ' +
+                               'style="display:inline-block;padding:6px 16px;border-radius:6px;background:#d4940a;color:#fff;font-size:0.84rem;font-weight:600;text-decoration:none;-webkit-tap-highlight-color:transparent;">Share feedback</a>' +
+                            '<button id="feedbackDismiss" style="padding:6px 12px;border-radius:6px;background:transparent;border:1px solid rgba(255,255,255,0.15);color:#aaa;font-size:0.8rem;cursor:pointer;-webkit-tap-highlight-color:transparent;">Maybe later</button>' +
                         '</div>' +
                     '</div>' +
-                    '<button id="feedbackClose" style="background:none;border:none;color:#888;font-size:1.1rem;cursor:pointer;padding:0 0 0 8px;" aria-label="Dismiss">&times;</button>' +
+                    '<button id="feedbackClose" style="background:none;border:none;color:#888;font-size:1.2rem;cursor:pointer;padding:0 0 0 8px;line-height:1;-webkit-tap-highlight-color:transparent;" aria-label="Dismiss">&times;</button>' +
                 '</div>';
             Object.assign(t.style, {
                 position: 'fixed', bottom: '24px', right: '24px', zIndex: '9999',
@@ -925,7 +930,9 @@
                 boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(212,148,10,0.15)',
                 fontFamily: "'Inter', sans-serif", color: '#e0e0e0',
                 opacity: '0', transform: 'translateY(12px)',
-                transition: 'opacity 0.4s, transform 0.4s'
+                transition: 'opacity 0.4s, transform 0.4s',
+                boxSizing: 'border-box',
+                paddingBottom: 'calc(20px + env(safe-area-inset-bottom, 0px))'
             });
             document.body.appendChild(t);
             requestAnimationFrame(function() {
@@ -935,11 +942,15 @@
             function dismiss() {
                 t.style.opacity = '0';
                 t.style.transform = 'translateY(12px)';
-                setTimeout(function() { t.remove(); }, 400);
-                localStorage.setItem('hdp_feedback_dismissed', '1');
+                setTimeout(function() { if (t.parentNode) t.remove(); }, 400);
+                storageSet('hdp_feedback_dismissed', '1');
             }
-            document.getElementById('feedbackClose').addEventListener('click', dismiss);
-            document.getElementById('feedbackDismiss').addEventListener('click', dismiss);
+            var closeBtn = document.getElementById('feedbackClose');
+            var dismissBtn = document.getElementById('feedbackDismiss');
+            var linkBtn = document.getElementById('feedbackLink');
+            if (closeBtn) closeBtn.addEventListener('click', dismiss);
+            if (dismissBtn) dismissBtn.addEventListener('click', dismiss);
+            if (linkBtn) linkBtn.addEventListener('click', dismiss);
         }, 5 * 60 * 1000);
     })();
 </script>
