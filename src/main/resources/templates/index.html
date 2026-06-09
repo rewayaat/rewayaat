@@ -896,6 +896,52 @@
             btn.addEventListener('click', function() { banner.classList.add('is-hidden'); });
         }
     })();
+
+    // Feedback toast — shows once after 5 min
+    (function() {
+        if (localStorage.getItem('hdp_feedback_dismissed')) return;
+        setTimeout(function() {
+            var t = document.createElement('div');
+            t.id = 'feedbackToast';
+            t.innerHTML =
+                '<div style="display:flex;align-items:flex-start;gap:12px;">' +
+                    '<i class="fa fa-comment-dots" style="font-size:1.4rem;color:#d4940a;margin-top:2px;"></i>' +
+                    '<div style="flex:1;">' +
+                        '<div style="font-weight:600;font-size:0.95rem;margin-bottom:4px;">Enjoying HDP?</div>' +
+                        '<div style="font-size:0.84rem;color:#c0c0c0;margin-bottom:12px;">We\'d love to hear your feedback, feature ideas, or bug reports.</div>' +
+                        '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
+                            '<a href="mailto:rewayaat.org@gmail.com?subject=HDP%20Feedback&body=Hi%20HDP%20team%2C%0A%0A' + encodeURIComponent(window.location.href) + '" ' +
+                               'style="display:inline-block;padding:6px 16px;border-radius:6px;background:#d4940a;color:#fff;font-size:0.84rem;font-weight:600;text-decoration:none;">Share feedback</a>' +
+                            '<button id="feedbackDismiss" style="padding:6px 12px;border-radius:6px;background:transparent;border:1px solid rgba(255,255,255,0.15);color:#aaa;font-size:0.8rem;cursor:pointer;">Maybe later</button>' +
+                        '</div>' +
+                    '</div>' +
+                    '<button id="feedbackClose" style="background:none;border:none;color:#888;font-size:1.1rem;cursor:pointer;padding:0 0 0 8px;" aria-label="Dismiss">&times;</button>' +
+                '</div>';
+            Object.assign(t.style, {
+                position: 'fixed', bottom: '24px', right: '24px', zIndex: '9999',
+                background: '#1a1a2e', border: '1px solid #2a2a44',
+                borderRadius: '12px', padding: '20px 22px',
+                maxWidth: '380px', width: 'calc(100vw - 48px)',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(212,148,10,0.15)',
+                fontFamily: "'Inter', sans-serif", color: '#e0e0e0',
+                opacity: '0', transform: 'translateY(12px)',
+                transition: 'opacity 0.4s, transform 0.4s'
+            });
+            document.body.appendChild(t);
+            requestAnimationFrame(function() {
+                t.style.opacity = '1';
+                t.style.transform = 'translateY(0)';
+            });
+            function dismiss() {
+                t.style.opacity = '0';
+                t.style.transform = 'translateY(12px)';
+                setTimeout(function() { t.remove(); }, 400);
+                localStorage.setItem('hdp_feedback_dismissed', '1');
+            }
+            document.getElementById('feedbackClose').addEventListener('click', dismiss);
+            document.getElementById('feedbackDismiss').addEventListener('click', dismiss);
+        }, 5 * 60 * 1000);
+    })();
 </script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-3HSRTQD7GM"></script>
 <script>
