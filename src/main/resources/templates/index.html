@@ -33,7 +33,7 @@
     <link href="/css/sweetalert.css" rel="stylesheet" th:href="@{/css/sweetalert.css}"/>
     <link href="/css/noty.css" rel="stylesheet" th:href="@{/css/noty.css}"/>
     <link href="/css/manuscript.css?v=1022" rel="stylesheet" th:href="@{/css/manuscript.css?v=1022}"/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600;700&family=Scheherazade+New:wght@400;700&family=Aref+Ruqaa+Ink:wght@400;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600;700&family=Scheherazade+New:wght@400;700&display=swap"
           rel="stylesheet"/>
     <link href="/css/pace.css" rel="stylesheet" th:href="@{/css/pace.css}"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
@@ -191,11 +191,11 @@
             <div class="tag-filter-bar__results-head">
                 <div>
                     <div class="collection-hero" v-if="collectionMode">
-                        <div class="collection-hero__eyebrow">Collection View</div>
+                        <div class="collection-hero__eyebrow">{{ i18n.strings.resultsCollection }}</div>
                         <div class="results-heading-inline">
                             <div class="collection-title-wrapper" v-if="!isEditingCollectionTitle">
                                 <h2 class="collection-hero__title mb-1">
-                                    {{ collectionTitle || 'Saved Hadith' }}
+                                    {{ collectionTitle || i18n.strings.resultsSavedHadith }}
                                     <button class="collection-title-edit" type="button"
                                             v-on:click="startEditCollectionTitle"
                                             aria-label="Edit collection name"
@@ -239,7 +239,7 @@
                                         <button class="dropdown-item"
                                                 type="button"
                                                 v-on:click="exportNarrationsPdf">
-                                            Export PDF
+                                            {{ i18n.strings.resultsExportPdf }}
                                         </button>
                                     </li>
                                 </ul>
@@ -265,7 +265,7 @@
                                     <button class="dropdown-item"
                                             type="button"
                                             v-on:click="exportNarrationsPdf">
-                                        Export PDF
+                                        {{ i18n.strings.resultsExportPdf }}
                                     </button>
                                 </li>
                             </ul>
@@ -279,20 +279,20 @@
             <div class="tag-filter-bar__head"
                  v-if="allNarrations.length > 0 && visibleTagFilterOptions.length > 0">
                 <div class="tag-filter-bar__meta">
-                    <div class="tag-filter-bar__title">Filter by Tag</div>
+                    <div class="tag-filter-bar__title">{{ i18n.strings.resultsFilterByTag }}</div>
                 </div>
                 <div class="tag-filter-bar__actions">
                     <button type="button"
                             class="btn btn-link btn-sm"
                             v-if="activeTopicTags.length > 0"
                             v-on:click="clearTagFilters">
-                        Clear all
+                        {{ i18n.strings.resultsClearAll }}
                     </button>
                     <button type="button"
                             class="tag-filter-bar__toggle"
                             v-if="hasCollapsedTagFilters"
                             v-on:click="toggleTagFilterExpansion">
-                        {{ tagFilterExpanded ? 'Show fewer' : 'Show more' }}
+                        {{ tagFilterExpanded ? i18n.strings.resultsShowFewer : i18n.strings.resultsShowMore }}
                     </button>
                 </div>
             </div>
@@ -378,7 +378,7 @@
                          v-bind:class="'hadith-card--' + activeNarrationSidecarTab(narration)"
                          v-bind:style="sidecarStyleVars"
                          v-bind:id="narrationDomId(narration)">
-                    <div class="hadith-card__result-num">{{ collectionMode || readingMode ? 'Hadith' : 'Result' }} {{ resultOrdinal(narration, index) }}/{{ totalHits }}</div>
+                    <div class="hadith-card__result-num">{{ collectionMode || readingMode ? i18n.strings.resultsHadith : i18n.strings.resultsResult }} {{ resultOrdinal(narration, index) }}/{{ totalHits }}</div>
                     <div class="card-body">
                         <div class="row g-4 hadith-card__layout">
                             <aside class="hadith-sidecar hadith-card__meta">
@@ -391,7 +391,7 @@
                                             title="Metadata"
                                             v-on:click="setNarrationSidecarTab(narration, 'metadata')">
                                         <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
-                                        <span class="hadith-sidecar__rail-label">DETAILS</span>
+                                        <span class="hadith-sidecar__rail-label">{{ i18n.strings.sidecarDetails }}</span>
                                         <span class="hadith-sidecar__rail-icon"><i class="fa fa-info-circle" aria-hidden="true"></i></span>
                                     </button>
                                     <button type="button"
@@ -399,11 +399,11 @@
                                             v-bind:class="{'is-active': isNarrationSidecarTabActive(narration, 'similar')}"
                                             v-bind:aria-selected="isNarrationSidecarTabActive(narration, 'similar') ? 'true' : 'false'"
                                             aria-label="Open similar hadith panel"
-                                            title="Similar Hadith"
+                                            :title="i18n.strings.similarTitle"
                                             v-bind:disabled="isNarrationSidecarTabDisabled(narration, 'similar')"
                                             v-on:click="setNarrationSidecarTab(narration, 'similar')">
                                         <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
-                                        <span class="hadith-sidecar__rail-label">RELATED</span>
+                                        <span class="hadith-sidecar__rail-label">{{ i18n.strings.sidecarRelated }}</span>
                                         <span class="hadith-sidecar__rail-icon"><i class="fa fa-clone" aria-hidden="true"></i></span>
                                         <span class="hadith-sidecar__rail-badge"
                                               v-bind:class="{'is-zero': resolvedNarrationRailCount(narration, 'similar') === 0, 'is-loading': narration.similarCountLoading || narration.similarCount === null}">
@@ -415,11 +415,11 @@
                                             v-bind:class="{'is-active': isNarrationSidecarTabActive(narration, 'quran')}"
                                             v-bind:aria-selected="isNarrationSidecarTabActive(narration, 'quran') ? 'true' : 'false'"
                                             aria-label="Open Quranic insights panel"
-                                            title="Quranic Insights"
+                                            :title="i18n.strings.quranTitle"
                                             v-bind:disabled="isNarrationSidecarTabDisabled(narration, 'quran')"
                                             v-on:click="setNarrationSidecarTab(narration, 'quran')">
                                         <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
-                                        <span class="hadith-sidecar__rail-label">TAFSIR</span>
+                                        <span class="hadith-sidecar__rail-label">{{ i18n.strings.sidecarTafsir }}</span>
                                         <span class="hadith-sidecar__rail-icon"><i class="fa fa-book" aria-hidden="true"></i></span>
                                         <span class="hadith-sidecar__rail-badge"
                                               v-bind:class="{'is-zero': resolvedNarrationRailCount(narration, 'quran') === 0, 'is-loading': narration.quranicInsightsCountLoading || narration.quranicInsightsCount === null}">
@@ -441,7 +441,7 @@
                                              aria-live="polite"
                                              aria-label="Loading similar hadith">
                                             <div class="similar-tab-body similar-tab-body--loading mt-2">
-                                                <div class="hadith-loading-label">Fetching...</div>
+                                                <div class="hadith-loading-label">{{ i18n.strings.similarFetching }}</div>
                                                 <div class="hadith-loading-skeleton" style="margin-top: 12px;">
                                                     <div class="hadith-skeleton-bar hadith-skeleton-bar--short"></div>
                                                     <div class="hadith-skeleton-bar hadith-skeleton-bar--long"></div>
@@ -456,7 +456,7 @@
                                         </div>
                                         <div class="text-muted py-2"
                                              v-else-if="narration.similarItems.length === 0">
-                                            No similar hadith were found for this narration.
+                                            {{ i18n.strings.similarNone }}
                                         </div>
                                         <div v-else-if="activeSimilar(narration)">
                                             <div class="hadith-sidecar__list hadith-sidecar__accordion"
@@ -486,13 +486,13 @@
                                                     </button>
                                                     <div class="hadith-sidecar__accordion-body hadith-sidecar__accordion-body--similar"
                                                          v-if="sidx === narration.similarActiveIndex && similar.matchReason">
-                                                        <div class="similar-reason-text"><span class="similar-reason-label">Why this matched:</span> {{ similar.matchReason }}</div>
+                                                        <div class="similar-reason-text"><span class="similar-reason-label">{{ i18n.strings.similarWhyMatched }}</span> {{ similar.matchReason }}</div>
                                                     </div>
                                                 </div>
                                                 <button type="button" class="hadith-sidecar__show-more"
                                                         v-if="narration.similarItems.length > 10 && !narration.similarShowAll"
                                                         v-on:click="$set(narration, 'similarShowAll', true)">
-                                                    Show all {{ narration.similarItems.length }} similar hadith <i class="fa fa-chevron-down" aria-hidden="true"></i>
+                                                    {{ i18n.strings.similarShowAll.replace('{0}', narration.similarItems.length) }} <i class="fa fa-chevron-down" aria-hidden="true"></i>
                                                 </button>
                                             </div>
                                         </div>
@@ -505,7 +505,7 @@
                                              aria-live="polite"
                                              aria-label="Loading Quranic insights">
                                             <div class="similar-tab-body similar-tab-body--loading mt-2">
-                                                <div class="hadith-loading-label">Fetching...</div>
+                                                <div class="hadith-loading-label">{{ i18n.strings.quranFetching }}</div>
                                                 <div class="hadith-loading-skeleton" style="margin-top: 12px;">
                                                     <div class="hadith-skeleton-bar hadith-skeleton-bar--short"></div>
                                                     <div class="hadith-skeleton-bar hadith-skeleton-bar--long"></div>
@@ -520,7 +520,7 @@
                                         </div>
                                         <div class="text-muted py-2"
                                              v-else-if="narration.quranicInsightsItems.length === 0">
-                                            No Quranic insights were found for this narration.
+                                            {{ i18n.strings.quranNone }}
                                         </div>
                                         <div v-else-if="activeQuranicInsight(narration)">
                                             <div class="hadith-sidecar__list hadith-sidecar__accordion"
@@ -553,10 +553,10 @@
                                                         </div>
                                                         <a class="quranic-verse-link"
                                                            v-bind:href="'https://al-islam.org/quran/surah/' + item.surah_number + '/' + alIslamSurahSlug(item) + '/ayat/' + item.ayah_number"
-                                                           target="_blank" rel="noopener">View on Al-Islam.org <i class="fa fa-external-link-alt fa-xs"></i></a>
+                                                           target="_blank" rel="noopener">{{ i18n.strings.quranViewOn }} <i class="fa fa-external-link-alt fa-xs"></i></a>
                                                         <div class="hadith-sidecar__source-tree"
                                                              v-if="quranicInsightSources(item).length > 0">
-                                                            <div class="hadith-sidecar__source-tree-label">Tafsir Sources</div>
+                                                            <div class="hadith-sidecar__source-tree-label">{{ i18n.strings.quranSources }}</div>
                                                             <div class="hadith-sidecar__source-tree-children">
                                                                 <button type="button"
                                                                         class="hadith-sidecar__source-node"
@@ -619,7 +619,7 @@
                                          v-if="activeNarrationSidecarTab(narration) === 'similar' && activeSimilar(narration)">
                                         <div class="hadith-inline-context__meta-band hadith-inline-context__meta-band--compact">
                                             <div class="hadith-inline-context__title-block">
-                                                <div class="hadith-inline-context__eyebrow">Similar Hadith</div>
+                                                <div class="hadith-inline-context__eyebrow">{{ i18n.strings.similarTitle }}</div>
                                                 <button type="button"
                                                         class="hadith-inline-context__title-link"
                                                         v-on:click.prevent="jumpToSimilarHadith(activeSimilar(narration), 'book')">
@@ -681,7 +681,7 @@
                                          v-else-if="activeNarrationSidecarTab(narration) === 'quran' && activeQuranicInsight(narration)">
                                         <div class="hadith-inline-context__meta-band hadith-inline-context__meta-band--compact hadith-inline-context__meta-band--quran">
                                             <div class="hadith-inline-context__title-block">
-                                                <div class="hadith-inline-context__eyebrow">Quranic Insight</div>
+                                                <div class="hadith-inline-context__eyebrow">{{ i18n.strings.quranTitle }}</div>
                                                 <div class="hadith-inline-context__meta-line"
                                                      v-if="quranContextSegments(narration).length > 0">
                                                     <template v-for="(segment, segmentIdx) in quranContextSegments(narration)">
@@ -699,7 +699,7 @@
                                         </div>
                                         <div class="hadith-inline-context__snippets"
                                              v-if="activeQuranicInsightSelectedSnippets(narration).length > 0">
-                                            <div class="quranic-section__label">Tafsir Sources</div>
+                                            <div class="quranic-section__label">{{ i18n.strings.quranSources }}</div>
                                             <div class="quranic-snippet"
                                                  v-for="(snippet, sidx) in activeQuranicInsightSelectedSnippets(narration)"
                                                  v-bind:key="'snippet-inline-' + (snippet.tafsir_slug || sidx)">
@@ -711,7 +711,7 @@
                                                             class="quranic-snippet__expand"
                                                             v-if="snippetPreview(snippet.commentary_text, narration).length < snippet.commentary_text.replace(/<\/?em>/g,'').trim().length"
                                                             v-on:click="toggleSnippetExpand(narration, sidx)">
-                                                        {{ isSnippetExpanded(narration, sidx) ? 'Collapse' : 'Expand' }}
+                                                        {{ isSnippetExpanded(narration, sidx) ? i18n.strings.actionsCollapse : i18n.strings.actionsExpand }}
                                                     </button>
                                                 </div>
                                                 <div class="quranic-snippet__text"
@@ -721,14 +721,14 @@
                                             </div>
                                         </div>
                                         <div class="text-muted" v-else>
-                                            Select a tafsir source from the verse tree to read its snippet here.
+                                            {{ i18n.strings.quranSelectSource }}
                                         </div>
                                     </div>
                                     <div class="hadith-notes mt-3" v-if="narration.notes" v-html="narration.notes"></div>
                                     <div class="hadith-card__footer">
                                         <div class="topic-tag-pills hadith-card__tags"
                                              v-if="narration.topic_tags && narration.topic_tags.length > 0">
-                                            <span class="topic-tag-pills__label">Tags</span>
+                                            <span class="topic-tag-pills__label">{{ i18n.strings.resultsTags }}</span>
                                             <button type="button"
                                                     class="topic-pill"
                                                     v-for="slug in visibleNarrationTopicTags(narration)"
@@ -741,7 +741,7 @@
                                                     class="hadith-tags-toggle"
                                                     v-if="shouldShowNarrationTagToggle(narration)"
                                                     v-on:click.stop="toggleNarrationTags(narration)">
-                                                {{ narration.mobileTagsExpanded ? 'Show less' : 'Show more' }}
+                                                {{ narration.mobileTagsExpanded ? i18n.strings.resultsShowFewer : i18n.strings.resultsShowMore }}
                                             </button>
                                         </div>
                                         <div class="d-flex flex-wrap gap-2 hadith-header-actions hadith-card__actions">
@@ -760,14 +760,14 @@
                                                         <button class="dropdown-item"
                                                                 type="button"
                                                                 v-on:click="copyNarrationField(narration, 'english')">
-                                                            Copy English
+                                                            {{ i18n.strings.actionsCopyEnglish }}
                                                         </button>
                                                     </li>
                                                     <li>
                                                         <button class="dropdown-item"
                                                                 type="button"
                                                                 v-on:click="copyNarrationField(narration, 'arabic')">
-                                                            Copy Arabic
+                                                            {{ i18n.strings.actionsCopyArabic }}
                                                         </button>
                                                     </li>
                                                 </ul>
@@ -810,7 +810,7 @@
                                                         <button class="dropdown-item"
                                                                 type="button"
                                                                 v-on:click="copyHadithStaticUrl(narration._id || narration.id)">
-                                                            Copy static URL
+                                                            {{ i18n.strings.actionsCopyStaticUrl }}
                                                         </button>
                                                     </li>
                                                 </ul>
@@ -833,7 +833,7 @@
         <div v-if="!readingMode && !collectionMode && hasMoreNarrationsToReveal"
              ref="scrollSentinel"
              class="search-reveal-sentinel">
-            Loading more results...
+            {{ i18n.strings.resultsLoadingMore }}
         </div>
 
         <div class="mt-4" v-if="readingMode || collectionMode">
@@ -926,11 +926,12 @@
             t.setAttribute('role', 'dialog');
             t.setAttribute('aria-label', 'Feedback');
             var selectedRating = 0;
+            var _s = (window.I18N && window.I18N.strings) || {};
             t.innerHTML =
                 '<div style="display:flex;align-items:flex-start;gap:12px;">' +
                     '<i class="fa fa-comment-dots" style="font-size:1.4rem;color:#d4940a;margin-top:2px;flex-shrink:0;"></i>' +
                     '<div style="flex:1;min-width:0;">' +
-                        '<div style="font-weight:600;font-size:0.95rem;margin-bottom:8px;">How are you finding HDP?</div>' +
+                        '<div style="font-weight:600;font-size:0.95rem;margin-bottom:8px;">' + (_s.feedbackTitle || 'How are you finding HDP?') + '</div>' +
                         '<div id="feedbackStars" style="display:flex;gap:4px;margin-bottom:10px;font-size:1.4rem;cursor:pointer;" aria-label="Rate 1 to 5 stars">' +
                             '<span data-star="1" style="color:#555;transition:color .15s;">&#9733;</span>' +
                             '<span data-star="2" style="color:#555;transition:color .15s;">&#9733;</span>' +
@@ -938,23 +939,26 @@
                             '<span data-star="4" style="color:#555;transition:color .15s;">&#9733;</span>' +
                             '<span data-star="5" style="color:#555;transition:color .15s;">&#9733;</span>' +
                         '</div>' +
-                        '<div style="font-size:0.75rem;color:#888;margin-bottom:8px;">Your feedback helps us improve the platform</div>' +
-                        '<input id="feedbackName" type="text" placeholder="Name (optional)" ' +
+                        '<div style="font-size:0.75rem;color:#888;margin-bottom:8px;">' + (_s.feedbackSubtitle || 'Your feedback helps us improve the platform') + '</div>' +
+                        '<input id="feedbackName" type="text" placeholder="' + (_s.feedbackPlaceholderName || 'Name (optional)') + '" ' +
                             'style="width:100%;box-sizing:border-box;padding:7px 10px;border-radius:8px;border:1px solid #3a3a55;background:#252540;color:#e0e0e0;font-size:0.84rem;font-family:inherit;margin-bottom:6px;-webkit-appearance:none;" />' +
-                        '<input id="feedbackEmail" type="email" placeholder="Email (optional)" ' +
+                        '<input id="feedbackEmail" type="email" placeholder="' + (_s.feedbackPlaceholderEmail || 'Email (optional)') + '" ' +
                             'style="width:100%;box-sizing:border-box;padding:7px 10px;border-radius:8px;border:1px solid #3a3a55;background:#252540;color:#e0e0e0;font-size:0.84rem;font-family:inherit;margin-bottom:6px;-webkit-appearance:none;" />' +
-                        '<textarea id="feedbackComment" rows="2" placeholder="Any features you\'d like or bugs to report? (optional)" ' +
+                        '<textarea id="feedbackComment" rows="2" placeholder="' + (_s.feedbackPlaceholderComment || "Any features you'd like or bugs to report? (optional)") + '" ' +
                             'style="width:100%;box-sizing:border-box;padding:8px 10px;border-radius:8px;border:1px solid #3a3a55;background:#252540;color:#e0e0e0;font-size:0.84rem;font-family:inherit;resize:vertical;min-height:48px;-webkit-appearance:none;"></textarea>' +
                         '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center;">' +
-                            '<button id="feedbackSubmit" disabled style="padding:6px 18px;border-radius:6px;background:#d4940a;color:#fff;font-size:0.84rem;font-weight:600;border:none;cursor:pointer;opacity:0.4;-webkit-tap-highlight-color:transparent;">Submit</button>' +
-                            '<button id="feedbackDismiss" style="padding:6px 12px;border-radius:6px;background:transparent;border:1px solid rgba(255,255,255,0.15);color:#aaa;font-size:0.8rem;cursor:pointer;-webkit-tap-highlight-color:transparent;">Maybe later</button>' +
-                            '<span id="feedbackThanks" style="display:none;color:#4ade80;font-size:0.84rem;font-weight:500;">Thanks for your feedback!</span>' +
+                            '<button id="feedbackSubmit" disabled style="padding:6px 18px;border-radius:6px;background:#d4940a;color:#fff;font-size:0.84rem;font-weight:600;border:none;cursor:pointer;opacity:0.4;-webkit-tap-highlight-color:transparent;">' + (_s.feedbackSubmit || 'Submit') + '</button>' +
+                            '<button id="feedbackDismiss" style="padding:6px 12px;border-radius:6px;background:transparent;border:1px solid rgba(255,255,255,0.15);color:#aaa;font-size:0.8rem;cursor:pointer;-webkit-tap-highlight-color:transparent;">' + (_s.feedbackMaybeLater || 'Maybe later') + '</button>' +
+                            '<span id="feedbackThanks" style="display:none;color:#4ade80;font-size:0.84rem;font-weight:500;">' + (_s.feedbackThanks || 'Thanks for your feedback!') + '</span>' +
                         '</div>' +
                     '</div>' +
                     '<button id="feedbackClose" style="background:none;border:none;color:#888;font-size:1.2rem;cursor:pointer;padding:0 0 0 8px;line-height:1;-webkit-tap-highlight-color:transparent;" aria-label="Dismiss">&times;</button>' +
                 '</div>';
             Object.assign(t.style, {
-                position: 'fixed', bottom: '24px', right: '24px', zIndex: '9999',
+                position: 'fixed', bottom: '24px',
+                right: (window.I18N && window.I18N.isRtl) ? 'auto' : '24px',
+                left: (window.I18N && window.I18N.isRtl) ? '24px' : 'auto',
+                zIndex: '9999',
                 background: '#1a1a2e', border: '1px solid #2a2a44',
                 borderRadius: '12px', padding: '20px 22px',
                 maxWidth: '380px', width: 'calc(100vw - 48px)',
@@ -998,7 +1002,7 @@
             submitBtn.addEventListener('click', function() {
                 if (selectedRating < 1) return;
                 submitBtn.disabled = true;
-                submitBtn.textContent = 'Sending...';
+                submitBtn.textContent = _s.feedbackSending || 'Sending...';
                 var comment = (document.getElementById('feedbackComment').value || '').trim();
                 var fbName = (document.getElementById('feedbackName').value || '').trim();
                 var fbEmail = (document.getElementById('feedbackEmail').value || '').trim();
@@ -1018,7 +1022,7 @@
                         setTimeout(function() { dismiss(); }, 2500);
                     } else {
                         submitBtn.disabled = false;
-                        submitBtn.textContent = 'Submit';
+                        submitBtn.textContent = _s.feedbackSubmit || 'Submit';
                     }
                 }).catch(function() {
                     submitBtn.disabled = false;

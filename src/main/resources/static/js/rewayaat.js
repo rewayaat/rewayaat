@@ -4423,6 +4423,7 @@ function setupVue(query, page, sortFields) {
             narrations: [],
             allNarrations: [],
             narrationsLoading: true,
+            i18n: window.I18N || { locale: 'en', isRtl: false, strings: {} },
             queryStr: query,
             sortFields: sortFields,
             page: (isReadingMode(query) || isCollectionMode()) ? page : 1,
@@ -4562,9 +4563,9 @@ function setupVue(query, page, sortFields) {
             resultsHeadingText: function() {
                 if (this.collectionMode) {
                     if (this.activeTopicTags.length > 0) {
-                        return 'Showing ' + this.matchingNarrationsCount + '/' + this.filteredNarrationTotal + ' saved hadith';
+                        return (this.i18n.strings.resultsShowingSaved || 'Showing {0}/{1} saved hadith').replace('{0}', this.matchingNarrationsCount).replace('{1}', this.filteredNarrationTotal);
                     }
-                    return this.collectionTitle || 'Saved Hadith';
+                    return this.collectionTitle || this.i18n.strings.resultsSavedHadith || 'Saved Hadith';
                 }
                 if (this.readingMode) {
                     // In reading mode, use server counts (totalHits is filtered, baseNarrationTotal is total scope)
@@ -5514,7 +5515,7 @@ function setupVue(query, page, sortFields) {
                                 return null;
                             }
                             self.collectionMeta = metaResp.data.collection || null;
-                            self.collectionTitle = (self.collectionMeta && self.collectionMeta.name) || 'Saved Hadith';
+                            self.collectionTitle = (self.collectionMeta && self.collectionMeta.name) || (self.i18n.strings.resultsSavedHadith || 'Saved Hadith');
                             var collectionUrl = '/v1/collections/' + encodeURIComponent(this.collectionId) +
                                 '/hadith?page=' + self.page + '&per_page=' + self.pageSize;
                             self.activeTopicTags.forEach(function(tag) {
@@ -5696,12 +5697,12 @@ function setupVue(query, page, sortFields) {
             narrationSidecarTitle: function(narration) {
                 var activeTab = this.activeNarrationSidecarTab(narration);
                 if (activeTab === 'similar') {
-                    return 'Similar Hadith';
+                    return this.i18n.strings.similarTitle || 'Similar Hadith';
                 }
                 if (activeTab === 'quran') {
-                    return 'Quranic Insights';
+                    return this.i18n.strings.quranTitleTab || 'Quranic Insights';
                 }
-                return 'Hadith Metadata';
+                return this.i18n.strings.sidecarMetadata || 'Hadith Metadata';
             },
             similarCountText: function(narration) {
                 if (!narration || typeof narration.similarCount !== 'number' || narration.similarCount <= 0) {
@@ -6420,27 +6421,29 @@ function setupVue(query, page, sortFields) {
                     return;
                 }
                 var self = this;
+                var _s = this.i18n.strings || {};
+                var savedLabel = this.collectionTitle || _s.resultsSavedHadith || 'Saved Hadith';
                 var subtitle = '';
                 if (this.collectionMode) {
-                    subtitle = 'Collection: ' + (this.collectionTitle || 'Saved Hadith');
+                    subtitle = (_s.pdfCollection || 'Collection: {0}').replace('{0}', savedLabel);
                 } else if (this.readingMode) {
                     subtitle = this.scopeBreadcrumbText
-                        ? ('Reading scope: ' + this.scopeBreadcrumbText)
-                        : ('Reading mode · page ' + this.page);
+                        ? (_s.pdfReadingScope || 'Reading scope: {0}').replace('{0}', this.scopeBreadcrumbText)
+                        : (_s.pdfReadingMode || 'Reading mode \u00b7 page {0}').replace('{0}', this.page);
                 } else if (this.queryStr) {
-                    subtitle = 'Search query: ' + strip(this.queryStr);
+                    subtitle = (_s.pdfSearchQuery || 'Search query: {0}').replace('{0}', strip(this.queryStr));
                 }
                 var tagSummary = this.activeTopicTags.map(function(tag) {
                     return this.taxonomyLabel(tag);
                 }, this).join(', ');
                 var metaLine = this.resultsStatusText;
                 if (tagSummary) {
-                    metaLine += ' · Tags: ' + tagSummary;
+                    metaLine += ' \u00b7 ' + (_s.pdfTags || 'Tags: {0}').replace('{0}', tagSummary);
                 }
                 openPdfExportWindow({
                     title: this.collectionMode
-                        ? (this.collectionTitle || 'Saved Hadith')
-                        : (this.readingMode ? ('Reading Mode - Page ' + this.page) : 'Search Results'),
+                        ? savedLabel
+                        : (this.readingMode ? (_s.pdfReadingModeTitle || 'Reading Mode - Page {0}').replace('{0}', this.page) : (_s.pdfSearchResults || 'Search Results')),
                     subtitle: subtitle,
                     metaLine: metaLine,
                     narrations: narrations,
