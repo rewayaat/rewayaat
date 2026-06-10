@@ -463,8 +463,6 @@ def main():
                        help="Preview only, no ES writes")
     args = parser.parse_args()
 
-    global ES_INDEX
-    ES_INDEX = args.index
 
     es = get_es_client(args.es_host)
 

@@ -47,7 +47,7 @@ TIER1_FIELDS = ["chapter", "section", "part", "publisher", "edition", "source"]
 BATCH_SIZE = 500
 
 
-def extract_unique_values(es, fields=None):
+def extract_unique_values(es, index, fields=None):
     """Extract unique values for each field from ES."""
     fields = fields or TIER1_FIELDS
     source_fields = fields + [f"{f}_ar" for f in fields]
@@ -58,8 +58,8 @@ def extract_unique_values(es, fields=None):
     docs_with_ar = {f: 0 for f in fields}
     total_docs = 0
 
-    print(f"Scrolling {ES_INDEX} for unique values...")
-    for doc_id, source in scroll_all(es, ES_INDEX, source_fields=source_fields):
+    print(f"Scrolling {index} for unique values...")
+    for doc_id, source in scroll_all(es, index, source_fields=source_fields):
         total_docs += 1
         for field in fields:
             val = source.get(field)
@@ -104,7 +104,7 @@ def extract_unique_values(es, fields=None):
     return unique_values
 
 
-def print_stats(es, fields=None):
+def print_stats(es, index, fields=None):
     """Print unique value counts without writing files."""
     fields = fields or TIER1_FIELDS
     source_fields = fields + [f"{f}_ar" for f in fields]
@@ -113,7 +113,7 @@ def print_stats(es, fields=None):
     docs_with_ar = {f: 0 for f in fields}
     total_docs = 0
 
-    for doc_id, source in scroll_all(es, ES_INDEX, source_fields=source_fields):
+    for doc_id, source in scroll_all(es, index, source_fields=source_fields):
         total_docs += 1
         for field in fields:
             val = source.get(field)
@@ -123,7 +123,7 @@ def print_stats(es, fields=None):
             if ar_val and str(ar_val).strip():
                 docs_with_ar[field] += 1
 
-    print(f"Index: {ES_INDEX}, Total docs: {total_docs}\n")
+    print(f"Index: {index}, Total docs: {total_docs}\n")
     for field in fields:
         counts = unique_values[field]
         if not counts:
@@ -138,7 +138,7 @@ def print_stats(es, fields=None):
         print()
 
 
-def apply_mappings(es, fields=None, dry_run=False):
+def apply_mappings(es, index, fields=None, dry_run=False):
     """Read mapping files and apply _ar fields to ES."""
     fields = fields or TIER1_FIELDS
 
@@ -164,7 +164,7 @@ def apply_mappings(es, fields=None, dry_run=False):
         skipped_ar = 0
         skipped_no_match = 0
 
-        for doc_id, source in scroll_all(es, ES_INDEX, source_fields=source_fields):
+        for doc_id, source in scroll_all(es, index, source_fields=source_fields):
             val = source.get(field)
             if not val or not str(val).strip():
                 continue
@@ -197,14 +197,14 @@ def apply_mappings(es, fields=None, dry_run=False):
 
         # Ensure mapping exists
         field_type = "keyword" if field in TIER1_FIELDS else "text"
-        added = ensure_field_mapping(es, ES_INDEX, f"{field}_ar", field_type)
+        added = ensure_field_mapping(es, index, f"{field}_ar", field_type)
         if added:
             print(f"  Added {field}_ar to ES mapping ({field_type})")
 
         # Apply with checkpoint
         checkpoint_path = DATA_DIR / f"{field}_ar_checkpoint.json"
         success, errors = bulk_update_with_checkpoint(
-            es, ES_INDEX, actions, str(checkpoint_path),
+            es, index, actions, str(checkpoint_path),
             batch_size=BATCH_SIZE,
         )
         print(f"  Applied: {success} updated, {errors} errors")
@@ -221,19 +221,18 @@ def main():
     parser.add_argument("--dry-run", action="store_true", help="Preview only, no ES writes")
     args = parser.parse_args()
 
-    global ES_INDEX
-    ES_INDEX = args.index
+    index_name = args.index
 
     fields = args.fields.split(",") if args.fields else TIER1_FIELDS
 
     es = get_es_client(args.es_host)
 
     if args.extract:
-        extract_unique_values(es, fields)
+        extract_unique_values(es, index_name, fields)
     elif args.stats:
-        print_stats(es, fields)
+        print_stats(es, index_name, fields)
     elif args.apply:
-        apply_mappings(es, fields, dry_run=args.dry_run)
+        apply_mappings(es, index_name, fields, dry_run=args.dry_run)
     else:
         parser.print_help()
 
