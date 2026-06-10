@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+  Exposes i18n strings as window.I18N for client-side Vue.js consumption.
+  Include this fragment in every page: <div th:replace="~{i18n-js :: i18nScript}"></div>
+-->
+<th:block th:fragment="i18nScript">
+<script th:inline="javascript" type="text/javascript">
+/*<![CDATA[*/
+window.I18N = {
+  locale: /*[[${#locale.language}]]*/ 'en',
+  isRtl: /*[[${#locale.language == 'ar'}]]*/ false,
+  strings: {
+    navSearch: /*[[#{nav.search}]]*/ 'Search',
+    navBrowse: /*[[#{nav.browse}]]*/ 'Browse',
+    navUpdates: /*[[#{nav.updates}]]*/ 'Updates',
+    navSignIn: /*[[#{nav.signIn}]]*/ 'Sign In',
+    navSignOut: /*[[#{nav.signOut}]]*/ 'Sign Out',
+    navProfile: /*[[#{nav.profile}]]*/ 'Profile',
+    searchPlaceholder: /*[[#{search.placeholder}]]*/ 'Search hadith...',
+    searchButton: /*[[#{search.button}]]*/ 'Search',
+    searchModeFlexible: /*[[#{search.mode.flexible}]]*/ 'Flexible',
+    searchModeFlexibleDesc: /*[[#{search.mode.flexible.desc}]]*/ 'includes broader wording matches',
+    searchModePrecise: /*[[#{search.mode.precise}]]*/ 'Precise',
+    searchModePreciseDesc: /*[[#{search.mode.precise.desc}]]*/ 'keeps results closer to your wording',
+    hadithNumber: /*[[#{hadith.number}]]*/ 'Hadith',
+    hadithVolume: /*[[#{hadith.volume}]]*/ 'Volume',
+    hadithPart: /*[[#{hadith.part}]]*/ 'Part',
+    hadithSection: /*[[#{hadith.section}]]*/ 'Section',
+    hadithChapter: /*[[#{hadith.chapter}]]*/ 'Chapter',
+    hadithSource: /*[[#{hadith.source}]]*/ 'Source',
+    hadithEdition: /*[[#{hadith.edition}]]*/ 'Edition',
+    hadithPublisher: /*[[#{hadith.publisher}]]*/ 'Publisher',
+    hadithBackToSearch: /*[[#{hadith.backToSearch}]]*/ 'Search more hadith',
+    hadithRemindSomeone: /*[[#{hadith.remindSomeone}]]*/ 'Remind someone',
+    hadithLinkCopied: /*[[#{hadith.linkCopied}]]*/ 'Link copied!',
+    sidecarDetails: /*[[#{sidecar.details}]]*/ 'DETAILS',
+    sidecarRelated: /*[[#{sidecar.related}]]*/ 'RELATED',
+    sidecarTafsir: /*[[#{sidecar.tafsir}]]*/ 'TAFSIR',
+    similarTitle: /*[[#{similar.title}]]*/ 'Similar Hadith',
+    similarFetching: /*[[#{similar.fetching}]]*/ 'Fetching...',
+    similarNone: /*[[#{similar.none}]]*/ 'No similar hadith were found for this narration.',
+    similarWhyMatched: /*[[#{similar.whyMatched}]]*/ 'Why this matched:',
+    similarWording: /*[[#{similar.wording}]]*/ 'wording',
+    similarConceptual: /*[[#{similar.conceptual}]]*/ 'conceptual',
+    similarThematic: /*[[#{similar.thematic}]]*/ 'thematic',
+    quranTitle: /*[[#{quran.title}]]*/ 'Quranic Insight',
+    quranFetching: /*[[#{quran.fetching}]]*/ 'Fetching...',
+    quranNone: /*[[#{quran.none}]]*/ 'No Quranic insights were found for this narration.',
+    quranSources: /*[[#{quran.sources}]]*/ 'Tafsir Sources',
+    quranSelectSource: /*[[#{quran.selectSource}]]*/ 'Select a tafsir source from the verse tree to read its snippet here.',
+    quranViewOn: /*[[#{quran.viewOn}]]*/ 'View on Al-Islam.org',
+    browseBook: /*[[#{browse.book}]]*/ 'Book',
+    browseVolume: /*[[#{browse.volume}]]*/ 'Volume',
+    browsePart: /*[[#{browse.part}]]*/ 'Part',
+    browseSection: /*[[#{browse.section}]]*/ 'Section',
+    browseChapter: /*[[#{browse.chapter}]]*/ 'Chapter',
+    browseSelectBook: /*[[#{browse.selectBook}]]*/ 'Select a book',
+    browseSelectVolume: /*[[#{browse.selectVolume}]]*/ 'Select a volume',
+    browseShowAll: /*[[#{browse.showAll}]]*/ 'Show All',
+    browseUpdateResults: /*[[#{browse.updateResults}]]*/ 'Update Results',
+    resultsHadith: /*[[#{results.hadith}]]*/ 'Hadith',
+    resultsResult: /*[[#{results.result}]]*/ 'Result',
+    resultsLoadingMore: /*[[#{results.loadingMore}]]*/ 'Loading more results...',
+    resultsFilterByTag: /*[[#{results.filterByTag}]]*/ 'Filter by Tag',
+    resultsClearAll: /*[[#{results.clearAll}]]*/ 'Clear all',
+    resultsShowFewer: /*[[#{results.showFewer}]]*/ 'Show fewer',
+    resultsShowMore: /*[[#{results.showMore}]]*/ 'Show more',
+    resultsTags: /*[[#{results.tags}]]*/ 'Tags',
+    resultsExportPdf: /*[[#{results.exportPdf}]]*/ 'Export PDF',
+    resultsCollection: /*[[#{results.collection}]]*/ 'Collection View',
+    resultsSavedHadith: /*[[#{results.savedHadith}]]*/ 'Saved Hadith',
+    actionsCopyEnglish: /*[[#{actions.copyEnglish}]]*/ 'Copy English',
+    actionsCopyArabic: /*[[#{actions.copyArabic}]]*/ 'Copy Arabic',
+    actionsCopyStaticUrl: /*[[#{actions.copyStaticUrl}]]*/ 'Copy static URL',
+    actionsCollapse: /*[[#{actions.collapse}]]*/ 'Collapse',
+    actionsExpand: /*[[#{actions.expand}]]*/ 'Expand'
+  }
+};
+/*]]>*/
+</script>
+</th:block>
+</html>

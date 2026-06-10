@@ -5,6 +5,10 @@ spring:
   mvc:
     async:
       request-timeout: 180s
+  messages:
+    basename: messages
+    encoding: UTF-8
+    use-code-as-default-message: true
 
 elasticsearch:
   host: ${ELASTIC_HOST:localhost}
