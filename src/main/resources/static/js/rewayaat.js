@@ -2532,10 +2532,12 @@ function domSafeHadithId(id) {
 }
 
 function showBookBlurb(bookName) {
+    var isArabic = window.I18N && window.I18N.isRtl;
     for (blurb in bookBlurbs) {
         if (strip(bookName).toUpperCase().includes(bookBlurbs[blurb].book.toUpperCase())) {
+            var blurbText = (isArabic && bookBlurbs[blurb].blurb_ar) ? bookBlurbs[blurb].blurb_ar : bookBlurbs[blurb].blurb;
             var wrapper = document.createElement("div");
-            wrapper.innerHTML = bookBlurbs[blurb].blurb;
+            wrapper.innerHTML = blurbText;
             swal({
                 content: wrapper
             });
@@ -2648,10 +2650,12 @@ function clearActionButtonPending(buttonId) {
     button.classList.remove("button-glow");
 }
 function showBookBlurb(bookName) {
+    var isArabic = window.I18N && window.I18N.isRtl;
     for (blurb in bookBlurbs) {
         if (strip(bookName).toUpperCase().includes(bookBlurbs[blurb].book.toUpperCase())) {
+            var blurbText = (isArabic && bookBlurbs[blurb].blurb_ar) ? bookBlurbs[blurb].blurb_ar : bookBlurbs[blurb].blurb;
             var wrapper = document.createElement("div");
-            wrapper.innerHTML = bookBlurbs[blurb].blurb;
+            wrapper.innerHTML = blurbText;
             swal({
                 content: wrapper
             });

@@ -9821,3 +9821,101 @@ body.is-search-mode .site-nav .search-entry-shell {
         font-size: 0.94rem;
     }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RTL OVERRIDES — applied when <html dir="rtl">
+   Bootstrap RTL handles grid/flex flipping. This block covers
+   custom layout that uses physical left/right properties.
+   ═══════════════════════════════════════════════════════════════════════ */
+[dir="rtl"] .menu-context-row {
+    margin-left: 0;
+    margin-right: auto;
+    padding-left: 0;
+    padding-right: 0.3rem;
+}
+[dir="rtl"] .top-actions .top-action i {
+    margin-right: 0;
+    margin-left: 0.25rem;
+}
+[dir="rtl"] .auth-mobile-dropdown {
+    right: auto;
+    left: 0;
+}
+[dir="rtl"] .home-nav-dot {
+    /* dots don't need flipping */
+}
+[dir="rtl"] .search-magnifier {
+    /* search icon stays on the inline-start side — Bootstrap RTL handles this */
+}
+[dir="rtl"] .hadith-card__result-num {
+    /* result counter — fine as-is */
+}
+[dir="rtl"] .hadith-sidecar__rail-btn {
+    /* sidebar rail — flex direction handled by Bootstrap RTL */
+}
+
+/* Flip border-left decorative accents to border-right */
+[dir="rtl"] .hp-hero__path-current,
+[dir="rtl"] .similar-reason-text {
+    border-left: none;
+    border-right: 3px solid var(--gold);
+}
+[dir="rtl"] .hadith-chain,
+[dir="rtl"] .hadith-details__chain {
+    border-left: none;
+    border-right: 3px solid var(--gold);
+}
+
+/* Flip text-align */
+[dir="rtl"] .hp-text-block__english,
+[dir="rtl"] .hadith-english,
+[dir="rtl"] .quranic-verse-english {
+    text-align: right;
+}
+
+/* Sidecar panel positioning */
+[dir="rtl"] .hadith-card__meta {
+    /* Bootstrap RTL flips the flex order — sidecar goes to the right */
+}
+
+/* Flip absolute-positioned dropdowns */
+[dir="rtl"] .search-mode-menu {
+    left: 0;
+    right: auto;
+}
+[dir="rtl"] .dropdown-menu-end {
+    right: auto;
+    left: 0;
+}
+
+/* Flip margin-left: auto to margin-right: auto for flex push */
+[dir="rtl"] .menu-context-row {
+    margin-left: 0;
+    margin-right: auto;
+}
+[dir="rtl"] body.is-reading-mode .top-actions,
+[dir="rtl"] body.is-collection-mode .top-actions {
+    margin-left: 0 !important;
+    margin-right: auto !important;
+}
+
+/* Arabic text block — already RTL, no change needed */
+[dir="rtl"] .arabic-text {
+    /* already has direction:rtl — keep as-is */
+}
+
+/* Flip chevron and arrow icons that imply direction */
+[dir="rtl"] .fa-chevron-right::before { content: "\f053"; } /* left arrow */
+[dir="rtl"] .fa-chevron-left::before  { content: "\f054"; } /* right arrow */
+[dir="rtl"] .fa-arrow-left::before    { content: "\f061"; } /* right arrow */
+[dir="rtl"] .fa-arrow-right::before   { content: "\f060"; } /* left arrow */
+
+/* Flip inline margin hacks in search-entry */
+[dir="rtl"] .search-entry-actions {
+    margin-left: 0;
+    margin-right: auto;
+}
+
+/* Breadcrumb path separators — fine as-is with · and / */
+
+/* Footer grid — Bootstrap RTL handles column reversal */
