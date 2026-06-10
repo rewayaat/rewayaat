@@ -61,9 +61,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        // Arabic /ar/ prefix interceptor must run FIRST (before locale change)
+        // Arabic /ar/ prefix interceptor: preHandle strips /ar and forwards,
+        // postHandle sets isArabic model attribute on ALL requests.
         registry.addInterceptor(arabicLocaleInterceptor)
-                .addPathPatterns("/ar/**", "/ar");
+                .addPathPatterns("/ar/**", "/ar", "/**");
         registry.addInterceptor(localeChangeInterceptor());
     }
 }
