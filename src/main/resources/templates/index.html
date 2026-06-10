@@ -479,14 +479,14 @@
                                                                 <span class="hadith-sidecar__list-separator" aria-hidden="true">•</span>
                                                                 <span class="hadith-sidecar__list-meta match-type-badge"
                                                                       v-bind:class="'match-type--' + similar.matchType">
-                                                                    {{ similar.matchType }}
+                                                                    {{ matchTypeLabel(similar.matchType) }}
                                                                 </span>
                                                             </template>
                                                         </span>
                                                     </button>
                                                     <div class="hadith-sidecar__accordion-body hadith-sidecar__accordion-body--similar"
-                                                         v-if="sidx === narration.similarActiveIndex && similar.matchReason">
-                                                        <div class="similar-reason-text"><span class="similar-reason-label">{{ i18n.strings.similarWhyMatched }}</span> {{ similar.matchReason }}</div>
+                                                         v-if="sidx === narration.similarActiveIndex && (similar.matchReason || similar.matchReasonAr)">
+                                                        <div class="similar-reason-text"><span class="similar-reason-label">{{ i18n.strings.similarWhyMatched }}</span> {{ (i18n.isRtl && similar.matchReasonAr) ? similar.matchReasonAr : similar.matchReason }}</div>
                                                     </div>
                                                 </div>
                                                 <button type="button" class="hadith-sidecar__show-more"

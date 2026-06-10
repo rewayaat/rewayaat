@@ -146,7 +146,7 @@
         <!-- Source Header — Book, hierarchy, hadith number -->
         <header class="hp-hero">
             <h1 class="hp-hero__book" th:if="${hadith.book != null and !hadith.book.isBlank()}"
-                th:text="${hadith.book}"
+                th:text="${isArabic and hadith.additionalProperties['book_ar'] != null and !hadith.additionalProperties['book_ar'].isBlank()} ? ${hadith.additionalProperties['book_ar']} : ${hadith.book}"
                 th:attr="onclick="'showBookBlurb(\'' + ${hadith.book} + '\')'"
                 style="cursor:pointer;">Book Name</h1>
             <span class="hp-hero__number"
@@ -161,15 +161,15 @@
                 <span th:if="${hadith.volume != null and !hadith.volume.isBlank()}"
                       class="hp-hero__path-sep">/</span>
                 <span th:if="${hadith.part != null and !hadith.part.isBlank()}"
-                      class="hp-hero__path-current" th:text="${hadith.part}">Part Name</span>
+                      class="hp-hero__path-current" th:text="${isArabic and hadith.additionalProperties['part_ar'] != null and !hadith.additionalProperties['part_ar'].isBlank()} ? ${hadith.additionalProperties['part_ar']} : ${hadith.part}">Part Name</span>
                 <span th:if="${hadith.section != null and !hadith.section.isBlank()}"
                       class="hp-hero__path-sep">/</span>
                 <span th:if="${hadith.section != null and !hadith.section.isBlank()}"
-                      class="hp-hero__path-current" th:text="${hadith.section}">Section</span>
+                      class="hp-hero__path-current" th:text="${isArabic and hadith.additionalProperties['section_ar'] != null and !hadith.additionalProperties['section_ar'].isBlank()} ? ${hadith.additionalProperties['section_ar']} : ${hadith.section}">Section</span>
                 <span th:if="${hadith.chapter != null and !hadith.chapter.isBlank()}"
                       class="hp-hero__path-sep">/</span>
                 <span th:if="${hadith.chapter != null and !hadith.chapter.isBlank()}"
-                      class="hp-hero__path-current" th:text="${hadith.chapter}">Chapter</span>
+                      class="hp-hero__path-current" th:text="${isArabic and hadith.additionalProperties['chapter_ar'] != null and !hadith.additionalProperties['chapter_ar'].isBlank()} ? ${hadith.additionalProperties['chapter_ar']} : ${hadith.chapter}">Chapter</span>
             </div>
 
             <!-- Topic Tags -->
@@ -209,22 +209,22 @@
         <div class="hp-meta-row" th:if="${hadith.source != null and !hadith.source.isBlank()}">
             <div class="hp-meta-item">
                 <span class="hp-meta-item__label" th:text="#{hadith.source} + ': '">Source: </span>
-                <span th:text="${hadith.source}">Source</span>
+                <span th:text="${isArabic and hadith.additionalProperties['source_ar'] != null and !hadith.additionalProperties['source_ar'].isBlank()} ? ${hadith.additionalProperties['source_ar']} : ${hadith.source}">Source</span>
             </div>
             <div class="hp-meta-item" th:if="${hadith.edition != null and !hadith.edition.isBlank()}">
                 <span class="hp-meta-item__label" th:text="#{hadith.edition} + ': '">Edition: </span>
-                <span th:text="${hadith.edition}">Edition</span>
+                <span th:text="${isArabic and hadith.additionalProperties['edition_ar'] != null and !hadith.additionalProperties['edition_ar'].isBlank()} ? ${hadith.additionalProperties['edition_ar']} : ${hadith.edition}">Edition</span>
             </div>
             <div class="hp-meta-item" th:if="${hadith.publisher != null and !hadith.publisher.isBlank()}">
                 <span class="hp-meta-item__label" th:text="#{hadith.publisher} + ': '">Publisher: </span>
-                <span th:text="${hadith.publisher}">Publisher</span>
+                <span th:text="${isArabic and hadith.additionalProperties['publisher_ar'] != null and !hadith.additionalProperties['publisher_ar'].isBlank()} ? ${hadith.additionalProperties['publisher_ar']} : ${hadith.publisher}">Publisher</span>
             </div>
         </div>
 
         <!-- Notes -->
         <div class="hp-notes"
              th:if="${hadith.notes != null and !hadith.notes.isBlank()}">
-            <div th:utext="${hadith.notes}">Notes content</div>
+            <div th:utext="${isArabic and hadith.additionalProperties['notes_ar'] != null and !hadith.additionalProperties['notes_ar'].isBlank()} ? ${hadith.additionalProperties['notes_ar']} : ${hadith.notes}">Notes content</div>
         </div>
 
         <!-- Back to search -->

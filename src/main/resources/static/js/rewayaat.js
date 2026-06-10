@@ -5704,6 +5704,16 @@ function setupVue(query, page, sortFields) {
                 }
                 return this.i18n.strings.sidecarMetadata || 'Hadith Metadata';
             },
+            matchTypeLabel: function(matchType) {
+                if (!matchType) return '';
+                var s = this.i18n.strings || {};
+                var map = {
+                    'wording': s.similarWording || 'wording',
+                    'conceptual': s.similarConceptual || 'conceptual',
+                    'thematic': s.similarThematic || 'thematic'
+                };
+                return map[matchType] || matchType;
+            },
             similarCountText: function(narration) {
                 if (!narration || typeof narration.similarCount !== 'number' || narration.similarCount <= 0) {
                     return '';

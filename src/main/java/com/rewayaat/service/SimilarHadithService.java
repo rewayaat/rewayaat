@@ -91,7 +91,8 @@ public class SimilarHadithService {
                 if (id == null || id.isBlank()) continue;
                 entries.add(new SimilarEntry(id,
                         stringValue(m.get("match_type")),
-                        stringValue(m.get("reason"))));
+                        stringValue(m.get("reason")),
+                        stringValue(m.get("reason_ar"))));
             }
             if (entries.isEmpty()) {
                 return new CachedResult(List.of());
@@ -121,6 +122,9 @@ public class SimilarHadithService {
                 if (entry.reason != null && !entry.reason.isBlank()) {
                     mutableSource.put("matchReason", entry.reason);
                 }
+                if (entry.reasonAr != null && !entry.reasonAr.isBlank()) {
+                    mutableSource.put("matchReasonAr", entry.reasonAr);
+                }
                 HadithDisplaySegmenter.enrich(mutableSource);
                 results.add(mapper.convertValue(mutableSource, HadithObject.class));
             }
@@ -136,6 +140,6 @@ public class SimilarHadithService {
         return o == null ? null : o.toString();
     }
 
-    private record SimilarEntry(String id, String matchType, String reason) {}
+    private record SimilarEntry(String id, String matchType, String reason, String reasonAr) {}
     private record CachedResult(List<HadithObject> items) {}
 }
