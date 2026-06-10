@@ -52,11 +52,11 @@
                 <img src="img/ali_icon.png" class="brand-logo--icon d-md-none" alt="ALI"/>
             </a>
             <div class="d-none d-md-flex home-nav-links">
-                <a href="#welcome" class="home-nav-link">Search</a>
+                <a href="#welcome" class="home-nav-link" th:text="#{nav.search}">Search</a>
                 <span class="home-nav-dot" aria-hidden="true">&middot;</span>
-                <a href="#browse" class="home-nav-link">Browse</a>
+                <a href="#browse" class="home-nav-link" th:text="#{nav.browse}">Browse</a>
                 <span class="home-nav-dot" aria-hidden="true">&middot;</span>
-                <a href="#updates" class="home-nav-link">Updates</a>
+                <a href="#updates" class="home-nav-link" th:text="#{nav.updates}">Updates</a>
             </div>
 	        <div id="queryBar" class="navbar-search">
 	            <div class="navbar-search__input">
@@ -68,17 +68,17 @@
 	                        <div class="search-submit-menu">
 	                        <button type="button" class="btn btn-primary search-btn-with-border" id="searchBtn1">
 	                            <i class="fa fa-search search-btn__icon-mobile" aria-hidden="true"></i>
-	                            <span class="search-btn__text">Search</span>
+	                            <span class="search-btn__text" th:text="#{search.button}">Search</span>
 	                            <i class="fa fa-chevron-down search-btn-caret" aria-hidden="true"></i>
 	                        </button>
 	                        <div class="search-mode-menu" id="searchModeDropdown" role="menu" aria-label="Search mode">
 	                            <button type="button" class="search-mode-option" data-mode="flexible" role="menuitem">
-	                                <span class="search-mode-option__label">Flexible</span>
-	                                <span class="search-mode-option__meta">includes broader wording matches</span>
+	                                <span class="search-mode-option__label" th:text="#{search.mode.flexible}">Flexible</span>
+	                                <span class="search-mode-option__meta" th:text="#{search.mode.flexible.desc}">includes broader wording matches</span>
 	                            </button>
 	                            <button type="button" class="search-mode-option" data-mode="precise" role="menuitem">
-	                                <span class="search-mode-option__label">Precise</span>
-	                                <span class="search-mode-option__meta">keeps results closer to your wording</span>
+	                                <span class="search-mode-option__label" th:text="#{search.mode.precise}">Precise</span>
+	                                <span class="search-mode-option__meta" th:text="#{search.mode.precise.desc}">keeps results closer to your wording</span>
 	                            </button>
 	                        </div>
 	                        </div>
@@ -100,14 +100,14 @@
                     <div class="auth-mobile-menu-wrapper">
                         <button class="btn btn-dark btn-sm top-action auth-action" id="authSignInBtn" type="button">
                             <i class="fa fa-right-to-bracket" aria-hidden="true"></i>
-                            <span class="auth-action__label">Sign In</span>
+                            <span class="auth-action__label" th:text="#{nav.signIn}">Sign In</span>
                         </button>
                         <button class="btn btn-dark btn-sm top-action auth-action__mobile-toggle" id="authMobileToggle" type="button" aria-label="Menu" aria-expanded="false">
                             <i class="fa fa-ellipsis-vertical" aria-hidden="true"></i>
                         </button>
                         <div class="auth-mobile-dropdown" id="authMobileDropdown" aria-hidden="true">
                             <a href="/signin.html" class="auth-mobile-dropdown__item">
-                                <i class="fa fa-right-to-bracket" aria-hidden="true"></i> Sign In
+                                <i class="fa fa-right-to-bracket" aria-hidden="true"></i> <span th:text="#{nav.signIn}">Sign In</span>
                             </a>
                             <a class="auth-mobile-dropdown__item lang-mobile-toggle" id="langToggleMobile">
                                 <i class="fa fa-language" aria-hidden="true"></i> <span id="langMobileLabel">العربية</span>
@@ -141,48 +141,48 @@
         <div id="readingToolbar" class="reading-toolbar d-none">
             <div class="reading-controls browse-panel">
                 <div class="reading-field browse-field">
-                    <label for="readingBookSelect">Book</label>
+                    <label for="readingBookSelect" th:text="#{browse.book}">Book</label>
                     <div class="facet-select-wrap">
                         <select id="readingBookSelect" class="form-select form-select-sm">
-                            <option value="">Select a book</option>
+                            <option value="" th:text="#{browse.selectBook}">Select a book</option>
                         </select>
                     </div>
                 </div>
                 <div class="reading-field browse-field is-hidden" data-reading-facet="volume">
-                    <label for="readingVolumeSelect">Volume</label>
+                    <label for="readingVolumeSelect" th:text="#{browse.volume}">Volume</label>
                     <div class="facet-select-wrap">
                         <select id="readingVolumeSelect" class="form-select form-select-sm" disabled>
-                            <option value="">Select a volume</option>
+                            <option value="" th:text="#{browse.selectVolume}">Select a volume</option>
                         </select>
                     </div>
                 </div>
                 <div class="reading-field browse-field is-hidden" data-reading-facet="part">
-                    <label for="readingPartSelect">Part</label>
+                    <label for="readingPartSelect" th:text="#{browse.part}">Part</label>
                     <div class="facet-select-wrap">
                         <select id="readingPartSelect" class="form-select form-select-sm" disabled>
-                            <option value="">Show All</option>
+                            <option value="" th:text="#{browse.showAll}">Show All</option>
                         </select>
                     </div>
                 </div>
                 <div class="reading-field browse-field is-hidden" data-reading-facet="section">
-                    <label for="readingSectionSelect">Section</label>
+                    <label for="readingSectionSelect" th:text="#{browse.section}">Section</label>
                     <div class="facet-select-wrap">
                         <select id="readingSectionSelect" class="form-select form-select-sm" disabled>
-                            <option value="">Show All</option>
+                            <option value="" th:text="#{browse.showAll}">Show All</option>
                         </select>
                     </div>
                 </div>
                 <div class="reading-field browse-field is-hidden" data-reading-facet="chapter">
-                    <label for="readingChapterSelect">Chapter</label>
+                    <label for="readingChapterSelect" th:text="#{browse.chapter}">Chapter</label>
                     <div class="facet-select-wrap">
                         <select id="readingChapterSelect" class="form-select form-select-sm" disabled>
-                            <option value="">Show All</option>
+                            <option value="" th:text="#{browse.showAll}">Show All</option>
                         </select>
                     </div>
                 </div>
                 <button id="readingApplyBtn" class="btn btn-primary btn-sm reading-apply browse-action" disabled>
                     <i class="fa fa-refresh" aria-hidden="true" style="margin-right: 8px;"></i>
-                    Update Results
+                    <span th:text="#{browse.updateResults}">Update Results</span>
                 </button>
             </div>
         </div>
@@ -849,20 +849,19 @@
         <div class="site-footer__grid">
             <div>
                 <div class="site-footer__title">Rewayaat</div>
-                <p class="site-footer__text">
-                    A project of the <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" class="site-footer__link">Academy for Learning Islam</a>. Search, browse, and study Shi'i narrations in Arabic and English.
+                <p class="site-footer__text" th:utext="${isArabic} ? 'مشروع من &lt;a href=&quot;https://academyofislam.com&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; class=&quot;site-footer__link&quot;&gt;أكاديمية التعلم الإسلامي&lt;/a&gt;. ابحث وتصفح وادرس الأحاديث الشيعية بالعربية والإنجليزية.' : 'A project of the &lt;a href=&quot;https://academyofislam.com&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; class=&quot;site-footer__link&quot;&gt;Academy for Learning Islam&lt;/a&gt;. Search, browse, and study Shi&#39;i narrations in Arabic and English.'">
                 </p>
             </div>
             <div>
-                <div class="site-footer__label">Explore</div>
+                <div class="site-footer__label" th:text="#{footer.explore}">Explore</div>
                 <div class="site-footer__links">
-                    <a href="/updates.html">Updates</a>
-                    <a href="/search_tips.html">Search Tips</a>
-                    <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer">API Documentation</a>
+                    <a href="/updates.html" th:text="#{nav.updates}">Updates</a>
+                    <a href="/search_tips.html" th:text="#{footer.searchTips}">Search Tips</a>
+                    <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer" th:text="#{footer.apiDocs}">API Documentation</a>
                 </div>
             </div>
             <div>
-                <div class="site-footer__label">Contact</div>
+                <div class="site-footer__label" th:text="#{footer.contact}">Contact</div>
                 <div class="site-footer__links">
                     <a href="mailto:rewayaat.org@gmail.com">rewayaat.org@gmail.com</a>
                     <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer">GitHub Repository</a>

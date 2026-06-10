@@ -151,13 +151,13 @@
                 style="cursor:pointer;">Book Name</h1>
             <span class="hp-hero__number"
                   th:if="${hadith.number != null and !hadith.number.isBlank()}">
-                Hadith <span th:text="${hadith.number}">123</span>
+                <span th:text="#{hadith.number}">Hadith</span> <span th:text="${hadith.number}">123</span>
             </span>
 
             <!-- Breadcrumb path: Part > Section > Chapter -->
             <div class="hp-hero__path" th:if="${hadith.part != null and !hadith.part.isBlank()}">
                 <span th:if="${hadith.volume != null and !hadith.volume.isBlank()}"
-                      class="hp-hero__path-segment">Volume <span th:text="${hadith.volume}">1</span></span>
+                      class="hp-hero__path-segment"><span th:text="#{hadith.volume}">Volume</span> <span th:text="${hadith.volume}">1</span></span>
                 <span th:if="${hadith.volume != null and !hadith.volume.isBlank()}"
                       class="hp-hero__path-sep">/</span>
                 <span th:if="${hadith.part != null and !hadith.part.isBlank()}"
@@ -199,24 +199,24 @@
 
         <!-- Share / Remind -->
         <div class="hp-share" style="margin-top:1.5rem; padding-top:1rem; border-top:1px solid var(--bs-border-color);">
-            <button id="remindBtn" class="hp-share__btn" onclick="shareHadith()" title="Share this hadith">
-                <i class="fa fa-paper-plane" style="margin-right:0.35rem;"></i> Remind someone
+            <button id="remindBtn" class="hp-share__btn" onclick="shareHadith()" th:title="#{hadith.remindSomeone}">
+                <i class="fa fa-paper-plane" style="margin-right:0.35rem;"></i> <span th:text="#{hadith.remindSomeone}">Remind someone</span>
             </button>
-            <span id="shareToast" class="hp-share__toast" style="display:none;">Link copied!</span>
+            <span id="shareToast" class="hp-share__toast" style="display:none;" th:text="#{hadith.linkCopied}">Link copied!</span>
         </div>
 
         <!-- Additional metadata row -->
         <div class="hp-meta-row" th:if="${hadith.source != null and !hadith.source.isBlank()}">
             <div class="hp-meta-item">
-                <span class="hp-meta-item__label">Source: </span>
+                <span class="hp-meta-item__label" th:text="#{hadith.source} + ': '">Source: </span>
                 <span th:text="${hadith.source}">Source</span>
             </div>
             <div class="hp-meta-item" th:if="${hadith.edition != null and !hadith.edition.isBlank()}">
-                <span class="hp-meta-item__label">Edition: </span>
+                <span class="hp-meta-item__label" th:text="#{hadith.edition} + ': '">Edition: </span>
                 <span th:text="${hadith.edition}">Edition</span>
             </div>
             <div class="hp-meta-item" th:if="${hadith.publisher != null and !hadith.publisher.isBlank()}">
-                <span class="hp-meta-item__label">Publisher: </span>
+                <span class="hp-meta-item__label" th:text="#{hadith.publisher} + ': '">Publisher: </span>
                 <span th:text="${hadith.publisher}">Publisher</span>
             </div>
         </div>
@@ -229,7 +229,7 @@
 
         <!-- Back to search -->
         <a href="/" class="hp-back">
-            <i class="fa fa-arrow-left" aria-hidden="true"></i> Search more hadith
+            <i class="fa fa-arrow-left" aria-hidden="true"></i> <span th:text="#{hadith.backToSearch}">Search more hadith</span>
         </a>
     </article>
 </main>
@@ -239,20 +239,19 @@
         <div class="site-footer__grid">
             <div>
                 <div class="site-footer__title">Rewayaat</div>
-                <p class="site-footer__text">
-                    A project of the <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" class="site-footer__link">Academy for Learning Islam</a>. Search, browse, and study Shi'i narrations in Arabic and English.
+                <p class="site-footer__text" th:utext="${isArabic} ? 'مشروع من &lt;a href=&quot;https://academyofislam.com&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; class=&quot;site-footer__link&quot;&gt;أكاديمية التعلم الإسلامي&lt;/a&gt;. ابحث وتصفح وادرس الأحاديث الشيعية بالعربية والإنجليزية.' : 'A project of the &lt;a href=&quot;https://academyofislam.com&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; class=&quot;site-footer__link&quot;&gt;Academy for Learning Islam&lt;/a&gt;. Search, browse, and study Shi&#39;i narrations in Arabic and English.'">
                 </p>
             </div>
             <div>
-                <div class="site-footer__label">Explore</div>
+                <div class="site-footer__label" th:text="#{footer.explore}">Explore</div>
                 <div class="site-footer__links">
-                    <a href="/updates.html">Updates</a>
-                    <a href="/search_tips.html">Search Tips</a>
-                    <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer">API Documentation</a>
+                    <a href="/updates.html" th:text="#{nav.updates}">Updates</a>
+                    <a href="/search_tips.html" th:text="#{footer.searchTips}">Search Tips</a>
+                    <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer" th:text="#{footer.apiDocs}">API Documentation</a>
                 </div>
             </div>
             <div>
-                <div class="site-footer__label">Contact</div>
+                <div class="site-footer__label" th:text="#{footer.contact}">Contact</div>
                 <div class="site-footer__links">
                     <a href="mailto:rewayaat.org@gmail.com">rewayaat.org@gmail.com</a>
                     <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
