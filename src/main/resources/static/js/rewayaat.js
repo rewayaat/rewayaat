@@ -876,6 +876,22 @@ function initAuthUI() {
             if (toggle) toggle.setAttribute('aria-expanded', 'false');
         }
     });
+
+    // Mobile language toggle
+    var langMobileToggle = document.getElementById('langToggleMobile');
+    if (langMobileToggle && !langMobileToggle.dataset.bound) {
+        langMobileToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            var isArabic = window.I18N && window.I18N.isRtl;
+            window.location.href = isArabic ? '/' : '/ar';
+        });
+        langMobileToggle.dataset.bound = 'true';
+    }
+    // Update mobile language label to show the target language
+    var langMobileLabel = document.getElementById('langMobileLabel');
+    if (langMobileLabel && window.I18N) {
+        langMobileLabel.textContent = window.I18N.isRtl ? 'English' : 'العربية';
+    }
     if (profileBtn && !profileBtn.dataset.bound) {
         profileBtn.addEventListener('click', function(event) {
             event.preventDefault();

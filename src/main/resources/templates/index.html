@@ -83,17 +83,26 @@
                     <span class="menu-reading-scope__value"></span>
                 </div>
                 <div class="d-flex gap-2 top-actions flex-nowrap">
+                    <!-- Desktop language toggle -->
+                    <div class="lang-toggle d-none d-md-flex" id="langToggleDesktop">
+                        <a class="lang-toggle__opt" th:href="${isArabic} ? '/' : '/ar'" th:text="'EN'" th:classappend="${!isArabic} ? ' is-active'"></a>
+                        <span class="lang-toggle__sep" aria-hidden="true">|</span>
+                        <a class="lang-toggle__opt" th:href="${isArabic} ? '/' : '/ar'" th:text="'AR'" th:classappend="${isArabic} ? ' is-active'"></a>
+                    </div>
                     <div class="auth-mobile-menu-wrapper">
                         <button class="btn btn-dark btn-sm top-action auth-action" id="authSignInBtn" type="button">
                             <i class="fa fa-right-to-bracket" aria-hidden="true"></i>
                             <span class="auth-action__label">Sign In</span>
                         </button>
                         <button class="btn btn-dark btn-sm top-action auth-action__mobile-toggle" id="authMobileToggle" type="button" aria-label="Menu" aria-expanded="false">
-                            <i class="fa fa-bars" aria-hidden="true"></i>
+                            <i class="fa fa-ellipsis-vertical" aria-hidden="true"></i>
                         </button>
                         <div class="auth-mobile-dropdown" id="authMobileDropdown" aria-hidden="true">
                             <a href="/signin.html" class="auth-mobile-dropdown__item">
                                 <i class="fa fa-right-to-bracket" aria-hidden="true"></i> Sign In
+                            </a>
+                            <a class="auth-mobile-dropdown__item lang-mobile-toggle" id="langToggleMobile">
+                                <i class="fa fa-language" aria-hidden="true"></i> <span id="langMobileLabel">العربية</span>
                             </a>
                         </div>
                     </div>
@@ -872,6 +881,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/noty/3.1.4/noty.min.js"></script>
 <script crossorigin="anonymous" src="https://cdn.lr-ingest.io/LogRocket.min.js"></script>
 <script src="/js/vue-components.js?v=7" th:src="@{/js/vue-components.js?v=7}"></script>
+<div th:replace="~{i18n-js :: i18nScript}"></div>
 <script src="/js/rewayaat.js?v=144" th:src="@{/js/rewayaat.js?v=144}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" th:async="async"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.6/marked.min.js" th:defer="defer"></script>

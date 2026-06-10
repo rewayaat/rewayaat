@@ -101,29 +101,34 @@
             </div>
             <div id="queryBar" class="navbar-search">
                 <div class="navbar-search__input">
-                    <form action="/" method="get" class="search-entry-shell" style="display:flex;align-items:center;width:100%;">
+                    <form th:action="${isArabic} ? '/ar/' : '/'" method="get" class="search-entry-shell" style="display:flex;align-items:center;width:100%;">
                         <i class="fa fa-search search-magnifier" aria-hidden="true"></i>
-                        <input type="text" class="form-control" id="hadithSearchInput" name="q" placeholder="Search hadith..." aria-label="Search hadith" autocomplete="off"/>
+                        <input type="text" class="form-control" id="hadithSearchInput" name="q" th:placeholder="#{search.placeholder}" th:aria-label="#{search.placeholder}" autocomplete="off"/>
                         <div class="search-entry-actions">
                             <div class="search-submit-menu">
                                 <button type="submit" class="btn btn-primary search-btn-with-border" id="hadithSearchBtn">
                                     <i class="fa fa-search search-btn__icon-mobile" aria-hidden="true"></i>
-                                    <span class="search-btn__text">Search</span>
+                                    <span class="search-btn__text" th:text="#{search.button}">Search</span>
                                     <i class="fa fa-chevron-down search-btn-caret" aria-hidden="true"></i>
                                 </button>
-                                <div class="search-mode-menu" id="searchModeDropdown" role="menu" aria-label="Search mode">
-                                    <button type="button" class="search-mode-option" data-mode="flexible" role="menuitem">
-                                        <span class="search-mode-option__label">Flexible</span>
-                                        <span class="search-mode-option__meta">includes broader wording matches</span>
-                                    </button>
-                                    <button type="button" class="search-mode-option" data-mode="precise" role="menuitem">
-                                        <span class="search-mode-option__label">Precise</span>
-                                        <span class="search-mode-option__meta">keeps results closer to your wording</span>
-                                    </button>
-                                </div>
                             </div>
                         </div>
                     </form>
+                </div>
+            </div>
+            <div class="menu-context-row">
+                <div class="lang-toggle d-none d-md-flex" id="langToggleDesktopHadith">
+                    <a class="lang-toggle__opt" th:href="${isArabic} ? ('/hadith/' + ${hadithId}) : ('/ar/hadith/' + ${hadithId})" th:text="'EN'" th:classappend="${!isArabic} ? ' is-active'"></a>
+                    <span class="lang-toggle__sep" aria-hidden="true">|</span>
+                    <a class="lang-toggle__opt" th:href="${isArabic} ? ('/hadith/' + ${hadithId}) : ('/ar/hadith/' + ${hadithId})" th:text="'AR'" th:classappend="${isArabic} ? ' is-active'"></a>
+                </div>
+                <button class="btn btn-dark btn-sm top-action d-md-none" id="hadithMobileMenuBtn" type="button" aria-label="Menu" aria-expanded="false">
+                    <i class="fa fa-ellipsis-vertical" aria-hidden="true"></i>
+                </button>
+                <div class="auth-mobile-dropdown d-md-none" id="hadithMobileDropdown" aria-hidden="true">
+                    <a class="auth-mobile-dropdown__item" id="hadithLangToggle">
+                        <i class="fa fa-language" aria-hidden="true"></i> <span id="hadithLangLabel">العربية</span>
+                    </a>
                 </div>
             </div>
         </div>
@@ -345,6 +350,44 @@
                 dropdown.style.display = 'none';
             }
         });
+    })();
+
+    // Mobile menu toggle (hadith page)
+    (function() {
+        var btn = document.getElementById('hadithMobileMenuBtn');
+        var dd = document.getElementById('hadithMobileDropdown');
+        var langToggle = document.getElementById('hadithLangToggle');
+        var langLabel = document.getElementById('hadithLangLabel');
+
+        if (btn && dd) {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var isOpen = dd.classList.contains('is-open');
+                dd.classList.toggle('is-open');
+                dd.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
+                btn.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+            });
+            document.addEventListener('click', function(e) {
+                if (dd.classList.contains('is-open') && !dd.contains(e.target) && e.target !== btn) {
+                    dd.classList.remove('is-open');
+                    dd.setAttribute('aria-hidden', 'true');
+                    btn.setAttribute('aria-expanded', 'false');
+                }
+            });
+        }
+
+        // Language toggle link
+        var hadithId = /*[[${hadithId}]]*/ '';
+        if (langToggle) {
+            var isArabic = /*[[${isArabic}]]*/ false;
+            if (isArabic) {
+                langToggle.href = '/hadith/' + hadithId;
+                if (langLabel) langLabel.textContent = 'English';
+            } else {
+                langToggle.href = '/ar/hadith/' + hadithId;
+                if (langLabel) langLabel.textContent = 'العربية';
+            }
+        }
     })();
 </script>
 </body>

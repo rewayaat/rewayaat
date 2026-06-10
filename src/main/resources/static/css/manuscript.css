@@ -740,9 +740,41 @@ a:hover {
     color: #1a3a6b;
     text-decoration: none;
     border-radius: 8px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: start;
 }
 .auth-mobile-dropdown__item:hover {
     background: #eef3fb;
+}
+/* ── Language Toggle ─────────────────────────────────────────────────── */
+.lang-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+.lang-toggle__opt {
+    color: #6b7c98;
+    text-decoration: none;
+    padding: 0.15rem 0.3rem;
+    border-radius: 4px;
+    transition: color 0.15s, background 0.15s;
+}
+.lang-toggle__opt:hover {
+    color: #1a3a6b;
+    background: rgba(26,58,107,0.06);
+}
+.lang-toggle__opt.is-active {
+    color: #d4940a;
+}
+.lang-toggle__sep {
+    color: #c0c8d8;
+    margin: 0 0.1rem;
 }
 .search-btn__icon-mobile { display: none; }
 
