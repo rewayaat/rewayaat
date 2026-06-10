@@ -3,16 +3,23 @@
 
 <head>
     <meta charset="UTF-8"/>
-    <title>HDP - The Hadith Database | Search 32,000+ Narrations in Arabic &amp; English</title>
-    <meta name="description" content="Search over 32,000 hadith narrations in Arabic and English. Browse Al-Kafi, Nahj al-Balagha, Ghurar al-Hikam and more. Find similar narrations and Quranic insights."/>
+    <title th:text="${isArabic} ? #{seo.homeTitle} : 'HDP - The Hadith Database | Search 32,000+ Narrations in Arabic &amp; English'">HDP - The Hadith Database</title>
+    <meta name="description" th:content="${isArabic} ? #{site.description} : 'Search over 32,000 hadith narrations in Arabic and English. Browse Al-Kafi, Nahj al-Balagha, Ghurar al-Hikam and more. Find similar narrations and Quranic insights.'"/>
     <meta name="keywords" content="shia hadith, hadith database, shia hadith search, islamic narrations, al-kafi, nahj al-balagha, ghurar al-hikam, ahlul bayt hadith, arabic english hadith"/>
     <meta name="author" content="Academy for Learning Islam"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
-    <link rel="canonical" href="/"/>
+    <link rel="canonical" th:href="${isArabic} ? '/ar' : '/'"/>
+    <!-- hreflang for Arabic/English -->
+    <link rel="alternate" hreflang="ar" href="/ar"/>
+    <link rel="alternate" hreflang="en" href="/"/>
+    <link rel="alternate" hreflang="x-default" href="/"/>
     <meta property="og:type" content="website"/>
-    <meta property="og:site_name" content="HDP - The Hadith Database"/>
-    <meta property="og:title" content="HDP - The Hadith Database"/>
-    <meta property="og:description" content="Search over 32,000 hadith narrations in Arabic and English. Browse Al-Kafi, Nahj al-Balagha, and more with similar narrations and Quranic insights."/>
+    <meta property="og:site_name" th:content="${isArabic} ? #{site.name} : 'HDP - The Hadith Database'"/>
+    <meta property="og:title" th:content="${isArabic} ? #{seo.homeTitle} : 'HDP - The Hadith Database'"/>
+    <meta property="og:description" th:content="${isArabic} ? #{site.description} : 'Search over 32,000 hadith narrations in Arabic and English. Browse Al-Kafi, Nahj al-Balagha, and more with similar narrations and Quranic insights.'"/>
+    <meta property="og:locale" th:content="${isArabic} ? 'ar' : 'en_US'"/>
+    <meta property="og:locale:alternate" content="ar"/>
+    <meta property="og:locale:alternate" content="en_US"/>
     <meta property="og:url" content="https://rewayaat.info/"/>
     <meta name="twitter:card" content="summary"/>
     <meta name="twitter:title" content="HDP - The Hadith Database"/>
