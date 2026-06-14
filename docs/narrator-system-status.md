@@ -13,11 +13,14 @@ Build a narrator biography system for the Rewayaat Shia hadith database that:
 
 ### Key Design Decisions
 - **No external LLM APIs** - Claude sub-agents should be used for biography enrichment work
-- **No subjective judgments** - only aggregate and synthesize what Rijal sources actually state
+- **No subjective judgments** - only aggregate what Rijal sources actually state. No synthesis, no picking "most authoritative" — merge everything from all sources, preserve every assessment and biographical detail with its exact provenance (book + page). When sources disagree, all views are shown side-by-side.
 - **Per-source assessments** - each narrator has individual assessments from each Rijal work that mentions them, including the direct quotation (Arabic) and a summary (English)
 - **Rijal-first approach** — Build a strong narrator collection from biographical dictionaries, then match against hadith. This avoids the fragile, lossy process of parsing isnads to discover narrators.
+- **Full provenance** — Every piece of data in a merged narrator profile must be traceable to its exact source book and page. No synthesized or unattributed information. Users must be able to see exactly which Rijal work and which page every assessment, alias, biographical detail, and reliability grade comes from. When sources conflict (e.g. one book says "reliable" and another says "weak"), all variants are preserved with their respective attributions — no overall grade is computed.
 
-### Rijal Sources (in priority order)
+### Rijal Sources
+
+All sources are treated equally — no priority ranking. Every book's assessment and biographical data is preserved with full provenance.
 
 **In corpus (already in ES, can be processed programmatically):**
 - Kitab al-Du'afa (Ibn al-Ghada'iri) — 226 entries, already structured as narrator biographies with assessments
@@ -59,8 +62,8 @@ When a user clicks a narrator name in the English hadith view, we must reliably 
 Each `NarratorDocument` must capture **every name variant** the narrator is known by:
 
 ```
-primary_arabic_name    → Full name as it appears in the most authoritative source
-primary_english_name   → Standard transliteration (pick one convention, apply consistently)
+primary_arabic_name    → Full name as it appears in the first source that mentions this narrator
+primary_english_name   → English transliteration from the first source that mentions this narrator
 arabic_aliases[]       → Every variant found: shortened names, alternative spellings,
                           name with different lineage depth, laqab, nisbah variants
 english_aliases[]      → Every English variant: different transliteration styles,
@@ -182,7 +185,7 @@ Process each Rijal book independently into its own narrator profile file. No cro
 
 **1A: Kitab al-Du'afa (Ibn al-Ghada'iri) — In corpus**
 
-**Status: NOT STARTED**
+**Status: COMPLETE (222 profiles)**
 
 226 entries in the Rewayaat ES index. Each entry is one narrator biography with name, lineage, kunyah, and assessment. The `chapter` field is the narrator's name. Both Arabic and English text available.
 
@@ -203,7 +206,7 @@ Steps:
 
 **1B-G: External Rijal Books — Download & Parse**
 
-**Status: NOT STARTED (parser tested, Najashi verified working)**
+**Status: COMPLETE (41,854 profiles across 7 books)**
 
 Each book is processed the same way:
 1. Download actual Arabic text page-by-page from usul.ai (or eshia.ir for Mamaqani)
@@ -219,17 +222,66 @@ Each book is processed the same way:
 
 ### Phase 2: Cross-Book Aggregation & Deduplication
 
-**Status: NOT STARTED**
+**Status: COMPLETE (29,305 merged profiles from 41,854 source profiles)**
 
 Merge all per-book profile files into a single unified narrator database. This is where the identity resolution strategy (see above) is applied.
 
+**Layer 1 (Exact normalized match):** Completed — merged profiles with identical normalized names automatically.
+**Layer 2 (Context-augmented match):** Completed — used kunyah, nisbah, teacher/student networks, generation to disambiguate common names.
+**Layer 3 (LLM-assisted judgment):** Completed — 3,976 ambiguous pairs judged by Claude, 1,502 high-confidence merges applied. 0 self-merges, 0 circular refs, 0 unresolved chains.
+
+**Provenance Requirements:**
+
+Every field in a merged profile must be traceable to its source book and page. The merged profile is not a new composition — it is an aggregation with clear attribution:
+
+- **Per-field provenance**: Each biographical field (kunyah, city, death year, generation, etc.) tracks which book and page it came from (`{"book": "najashi", "page": 196}`)
+- **Per-assessment provenance**: Every `source_assessment` preserves the book name, author, verbatim Arabic quotation, English summary, and source page. Assessments are never synthesized into an overall grade
+- **Per-alias provenance**: Each alias records which book and page it was found in
+- **Conflicting grades preserved**: When sources disagree (e.g. Du'afa says "weak" but Kashshi says "reliable"), both grades are kept with their respective source attributions as a `reliability_grades[]` list
+- **Contributing sources list**: Every merged profile has `contributing_sources[]` showing which books contributed and their page numbers
+- **Conflicting fields preserved**: When sources give different values for the same field (e.g. different death years), all variants are kept with their respective sources
+
+**Merged Profile Schema (provenance-aware):**
+```
+merged_id                       → unique identifier
+primary_arabic_name             → name from first source mentioning this narrator
+primary_english_name            → English transliteration from first source
+primary_name_source             → {"book": "...", "page": ...}
+arabic_aliases[]                → [{"name": "...", "source_book": "...", "source_page": ...}]
+english_aliases[]               → [{"name": "...", "source_book": "...", "source_page": ...}]
+kunyah_arabic                   → value from first source that mentions it
+kunyah_arabic_sources[]         → all sources mentioning this kunyah [{"book", "page", "value"}]
+kunyah_english                  → English transliteration
+titles[]                        → [{"title": "...", "source_book": "...", "source_page": ...}]
+normalized_arabic               → for matching
+normalized_english              → for matching
+source_assessments[]            → verbatim per-source assessments with book/page
+reliability_grades[]            → [{"grade": "...", "source_book": "...", "source_page": ...}]
+is_doubtful                     → true if any source flags doubt
+doubtful_reasons[]              → [{"reason": "...", "source_book": "...", "source_page": ...}]
+narrated_from[]                 → [{"name": "...", "source_book": "...", "source_page": ...}]
+narrated_to[]                   → [{"name": "...", "source_book": "...", "source_page": ...}]
+city_or_tribe_values[]          → all values from all sources [{"value": "...", "source_book": "...", "source_page": ...}]
+generation_values[]             → all values from all sources [{"value": "...", "source_book": "...", "source_page": ...}]
+death_year_hijri_values[]       → all values from all sources [{"value": "...", "source_book": "...", "source_page": ...}]
+gender                          → male/female
+notes[]                         → [{"text": "...", "source_book": "...", "source_page": ...}]
+contributing_sources[]          → [{"book": "...", "author": "...", "pages": [...]}]
+```
+
+Note: Fields like `city_or_tribe_values[]`, `generation_values[]`, and `death_year_hijri_values[]` store ALL values from ALL sources. No single "authoritative" value is chosen — different books may give different information, and all of it is preserved. Simple fields like `kunyah_arabic` have a convenience accessor (value from first source) plus a `*_sources[]` array capturing all mentions.
+
+**Processing order** (smallest → largest): tusi → duafa → kashshi → fihrist → najashi → ardabili → khoei → mamaqani
+
 Steps:
 1. **Load all** `tmp/narrators_book_*.json` files
-2. **Pass 1 — Exact normalized matching**: For each profile, check if an identical (normalized) profile already exists in the merged set. If yes, merge: combine aliases, add `SourceAssessment`, keep the richer biography
-3. **Pass 2 — Context-augmented matching**: For remaining unmatched profiles, use kunyah + nisbah + teacher/student context to disambiguate common names
-4. **Pass 3 — Claude sub-agent batch**: For profiles that layers 1-2 couldn't resolve, batch them for Claude to judge (given name variants + biographical context from each source, are these the same person?)
-5. **Flag uncertain cases** for manual review
+2. **Layer 1 — Exact normalized matching**: For each profile, check if an identical (normalized) profile already exists in the merged set. If yes, merge: combine aliases (with provenance), add `source_assessment`, keep the richer biography
+3. **Layer 2 — Context-augmented matching**: For remaining unmatched profiles, use kunyah + nisbah + teacher/student context to disambiguate common names
+4. **Layer 3 — Claude API batch**: For profiles that layers 1-2 couldn't resolve, batch them for Claude to judge (given name variants + biographical context from each source, are these the same person?)
+5. **Flag uncertain cases** for manual review (`tmp/narrator_review_queue.jsonl`)
 6. **Write output** to `tmp/narrators_merged.json`
+
+**Script:** `scripts/merge_narrator_profiles.py`
 
 ### Phase 3: Import to Elasticsearch
 
@@ -260,13 +312,27 @@ Once the narrator database is built, link narrators to hadith:
 5. Vue directive to annotate chain text with narrator links
 6. CSS styling for narrator links in `manuscript.css`
 
+### Future Enhancements (inspired by existing Rijal software)
+
+Based on a review of the **Derayat al-Nur 2** software (Noor Center, Iran), the **Rawaat al-Hadith al-Jami'** database (Wali-e-Asr Institute), and the **Jawame' al-Kalam** software:
+
+- **Narrator relationship query** — Allow users to query "what is the relationship between narrator X and narrator Y?" using the `narrated_from`/`narrated_to` data. Derayat al-Nur's "Relationship of Narrators" section is one of its most-used features. Our data model already captures teacher/student links — the UI should make this queryable.
+
+- **Contemporaneity validation** — Use birth/death years and locations to verify whether two narrators in a chain could have actually met. The Rawaat database specifically built a "Wafiyat-e-Rawat" (death records of narrators) module for this — it's critical for isnad evaluation. Our profiles currently have `death_year_hijri` but should also capture `birth_year_hijri` when available from sources.
+
+- **Name recording disambiguation** — The Rawaat database researchers found that similar-sounding names (e.g. "Babul" vs "Babel" — two different cities) lead to incorrectly merged narrators in 30% of cases they reviewed. Our Phase 2 merge must be conservative — when in doubt, keep separate rather than risk a false merge.
+
+- **Distorted title detection** — Derayat al-Nur identifies corrupted names in isnad chains and suggests corrections. This would be part of Phase 5 chain parsing.
+
+- **Chain-level assessment** — Not our responsibility. Hadith grading (sahih, hasan, da'if) will rely on established books, not our software. We present the raw narrator data and let users and published works handle the grading.
+
 ---
 
 ## Next Steps (Recommended Order)
 
-1. **Phase 1A: Parse Kitab al-Du'afa** — Script reads the 226 entries, extracts narrator profiles, writes `tmp/narrators_book_duafa.json`
-2. **Phase 1B-G: Process external Rijal books** — Claude sub-agents extract profiles from each book independently
-3. **Phase 2: Aggregate & deduplicate** — Merge all per-book files into unified narrator database
+1. ~~**Phase 1A: Parse Kitab al-Du'afa**~~ — DONE (222 profiles)
+2. ~~**Phase 1B-G: Process external Rijal books**~~ — DONE (41,854 profiles across 7 books)
+3. ~~**Phase 2: Aggregate & deduplicate**~~ — DONE. 29,305 merged profiles (from 41,854 source entries). Layers 1-3 all complete.
 4. **Phase 3: Import to ES** — Bulk index into `rewayaat_narrators`
 5. **Phase 4: Create narrator.html** — Thymeleaf template for the narrator detail page
 6. **Phase 5: Match narrators to hadith chains** and add clickable links in search results
