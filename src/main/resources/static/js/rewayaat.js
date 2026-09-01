@@ -44,6 +44,7 @@ var READING_PAGE_SIZE = 50;
 var INITIAL_VISIBLE_NARRATIONS = 16;
 var REVEAL_BATCH_SIZE = 12;
 var INITIAL_VISIBLE_TAG_FILTERS = 15;
+var NOTES_COLLAPSE_THRESHOLD = 600;
 var similarLoadingMinDurationMs = 550;
 var scopeFieldKeys = ['book', 'volume', 'part', 'section', 'chapter'];
 var SIDECAR_WIDTH_STORAGE_KEY = 'rewayaat_sidecar_width';
@@ -4447,6 +4448,7 @@ function setupVue(query, page, sortFields) {
             arabicSuggestionToastShown: false,
             arabicSuggestionThresholdPassed: false,
             snippetExpandedKeys: {},
+            notesExpandedKeys: {},
             collections: userCollectionsCache,
             collectionSearchQuery: '',
             sidecarWidth: 304,
@@ -6133,6 +6135,23 @@ function setupVue(query, page, sortFields) {
             toggleSnippetExpand: function(narration, sidx) {
                 var key = this.snippetExpandKey(narration, sidx);
                 Vue.set(this.snippetExpandedKeys, key, !this.snippetExpandedKeys[key]);
+            },
+            notesExpandKey: function(narration) {
+                return (narration._id || narration.id || '') + '-notes';
+            },
+            // Long notes are previewed rather than shown in full: the reading
+            // card is height-capped, so an unbounded note squeezes the
+            // narration text out of the layout entirely.
+            isNotesCollapsible: function(narration) {
+                var notes = (narration && narration.notes) || '';
+                return notes.replace(/<[^>]*>/g, '').trim().length > NOTES_COLLAPSE_THRESHOLD;
+            },
+            isNotesExpanded: function(narration) {
+                return !!this.notesExpandedKeys[this.notesExpandKey(narration)];
+            },
+            toggleNotesExpand: function(narration) {
+                var key = this.notesExpandKey(narration);
+                Vue.set(this.notesExpandedKeys, key, !this.notesExpandedKeys[key]);
             },
             quranContextSegments: function(narration) {
                 var insight = this.activeQuranicInsight(narration);

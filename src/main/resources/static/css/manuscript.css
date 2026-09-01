@@ -2135,12 +2135,73 @@ main.container::before {
     font-variant-ligatures: common-ligatures contextual;
 }
 
+/* Scholarly apparatus: a cool teal panel with a cyan-green rule, so notes
+   read as marginalia rather than as a continuation of the narration itself.
+   The card grows to fit them, so nothing here competes for the text's height. */
 .hadith-notes {
-    font-size: 0.92rem;
+    font-size: 0.88rem;
     line-height: 1.7;
     color: var(--text-secondary);
-    padding-top: 0.75rem;
-    border-top: 1px solid var(--border);
+    padding: 0.8rem 1rem 0.85rem;
+    background: #effaf8;
+    border: 1px solid rgba(13, 148, 136, 0.22);
+    border-left: 3px solid #0d9488;
+    border-radius: var(--radius-sm);
+    display: flex;
+    flex-direction: column;
+}
+
+.hadith-notes__head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+}
+
+.hadith-notes__head::after {
+    content: "";
+    flex: 1 1 auto;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(13, 148, 136, 0.35), transparent);
+}
+
+.hadith-notes__label {
+    font-size: 0.64rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #0f766e;
+}
+
+/* Preview state: show the opening lines and fade them out, so there is
+   visibly more to read rather than a bare toggle. */
+.hadith-notes__body--clamped {
+    max-height: 6.2rem;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(180deg, #000 58%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 58%, transparent 100%);
+}
+
+.hadith-notes__toggle {
+    align-self: flex-start;
+    margin-top: 0.45rem;
+    border: 1px solid rgba(13, 148, 136, 0.4);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.8);
+    color: #0f766e;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.22rem 0.72rem;
+    cursor: pointer;
+    transition: all 150ms ease;
+}
+
+.hadith-notes__toggle:hover {
+    background: #fff;
+    border-color: #0d9488;
+    color: #0b5f59;
 }
 
 .hadith-content .highlight,
@@ -5918,6 +5979,9 @@ main.container {
 
 .hadith-card {
     --hadith-content-min-height: 0px;
+    /* The card grows to fit: expanding the notes or opening a related /
+       tafsir panel must not steal height from the narration text. */
+    --hadith-card-max-height: none;
     --hadith-reading-max-height: min(58dvh, 44rem);
     --hadith-reading-mobile-max-height: min(42dvh, 24rem);
     --hadith-inline-max-height: min(32dvh, 22rem);
@@ -5939,7 +6003,6 @@ main.container {
 .hadith-card--similar,
 .hadith-card--quran {
     --hadith-content-min-height: min(56rem, 86dvh);
-    --hadith-reading-max-height: min(31dvh, 20rem);
     --hadith-inline-max-height: min(35dvh, 24rem);
     --hadith-inline-snippet-max-height: min(40dvh, 28rem);
 }
@@ -5957,7 +6020,7 @@ main.container {
     display: grid;
     grid-template-columns: minmax(248px, var(--hadith-sidecar-width, 304px)) 18px minmax(0, 3fr);
     align-items: start;
-    max-height: min(90dvh, 60rem);
+    max-height: var(--hadith-card-max-height);
     overflow: hidden;
 }
 
@@ -5990,7 +6053,7 @@ main.container {
     padding: 0;
     min-height: 100%;
     align-self: stretch;
-    max-height: min(90dvh, 60rem);
+    max-height: var(--hadith-card-max-height);
     grid-column: 1;
     grid-row: 1 / span 2;
 }
@@ -6002,7 +6065,7 @@ main.container {
     padding: 2.45rem 2.15rem 1.8rem 1.85rem !important;
     grid-column: 3;
     grid-row: 1;
-    max-height: min(90dvh, 60rem);
+    max-height: var(--hadith-card-max-height);
     overflow-y: auto;
 }
 
@@ -6777,6 +6840,11 @@ body.is-resizing-sidecar * {
 
 .hadith-reading-scroll {
     max-height: var(--hadith-reading-max-height);
+    /* overflow-y:auto makes the automatic minimum size resolve to 0, which
+       previously let this pane absorb the whole card's shrinkage until the
+       narration vanished. It is the primary content, so it never gives up
+       height: the card grows instead. */
+    flex: 0 0 auto;
     overflow-y: auto;
     overflow-x: hidden;
     padding-right: 0.35rem;
@@ -7764,9 +7832,13 @@ body.is-resizing-sidecar * {
         max-height: none;
     }
 
-    /* On mobile, hide main hadith text when similar/quran tab is active */
+    /* On mobile, hide main hadith text when similar/quran tab is active.
+       The notes go with it: they annotate the narration, so leaving them
+       behind shows a gloss for text that is no longer on screen. */
     .hadith-content.sidecar-active--similar .hadith-reading-scroll,
-    .hadith-content.sidecar-active--quran .hadith-reading-scroll {
+    .hadith-content.sidecar-active--quran .hadith-reading-scroll,
+    .hadith-content.sidecar-active--similar .hadith-notes,
+    .hadith-content.sidecar-active--quran .hadith-notes {
         display: none;
     }
     .hadith-content.sidecar-active--similar .hadith-card__ornament,

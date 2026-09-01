@@ -598,6 +598,22 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <!-- Notes gloss the narration itself, so they sit with the text,
+                                         above the similar/tafsir panels which are separate corpora. -->
+                                    <div class="hadith-notes mt-3" v-if="narration.notes">
+                                        <div class="hadith-notes__head">
+                                            <span class="hadith-notes__label">Notes</span>
+                                        </div>
+                                        <div class="hadith-notes__body"
+                                             v-bind:class="{'hadith-notes__body--clamped': isNotesCollapsible(narration) && !isNotesExpanded(narration)}"
+                                             v-html="narration.notes"></div>
+                                        <button type="button"
+                                                class="hadith-notes__toggle"
+                                                v-if="isNotesCollapsible(narration)"
+                                                v-on:click="toggleNotesExpand(narration)">
+                                            {{ isNotesExpanded(narration) ? 'Show less' : 'Show more' }}
+                                        </button>
+                                    </div>
                                     <div class="hadith-inline-context hadith-inline-context--similar"
                                          v-if="activeNarrationSidecarTab(narration) === 'similar' && activeSimilar(narration)">
                                         <div class="hadith-inline-context__meta-band hadith-inline-context__meta-band--compact">
@@ -707,7 +723,6 @@
                                             Select a tafsir source from the verse tree to read its snippet here.
                                         </div>
                                     </div>
-                                    <div class="hadith-notes mt-3" v-if="narration.notes" v-html="narration.notes"></div>
                                     <div class="hadith-card__footer">
                                         <div class="topic-tag-pills hadith-card__tags"
                                              v-if="narration.topic_tags && narration.topic_tags.length > 0">
