@@ -6326,8 +6326,8 @@ body.is-resizing-sidecar * {
     top: auto;
     right: auto;
     left: 50%;
-    bottom: 0.3rem;
-    margin-left: 0.55rem;
+    bottom: 0.1rem;
+    margin-left: 0;
     min-width: 1.05rem;
     height: 1.05rem;
     padding: 0 0.18rem;
@@ -7982,8 +7982,7 @@ body.is-resizing-sidecar * {
     }
 
     .hadith-sidecar__rail-badge {
-        bottom: 0.22rem;
-        margin-left: 0.5rem;
+        bottom: 0.08rem;
     }
 
     .hadith-sidecar__panel {
