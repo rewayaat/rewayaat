@@ -604,7 +604,10 @@
                                             v-if="isNarrationCollapsible(narration)"
                                             v-bind:aria-expanded="isNarrationExpanded(narration) ? 'true' : 'false'"
                                             v-on:click="toggleNarrationExpand(narration)">
-                                        {{ isNarrationExpanded(narration) ? 'Show less' : 'Show full hadith' }}
+                                        <i class="fa"
+                                           v-bind:class="isNarrationExpanded(narration) ? 'fa-chevron-up' : 'fa-book-open'"
+                                           aria-hidden="true"></i>
+                                        <span>{{ isNarrationExpanded(narration) ? 'Show less' : 'Show full hadith' }}</span>
                                     </button>
                                     <!-- Notes gloss the narration itself, so they sit with the text,
                                          above the similar/tafsir panels which are separate corpora. -->
