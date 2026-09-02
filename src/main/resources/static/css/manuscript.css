@@ -4651,6 +4651,11 @@ code.welcome {
 
 @media (max-width: 768px) {
     .brand-logo--full { height: 38px; }
+    .brand-logo--icon { height: 30px; }
+
+    .site-nav { padding-top: 0.45rem; padding-bottom: 0.5rem; }
+
+    .navbar-brand { align-self: center; }
 
     .profile-chip { padding-right: 0.45rem !important; }
     .profile-chip__meta { max-width: 6rem; }
@@ -4663,13 +4668,22 @@ code.welcome {
         align-content: flex-start;
         gap: 0.4rem;
     }
-    /* Same id-specificity trap as above: without #queryBar the flex shorthand
-       is dropped and the bar wraps on a 390px phone but not a 414px one. */
+    /* One row: the search sits between the logo and the menu rather than
+       below them, which removes the dead gap across the middle of the header.
+       Viable now that the term pills stay on a single line and scroll
+       sideways instead of wrapping the bar to three rows.
+       #queryBar is included because it is this same element and sets flex with
+       id specificity, so the class selector alone silently loses here. */
     #queryBar,
     .navbar-search {
-        order: 1;
-        width: 100%;
-        flex: 0 0 auto;
+        order: 0;
+        width: auto;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .navbar-top {
+        flex-wrap: nowrap !important;
     }
 
     /* Partially persistent header (NN/g). The two-row nav is the right shape
@@ -9571,7 +9585,7 @@ body.is-search-mode .site-nav .search-entry-shell {
     :root {
         --search-shell-height: 44px;
         --search-action-height: 34px;
-        --search-entry-side-pad: 5.5rem;
+        --search-entry-side-pad: 3rem;
     }
 
     .search-entry-shell {
@@ -9664,24 +9678,66 @@ body.is-search-mode .site-nav .search-entry-shell {
         right: 4px;
     }
 
+    /* Pin the search row to a single compact line. Inner tom-select wrappers
+       were padding the shell out to 58px around a 26px pill. */
     .site-nav .search-entry-shell {
         overflow: hidden;
-        max-height: 88px;
+        height: var(--search-shell-height);
+        min-height: var(--search-shell-height);
+        max-height: var(--search-shell-height);
     }
 
+    .site-nav .search-entry-shell .ts-wrapper,
+    .site-nav .search-entry-shell .navbar-search__input {
+        height: 100%;
+        min-height: 0;
+    }
+
+    .site-nav .search-entry-shell .ts-control .item {
+        min-height: 22px !important;
+        padding: 2px 8px !important;
+        font-size: 0.78rem !important;
+    }
+
+    /* The strip scrolls under the search button, so fade it out just before
+       the button instead of letting a term be sliced mid-word. */
+    .site-nav .search-entry-shell::after {
+        content: "";
+        position: absolute;
+        top: 1px;
+        bottom: 1px;
+        right: var(--search-entry-side-pad);
+        width: 1.4rem;
+        background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.98));
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    /* Keep the terms on one line and let them scroll sideways. Wrapping made
+       the bar grow to two and three rows, so the pills took half the height
+       of the header. */
     .site-nav .search-entry-shell .ts-control,
     .site-nav .ts-wrapper .ts-control,
     .site-nav .navbar-search .ts-control {
         background: transparent !important;
         border: 0 !important;
         box-shadow: none !important;
-        max-height: 88px;
-        overflow-y: auto;
+        flex-wrap: nowrap !important;
+        min-height: 0 !important;
+        max-height: 100% !important;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
         -webkit-overflow-scrolling: touch;
     }
 
+    .site-nav .search-entry-shell .ts-control::-webkit-scrollbar {
+        display: none;
+    }
+
     .site-nav .search-entry-shell .ts-control .item {
-        max-width: 120px;
+        flex: 0 0 auto;
+        max-width: 11rem;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -9940,5 +9996,99 @@ body.is-search-mode .site-nav .search-entry-shell {
 
     .hadith-divider__motif {
         font-size: 0.94rem;
+    }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   COMPACT HEADER  (phones portrait and landscape, small tablets)
+   A landscape phone is ~844px wide, above the 768px phone breakpoint, so it
+   was still getting the tall two-row header - 120px out of a 390px-tall
+   viewport. Apply the compact single-row header everywhere below the desktop
+   layout instead of by device width alone.
+   ═══════════════════════════════════════════════════════════════════════ */
+@media (max-width: 992px) {
+    :root {
+        --search-shell-height: 44px;
+        --search-action-height: 34px;
+        --search-entry-side-pad: 3rem;
+    }
+
+    .site-nav {
+        padding-top: 0.45rem;
+        padding-bottom: 0.5rem;
+    }
+
+    .brand-logo--icon { height: 30px; }
+    .navbar-brand { align-self: center; }
+
+    .navbar-top {
+        flex-wrap: nowrap !important;
+        align-items: center;
+    }
+
+    /* Search sits between the logo and the menu rather than below them. */
+    #queryBar,
+    .navbar-search {
+        order: 0;
+        width: auto;
+        flex: 1 1 auto;
+        min-width: 0;
+        max-width: none;
+    }
+
+    .site-nav .search-entry-shell {
+        position: relative;
+        overflow: hidden;
+        height: var(--search-shell-height);
+        min-height: var(--search-shell-height);
+        max-height: var(--search-shell-height);
+    }
+
+    .site-nav .search-entry-shell .ts-wrapper,
+    .site-nav .search-entry-shell .navbar-search__input {
+        height: 100%;
+        min-height: 0;
+    }
+
+    /* Terms stay on one line and scroll sideways. */
+    .site-nav .search-entry-shell .ts-control,
+    .site-nav .ts-wrapper .ts-control,
+    .site-nav .navbar-search .ts-control {
+        flex-wrap: nowrap !important;
+        min-height: 0 !important;
+        max-height: 100% !important;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .site-nav .search-entry-shell .ts-control::-webkit-scrollbar {
+        display: none;
+    }
+
+    .site-nav .search-entry-shell .ts-control .item {
+        flex: 0 0 auto;
+        min-height: 22px !important;
+        padding: 2px 8px !important;
+        font-size: 0.78rem !important;
+        max-width: 11rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Fade the strip out before the search button rather than slicing a term. */
+    .site-nav .search-entry-shell::after {
+        content: "";
+        position: absolute;
+        top: 1px;
+        bottom: 1px;
+        right: var(--search-entry-side-pad);
+        width: 1.4rem;
+        background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.98));
+        pointer-events: none;
+        z-index: 2;
     }
 }
