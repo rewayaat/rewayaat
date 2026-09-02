@@ -46,6 +46,7 @@ var REVEAL_BATCH_SIZE = 12;
 var INITIAL_VISIBLE_TAG_FILTERS = 15;
 var NOTES_COLLAPSE_THRESHOLD = 600;
 var NARRATION_COLLAPSE_THRESHOLD = 700;
+var MOBILE_VISIBLE_TAGS = 2;
 var similarLoadingMinDurationMs = 550;
 var scopeFieldKeys = ['book', 'volume', 'part', 'section', 'chapter'];
 var SIDECAR_WIDTH_STORAGE_KEY = 'rewayaat_sidecar_width';
@@ -4816,14 +4817,15 @@ function setupVue(query, page, sortFields) {
             },
             visibleNarrationTopicTags: function(narration) {
                 var tags = Array.isArray(narration && narration.topic_tags) ? narration.topic_tags : [];
-                if (!this.isMobileViewport() || narration.mobileTagsExpanded || tags.length <= 5) {
+                if (!this.isMobileViewport() || narration.mobileTagsExpanded
+                        || tags.length <= MOBILE_VISIBLE_TAGS) {
                     return tags;
                 }
-                return tags.slice(0, 5);
+                return tags.slice(0, MOBILE_VISIBLE_TAGS);
             },
             shouldShowNarrationTagToggle: function(narration) {
                 var tags = Array.isArray(narration && narration.topic_tags) ? narration.topic_tags : [];
-                return this.isMobileViewport() && tags.length > 5;
+                return this.isMobileViewport() && tags.length > MOBILE_VISIBLE_TAGS;
             },
             toggleNarrationTags: function(narration) {
                 if (!narration) {
