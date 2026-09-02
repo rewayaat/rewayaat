@@ -2,6 +2,7 @@ package com.rewayaat.controllers.rest;
 
 import com.rewayaat.config.ESClientProvider;
 import com.rewayaat.core.HadithObjectCollection;
+import com.rewayaat.core.HadithSourceFilter;
 import com.rewayaat.core.QueryMode;
 import com.rewayaat.core.QueryStringQueryResult;
 import com.rewayaat.core.UpdateRequest;
@@ -203,7 +204,9 @@ public class HadithController {
         if (narrationId.isEmpty()) {
             return badRequest("Narration id is required.");
         }
-        HadithObject existing = loadNarration(narrationId);
+        // The edit path re-indexes the whole document, so it must keep internal fields
+        // (semantic_vector) that are stripped from every response.
+        HadithObject existing = loadNarration(narrationId, true);
         if (existing == null) {
             return notFound("Narration not found.");
         }
@@ -352,12 +355,31 @@ public class HadithController {
     }
 
     private HadithObject loadNarration(String id) throws Exception {
+        return loadNarration(id, false);
+    }
+
+    /**
+     * Loads a narration by id.
+     *
+     * @param includeInternalFields when {@code true} the full {@code _source} is fetched,
+     *        including the {@code semantic_vector} dense vector. Only the edit path needs
+     *        this: it re-indexes the whole document, so dropping the vector would delete it
+     *        from Elasticsearch. Every response path must leave this {@code false} — see
+     *        {@link com.rewayaat.core.HadithSourceFilter}.
+     */
+    private HadithObject loadNarration(String id, boolean includeInternalFields) throws Exception {
         String narrationId = id == null ? "" : id.trim();
         if (narrationId.isEmpty()) {
             return null;
         }
         try (ESClientProvider provider = new ESClientProvider()) {
-            GetResponse<Map> response = provider.client().get(g -> g.index(ESClientProvider.INDEX).id(narrationId), Map.class);
+            GetResponse<Map> response = provider.client().get(g -> {
+                g.index(ESClientProvider.INDEX).id(narrationId);
+                if (!includeInternalFields) {
+                    g.sourceExcludes(HadithSourceFilter.excludes());
+                }
+                return g;
+            }, Map.class);
             if (!response.found() || response.source() == null) {
                 return null;
             }

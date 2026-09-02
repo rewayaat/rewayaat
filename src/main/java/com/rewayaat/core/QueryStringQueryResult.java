@@ -199,6 +199,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                     }
                     return b;
                 }))
+                .source(HadithSourceFilter.searchSource())
                 .highlight(highlightBuilder)
                 .from(from)
                 .size(size)
@@ -243,6 +244,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                     // Note: No topic tag filters here - we want the base count
                     return b;
                 }))
+                .source(HadithSourceFilter.searchSource())
                 .from(0)
                 .size(0); // We only need the count, not actual results
 

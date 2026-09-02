@@ -6,6 +6,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.rewayaat.config.ESClientProvider;
 import com.rewayaat.core.HadithDisplaySegmenter;
 import com.rewayaat.core.HadithObjectCollection;
+import com.rewayaat.core.HadithSourceFilter;
 import com.rewayaat.core.data.HadithObject;
 import co.elastic.clients.elasticsearch.core.GetResponse;
 import co.elastic.clients.elasticsearch.core.MgetResponse;
@@ -72,7 +73,9 @@ public class SimilarHadithService {
         try (ESClientProvider provider = new ESClientProvider()) {
             // 1. Load source doc to get llm_similar field
             GetResponse<Map> sourceResp = provider.client().get(
-                    g -> g.index(ESClientProvider.INDEX).id(hadithId),
+                    g -> g.index(ESClientProvider.INDEX)
+                            .id(hadithId)
+                            .sourceExcludes(HadithSourceFilter.excludes()),
                     Map.class);
             if (!sourceResp.found() || sourceResp.source() == null) {
                 return null;
@@ -100,7 +103,9 @@ public class SimilarHadithService {
             // 3. Bulk-fetch the similar hadith docs
             List<String> ids = entries.stream().map(e -> e.id).toList();
             MgetResponse<Map> mgetResponse = provider.client().mget(
-                    r -> r.index(ESClientProvider.INDEX).ids(ids),
+                    r -> r.index(ESClientProvider.INDEX)
+                            .ids(ids)
+                            .sourceExcludes(HadithSourceFilter.excludes()),
                     Map.class);
 
             // 4. Build HadithObject list, preserving order

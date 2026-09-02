@@ -2,6 +2,7 @@ package com.rewayaat.controllers;
 
 import com.rewayaat.config.ESClientProvider;
 import com.rewayaat.core.HadithDisplaySegmenter;
+import com.rewayaat.core.HadithSourceFilter;
 import com.rewayaat.core.data.HadithObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Hidden;
@@ -83,7 +84,10 @@ public class HadithPageController {
             return null;
         }
         try (ESClientProvider provider = new ESClientProvider()) {
-            var response = provider.client().get(g -> g.index(ESClientProvider.INDEX).id(narrationId), Map.class);
+            var response = provider.client().get(g -> g
+                    .index(ESClientProvider.INDEX)
+                    .id(narrationId)
+                    .sourceExcludes(HadithSourceFilter.excludes()), Map.class);
             if (!response.found() || response.source() == null) {
                 return null;
             }

@@ -118,6 +118,38 @@ class HadithApiIntegrationTest extends ElasticsearchTestSupport {
         assertNotNull(body.get("collection"));
     }
 
+    @Test
+    void narrationResponses_neverExposeSemanticVector() throws Exception {
+        indexDoc("4", "{\"english\":\"hello vector\",\"arabic\":\"سلام\",\"book\":\"Book D\","
+                + "\"semantic_vector\":[0.1,0.2,0.3],"
+                + "\"llm_similar\":[{\"id\":\"1\",\"match_type\":\"wording\",\"reason\":\"same wording\"}]}");
+
+        // The vector really is stored, so the assertions below prove it is filtered out on
+        // the way to the client rather than simply absent from the document.
+        assertTrue(client.get(g -> g.index(INDEX).id("4"), Map.class).source().containsKey("semantic_vector"));
+
+        ResponseEntity<String> search = restTemplate.getForEntity("/v1/narrations?q=vector", String.class);
+        assertEquals(HttpStatus.OK, search.getStatusCode());
+        assertNotNull(search.getBody());
+        assertTrue(search.getBody().contains("Book D"));
+        assertFalse(search.getBody().contains("semantic_vector"));
+
+        ResponseEntity<String> byId = restTemplate.getForEntity("/v1/narrations/4", String.class);
+        assertEquals(HttpStatus.OK, byId.getStatusCode());
+        assertNotNull(byId.getBody());
+        assertTrue(byId.getBody().contains("Book D"));
+        assertFalse(byId.getBody().contains("semantic_vector"));
+
+        ResponseEntity<String> similar = restTemplate.getForEntity("/v1/narrations/similar?id=4&per_page=5", String.class);
+        assertEquals(HttpStatus.OK, similar.getStatusCode());
+        assertNotNull(similar.getBody());
+        // Similar-hadith lookup still resolves the pre-computed match...
+        assertTrue(similar.getBody().contains("\"_id\":\"1\""));
+        assertTrue(similar.getBody().contains("wording"));
+        // ...without leaking the vector.
+        assertFalse(similar.getBody().contains("semantic_vector"));
+    }
+
     private void indexDoc(String id, String json) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> doc = mapper.readValue(json, new TypeReference<Map<String, Object>>() {

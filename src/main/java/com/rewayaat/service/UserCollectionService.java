@@ -8,6 +8,7 @@ import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rewayaat.config.ESClientProvider;
 import com.rewayaat.core.HadithObjectCollection;
+import com.rewayaat.core.HadithSourceFilter;
 import com.rewayaat.core.data.HadithObject;
 import com.rewayaat.core.data.UserCollection;
 import org.slf4j.Logger;
@@ -219,6 +220,7 @@ public class UserCollectionService {
             SearchResponse<Map> response = provider.client().search(s -> s
                     .index(ESClientProvider.INDEX)
                     .size(hadithIds.size())
+                    .source(HadithSourceFilter.searchSource())
                     .query(q -> q.ids(ids -> ids.values(hadithIds))), Map.class);
             for (Hit<Map> hit : response.hits().hits()) {
                 if (hit.source() == null) {
