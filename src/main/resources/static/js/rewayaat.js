@@ -5606,6 +5606,42 @@ function setupVue(query, page, sortFields) {
                     element.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             },
+            // The card is no longer height-capped, so an opened related/tafsir
+            // panel can sit below the fold and the click looks like a no-op.
+            // The panel renders only once its content has loaded, and the
+            // loading state has a minimum duration, so poll briefly rather
+            // than guess at the timing.
+            revealNarrationPanel: function(narration, tab) {
+                var self = this;
+                var domId = this.narrationDomId(narration);
+                if (!domId || typeof window === 'undefined' || !window.requestAnimationFrame) {
+                    return;
+                }
+                var deadline = Date.now() + 2500;
+                var reduced = window.matchMedia
+                    && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                function attempt() {
+                    // Bail if the reader moved on while the panel was loading.
+                    if (self.activeNarrationSidecarTab(narration) !== tab) {
+                        return;
+                    }
+                    var card = document.getElementById(domId);
+                    var panel = card ? card.querySelector('.hadith-inline-context') : null;
+                    if (panel && panel.scrollIntoView) {
+                        // 'nearest' is deliberate: it does nothing when the panel is
+                        // already visible, so the page is never yanked around.
+                        panel.scrollIntoView({
+                            behavior: reduced ? 'auto' : 'smooth',
+                            block: 'nearest'
+                        });
+                        return;
+                    }
+                    if (Date.now() < deadline) {
+                        window.requestAnimationFrame(attempt);
+                    }
+                }
+                this.$nextTick(attempt);
+            },
             activeNarrationSidecarTab: function(narration) {
                 if (!narration) {
                     return 'metadata';
@@ -5633,6 +5669,9 @@ function setupVue(query, page, sortFields) {
                 }
                 if (nextTab === 'quran' && !narration.quranicInsightsItemsLoaded && !narration.quranicInsightsItemsLoading) {
                     this.fetchQuranicInsights(narration, true);
+                }
+                if (nextTab === 'similar' || nextTab === 'quran') {
+                    this.revealNarrationPanel(narration, nextTab);
                 }
             },
             isNarrationSidecarTabActive: function(narration, tab) {
@@ -5803,6 +5842,7 @@ function setupVue(query, page, sortFields) {
                 }
                 narration.similarActiveIndex = index;
                 narration.sidecarActiveTab = 'similar';
+                this.revealNarrationPanel(narration, 'similar');
             },
             quranicInsightsCountText: function(narration) {
                 if (!narration || typeof narration.quranicInsightsCount !== 'number' || narration.quranicInsightsCount <= 0) {
