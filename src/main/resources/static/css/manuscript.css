@@ -6876,18 +6876,14 @@ body.is-resizing-sidecar * {
     min-height: 0;
 }
 
+/* No inner scroll on the narration. The card grows to fit its content, so
+   capping this pane bought nothing and only created a nested scroll region
+   that traps the wheel and makes the page feel like it sticks. One scrollbar,
+   on the page. */
 .hadith-reading-scroll {
-    max-height: var(--hadith-reading-max-height);
-    /* overflow-y:auto makes the automatic minimum size resolve to 0, which
-       previously let this pane absorb the whole card's shrinkage until the
-       narration vanished. It is the primary content, so it never gives up
-       height: the card grows instead. */
     flex: 0 0 auto;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: visible;
     padding-right: 0.35rem;
-    /* Default (auto) chaining on purpose: reaching the end of this pane must
-       continue scrolling the page, not dead-end. */
     margin-top: -15px;
 }
 
@@ -8975,14 +8971,20 @@ body.is-search-mode .site-nav .search-entry-shell {
 .site-nav .ts-control .item .remove {
     color: #173964 !important;
     opacity: 0.6 !important;
-    margin-left: 7px !important;
-    min-width: 16px !important;
-    font-size: 0.82rem !important;
+    /* Sits at the pill's top-right rather than centred on the text baseline.
+       Kept in normal flow, so it always reserves its own width and can never
+       overlap the label. */
+    align-self: flex-start !important;
+    margin-left: 6px !important;
+    margin-top: -2px !important;
+    min-width: 12px !important;
+    line-height: 1 !important;
+    font-size: 0.78rem !important;
     background: transparent !important;
     border-left: 0 !important;
     box-shadow: none !important;
     border-radius: 0 !important;
-    padding: 0 !important;
+    padding: 2px 4px 0 0 !important;
 }
 
 .site-nav .ts-control .item .remove:hover {
@@ -8994,14 +8996,20 @@ body.is-search-mode .site-nav .search-entry-shell {
 .navbar-search .ts-control .item .remove {
     color: #173964 !important;
     opacity: 0.6 !important;
-    margin-left: 7px !important;
-    min-width: 16px !important;
-    font-size: 0.82rem !important;
+    /* Sits at the pill's top-right rather than centred on the text baseline.
+       Kept in normal flow, so it always reserves its own width and can never
+       overlap the label. */
+    align-self: flex-start !important;
+    margin-left: 6px !important;
+    margin-top: -2px !important;
+    min-width: 12px !important;
+    line-height: 1 !important;
+    font-size: 0.78rem !important;
     background: transparent !important;
     border-left: 0 !important;
     box-shadow: none !important;
     border-radius: 0 !important;
-    padding: 0 !important;
+    padding: 2px 4px 0 0 !important;
 }
 
 .home-search .ts-control .item .remove:hover,
