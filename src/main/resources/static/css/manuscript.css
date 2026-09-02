@@ -4615,6 +4615,10 @@ code.welcome {
    RESPONSIVE
    ======================================================================== */
 @media (max-width: 992px) {
+    /* Deliberately class-only: #queryBar's id-specificity flex wins here, and
+       letting this rule apply pushes the bar onto its own row on tablets,
+       growing the sticky nav from 98px to 154px. Only the <=768px block below
+       is raised to id specificity. */
     .navbar-search {
         flex: 1 1 100%;
         max-width: 100%;
@@ -4648,10 +4652,27 @@ code.welcome {
         align-content: flex-start;
         gap: 0.4rem;
     }
+    /* Same id-specificity trap as above: without #queryBar the flex shorthand
+       is dropped and the bar wraps on a 390px phone but not a 414px one. */
+    #queryBar,
     .navbar-search {
         order: 1;
         width: 100%;
         flex: 0 0 auto;
+    }
+
+    /* Partially persistent header (NN/g). The two-row nav is the right shape
+       for a query with filter pills, but it is sticky, so on a 390x844 phone
+       it would cost 116px - 14% of the viewport - for the entire read. Stow it
+       while the reader scrolls down and return it the moment they scroll up,
+       so the cost is paid only when the search is actually wanted.
+       translateY keeps this off the layout path: no reflow, no CLS. */
+    .site-nav {
+        transition: transform 220ms ease;
+    }
+
+    .site-nav--stowed {
+        transform: translateY(-100%);
     }
     .menu-context-row {
         order: 0;
@@ -4926,6 +4947,12 @@ body::after {
         linear-gradient(90deg, rgba(16, 35, 63, 0.035) 1px, transparent 1px);
     background-size: 36px 36px;
     mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.08));
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .site-nav {
+        transition: none !important;
+    }
 }
 
 .site-nav {

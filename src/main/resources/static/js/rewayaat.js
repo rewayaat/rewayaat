@@ -916,6 +916,70 @@ function initAuthUI() {
     }
 }
 
+// Partially persistent header. On phones the nav is two rows (~116px) so the
+// search field has room for filter pills, but it is sticky, so that height is
+// spent on every screen of reading. Stow it on scroll down, return it on scroll
+// up, at the top, and at the bottom of the page.
+function initStowingNav() {
+    var nav = document.querySelector('.site-nav');
+    if (!nav || !window.matchMedia || !window.requestAnimationFrame) {
+        return;
+    }
+    var mobile = window.matchMedia('(max-width: 768px)');
+    var lastY = Math.max(0, window.pageYOffset || 0);
+    var queued = false;
+    // Leave the header alone until the reader is clear of it, and ignore
+    // sub-pixel jitter and iOS rubber-banding.
+    var STOW_BELOW = 140;
+    var MIN_DELTA = 6;
+
+    function show() {
+        nav.classList.remove('site-nav--stowed');
+    }
+
+    function update() {
+        queued = false;
+        var y = Math.max(0, window.pageYOffset || 0);
+        var delta = y - lastY;
+        lastY = y;
+        // Desktop, or the reader is typing in the bar we would be hiding.
+        if (!mobile.matches || nav.contains(document.activeElement)) {
+            show();
+            return;
+        }
+        if (Math.abs(delta) < MIN_DELTA) {
+            return;
+        }
+        var doc = document.documentElement;
+        var atBottom = (y + window.innerHeight) >= (doc.scrollHeight - 4);
+        if (y <= STOW_BELOW || delta < 0 || atBottom) {
+            show();
+        } else {
+            nav.classList.add('site-nav--stowed');
+        }
+    }
+
+    window.addEventListener('scroll', function() {
+        if (!queued) {
+            queued = true;
+            window.requestAnimationFrame(update);
+        }
+    }, { passive: true });
+    // Focusing the search must always bring the bar back, even without a scroll.
+    nav.addEventListener('focusin', show);
+    if (mobile.addEventListener) {
+        mobile.addEventListener('change', show);
+    } else if (mobile.addListener) {
+        mobile.addListener(show);
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initStowingNav);
+} else {
+    initStowingNav();
+}
+
 function refreshAuthState() {
     return apiJSON('/v1/auth/me', { method: 'GET' })
         .then(function(resp) {
