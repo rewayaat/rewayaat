@@ -6020,8 +6020,6 @@ main.container {
     /* The card grows to fit: expanding the notes or opening a related /
        tafsir panel must not steal height from the narration text. */
     --hadith-card-max-height: none;
-    --hadith-reading-max-height: min(58dvh, 44rem);
-    --hadith-reading-mobile-max-height: min(42dvh, 24rem);
     --hadith-inline-max-height: min(32dvh, 22rem);
     --hadith-inline-snippet-max-height: min(36dvh, 24rem);
     border: 1px solid #d0d4da !important;
@@ -6035,7 +6033,6 @@ main.container {
 
 .hadith-card--metadata {
     --hadith-content-min-height: 0px;
-    --hadith-reading-max-height: min(72dvh, 52rem);
 }
 
 .hadith-card--similar,
@@ -6320,10 +6317,17 @@ body.is-resizing-sidecar * {
     opacity: 0.6;
 }
 
+/* Anchored beside the icon, not to the tab's corner. The tab is a column with
+   the label above the icon, so a corner-pinned badge ends up diagonally
+   opposite the icon it counts for - most visible in landscape, where the tabs
+   are widest. 50% + offset tracks the centred icon at any tab width. */
 .hadith-sidecar__rail-badge {
     position: absolute;
-    top: 0.35rem;
-    right: 0.35rem;
+    top: auto;
+    right: auto;
+    left: 50%;
+    bottom: 0.3rem;
+    margin-left: 0.55rem;
     min-width: 1.05rem;
     height: 1.05rem;
     padding: 0 0.18rem;
@@ -7796,7 +7800,6 @@ body.is-resizing-sidecar * {
 
     .hadith-card {
         --hadith-content-min-height: auto;
-        --hadith-reading-max-height: var(--hadith-reading-mobile-max-height);
         --hadith-inline-max-height: min(28dvh, 18rem);
         --hadith-inline-snippet-max-height: min(31dvh, 18rem);
     }
@@ -7979,8 +7982,8 @@ body.is-resizing-sidecar * {
     }
 
     .hadith-sidecar__rail-badge {
-        top: 0.25rem;
-        right: 0.25rem;
+        bottom: 0.22rem;
+        margin-left: 0.5rem;
     }
 
     .hadith-sidecar__panel {
@@ -8056,8 +8059,10 @@ body.is-resizing-sidecar * {
         width: 100%;
     }
 
+    /* No max-height here: the pane no longer scrolls, so a cap would let the
+       narration spill out of the card and render over the tags. Long
+       narrations are bounded by the --clamped modifier instead. */
     .hadith-reading-scroll {
-        max-height: var(--hadith-reading-mobile-max-height);
         padding-right: 0.2rem;
     }
 
