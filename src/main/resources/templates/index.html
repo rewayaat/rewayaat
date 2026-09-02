@@ -605,7 +605,7 @@
                                             v-bind:aria-expanded="isNarrationExpanded(narration) ? 'true' : 'false'"
                                             v-on:click="toggleNarrationExpand(narration)">
                                         <i class="fa"
-                                           v-bind:class="isNarrationExpanded(narration) ? 'fa-chevron-up' : 'fa-book-open'"
+                                           v-bind:class="isNarrationExpanded(narration) ? 'fa-chevron-up' : 'fa-chevron-down'"
                                            aria-hidden="true"></i>
                                         <span>{{ isNarrationExpanded(narration) ? 'Show less' : 'Show full hadith' }}</span>
                                     </button>

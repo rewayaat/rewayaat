@@ -6894,34 +6894,33 @@ body.is-resizing-sidecar * {
     mask-image: linear-gradient(180deg, #000 76%, transparent 100%);
 }
 
-/* Revealing the narration is the card's primary action, so it carries the
-   brand gold rather than the generic link blue used elsewhere, and an icon
-   so it reads as a control at a glance. */
+/* Revealing the narration is the card's primary action: solid navy so it is
+   unmissable against the light card, centred under the text it reveals, and
+   squared off so it reads as a control rather than a tag. */
 .hadith-reading-toggle {
     position: relative;
-    align-self: flex-start;
+    align-self: center;
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
-    margin-top: 0.6rem;
-    border: 1px solid rgba(199, 154, 59, 0.55);
-    border-radius: 999px;
-    background: linear-gradient(180deg, #fdf3da, var(--gold-bg));
-    color: #7d5c15;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    border: 1px solid var(--primary);
+    border-radius: 6px;
+    background: var(--primary);
+    color: #ffffff;
     font-size: 0.72rem;
-    font-weight: 800;
-    letter-spacing: 0.07em;
+    font-weight: 700;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    padding: 0.34rem 0.95rem;
-    box-shadow: 0 1px 2px rgba(159, 118, 37, 0.14);
+    padding: 0.46rem 1.15rem;
+    box-shadow: 0 2px 5px rgba(16, 35, 63, 0.22);
     cursor: pointer;
     transition: all 150ms ease;
 }
 
 .hadith-reading-toggle .fa {
-    font-size: 0.78rem;
-    opacity: 0.85;
+    font-size: 0.76rem;
 }
 
 /* Keep the visual pill small but meet the 44px touch target. */
@@ -6932,10 +6931,10 @@ body.is-resizing-sidecar * {
 }
 
 .hadith-reading-toggle:hover {
-    background: linear-gradient(180deg, #fbead0, #fdf3da);
-    border-color: var(--gold);
-    color: #63480d;
-    box-shadow: 0 2px 5px rgba(159, 118, 37, 0.2);
+    background: var(--primary-lighter);
+    border-color: var(--primary-lighter);
+    color: #ffffff;
+    box-shadow: 0 3px 9px rgba(16, 35, 63, 0.3);
 }
 
 .hadith-reading-scroll::-webkit-scrollbar,
