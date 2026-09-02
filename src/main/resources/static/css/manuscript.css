@@ -2183,6 +2183,7 @@ main.container::before {
 }
 
 .hadith-notes__toggle {
+    position: relative;
     align-self: flex-start;
     margin-top: 0.45rem;
     border: 1px solid rgba(13, 148, 136, 0.4);
@@ -2196,6 +2197,16 @@ main.container::before {
     padding: 0.22rem 0.72rem;
     cursor: pointer;
     transition: all 150ms ease;
+}
+
+/* The pill reads better small, but 28px is under the 44px minimum touch
+   target, so extend the hit area past the visual bounds instead of inflating
+   it. The upward 6px sits inside the existing margin, so it does not steal
+   taps from the notes text above. */
+.hadith-notes__toggle::after {
+    content: "";
+    position: absolute;
+    inset: -7px -8px -13px -8px;
 }
 
 .hadith-notes__toggle:hover {
