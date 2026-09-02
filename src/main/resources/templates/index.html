@@ -580,7 +580,8 @@
                                         <span class="hadith-card__ornament-mark">۞</span>
                                         <span class="hadith-card__ornament-line"></span>
                                     </div>
-                                    <div class="hadith-reading-scroll">
+                                    <div class="hadith-reading-scroll"
+                                         v-bind:class="{'hadith-reading-scroll--clamped': isNarrationCollapsible(narration) && !isNarrationExpanded(narration)}">
                                         <div class="row g-4 hadith-reading-row">
                                             <div class="col-12 col-lg-6">
                                                 <div class="hadith-text-block hadith-text-block--primary">
@@ -598,6 +599,13 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <button type="button"
+                                            class="hadith-reading-toggle"
+                                            v-if="isNarrationCollapsible(narration)"
+                                            v-bind:aria-expanded="isNarrationExpanded(narration) ? 'true' : 'false'"
+                                            v-on:click="toggleNarrationExpand(narration)">
+                                        {{ isNarrationExpanded(narration) ? 'Show less' : 'Show full hadith' }}
+                                    </button>
                                     <!-- Notes gloss the narration itself, so they sit with the text,
                                          above the similar/tafsir panels which are separate corpora. -->
                                     <div class="hadith-notes mt-3" v-if="narration.notes">

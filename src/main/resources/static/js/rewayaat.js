@@ -45,6 +45,7 @@ var INITIAL_VISIBLE_NARRATIONS = 16;
 var REVEAL_BATCH_SIZE = 12;
 var INITIAL_VISIBLE_TAG_FILTERS = 15;
 var NOTES_COLLAPSE_THRESHOLD = 600;
+var NARRATION_COLLAPSE_THRESHOLD = 700;
 var similarLoadingMinDurationMs = 550;
 var scopeFieldKeys = ['book', 'volume', 'part', 'section', 'chapter'];
 var SIDECAR_WIDTH_STORAGE_KEY = 'rewayaat_sidecar_width';
@@ -4513,6 +4514,7 @@ function setupVue(query, page, sortFields) {
             arabicSuggestionThresholdPassed: false,
             snippetExpandedKeys: {},
             notesExpandedKeys: {},
+            narrationExpandedKeys: {},
             collections: userCollectionsCache,
             collectionSearchQuery: '',
             sidecarWidth: 304,
@@ -6239,6 +6241,32 @@ function setupVue(query, page, sortFields) {
             toggleSnippetExpand: function(narration, sidx) {
                 var key = this.snippetExpandKey(narration, sidx);
                 Vue.set(this.snippetExpandedKeys, key, !this.snippetExpandedKeys[key]);
+            },
+            // A long narration must not force the reader to scroll past the
+            // whole text to reach the next result, so cards stay scannable and
+            // long ones open on request. A clamp rather than an inner scroll
+            // region, so the page keeps a single scrollbar.
+            narrationExpandKey: function(narration) {
+                return (narration._id || narration.id || '') + '-narration';
+            },
+            isNarrationCollapsible: function(narration) {
+                if (!narration) {
+                    return false;
+                }
+                var en = narration.englishContent || narration.english || '';
+                var ar = narration.arabicContent || narration.arabic || '';
+                var longest = Math.max(
+                    en.replace(/<[^>]*>/g, '').trim().length,
+                    ar.replace(/<[^>]*>/g, '').trim().length
+                );
+                return longest > NARRATION_COLLAPSE_THRESHOLD;
+            },
+            isNarrationExpanded: function(narration) {
+                return !!this.narrationExpandedKeys[this.narrationExpandKey(narration)];
+            },
+            toggleNarrationExpand: function(narration) {
+                var key = this.narrationExpandKey(narration);
+                Vue.set(this.narrationExpandedKeys, key, !this.narrationExpandedKeys[key]);
             },
             notesExpandKey: function(narration) {
                 return (narration._id || narration.id || '') + '-notes';

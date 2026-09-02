@@ -6876,15 +6876,53 @@ body.is-resizing-sidecar * {
     min-height: 0;
 }
 
-/* No inner scroll on the narration. The card grows to fit its content, so
-   capping this pane bought nothing and only created a nested scroll region
-   that traps the wheel and makes the page feel like it sticks. One scrollbar,
-   on the page. */
+/* No inner scroll on the narration: a scroll region inside the page scroll
+   traps the wheel and makes the page feel like it sticks. Long narrations are
+   clamped with an explicit control instead, so results stay scannable without
+   forcing the reader to scroll a whole hadith to reach the next one. */
 .hadith-reading-scroll {
     flex: 0 0 auto;
     overflow: visible;
     padding-right: 0.35rem;
     margin-top: -15px;
+}
+
+.hadith-reading-scroll--clamped {
+    max-height: 20rem;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(180deg, #000 76%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 76%, transparent 100%);
+}
+
+.hadith-reading-toggle {
+    position: relative;
+    align-self: flex-start;
+    flex: 0 0 auto;
+    margin-top: 0.5rem;
+    border: 1px solid rgba(16, 35, 63, 0.18);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--primary-lighter);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.28rem 0.85rem;
+    cursor: pointer;
+    transition: all 150ms ease;
+}
+
+/* Keep the visual pill small but meet the 44px touch target. */
+.hadith-reading-toggle::after {
+    content: "";
+    position: absolute;
+    inset: -8px -8px -12px -8px;
+}
+
+.hadith-reading-toggle:hover {
+    background: #fff;
+    border-color: var(--primary-lighter);
+    color: var(--primary);
 }
 
 .hadith-reading-scroll::-webkit-scrollbar,
