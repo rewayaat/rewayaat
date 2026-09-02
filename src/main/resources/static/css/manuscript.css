@@ -6886,14 +6886,9 @@ body.is-resizing-sidecar * {
     overflow-y: auto;
     overflow-x: hidden;
     padding-right: 0.35rem;
-    overscroll-behavior-y: contain;
+    /* Default (auto) chaining on purpose: reaching the end of this pane must
+       continue scrolling the page, not dead-end. */
     margin-top: -15px;
-}
-
-@media (max-width: 768px) {
-    .hadith-reading-scroll {
-        overscroll-behavior-y: auto;
-    }
 }
 
 .hadith-reading-scroll::-webkit-scrollbar,
@@ -7016,13 +7011,6 @@ body.is-resizing-sidecar * {
     overflow-y: auto;
     overflow-x: hidden;
     padding-right: 0.3rem;
-    overscroll-behavior-y: contain;
-}
-
-@media (max-width: 768px) {
-    .hadith-inline-context__scroll {
-        overscroll-behavior-y: auto;
-    }
 }
 
 .hadith-inline-context__panel {
@@ -7064,13 +7052,6 @@ body.is-resizing-sidecar * {
     max-height: var(--hadith-inline-snippet-max-height);
     overflow-y: auto;
     padding-right: 0.25rem;
-    overscroll-behavior-y: contain;
-}
-
-@media (max-width: 768px) {
-    .hadith-inline-context__snippets {
-        overscroll-behavior-y: auto;
-    }
 }
 
 .hadith-inline-context__body .similar-full-english {
