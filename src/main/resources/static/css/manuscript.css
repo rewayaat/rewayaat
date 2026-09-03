@@ -6915,9 +6915,9 @@ body.is-resizing-sidecar * {
     mask-image: linear-gradient(180deg, #000 76%, transparent 100%);
 }
 
-/* Revealing the narration is the card's primary action: solid navy so it is
-   unmissable against the light card, centred under the text it reveals, and
-   squared off so it reads as a control rather than a tag. */
+/* Revealing the narration is the card's primary action: a solid grey button,
+   centred under the text it reveals and squared off so it reads as a control
+   rather than a tag. */
 .hadith-reading-toggle {
     position: relative;
     align-self: center;
@@ -6926,16 +6926,18 @@ body.is-resizing-sidecar * {
     align-items: center;
     gap: 0.5rem;
     margin-top: 0.75rem;
-    border: 1px solid var(--primary);
+    /* #cfcfcf sits only 1.5:1 against the card, so the fill alone does not
+       define the button's edge; the border carries it at 3.3:1. */
+    border: 1px solid #8a8a8a;
     border-radius: 6px;
-    background: var(--primary);
-    color: #ffffff;
+    background: #cfcfcf;
+    color: #000000;
     font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     padding: 0.46rem 1.15rem;
-    box-shadow: 0 2px 5px rgba(16, 35, 63, 0.22);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16);
     cursor: pointer;
     transition: all 150ms ease;
 }
@@ -6952,10 +6954,10 @@ body.is-resizing-sidecar * {
 }
 
 .hadith-reading-toggle:hover {
-    background: var(--primary-lighter);
-    border-color: var(--primary-lighter);
-    color: #ffffff;
-    box-shadow: 0 3px 9px rgba(16, 35, 63, 0.3);
+    background: #c2c2c2;
+    border-color: #9e9e9e;
+    color: #000000;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.22);
 }
 
 .hadith-reading-scroll::-webkit-scrollbar,
