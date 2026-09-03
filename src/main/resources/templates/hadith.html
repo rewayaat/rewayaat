@@ -65,20 +65,6 @@
         .hp-share__btn:hover { color: var(--bs-body-color); border-color: var(--bs-secondary-color); background: var(--bs-tertiary-bg); }
         .hp-share__toast { display: inline-block; margin-left: 0.75rem; font-size: 0.8rem; color: #198754; opacity: 0; transition: opacity 0.3s; }
         .hp-share__toast.show { opacity: 1; }
-        /* Make plain input look like Tom Select's .ts-control */
-        .site-nav .search-entry-shell input.form-control {
-            width: 100%; height: 100%; display: flex; align-items: center;
-            padding-left: 1.92rem; padding-right: 1rem;
-            border-radius: 11px; border: 0 !important; box-shadow: none !important;
-            background: transparent !important; outline: none;
-            font-size: 1.14rem; font-weight: 500; color: #1a1a2e;
-            caret-color: #173964; line-height: 22px; min-height: 18px;
-        }
-        .site-nav .search-entry-shell input.form-control::placeholder {
-            color: rgba(79, 88, 101, 0.55); font-weight: 400;
-        }
-        /* Remove double border from navbar-search__input wrapper */
-        .site-nav .navbar-search__input { border: none; background: transparent; box-shadow: none; padding: 0; min-height: 0; }
     </style>
 </head>
 
@@ -91,39 +77,12 @@
                 <img src="/img/Alilogov2-transparent.png" th:src="@{/img/Alilogov2-transparent.png}" class="brand-logo--full brand-logo--full-v2 d-none d-md-block" alt="ALI Logo"/>
                 <img src="/img/ali_icon.png" th:src="@{/img/ali_icon.png}" class="brand-logo--icon d-md-none" alt="ALI"/>
             </a>
-            <div class="d-none d-md-flex home-nav-links">
+            <div class="d-flex home-nav-links">
                 <a href="/" class="home-nav-link">Search</a>
                 <span class="home-nav-dot" aria-hidden="true">&middot;</span>
                 <a href="/#browse" class="home-nav-link">Browse</a>
                 <span class="home-nav-dot" aria-hidden="true">&middot;</span>
                 <a href="/updates.html" class="home-nav-link">Updates</a>
-            </div>
-            <div id="queryBar" class="navbar-search">
-                <div class="navbar-search__input">
-                    <form action="/" method="get" class="search-entry-shell" style="display:flex;align-items:center;width:100%;">
-                        <i class="fa fa-search search-magnifier" aria-hidden="true"></i>
-                        <input type="text" class="form-control" id="hadithSearchInput" name="q" placeholder="Search hadith..." aria-label="Search hadith" autocomplete="off"/>
-                        <div class="search-entry-actions">
-                            <div class="search-submit-menu">
-                                <button type="submit" class="btn btn-primary search-btn-with-border" id="hadithSearchBtn">
-                                    <i class="fa fa-search search-btn__icon-mobile" aria-hidden="true"></i>
-                                    <span class="search-btn__text">Search</span>
-                                    <i class="fa fa-chevron-down search-btn-caret" aria-hidden="true"></i>
-                                </button>
-                                <div class="search-mode-menu" id="searchModeDropdown" role="menu" aria-label="Search mode">
-                                    <button type="button" class="search-mode-option" data-mode="flexible" role="menuitem">
-                                        <span class="search-mode-option__label">Flexible</span>
-                                        <span class="search-mode-option__meta">includes broader wording matches</span>
-                                    </button>
-                                    <button type="button" class="search-mode-option" data-mode="precise" role="menuitem">
-                                        <span class="search-mode-option__label">Precise</span>
-                                        <span class="search-mode-option__meta">keeps results closer to your wording</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
             </div>
         </div>
     </div>
@@ -330,44 +289,6 @@
         try { document.execCommand('copy'); showShareToast(); } catch(e) {}
         document.body.removeChild(ta);
     }
-
-    // Search bar — navigate to results page
-    (function() {
-        var input = document.getElementById('hadithSearchInput');
-        var form = input.closest('form');
-        var dropdown = document.getElementById('searchModeDropdown');
-        var caret = document.querySelector('.search-btn-caret');
-        var btn = document.getElementById('hadithSearchBtn');
-
-        // Toggle dropdown on caret click
-        if (caret && dropdown) {
-            caret.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-            });
-        }
-
-        // Search mode selection
-        if (dropdown) {
-            dropdown.querySelectorAll('.search-mode-option').forEach(function(opt) {
-                opt.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    var mode = this.getAttribute('data-mode');
-                    var q = input.value.trim();
-                    if (q) window.location.href = '/?q=' + encodeURIComponent(q) + '&mode=' + mode;
-                    dropdown.style.display = 'none';
-                });
-            });
-        }
-
-        // Close dropdown on outside click
-        document.addEventListener('click', function(e) {
-            if (dropdown && !dropdown.contains(e.target) && e.target !== caret) {
-                dropdown.style.display = 'none';
-            }
-        });
-    })();
 </script>
 </body>
 </html>
