@@ -2135,12 +2135,84 @@ main.container::before {
     font-variant-ligatures: common-ligatures contextual;
 }
 
+/* Scholarly apparatus: a cool teal panel with a cyan-green rule, so notes
+   read as marginalia rather than as a continuation of the narration itself.
+   The card grows to fit them, so nothing here competes for the text's height. */
 .hadith-notes {
-    font-size: 0.92rem;
+    font-size: 0.88rem;
     line-height: 1.7;
     color: var(--text-secondary);
-    padding-top: 0.75rem;
-    border-top: 1px solid var(--border);
+    padding: 0.8rem 1rem 0.85rem;
+    background: #effaf8;
+    border: 1px solid rgba(13, 148, 136, 0.22);
+    border-left: 3px solid #0d9488;
+    border-radius: var(--radius-sm);
+    display: flex;
+    flex-direction: column;
+}
+
+.hadith-notes__head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+}
+
+.hadith-notes__head::after {
+    content: "";
+    flex: 1 1 auto;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(13, 148, 136, 0.35), transparent);
+}
+
+.hadith-notes__label {
+    font-size: 0.64rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #0f766e;
+}
+
+/* Preview state: show the opening lines and fade them out, so there is
+   visibly more to read rather than a bare toggle. */
+.hadith-notes__body--clamped {
+    max-height: 6.2rem;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(180deg, #000 58%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 58%, transparent 100%);
+}
+
+.hadith-notes__toggle {
+    position: relative;
+    align-self: flex-start;
+    margin-top: 0.45rem;
+    border: 1px solid rgba(13, 148, 136, 0.4);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.8);
+    color: #0f766e;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.22rem 0.72rem;
+    cursor: pointer;
+    transition: all 150ms ease;
+}
+
+/* The pill reads better small, but 28px is under the 44px minimum touch
+   target, so extend the hit area past the visual bounds instead of inflating
+   it. The upward 6px sits inside the existing margin, so it does not steal
+   taps from the notes text above. */
+.hadith-notes__toggle::after {
+    content: "";
+    position: absolute;
+    inset: -7px -8px -13px -8px;
+}
+
+.hadith-notes__toggle:hover {
+    background: #fff;
+    border-color: #0d9488;
+    color: #0b5f59;
 }
 
 .hadith-content .highlight,
@@ -4554,6 +4626,10 @@ code.welcome {
    RESPONSIVE
    ======================================================================== */
 @media (max-width: 992px) {
+    /* Deliberately class-only: #queryBar's id-specificity flex wins here, and
+       letting this rule apply pushes the bar onto its own row on tablets,
+       growing the sticky nav from 98px to 154px. Only the <=768px block below
+       is raised to id specificity. */
     .navbar-search {
         flex: 1 1 100%;
         max-width: 100%;
@@ -4575,6 +4651,11 @@ code.welcome {
 
 @media (max-width: 768px) {
     .brand-logo--full { height: 38px; }
+    .brand-logo--icon { height: 30px; }
+
+    .site-nav { padding-top: 0.45rem; padding-bottom: 0.5rem; }
+
+    .navbar-brand { align-self: center; }
 
     .profile-chip { padding-right: 0.45rem !important; }
     .profile-chip__meta { max-width: 6rem; }
@@ -4587,10 +4668,36 @@ code.welcome {
         align-content: flex-start;
         gap: 0.4rem;
     }
+    /* One row: the search sits between the logo and the menu rather than
+       below them, which removes the dead gap across the middle of the header.
+       Viable now that the term pills stay on a single line and scroll
+       sideways instead of wrapping the bar to three rows.
+       #queryBar is included because it is this same element and sets flex with
+       id specificity, so the class selector alone silently loses here. */
+    #queryBar,
     .navbar-search {
-        order: 1;
-        width: 100%;
-        flex: 0 0 auto;
+        order: 0;
+        width: auto;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .navbar-top {
+        flex-wrap: nowrap !important;
+    }
+
+    /* Partially persistent header (NN/g). The two-row nav is the right shape
+       for a query with filter pills, but it is sticky, so on a 390x844 phone
+       it would cost 116px - 14% of the viewport - for the entire read. Stow it
+       while the reader scrolls down and return it the moment they scroll up,
+       so the cost is paid only when the search is actually wanted.
+       translateY keeps this off the layout path: no reflow, no CLS. */
+    .site-nav {
+        transition: transform 220ms ease;
+    }
+
+    .site-nav--stowed {
+        transform: translateY(-100%);
     }
     .menu-context-row {
         order: 0;
@@ -4865,6 +4972,12 @@ body::after {
         linear-gradient(90deg, rgba(16, 35, 63, 0.035) 1px, transparent 1px);
     background-size: 36px 36px;
     mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.08));
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .site-nav {
+        transition: none !important;
+    }
 }
 
 .site-nav {
@@ -5918,8 +6031,9 @@ main.container {
 
 .hadith-card {
     --hadith-content-min-height: 0px;
-    --hadith-reading-max-height: min(58dvh, 44rem);
-    --hadith-reading-mobile-max-height: min(42dvh, 24rem);
+    /* The card grows to fit: expanding the notes or opening a related /
+       tafsir panel must not steal height from the narration text. */
+    --hadith-card-max-height: none;
     --hadith-inline-max-height: min(32dvh, 22rem);
     --hadith-inline-snippet-max-height: min(36dvh, 24rem);
     border: 1px solid #d0d4da !important;
@@ -5933,13 +6047,11 @@ main.container {
 
 .hadith-card--metadata {
     --hadith-content-min-height: 0px;
-    --hadith-reading-max-height: min(72dvh, 52rem);
 }
 
 .hadith-card--similar,
 .hadith-card--quran {
     --hadith-content-min-height: min(56rem, 86dvh);
-    --hadith-reading-max-height: min(31dvh, 20rem);
     --hadith-inline-max-height: min(35dvh, 24rem);
     --hadith-inline-snippet-max-height: min(40dvh, 28rem);
 }
@@ -5957,7 +6069,7 @@ main.container {
     display: grid;
     grid-template-columns: minmax(248px, var(--hadith-sidecar-width, 304px)) 18px minmax(0, 3fr);
     align-items: start;
-    max-height: min(90dvh, 60rem);
+    max-height: var(--hadith-card-max-height);
     overflow: hidden;
 }
 
@@ -5990,7 +6102,7 @@ main.container {
     padding: 0;
     min-height: 100%;
     align-self: stretch;
-    max-height: min(90dvh, 60rem);
+    max-height: var(--hadith-card-max-height);
     grid-column: 1;
     grid-row: 1 / span 2;
 }
@@ -6002,7 +6114,7 @@ main.container {
     padding: 2.45rem 2.15rem 1.8rem 1.85rem !important;
     grid-column: 3;
     grid-row: 1;
-    max-height: min(90dvh, 60rem);
+    max-height: var(--hadith-card-max-height);
     overflow-y: auto;
 }
 
@@ -6219,10 +6331,20 @@ body.is-resizing-sidecar * {
     opacity: 0.6;
 }
 
+/* Anchored beside the icon, not to the tab's corner. The tab is a column with
+   the label above the icon, so a corner-pinned badge ends up diagonally
+   opposite the icon it counts for - most visible in landscape, where the tabs
+   are widest. Offsetting from 50% tracks the centred icon at any tab width. */
 .hadith-sidecar__rail-badge {
     position: absolute;
-    top: 0.35rem;
-    right: 0.35rem;
+    top: auto;
+    right: auto;
+    /* Top-right of the icon, the conventional place for a count. Nudged down
+       a few px because the tab is a column with the label directly above the
+       icon, and a badge centred on the corner would run into it. */
+    left: calc(50% + 0.125rem);
+    bottom: 0.9rem;
+    margin-left: 0;
     min-width: 1.05rem;
     height: 1.05rem;
     padding: 0 0.18rem;
@@ -6775,19 +6897,65 @@ body.is-resizing-sidecar * {
     min-height: 0;
 }
 
+/* No inner scroll on the narration: a scroll region inside the page scroll
+   traps the wheel and makes the page feel like it sticks. Long narrations are
+   clamped with an explicit control instead, so results stay scannable without
+   forcing the reader to scroll a whole hadith to reach the next one. */
 .hadith-reading-scroll {
-    max-height: var(--hadith-reading-max-height);
-    overflow-y: auto;
-    overflow-x: hidden;
+    flex: 0 0 auto;
+    overflow: visible;
     padding-right: 0.35rem;
-    overscroll-behavior-y: contain;
     margin-top: -15px;
 }
 
-@media (max-width: 768px) {
-    .hadith-reading-scroll {
-        overscroll-behavior-y: auto;
-    }
+.hadith-reading-scroll--clamped {
+    max-height: 20rem;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(180deg, #000 76%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 76%, transparent 100%);
+}
+
+/* Revealing the narration is the card's primary action: solid navy so it is
+   unmissable against the light card, centred under the text it reveals, and
+   squared off so it reads as a control rather than a tag. */
+.hadith-reading-toggle {
+    position: relative;
+    align-self: center;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    border: 1px solid var(--primary);
+    border-radius: 6px;
+    background: var(--primary);
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.46rem 1.15rem;
+    box-shadow: 0 2px 5px rgba(16, 35, 63, 0.22);
+    cursor: pointer;
+    transition: all 150ms ease;
+}
+
+.hadith-reading-toggle .fa {
+    font-size: 0.76rem;
+}
+
+/* Keep the visual pill small but meet the 44px touch target. */
+.hadith-reading-toggle::after {
+    content: "";
+    position: absolute;
+    inset: -8px -8px -12px -8px;
+}
+
+.hadith-reading-toggle:hover {
+    background: var(--primary-lighter);
+    border-color: var(--primary-lighter);
+    color: #ffffff;
+    box-shadow: 0 3px 9px rgba(16, 35, 63, 0.3);
 }
 
 .hadith-reading-scroll::-webkit-scrollbar,
@@ -6835,24 +7003,28 @@ body.is-resizing-sidecar * {
     line-height: 1.72 !important;
 }
 
+/* This panel replaces the reader's view when they pick a related hadith or a
+   tafsir source, so it has to announce itself. It was #f5f8fd against a card
+   that is already near-white, which made the switch easy to miss. Give it a
+   warm parchment surface with a gold rule. Blue is no use here - the nav,
+   sidecar, tag pills and card accents are all navy already - so warm is the
+   only direction that actually separates it, and it suits the manuscript
+   identity. Teal for apparatus on this hadith, parchment for other corpora. */
 .hadith-inline-context {
-    margin-top: 0.15rem;
+    margin-top: 0.55rem;
     padding: 0.95rem 0.98rem 1rem;
-    border-radius: 18px;
-    border: 1px solid rgba(16, 35, 63, 0.1);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    border-radius: 14px;
+    border: 1px solid rgba(199, 154, 59, 0.42);
+    border-left: 3px solid var(--gold);
+    box-shadow: 0 3px 12px rgba(120, 90, 30, 0.12);
 }
 
 .hadith-inline-context--similar {
-    background:
-        linear-gradient(180deg, rgba(28, 57, 101, 0.08), rgba(247, 225, 166, 0.05)),
-        #f5f8fd;
+    background: linear-gradient(180deg, #fbf1dc, #fdf8ec);
 }
 
 .hadith-inline-context--quran {
-    background:
-        linear-gradient(180deg, rgba(28, 57, 101, 0.08), rgba(247, 225, 166, 0.05)),
-        #f5f8fd;
+    background: linear-gradient(180deg, #fbf1dc, #fdf8ec);
 }
 
 .hadith-inline-context__head {
@@ -6910,13 +7082,6 @@ body.is-resizing-sidecar * {
     overflow-y: auto;
     overflow-x: hidden;
     padding-right: 0.3rem;
-    overscroll-behavior-y: contain;
-}
-
-@media (max-width: 768px) {
-    .hadith-inline-context__scroll {
-        overscroll-behavior-y: auto;
-    }
 }
 
 .hadith-inline-context__panel {
@@ -6958,13 +7123,6 @@ body.is-resizing-sidecar * {
     max-height: var(--hadith-inline-snippet-max-height);
     overflow-y: auto;
     padding-right: 0.25rem;
-    overscroll-behavior-y: contain;
-}
-
-@media (max-width: 768px) {
-    .hadith-inline-context__snippets {
-        overscroll-behavior-y: auto;
-    }
 }
 
 .hadith-inline-context__body .similar-full-english {
@@ -7663,7 +7821,6 @@ body.is-resizing-sidecar * {
 
     .hadith-card {
         --hadith-content-min-height: auto;
-        --hadith-reading-max-height: var(--hadith-reading-mobile-max-height);
         --hadith-inline-max-height: min(28dvh, 18rem);
         --hadith-inline-snippet-max-height: min(31dvh, 18rem);
     }
@@ -7764,9 +7921,13 @@ body.is-resizing-sidecar * {
         max-height: none;
     }
 
-    /* On mobile, hide main hadith text when similar/quran tab is active */
+    /* On mobile, hide main hadith text when similar/quran tab is active.
+       The notes go with it: they annotate the narration, so leaving them
+       behind shows a gloss for text that is no longer on screen. */
     .hadith-content.sidecar-active--similar .hadith-reading-scroll,
-    .hadith-content.sidecar-active--quran .hadith-reading-scroll {
+    .hadith-content.sidecar-active--quran .hadith-reading-scroll,
+    .hadith-content.sidecar-active--similar .hadith-notes,
+    .hadith-content.sidecar-active--quran .hadith-notes {
         display: none;
     }
     .hadith-content.sidecar-active--similar .hadith-card__ornament,
@@ -7839,11 +8000,6 @@ body.is-resizing-sidecar * {
         font-size: 0.67rem;
         font-weight: 700;
         line-height: 1;
-    }
-
-    .hadith-sidecar__rail-badge {
-        top: 0.25rem;
-        right: 0.25rem;
     }
 
     .hadith-sidecar__panel {
@@ -7919,8 +8075,10 @@ body.is-resizing-sidecar * {
         width: 100%;
     }
 
+    /* No max-height here: the pane no longer scrolls, so a cap would let the
+       narration spill out of the card and render over the tags. Long
+       narrations are bounded by the --clamped modifier instead. */
     .hadith-reading-scroll {
-        max-height: var(--hadith-reading-mobile-max-height);
         padding-right: 0.2rem;
     }
 
@@ -8716,15 +8874,24 @@ body.is-search-mode .site-nav .navbar-search__input {
 }
 
 .site-nav .search-entry-shell {
-    background: rgba(255, 255, 255, 0.98);
-    border-color: rgba(79, 88, 101, 0.5);
+    /* Slightly translucent so the navy tints it, instead of a pure-white slab
+       punched out of the header. Still a filled field, so it keeps reading as
+       an input. */
+    background: rgba(255, 255, 255, 0.88);
+    border-color: rgba(255, 255, 255, 0.34);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
     margin-top: 0;
 }
 
-.home-search .search-entry-shell,
-body.is-search-mode .site-nav .search-entry-shell {
+.home-search .search-entry-shell {
     background: rgba(255, 255, 255, 0.98);
     border: 1px solid rgba(79, 88, 101, 0.5);
+    border-radius: 11px;
+}
+
+body.is-search-mode .site-nav .search-entry-shell {
+    background: rgba(255, 255, 255, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.34);
     border-radius: 11px;
 }
 
@@ -8884,14 +9051,20 @@ body.is-search-mode .site-nav .search-entry-shell {
 .site-nav .ts-control .item .remove {
     color: #173964 !important;
     opacity: 0.6 !important;
-    margin-left: 7px !important;
-    min-width: 16px !important;
-    font-size: 0.82rem !important;
+    /* Sits at the pill's top-right rather than centred on the text baseline.
+       Kept in normal flow, so it always reserves its own width and can never
+       overlap the label. */
+    align-self: flex-start !important;
+    margin-left: 6px !important;
+    margin-top: -2px !important;
+    min-width: 12px !important;
+    line-height: 1 !important;
+    font-size: 0.78rem !important;
     background: transparent !important;
     border-left: 0 !important;
     box-shadow: none !important;
     border-radius: 0 !important;
-    padding: 0 !important;
+    padding: 2px 4px 0 0 !important;
 }
 
 .site-nav .ts-control .item .remove:hover {
@@ -8903,14 +9076,20 @@ body.is-search-mode .site-nav .search-entry-shell {
 .navbar-search .ts-control .item .remove {
     color: #173964 !important;
     opacity: 0.6 !important;
-    margin-left: 7px !important;
-    min-width: 16px !important;
-    font-size: 0.82rem !important;
+    /* Sits at the pill's top-right rather than centred on the text baseline.
+       Kept in normal flow, so it always reserves its own width and can never
+       overlap the label. */
+    align-self: flex-start !important;
+    margin-left: 6px !important;
+    margin-top: -2px !important;
+    min-width: 12px !important;
+    line-height: 1 !important;
+    font-size: 0.78rem !important;
     background: transparent !important;
     border-left: 0 !important;
     box-shadow: none !important;
     border-radius: 0 !important;
-    padding: 0 !important;
+    padding: 2px 4px 0 0 !important;
 }
 
 .home-search .ts-control .item .remove:hover,
@@ -9418,7 +9597,7 @@ body.is-search-mode .site-nav .search-entry-shell {
     :root {
         --search-shell-height: 44px;
         --search-action-height: 34px;
-        --search-entry-side-pad: 5.5rem;
+        --search-entry-side-pad: 3rem;
     }
 
     .search-entry-shell {
@@ -9511,24 +9690,66 @@ body.is-search-mode .site-nav .search-entry-shell {
         right: 4px;
     }
 
+    /* Pin the search row to a single compact line. Inner tom-select wrappers
+       were padding the shell out to 58px around a 26px pill. */
     .site-nav .search-entry-shell {
         overflow: hidden;
-        max-height: 88px;
+        height: var(--search-shell-height);
+        min-height: var(--search-shell-height);
+        max-height: var(--search-shell-height);
     }
 
+    .site-nav .search-entry-shell .ts-wrapper,
+    .site-nav .search-entry-shell .navbar-search__input {
+        height: 100%;
+        min-height: 0;
+    }
+
+    .site-nav .search-entry-shell .ts-control .item {
+        min-height: 22px !important;
+        padding: 2px 8px !important;
+        font-size: 0.78rem !important;
+    }
+
+    /* The strip scrolls under the search button, so fade it out just before
+       the button instead of letting a term be sliced mid-word. */
+    .site-nav .search-entry-shell::after {
+        content: "";
+        position: absolute;
+        top: 1px;
+        bottom: 1px;
+        right: var(--search-entry-side-pad);
+        width: 1.4rem;
+        background: linear-gradient(90deg, rgba(225, 226, 228, 0), rgb(225, 226, 228));
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    /* Keep the terms on one line and let them scroll sideways. Wrapping made
+       the bar grow to two and three rows, so the pills took half the height
+       of the header. */
     .site-nav .search-entry-shell .ts-control,
     .site-nav .ts-wrapper .ts-control,
     .site-nav .navbar-search .ts-control {
         background: transparent !important;
         border: 0 !important;
         box-shadow: none !important;
-        max-height: 88px;
-        overflow-y: auto;
+        flex-wrap: nowrap !important;
+        min-height: 0 !important;
+        max-height: 100% !important;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
         -webkit-overflow-scrolling: touch;
     }
 
+    .site-nav .search-entry-shell .ts-control::-webkit-scrollbar {
+        display: none;
+    }
+
     .site-nav .search-entry-shell .ts-control .item {
-        max-width: 120px;
+        flex: 0 0 auto;
+        max-width: 11rem;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -9787,5 +10008,99 @@ body.is-search-mode .site-nav .search-entry-shell {
 
     .hadith-divider__motif {
         font-size: 0.94rem;
+    }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   COMPACT HEADER  (phones portrait and landscape, small tablets)
+   A landscape phone is ~844px wide, above the 768px phone breakpoint, so it
+   was still getting the tall two-row header - 120px out of a 390px-tall
+   viewport. Apply the compact single-row header everywhere below the desktop
+   layout instead of by device width alone.
+   ═══════════════════════════════════════════════════════════════════════ */
+@media (max-width: 992px) {
+    :root {
+        --search-shell-height: 44px;
+        --search-action-height: 34px;
+        --search-entry-side-pad: 3rem;
+    }
+
+    .site-nav {
+        padding-top: 0.45rem;
+        padding-bottom: 0.5rem;
+    }
+
+    .brand-logo--icon { height: 30px; }
+    .navbar-brand { align-self: center; }
+
+    .navbar-top {
+        flex-wrap: nowrap !important;
+        align-items: center;
+    }
+
+    /* Search sits between the logo and the menu rather than below them. */
+    #queryBar,
+    .navbar-search {
+        order: 0;
+        width: auto;
+        flex: 1 1 auto;
+        min-width: 0;
+        max-width: none;
+    }
+
+    .site-nav .search-entry-shell {
+        position: relative;
+        overflow: hidden;
+        height: var(--search-shell-height);
+        min-height: var(--search-shell-height);
+        max-height: var(--search-shell-height);
+    }
+
+    .site-nav .search-entry-shell .ts-wrapper,
+    .site-nav .search-entry-shell .navbar-search__input {
+        height: 100%;
+        min-height: 0;
+    }
+
+    /* Terms stay on one line and scroll sideways. */
+    .site-nav .search-entry-shell .ts-control,
+    .site-nav .ts-wrapper .ts-control,
+    .site-nav .navbar-search .ts-control {
+        flex-wrap: nowrap !important;
+        min-height: 0 !important;
+        max-height: 100% !important;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .site-nav .search-entry-shell .ts-control::-webkit-scrollbar {
+        display: none;
+    }
+
+    .site-nav .search-entry-shell .ts-control .item {
+        flex: 0 0 auto;
+        min-height: 22px !important;
+        padding: 2px 8px !important;
+        font-size: 0.78rem !important;
+        max-width: 11rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Fade the strip out before the search button rather than slicing a term. */
+    .site-nav .search-entry-shell::after {
+        content: "";
+        position: absolute;
+        top: 1px;
+        bottom: 1px;
+        right: var(--search-entry-side-pad);
+        width: 1.4rem;
+        background: linear-gradient(90deg, rgba(225, 226, 228, 0), rgb(225, 226, 228));
+        pointer-events: none;
+        z-index: 2;
     }
 }

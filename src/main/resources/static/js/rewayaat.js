@@ -44,6 +44,9 @@ var READING_PAGE_SIZE = 50;
 var INITIAL_VISIBLE_NARRATIONS = 16;
 var REVEAL_BATCH_SIZE = 12;
 var INITIAL_VISIBLE_TAG_FILTERS = 15;
+var NOTES_COLLAPSE_THRESHOLD = 600;
+var NARRATION_COLLAPSE_THRESHOLD = 700;
+var MOBILE_VISIBLE_TAGS = 2;
 var similarLoadingMinDurationMs = 550;
 var scopeFieldKeys = ['book', 'volume', 'part', 'section', 'chapter'];
 var SIDECAR_WIDTH_STORAGE_KEY = 'rewayaat_sidecar_width';
@@ -913,6 +916,70 @@ function initAuthUI() {
         createCollectionBtn.addEventListener('click', openCreateCollectionModal);
         createCollectionBtn.dataset.bound = 'true';
     }
+}
+
+// Partially persistent header. On phones the nav is two rows (~116px) so the
+// search field has room for filter pills, but it is sticky, so that height is
+// spent on every screen of reading. Stow it on scroll down, return it on scroll
+// up, at the top, and at the bottom of the page.
+function initStowingNav() {
+    var nav = document.querySelector('.site-nav');
+    if (!nav || !window.matchMedia || !window.requestAnimationFrame) {
+        return;
+    }
+    var mobile = window.matchMedia('(max-width: 768px)');
+    var lastY = Math.max(0, window.pageYOffset || 0);
+    var queued = false;
+    // Leave the header alone until the reader is clear of it, and ignore
+    // sub-pixel jitter and iOS rubber-banding.
+    var STOW_BELOW = 140;
+    var MIN_DELTA = 6;
+
+    function show() {
+        nav.classList.remove('site-nav--stowed');
+    }
+
+    function update() {
+        queued = false;
+        var y = Math.max(0, window.pageYOffset || 0);
+        var delta = y - lastY;
+        lastY = y;
+        // Desktop, or the reader is typing in the bar we would be hiding.
+        if (!mobile.matches || nav.contains(document.activeElement)) {
+            show();
+            return;
+        }
+        if (Math.abs(delta) < MIN_DELTA) {
+            return;
+        }
+        var doc = document.documentElement;
+        var atBottom = (y + window.innerHeight) >= (doc.scrollHeight - 4);
+        if (y <= STOW_BELOW || delta < 0 || atBottom) {
+            show();
+        } else {
+            nav.classList.add('site-nav--stowed');
+        }
+    }
+
+    window.addEventListener('scroll', function() {
+        if (!queued) {
+            queued = true;
+            window.requestAnimationFrame(update);
+        }
+    }, { passive: true });
+    // Focusing the search must always bring the bar back, even without a scroll.
+    nav.addEventListener('focusin', show);
+    if (mobile.addEventListener) {
+        mobile.addEventListener('change', show);
+    } else if (mobile.addListener) {
+        mobile.addListener(show);
+    }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initStowingNav);
+} else {
+    initStowingNav();
 }
 
 function refreshAuthState() {
@@ -4447,6 +4514,8 @@ function setupVue(query, page, sortFields) {
             arabicSuggestionToastShown: false,
             arabicSuggestionThresholdPassed: false,
             snippetExpandedKeys: {},
+            notesExpandedKeys: {},
+            narrationExpandedKeys: {},
             collections: userCollectionsCache,
             collectionSearchQuery: '',
             sidecarWidth: 304,
@@ -4748,14 +4817,15 @@ function setupVue(query, page, sortFields) {
             },
             visibleNarrationTopicTags: function(narration) {
                 var tags = Array.isArray(narration && narration.topic_tags) ? narration.topic_tags : [];
-                if (!this.isMobileViewport() || narration.mobileTagsExpanded || tags.length <= 5) {
+                if (!this.isMobileViewport() || narration.mobileTagsExpanded
+                        || tags.length <= MOBILE_VISIBLE_TAGS) {
                     return tags;
                 }
-                return tags.slice(0, 5);
+                return tags.slice(0, MOBILE_VISIBLE_TAGS);
             },
             shouldShowNarrationTagToggle: function(narration) {
                 var tags = Array.isArray(narration && narration.topic_tags) ? narration.topic_tags : [];
-                return this.isMobileViewport() && tags.length > 5;
+                return this.isMobileViewport() && tags.length > MOBILE_VISIBLE_TAGS;
             },
             toggleNarrationTags: function(narration) {
                 if (!narration) {
@@ -5604,6 +5674,42 @@ function setupVue(query, page, sortFields) {
                     element.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             },
+            // The card is no longer height-capped, so an opened related/tafsir
+            // panel can sit below the fold and the click looks like a no-op.
+            // The panel renders only once its content has loaded, and the
+            // loading state has a minimum duration, so poll briefly rather
+            // than guess at the timing.
+            revealNarrationPanel: function(narration, tab) {
+                var self = this;
+                var domId = this.narrationDomId(narration);
+                if (!domId || typeof window === 'undefined' || !window.requestAnimationFrame) {
+                    return;
+                }
+                var deadline = Date.now() + 2500;
+                var reduced = window.matchMedia
+                    && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                function attempt() {
+                    // Bail if the reader moved on while the panel was loading.
+                    if (self.activeNarrationSidecarTab(narration) !== tab) {
+                        return;
+                    }
+                    var card = document.getElementById(domId);
+                    var panel = card ? card.querySelector('.hadith-inline-context') : null;
+                    if (panel && panel.scrollIntoView) {
+                        // 'nearest' is deliberate: it does nothing when the panel is
+                        // already visible, so the page is never yanked around.
+                        panel.scrollIntoView({
+                            behavior: reduced ? 'auto' : 'smooth',
+                            block: 'nearest'
+                        });
+                        return;
+                    }
+                    if (Date.now() < deadline) {
+                        window.requestAnimationFrame(attempt);
+                    }
+                }
+                this.$nextTick(attempt);
+            },
             activeNarrationSidecarTab: function(narration) {
                 if (!narration) {
                     return 'metadata';
@@ -5631,6 +5737,9 @@ function setupVue(query, page, sortFields) {
                 }
                 if (nextTab === 'quran' && !narration.quranicInsightsItemsLoaded && !narration.quranicInsightsItemsLoading) {
                     this.fetchQuranicInsights(narration, true);
+                }
+                if (nextTab === 'similar' || nextTab === 'quran') {
+                    this.revealNarrationPanel(narration, nextTab);
                 }
             },
             isNarrationSidecarTabActive: function(narration, tab) {
@@ -5801,6 +5910,7 @@ function setupVue(query, page, sortFields) {
                 }
                 narration.similarActiveIndex = index;
                 narration.sidecarActiveTab = 'similar';
+                this.revealNarrationPanel(narration, 'similar');
             },
             quranicInsightsCountText: function(narration) {
                 if (!narration || typeof narration.quranicInsightsCount !== 'number' || narration.quranicInsightsCount <= 0) {
@@ -6133,6 +6243,74 @@ function setupVue(query, page, sortFields) {
             toggleSnippetExpand: function(narration, sidx) {
                 var key = this.snippetExpandKey(narration, sidx);
                 Vue.set(this.snippetExpandedKeys, key, !this.snippetExpandedKeys[key]);
+            },
+            // A long narration must not force the reader to scroll past the
+            // whole text to reach the next result, so cards stay scannable and
+            // long ones open on request. A clamp rather than an inner scroll
+            // region, so the page keeps a single scrollbar.
+            narrationExpandKey: function(narration) {
+                return (narration._id || narration.id || '') + '-narration';
+            },
+            isNarrationCollapsible: function(narration) {
+                if (!narration) {
+                    return false;
+                }
+                var en = narration.englishContent || narration.english || '';
+                var ar = narration.arabicContent || narration.arabic || '';
+                var longest = Math.max(
+                    en.replace(/<[^>]*>/g, '').trim().length,
+                    ar.replace(/<[^>]*>/g, '').trim().length
+                );
+                return longest > NARRATION_COLLAPSE_THRESHOLD;
+            },
+            isNarrationExpanded: function(narration) {
+                return !!this.narrationExpandedKeys[this.narrationExpandKey(narration)];
+            },
+            toggleNarrationExpand: function(narration) {
+                var key = this.narrationExpandKey(narration);
+                var expanding = !this.narrationExpandedKeys[key];
+                var domId = this.narrationDomId(narration);
+                var card = domId ? document.getElementById(domId) : null;
+                // Collapsing removes content above the button, so the page
+                // shrinks underneath the reader and the hadith ends up above
+                // the viewport. Pin the button where it already is on screen so
+                // the card stays put. Expanding needs no correction: the card's
+                // top does not move, the text simply grows downward.
+                var button = card ? card.querySelector('.hadith-reading-toggle') : null;
+                var anchorBefore = (!expanding && button)
+                    ? button.getBoundingClientRect().top
+                    : null;
+                Vue.set(this.narrationExpandedKeys, key, expanding);
+                if (anchorBefore === null) {
+                    return;
+                }
+                this.$nextTick(function() {
+                    var after = card.querySelector('.hadith-reading-toggle');
+                    if (!after) {
+                        return;
+                    }
+                    var delta = after.getBoundingClientRect().top - anchorBefore;
+                    if (Math.abs(delta) > 1) {
+                        window.scrollBy(0, delta);
+                    }
+                });
+            },
+            notesExpandKey: function(narration) {
+                return (narration._id || narration.id || '') + '-notes';
+            },
+            // Long notes are previewed rather than shown in full: the reading
+            // card is height-capped, so an unbounded note squeezes the
+            // narration text out of the layout entirely.
+            isNotesCollapsible: function(narration) {
+                var notes = (narration && narration.notes) || '';
+                return notes.replace(/<[^>]*>/g, '').trim().length > NOTES_COLLAPSE_THRESHOLD;
+            },
+            isNotesExpanded: function(narration) {
+                return !!this.notesExpandedKeys[this.notesExpandKey(narration)];
+            },
+            toggleNotesExpand: function(narration) {
+                var key = this.notesExpandKey(narration);
+                Vue.set(this.notesExpandedKeys, key, !this.notesExpandedKeys[key]);
             },
             quranContextSegments: function(narration) {
                 var insight = this.activeQuranicInsight(narration);

@@ -59,7 +59,6 @@
         .hp-meta-row { display: flex; flex-wrap: wrap; gap: 1rem 2rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--bs-border-color); }
         .hp-meta-item { font-size: 0.85rem; }
         .hp-meta-item__label { color: var(--bs-secondary-color); font-weight: 500; }
-        .hp-notes { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--bs-border-color); font-size: 0.9rem; color: var(--bs-secondary-color); }
         .hp-back { display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 2rem; font-size: 0.9rem; color: var(--bs-secondary-color); text-decoration: none; }
         .hp-back:hover { color: var(--bs-body-color); }
         .hp-share__btn { background: none; border: 1px solid var(--bs-border-color); border-radius: 999px; padding: 0.35rem 1rem; font-size: 0.85rem; color: var(--bs-secondary-color); cursor: pointer; transition: all 0.2s; font-family: inherit; }
@@ -208,10 +207,25 @@
             </div>
         </div>
 
-        <!-- Notes -->
-        <div class="hp-notes"
-             th:if="${hadith.notes != null and !hadith.notes.isBlank()}">
-            <div th:utext="${hadith.notes}">Notes content</div>
+        <!-- Notes: same apparatus panel as the results page, so the note reads
+             the same however the reader arrived at the hadith. -->
+        <div class="hadith-notes mt-3"
+             th:if="${hadith.notes != null and !hadith.notes.isBlank()}"
+             th:with="collapsible=${hadith.notes.length() > 600}">
+            <div class="hadith-notes__head">
+                <span class="hadith-notes__label">Notes</span>
+            </div>
+            <div class="hadith-notes__body"
+                 id="hadithNotesBody"
+                 th:classappend="${collapsible} ? 'hadith-notes__body--clamped' : ''"
+                 th:utext="${hadith.notes}">Notes content</div>
+            <button type="button"
+                    class="hadith-notes__toggle"
+                    id="hadithNotesToggle"
+                    th:if="${collapsible}"
+                    aria-expanded="false"
+                    aria-controls="hadithNotesBody"
+                    onclick="toggleHadithNotes()">Show more</button>
         </div>
 
         <!-- Back to search -->
@@ -290,6 +304,14 @@
                 fallbackCopy();
             }
         }
+    }
+    function toggleHadithNotes() {
+        var body = document.getElementById('hadithNotesBody');
+        var btn = document.getElementById('hadithNotesToggle');
+        if (!body || !btn) return;
+        var clamped = body.classList.toggle('hadith-notes__body--clamped');
+        btn.setAttribute('aria-expanded', clamped ? 'false' : 'true');
+        btn.textContent = clamped ? 'Show more' : 'Show less';
     }
     function showShareToast() {
         var toast = document.getElementById('shareToast');
