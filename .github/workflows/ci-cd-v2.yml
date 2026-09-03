@@ -8,9 +8,49 @@ on:
       - 'pom.xml'
       - 'src/main/docker/Dockerfile.v2'
       - '.github/workflows/ci-cd-v2.yml'
+  pull_request:
+    branches: [master]
+    paths:
+      - 'src/**'
+      - 'pom.xml'
+      - 'src/main/docker/Dockerfile.v2'
+      - '.github/workflows/ci-cd-v2.yml'
 
 jobs:
-  build:
+  # Runs for pull requests as well as pushes, and gates the deploy below.
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build with Maven
+        run: mvn -B -q package -DskipTests -Dcheckstyle.skip=true -Dfindbugs.skip=true
+
+      # Two groups are excluded because they cannot pass on a CI runner:
+      # *IntegrationTest needs a live Elasticsearch, and HodaAlQuranQualityCheck
+      # scrapes hodaalquran.com over the network to check extraction quality.
+      - name: Run tests
+        run: mvn -B test -Dtest='!*IntegrationTest, !HodaAlQuranQualityCheck' -DfailIfNoSpecifiedTests=false
+
+  # Never runs for a pull request — only a push to master publishes and deploys.
+  deploy:
+    needs: verify
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: write
