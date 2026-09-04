@@ -227,7 +227,7 @@ public class BookPageController {
                 if (source == null) {
                     continue;
                 }
-                results.add(cardModel(hit.id(), source));
+                results.add(cardModel(hit.id(), source, chapter.url()));
             }
         }
         results.sort((a, b) -> compareNumbers(str(a.get("number")), str(b.get("number"))));
@@ -288,7 +288,7 @@ public class BookPageController {
      * labels. The two renderers agree on the class names and on this shape; see
      * fragments/hadith-card.html for why the duplication is bounded.
      */
-    private Map<String, Object> cardModel(String id, Map<String, Object> source) {
+    private Map<String, Object> cardModel(String id, Map<String, Object> source, String tagBase) {
         Map<String, Object> segmented = new LinkedHashMap<>();
         segmented.put("english", source.get("english"));
         segmented.put("arabic", source.get("arabic"));
@@ -312,7 +312,7 @@ public class BookPageController {
         row.put("arabic", firstNonBlank(str(segmented.get("arabicContent")), str(source.get("arabic"))));
         row.put("notes", str(source.get("notes")));
         row.put("metadata", metadataRows(source, number));
-        row.put("tags", topicTags(source));
+        row.put("tags", topicTags(source, tagBase));
         row.put("tagSlugs", tagSlugs(source));
         row.put("similarCount", source.get("llm_similar") instanceof List<?> l ? l.size() : 0);
         row.put("shareUrl", BASE_URL + "/hadith/" + id);
@@ -423,8 +423,15 @@ public class BookPageController {
         rows.add(row);
     }
 
-    /** Tags link into a search for that topic, which is what clicking one does in the app. */
-    private List<Map<String, String>> topicTags(Map<String, Object> source) {
+    /**
+     * A tag pill filters the page it is on, the way the facet bar above it does.
+     *
+     * <p>It used to link at {@code /?q=topic_tags:"slug"}, which returns nothing — the
+     * search backend has no such field syntax — and {@code /?topic_tags=slug} alone runs
+     * no search either, it just renders the home page. Filtering in place is both the
+     * behaviour that works and the one that keeps the reader where they are.
+     */
+    private List<Map<String, String>> topicTags(Map<String, Object> source, String tagBase) {
         List<Map<String, String>> tags = new ArrayList<>();
         if (!(source.get("topic_tags") instanceof List<?> raw)) {
             return tags;
@@ -435,7 +442,7 @@ public class BookPageController {
                 continue;
             }
             tags.add(Map.of("label", topicLabels.label(value),
-                    "query", encode("topic_tags:\"" + value + "\"")));
+                    "url", tagBase + "?tag=" + encode(value)));
         }
         return tags;
     }
