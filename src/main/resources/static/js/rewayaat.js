@@ -4110,7 +4110,9 @@ function loadBrowseBooks() {
     updateBrowseSubmitState({ book: '' });
     var meta = document.getElementById('browseMeta');
     if (meta) {
-        meta.textContent = 'Choose a book to unlock volume, part, section, and chapter filters.';
+        // The cards are links to the book pages now, not filter triggers, so the old
+        // "choose a book to unlock filters" line no longer describes anything.
+        meta.textContent = '';
     }
     var heroMeta = document.getElementById('heroBrowseMeta');
     if (heroMeta) {
@@ -4228,36 +4230,23 @@ function populateBrowseBooks(books) {
         }
         var count = item.count || 0;
         if (bookList) {
-            var card = document.createElement('div');
+            // An anchor, not a div with a click handler: the card is a link to the book's
+            // own page, which the server also renders into this list before this runs, and
+            // a crawler has to be able to follow it. The slug comes from the API rather
+            // than being derived here, so it cannot drift from the routes.
+            var card = document.createElement('a');
             card.className = 'browse-book-card';
             if (idx >= MOBILE_BOOK_LIMIT) {
                 card.className += ' browse-book-card--overflow';
             }
             card.setAttribute('data-book', name);
+            card.setAttribute('href', '/books/' + encodeURIComponent(item.slug || ''));
             card.innerHTML = '<div class=\"browse-book-head\">' +
                 '<span class=\"browse-book-icon\" aria-hidden=\"true\"><i class=\"fa fa-book\"></i></span>' +
                 '<div class=\"browse-book-copy\">' +
                 '<div class=\"browse-book-title\">' + escapeHtml(name) + '</div>' +
-                '<div class=\"browse-book-count\">' + count + ' narrations</div>' +
+                '<div class=\"browse-book-count\">' + count.toLocaleString() + ' narrations</div>' +
                 '</div></div>';
-            card.addEventListener('click', function() {
-                setBrowsePanelVisible(true);
-                setBrowseBookFieldVisible(true);
-                if (bookSelect) {
-                    bookSelect.value = name;
-                }
-                indicateActionButtonPending('browseSubmitBtn');
-                if (bookList) {
-                    Array.prototype.slice.call(bookList.querySelectorAll('.browse-book-card')).forEach(function(node) {
-                        node.classList.toggle('is-active', node === card);
-                    });
-                }
-                handleBrowseSelectionChange(true);
-                var browsePanel = document.getElementById('browseFacetPanel');
-                if (browsePanel) {
-                    browsePanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }
-            });
             bookList.appendChild(card);
         }
     });

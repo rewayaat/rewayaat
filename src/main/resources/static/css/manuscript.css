@@ -5614,6 +5614,10 @@ main.container {
 
 .browse-book-item,
 .browse-book-card {
+    /* Now an <a> rather than a div, so it has to shed the default link styling. */
+    display: block;
+    text-decoration: none;
+    color: inherit;
     align-items: flex-start;
     min-height: 102px;
     padding: 1rem;

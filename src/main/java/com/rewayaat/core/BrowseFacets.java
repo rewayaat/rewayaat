@@ -1,6 +1,7 @@
 package com.rewayaat.core;
 
 import com.rewayaat.config.ESClientProvider;
+import com.rewayaat.service.BookCatalog;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.aggregations.Aggregate;
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsAggregate;
@@ -27,8 +28,20 @@ public class BrowseFacets {
         FACET_ORDER.put("chapter", 3);
     }
 
+    /**
+     * All books with their narration counts, and the slug their page answers at.
+     *
+     * <p>The slug comes from {@link BookCatalog#slugify} rather than being recomputed in
+     * the browser: the home page's book cards link straight to /books/{slug}, and a second
+     * slug implementation would drift from the one the routes are built on.
+     */
     public JSONArray books() throws IOException {
-        return termsAgg("book", null, null, null);
+        JSONArray books = termsAgg("book", null, null, null);
+        for (int i = 0; i < books.length(); i++) {
+            JSONObject book = books.getJSONObject(i);
+            book.put("slug", BookCatalog.slugify(book.optString("name")));
+        }
+        return books;
     }
 
     /**
