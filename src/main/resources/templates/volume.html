@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/site :: sitehead}"></head>
+<body>
+<nav th:replace="~{fragments/site :: sitenav}"></nav>
+
+<main class="container py-3">
+    <nav th:replace="~{fragments/site :: crumbtrail}"></nav>
+
+    <header class="hub-hero">
+        <h1 class="hub-hero__title">
+            <span th:text="${book.name}">Book</span> &mdash; <span th:text="${volumeLabel}">Volume 1</span>
+        </h1>
+        <p class="hub-hero__lede">
+            <strong th:text="${#numbers.formatInteger(narrationCount, 0, 'COMMA')}">1,000</strong> narrations
+            across <span th:text="${#numbers.formatInteger(#lists.size(chapters), 0, 'COMMA')}">100</span>
+            chapters, in Arabic and English.
+        </p>
+    </header>
+
+    <section>
+        <h2 class="hub-group__label">Chapters</h2>
+        <ul class="hub-list">
+            <li th:each="chapter : ${chapters}">
+                <a th:href="${chapter.url}" th:text="${chapter.title}">Chapter title</a>
+                <span class="hub-list__count" th:text="'(' + ${chapter.count} + ')'">(12)</span>
+            </li>
+        </ul>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/site :: sitefooter}"></footer>
+<th:block th:replace="~{fragments/site :: analytics}"></th:block>
+</body>
+</html>

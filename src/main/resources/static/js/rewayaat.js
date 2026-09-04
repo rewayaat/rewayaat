@@ -1280,8 +1280,10 @@ function ensurePublicHomeVisible() {
     if (!welcome) {
         return;
     }
-    var hasWelcome = welcome.innerHTML && welcome.innerHTML.trim().length > 0;
-    if (hasWelcome || welcomeContentInitialized) {
+    // Previously this bailed whenever the section had any markup in it. Now the server
+    // renders that markup, so "has content" no longer means "has been bound" — only the
+    // initialised flag does.
+    if (welcomeContentInitialized) {
         return;
     }
     displayWelcomeContent();
@@ -2594,6 +2596,26 @@ function showBookBlurb(bookName) {
     }
 }
 
+/**
+ * The home page body as the server rendered it.
+ *
+ * The body used to be fetched from /welcome.html over XHR, which meant the served page
+ * carried no content and no links for any crawler that does not run scripts. It is now
+ * part of the document, and this holds a copy so that returning from a search can put
+ * it back without a round trip.
+ */
+var welcomeInitialMarkup = null;
+
+function captureWelcomeMarkup() {
+    if (welcomeInitialMarkup !== null) {
+        return;
+    }
+    var welcome = document.getElementById('welcome');
+    if (welcome && welcome.innerHTML.trim().length > 0) {
+        welcomeInitialMarkup = welcome.innerHTML;
+    }
+}
+
 function displayWelcomeContent() {
     if (isCollectionMode()) {
         return;
@@ -2601,6 +2623,7 @@ function displayWelcomeContent() {
     if (welcomeContentLoading) {
         return;
     }
+    captureWelcomeMarkup();
     welcomeContentLoading = true;
     var queryBar = document.getElementById('queryBar');
     if (queryBar) {
@@ -2612,44 +2635,56 @@ function displayWelcomeContent() {
     vueApp = new Vue({
         el: '#hadithView'
     });
-    $("#welcome").load("/welcome.html?v=33", function(responseData, statusText) {
-        welcomeContentLoading = false;
-        welcomeContentInitialized = statusText === 'success';
-        var queryBar = document.getElementById('queryBar');
-        var heroSlot = document.getElementById('hero-search-slot');
-        if (queryBar) {
-            if (heroSlot) {
-                heroSlot.appendChild(queryBar);
-                queryBar.classList.add('home-search');
-            } else {
-                queryBar.classList.remove('home-search');
-            }
-            queryBar.classList.remove('is-hidden');
-            queryBar.classList.add('is-visible');
+
+    var welcome = document.getElementById('welcome');
+    if (welcome && welcome.innerHTML.trim().length === 0 && welcomeInitialMarkup !== null) {
+        // Coming back from a search, which empties the section.
+        welcome.innerHTML = welcomeInitialMarkup;
+    }
+    welcomeContentLoading = false;
+    welcomeContentInitialized = !!(welcome && welcome.innerHTML.trim().length > 0);
+    initWelcomeContent();
+}
+
+/**
+ * Binds the home page body. Runs whether the markup came from the server on first paint
+ * or was restored after a search, so the two paths cannot drift apart.
+ */
+function initWelcomeContent() {
+    var queryBar = document.getElementById('queryBar');
+    var heroSlot = document.getElementById('hero-search-slot');
+    if (queryBar) {
+        if (heroSlot) {
+            heroSlot.appendChild(queryBar);
+            queryBar.classList.add('home-search');
+        } else {
+            queryBar.classList.remove('home-search');
         }
-        if (statusText !== 'success') {
-            return;
-        }
-        // initialize search bar
-        initSelect2('searchTerms');
-        // setup select handler
-        select2SelectHandler('searchTerms');
-        // setup enter key listener
-        setupSelect2EnterKeyListener('searchTerms');
-        // auto-focus search input on home page
-        if (searchSelectControl && searchSelectControl.control_input) {
-            searchSelectControl.control_input.focus();
-        }
-        // refresh auth bindings for dynamically loaded welcome content
-        initAuthUI();
-        if (authState.authenticated) {
-            loadAndRenderCollections(false);
-        }
-        // load recent updates
-        loadRecentUpdates();
-        // load browse data
-        loadBrowseBooks();
-    });
+        queryBar.classList.remove('is-hidden');
+        queryBar.classList.add('is-visible');
+    }
+    if (!welcomeContentInitialized) {
+        return;
+    }
+    // initialize search bar
+    initSelect2('searchTerms');
+    // setup select handler
+    select2SelectHandler('searchTerms');
+    // setup enter key listener
+    setupSelect2EnterKeyListener('searchTerms');
+    // auto-focus search input on home page
+    if (searchSelectControl && searchSelectControl.control_input) {
+        searchSelectControl.control_input.focus();
+    }
+    // refresh auth bindings for dynamically loaded welcome content
+    initAuthUI();
+    if (authState.authenticated) {
+        loadAndRenderCollections(false);
+    }
+    // load recent updates
+    loadRecentUpdates();
+    // load browse data
+    loadBrowseBooks();
 }
 
 function indicatePendingSearchTerms() {
@@ -4474,7 +4509,8 @@ function validQuery(query) {
  * created Vue instance in the global vueApp variable.
  */
 function setupVue(query, page, sortFields) {
-    // clear welcome page content
+    // clear welcome page content, keeping a copy so returning home needs no round trip
+    captureWelcomeMarkup();
     document.getElementById('welcome').innerHTML = '';
     // Setup hadith vue component
     vueApp = new Vue({

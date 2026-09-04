@@ -2,6 +2,9 @@ package com.rewayaat.controllers;
 
 import com.rewayaat.config.ESClientProvider;
 import com.rewayaat.core.HadithDisplaySegmenter;
+import com.rewayaat.core.HadithObjectCollection;
+import com.rewayaat.service.BookCatalog;
+import com.rewayaat.service.SimilarHadithService;
 import com.rewayaat.core.HadithSourceFilter;
 import com.rewayaat.core.data.HadithObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,8 +19,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Server-rendered hadith pages for SEO.
@@ -29,7 +35,18 @@ public class HadithPageController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HadithPageController.class);
     private static final ObjectMapper JSON = new ObjectMapper();
-    private static final String BASE_URL = "https://hadith.academyofislam.com";
+    private static final String BASE_URL = HomeController.BASE_URL;
+
+    /** Enough related reading to be useful without turning the page into a link farm. */
+    private static final int MAX_SIMILAR_LINKS = 8;
+
+    private final BookCatalog catalog;
+    private final SimilarHadithService similarHadith;
+
+    public HadithPageController(BookCatalog catalog, SimilarHadithService similarHadith) {
+        this.catalog = catalog;
+        this.similarHadith = similarHadith;
+    }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public String hadithPage(@PathVariable("id") String id, Model model, HttpServletResponse response)
@@ -52,9 +69,11 @@ public class HadithPageController {
         String englishContent = stripHtml((String) segMap.getOrDefault("englishContent", hadith.getEnglish()));
         String englishFull = stripHtml(hadith.getEnglish());
 
-        // SEO title: "Book #Number | HDP"
+        // "HDP" is an acronym with no search volume, and it was eating the end of every
+        // title. The slot goes to words people actually search for instead.
         String bookRef = buildBookRef(hadith);
-        String seoTitle = (bookRef.isEmpty() ? truncate(englishFull, 80) : bookRef) + " | HDP - The Hadith Database";
+        String seoTitle = (bookRef.isEmpty() ? truncate(englishFull, 80) : bookRef)
+                + " — Shia Hadith in Arabic & English";
 
         // SEO description: matn text (not chain), first 160 chars
         String seoDescription = truncate(englishContent.isEmpty() ? englishFull : englishContent, 160);
@@ -65,7 +84,32 @@ public class HadithPageController {
         // JSON-LD structured data
         String jsonLd = buildJsonLd(hadith, canonicalUrl);
 
-        // Breadcrumb segments
+        // The page used to have no internal links at all beyond three copies of "/",
+        // which left all 32,519 of them as dead ends. These give a crawler somewhere to
+        // go and give the hub pages a route back down.
+        Optional<BookCatalog.Book> book = catalog.bookByName(hadith.getBook());
+        Optional<BookCatalog.Chapter> chapter = catalog.chapterFor(hadith.getBook(), hadith.getVolume(),
+                hadith.getPart(), hadith.getSection(), hadith.getChapter());
+
+        List<Map<String, String>> crumbs = new ArrayList<>();
+        crumbs.add(Map.of("name", "Home", "url", "/"));
+        crumbs.add(Map.of("name", "Books", "url", "/books"));
+        book.ifPresent(b -> {
+            crumbs.add(Map.of("name", b.name(), "url", "/books/" + b.slug()));
+            if (hadith.getVolume() != null && !hadith.getVolume().isBlank()) {
+                crumbs.add(Map.of("name", "Volume " + hadith.getVolume(),
+                        "url", "/books/" + b.slug() + "/volume/" + encode(hadith.getVolume())));
+            }
+        });
+        chapter.ifPresent(c -> crumbs.add(Map.of("name", c.title(), "url", c.url())));
+        crumbs.add(Map.of("name", "Hadith " + (hadith.getNumber() == null ? id : hadith.getNumber()),
+                "url", "/hadith/" + id));
+
+        model.addAttribute("breadcrumbs", crumbs);
+        model.addAttribute("breadcrumbJsonLd", breadcrumbJsonLd(crumbs));
+        model.addAttribute("chapterUrl", chapter.map(BookCatalog.Chapter::url).orElse(null));
+        model.addAttribute("similar", similarLinks(id));
+
         model.addAttribute("hadith", hadith);
         model.addAttribute("hadithId", id);
         model.addAttribute("seoTitle", seoTitle);
@@ -143,6 +187,65 @@ public class HadithPageController {
             LOGGER.warn("Error building JSON-LD", e);
             return "{}";
         }
+    }
+
+    /**
+     * A handful of the pre-computed LLM-judged similar narrations, as links.
+     *
+     * <p>47,522 judged-similar pairs were already sitting in the index and reachable only
+     * through an XHR the crawler never makes. Rendering a few of them server-side turns
+     * the strongest signal the corpus has about which narrations belong together into an
+     * internal link graph.
+     */
+    private List<Map<String, String>> similarLinks(String id) {
+        List<Map<String, String>> links = new ArrayList<>();
+        try {
+            HadithObjectCollection related = similarHadith.findSimilar(id, 0, MAX_SIMILAR_LINKS);
+            for (HadithObject other : related.getCollection()) {
+                String label = buildBookRef(other);
+                // SimilarHadithService already ran the display segmenter over these, so
+                // the matn is available; excerpting the raw English would open every
+                // entry with its chain of transmission instead.
+                Object segmented = other.getAdditionalProperties().get("englishContent");
+                String body = segmented == null || segmented.toString().isBlank()
+                        ? other.getEnglish() : segmented.toString();
+                String excerpt = truncate(stripHtml(body), 140);
+                links.add(Map.of(
+                        "url", "/hadith/" + other.getId(),
+                        "label", label.isBlank() ? "Related narration" : label,
+                        "excerpt", excerpt));
+            }
+        } catch (Exception e) {
+            // Related reading is a bonus; never fail the page over it.
+            LOGGER.warn("Could not load similar narrations for {}", id, e);
+        }
+        return links;
+    }
+
+    private String breadcrumbJsonLd(List<Map<String, String>> crumbs) {
+        List<Map<String, Object>> items = new ArrayList<>();
+        int position = 1;
+        for (Map<String, String> crumb : crumbs) {
+            items.add(new LinkedHashMap<>(Map.of(
+                    "@type", "ListItem",
+                    "position", position++,
+                    "name", crumb.get("name"),
+                    "item", BASE_URL + crumb.get("url"))));
+        }
+        Map<String, Object> ld = new LinkedHashMap<>();
+        ld.put("@context", "https://schema.org");
+        ld.put("@type", "BreadcrumbList");
+        ld.put("itemListElement", items);
+        try {
+            return JSON.writerWithDefaultPrettyPrinter().writeValueAsString(ld);
+        } catch (Exception e) {
+            LOGGER.warn("Could not build the breadcrumb JSON-LD", e);
+            return "{}";
+        }
+    }
+
+    private static String encode(String segment) {
+        return java.net.URLEncoder.encode(segment, java.nio.charset.StandardCharsets.UTF_8).replace("+", "%20");
     }
 
     private String stripHtml(String text) {

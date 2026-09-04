@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/site :: sitehead}"></head>
+<body>
+<nav th:replace="~{fragments/site :: sitenav}"></nav>
+
+<main class="container py-3">
+    <nav th:replace="~{fragments/site :: crumbtrail}"></nav>
+
+    <header class="hub-hero">
+        <h1 class="hub-hero__title">Shia Hadith Books</h1>
+        <p class="hub-hero__lede">
+            The primary Shi'i hadith collections, in Arabic with English translation —
+            <strong th:text="${#numbers.formatInteger(totalNarrations, 0, 'COMMA')}">32,000</strong>
+            narrations across <span th:text="${#lists.size(books)}">18</span> books. Every narration
+            carries its chain of transmission, and is cross-linked to similar narrations and to the
+            Qur'anic verses it draws on.
+        </p>
+    </header>
+
+    <div class="hub-grid">
+        <a class="hub-card" th:each="book : ${books}" th:href="@{'/books/' + ${book.slug}}">
+            <div class="hub-card__title" th:text="${book.name}">Book name</div>
+            <div class="hub-card__meta">
+                <span th:text="${#numbers.formatInteger(book.count, 0, 'COMMA')}">1,000</span> narrations
+                &middot;
+                <span th:text="${#numbers.formatInteger(#lists.size(book.chapters), 0, 'COMMA')}">100</span> chapters
+            </div>
+        </a>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/site :: sitefooter}"></footer>
+<th:block th:replace="~{fragments/site :: analytics}"></th:block>
+</body>
+</html>
