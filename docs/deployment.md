@@ -2,7 +2,7 @@
 
 ## Docker
 
-**Dockerfile**: `src/main/docker/Dockerfile.v2`
+**Dockerfile**: `src/main/docker/Dockerfile`
 
 ```dockerfile
 FROM rewayaat/eclipse-temurin:17-jre
@@ -14,9 +14,15 @@ ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/app.jar
 
 Lightweight JRE-only image. Built and pushed as `rewayaat/rewayaat-v2`.
 
+> The `-v2` suffix on the image, the `rewayaat-v2` namespace and the alert names is
+> historical — it dates from the migration off the original deployment, which was
+> retired in June 2026 and no longer exists in the cluster. It survives because it is
+> the live identity of the running system: renaming it would mean a new namespace, a new
+> Docker Hub repository, an Argo repoint and an ingress cutover, not a rename.
+
 ## CI/CD Pipeline
 
-**Workflow**: `.github/workflows/ci-cd-v2.yml`
+**Workflow**: `.github/workflows/ci-cd.yml`
 **Trigger**: Push to `master` (path-filtered: `src/**`, `pom.xml`, Dockerfile, workflow)
 
 ### Pipeline Steps

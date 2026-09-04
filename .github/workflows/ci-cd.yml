@@ -1,4 +1,4 @@
-name: Java CI v2
+name: Java CI
 
 on:
   push:
@@ -6,15 +6,15 @@ on:
     paths:
       - 'src/**'
       - 'pom.xml'
-      - 'src/main/docker/Dockerfile.v2'
-      - '.github/workflows/ci-cd-v2.yml'
+      - 'src/main/docker/Dockerfile'
+      - '.github/workflows/ci-cd.yml'
   pull_request:
     branches: [master]
     paths:
       - 'src/**'
       - 'pom.xml'
-      - 'src/main/docker/Dockerfile.v2'
-      - '.github/workflows/ci-cd-v2.yml'
+      - 'src/main/docker/Dockerfile'
+      - '.github/workflows/ci-cd.yml'
 
 jobs:
   # Runs for pull requests as well as pushes, and gates the deploy below.
@@ -84,7 +84,7 @@ jobs:
       - name: Build and push Docker image
         run: |
           cp target/rewayaat-1.0.jar src/main/docker/
-          docker build -f src/main/docker/Dockerfile.v2 -t rewayaat/rewayaat-v2:$GITHUB_RUN_ID -t rewayaat/rewayaat-v2:latest src/main/docker/
+          docker build -f src/main/docker/Dockerfile -t rewayaat/rewayaat-v2:$GITHUB_RUN_ID -t rewayaat/rewayaat-v2:latest src/main/docker/
           docker push rewayaat/rewayaat-v2:$GITHUB_RUN_ID
           docker push rewayaat/rewayaat-v2:latest
 
