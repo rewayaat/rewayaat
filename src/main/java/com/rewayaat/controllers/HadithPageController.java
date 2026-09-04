@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -30,11 +31,15 @@ public class HadithPageController {
     private static final String BASE_URL = "https://hadith.academyofislam.com";
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public String hadithPage(@PathVariable("id") String id, Model model, HttpServletResponse response) {
+    public String hadithPage(@PathVariable("id") String id, Model model, HttpServletResponse response)
+            throws IOException {
         HadithObject hadith = loadNarration(id);
         if (hadith == null) {
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            return "redirect:/error/404.html";
+            // sendError runs the container's error dispatch, which serves
+            // static/error/404.html under a real 404. Redirecting there instead
+            // answered 302 -> 200, which crawlers read as a soft 404.
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return null;
         }
 
         // Split chain from matn using the display segmenter
