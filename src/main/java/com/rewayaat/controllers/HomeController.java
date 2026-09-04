@@ -22,6 +22,65 @@ public class HomeController {
 
     private static final Logger log = LoggerFactory.getLogger(HomeController.class);
 
+    /**
+     * The host every canonical points at. The app also answers on rewayaat.info, and the
+     * home page previously carried a relative {@code <link rel="canonical" href="/">},
+     * which resolves against whichever host served it — so the mirror declared itself
+     * canonical and the two domains competed for the same rankings.
+     */
+    static final String BASE_URL = "https://hadith.academyofislam.com";
+
+    /**
+     * Front-loaded with the phrase the site is trying to rank for. The old title opened
+     * with "HDP", an acronym nobody searches, and never contained the word "Shia" at all —
+     * neither did the description or the H1, so the only on-page use of the target phrase
+     * was a {@code keywords} meta, which Google has ignored since 2009.
+     */
+    static final String HOME_TITLE =
+            "Shia Hadith Database — Search 32,000+ Narrations in Arabic & English";
+
+    static final String HOME_DESCRIPTION =
+            "Search 32,000+ Shia hadith in Arabic and English. Browse Al-Kafi, Nahj al-Balagha, "
+            + "Man La Yahduruh al-Faqih and more, with similar narrations and Quranic insights.";
+
+    /**
+     * Site-level structured data. {@code WebSite} with a {@code SearchAction} is what makes a
+     * sitelinks search box eligible; {@code Organization} ties the site to the Academy for
+     * Learning Islam as a publisher. The home page previously carried no JSON-LD at all.
+     */
+    private static final String HOME_JSON_LD = """
+            [{
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "@id": "%1$s/#website",
+              "url": "%1$s/",
+              "name": "The Hadith Database",
+              "alternateName": ["HDP", "HDP - The Hadith Database", "Shia Hadith Database"],
+              "description": "%2$s",
+              "inLanguage": ["en", "ar"],
+              "publisher": { "@id": "%1$s/#organization" },
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": {
+                  "@type": "EntryPoint",
+                  "urlTemplate": "%1$s/?q={search_term_string}"
+                },
+                "query-input": "required name=search_term_string"
+              }
+            },
+            {
+              "@context": "https://schema.org",
+              "@type": ["Organization", "EducationalOrganization"],
+              "@id": "%1$s/#organization",
+              "name": "Academy for Learning Islam",
+              "alternateName": "A.L.I.",
+              "url": "https://academyofislam.com",
+              "logo": "%1$s/img/mainlogo-transparent.png",
+              "email": "rewayaat.org@gmail.com",
+              "sameAs": ["https://github.com/rewayaat/rewayaat"]
+            }]
+            """.formatted(BASE_URL, HOME_DESCRIPTION);
+
     @RequestMapping(method = RequestMethod.GET)
     public final String home(@RequestParam(value = "q", required = false, defaultValue = "") String query,
                              @RequestParam(value = "page", defaultValue = "1") int page,
@@ -31,6 +90,17 @@ public class HomeController {
         model.addAttribute("query", query);
         model.addAttribute("page", page);
         model.addAttribute("sort_fields", sortFields);
+
+        model.addAttribute("seoTitle", HOME_TITLE);
+        model.addAttribute("seoDescription", HOME_DESCRIPTION);
+        model.addAttribute("canonicalUrl", BASE_URL + "/");
+        model.addAttribute("jsonLd", HOME_JSON_LD);
+
+        // A search result page is thin, unbounded and duplicates the narration pages it
+        // links to. The canonical already folds it into the home page; "noindex, follow"
+        // makes that explicit while still letting crawlers walk through to the results.
+        model.addAttribute("robotsDirective", query.isBlank() ? null : "noindex, follow");
+
         return "index";
     }
 

@@ -3,20 +3,28 @@
 
 <head>
     <meta charset="UTF-8"/>
-    <title>HDP - The Hadith Database | Search 32,000+ Narrations in Arabic &amp; English</title>
-    <meta name="description" content="Search over 32,000 hadith narrations in Arabic and English. Browse Al-Kafi, Nahj al-Balagha, Ghurar al-Hikam and more. Find similar narrations and Quranic insights."/>
-    <meta name="keywords" content="shia hadith, hadith database, shia hadith search, islamic narrations, al-kafi, nahj al-balagha, ghurar al-hikam, ahlul bayt hadith, arabic english hadith"/>
+    <title th:text="${seoTitle}">Shia Hadith Database — Search 32,000+ Narrations in Arabic &amp; English</title>
+    <meta name="description" th:content="${seoDescription}" content="Search 32,000+ Shia hadith in Arabic and English. Browse Al-Kafi, Nahj al-Balagha, Man La Yahduruh al-Faqih and more, with similar narrations and Quranic insights."/>
     <meta name="author" content="Academy for Learning Islam"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
-    <link rel="canonical" href="/"/>
+    <!-- Absolute, and always on the canonical host: rewayaat.info mirrors this app, and a
+         relative "/" made the mirror declare itself canonical, splitting the site in two. -->
+    <link rel="canonical" th:href="${canonicalUrl}" href="https://hadith.academyofislam.com/"/>
+    <!-- Search result pages are thin and unbounded; they consolidate onto the home page. -->
+    <meta th:if="${robotsDirective != null}" name="robots" th:content="${robotsDirective}"/>
     <meta property="og:type" content="website"/>
     <meta property="og:site_name" content="HDP - The Hadith Database"/>
-    <meta property="og:title" content="HDP - The Hadith Database"/>
-    <meta property="og:description" content="Search over 32,000 hadith narrations in Arabic and English. Browse Al-Kafi, Nahj al-Balagha, and more with similar narrations and Quranic insights."/>
-    <meta property="og:url" content="https://rewayaat.info/"/>
-    <meta name="twitter:card" content="summary"/>
-    <meta name="twitter:title" content="HDP - The Hadith Database"/>
-    <meta name="twitter:description" content="Search over 32,000 hadith narrations in Arabic and English."/>
+    <meta property="og:title" th:content="${seoTitle}" content="Shia Hadith Database — Search 32,000+ Narrations in Arabic &amp; English"/>
+    <meta property="og:description" th:content="${seoDescription}" content="Search 32,000+ Shia hadith in Arabic and English. Browse Al-Kafi, Nahj al-Balagha and more."/>
+    <meta property="og:url" th:content="${canonicalUrl}" content="https://hadith.academyofislam.com/"/>
+    <meta property="og:image" content="https://hadith.academyofislam.com/img/share-card.png"/>
+    <meta property="og:image:width" content="1200"/>
+    <meta property="og:image:height" content="630"/>
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:title" th:content="${seoTitle}" content="Shia Hadith Database — Search 32,000+ Narrations in Arabic &amp; English"/>
+    <meta name="twitter:description" th:content="${seoDescription}" content="Search 32,000+ Shia hadith in Arabic and English."/>
+    <meta name="twitter:image" content="https://hadith.academyofislam.com/img/share-card.png"/>
+    <script type="application/ld+json" th:utext="${jsonLd}"></script>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -115,7 +123,7 @@
 
 <main class="container py-3">
 
-<h1 class="visually-hidden">HDP - The Hadith Database: Search 32,000+ Narrations in Arabic and English</h1>
+<h1 class="visually-hidden">Shia Hadith Database &mdash; Search 32,000+ Narrations of the Ahlul Bayt in Arabic and English</h1>
 <section id="welcome"></section>
 
 <section id="hadithView" class="mb-4" v-cloak>
