@@ -398,6 +398,99 @@
             }, 'quran');
     }
 
+    /** Renders the chosen Related narration into the main column. */
+    function inlineSimilar(item) {
+        var title = [item.book, item.number ? '#' + item.number : ''].filter(Boolean).join(' ');
+        var meta = [item.volume ? 'Volume ' + item.volume : '', item.section ? 'Section ' + item.section : '',
+                    item.chapter || ''].filter(Boolean);
+        var id = item._id || item.id || '';
+        return '<div class="hadith-inline-context__meta-band hadith-inline-context__meta-band--compact">'
+            + '<div class="hadith-inline-context__title-block">'
+            + '<div class="hadith-inline-context__eyebrow">Similar Hadith</div>'
+            + '<a class="hadith-inline-context__title-link" href="/hadith/' + encodeURIComponent(id) + '">'
+            + escapeHtml(title || 'Similar narration') + '</a>'
+            + (meta.length ? '<div class="hadith-inline-context__meta-line">'
+                + meta.map(function (m, i) {
+                    return (i ? '<span class="hadith-inline-context__meta-separator" aria-hidden="true">\u2022</span>' : '')
+                        + '<span class="hadith-inline-context__meta-inline-text">' + escapeHtml(m) + '</span>';
+                  }).join('') + '</div>' : '')
+            + '</div></div>'
+            + '<div class="hadith-inline-context__scroll">'
+            + '<div class="row g-4 hadith-inline-context__row">'
+            + '<div class="col-12 col-lg-6"><div class="hadith-inline-context__panel hadith-inline-context__panel--similar">'
+            + '<div class="hadith-inline-context__body">'
+            + (item.englishChain ? '<div class="hadith-chain">' + item.englishChain + '</div>' : '')
+            + '<div class="similar-full-english">' + (item.englishContent || item.english || '') + '</div>'
+            + '</div></div></div>'
+            + '<div class="col-12 col-lg-6"><div class="hadith-inline-context__panel hadith-inline-context__panel--similar">'
+            + '<div class="hadith-inline-context__body arabic-text">'
+            + (item.arabicChain ? '<div class="hadith-chain hadith-chain--arabic">' + item.arabicChain + '</div>' : '')
+            + '<div class="similar-full-arabic">' + (item.arabicContent || item.arabic || '') + '</div>'
+            + '</div></div></div>'
+            + '</div></div>';
+    }
+
+    /** Renders the chosen verse and its tafsir snippets into the main column. */
+    function inlineQuran(item) {
+        var snippets = item.tafsir_snippets || [];
+        var head = '<div class="hadith-inline-context__meta-band hadith-inline-context__meta-band--compact '
+            + 'hadith-inline-context__meta-band--quran">'
+            + '<div class="hadith-inline-context__title-block">'
+            + '<div class="hadith-inline-context__eyebrow">Quranic Insight</div>'
+            + '<div class="hadith-inline-context__meta-line">'
+            + '<span class="hadith-inline-context__meta-inline-text">'
+            + escapeHtml(item.verse_key || '') + '</span>'
+            + (item.surah_name_english
+                ? '<span class="hadith-inline-context__meta-separator" aria-hidden="true">\u2022</span>'
+                  + '<span class="hadith-inline-context__meta-inline-text">'
+                  + escapeHtml(item.surah_name_english) + '</span>'
+                : '')
+            + '</div></div></div>';
+
+        if (!snippets.length) {
+            return head + '<div class="hadith-inline-context__snippets">'
+                + '<div class="text-muted py-2">No tafsir snippets are attached to this verse yet.</div>'
+                + '</div>';
+        }
+        return head + '<div class="hadith-inline-context__snippets">'
+            + '<div class="quranic-section__label">Tafsir Sources</div>'
+            + snippets.map(function (sn) {
+                var name = sn.tafsir_name || sn.tafsir_slug || 'Tafsir';
+                return '<div class="quranic-snippet">'
+                    + '<div class="quranic-snippet__head">'
+                    + (sn.source_url
+                        ? '<a class="quranic-snippet__source-link" target="_blank" rel="noopener" href="'
+                          + escapeHtml(sn.source_url) + '">' + escapeHtml(name) + '</a>'
+                        : '<span class="quranic-snippet__source">' + escapeHtml(name) + '</span>')
+                    + (sn.section_title
+                        ? '<span class="quranic-snippet__section">&mdash; ' + escapeHtml(sn.section_title) + '</span>'
+                        : '')
+                    + '</div>'
+                    + '<div class="quranic-snippet__text">' + (sn.commentary_text || '') + '</div>'
+                    + '</div>';
+              }).join('')
+            + '</div>';
+    }
+
+    var INLINE = {similar: inlineSimilar, quran: inlineQuran};
+
+    /** Remembers what each panel loaded, so selecting a row can render it inline. */
+    var loaded = new WeakMap();
+
+    function showInline(card, kind, index) {
+        card.querySelectorAll('[data-hub-inline]').forEach(function (host) {
+            host.classList.toggle('d-none', host.getAttribute('data-hub-inline') !== kind);
+        });
+        var host = card.querySelector('[data-hub-inline="' + kind + '"]');
+        var store = loaded.get(card) || {};
+        var items = store[kind] || [];
+        if (!host || !items[index]) {
+            if (host) { host.classList.add('d-none'); }
+            return;
+        }
+        host.innerHTML = INLINE[kind](items[index]);
+    }
+
     /** The accordion behaves the way the Vue one does: one open at a time. */
     function bindAccordions() {
         document.addEventListener('click', function (event) {
@@ -412,6 +505,12 @@
             event.preventDefault();
             var list = toggle.closest('.hadith-sidecar__accordion');
             var item = toggle.closest('.hadith-sidecar__accordion-item');
+            var card = toggle.closest('.hadith-card');
+            var body = toggle.closest('[data-hub-panel-body]');
+            if (card && body) {
+                showInline(card, body.getAttribute('data-hub-panel-body'),
+                        parseInt(toggle.getAttribute('data-hub-acc-toggle'), 10));
+            }
             list.querySelectorAll('.hadith-sidecar__accordion-item').forEach(function (node) {
                 var active = node === item;
                 node.classList.toggle('is-active', active);
@@ -425,10 +524,17 @@
 
     var PANELS = {
         similar: {url: function (id) { return '/v1/narrations/similar?id=' + encodeURIComponent(id) + '&per_page=10'; },
-                  render: renderSimilar},
+                  render: renderSimilar,
+                  items: function (d) { return (d && d.collection) || []; }},
         quran:   {url: function (id) { return '/v1/narrations/quranic_insights?id=' + encodeURIComponent(id) + '&all=true'; },
-                  render: renderQuran}
+                  render: renderQuran,
+                  items: function (d) { return (d && (d.insights || d.candidates || d.items)) || []; }}
     };
+
+    function currentIndex(card, kind) {
+        var active = card.querySelector('[data-hub-panel-body="' + kind + '"] .hadith-sidecar__accordion-item.is-active');
+        return active ? parseInt(active.getAttribute('data-hub-acc-item'), 10) : 0;
+    }
 
     function bindSidecarPanels() {
         document.addEventListener('click', function (event) {
@@ -448,6 +554,16 @@
             });
             // The card's own class drives the sidecar's width and colouring.
             card.className = card.className.replace(/hadith-card--(metadata|similar|quran)/, 'hadith-card--' + wanted);
+            // The sidecar panel's own class drives its layout per tab, as it does in Vue.
+            var panel = card.querySelector('.hadith-sidecar__panel');
+            if (panel) {
+                panel.className = panel.className.replace(/is-(metadata|similar|quran)/, 'is-' + wanted);
+            }
+            if (wanted === 'metadata') {
+                card.querySelectorAll('[data-hub-inline]').forEach(function (h) { h.classList.add('d-none'); });
+            } else {
+                showInline(card, wanted, currentIndex(card, wanted));
+            }
 
             var spec = PANELS[wanted];
             if (!spec) { return; }
@@ -463,7 +579,13 @@
                 + '<div class="hadith-skeleton-bar hadith-skeleton-bar--medium"></div>'
                 + '</div></div></div>';
             apiJSON(spec.url(card.getAttribute('data-hadith-id')), {method: 'GET'})
-                .then(function (resp) { spec.render(body, resp.data); })
+                .then(function (resp) {
+                    spec.render(body, resp.data);
+                    var store = loaded.get(card) || {};
+                    store[wanted] = spec.items(resp.data);
+                    loaded.set(card, store);
+                    showInline(card, wanted, 0);
+                })
                 .catch(function () {
                     body.dataset.loaded = '';
                     body.innerHTML = '<div class="alert alert-warning py-2 my-2" role="alert">'

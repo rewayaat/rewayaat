@@ -109,6 +109,15 @@
                     </div>
                 </div>
 
+                <!-- Where the selected Related narration or Quranic verse is read. The
+                     sidecar list is a chooser; on the search card the chosen item opens
+                     out here in the main column, and cramming it into the narrow sidecar
+                     instead was the whole reason these panels looked broken. -->
+                <div class="hadith-inline-context hadith-inline-context--similar d-none"
+                     data-hub-inline="similar"></div>
+                <div class="hadith-inline-context hadith-inline-context--quran d-none"
+                     data-hub-inline="quran"></div>
+
                 <div class="hadith-notes mt-3" th:if="${!#strings.isEmpty(narration.notes)}">
                     <div class="hadith-notes__head">
                         <span class="hadith-notes__label">Notes</span>
