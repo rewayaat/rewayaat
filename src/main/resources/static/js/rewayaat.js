@@ -4457,14 +4457,41 @@ function updateBrowseSubmitState(selections) {
     }
 }
 
+/**
+ * Browsing a book, volume or chapter goes to that page, not into reading mode.
+ *
+ * Those pages carry the same hadith cards, the same tag facet and the same actions, and
+ * they are real URLs a reader can share or a search engine can index — which the
+ * reading-mode result set is not. Reading mode still exists and its URLs still work;
+ * nothing routes to it from here any more.
+ *
+ * The URL is resolved server-side because the slugs come from BookCatalog.slugify, and
+ * a second implementation here would drift from the routes it has to match.
+ */
 function startBrowseFlow(scopedSelections) {
     var selections = scopedSelections || getBrowseSelections();
     if (!selections.book) {
         return;
     }
-    executeSearchSubmission(selections, {
-        ignoreSearchTerms: true
+    var params = new URLSearchParams();
+    ['book', 'volume', 'part', 'section', 'chapter'].forEach(function(key) {
+        if (selections[key]) {
+            params.set(key, selections[key]);
+        }
     });
+    fetch('/v1/browse/page?' + params.toString(), { credentials: 'same-origin' })
+        .then(function(resp) { return resp.json(); })
+        .then(function(data) {
+            if (data && data.ok && data.url) {
+                window.location.href = data.url;
+                return;
+            }
+            // No page of its own: fall back to the search the panel used to run.
+            executeSearchSubmission(selections, { ignoreSearchTerms: true });
+        })
+        .catch(function() {
+            executeSearchSubmission(selections, { ignoreSearchTerms: true });
+        });
 }
 
 function sanitizeQueryValue(value) {

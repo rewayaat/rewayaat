@@ -38,9 +38,12 @@ with no keyword terms — or when the URL carries `mode=read`. `isReadingMode()`
 `rewayaat.js` decides; reading mode pages larger and sorts by the book's own numbering
 rather than by score.
 
-This is why the server-rendered book pages do not render narrations themselves. They link
-into reading mode instead, building the same query grammar `buildQueryFromFilters` and
-`buildSortFields` produce:
+Nothing routes to it any more. The browse panel used to submit into reading mode; it now
+asks `/v1/browse/page` which page a selection corresponds to and goes there, because the
+book, volume and chapter pages carry the same cards, the same tag facet and the same
+actions, and are real URLs that can be shared and indexed. Reading mode and its URLs
+still work, and the chapter pages link to it for what the app adds on top — PDF export
+and the cross-corpus panels. The link is built as:
 
 ```
 /?q=book:"Al-Kāfi" volume:"2" section:"20" chapter:"Degrees of Belief"
@@ -53,9 +56,10 @@ into reading mode instead, building the same query grammar `buildQueryFromFilter
 `readingUrl()`. The two implementations have to agree and nothing fails loudly if they
 drift — see [seo.md](seo.md#the-one-fragile-coupling).
 
-The division of labour: reading mode is where narrations are *read*, in full and with the
-Arabic. The chapter pages carry English excerpts, because they exist to be crawled and
-reading mode — like every search result page — is `noindex` and renders in the browser.
+The division of labour has since shifted. The chapter pages render the full card —
+Arabic, English, metadata, tags, Related and Tafsir — so reading mode is no longer where
+a narration is read; it is one more view over the same corpus, kept because its URLs are
+in the wild and because export and tag filtering across a whole result set live there.
 
 ## Similar Hadith (SimilarHadithService)
 

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -147,6 +148,7 @@ public class BookPageController {
 
     @GetMapping("/books/{bookSlug}/{chapterSlug}")
     public String chapterPage(@PathVariable String bookSlug, @PathVariable String chapterSlug,
+                              @RequestParam(value = "tag", required = false) String tag,
                               Model model, HttpServletResponse response) throws IOException {
         Optional<BookCatalog.Chapter> found = catalog.chapter(bookSlug, chapterSlug);
         if (found.isEmpty()) {
@@ -154,7 +156,23 @@ public class BookPageController {
             return null;
         }
         BookCatalog.Chapter chapter = found.get();
-        List<Map<String, Object>> narrations = narrationsIn(chapter);
+        List<Map<String, Object>> all = narrationsIn(chapter);
+
+        // The tag facet, counted over the whole chapter so the counts do not change as
+        // you filter — the same behaviour the search page's tag bar has.
+        List<Map<String, Object>> facets = tagFacets(all, tag, chapter);
+        String activeTag = tag == null || tag.isBlank() ? null : tag.trim();
+        List<Map<String, Object>> narrations = activeTag == null ? all : all.stream()
+                .filter(n -> hasTag(n, activeTag))
+                .toList();
+
+        model.addAttribute("tagFacets", facets);
+        model.addAttribute("activeTag", activeTag);
+        model.addAttribute("activeTagLabel", activeTag == null ? null : topicLabels.label(activeTag));
+        model.addAttribute("clearTagUrl", chapter.url());
+        // A filtered view is a slice of a page that is already indexed, so it points its
+        // canonical back at the whole chapter rather than competing with it.
+        model.addAttribute("robotsDirective", activeTag == null ? null : "noindex, follow");
 
         model.addAttribute("chapter", chapter);
         model.addAttribute("narrations", narrations);
@@ -293,6 +311,7 @@ public class BookPageController {
         row.put("notes", str(source.get("notes")));
         row.put("metadata", metadataRows(source, number));
         row.put("tags", topicTags(source));
+        row.put("tagSlugs", tagSlugs(source));
         row.put("similarCount", source.get("llm_similar") instanceof List<?> l ? l.size() : 0);
         row.put("shareUrl", BASE_URL + "/hadith/" + id);
         row.put("reportHref", reportHref(id, book, number));
@@ -302,6 +321,36 @@ public class BookPageController {
                 "english", stripHtml(str(source.get("english"))),
                 "arabic", stripHtml(str(source.get("arabic"))))));
         return row;
+    }
+
+    /** Topic tags present in this chapter, with counts, most common first. */
+    private List<Map<String, Object>> tagFacets(List<Map<String, Object>> narrations,
+                                                String activeTag, BookCatalog.Chapter chapter) {
+        Map<String, Long> counts = new LinkedHashMap<>();
+        for (Map<String, Object> narration : narrations) {
+            for (String slug : slugsOf(narration)) {
+                counts.merge(slug, 1L, Long::sum);
+            }
+        }
+        return counts.entrySet().stream()
+                .sorted((a, b) -> Long.compare(b.getValue(), a.getValue()))
+                .map(e -> Map.<String, Object>of(
+                        "slug", e.getKey(),
+                        "label", topicLabels.label(e.getKey()),
+                        "count", e.getValue(),
+                        "active", e.getKey().equals(activeTag),
+                        "url", chapter.url() + "?tag=" + encode(e.getKey())))
+                .toList();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<String> slugsOf(Map<String, Object> narration) {
+        Object raw = narration.get("tagSlugs");
+        return raw instanceof List<?> list ? (List<String>) list : List.of();
+    }
+
+    private static boolean hasTag(Map<String, Object> narration, String tag) {
+        return slugsOf(narration).contains(tag);
     }
 
     /** The same prefilled report mail the search card opens, built server-side. */
@@ -366,6 +415,13 @@ public class BookPageController {
     /** Plain text for the copy actions; the card shows the marked-up version. */
     private static String stripHtml(String html) {
         return html == null ? "" : html.replaceAll("<[^>]*>", " ").replaceAll("\\s+", " ").trim();
+    }
+
+    private static List<String> tagSlugs(Map<String, Object> source) {
+        if (!(source.get("topic_tags") instanceof List<?> raw)) {
+            return List.of();
+        }
+        return raw.stream().map(BookPageController::str).filter(v -> !v.isBlank()).toList();
     }
 
     private static String firstNonBlank(String first, String second) {

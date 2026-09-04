@@ -95,7 +95,14 @@ Al-Kāfi has 2,693 chapters. Listing them on the book page produced a 637 KB doc
 2,693 outbound links. Volumes are a level of their own so no page in the chain carries
 more than a few hundred.
 
-### 7. Content must be in the server's HTML
+### 7. Filtered views never compete with the page they filter
+
+A tag-filtered chapter (`?tag=wilayah`) is a slice of a page that is already indexed. It
+carries `noindex, follow` and a canonical pointing at the unfiltered chapter, so the
+facet stays useful to readers without spawning thin near-duplicates of every chapter
+times every tag.
+
+### 8. Content must be in the server's HTML
 
 The home page body used to be fetched with `$("#welcome").load("/welcome.html")`, so the
 served page was ~400 words of Vue template chrome with no prose and no links. It is a
@@ -120,6 +127,7 @@ The rule: if a crawler that does not run scripts cannot see it, it does not coun
 | `/books/{book}` | yes | Server |
 | `/books/{book}/volume/{n}` | yes | Server |
 | `/books/{book}/{chapter}` | yes | Server |
+| `/books/{book}/{chapter}?tag=` | **no** — `noindex, follow` | Server |
 | `/hadith/{id}` | yes | Server |
 | `/error/*` | no | — (`X-Robots-Tag: noindex`) |
 

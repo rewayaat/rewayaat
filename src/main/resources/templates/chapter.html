@@ -36,7 +36,33 @@
 
     <div th:replace="~{fragments/site :: ornament}"></div>
 
-    <h2 class="hub-group__label">In this chapter</h2>
+    <!-- The chapter's tag facet, the one thing reading mode had that these pages did
+         not. Server-rendered as links, so it works without scripts and each filtered
+         view is a real URL a reader can share. -->
+    <div class="tag-filter-bar tag-filter-bar--results mb-3" th:if="${!#lists.isEmpty(tagFacets)}">
+        <div class="tag-filter-bar__head">
+            <span class="tag-filter-bar__label">Filter by Tag</span>
+            <a class="tag-filter-bar__clear" th:if="${activeTag != null}" th:href="${clearTagUrl}">Clear</a>
+        </div>
+        <div class="tag-filter-bar__pills">
+            <a class="topic-pill" th:each="facet : ${tagFacets}"
+               th:href="${facet.active} ? ${clearTagUrl} : ${facet.url}"
+               th:classappend="${facet.active} ? 'topic-pill--active' : ''">
+                <span th:text="${facet.label}">Tag</span>
+                <span class="topic-pill__count" th:text="${facet.count}">2</span>
+            </a>
+        </div>
+    </div>
+
+    <h2 class="hub-group__label">
+        In this chapter
+        <span class="hub-group__note" th:if="${activeTag != null}"
+              th:text="'filtered by ' + ${activeTagLabel}">filtered</span>
+    </h2>
+
+    <p class="text-muted" th:if="${#lists.isEmpty(narrations)}">
+        No narrations in this chapter carry that tag.
+    </p>
 
     <!-- The same card the search results render, from the same fragment and the same
          CSS classes, so moving between the two never feels like changing product. -->

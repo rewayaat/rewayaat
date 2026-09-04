@@ -11011,3 +11011,49 @@ body.is-search-mode .site-nav .search-entry-shell {
     line-height: 1.45;
     color: rgba(245, 236, 214, 0.66);
 }
+
+/* ── Tag facet on server-rendered chapter pages ─────────────────────────── */
+/* Reuses .tag-filter-bar and .topic-pill from the results page, so the facet looks
+   the same whichever way the reader arrived. Links rather than buttons: each filtered
+   view is a real URL, which works without scripts and can be shared. */
+.tag-filter-bar__head {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.6rem;
+}
+
+.tag-filter-bar__label {
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--primary);
+}
+
+.tag-filter-bar__clear {
+    font-family: var(--font-ui);
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--gold-dark);
+    text-decoration: none;
+}
+
+.tag-filter-bar__clear:hover { text-decoration: underline; }
+
+.tag-filter-bar__pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.tag-filter-bar__pills .topic-pill {
+    text-decoration: none;
+}
+
+.topic-pill__count {
+    margin-left: 0.4rem;
+    opacity: 0.7;
+    font-size: 0.72em;
+}
