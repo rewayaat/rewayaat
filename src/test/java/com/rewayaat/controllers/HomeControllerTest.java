@@ -1,5 +1,6 @@
 package com.rewayaat.controllers;
 
+import com.rewayaat.service.BookCatalog;
 import org.junit.jupiter.api.Test;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
@@ -10,9 +11,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class HomeControllerTest {
 
+    /** The catalog is only read for the rendered book list; an empty one is enough here. */
+    private static HomeController controller() {
+        return new HomeController(new BookCatalog());
+    }
+
     @Test
     void home_populatesModelAttributes() {
-        HomeController controller = new HomeController();
+        HomeController controller = controller();
         Model model = new ExtendedModelMap();
 
         String view = controller.home("query", 2, "book:asc", null, model);
@@ -31,7 +37,7 @@ class HomeControllerTest {
     void home_titleAndDescriptionCarryTheTargetPhrase() {
         Model model = new ExtendedModelMap();
 
-        new HomeController().home("", 1, null, null, model);
+        controller().home("", 1, null, null, model);
 
         String title = (String) model.getAttribute("seoTitle");
         String description = (String) model.getAttribute("seoDescription");
@@ -49,7 +55,7 @@ class HomeControllerTest {
     void home_canonicalIsAbsoluteAndOnTheCanonicalHost() {
         Model model = new ExtendedModelMap();
 
-        new HomeController().home("", 1, null, null, model);
+        controller().home("", 1, null, null, model);
 
         assertEquals("https://hadith.academyofislam.com/", model.getAttribute("canonicalUrl"));
     }
@@ -58,7 +64,7 @@ class HomeControllerTest {
     void home_publishesWebsiteAndOrganizationStructuredData() {
         Model model = new ExtendedModelMap();
 
-        new HomeController().home("", 1, null, null, model);
+        controller().home("", 1, null, null, model);
 
         String jsonLd = (String) model.getAttribute("jsonLd");
         assertTrue(jsonLd.contains("\"WebSite\""), "expected WebSite node");
@@ -72,8 +78,8 @@ class HomeControllerTest {
         Model bare = new ExtendedModelMap();
         Model search = new ExtendedModelMap();
 
-        new HomeController().home("", 1, null, null, bare);
-        new HomeController().home("prayer", 1, null, null, search);
+        controller().home("", 1, null, null, bare);
+        controller().home("prayer", 1, null, null, search);
 
         assertNull(bare.getAttribute("robotsDirective"));
         assertEquals("noindex, follow", search.getAttribute("robotsDirective"));
@@ -81,7 +87,7 @@ class HomeControllerTest {
 
     @Test
     void verifyRedirect_sendsTokenToSigninPage() {
-        HomeController controller = new HomeController();
+        HomeController controller = controller();
 
         String redirect = controller.verifyRedirect("abc123");
 
@@ -90,7 +96,7 @@ class HomeControllerTest {
 
     @Test
     void resetRedirect_sendsTokenToSigninPage() {
-        HomeController controller = new HomeController();
+        HomeController controller = controller();
 
         String redirect = controller.resetRedirect("abc123");
 

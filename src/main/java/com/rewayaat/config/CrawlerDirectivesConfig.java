@@ -12,21 +12,21 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Marks the pages that serve a purpose but should never appear in search results.
  *
- * <p>{@code welcome.html} is a fragment the home page pulls in over XHR — it has no
- * {@code <html>}, {@code <head>} or {@code <title>} — yet it answers 200 on its own
- * URL, so a crawler can index it as a thin duplicate of the home page hero. The
- * {@code error/*} pages are reachable directly for the same reason.
+ * <p>The {@code error/*} pages are reachable on their own URLs and answer 200 there, so
+ * a crawler can index them as thin content.
  *
- * <p>Both are handled with a header rather than a {@code Disallow} in robots.txt,
- * because Disallow is the wrong tool twice over here: Googlebot renders the home
- * page and fetches the fragment while doing so, so blocking it would hide the hero
- * from the index, and a blocked URL can still be indexed from a link — a crawler
- * that cannot fetch the page never sees the noindex telling it to stay away.
+ * <p>Handled with a header rather than a {@code Disallow} in robots.txt, because a
+ * blocked URL can still be indexed from a link — a crawler that cannot fetch the page
+ * never sees the noindex telling it to stay away.
+ *
+ * <p>{@code welcome.html} used to be listed here too. It was the home page body, pulled
+ * in over XHR, which is why the home page served no content to a crawler; the body is
+ * rendered by the server now and the file is gone.
  */
 @Configuration
 public class CrawlerDirectivesConfig {
 
-    private static final List<String> NOINDEX_PATHS = List.of("/welcome.html", "/error/*");
+    private static final List<String> NOINDEX_PATHS = List.of("/error/*");
 
     @Bean
     public FilterRegistrationBean<Filter> noindexFilter() {

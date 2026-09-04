@@ -10106,3 +10106,84 @@ body.is-search-mode .site-nav .search-entry-shell {
         z-index: 2;
     }
 }
+
+/* ---------------------------------------------------------------------------
+   Home page prose and the book index.
+
+   Both are rendered by the server. The home page body used to be fetched over
+   XHR, so it carried no readable copy and no links; these are the styles for the
+   copy and the links that replaced that.
+   --------------------------------------------------------------------------- */
+
+/* Sits on the dark hero card, so it takes the hero's palette rather than the
+   page's body colours the way the rest of the home page prose does. */
+.home-hero__lede {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 1rem;
+    line-height: 1.7;
+    color: rgba(245, 236, 214, 0.82);
+    width: min(100%, 760px);
+    margin: 0 auto 0.9rem;
+    text-align: center;
+}
+
+.home-hero__lede strong {
+    color: #f6df88;
+    font-weight: 600;
+}
+
+.home-hero__lede a {
+    color: rgba(245, 236, 214, 0.95);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+}
+
+.home-hero__lede a:hover {
+    color: #f6df88;
+}
+
+.home-books__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 0.75rem;
+}
+
+.home-books__item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--bs-border-color, #e3e0d8);
+    border-radius: 0.55rem;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.home-books__item:hover {
+    border-color: var(--bs-secondary-color, #8a8578);
+    background: var(--bs-tertiary-bg, #faf8f3);
+}
+
+.home-books__name {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: 1.12rem;
+    line-height: 1.25;
+}
+
+.home-books__count {
+    font-size: 0.8rem;
+    color: var(--bs-secondary-color, #7a756a);
+}
+
+@media (max-width: 575.98px) {
+    .home-hero__lede {
+        font-size: 0.95rem;
+        text-align: left;
+    }
+
+    .home-books__grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}

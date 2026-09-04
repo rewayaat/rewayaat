@@ -1,3 +1,13 @@
+<!--
+  The home page body.
+
+  This lived in static/welcome.html and was injected with $("#welcome").load(...),
+  which meant the raw home page was ~400 words of Vue template chrome: the hero, the
+  book list and the disclaimer were invisible to any crawler that does not execute
+  scripts, and the page had no internal links at all. It is now rendered by the server
+  and the script reuses the markup that is already in the document.
+-->
+<div th:fragment="body" xmlns:th="http://www.thymeleaf.org">
 <section class="home-hero">
     <div class="home-hero__card">
         <div class="home-hero__layout">
@@ -6,6 +16,17 @@
                 <div class="home-hero__brand">
                     <img src="/img/mainlogo-transparent.png" class="home-hero__logo" alt="The Hadith Database logo" />
                 </div>
+                <!-- Real prose on the home page, which previously carried none a crawler
+                     could read. It is also the only place the phrase the site is trying
+                     to rank for appears in the visible copy. -->
+                <p class="home-hero__lede">
+                    A searchable database of <strong>Shia hadith</strong> &mdash;
+                    <strong th:text="${#numbers.formatInteger(totalNarrations, 0, 'COMMA')}">32,000</strong>
+                    narrations of the Prophet and the Ahlul Bayt, in the original Arabic with English
+                    translation, drawn from <a href="/books">Al-Kafi, Nahj al-Balagha, Man La Yahduruh
+                    al-Faqih and other primary collections</a>. Every narration keeps its chain of
+                    transmission and links to similar narrations and the Qur'anic verses it draws on.
+                </p>
                 <p class="home-hero__search-note">
                     Search in <span>English</span> or <span>Arabic</span> by single terms or phrases wrapped in quotations.
                 </p>
@@ -148,6 +169,30 @@
     <div id="collectionsEmpty" class="small text-muted">No collections yet. Save a hadith to create your first list.</div>
 </section>
 
+
+<section class="home-books" id="collections">
+    <div class="home-section-header">
+        <div>
+            <h2 class="home-section-title">The Collections</h2>
+            <p class="home-section-subtitle">
+                Every book in the database, with its chapters laid out for reading.
+                <a href="/books" class="recent-updates-more">See all books &#8594;</a>
+            </p>
+        </div>
+    </div>
+    <!-- Server-rendered on purpose. The rest of this page is fetched over XHR, so a
+         crawler that does not run scripts saw a page with no content and no links;
+         these are the links that lead down into the 32,000 narrations. -->
+    <div class="home-books__grid">
+        <a class="home-books__item" th:each="book : ${books}" th:href="@{'/books/' + ${book.slug}}">
+            <span class="home-books__name" th:text="${book.name}">Al-Kafi</span>
+            <span class="home-books__count">
+                <span th:text="${#numbers.formatInteger(book.count, 0, 'COMMA')}">14,242</span> narrations
+            </span>
+        </a>
+    </div>
+</section>
+
 <section class="home-notice" id="about">
     <div class="card shadow-sm border-0 home-card">
         <div class="card-body">
@@ -161,3 +206,5 @@
         </div>
     </div>
 </section>
+
+</div>

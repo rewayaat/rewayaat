@@ -10,6 +10,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.List;
+
+import com.rewayaat.service.BookCatalog;
+
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
@@ -21,6 +25,12 @@ import jakarta.servlet.http.HttpServletRequest;
 public class HomeController {
 
     private static final Logger log = LoggerFactory.getLogger(HomeController.class);
+
+    private final BookCatalog catalog;
+
+    public HomeController(BookCatalog catalog) {
+        this.catalog = catalog;
+    }
 
     /**
      * The host every canonical points at. The app also answers on rewayaat.info, and the
@@ -90,6 +100,13 @@ public class HomeController {
         model.addAttribute("query", query);
         model.addAttribute("page", page);
         model.addAttribute("sort_fields", sortFields);
+
+        // The home page body used to be fetched over XHR, so the served HTML carried no
+        // content and no links. It is rendered from the catalog now, which also gives the
+        // page its first internal links into the book hubs.
+        List<BookCatalog.Book> books = catalog.books();
+        model.addAttribute("books", books);
+        model.addAttribute("totalNarrations", books.stream().mapToLong(BookCatalog.Book::count).sum());
 
         model.addAttribute("seoTitle", HOME_TITLE);
         model.addAttribute("seoDescription", HOME_DESCRIPTION);

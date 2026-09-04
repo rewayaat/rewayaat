@@ -3,11 +3,16 @@
 <!--
   Shared chrome for the server-rendered pages (books, book, chapter).
 
+  Fragment names deliberately avoid being HTML tag names. Thymeleaf's "::name" resolves
+  a fragment name first but also matches it as a tag selector, so a fragment called
+  "nav" pulled in every <nav> in this file — the site header and the breadcrumb trail
+  both — and every page rendered its breadcrumbs twice.
+
   These pages exist to be crawled, so everything on them is real HTML rendered by the
   server: the rest of the site builds its content in the browser, and a crawler that
   does not run scripts sees an empty shell.
 -->
-<head th:fragment="head">
+<head th:fragment="sitehead">
     <meta charset="UTF-8"/>
     <title th:text="${seoTitle}">The Hadith Database</title>
     <meta name="description" th:content="${seoDescription}"/>
@@ -70,7 +75,7 @@
 </head>
 
 <body>
-<nav th:fragment="nav" class="navbar navbar-expand-lg sticky-top site-nav">
+<nav th:fragment="sitenav" class="navbar navbar-expand-lg sticky-top site-nav">
     <div class="container">
         <div class="navbar-top w-100 d-flex align-items-center flex-wrap gap-3">
             <a class="navbar-brand d-flex align-items-center gap-2" href="/">
@@ -89,7 +94,7 @@
 </nav>
 
 <!-- The visible trail, rendered from the same list the BreadcrumbList is built from. -->
-<nav th:fragment="crumbs" class="hub-crumbs" aria-label="Breadcrumb">
+<nav th:fragment="crumbtrail" class="hub-crumbs" aria-label="Breadcrumb">
     <th:block th:each="crumb, it : ${breadcrumbs}">
         <span th:if="${!it.first}" class="hub-crumbs__sep">/</span>
         <a th:if="${!it.last}" th:href="${crumb.url}" th:text="${crumb.name}">Crumb</a>
@@ -97,7 +102,7 @@
     </th:block>
 </nav>
 
-<footer th:fragment="footer" class="site-footer">
+<footer th:fragment="sitefooter" class="site-footer">
     <div class="container">
         <div class="site-footer__grid">
             <div>

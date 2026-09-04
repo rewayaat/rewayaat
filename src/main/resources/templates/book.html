@@ -1,11 +1,11 @@
 <!doctype html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/site :: head}"></head>
+<head th:replace="~{fragments/site :: sitehead}"></head>
 <body>
-<nav th:replace="~{fragments/site :: nav}"></nav>
+<nav th:replace="~{fragments/site :: sitenav}"></nav>
 
 <main class="container py-3">
-    <nav th:replace="~{fragments/site :: crumbs}"></nav>
+    <nav th:replace="~{fragments/site :: crumbtrail}"></nav>
 
     <header class="hub-hero">
         <h1 class="hub-hero__title" th:text="${book.name}">Book name</h1>
@@ -44,7 +44,7 @@
     </section>
 </main>
 
-<footer th:replace="~{fragments/site :: footer}"></footer>
+<footer th:replace="~{fragments/site :: sitefooter}"></footer>
 <th:block th:replace="~{fragments/site :: analytics}"></th:block>
 </body>
 </html>

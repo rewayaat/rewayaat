@@ -5,6 +5,7 @@ import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rewayaat.config.ESClientProvider;
+import com.rewayaat.core.HadithDisplaySegmenter;
 import com.rewayaat.service.BookCatalog;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletResponse;
@@ -204,7 +205,7 @@ public class BookPageController {
                 row.put("id", hit.id());
                 row.put("url", "/hadith/" + hit.id());
                 row.put("number", str(source.get("number")));
-                row.put("excerpt", excerpt(str(source.get("english"))));
+                row.put("excerpt", excerpt(matn(source)));
                 results.add(row);
             }
         }
@@ -235,6 +236,27 @@ public class BookPageController {
     /** Volume labels are free text in the index, so they cannot go into a path raw. */
     private static String encode(String segment) {
         return URLEncoder.encode(segment, StandardCharsets.UTF_8).replace("+", "%20");
+    }
+
+    /**
+     * The narration itself, with the chain of transmission stripped.
+     *
+     * <p>Excerpting the raw English would open every entry with its isnad — "A number of
+     * our people have narrated from…" — which is near-identical boilerplate across
+     * thousands of narrations, and would make every chapter page look like a page of
+     * duplicates to a reader and to a crawler alike.
+     */
+    private static String matn(Map<String, Object> source) {
+        Map<String, Object> segmented = new LinkedHashMap<>();
+        segmented.put("english", source.get("english"));
+        segmented.put("arabic", source.get("arabic"));
+        try {
+            HadithDisplaySegmenter.enrich(segmented);
+        } catch (Exception e) {
+            LOGGER.debug("Could not segment a narration for its excerpt", e);
+        }
+        String content = str(segmented.getOrDefault("englishContent", ""));
+        return content.isBlank() ? str(source.get("english")) : content;
     }
 
     private static String str(Object value) {
