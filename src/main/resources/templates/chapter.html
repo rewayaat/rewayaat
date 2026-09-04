@@ -8,24 +8,28 @@
     <nav th:replace="~{fragments/site :: crumbtrail}"></nav>
 
     <header class="hub-hero">
+        <div class="hub-hero__eyebrow" th:text="${chapter.bookName}">Al-Kafi</div>
         <h1 class="hub-hero__title" th:text="${chapter.title}">Chapter title</h1>
-        <p class="hub-hero__lede">
-            <a th:href="${bookUrl}" th:text="${chapter.bookName}">Book</a>
-            <th:block th:if="${!#strings.isEmpty(chapter.volume)}">
-                &middot; Volume <span th:text="${chapter.volume}">1</span>
-            </th:block>
-            <th:block th:if="${!#strings.isEmpty(chapter.section)}">
-                &middot; Section <span th:text="${chapter.section}">1</span>
-            </th:block>
-            &middot; <span th:text="${#numbers.formatInteger(chapter.count, 0, 'COMMA')}">12</span> narrations
-        </p>
+        <div class="hub-hero__stats">
+            <span class="hub-stat" th:if="${!#strings.isEmpty(chapter.volume)}">
+                Volume <span class="hub-stat__value" th:text="${chapter.volume}">1</span>
+            </span>
+            <span class="hub-stat" th:if="${!#strings.isEmpty(chapter.section)}">
+                Section <span class="hub-stat__value" th:text="${chapter.section}">20</span>
+            </span>
+            <span class="hub-stat">
+                <span class="hub-stat__value" th:text="${#numbers.formatInteger(chapter.count, 0, 'COMMA')}">12</span>
+                narrations
+            </span>
+        </div>
     </header>
+
+    <div th:replace="~{fragments/site :: ornament}"></div>
 
     <div>
         <article class="hub-narration" th:each="narration : ${narrations}">
-            <div class="hub-narration__num" th:if="${!#strings.isEmpty(narration.number)}">
-                Hadith <span th:text="${narration.number}">1</span>
-            </div>
+            <span class="hub-narration__num" th:if="${!#strings.isEmpty(narration.number)}"
+                  th:text="${narration.number}">1</span>
             <p class="hub-narration__text" th:text="${narration.excerpt}">Excerpt of the narration.</p>
             <a class="hub-narration__link" th:href="${narration.url}">Read the full narration &rarr;</a>
         </article>

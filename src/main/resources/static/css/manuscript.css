@@ -10136,49 +10136,21 @@ body.is-search-mode .site-nav .search-entry-shell {
     font-weight: 600;
 }
 
+/* "Primary Collections" — the one coloured word in the lede, so it reads as the way in. */
+.home-hero__lede-link,
 .home-hero__lede a {
-    color: rgba(245, 236, 214, 0.95);
-    text-decoration: underline;
-    text-underline-offset: 0.15em;
+    color: var(--gold-light);
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(200, 162, 61, 0.45);
+    padding-bottom: 1px;
+    transition: color 160ms ease, border-color 160ms ease;
 }
 
+.home-hero__lede-link:hover,
 .home-hero__lede a:hover {
     color: #f6df88;
-}
-
-.home-books__grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-    gap: 0.75rem;
-}
-
-.home-books__item {
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-    padding: 0.85rem 1rem;
-    border: 1px solid var(--bs-border-color, #e3e0d8);
-    border-radius: 0.55rem;
-    text-decoration: none;
-    color: inherit;
-    transition: border-color 0.15s ease, background 0.15s ease;
-}
-
-.home-books__item:hover {
-    border-color: var(--bs-secondary-color, #8a8578);
-    background: var(--bs-tertiary-bg, #faf8f3);
-}
-
-.home-books__name {
-    font-family: 'Cormorant Garamond', Georgia, serif;
-    font-weight: 600;
-    font-size: 1.12rem;
-    line-height: 1.25;
-}
-
-.home-books__count {
-    font-size: 0.8rem;
-    color: var(--bs-secondary-color, #7a756a);
+    border-bottom-color: #f6df88;
 }
 
 @media (max-width: 575.98px) {
@@ -10187,7 +10159,470 @@ body.is-search-mode .site-nav .search-entry-shell {
         text-align: left;
     }
 
-    .home-books__grid {
-        grid-template-columns: 1fr 1fr;
+}
+
+/* ========================================================================
+   BOOK HUBS — /books, /books/{book}, /books/{book}/volume/{n},
+                /books/{book}/{chapter}
+
+   Built on the same navy-and-gold manuscript language as the home page:
+   the navy gradient panel, the gold rule beneath it, Cormorant for display
+   type, Source Serif for anything meant to be read, and the ۞ ornament as
+   the divider. The first pass at these pages used bare Bootstrap defaults
+   and looked like a different product.
+   ======================================================================== */
+
+/* ── Hero panel ─────────────────────────────────────────────────────────── */
+.hub-hero {
+    position: relative;
+    overflow: hidden;
+    margin: 0.5rem 0 2.5rem;
+    padding: 3rem 2.5rem 2.5rem;
+    border-radius: var(--radius-xl);
+    background: linear-gradient(135deg, #0a1628 0%, #0f2440 20%, #1e3a5f 50%, #1a4a7a 80%, #1e3a5f 100%);
+    box-shadow:
+        0 8px 16px rgba(0,0,0,0.15),
+        0 20px 50px rgba(10,22,40,0.28),
+        inset 0 1px 0 rgba(255,255,255,0.08);
+    color: #fff;
+    text-align: center;
+}
+
+/* Soft light pooling, matching the home page hero. */
+.hub-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse at 25% 8%, rgba(255,255,255,0.10) 0%, transparent 38%),
+        radial-gradient(ellipse at 78% 92%, rgba(200,162,61,0.14) 0%, transparent 32%);
+    pointer-events: none;
+}
+
+/* The gold rule that closes every navy panel on this site. */
+.hub-hero::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--gold) 22%, var(--gold-light) 50%, var(--gold) 78%, transparent);
+}
+
+.hub-hero__eyebrow {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 0.65rem;
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(243, 229, 184, 0.75);
+}
+
+.hub-hero__title {
+    position: relative;
+    margin: 0 0 0.5rem;
+    font-family: var(--font-ornament);
+    font-weight: 700;
+    font-size: clamp(2rem, 4.2vw, 2.9rem);
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+    color: #fff;
+    text-wrap: balance;
+}
+
+.hub-hero__lede {
+    position: relative;
+    max-width: 62ch;
+    margin: 0 auto;
+    font-family: var(--font-reference);
+    font-size: 1.02rem;
+    line-height: 1.7;
+    color: rgba(245, 236, 214, 0.82);
+}
+
+.hub-hero__lede strong {
+    color: var(--gold-light);
+    font-weight: 600;
+}
+
+.hub-hero__lede a {
+    color: rgba(245, 236, 214, 0.95);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(200, 162, 61, 0.45);
+}
+
+.hub-hero__lede a:hover {
+    color: #f6df88;
+    border-bottom-color: #f6df88;
+}
+
+/* Stat pills under the hero title. */
+.hub-hero__stats {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1.15rem;
+}
+
+.hub-stat {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: var(--radius-pill);
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(243, 229, 184, 0.18);
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    color: rgba(245, 236, 214, 0.7);
+}
+
+.hub-stat__value {
+    font-weight: 700;
+    font-size: 0.92rem;
+    color: var(--gold-light);
+}
+
+/* ── Breadcrumbs ────────────────────────────────────────────────────────── */
+.hub-crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0.35rem 0 0.9rem;
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    letter-spacing: 0.01em;
+    color: var(--text-muted);
+}
+
+.hub-crumbs a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 150ms ease;
+}
+
+.hub-crumbs a:hover {
+    color: var(--primary);
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+}
+
+.hub-crumbs__sep {
+    color: var(--gold);
+    opacity: 0.55;
+}
+
+.hub-crumbs > span:last-child {
+    color: var(--text);
+    font-weight: 600;
+}
+
+/* ── Ornament divider ───────────────────────────────────────────────────── */
+.hub-ornament {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+    margin: 0 0 1.75rem;
+}
+
+.hub-ornament__line {
+    flex: 1 1 120px;
+    max-width: 260px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(200, 162, 61, 0.5) 50%, transparent);
+}
+
+.hub-ornament__mark {
+    font-size: 1.05rem;
+    line-height: 1;
+    color: var(--gold);
+    opacity: 0.85;
+}
+
+/* ── Section headings ───────────────────────────────────────────────────── */
+.hub-group__label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0 0 1.1rem;
+    font-family: var(--font-ui);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--primary);
+}
+
+.hub-group__label::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(200, 162, 61, 0.45), transparent);
+}
+
+.hub-group {
+    margin-bottom: 2.75rem;
+}
+
+/* ── Cards (books, volumes) ─────────────────────────────────────────────── */
+.hub-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
+    gap: 1rem;
+}
+
+.hub-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 1.35rem 1.35rem 1.2rem;
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(245,248,252,0.99));
+    border: 1px solid rgba(30, 58, 95, 0.12);
+    border-top: 3px solid rgba(30, 58, 95, 0.7);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 10px 24px rgba(15, 23, 42, 0.05);
+    text-decoration: none;
+    color: inherit;
+    overflow: hidden;
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease, background 180ms ease;
+}
+
+/* A faint corner medallion, so a card is not just a rectangle. */
+.hub-card::after {
+    content: "۞";
+    position: absolute;
+    top: 0.5rem;
+    right: 0.75rem;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: rgba(200, 162, 61, 0.16);
+    transition: color 180ms ease;
+    pointer-events: none;
+}
+
+.hub-card:hover {
+    border-color: rgba(26, 58, 107, 0.35);
+    border-top-color: var(--gold);
+    background: linear-gradient(180deg, #eef3fb, #dde8f7);
+    box-shadow: 0 8px 24px rgba(26, 58, 107, 0.15), inset 0 1px 0 rgba(255,255,255,0.5);
+    transform: translateY(-2px);
+}
+
+.hub-card:hover::after {
+    color: rgba(200, 162, 61, 0.4);
+}
+
+.hub-card__title {
+    flex: 1;
+    margin-bottom: 0.6rem;
+    padding-right: 1.5rem;
+    font-family: var(--font-ornament);
+    font-weight: 700;
+    font-size: 1.32rem;
+    line-height: 1.2;
+    color: var(--primary-dark);
+}
+
+.hub-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.55rem;
+    font-family: var(--font-ui);
+    font-size: 0.73rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.hub-card__meta span strong {
+    color: var(--text-secondary);
+    font-weight: 700;
+}
+
+.hub-card__meta span + span::before {
+    content: "\2022";
+    margin-right: 0.55rem;
+    color: var(--gold);
+    opacity: 0.6;
+}
+
+/* ── Chapter lists ──────────────────────────────────────────────────────── */
+.hub-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    column-width: 21rem;
+    column-gap: 2.5rem;
+}
+
+.hub-list li {
+    break-inside: avoid;
+    margin-bottom: 0.15rem;
+}
+
+.hub-list a {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.5rem 0.7rem;
+    border-radius: var(--radius-md);
+    border-left: 2px solid transparent;
+    font-family: var(--font-reference);
+    font-size: 0.96rem;
+    line-height: 1.45;
+    color: var(--text);
+    text-decoration: none;
+    transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.hub-list a:hover {
+    background: var(--gold-bg);
+    border-left-color: var(--gold);
+    color: var(--primary-dark);
+}
+
+.hub-list__count {
+    flex: none;
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+}
+
+/* ── Book blurb ─────────────────────────────────────────────────────────── */
+/* The panel spans the column; the measure is capped on the text inside it, so a
+   long blurb stays readable without leaving a narrow card stranded in white space. */
+.hub-blurb {
+    position: relative;
+    margin-bottom: 2.75rem;
+    padding: 1.75rem 2rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(200, 162, 61, 0.28);
+    background: linear-gradient(180deg, var(--gold-bg), var(--surface-warm));
+    font-family: var(--font-reference);
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+}
+
+/* The blurb opens with the book's name, which the hero already carries. */
+.hub-blurb__body > h2:first-child {
+    display: none;
+}
+
+.hub-blurb__body {
+    max-width: 74ch;
+}
+
+.hub-blurb h2 {
+    margin-bottom: 0.75rem;
+    font-family: var(--font-ornament);
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--primary-dark);
+}
+
+.hub-blurb b {
+    color: var(--primary);
+}
+
+.hub-blurb p:last-child {
+    margin-bottom: 0;
+}
+
+/* ── Narration entries on a chapter page ────────────────────────────────── */
+.hub-narration {
+    position: relative;
+    padding: 1.5rem 0 1.6rem 3.25rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.hub-narration:last-child {
+    border-bottom: none;
+}
+
+/* The hadith number as a gold-ringed marker in the margin. */
+.hub-narration__num {
+    position: absolute;
+    left: 0;
+    top: 1.45rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.35rem;
+    height: 2.35rem;
+    padding: 0 0.4rem;
+    border-radius: 50%;
+    border: 1px solid rgba(200, 162, 61, 0.45);
+    background: var(--gold-bg);
+    font-family: var(--font-ui);
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--gold-dark);
+}
+
+.hub-narration__text {
+    max-width: 74ch;
+    margin: 0 0 0.6rem;
+    font-family: var(--font-reference);
+    font-size: 1.05rem;
+    line-height: 1.75;
+    color: var(--text);
+}
+
+.hub-narration__link {
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.hub-narration__link:hover {
+    color: var(--gold-dark);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+}
+
+/* ── Narrow screens ─────────────────────────────────────────────────────── */
+@media (max-width: 767.98px) {
+    .hub-hero {
+        margin-bottom: 1.75rem;
+        padding: 2.25rem 1.25rem 1.9rem;
+    }
+
+    .hub-hero__lede {
+        font-size: 0.95rem;
+    }
+
+    .hub-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hub-list {
+        column-width: auto;
+    }
+
+    .hub-narration {
+        padding-left: 0;
+    }
+
+    .hub-narration__num {
+        position: static;
+        margin-bottom: 0.6rem;
     }
 }

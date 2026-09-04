@@ -8,39 +8,57 @@
     <nav th:replace="~{fragments/site :: crumbtrail}"></nav>
 
     <header class="hub-hero">
+        <div class="hub-hero__eyebrow">Collection</div>
         <h1 class="hub-hero__title" th:text="${book.name}">Book name</h1>
-        <p class="hub-hero__lede">
-            <strong th:text="${#numbers.formatInteger(book.count, 0, 'COMMA')}">1,000</strong> narrations
-            across <span th:text="${#numbers.formatInteger(#lists.size(book.chapters), 0, 'COMMA')}">100</span>
-            chapters, in Arabic and English.
-        </p>
+        <div class="hub-hero__stats">
+            <span class="hub-stat">
+                <span class="hub-stat__value" th:text="${#numbers.formatInteger(book.count, 0, 'COMMA')}">1,000</span>
+                narrations
+            </span>
+            <span class="hub-stat">
+                <span class="hub-stat__value" th:text="${#numbers.formatInteger(#lists.size(book.chapters), 0, 'COMMA')}">100</span>
+                chapters
+            </span>
+            <span class="hub-stat" th:if="${!#lists.isEmpty(volumes)}">
+                <span class="hub-stat__value" th:text="${#lists.size(volumes)}">8</span>
+                volumes
+            </span>
+        </div>
     </header>
 
-    <!-- The shipped description of the collection, where one exists for this book. -->
-    <div class="hub-blurb" th:if="${blurb != null}" th:utext="${blurb}"></div>
+    <div th:replace="~{fragments/site :: ornament}"></div>
 
     <!-- Books with volumes list those; the chapters live one level down so that no
          single page carries thousands of links. Flat books list chapters directly. -->
-    <section th:if="${!#lists.isEmpty(volumes)}">
+    <section class="hub-group" th:if="${!#lists.isEmpty(volumes)}">
         <h2 class="hub-group__label">Volumes</h2>
         <div class="hub-grid">
             <a class="hub-card" th:each="volume : ${volumes}" th:href="${volume.url}">
                 <div class="hub-card__title" th:text="${volume.label}">Volume 1</div>
                 <div class="hub-card__meta">
-                    <span th:text="${#numbers.formatInteger(volume.chapterCount, 0, 'COMMA')}">100</span> chapters
+                    <span><strong th:text="${#numbers.formatInteger(volume.chapterCount, 0, 'COMMA')}">100</strong> chapters</span>
                 </div>
             </a>
         </div>
     </section>
 
-    <section th:if="${!#lists.isEmpty(chapters)}">
+    <section class="hub-group" th:if="${!#lists.isEmpty(chapters)}">
         <h2 class="hub-group__label">Chapters</h2>
         <ul class="hub-list">
             <li th:each="chapter : ${chapters}">
-                <a th:href="${chapter.url}" th:text="${chapter.title}">Chapter title</a>
-                <span class="hub-list__count" th:text="'(' + ${chapter.count} + ')'">(12)</span>
+                <a th:href="${chapter.url}">
+                    <span th:text="${chapter.title}">Chapter title</span>
+                    <span class="hub-list__count" th:text="${chapter.count}">12</span>
+                </a>
             </li>
         </ul>
+    </section>
+
+    <section class="hub-group" th:if="${blurb != null}">
+        <h2 class="hub-group__label">About this collection</h2>
+        <div class="hub-blurb">
+            <div class="hub-blurb__body" th:utext="${blurb}"></div>
+        </div>
     </section>
 </main>
 

@@ -8,22 +8,30 @@
     <nav th:replace="~{fragments/site :: crumbtrail}"></nav>
 
     <header class="hub-hero">
-        <h1 class="hub-hero__title">
-            <span th:text="${book.name}">Book</span> &mdash; <span th:text="${volumeLabel}">Volume 1</span>
-        </h1>
-        <p class="hub-hero__lede">
-            <strong th:text="${#numbers.formatInteger(narrationCount, 0, 'COMMA')}">1,000</strong> narrations
-            across <span th:text="${#numbers.formatInteger(#lists.size(chapters), 0, 'COMMA')}">100</span>
-            chapters, in Arabic and English.
-        </p>
+        <div class="hub-hero__eyebrow" th:text="${book.name}">Al-Kafi</div>
+        <h1 class="hub-hero__title" th:text="${volumeLabel}">Volume 1</h1>
+        <div class="hub-hero__stats">
+            <span class="hub-stat">
+                <span class="hub-stat__value" th:text="${#numbers.formatInteger(narrationCount, 0, 'COMMA')}">1,000</span>
+                narrations
+            </span>
+            <span class="hub-stat">
+                <span class="hub-stat__value" th:text="${#numbers.formatInteger(#lists.size(chapters), 0, 'COMMA')}">100</span>
+                chapters
+            </span>
+        </div>
     </header>
 
-    <section>
+    <div th:replace="~{fragments/site :: ornament}"></div>
+
+    <section class="hub-group">
         <h2 class="hub-group__label">Chapters</h2>
         <ul class="hub-list">
             <li th:each="chapter : ${chapters}">
-                <a th:href="${chapter.url}" th:text="${chapter.title}">Chapter title</a>
-                <span class="hub-list__count" th:text="'(' + ${chapter.count} + ')'">(12)</span>
+                <a th:href="${chapter.url}">
+                    <span th:text="${chapter.title}">Chapter title</span>
+                    <span class="hub-list__count" th:text="${chapter.count}">12</span>
+                </a>
             </li>
         </ul>
     </section>
