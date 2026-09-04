@@ -200,9 +200,173 @@
         });
     }
 
+    /* ── Card menus, copy and share ─────────────────────────────────────────── */
+
+    function closeMenus(except) {
+        document.querySelectorAll('[data-hub-menu]').forEach(function (menu) {
+            if (menu === except) { return; }
+            menu.classList.remove('show');
+            var trigger = menu.parentElement.querySelector('[data-hub-menu-trigger]');
+            if (trigger) { trigger.setAttribute('aria-expanded', 'false'); }
+        });
+    }
+
+    function cardData(node) {
+        var card = node.closest('.hadith-card');
+        var script = card && card.querySelector('.hub-card-data');
+        if (!script) { return {}; }
+        try { return JSON.parse(script.textContent || '{}'); } catch (e) { return {}; }
+    }
+
+    function copyText(text, label) {
+        if (!text) { toast('Nothing to copy.', 'error'); return; }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text)
+                .then(function () { toast(label + ' copied.'); })
+                .catch(function () { toast('Could not copy.', 'error'); });
+            return;
+        }
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.cssText = 'position:fixed;left:-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); toast(label + ' copied.'); }
+        catch (e) { toast('Could not copy.', 'error'); }
+        document.body.removeChild(ta);
+    }
+
+    function bindCardActions() {
+        document.addEventListener('click', function (event) {
+            // Bootstrap's JS is not loaded on these pages; two menus do not justify it.
+            var trigger = event.target.closest('[data-hub-menu-trigger]');
+            if (trigger) {
+                event.preventDefault();
+                var menu = trigger.parentElement.querySelector('[data-hub-menu]');
+                var open = menu.classList.contains('show');
+                closeMenus();
+                menu.classList.toggle('show', !open);
+                trigger.setAttribute('aria-expanded', open ? 'false' : 'true');
+                return;
+            }
+
+            var copyField = event.target.closest('[data-copy-field]');
+            if (copyField) {
+                var field = copyField.getAttribute('data-copy-field');
+                var data = cardData(copyField);
+                copyText(data[field], field === 'arabic' ? 'Arabic' : 'English');
+                closeMenus();
+                return;
+            }
+
+            var copyUrl = event.target.closest('[data-copy-url]');
+            if (copyUrl) {
+                copyText(copyUrl.getAttribute('data-copy-url'), 'Link');
+                closeMenus();
+                return;
+            }
+
+            closeMenus();
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') { closeMenus(); }
+        });
+    }
+
+    /* ── Related and Tafsir panels ──────────────────────────────────────────── */
+
+    function escapeHtml(value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function renderSimilar(body, data) {
+        var items = (data && data.collection) || [];
+        if (!items.length) {
+            body.innerHTML = '<div class="text-muted py-2">No similar narrations were found.</div>';
+            return;
+        }
+        body.innerHTML = '<div class="hadith-sidecar__list">' + items.map(function (item) {
+            var id = item._id || item.id || '';
+            var label = [item.book, item.number ? '#' + item.number : ''].filter(Boolean).join(' ');
+            var reason = item.matchReason || '';
+            return '<a class="hadith-sidecar__list-item" href="/hadith/' + encodeURIComponent(id) + '">' +
+                   '<span class="hadith-sidecar__list-line">' +
+                   '<span class="hadith-sidecar__list-eyebrow">' + escapeHtml(label || 'Related') + '</span>' +
+                   (item.matchType ? '<span class="hadith-sidecar__list-separator" aria-hidden="true">•</span>' +
+                                     '<span class="hadith-sidecar__list-text">' + escapeHtml(item.matchType) + '</span>' : '') +
+                   '</span>' +
+                   (reason ? '<span class="hadith-sidecar__list-reason">' + escapeHtml(reason) + '</span>' : '') +
+                   '</a>';
+        }).join('') + '</div>';
+    }
+
+    function renderQuran(body, data) {
+        var items = (data && (data.insights || data.candidates)) || [];
+        if (!items.length) {
+            body.innerHTML = '<div class="text-muted py-2">No Quranic insights for this narration.</div>';
+            return;
+        }
+        body.innerHTML = '<div class="hadith-sidecar__list">' + items.map(function (item) {
+            var ref = item.reference || item.verse_key || item.verseKey || '';
+            var text = item.snippet_text || item.snippetText || item.text || '';
+            return '<div class="hadith-sidecar__list-item">' +
+                   '<span class="hadith-sidecar__list-line">' +
+                   '<span class="hadith-sidecar__list-eyebrow">' + escapeHtml(ref) + '</span>' +
+                   '</span>' +
+                   (text ? '<span class="hadith-sidecar__list-reason">' + escapeHtml(text).slice(0, 400) + '</span>' : '') +
+                   '</div>';
+        }).join('') + '</div>';
+    }
+
+    var PANELS = {
+        similar: {url: function (id) { return '/v1/narrations/similar?id=' + encodeURIComponent(id) + '&per_page=10'; },
+                  render: renderSimilar},
+        quran:   {url: function (id) { return '/v1/narrations/quranic_insights?id=' + encodeURIComponent(id) + '&all=true'; },
+                  render: renderQuran}
+    };
+
+    function bindSidecarPanels() {
+        document.addEventListener('click', function (event) {
+            var btn = event.target.closest('[data-hub-panel]');
+            if (!btn) { return; }
+            event.preventDefault();
+            var card = btn.closest('.hadith-card');
+            var wanted = btn.getAttribute('data-hub-panel');
+
+            card.querySelectorAll('[data-hub-panel]').forEach(function (b) {
+                var active = b === btn;
+                b.classList.toggle('is-active', active);
+                b.setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+            card.querySelectorAll('[data-hub-panel-body]').forEach(function (body) {
+                body.classList.toggle('d-none', body.getAttribute('data-hub-panel-body') !== wanted);
+            });
+            // The card's own class drives the sidecar's width and colouring.
+            card.className = card.className.replace(/hadith-card--(metadata|similar|quran)/, 'hadith-card--' + wanted);
+
+            var spec = PANELS[wanted];
+            if (!spec) { return; }
+            var body = card.querySelector('[data-hub-panel-body="' + wanted + '"]');
+            if (body.dataset.loaded) { return; }
+            body.dataset.loaded = '1';
+            body.innerHTML = '<div class="hadith-loading-label py-2">Fetching...</div>';
+            apiJSON(spec.url(card.getAttribute('data-hadith-id')), {method: 'GET'})
+                .then(function (resp) { spec.render(body, resp.data); })
+                .catch(function () {
+                    body.dataset.loaded = '';
+                    body.innerHTML = '<div class="text-muted py-2">Could not load this panel.</div>';
+                });
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         bindNav();
         bindSaveButtons();
+        bindCardActions();
+        bindSidecarPanels();
         apiJSON('/v1/auth/me', { method: 'GET' })
             .then(function (resp) {
                 var data = resp.data || {};

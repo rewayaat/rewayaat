@@ -294,7 +294,35 @@ public class BookPageController {
         row.put("metadata", metadataRows(source, number));
         row.put("tags", topicTags(source));
         row.put("similarCount", source.get("llm_similar") instanceof List<?> l ? l.size() : 0);
+        row.put("shareUrl", BASE_URL + "/hadith/" + id);
+        row.put("reportHref", reportHref(id, book, number));
+        // The copy actions work off the text already on the page, so the card carries it
+        // in the markup rather than the script re-fetching what the reader can see.
+        row.put("copyJson", write(Map.of(
+                "english", stripHtml(str(source.get("english"))),
+                "arabic", stripHtml(str(source.get("arabic"))))));
         return row;
+    }
+
+    /** The same prefilled report mail the search card opens, built server-side. */
+    private static String reportHref(String id, String book, String number) {
+        String descriptor = (book + (number.isBlank() ? "" : " #" + number)).trim();
+        String subject = "Hadith Report: " + (descriptor.isBlank() ? "Hadith " + id : descriptor);
+        String body = String.join("\n",
+                "Please review the hadith linked below.",
+                "",
+                "Hadith link: " + BASE_URL + "/hadith/" + id,
+                "Hadith id: " + id,
+                "",
+                "Issue summary:",
+                "- ",
+                "",
+                "What seems incorrect:",
+                "- ",
+                "",
+                "Suggested correction (optional):",
+                "- ");
+        return "mailto:rewayaat.org@gmail.com?subject=" + encode(subject) + "&body=" + encode(body);
     }
 
     /** The sidecar rows, in the order and with the icons the Vue card uses. */
@@ -333,6 +361,11 @@ public class BookPageController {
                     "query", encode("topic_tags:\"" + value + "\"")));
         }
         return tags;
+    }
+
+    /** Plain text for the copy actions; the card shows the marked-up version. */
+    private static String stripHtml(String html) {
+        return html == null ? "" : html.replaceAll("<[^>]*>", " ").replaceAll("\\s+", " ").trim();
     }
 
     private static String firstNonBlank(String first, String second) {

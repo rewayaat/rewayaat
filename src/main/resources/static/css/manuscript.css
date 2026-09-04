@@ -10991,3 +10991,23 @@ body.is-search-mode .site-nav .search-entry-shell {
 .hadith-card--static .hadith-sidecar__rail-btn {
     text-decoration: none;
 }
+
+/* The card menus on server-rendered pages are driven by hub-pages.js rather than
+   Bootstrap's JS, so .show has to do the work data-bs-toggle would have done. */
+.hub-menu { position: relative; }
+
+.hub-menu .dropdown-menu.show {
+    display: block;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.35rem);
+    z-index: 1000;
+}
+
+.hadith-sidecar__list-reason {
+    display: block;
+    margin-top: 0.2rem;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: rgba(245, 236, 214, 0.66);
+}

@@ -14,7 +14,10 @@
   XHR and hold per-card state, so on a server-rendered page the rail links to the
   narration's own page, which has that material in full.
 -->
-<article th:fragment="card(narration, ordinal)" class="hadith-card hadith-card--metadata hadith-card--static">
+<article th:fragment="card(narration, ordinal)" class="hadith-card hadith-card--metadata hadith-card--static"
+         th:id="'hadith-' + ${narration.id}"
+         th:attr="data-hadith-id=${narration.id}">
+    <script type="application/json" class="hub-card-data" th:utext="${narration.copyJson}">{}</script>
     <div class="hadith-card__result-num" th:if="${ordinal != null}">
         Hadith <span th:text="${ordinal}">1</span>
     </div>
@@ -25,28 +28,31 @@
     <div class="row g-4 hadith-card__layout">
         <aside class="hadith-sidecar hadith-card__meta">
             <div class="hadith-sidecar__rail" role="tablist" aria-label="Hadith context panels">
-                <span class="hadith-sidecar__rail-btn is-active" aria-selected="true">
+                <button type="button" class="hadith-sidecar__rail-btn is-active"
+                        data-hub-panel="metadata" aria-selected="true">
                     <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
                     <span class="hadith-sidecar__rail-label">DETAILS</span>
                     <span class="hadith-sidecar__rail-icon"><i class="fa fa-info-circle" aria-hidden="true"></i></span>
-                </span>
-                <a class="hadith-sidecar__rail-btn" th:href="${narration.url}" title="Similar narrations">
+                </button>
+                <button type="button" class="hadith-sidecar__rail-btn" data-hub-panel="similar"
+                        aria-selected="false" title="Similar narrations">
                     <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
                     <span class="hadith-sidecar__rail-label">RELATED</span>
                     <span class="hadith-sidecar__rail-icon"><i class="fa fa-clone" aria-hidden="true"></i></span>
                     <span class="hadith-sidecar__rail-badge"
                           th:classappend="${narration.similarCount == 0} ? 'is-zero' : ''"
                           th:text="${narration.similarCount}">0</span>
-                </a>
-                <a class="hadith-sidecar__rail-btn" th:href="${narration.url}" title="Quranic insights">
+                </button>
+                <button type="button" class="hadith-sidecar__rail-btn" data-hub-panel="quran"
+                        aria-selected="false" title="Quranic insights">
                     <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
                     <span class="hadith-sidecar__rail-label">TAFSIR</span>
                     <span class="hadith-sidecar__rail-icon"><i class="fa fa-book" aria-hidden="true"></i></span>
-                </a>
+                </button>
             </div>
 
-            <div class="hadith-sidecar__panel is-metadata">
-                <div class="hadith-sidecar__panel-body">
+            <div class="hadith-sidecar__panel is-metadata" data-hub-panel-host>
+                <div class="hadith-sidecar__panel-body" data-hub-panel-body="metadata">
                     <div class="hadith-details">
                         <div class="meta-item" th:each="item : ${narration.metadata}">
                             <div class="meta-icon"><i th:class="${item.icon}" aria-hidden="true"></i></div>
@@ -57,6 +63,11 @@
                         </div>
                     </div>
                 </div>
+                <!-- Related and Tafsir load on demand from the same endpoints the search
+                     card uses; rendering them for every narration up front would put two
+                     more queries per hadith in front of every crawler. -->
+                <div class="hadith-sidecar__panel-body d-none" data-hub-panel-body="similar"></div>
+                <div class="hadith-sidecar__panel-body d-none" data-hub-panel-body="quran"></div>
             </div>
         </aside>
 
@@ -107,12 +118,64 @@
                            th:href="@{'/?q=' + ${tag.query}}" th:text="${tag.label}">tag</a>
                     </div>
 
+                    <!-- The same actions the search card offers, minus the two that only
+                         make sense inside the app: editing (needs editor access) and
+                         removing from a collection (only meaningful in collection view).
+                         The dropdowns are driven by hub-pages.js rather than Bootstrap's
+                         JS, so these pages do not pull the bundle in for two menus. -->
                     <div class="d-flex flex-wrap gap-2 hadith-header-actions hadith-card__actions">
-                        <button type="button" class="icon-action" data-requires-auth
+                        <div class="dropdown hadith-copy-dropdown hub-menu">
+                            <button class="icon-action icon-action--copy hadith-copy-trigger"
+                                    type="button" data-hub-menu-trigger
+                                    aria-expanded="false"
+                                    aria-label="Copy hadith text" title="Copy hadith text">
+                                <i class="fa fa-copy" aria-hidden="true"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end hadith-copy-menu" data-hub-menu>
+                                <li>
+                                    <button class="dropdown-item" type="button"
+                                            th:attr="data-copy-target=${narration.id}" data-copy-field="english">
+                                        Copy English
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item" type="button"
+                                            th:attr="data-copy-target=${narration.id}" data-copy-field="arabic">
+                                        Copy Arabic
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <button class="icon-action icon-action--save" type="button" data-requires-auth
                                 th:attr="data-save-hadith=${narration.id}, data-save-label=${narration.label}"
-                                aria-label="Save to a collection" title="Save to a collection">
+                                aria-label="Save hadith" title="Save to collection">
                             <i class="fa fa-bookmark" aria-hidden="true"></i>
                         </button>
+
+                        <a class="icon-action icon-action--report" target="_blank" rel="noopener noreferrer"
+                           th:href="${narration.reportHref}"
+                           aria-label="Report hadith" title="Report">
+                            <i class="fa fa-flag" aria-hidden="true"></i>
+                        </a>
+
+                        <div class="dropdown hadith-share-dropdown hub-menu">
+                            <button class="icon-action icon-action--share hadith-share-trigger"
+                                    type="button" data-hub-menu-trigger
+                                    aria-expanded="false"
+                                    aria-label="Share hadith" title="Share">
+                                <i class="fa fa-share-from-square" aria-hidden="true"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end hadith-copy-menu" data-hub-menu>
+                                <li>
+                                    <button class="dropdown-item" type="button"
+                                            th:attr="data-copy-url=${narration.shareUrl}">
+                                        Copy static URL
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+
                         <a class="icon-action" th:href="${narration.url}"
                            aria-label="Open this narration" title="Open this narration">
                             <i class="fa fa-arrow-up-right-from-square" aria-hidden="true"></i>
