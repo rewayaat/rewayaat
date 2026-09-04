@@ -13,6 +13,30 @@ spec:
       labels:
         app: rewayaat-v2
     spec:
+      # Both replicas ran on one node until now, which made replicas: 2 and the
+      # minAvailable: 1 PDB decorative: a single node failure took the whole app out,
+      # and a node drain had nowhere to move the second pod to.
+      #
+      # DoNotSchedule rather than ScheduleAnyway, because a preference is exactly what
+      # failed here -- the scheduler discards it the moment the preferred node is the
+      # cheaper fit, which is how both pods ended up co-located. maxSkew: 1 still allows
+      # two pods per node once every node already has one, so an HPA scale to 4 across
+      # fewer nodes is not blocked; it only forbids stacking while a node sits empty.
+      #
+      # nodeTaintsPolicy: Honor is what makes this drain-safe. The default (Ignore)
+      # counts cordoned nodes as valid domains, so during a drain the evicted node still
+      # looks like somewhere a pod ought to go, and the skew maths can refuse to place
+      # the replacement anywhere -- the pod stays Pending and the drain stalls on the
+      # PDB. Honor excludes nodes whose NoSchedule taint the pod does not tolerate,
+      # which is precisely what cordon adds.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          nodeTaintsPolicy: Honor
+          labelSelector:
+            matchLabels:
+              app: rewayaat-v2
       containers:
         - name: rewayaat-v2
           # Overridden by k8s/kustomization.yaml images.newTag during GitOps deploys.
