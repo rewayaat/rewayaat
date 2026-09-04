@@ -26,6 +26,7 @@
 
     <!-- JSON-LD Structured Data -->
     <script type="application/ld+json" th:utext="${jsonLd}"></script>
+    <script type="application/ld+json" th:utext="${breadcrumbJsonLd}" th:if="${breadcrumbJsonLd != null}"></script>
 
     <!-- Styles -->
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>
@@ -65,6 +66,14 @@
         .hp-share__btn:hover { color: var(--bs-body-color); border-color: var(--bs-secondary-color); background: var(--bs-tertiary-bg); }
         .hp-share__toast { display: inline-block; margin-left: 0.75rem; font-size: 0.8rem; color: #198754; opacity: 0; transition: opacity 0.3s; }
         .hp-share__toast.show { opacity: 1; }
+        .hp-related { margin-top: 2.5rem; padding-top: 1.25rem; border-top: 1px solid var(--bs-border-color); }
+        .hp-related__title { font-family: 'Cormorant Garamond', serif; font-weight: 700; font-size: 1.3rem; margin-bottom: 0.85rem; }
+        .hp-related__list { list-style: none; padding: 0; margin: 0; }
+        .hp-related__list li { padding: 0.6rem 0; border-bottom: 1px solid var(--bs-border-color); }
+        .hp-related__list a { font-family: 'Source Serif 4', serif; font-weight: 600; text-decoration: none; }
+        .hp-related__list a:hover { text-decoration: underline; }
+        .hp-related__excerpt { display: block; font-size: 0.88rem; line-height: 1.5; color: var(--bs-secondary-color); margin-top: 0.15rem; }
+        .hp-onward { display: flex; flex-wrap: wrap; gap: 1.5rem; }
     </style>
 </head>
 
@@ -80,7 +89,7 @@
             <div class="d-flex home-nav-links">
                 <a href="/" class="home-nav-link">Search</a>
                 <span class="home-nav-dot" aria-hidden="true">&middot;</span>
-                <a href="/#browse" class="home-nav-link">Browse</a>
+                <a href="/books" class="home-nav-link">Books</a>
                 <span class="home-nav-dot" aria-hidden="true">&middot;</span>
                 <a href="/updates.html" class="home-nav-link">Updates</a>
             </div>
@@ -99,23 +108,16 @@
                 Hadith <span th:text="${hadith.number}">123</span>
             </span>
 
-            <!-- Breadcrumb path: Part > Section > Chapter -->
-            <div class="hp-hero__path" th:if="${hadith.part != null and !hadith.part.isBlank()}">
-                <span th:if="${hadith.volume != null and !hadith.volume.isBlank()}"
-                      class="hp-hero__path-segment">Volume <span th:text="${hadith.volume}">1</span></span>
-                <span th:if="${hadith.volume != null and !hadith.volume.isBlank()}"
-                      class="hp-hero__path-sep">/</span>
-                <span th:if="${hadith.part != null and !hadith.part.isBlank()}"
-                      class="hp-hero__path-current" th:text="${hadith.part}">Part Name</span>
-                <span th:if="${hadith.section != null and !hadith.section.isBlank()}"
-                      class="hp-hero__path-sep">/</span>
-                <span th:if="${hadith.section != null and !hadith.section.isBlank()}"
-                      class="hp-hero__path-current" th:text="${hadith.section}">Section</span>
-                <span th:if="${hadith.chapter != null and !hadith.chapter.isBlank()}"
-                      class="hp-hero__path-sep">/</span>
-                <span th:if="${hadith.chapter != null and !hadith.chapter.isBlank()}"
-                      class="hp-hero__path-current" th:text="${hadith.chapter}">Chapter</span>
-            </div>
+            <!-- Breadcrumb path. These were <span>s: the page named its book, volume and
+                 chapter but linked to none of them, so every narration was a dead end. -->
+            <nav class="hp-hero__path" aria-label="Breadcrumb">
+                <th:block th:each="crumb, it : ${breadcrumbs}">
+                    <span th:if="${!it.first}" class="hp-hero__path-sep">/</span>
+                    <a th:if="${!it.last}" class="hp-hero__path-link"
+                       th:href="${crumb.url}" th:text="${crumb.name}">Crumb</a>
+                    <span th:if="${it.last}" class="hp-hero__path-current" th:text="${crumb.name}">Current</span>
+                </th:block>
+            </nav>
 
             <!-- Topic Tags -->
             <div class="hp-tags" th:if="${hadith.topicTags != null and !hadith.topicTags.isEmpty()}">
@@ -187,10 +189,31 @@
                     onclick="toggleHadithNotes()">Show more</button>
         </div>
 
-        <!-- Back to search -->
-        <a href="/" class="hp-back">
-            <i class="fa fa-arrow-left" aria-hidden="true"></i> Search more hadith
-        </a>
+        <!-- Related narrations. The pre-computed LLM-judged pairs were already in the
+             index and reachable only over an XHR a crawler never makes; rendered here
+             they become the internal link graph the corpus never had. -->
+        <section class="hp-related" th:if="${!#lists.isEmpty(similar)}">
+            <h2 class="hp-related__title">Similar narrations</h2>
+            <ul class="hp-related__list">
+                <li th:each="item : ${similar}">
+                    <a th:href="${item.url}" th:text="${item.label}">Al-Kafi #1</a>
+                    <span class="hp-related__excerpt" th:text="${item.excerpt}">Excerpt</span>
+                </li>
+            </ul>
+        </section>
+
+        <div class="hp-onward">
+            <a th:if="${chapterUrl != null}" th:href="${chapterUrl}" class="hp-back">
+                <i class="fa fa-list" aria-hidden="true"></i>
+                <span th:text="'All narrations in ' + ${hadith.chapter}">All narrations in this chapter</span>
+            </a>
+            <a href="/books" class="hp-back">
+                <i class="fa fa-book" aria-hidden="true"></i> Browse all books
+            </a>
+            <a href="/" class="hp-back">
+                <i class="fa fa-arrow-left" aria-hidden="true"></i> Search more hadith
+            </a>
+        </div>
     </article>
 </main>
 

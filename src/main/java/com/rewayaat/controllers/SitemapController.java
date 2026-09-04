@@ -17,6 +17,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.PathVariable;
+import com.rewayaat.service.BookCatalog;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -47,6 +48,12 @@ public class SitemapController {
     private volatile List<String> cachedIds = List.of();
     private volatile Instant cachedAt = Instant.EPOCH;
 
+    private final BookCatalog catalog;
+
+    public SitemapController(BookCatalog catalog) {
+        this.catalog = catalog;
+    }
+
     @RequestMapping(value = "/sitemap.xml", method = RequestMethod.GET, produces = MediaType.APPLICATION_XML_VALUE)
     public ResponseEntity<String> sitemapIndex() {
         LOGGER.debug("Generating sitemap index");
@@ -69,6 +76,13 @@ public class SitemapController {
         xml.append("    <loc>").append(BASE_URL).append("/sitemap-static.xml</loc>\n");
         xml.append("  </sitemap>\n");
 
+        // Book, volume and chapter hubs. These are the pages that link down to the
+        // narrations, so a crawler that starts here finds the whole corpus by following
+        // links rather than by trusting the 32k-entry hadith sitemaps alone.
+        xml.append("  <sitemap>\n");
+        xml.append("    <loc>").append(BASE_URL).append("/sitemap-books.xml</loc>\n");
+        xml.append("  </sitemap>\n");
+
         // Hadith sitemap pages
         for (int i = 1; i <= totalPages; i++) {
             xml.append("  <sitemap>\n");
@@ -89,6 +103,7 @@ public class SitemapController {
         xml.append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n");
 
         appendUrl(xml, "/", "1.0", "weekly");
+        appendUrl(xml, "/books", "0.9", "weekly");
         appendUrl(xml, "/updates.html", "0.6", "weekly");
         appendUrl(xml, "/search_tips.html", "0.5", "monthly");
 
@@ -96,6 +111,49 @@ public class SitemapController {
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_XML)
                 .body(xml.toString());
+    }
+
+    /**
+     * Every book, volume and chapter hub.
+     *
+     * <p>Roughly 7,800 URLs, comfortably inside the 50,000-per-file limit, so this does
+     * not page. They carry a higher priority than the narrations they lead to because
+     * they are the pages that can rank for a book or chapter name.
+     */
+    @RequestMapping(value = "/sitemap-books.xml", method = RequestMethod.GET, produces = MediaType.APPLICATION_XML_VALUE)
+    public ResponseEntity<String> booksSitemap() {
+        StringBuilder xml = new StringBuilder();
+        xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        xml.append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n");
+
+        try {
+            appendUrl(xml, "/books", "0.9", "weekly");
+            for (BookCatalog.Book book : catalog.books()) {
+                appendUrl(xml, "/books/" + escapeXml(book.slug()), "0.9", "weekly");
+                for (String volume : book.volumes()) {
+                    appendUrl(xml, "/books/" + escapeXml(book.slug()) + "/volume/"
+                            + escapeXml(urlEncode(volume)), "0.8", "monthly");
+                }
+                for (BookCatalog.Chapter chapter : book.chapters()) {
+                    appendUrl(xml, escapeXml(chapter.url()), "0.7", "monthly");
+                }
+            }
+        } catch (Exception e) {
+            // As with the hadith pages: a 5xx tells crawlers to retry and keep the
+            // sitemap they already have, where a 200 with an empty urlset would tell
+            // them the hubs had been withdrawn.
+            LOGGER.error("Error building the books sitemap", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+        xml.append("</urlset>");
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_XML)
+                .body(xml.toString());
+    }
+
+    private static String urlEncode(String segment) {
+        return java.net.URLEncoder.encode(segment, java.nio.charset.StandardCharsets.UTF_8).replace("+", "%20");
     }
 
     @RequestMapping(value = "/sitemap-hadith-{page}.xml", method = RequestMethod.GET, produces = MediaType.APPLICATION_XML_VALUE)
