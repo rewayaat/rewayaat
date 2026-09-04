@@ -793,11 +793,12 @@ body.is-search-mode .home-nav-links {
 .menu-reading-scope {
     position: relative;
     display: block;
-    /* Shrinkable. With flex-shrink 0 and a content-width basis, a long reading scope
-       ("Al-Kāfi · Volume 2 · The Book of Belief and Disbelief · 20 · Degrees of Belief")
-       could not shrink below its own text, so on a narrow window it pushed the navbar
-       wider than the viewport and the whole page scrolled sideways. The value inside
-       already ellipsises; it just never got the chance. */
+    /* The scope shares one line with the sign-in button and must never wrap off it, so
+       it is the item that absorbs the slack and ellipsises when there is none.
+       Two failure modes to avoid, both seen here: flex-shrink 0 (the original) meant a
+       long scope could not shrink below its own text and pushed the navbar wider than
+       the window; a min-width floor instead of ellipsis just moved the overflow. The
+       floor is a max-width on the label side, not a minimum on this one. */
     flex: 1 1 auto;
     min-width: 0;
     max-width: 100%;
@@ -845,6 +846,30 @@ body.is-search-mode .home-nav-links {
 
 body.is-reading-mode .top-actions { margin-left: 0 !important; flex: 0 0 auto; }
 body.is-reading-mode .menu-context-row { flex: 1 1 auto; min-width: 0; max-width: 100%; }
+
+/* The reading scope and the account actions belong on one line together. Letting the
+   row wrap dropped the scope onto a second line beside the sign-in button around
+   1026px, which read as a broken navbar rather than a responsive one. */
+.menu-context-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+/* The actions cluster is exactly as wide as its buttons, and no wider.
+   With flex-basis auto it was resolving to 582px against 99px of buttons between
+   768px and 992px, which left the reading scope beside it crushed to a 34px sliver
+   reading "RE SC". max-content states the intent the cascade was not delivering. */
+.menu-context-row > .top-actions {
+    flex: 0 0 auto;
+    width: max-content;
+}
+
+body.is-reading-mode .navbar-top {
+    flex-wrap: nowrap;
+}
 
 /* ── Profile Chip ───────────────────────────────────────────────────────── */
 .top-actions {
