@@ -12,11 +12,20 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import java.util.Map;
 
 /**
- * Translates unhandled exceptions from controllers into structured JSON error responses
+ * Translates unhandled exceptions from the JSON API into structured error responses
  * so that callers always receive a consistent {@code {"ok": false, "message": "..."}} envelope
  * rather than a Spring default error page.
+ *
+ * <p>Scoped to {@code controllers.rest} on purpose. Unscoped, this advice also caught the
+ * {@code NoResourceFoundException} Spring raises for an unmapped URL — with no handler
+ * method, and so no package to filter on, every 404 on the site answered 500 with a JSON
+ * body instead. Crawlers read site-wide 5xx as an unhealthy origin and cut their crawl
+ * rate for the whole domain, so the page-level SEO work was being served through a
+ * throttle. The selector also keeps the server-rendered pages (home, hadith, sitemap) on
+ * the container's error dispatch, which serves {@code static/error/*.html} under the real
+ * status code.
  */
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = "com.rewayaat.controllers.rest")
 public class GlobalExceptionHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
