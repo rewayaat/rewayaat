@@ -58,7 +58,13 @@
                             <div class="meta-icon"><i th:class="${item.icon}" aria-hidden="true"></i></div>
                             <div>
                                 <div class="meta-label" th:text="${item.label}">Label</div>
-                                <div class="meta-text" th:text="${item.value}">Value</div>
+                                <!-- Bracket notation, not item.url: SpEL property access on a
+                                     Map throws when the key is absent rather than yielding
+                                     null, and only some metadata rows have a page to link to. -->
+                                <a class="meta-text link" th:if="${item['url']} != null"
+                                   th:href="${item['url']}" th:text="${item.value}">Value</a>
+                                <div class="meta-text" th:if="${item['url']} == null"
+                                     th:text="${item.value}">Value</div>
                             </div>
                         </div>
                     </div>

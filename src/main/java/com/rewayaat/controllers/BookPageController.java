@@ -128,7 +128,6 @@ public class BookPageController {
 
         model.addAttribute("book", book);
         model.addAttribute("volumeLabel", label);
-        model.addAttribute("readingUrl", BookCatalog.readingModeUrl(book.name(), volume, null, null, null));
         model.addAttribute("chapters", chapters);
         model.addAttribute("volumes", List.of());
         model.addAttribute("narrationCount", narrations);
@@ -176,7 +175,6 @@ public class BookPageController {
 
         model.addAttribute("chapter", chapter);
         model.addAttribute("narrations", narrations);
-        model.addAttribute("readingUrl", chapter.readingUrl());
         model.addAttribute("bookUrl", "/books/" + bookSlug);
         model.addAttribute("seoTitle", chapter.title() + " — " + chapter.bookName());
         model.addAttribute("seoDescription", String.format(
@@ -374,25 +372,51 @@ public class BookPageController {
         return "mailto:rewayaat.org@gmail.com?subject=" + encode(subject) + "&body=" + encode(body);
     }
 
-    /** The sidecar rows, in the order and with the icons the Vue card uses. */
-    private static List<Map<String, String>> metadataRows(Map<String, Object> source, String number) {
+    /**
+     * The sidecar rows, in the order and with the icons the Vue card uses.
+     *
+     * <p>Book, volume and chapter link to their own pages — the same destinations the
+     * search card's metadata rows now go to, and more internal links into the hubs.
+     * Part and section have no page of their own, so they render as plain text.
+     */
+    private List<Map<String, String>> metadataRows(Map<String, Object> source, String number) {
+        String book = str(source.get("book"));
+        String volume = str(source.get("volume"));
+        String chapter = str(source.get("chapter"));
+
+        Optional<BookCatalog.Book> catalogued = catalog.bookByName(book);
+        String bookUrl = catalogued.map(b -> "/books/" + b.slug()).orElse(null);
+        String volumeUrl = bookUrl == null || volume.isBlank() ? null
+                : bookUrl + "/volume/" + encode(volume);
+        String chapterUrl = catalog.chapterFor(book, volume, str(source.get("part")),
+                str(source.get("section")), chapter).map(BookCatalog.Chapter::url).orElse(null);
+
         List<Map<String, String>> rows = new ArrayList<>();
-        addRow(rows, "fa fa-hashtag", "Hadith #", number);
-        addRow(rows, "fa fa-book", "Book", str(source.get("book")));
-        addRow(rows, "fa fa-layer-group", "Volume", str(source.get("volume")));
-        addRow(rows, "fa fa-bookmark", "Section", str(source.get("section")));
-        addRow(rows, "fa fa-clone", "Part", str(source.get("part")));
-        addRow(rows, "fa fa-heading", "Chapter", str(source.get("chapter")));
-        addRow(rows, "fa fa-arrow-right-from-bracket", "Source", str(source.get("source")));
-        addRow(rows, "fa fa-pen-to-square", "Edition", str(source.get("edition")));
-        addRow(rows, "fa fa-building", "Publisher", str(source.get("publisher")));
+        addRow(rows, "fa fa-hashtag", "Hadith #", number, null);
+        addRow(rows, "fa fa-book", "Book", book, bookUrl);
+        addRow(rows, "fa fa-layer-group", "Volume", volume, volumeUrl);
+        addRow(rows, "fa fa-bookmark", "Section", str(source.get("section")), null);
+        addRow(rows, "fa fa-clone", "Part", str(source.get("part")), null);
+        addRow(rows, "fa fa-heading", "Chapter", chapter, chapterUrl);
+        addRow(rows, "fa fa-arrow-right-from-bracket", "Source", str(source.get("source")), null);
+        addRow(rows, "fa fa-pen-to-square", "Edition", str(source.get("edition")), null);
+        addRow(rows, "fa fa-building", "Publisher", str(source.get("publisher")), null);
         return rows;
     }
 
-    private static void addRow(List<Map<String, String>> rows, String icon, String label, String value) {
-        if (value != null && !value.isBlank()) {
-            rows.add(Map.of("icon", icon, "label", label, "value", value));
+    private static void addRow(List<Map<String, String>> rows, String icon, String label,
+                               String value, String url) {
+        if (value == null || value.isBlank()) {
+            return;
         }
+        Map<String, String> row = new LinkedHashMap<>();
+        row.put("icon", icon);
+        row.put("label", label);
+        row.put("value", value);
+        if (url != null) {
+            row.put("url", url);
+        }
+        rows.add(row);
     }
 
     /** Tags link into a search for that topic, which is what clicking one does in the app. */

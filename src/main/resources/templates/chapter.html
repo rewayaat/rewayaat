@@ -24,16 +24,6 @@
         </div>
     </header>
 
-    <div class="hub-actions">
-        <!-- The chapter now carries the narrations in full, so this is no longer "read
-             the rest": it opens the same narrations in the app, where tag filtering, PDF
-             export and the inline Related/Tafsir panels live. -->
-        <a class="hub-cta" th:href="${readingUrl}">
-            <i class="fa fa-book-open" aria-hidden="true"></i>
-            Open in reading mode
-        </a>
-    </div>
-
     <div th:replace="~{fragments/site :: ornament}"></div>
 
     <!-- The chapter's tag facet, the one thing reading mode had that these pages did

@@ -10936,6 +10936,174 @@ body.is-search-mode .site-nav .search-entry-shell {
     background: var(--danger);
 }
 
+/* ── Save-to-collection on the server-rendered pages ────────────────────── */
+/* The same affordance the search results carry, so a reader moving between the
+   two does not lose the ability to keep a narration. */
+.hub-narration__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.hub-save {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.28rem 0.75rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-pill);
+    background: transparent;
+    font-family: var(--font-ui);
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
+}
+
+.hub-save:hover {
+    color: var(--gold-dark);
+    border-color: var(--gold);
+    background: var(--gold-bg);
+}
+
+/* ── Collection picker ──────────────────────────────────────────────────── */
+.hub-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1080;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    background: rgba(10, 22, 40, 0.55);
+    backdrop-filter: blur(2px);
+}
+
+.hub-modal {
+    width: min(100%, 27rem);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+}
+
+.hub-modal__head {
+    padding: 1.15rem 1.35rem 0.9rem;
+    background: linear-gradient(135deg, #0f2440, #1e3a5f);
+    color: #fff;
+}
+
+.hub-modal__title {
+    display: block;
+    font-family: var(--font-ornament);
+    font-weight: 700;
+    font-size: 1.25rem;
+}
+
+.hub-modal__sub {
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 0.78rem;
+    color: rgba(245, 236, 214, 0.7);
+}
+
+.hub-modal__body {
+    padding: 1.25rem 1.35rem;
+}
+
+.hub-modal__label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.hub-modal__select,
+.hub-modal__input {
+    width: 100%;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    color: var(--text);
+    background: var(--surface);
+}
+
+.hub-modal__input {
+    margin-top: 0.6rem;
+}
+
+.hub-modal__select:focus,
+.hub-modal__input:focus {
+    outline: none;
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.12);
+}
+
+.hub-modal__foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    padding: 0 1.35rem 1.25rem;
+}
+
+.hub-modal__btn {
+    padding: 0.45rem 1.1rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-pill);
+    background: transparent;
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.hub-modal__btn--primary {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: #fff;
+}
+
+.hub-modal__btn--primary:hover {
+    background: var(--primary-light);
+    border-color: var(--primary-light);
+}
+
+/* ── Toast ──────────────────────────────────────────────────────────────── */
+.hub-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 1.75rem;
+    z-index: 1090;
+    transform: translate(-50%, 0.75rem);
+    padding: 0.65rem 1.1rem;
+    border-radius: var(--radius-pill);
+    background: var(--primary-dark);
+    color: #fff;
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.hub-toast.is-visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+.hub-toast--error {
+    background: var(--danger);
+}
+
 /* ── Reading-mode call to action ────────────────────────────────────────── */
 .hub-actions {
     display: flex;

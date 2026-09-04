@@ -300,9 +300,38 @@
                         if (targetLevel === 'chapter') {
                             selections.chapter = strip(narration.chapter || '').trim();
                         }
-                        var query = buildQueryFromFilters(selections);
-                        var sortFields = buildSortFields(selections);
-                        redirectToSearchResult(query, 1, sortFields);
+                        function runSearch() {
+                            var query = buildQueryFromFilters(selections);
+                            var sortFields = buildSortFields(selections);
+                            redirectToSearchResult(query, 1, sortFields);
+                        }
+
+                        // Book, volume and chapter each have a page of their own, so the
+                        // metadata row goes there rather than to a scoped search: it is a
+                        // real URL, it carries the same cards, and it is the page a reader
+                        // would have found from Google. Part and section have no page, so
+                        // they keep the search they always ran.
+                        if (targetLevel !== 'book' && targetLevel !== 'volume' && targetLevel !== 'chapter') {
+                            runSearch();
+                            return;
+                        }
+
+                        var params = new URLSearchParams();
+                        ['book', 'volume', 'part', 'section', 'chapter'].forEach(function(key) {
+                            if (selections[key]) {
+                                params.set(key, selections[key]);
+                            }
+                        });
+                        fetch('/v1/browse/page?' + params.toString(), { credentials: 'same-origin' })
+                            .then(function(resp) { return resp.json(); })
+                            .then(function(data) {
+                                if (data && data.ok && data.url) {
+                                    window.location.href = data.url;
+                                    return;
+                                }
+                                runSearch();
+                            })
+                            .catch(runSearch);
                     }
                 }
             }
