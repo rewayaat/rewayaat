@@ -366,7 +366,7 @@
         });
         body.innerHTML = accordion('No Quranic insights were found for this narration.', rows,
             function (item) {
-                var sources = item.sources || item.tafsir_sources || [];
+                var sources = sourceOptions(item);
                 var tree = sources.length
                     ? '<div class="hadith-sidecar__source-tree">'
                       + '<div class="hadith-sidecar__source-tree-label">Tafsir Sources</div>'
@@ -377,9 +377,9 @@
                               + '<span class="hadith-sidecar__source-node-icon" aria-hidden="true">'
                               + '<i class="fa fa-file-lines"></i></span>'
                               + '<span class="hadith-sidecar__source-name">'
-                              + escapeHtml(source.label || source.slug || '') + '</span>'
+                              + escapeHtml(source.label) + '</span>'
                               + (source.count ? '<span class="hadith-sidecar__source-count">'
-                                                + escapeHtml(source.count) + '</span>' : '')
+                                                + escapeHtml(String(source.count)) + '</span>' : '')
                               + '</span>';
                       }).join('')
                       + '</div></div>'
@@ -436,6 +436,38 @@
             + '<div class="similar-full-arabic">' + (item.arabicContent || item.arabic || '') + '</div>'
             + '</div></div></div>'
             + '</div></div>';
+    }
+
+    /**
+     * The tafsir sources for a verse, as {slug, label, url, count}.
+     *
+     * <p>Mirrors buildSourceOptions in rewayaat.js. The API's `sources` is a list of
+     * plain NAMES, not objects — reading .label off it, as this used to, yields blank
+     * nodes. The snippets carry the slug and URL, so the two are merged, keyed on a
+     * normalised name so a source named in both does not appear twice.
+     */
+    function sourceOptions(item) {
+        var options = [];
+        var byAlias = {};
+        function key(v) { return String(v || '').trim().toLowerCase(); }
+        function ensure(slug, label, url) {
+            var existing = byAlias[key(slug)] || byAlias[key(label)];
+            if (!existing) {
+                existing = {slug: String(slug || label || '').trim(),
+                            label: String(label || slug || '').trim(), url: '', count: 0};
+                options.push(existing);
+            }
+            if (key(slug)) { byAlias[key(slug)] = existing; }
+            if (key(label)) { byAlias[key(label)] = existing; }
+            if (url && !existing.url) { existing.url = url; }
+            return existing;
+        }
+        (item.tafsir_snippets || []).forEach(function (sn) {
+            ensure(sn.tafsir_slug, sn.tafsir_name, sn.source_url).count += 1;
+        });
+        // Names the API lists without a snippet attached still belong in the tree.
+        (item.sources || []).forEach(function (name) { ensure('', name, ''); });
+        return options.filter(function (o) { return o.label; });
     }
 
     /** Renders the chosen verse and its tafsir snippets into the main column. */

@@ -10162,7 +10162,9 @@ body.is-search-mode .site-nav .search-entry-shell {
     line-height: 1.7;
     color: rgba(245, 236, 214, 0.82);
     width: min(100%, 760px);
-    margin: 0 auto 0.9rem;
+    /* A clear gap before the search instructions: the lede describes the site, the
+       note below it explains the box, and running them together read as one block. */
+    margin: 0 auto 1.9rem;
     text-align: center;
 }
 
