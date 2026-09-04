@@ -203,7 +203,13 @@ public class HadithPageController {
             HadithObjectCollection related = similarHadith.findSimilar(id, 0, MAX_SIMILAR_LINKS);
             for (HadithObject other : related.getCollection()) {
                 String label = buildBookRef(other);
-                String excerpt = truncate(stripHtml(other.getEnglish()), 140);
+                // SimilarHadithService already ran the display segmenter over these, so
+                // the matn is available; excerpting the raw English would open every
+                // entry with its chain of transmission instead.
+                Object segmented = other.getAdditionalProperties().get("englishContent");
+                String body = segmented == null || segmented.toString().isBlank()
+                        ? other.getEnglish() : segmented.toString();
+                String excerpt = truncate(stripHtml(body), 140);
                 links.add(Map.of(
                         "url", "/hadith/" + other.getId(),
                         "label", label.isBlank() ? "Related narration" : label,
