@@ -8,12 +8,12 @@
     <nav th:replace="~{fragments/site :: crumbtrail}"></nav>
 
     <header class="hub-hero">
-        <div class="hub-hero__eyebrow" th:text="${chapter.bookName}">Al-Kafi</div>
+        <a class="hub-hero__eyebrow" th:href="${bookUrl}" th:text="${chapter.bookName}">Al-Kafi</a>
         <h1 class="hub-hero__title" th:text="${chapter.title}">Chapter title</h1>
         <div class="hub-hero__stats">
-            <span class="hub-stat" th:if="${!#strings.isEmpty(chapter.volume)}">
+            <a class="hub-stat" th:if="${volumeUrl != null}" th:href="${volumeUrl}">
                 Volume <span class="hub-stat__value" th:text="${chapter.volume}">1</span>
-            </span>
+            </a>
             <span class="hub-stat" th:if="${!#strings.isEmpty(chapter.section)}">
                 Section <span class="hub-stat__value" th:text="${chapter.section}">20</span>
             </span>

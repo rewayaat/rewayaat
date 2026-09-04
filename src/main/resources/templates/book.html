@@ -19,10 +19,10 @@
                 <span class="hub-stat__value" th:text="${#numbers.formatInteger(#lists.size(book.chapters), 0, 'COMMA')}">100</span>
                 chapters
             </span>
-            <span class="hub-stat" th:if="${!#lists.isEmpty(volumes)}">
+            <a class="hub-stat" th:if="${!#lists.isEmpty(volumes)}" href="#volumes">
                 <span class="hub-stat__value" th:text="${#lists.size(volumes)}">8</span>
                 volumes
-            </span>
+            </a>
         </div>
     </header>
 
@@ -30,7 +30,7 @@
 
     <!-- Books with volumes list those; the chapters live one level down so that no
          single page carries thousands of links. Flat books list chapters directly. -->
-    <section class="hub-group" th:if="${!#lists.isEmpty(volumes)}">
+    <section class="hub-group" id="volumes" th:if="${!#lists.isEmpty(volumes)}">
         <h2 class="hub-group__label">Volumes</h2>
         <div class="hub-grid">
             <a class="hub-card" th:each="volume : ${volumes}" th:href="${volume.url}">
@@ -51,9 +51,16 @@
         <ul class="hub-chapters">
             <li class="hub-chapter-row" th:each="chapter, it : ${chapters}">
                 <a class="hub-chapter" th:href="${chapter.url}">
-                    <span class="hub-chapter__index" th:text="${it.count}">1</span>
+                    <span class="hub-chapter__index" th:text="${it.count} + '.'">1.</span>
                     <span class="hub-chapter__title" th:text="${chapter.title}">Chapter title</span>
-                    <span class="hub-chapter__count" th:text="${chapter.count}">12</span>
+                    <!-- Labelled, not a bare number: the ordinal on the left is also a
+                         bare number, and across two or three columns the two were
+                         indistinguishable. -->
+                    <span class="hub-chapter__count">
+                        <span th:text="${chapter.count}">12</span>
+                        <span class="hub-chapter__count-unit"
+                              th:text="${chapter.count == 1} ? 'hadith' : 'hadith'">hadith</span>
+                    </span>
                 </a>
                 <a class="hub-chapter-read" th:href="${chapter.readingUrl}"
                    th:title="'Read ' + ${chapter.title}"

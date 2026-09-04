@@ -10507,8 +10507,8 @@ body.is-search-mode .site-nav .search-entry-shell {
    wide screen, because a single column of 600 rows is a mile long. */
 .hub-chapters {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(23rem, 1fr));
-    gap: 0.2rem 1.75rem;
+    grid-template-columns: repeat(auto-fill, minmax(28rem, 1fr));
+    gap: 0.2rem 2.25rem;
     list-style: none;
     margin: 0;
     padding: 0;
@@ -10593,13 +10593,16 @@ body.is-search-mode .site-nav .search-entry-shell {
     transform: translateX(2px);
 }
 
+/* An ordinal, reading as one: right-aligned, trailed by a period, and set in the
+   numeric face so it does not compete with the labelled count on the other side. */
 .hub-chapter__index {
     flex: none;
-    min-width: 1.9rem;
+    min-width: 2.1rem;
     font-family: var(--font-ui);
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
+    font-size: 0.72rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
     color: var(--text-faint);
     text-align: right;
     transition: color 150ms ease;
@@ -10626,16 +10629,23 @@ body.is-search-mode .site-nav .search-entry-shell {
     flex: none;
     align-self: flex-start;
     margin-top: 0.05rem;
-    min-width: 2.1rem;
-    padding: 0.12rem 0.45rem;
+    padding: 0.12rem 0.5rem;
     border-radius: var(--radius-pill);
     background: var(--bg-subtle);
     font-family: var(--font-ui);
     font-size: 0.68rem;
     font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
     text-align: center;
     color: var(--text-muted);
     transition: background 150ms ease, color 150ms ease;
+}
+
+.hub-chapter__count-unit {
+    margin-left: 0.2rem;
+    font-weight: 600;
+    opacity: 0.75;
 }
 
 .hub-chapter:hover .hub-chapter__count {
@@ -11224,4 +11234,22 @@ body.is-search-mode .site-nav .search-entry-shell {
     margin-left: 0.4rem;
     opacity: 0.7;
     font-size: 0.72em;
+}
+
+/* Hero chips and eyebrows that lead somewhere look like it, without becoming loud
+   enough to compete with the title they sit under. */
+a.hub-stat,
+a.hub-hero__eyebrow {
+    text-decoration: none;
+    transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+a.hub-stat:hover {
+    border-color: rgba(243, 229, 184, 0.45);
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(245, 236, 214, 0.9);
+}
+
+a.hub-hero__eyebrow:hover {
+    color: var(--gold-light);
 }

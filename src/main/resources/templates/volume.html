@@ -8,7 +8,7 @@
     <nav th:replace="~{fragments/site :: crumbtrail}"></nav>
 
     <header class="hub-hero">
-        <div class="hub-hero__eyebrow" th:text="${book.name}">Al-Kafi</div>
+        <a class="hub-hero__eyebrow" th:href="@{'/books/' + ${book.slug}}" th:text="${book.name}">Al-Kafi</a>
         <h1 class="hub-hero__title" th:text="${volumeLabel}">Volume 1</h1>
         <div class="hub-hero__stats">
             <span class="hub-stat">
@@ -33,9 +33,16 @@
         <ul class="hub-chapters">
             <li class="hub-chapter-row" th:each="chapter, it : ${chapters}">
                 <a class="hub-chapter" th:href="${chapter.url}">
-                    <span class="hub-chapter__index" th:text="${it.count}">1</span>
+                    <span class="hub-chapter__index" th:text="${it.count} + '.'">1.</span>
                     <span class="hub-chapter__title" th:text="${chapter.title}">Chapter title</span>
-                    <span class="hub-chapter__count" th:text="${chapter.count}">12</span>
+                    <!-- Labelled, not a bare number: the ordinal on the left is also a
+                         bare number, and across two or three columns the two were
+                         indistinguishable. -->
+                    <span class="hub-chapter__count">
+                        <span th:text="${chapter.count}">12</span>
+                        <span class="hub-chapter__count-unit"
+                              th:text="${chapter.count == 1} ? 'hadith' : 'hadith'">hadith</span>
+                    </span>
                 </a>
                 <a class="hub-chapter-read" th:href="${chapter.readingUrl}"
                    th:title="'Read ' + ${chapter.title}"

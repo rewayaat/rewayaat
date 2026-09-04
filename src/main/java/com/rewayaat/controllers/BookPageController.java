@@ -176,6 +176,10 @@ public class BookPageController {
         model.addAttribute("chapter", chapter);
         model.addAttribute("narrations", narrations);
         model.addAttribute("bookUrl", "/books/" + bookSlug);
+        // The hero chips navigate where a destination exists: the book name and the
+        // volume have pages, the section does not.
+        model.addAttribute("volumeUrl", chapter.volume() == null || chapter.volume().isBlank()
+                ? null : "/books/" + bookSlug + "/volume/" + encode(chapter.volume()));
         model.addAttribute("seoTitle", chapter.title() + " — " + chapter.bookName());
         model.addAttribute("seoDescription", String.format(
                 "%s: %,d narration%s from %s, in Arabic and English with full chains of transmission.",
