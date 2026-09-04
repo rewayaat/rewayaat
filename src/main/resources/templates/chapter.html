@@ -30,11 +30,16 @@
              interface already does, so it links there instead of rebuilding it. -->
         <a class="hub-cta" th:href="${readingUrl}">
             <i class="fa fa-book-open" aria-hidden="true"></i>
-            Read this chapter
+            Read in full &mdash; with Arabic
         </a>
     </div>
 
     <div th:replace="~{fragments/site :: ornament}"></div>
+
+    <h2 class="hub-group__label">
+        In this chapter
+        <span class="hub-group__note">English excerpts &middot; open one for the full text</span>
+    </h2>
 
     <div>
         <article class="hub-narration" th:each="narration : ${narrations}">
