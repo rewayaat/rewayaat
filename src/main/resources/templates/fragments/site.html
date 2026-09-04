@@ -62,6 +62,29 @@
                 <span class="home-nav-dot" aria-hidden="true">&middot;</span>
                 <a href="/updates.html" class="home-nav-link">Updates</a>
             </div>
+
+            <!-- The same auth block the home page carries, down to the element ids, so a
+                 reader signed in on the search page sees the same chip in the same place
+                 here rather than an apparently signed-out site. -->
+            <div class="menu-context-row ms-auto">
+                <div class="d-flex gap-2 top-actions flex-nowrap">
+                    <button class="btn btn-dark btn-sm top-action auth-action" id="authSignInBtn" type="button">
+                        <i class="fa fa-right-to-bracket" aria-hidden="true"></i>
+                        <span class="auth-action__label">Sign In</span>
+                    </button>
+                    <div class="profile-menu d-none" id="authProfileShell">
+                        <button class="top-action profile-chip" id="authProfileBtn" type="button"
+                                aria-label="Open profile" aria-expanded="false">
+                            <span class="profile-chip__avatar" id="authProfileInitial">R</span>
+                            <span class="profile-chip__meta">
+                                <span class="profile-chip__name" id="authProfileName">Account</span>
+                            </span>
+                            <i class="fa fa-angle-down" aria-hidden="true"></i>
+                        </button>
+                        <div class="profile-dropdown d-none" id="authProfileMenu" aria-hidden="true"></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </nav>
@@ -117,6 +140,7 @@
 </footer>
 
 <th:block th:fragment="analytics">
+    <script src="/js/hub-pages.js" th:src="@{/js/hub-pages.js}"></script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-3HSRTQD7GM"></script>
     <script>
         window.dataLayer = window.dataLayer || [];

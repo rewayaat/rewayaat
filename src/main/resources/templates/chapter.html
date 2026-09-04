@@ -24,6 +24,16 @@
         </div>
     </header>
 
+    <div class="hub-actions">
+        <!-- The app's own reading mode, scoped to this chapter. This page exists to be
+             crawled and to give the chapter a rankable URL; reading is a job the search
+             interface already does, so it links there instead of rebuilding it. -->
+        <a class="hub-cta" th:href="${readingUrl}">
+            <i class="fa fa-book-open" aria-hidden="true"></i>
+            Read this chapter
+        </a>
+    </div>
+
     <div th:replace="~{fragments/site :: ornament}"></div>
 
     <div>
@@ -31,7 +41,15 @@
             <span class="hub-narration__num" th:if="${!#strings.isEmpty(narration.number)}"
                   th:text="${narration.number}">1</span>
             <p class="hub-narration__text" th:text="${narration.excerpt}">Excerpt of the narration.</p>
-            <a class="hub-narration__link" th:href="${narration.url}">Read the full narration &rarr;</a>
+            <div class="hub-narration__actions">
+                <a class="hub-narration__link" th:href="${narration.url}">Read the full narration &rarr;</a>
+                <button type="button" class="hub-save" data-requires-auth
+                        th:attr="data-save-hadith=${narration.id},
+                                 data-save-label=${chapter.bookName} + ' — ' + ${chapter.title}">
+                    <i class="fa fa-bookmark" aria-hidden="true"></i>
+                    <span>Save</span>
+                </button>
+            </div>
         </article>
     </div>
 </main>

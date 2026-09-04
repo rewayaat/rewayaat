@@ -44,11 +44,12 @@
 
     <section class="hub-group" th:if="${!#lists.isEmpty(chapters)}">
         <h2 class="hub-group__label">Chapters</h2>
-        <ul class="hub-list">
-            <li th:each="chapter : ${chapters}">
-                <a th:href="${chapter.url}">
-                    <span th:text="${chapter.title}">Chapter title</span>
-                    <span class="hub-list__count" th:text="${chapter.count}">12</span>
+        <ul class="hub-chapters">
+            <li th:each="chapter, it : ${chapters}">
+                <a class="hub-chapter" th:href="${chapter.url}">
+                    <span class="hub-chapter__index" th:text="${it.count}">1</span>
+                    <span class="hub-chapter__title" th:text="${chapter.title}">Chapter title</span>
+                    <span class="hub-chapter__count" th:text="${chapter.count}">12</span>
                 </a>
             </li>
         </ul>
