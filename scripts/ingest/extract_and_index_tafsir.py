@@ -14,10 +14,10 @@ Usage:
     # TAFSIR_DRY_RUN=true TAFSIR_EXTRACTOR=all mvn exec:java -Dexec.mainClass=...
     #
     # Then run this script:
-    python3 scripts/extract_and_index_tafsir.py
+    python3 scripts/ingest/extract_and_index_tafsir.py
 
     # Or extract + index a specific tafsir:
-    python3 scripts/extract_and_index_tafsir.py --slug enlightening-commentary
+    python3 scripts/ingest/extract_and_index_tafsir.py --slug enlightening-commentary
 """
 
 import hashlib

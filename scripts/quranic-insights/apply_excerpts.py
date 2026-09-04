@@ -6,9 +6,9 @@ Never overwrites existing relevant_excerpt values.
 Matches by (hadith_id, verse_key, tafsir_slug) triplet.
 
 Usage:
-    python3 scripts/apply_excerpts.py              # Run for real
-    python3 scripts/apply_excerpts.py --dry-run    # Preview only
-    python3 scripts/apply_excerpts.py --limit 100  # Only process 100 docs
+    python3 scripts/quranic-insights/apply_excerpts.py              # Run for real
+    python3 scripts/quranic-insights/apply_excerpts.py --dry-run    # Preview only
+    python3 scripts/quranic-insights/apply_excerpts.py --limit 100  # Only process 100 docs
 """
 
 import json

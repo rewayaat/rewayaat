@@ -1,132 +1,198 @@
-# Rewayaat Architecture
+# Architecture
 
-## Overview
-
-Rewayaat is a hadith research platform combining traditional Islamic texts with modern search, semantic analysis, and AI-powered features. Built on Spring Boot 3.3.2 with Elasticsearch 9.x as the primary data store.
+Rewayaat is a Shia hadith research platform: 32,519 narrations from 18 books, searchable
+in Arabic and English, cross-linked to similar narrations and to the Quranic verses that
+illuminate them. Spring Boot 3.3.2 on Java 17, with Elasticsearch as the only datastore —
+there is no relational database.
 
 ```
-                    ┌──────────────────────────────────────────────┐
-                    │           Elasticsearch 9.x                  │
-                    │                                              │
-                    │  rewayaat_updated          (32K hadith)      │
-                    │  rewayaat_quran            (6.2K verses)     │
-                    │  rewayaat_tafsir           (tafsir docs)     │
-                    │  rewayaat_quranic_light_filtered (conn.)     │
-                    └──────────────────────────────────────────────┘
-                                      ▲
-                    ┌─────────────────┼─────────────────────┐
-                    │                 │                     │
-              Ingestion          Search & API          Offline ML
-              (Python)         (Spring Boot 8002)    (Python + Colab)
+                    ┌─────────────────────────────────────────────────┐
+                    │              Elasticsearch 9.x                  │
+                    │                                                 │
+                    │  rewayaat_updated                32,519 hadith  │
+                    │  rewayaat_quran                   6,236 verses  │
+                    │  rewayaat_tafsir                14,380 commentaries │
+                    │  rewayaat_quranic_light_filtered 22,640 hadith→verse │
+                    │  rewayaat_users / _user_collections             │
+                    └─────────────────────────────────────────────────┘
+                                        ▲
+                    ┌───────────────────┼───────────────────┐
+                    │                   │                   │
+              Ingestion            Spring Boot         Offline agents
+            (scripts/ingest)     (:8002 / mgmt :8003)  (scripts/*, Claude)
 ```
+
+Everything expensive is computed offline and stored in ES. **No LLM is called while
+serving a request** — similar narrations and Quranic insights are pre-judged by agent
+pipelines and read straight out of the index.
 
 ## Stack
 
 | Layer | Technology |
 |-------|-----------|
 | Backend | Spring Boot 3.3.2, Java 17, Maven |
-| Search | Elasticsearch 9.x (local, port 9200) |
-| Frontend | Thymeleaf templates, Vue.js, UIkit CSS |
-| Auth | Spring Security, cookie-based sessions |
-| Deployment | Docker, Kubernetes (DigitalOcean), GitHub Actions |
-| ML | sentence-transformers (multilingual-e5-large), Claude sub-agents |
+| Datastore | Elasticsearch 9.x (`localhost:9200` in dev) |
+| Templating | Thymeleaf, server-rendered |
+| Frontend | Vue 2.6, jQuery, Bootstrap 5.3, custom `manuscript.css` |
+| Auth | Spring Security, cookie sessions, Resend for mail |
+| Deploy | Docker → DigitalOcean Kubernetes, GitHub Actions, Argo CD |
+| ML | sentence-transformers (`multilingual-e5-large` + LoRA), Claude sub-agents |
+
+## Two Front Doors
+
+The site serves the same corpus two ways, and the distinction runs through the whole
+codebase.
+
+**Server-rendered pages** (`controllers/`) return HTML with real `<a href>` links. They
+exist so search engines can crawl and rank the corpus — before them, nothing stood
+between the home page and 32,519 narration pages, and narrations were reachable only
+from the XML sitemap.
+
+**JSON API** (`controllers/rest/`) backs the Vue application: live search, the similar
+panel, collections, editing.
 
 ## Package Structure
 
 ```
 com.rewayaat/
-├── controllers/rest/    # REST API endpoints
-├── service/             # Business logic
-├── core/                # Data models, ES client utilities
-├── tafsir/              # Tafsir extraction and indexing
-├── loader/              # Data ingestion utilities
-├── tools/               # Backfill and batch processing tools
-└── config/              # Spring configuration
+├── controllers/          # Server-rendered pages (SEO surface)
+│   └── rest/             # JSON API (Vue surface)
+├── service/              # Business logic
+├── core/                 # Query building, result shaping, text processing
+│   └── data/             # Persisted models
+├── tafsir/               # Tafsir parsing and indexing
+│   └── extractors/       # 13 source-specific HTML extractors
+├── loader/               # One-time corpus loaders, per book
+├── tools/                # Runnable offline backfill / audit tools
+└── config/               # Spring configuration
 ```
 
-## Key Services
+## Server-Rendered Pages
+
+| Controller | Routes | Purpose |
+|-----------|--------|---------|
+| `HomeController` | `/`, `/edit`, `/auth/verify`, `/auth/reset` | Home page, rendered server-side; owns the canonical host |
+| `BookPageController` | `/books`, `/books/{book}`, `/books/{book}/volume/{n}`, `/books/{book}/{chapter}` | The book → volume → chapter hierarchy |
+| `HadithPageController` | `/hadith`, `/{id}` | One page per narration, with related reading |
+| `SitemapController` | `/sitemap.xml`, `/sitemap-static.xml`, `/sitemap-books.xml`, `/sitemap-hadith-{page}.xml` | Crawler sitemaps |
+| `GlobalExceptionHandler` | — | Real 404s via container error dispatch, not redirects |
+
+Supporting pieces: `BookCatalog` turns the corpus into a slug-addressable book/chapter
+tree; `BookBlurbs` reuses the search UI's descriptions on book pages, matching the two
+different spellings on a shared slug; `CrawlerDirectivesConfig` marks pages that must
+never be indexed with a header rather than a robots.txt `Disallow` (a blocked URL can
+still be indexed from a link); `StaticAssetConfig` fingerprints asset URLs so a cached
+script can never be paired with newer markup.
+
+## JSON API
+
+| Controller | Base | Endpoints |
+|-----------|------|-----------|
+| `HadithController` | `/v1/narrations` | search (`GET`), fetch/update `/{id}`, `/similar`, `/quranic_insights`, `/page_for_id` |
+| `BrowseController` | `/v1/browse` | `/books`, `/facets` |
+| `CollectionController` | `/v1/collections` | CRUD, `/quick-save`, `/quick-save-bulk`, per-collection hadith |
+| `AuthController` | `/v1/auth` | `/register`, `/verify`, `/login`, `/logout`, `/me`, `/reset/request`, `/reset/confirm` |
+| `TermsController` | `/v1/terms` | `/top`, `/significant` |
+| `FeedbackController` | `/v1/feedback` | User feedback submission |
+
+## Services
 
 | Service | Role |
 |---------|------|
-| `HadithQueryService` | Core search with flexible/precise modes |
-| `SimilarHadithService` | LLM pre-computed similar hadith lookup |
-| `QuranicInsightsService` | Hadith-to-Quran verse connections |
-| `NarratorService` | Narrator chain processing |
-| `AuthService` | Authentication and user management |
-| `UserCollectionService` | User hadith collections |
+| `HadithQueryService` | Core search — flexible and precise modes |
+| `SimilarHadithService` | Reads the pre-computed `llm_similar` field, bulk-fetches the targets |
+| `QuranicInsightsService` | Hadith → Quran verse connections with tafsir |
+| `BookCatalog` | Slug-addressable book/volume/chapter structure |
+| `AuthService` | Registration, verification, sessions, password reset |
+| `UserCollectionService` | User-owned hadith collections |
+| `HadithEditorAccessService` | Static allowlist (`admins.txt`) for edit access |
 
-## REST Controllers
-
-| Controller | Base Path | Purpose |
-|-----------|-----------|---------|
-| `HadithController` | `/v1/narrations` | Search, view, edit, similar, quranic insights |
-| `BrowseController` | `/v1/browse` | Faceted browsing by book/chapter/volume |
-| `TermsController` | `/v1/terms` | Indexing and term management |
-| `NarratorController` | `/v1/narrators` | Narrator operations |
-| `AuthController` | `/auth` | Login, register, session management |
-| `CollectionController` | `/v1/collections` | User hadith collections |
+See [search.md](search.md) for how search, similar narrations and Quranic insights work.
 
 ## Elasticsearch Indices
 
-### `rewayaat_updated` — Primary hadith index (32,519 docs)
+### `rewayaat_updated` — narrations (32,519)
 
 ```
-arabic: text                          # Full Arabic with narrator chains
-english: text                         # Full English with chains
-semantic_matn_source: text            # Chain-free Arabic (matn only)
-semantic_english_hint_source: text    # Chain-free English hint (120 chars)
-semantic_significant_terms_source: text  # TF-IDF extracted terms
-semantic_vector: dense_vector(1024)   # Embedding vectors (cosine)
-topic_tags: keyword[]                 # Tag slugs from taxonomy
-llm_similar: nested                   # Pre-computed LLM-judged similar pairs
-book, chapter, volume, part, section  # Hierarchical metadata
-gradings: nested                      # Authenticity assessments
+arabic, english                       # full text, narrator chains included
+semantic_matn_source                  # Arabic with the isnad stripped
+semantic_english_hint_source          # chain-free English hint
+semantic_significant_terms_source     # TF-IDF extracted terms
+semantic_vector: dense_vector(1024)   # cosine, HNSW      (32,516 docs)
+topic_tags: keyword[]                 # from the 206-tag taxonomy (31,809 docs)
+llm_similar: nested                   # pre-judged similar pairs (25,273 docs)
+book, volume, part, chapter, section, number, source
+gradings: nested                      # authenticity assessments
 ```
 
-### `rewayaat_quran` — Quran verses (6,200 docs)
+Document IDs are `bookId:hadithNumber`, e.g. `Al-Kafi-Volume-1-Kulayni:1048`.
 
-Arabic text, English translation, and topic tags per verse.
+### `rewayaat_quran` — verses (6,236)
 
-### `rewayaat_tafsir` — Tafsir commentary
+Arabic, English translation, and topic tags per verse, tagged from the same taxonomy.
 
-Extracted from 13+ sources (Al-Mizan, Enlightening Commentary, Pooya Yazdi, etc.). Each doc has verse keys, section title, Arabic/English text, and source name.
+### `rewayaat_tafsir` — commentary (14,380)
 
-### `rewayaat_quranic_light_filtered` — Hadith-Quran connections
+Extracted from 13 sources (Al-Mizan, Enlightening Commentary, Pooya Yazdi, Divine Lights,
+Al-Bayan, Hoda Al-Quran, Quranic Reflections and others). Each document carries
+`verse_keys`, `section_title`, Arabic and English text, and `source_name`.
 
-Pre-computed connections between hadith and relevant Quran verses, filtered by LLM judgment to keep only strong connections.
+### `rewayaat_quranic_light_filtered` — hadith→verse links (22,640)
 
-## Data Model (HadithObject)
+Pre-computed verse connections carrying 17,612 tafsir snippets, LLM-filtered down to
+strong connections only. See [pipelines/quranic-insights.md](pipelines/quranic-insights.md).
 
-Key fields persisted in ES:
+### `rewayaat_users`, `rewayaat_user_collections`
 
-- **Text**: `arabic`, `english` (with chains), `semantic_matn_source`, `semantic_english_hint_source`
-- **Metadata**: `book`, `chapter`, `number`, `volume`, `part`, `section`, `source`
-- **Classification**: `topic_tags` (from 206-tag taxonomy), `gradings`
-- **Search**: `semantic_vector`, `semantic_significant_terms_source`
-- **AI features**: `llm_similar` (pre-computed similar pairs)
+Accounts and saved collections.
 
 ## Frontend
 
-- **Templates**: Thymeleaf (`index.html`, `hadith.html`, `edit.html`)
-- **Framework**: Vue.js for reactive components (search, hadith cards, similar panel)
-- **CSS**: UIkit base with custom manuscript styling (`manuscript.css`)
-- **JS**: `rewayaat.js` (main app), `vue-components.js` (reusable components)
-- **Features**: Multi-term search, flexible/precise modes, similar hadith panel, Quranic insights panel, user collections
+- **Templates** — `index.html` (search app), `hadith.html`, `books.html`, `book.html`,
+  `volume.html`, `chapter.html`, `edit.html`; shared chrome in
+  `fragments/site.html` and `fragments/home-content.html`
+- **JS** — `rewayaat.js` (the search application), `vue-components.js` (shared
+  components), `hadith-editor.js`, `auth-page.js` (used by `static/signin.html`)
+- **CSS** — `manuscript.css` carries the whole visual design on top of Bootstrap.
+  It intentionally contains duplicate blocks: base styles, then an ornament pass that
+  overrides them. Do not consolidate them.
 
 ## Topic Taxonomy
 
-206 tags across 10 categories defined in `static/taxonomy.json`:
+206 tags in `static/taxonomy.json`, across `worship`, `ethics`, `beliefs`, `society`,
+`law`, `quran`, `prophets`, `history`, `spirituality`, `afterlife`. Tags form a
+parent-child hierarchy; only `taggable` tags are applied to documents, broad category
+nodes are not. `TopicTaxonomySupport` and the `TopicTag*` tools in `tools/` handle
+auditing, gold-set sampling and scoring.
 
-`worship`, `ethics`, `beliefs`, `society`, `law`, `quran`, `prophets`, `history`, `spirituality`, `afterlife`
+## Offline Tools
 
-Tags have a parent-child hierarchy. Only `taggable` tags are applied to documents (broad categories excluded).
+Runnable Java classes in `com.rewayaat.tools`, invoked with the built classpath (see
+[data-pipeline.md](data-pipeline.md)):
 
-## Key Design Decisions
+| Tool | Purpose |
+|------|---------|
+| `SemanticMatnSourceBackfillTool` | Strip isnad chains → `semantic_matn_source` |
+| `SemanticSignificantTermsBackfillTool` | TF-IDF term extraction |
+| `TafsirExtractionTool` | Run the extractor set over cached HTML |
+| `TafsirLanguageSplitBackfillTool` | Split mixed-language tafsir documents |
+| `TafsirAuditTool` | Extraction quality audit |
+| `QuranVerseEmbeddingTool`, `TafsirEmbeddingTool` | Embedding backfills |
+| `TopicTaxonomyAuditTool`, `TopicTagsQaTool`, `TopicTagGoldSet*Tool` | Tag quality |
+| `TagMigrationTool` | Taxonomy remapping |
 
-1. **Pre-computed AI features** — Similar hadith and Quranic insights are pre-judged by LLM agents and stored in ES. No real-time LLM calls during search. This ensures fast response times and reproducible results.
+## Design Decisions
 
-2. **Chain-free semantic text** — Narrator chains (`isnad`) are stripped before embedding and semantic search. This prevents chain-variant noise in similarity comparisons.
+**Pre-computed AI features.** Similar narrations and Quranic insights are judged by
+agent pipelines offline and stored in ES. Response times stay fast and results stay
+reproducible — the same query returns the same answer tomorrow.
 
-3. **Hybrid search architecture** — Primary search combines BM25 text search with embedding-based kNN, fused via Reciprocal Rank Fusion. No single retrieval method dominates.
+**Chain-free semantic text.** Narrator chains are stripped before embedding and
+similarity comparison. Two narrations of the same saying share a matn but rarely a
+chain; leaving the isnad in makes every hadith from a prolific narrator look alike.
 
-4. **Thymeleaf + Vue.js** — Server-rendered pages with client-side Vue.js for interactive features (search, similar panel, collections). No SPA framework overhead.
+**Server-rendered HTML for anything a crawler should see.** The Vue app is layered on
+top of real pages, not in place of them.
+
+**Elasticsearch as the only store.** Accounts and collections live in ES alongside the
+corpus. One datastore, one backup story.

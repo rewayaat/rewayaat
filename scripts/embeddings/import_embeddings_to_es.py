@@ -9,7 +9,7 @@ from pathlib import Path
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python3 scripts/import_embeddings_to_es.py hadith_embeddings.npz")
+        print("Usage: python3 scripts/embeddings/import_embeddings_to_es.py hadith_embeddings.npz")
         sys.exit(1)
 
     npz_path = sys.argv[1]

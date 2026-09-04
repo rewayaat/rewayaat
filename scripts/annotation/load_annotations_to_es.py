@@ -6,10 +6,10 @@ the rewayaat_updated index with english_annotated, arabic_annotated,
 footnotes, and translation_suggestions fields.
 
 Usage:
-    python3 scripts/load_annotations_to_es.py --dry-run
-    python3 scripts/load_annotations_to_es.py --live
-    python3 scripts/load_annotations_to_es.py --live --resume
-    python3 scripts/load_annotations_to_es.py --live --es-host http://PROD_HOST:9200
+    python3 scripts/annotation/load_annotations_to_es.py --dry-run
+    python3 scripts/annotation/load_annotations_to_es.py --live
+    python3 scripts/annotation/load_annotations_to_es.py --live --resume
+    python3 scripts/annotation/load_annotations_to_es.py --live --es-host http://PROD_HOST:9200
 """
 
 import argparse
@@ -18,7 +18,6 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from elasticsearch import Elasticsearch, helpers
 

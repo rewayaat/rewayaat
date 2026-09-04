@@ -5,10 +5,10 @@ Creates JSONL batch files in tmp/hadith-annotation/batches/.
 Skips hadith that already have english_annotated field (resume support).
 
 Usage:
-    python3 scripts/prepare_annotation_batches.py
-    python3 scripts/prepare_annotation_batches.py --batch-size 15
-    python3 scripts/prepare_annotation_batches.py --force  # don't skip already annotated
-    python3 scripts/prepare_annotation_batches.py --es-host http://localhost:9200
+    python3 scripts/annotation/prepare_annotation_batches.py
+    python3 scripts/annotation/prepare_annotation_batches.py --batch-size 15
+    python3 scripts/annotation/prepare_annotation_batches.py --force  # don't skip already annotated
+    python3 scripts/annotation/prepare_annotation_batches.py --es-host http://localhost:9200
 """
 
 import argparse
@@ -17,7 +17,6 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from elasticsearch import Elasticsearch
 

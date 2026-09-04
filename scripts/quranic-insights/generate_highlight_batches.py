@@ -7,9 +7,9 @@ writes JSONL files for sub-agent processing.
 Skips snippets that already have <em> tags in commentary_text_highlighted.
 
 Usage:
-    python3 scripts/generate_highlight_batches.py
-    python3 scripts/generate_highlight_batches.py --force    # Re-generate all
-    python3 scripts/generate_highlight_batches.py --batch-size 100
+    python3 scripts/quranic-insights/generate_highlight_batches.py
+    python3 scripts/quranic-insights/generate_highlight_batches.py --force    # Re-generate all
+    python3 scripts/quranic-insights/generate_highlight_batches.py --batch-size 100
 """
 
 import json

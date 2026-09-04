@@ -57,10 +57,10 @@ The offline pipeline that generates these pairs:
 2. **Auto-accept obvious matches** — Pairs with >80% token overlap bypass agent judgment
 3. **Agent judgment** — Claude Sonnet sub-agents judge batches of 5 hadith, classifying each candidate pair as similar or rejected
 4. **Merge results** — File-locked merge into central cache (`tmp/pairs_cache.json`)
-5. **Load to ES** — `scripts/load_llm_similar_to_es.py` bulk-updates `llm_similar` field
+5. **Load to ES** — `scripts/similar/load_llm_similar_to_es.py` bulk-updates `llm_similar` field
 
-**Resume instructions**: See `docs/llm-similar-hadith-resume.md`
-**Agent prompt**: See `docs/similar-hadith-agent-prompt.md`
+**Runbook and agent prompt**: [pipelines/llm-similar-hadith.md](pipelines/llm-similar-hadith.md)
+**Candidate generation and ES loading**: [data-pipeline.md](data-pipeline.md#llm-similar-hadith-pipeline)
 
 ### Legacy: Hybrid Retrieval (SimilarHadithRanking)
 
@@ -93,6 +93,11 @@ GET /v1/narrations/quranic_insights?id={hadithId}
 ```
 
 Returns connected verses with tafsir excerpts. Supports `count_only=true` for lightweight badge counts.
+
+Each snippet can carry two enriched forms of the commentary: `relevant_excerpt`, a short
+exact substring for the preview, and `commentary_text_highlighted`, the full passage with
+`<em>` around the relevant span. How both are produced is in
+[pipelines/quranic-insights.md](pipelines/quranic-insights.md).
 
 ## Embedding-Based kNN Search
 

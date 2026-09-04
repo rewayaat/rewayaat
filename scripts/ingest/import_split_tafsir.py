@@ -6,8 +6,8 @@ Reads split JSON files from tmp/tafsir-split/output/, indexes per-verse
 documents to ES, and deletes the original multi-verse documents.
 
 Usage:
-    python3 scripts/import_split_tafsir.py
-    TAFSIR_INDEX=rewayaat_tafsir python3 scripts/import_split_tafsir.py
+    python3 scripts/ingest/import_split_tafsir.py
+    TAFSIR_INDEX=rewayaat_tafsir python3 scripts/ingest/import_split_tafsir.py
 """
 
 import json

@@ -1,121 +1,157 @@
-# Quranic Light Excerpt Extraction Pipeline — Resume Instructions
+# Quranic Insights
 
-This document tells a new Claude Code agent exactly how to continue the excerpt extraction pipeline from wherever it left off. **Read this entire document before doing anything.**
+Connects each hadith to the Quranic verses that illuminate it, with tafsir commentary
+attached. Served at runtime by `QuranicInsightsService` from the
+`rewayaat_quranic_light_filtered` index — no LLM calls happen during a request.
 
-## What This Pipeline Does
+## Stage Status
 
-We use Claude Code sub-agents (Sonnet) to extract the most relevant portion of each tafsir snippet for a given hadith. The goal is to show users a concise highlighted excerpt that quickly explains **how the Quranic verse relates to the hadith**. If the user wants to research further, they can expand to see the full tafsir text.
+| # | Stage | Script | State |
+|---|-------|--------|-------|
+| 1 | Build candidate connections | `scripts/quranic-insights/build_quranic_light_index.py` | done |
+| 2 | LLM judge — keep only strong links | `apply_quranic_light_filter.py` | done (651/651 batches) |
+| 3 | Strict re-judge | `generate_strict_judge_batches.py`, `apply_strict_judge_filter.py` | done |
+| 4 | Extract `relevant_excerpt` | `prepare_excerpt_batches.py`, `apply_excerpts.py` | **partial — 8,947 / 17,612 snippets (51%)** |
+| 5 | Add `<em>` highlighting | `generate_highlight_batches.py`, `apply_highlighting.py` | done (17,612 / 17,612) |
 
-**UI concept**: The `relevant_excerpt` is shown inline with `<em>` highlighting. An "expand" button reveals the full `commentary_text` for deeper study.
+Live index: 22,640 hadith docs carrying 17,612 tafsir snippets.
 
-## Input Data
+## Index Shape
 
-- **39,319 hadith-snippet pairs** across **394 batches** (100 items each, last batch may be smaller)
-- Input batches: `tmp/qlight-excerpt-inputs/batch_XXXX.jsonl`
-- Output batches: `tmp/qlight-excerpt-outputs/batch_XXXX.jsonl`
-
-### Input format (one JSON per line):
-```json
-{
-  "hadith_id": "Al-Kafi-Volume-7-Kulayni:778",
-  "verse_key": "5:87",
-  "tafsir_slug": "enlightening-commentary",
-  "tafsir_name": "An Enlightening Commentary into the Light of the Holy Quran",
-  "hadith_english": "Abu Abd Allah said the Messenger of Allah...",
-  "hadith_topic_tags": ["oaths-vows", "parents"],
-  "commentary_text": "Full tafsir text about verse 5:87..."
-}
-```
-
-### Output format (one JSON per line):
-```json
-{
-  "hadith_id": "Al-Kafi-Volume-7-Kulayni:778",
-  "verse_key": "5:87",
-  "tafsir_slug": "enlightening-commentary",
-  "relevant_excerpt": "The specific 1-3 sentences from commentary_text that explain how verse 5:87 relates to this hadith about oaths and prohibitions..."
-}
-```
-
-**Rules for `relevant_excerpt`:**
-- Must be an exact substring of `commentary_text` (so the frontend can locate and `<em>`-wrap it)
-- Should be 1-3 sentences, enough for the user to quickly understand the verse-hadith connection
-- Prioritize clarity: a user reading the excerpt should immediately see "oh, this verse is about X, which is what the hadith is about"
-- If the entire commentary is short (< 300 chars), just return it as-is
-- If no specific part is clearly relevant, pick the most informative passage about the verse's meaning
-- **SKIP entries where `commentary_text` already contains `<em>` tags** — these were processed by a previous excerpt pipeline. Output `{"hadith_id": "...", "verse_key": "...", "tafsir_slug": "...", "relevant_excerpt": null, "skipped_reason": "already_has_em_tags"}`
-
-## Agent Prompt Template
+`rewayaat_quranic_light_filtered`, keyed by `hadith_id`:
 
 ```
-You are an Islamic studies expert. For each hadith-snippet pair below, extract the portion of the tafsir commentary that is most relevant to understanding how the Quranic verse connects to this specific hadith.
-
-The excerpt should be:
-- An exact substring of the commentary_text (copy-paste, do not paraphrase)
-- 1-3 sentences that help the reader quickly grasp the verse-hadith connection
-- Focused on the thematic overlap between the verse's meaning and the hadith's subject
-
-Read the file /home/zir0/git/rewayaat/tmp/qlight-excerpt-inputs/batch_XXXX.jsonl
-
-For each entry, output a JSON object with:
-- hadith_id (string)
-- verse_key (string)
-- tafsir_slug (string)
-- relevant_excerpt (exact substring of commentary_text)
-
-IMPORTANT: If the commentary_text already contains <em> tags, skip it — output: {"hadith_id": "...", "verse_key": "...", "tafsir_slug": "...", "relevant_excerpt": null, "skipped_reason": "already_has_em_tags"}
-
-Write one JSON object per line to /home/zir0/git/rewayaat/tmp/qlight-excerpt-outputs/batch_XXXX.jsonl
+hadith_id, hadith_book, hadith_chapter, hadith_english, hadith_topic_tags, ...
+candidates: nested
+  verse_key, surah_number, ayah_number, surah_name_english
+  text_arabic, text_english
+  combined_score, rank, signal_scores, shared_tags
+  tafsir_snippets: nested
+    tafsir_slug, tafsir_name, section_title, source_url
+    commentary_text                 # full tafsir passage
+    commentary_text_highlighted     # same text with <em> around the relevant part
+    relevant_excerpt                # 1-3 sentence exact substring of commentary_text
+    commentary_score
 ```
 
-## How to Run
+Canonical tafsir slugs: `enlightening-commentary`, `quranic-reflections`,
+`pooya-mir-ahmad-ali`, `ar-amthal`, `divine-lights`, `al-mizan`, `imam-askari`.
 
-1. Check which batches are complete:
+`relevant_excerpt` and `commentary_text_highlighted` are independent and coexist:
+the excerpt is a short standalone pull-quote, the highlighted variant keeps the whole
+passage and marks the important span inside it.
+
+## Stage 1 — Build Candidates
+
 ```bash
-ls tmp/qlight-excerpt-outputs/ 2>/dev/null | wc -l
+python3 scripts/quranic-insights/build_quranic_light_index.py
 ```
 
-2. Find next batch to process:
+Scores every hadith against every verse using four signals, then keeps the top-ranked
+candidates above a threshold:
+
+| Signal | Description |
+|--------|-------------|
+| Tag overlap | Hadith `topic_tags` vs verse `topic_tags` |
+| Arabic citation | Direct Quran quotation detected in the hadith matn |
+| Verse terms | Distinctive Quranic vocabulary appearing in the hadith |
+| Tafsir content | Hadith text matching tafsir commentary for the verse |
+
+Output lands in `rewayaat_quranic_light` (unfiltered).
+
+## Stage 2 — LLM Judge
+
+Sub-agents read each hadith with its candidate verses and rule each connection
+**strong**, moderate, or weak. Only *strong* survives.
+
 ```bash
-for i in $(seq -w 0 393); do
-  [ ! -f "tmp/qlight-excerpt-outputs/batch_0${i}.jsonl" ] && echo "NEXT: batch_0${i}" && break
+python3 scripts/quranic-insights/export_quranic_light_for_filtering.py   # -> tmp/qlight-judge-inputs/
+# agents write tmp/qlight-judge-outputs/batch_XXXX.jsonl
+python3 scripts/quranic-insights/apply_quranic_light_filter.py           # -> rewayaat_quranic_light_filtered
+```
+
+> **Known issue**: `export_quranic_light_for_filtering.py` truncates `commentary_text`
+> at `SNIPPET_TEXT_MAX = 600` chars. The full text lives in `rewayaat_tafsir`; repair
+> truncated snippets with `scripts/quranic-insights/backfill_snippet_text.py`.
+
+## Stage 4 — Relevant Excerpts *(unfinished)*
+
+Extracts the 1-3 sentences of a tafsir snippet that most directly explain the
+verse-hadith link, so the UI can show a short preview with an expand affordance.
+
+```bash
+python3 scripts/quranic-insights/prepare_excerpt_batches.py     # -> tmp/qlight-excerpt-inputs/
+# agents write tmp/qlight-excerpt-outputs/batch_XXXX.jsonl
+python3 scripts/quranic-insights/apply_excerpts.py
+python3 scripts/quranic-insights/import_excerpts_to_es.py
+```
+
+Input line:
+```json
+{"hadith_id": "Al-Kafi-Volume-7-Kulayni:778", "verse_key": "5:87",
+ "tafsir_slug": "enlightening-commentary", "tafsir_name": "...",
+ "hadith_english": "...", "hadith_topic_tags": ["oaths-vows"],
+ "commentary_text": "Full tafsir text about verse 5:87..."}
+```
+
+Output line:
+```json
+{"hadith_id": "Al-Kafi-Volume-7-Kulayni:778", "verse_key": "5:87",
+ "tafsir_slug": "enlightening-commentary",
+ "relevant_excerpt": "The 1-3 sentences that explain the connection..."}
+```
+
+Rules the agent must follow:
+
+- `relevant_excerpt` must be an **exact substring** of `commentary_text` — the frontend
+  locates it to wrap in `<em>`. Copy, never paraphrase.
+- 1-3 sentences, enough to see *why* this verse matters to this hadith.
+- Commentary under 300 chars: return it whole.
+- Nothing clearly relevant: pick the most informative passage about the verse's meaning.
+- Skip anything whose `commentary_text` already has `<em>` tags, emitting
+  `{"...": "...", "relevant_excerpt": null, "skipped_reason": "already_has_em_tags"}`.
+
+To resume, find the first missing output batch:
+
+```bash
+for f in tmp/qlight-excerpt-inputs/batch_*.jsonl; do
+  b=$(basename "$f")
+  [ ! -f "tmp/qlight-excerpt-outputs/$b" ] && echo "NEXT: $b" && break
 done
 ```
 
-3. Spawn 2-3 agents at a time (user preference: max 2-3 parallel):
-```
-Agent tool → prompt with the template above, batch number filled in
-```
+Then spawn 2-3 Sonnet sub-agents, one batch each (~100 items, ~3-5 min per batch).
 
-4. Each agent processes one batch (~100 items, takes ~3-5 minutes)
+## Stage 5 — `<em>` Highlighting
 
-5. Repeat until all 394 batches are done
+Keeps the full commentary and wraps the relevant span in `<em>`, writing
+`commentary_text_highlighted`.
 
-## After All Batches Complete
-
-Run the apply script to update ES:
-
-```python
-# For each output batch, load relevant_excerpt and update the corresponding
-# hadith doc in rewayaat_quranic_light_filtered
-# Match by (hadith_id, verse_key, tafsir_slug) → update snippet.relevant_excerpt
+```bash
+python3 scripts/quranic-insights/generate_highlight_batches.py   # -> tmp/qlight-highlight-inputs/
+# agents write tmp/qlight-highlight-outputs/batch_XXXX.jsonl
+python3 scripts/quranic-insights/apply_highlighting.py --dry-run
+python3 scripts/quranic-insights/apply_highlighting.py
 ```
 
-Then the frontend can:
-1. Show `relevant_excerpt` with `<em>` wrapping (the highlighted preview)
-2. On "expand" click, show the full `commentary_text`
+The agent adds `<em>` tags and must not rewrite the text. `apply_highlighting.py` is
+non-destructive: it matches on the `(hadith_id, verse_key, tafsir_slug)` triplet and
+only fills `commentary_text_highlighted` where it is missing.
 
-## Progress Tracking
+Push to production with:
 
-| Date | Batches Done | Notes |
-|------|-------------|-------|
-| June 3 | 0/394 | Pipeline created, batches exported, ready to start |
+```bash
+kubectl port-forward -n elastic-v2 elasticsearch-v2-0 9201:9200 &
+python3 scripts/quranic-insights/apply_highlights_to_prod.py --es-host http://localhost:9201
+```
 
-## Key Files
+## Serving
 
-| File | Purpose |
-|------|---------|
-| `tmp/qlight-excerpt-inputs/batch_XXXX.jsonl` | Input batches (394 total, 100 items each) |
-| `tmp/qlight-excerpt-outputs/batch_XXXX.jsonl` | Agent output (same batch numbering) |
-| `docs/qlight-excerpt-resume.md` | This file |
-| `scripts/backfill_snippet_text.py` | Reference for ES bulk update pattern |
+```
+GET /v1/narrations/quranic_insights?id={hadithId}
+GET /v1/narrations/quranic_insights?id={hadithId}&count_only=true
+```
+
+`QuranicInsightsService` reads the filtered index, enriches verses from
+`rewayaat_quran`, attaches the tafsir snippets, and returns them. `count_only` serves
+the lightweight badge count.

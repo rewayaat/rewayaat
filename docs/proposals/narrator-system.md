@@ -1,4 +1,28 @@
-# Narrator Extraction & Biography System - Status Document
+# Narrator Biography System — Proposal
+
+> **Not implemented. Design preserved for a future revival.**
+>
+> Phases 1 and 2 were built and run; the extraction and merge code was then deleted in
+> commit `9b6adb6` ("remove unused narrator pipeline code and stale docs"). Phases 3-5
+> (ES import, narrator page, hadith-chain matching) were never started. There is no
+> `rewayaat_narrators` index, no `NarratorService`, and no `/v1/narrators` endpoint —
+> the architecture doc used to claim otherwise.
+>
+> **The extracted data survives** under `tmp/` (symlinked to `/mnt/share/rewayaat-backup/tmp/`):
+>
+> | File | Contents |
+> |------|----------|
+> | `tmp/narrators_merged.json` | 29,305 merged profiles after identity-resolution layers 1-3 (126 MB) |
+> | `tmp/narrators_merged.json.pre_l3_backup` | Same, before the LLM merge layer |
+> | `tmp/narrators_l3_decisions.json` | 3,976 LLM pair judgments, 1,502 high-confidence merges |
+> | `tmp/narrators_book_{slug}.json` | Per-book extraction output for all 8 Rijal sources |
+> | `tmp/narrator_review_queue.jsonl` | Flagged profiles awaiting manual review |
+>
+> `scripts/narrators/audit_narrator_quality.py` still runs against that data.
+>
+> Reviving this means rewriting the Phase 1-2 scripts (the design below specifies them
+> fully) or working directly from `tmp/narrators_merged.json`, which already has Phase 2
+> output — so Phase 3 could start immediately.
 
 ## Goal
 
@@ -212,8 +236,8 @@ Each book is processed the same way:
 4. No reliance on Claude's memory for content — all data comes from the actual book text
 
 **Scripts:**
-- `scripts/parse_duafa_narrators.py` — Phase 1A (in-corpus Du'afa)
-- `scripts/parse_external_rijal.py` — Phases 1B-G (download + parse from source)
+- `parse_duafa_narrators.py` (deleted) — Phase 1A (in-corpus Du'afa)
+- `parse_external_rijal.py` (deleted) — Phases 1B-G (download + parse from source)
 
 **Outputs:** `tmp/narrators_book_{slug}.json` for each book
 
@@ -270,3 +294,33 @@ Once the narrator database is built, link narrators to hadith:
 4. **Phase 3: Import to ES** — Bulk index into `rewayaat_narrators`
 5. **Phase 4: Create narrator.html** — Thymeleaf template for the narrator detail page
 6. **Phase 5: Match narrators to hadith chains** and add clickable links in search results
+
+---
+
+## Appendix: Phase 1 Extraction Record
+
+The per-book extraction is finished; this is what each source yielded. Both driver
+scripts (`parse_duafa_narrators.py` for the in-corpus Kitab al-Du'afa, and
+`parse_external_rijal.py` for the books pulled from usul.ai/eshia.ir) have since been
+deleted. Their outputs remain as `tmp/narrators_book_{slug}.json`, with per-batch
+checkpoints in `tmp/narrators_book_{slug}_checkpoint.json`.
+
+| Book | Slug | Scope | Profiles | Pages | Notes |
+|------|------|-------|----------|-------|-------|
+| Kitab al-Du'afa | `duafa` | 224 entries | 222 | 224/224 | 2 entries errored |
+| Rijal al-Kashshi | `kashshi` | 94 pages | 209 | 94/94 | 1 error |
+| Fihrist al-Tusi | `fihrist` | 253 pages | 731 | 253/253 | 5 errors |
+| Rijal al-Najashi | `najashi` | 461 pages | 1,310 | 461/461 | clean |
+| Rijal al-Tusi | `tusi` | 417 pages | 123 | 412/417 | 92 errors — dense bare-name lists hit token truncation; needs a re-run at `--batch-size 2` |
+| Jami' al-Ruwat | `ardabili` | 1,210 pages | — | 1,210/1,210 | |
+| Mu'jam Rijal al-Hadith | `khoei` | 10,924 pages | — | 10,924/10,924 | largest source |
+| Tanqih al-Maqal | `mamaqani` | 34 vols | — | incomplete | eshia.ir only; never finished |
+
+Total across all books before merging: 41,854 profiles. After Phase 2 identity
+resolution: 29,305.
+
+Lessons worth keeping if this is rebuilt:
+
+- Process one book at a time; parallel runs corrupted shared checkpoints.
+- Checkpoint every batch — page downloads fail intermittently and the run must survive it.
+- Dense pages of bare names truncate on output; drop the batch size rather than the page.

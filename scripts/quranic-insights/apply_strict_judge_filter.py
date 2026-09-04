@@ -4,8 +4,8 @@
 Removes candidates not in the judge's kept set. Deletes docs with 0 candidates.
 
 Usage:
-    python3 scripts/apply_strict_judge_filter.py
-    python3 scripts/apply_strict_judge_filter.py --dry-run
+    python3 scripts/quranic-insights/apply_strict_judge_filter.py
+    python3 scripts/quranic-insights/apply_strict_judge_filter.py --dry-run
 """
 
 import json

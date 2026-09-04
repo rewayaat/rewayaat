@@ -9,8 +9,8 @@ These hard negatives are especially valuable — the current training data has n
 in-tag negatives, so the model never learns to distinguish within a tag.
 
 Usage:
-  python3 scripts/enrich_training_data_from_audit.py
-  python3 scripts/enrich_training_data_from_audit.py --es-url http://localhost:9200
+  python3 scripts/embeddings/enrich_training_data_from_audit.py
+  python3 scripts/embeddings/enrich_training_data_from_audit.py --es-url http://localhost:9200
 """
 import argparse
 import json

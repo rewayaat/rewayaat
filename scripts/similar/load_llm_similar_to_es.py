@@ -2,9 +2,9 @@
 """Load LLM-judged similar hadith pairs from pairs_cache.json into Elasticsearch.
 
 Usage:
-    python3 scripts/load_llm_similar_to_es.py --dry-run
-    python3 scripts/load_llm_similar_to_es.py --live
-    python3 scripts/load_llm_similar_to_es.py --live --resume
+    python3 scripts/similar/load_llm_similar_to_es.py --dry-run
+    python3 scripts/similar/load_llm_similar_to_es.py --live
+    python3 scripts/similar/load_llm_similar_to_es.py --live --resume
 
 Safety:
     - Reads tmp/pairs_cache.json (READ-ONLY)
@@ -22,7 +22,6 @@ from collections import defaultdict
 from pathlib import Path
 
 # Add project root to path
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from elasticsearch import Elasticsearch, helpers
 

@@ -7,8 +7,8 @@ and commentaryWordCount >= MIN_WORD_COUNT, scrolls through results,
 and writes each document to a JSON file.
 
 Usage:
-    python3 scripts/export_multi_verse_tafsir.py
-    TAFSIR_INDEX=rewayaat_tafsir MIN_WORD_COUNT=100 python3 scripts/export_multi_verse_tafsir.py
+    python3 scripts/ingest/export_multi_verse_tafsir.py
+    TAFSIR_INDEX=rewayaat_tafsir MIN_WORD_COUNT=100 python3 scripts/ingest/export_multi_verse_tafsir.py
 """
 
 import json

@@ -5,10 +5,10 @@ Reads batch files from tmp/hadith-annotation/batches/, constructs agent prompts,
 and prepares work for Claude Code sub-agents. Tracks progress in _progress.json.
 
 Usage:
-    python3 scripts/run_annotation_agents.py --status
-    python3 scripts/run_annotation_agents.py --prepare-next 6   # show next 6 batches to process
-    python3 scripts/run_annotation_agents.py --mark-done batch_0001
-    python3 scripts/run_annotation_agents.py --mark-failed batch_0001
+    python3 scripts/annotation/run_annotation_agents.py --status
+    python3 scripts/annotation/run_annotation_agents.py --prepare-next 6   # show next 6 batches to process
+    python3 scripts/annotation/run_annotation_agents.py --mark-done batch_0001
+    python3 scripts/annotation/run_annotation_agents.py --mark-failed batch_0001
 """
 
 import argparse

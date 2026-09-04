@@ -6,9 +6,9 @@ Elasticsearch queries, and heuristic filtering. Splits by hadith ID
 to prevent data leakage.
 
 Usage:
-  python3 scripts/build_training_dataset.py
-  python3 scripts/build_training_dataset.py --es-url http://localhost:9200
-  python3 scripts/build_training_dataset.py --output-dir tmp/eval
+  python3 scripts/embeddings/build_training_dataset.py
+  python3 scripts/embeddings/build_training_dataset.py --es-url http://localhost:9200
+  python3 scripts/embeddings/build_training_dataset.py --output-dir tmp/eval
 """
 
 import argparse

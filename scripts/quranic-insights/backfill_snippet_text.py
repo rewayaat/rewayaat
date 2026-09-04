@@ -6,9 +6,9 @@ export/build pipeline. This script reads the full text from rewayaat_tafsir and 
 the light index.
 
 Usage:
-    python3 scripts/backfill_snippet_text.py              # Run for real
-    python3 scripts/backfill_snippet_text.py --dry-run    # Preview only
-    python3 scripts/backfill_snippet_text.py --limit 100  # Only process 100 docs
+    python3 scripts/quranic-insights/backfill_snippet_text.py              # Run for real
+    python3 scripts/quranic-insights/backfill_snippet_text.py --dry-run    # Preview only
+    python3 scripts/quranic-insights/backfill_snippet_text.py --limit 100  # Only process 100 docs
 """
 
 import json

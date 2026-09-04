@@ -6,10 +6,10 @@ Includes topic tags in the embedding input for better topical clustering.
 Bulk imports 1024-dim vectors into Elasticsearch.
 
 Usage:
-  python3 scripts/generate_hadith_embeddings.py
-  python3 scripts/generate_hadith_embeddings.py --model intfloat/multilingual-e5-large
-  python3 scripts/generate_hadith_embeddings.py --batch-size 64 --force
-  python3 scripts/generate_hadith_embeddings.py --eval tmp/eval/similar_hadith_eval.json
+  python3 scripts/embeddings/generate_hadith_embeddings.py
+  python3 scripts/embeddings/generate_hadith_embeddings.py --model intfloat/multilingual-e5-large
+  python3 scripts/embeddings/generate_hadith_embeddings.py --batch-size 64 --force
+  python3 scripts/embeddings/generate_hadith_embeddings.py --eval tmp/eval/similar_hadith_eval.json
 """
 import argparse
 import json

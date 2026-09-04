@@ -6,8 +6,8 @@ Never overwrites existing commentary_text_highlighted values.
 Matches by (hadith_id, verse_key, tafsir_slug) triplet.
 
 Usage:
-    python3 scripts/apply_highlighting.py              # Run for real
-    python3 scripts/apply_highlighting.py --dry-run    # Preview only
+    python3 scripts/quranic-insights/apply_highlighting.py              # Run for real
+    python3 scripts/quranic-insights/apply_highlighting.py --dry-run    # Preview only
 """
 
 import json

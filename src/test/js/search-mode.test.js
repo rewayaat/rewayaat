@@ -1,8 +1,22 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-global.document = {};
-global.window = { location: { search: '' } };
+// rewayaat.js wires up DOM behaviour at module load, so requiring it needs enough
+// of a document and window to get through that without touching a real browser.
+global.document = {
+    readyState: 'complete',
+    querySelector() { return null; },
+    querySelectorAll() { return []; },
+    addEventListener() {},
+    getElementById() { return null; }
+};
+global.window = {
+    location: { search: '' },
+    addEventListener() {},
+    matchMedia() { return { matches: false, addListener() {}, addEventListener() {} }; },
+    requestAnimationFrame() {},
+    pageYOffset: 0
+};
 global.$ = function() {
     return {
         ready() {},

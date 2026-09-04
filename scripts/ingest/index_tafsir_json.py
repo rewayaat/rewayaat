@@ -6,8 +6,8 @@ Reads JSON files produced by TafsirExtractionTool's dry-run dump
 and indexes them via HTTP, bypassing the broken Rest5Client.
 
 Usage:
-    python3 scripts/index_tafsir_json.py
-    TAFSIR_INDEX=rewayaat_tafsir JSON_DIR=tmp/tafsir-json python3 scripts/index_tafsir_json.py
+    python3 scripts/ingest/index_tafsir_json.py
+    TAFSIR_INDEX=rewayaat_tafsir JSON_DIR=tmp/tafsir-json python3 scripts/ingest/index_tafsir_json.py
 """
 
 import json

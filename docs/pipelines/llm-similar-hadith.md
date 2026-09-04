@@ -1,10 +1,17 @@
-# LLM Similar Hadith Pipeline — Resume Instructions
+# LLM Similar Hadith
 
-This document tells a new Claude Code agent exactly how to continue the LLM similar hadith pipeline from wherever it left off. **Read this entire document before doing anything.**
+Sub-agents (Sonnet) judge whether pairs of hadith are genuinely similar. Each hadith has
+~15-50 candidate pairs found via BM25 Arabic/English, topic overlap and same-chapter
+retrieval. Agents read a batch of source hadith plus candidates, rule on each pair, and
+write results to JSON.
 
-## What This Pipeline Does
-
-We use Claude Code sub-agents (Sonnet) to judge whether pairs of hadith are genuinely similar. Each hadith has ~15-50 candidate pairs (found via BM25 Arabic/English + topic overlap). Agents read a batch file with source hadith + candidates, judge each pair, and write results to a JSON file.
+> **Status: complete.** 374,461 pairs judged, 47,522 similar (12.7%). Loaded into ES as
+> the `llm_similar` nested field on 25,273 of 32,519 hadith. Production carries 95,001
+> bidirectional entries, averaging 3.8 per doc.
+>
+> This document is the runbook for re-running the loop — after adding new hadith, or to
+> finish the tail of uncached batches. For how candidates are generated and how results
+> are loaded, see [../data-pipeline.md](../data-pipeline.md#llm-similar-hadith-pipeline).
 
 ## Key Files & Locations
 
@@ -16,8 +23,7 @@ We use Claude Code sub-agents (Sonnet) to judge whether pairs of hadith are genu
 | `tmp/batches_new/batch_XXXX.json` | Secondary batch files (5,090 total). Same format. |
 | `tmp/results_batch_XXXX.json` | Agent output files. Format: `[{"pair": "a\|\|b", "verdict": "...", ...}]` |
 | `tmp/precomputed.jsonl` | All 32,516 hadith with precomputed candidates (1.28GB) |
-| `docs/similar-hadith-agent-prompt.md` | The prompt to give each sub-agent |
-| `docs/llm-similar-hadith-plan.md` | Full technical plan (background reading) |
+| `docs/data-pipeline.md` | Candidate generation and ES loading |
 
 **NOTE**: `tmp/` is symlinked to `/mnt/share/rewayaat-backup/tmp/` (433GB disk).
 
@@ -242,8 +248,7 @@ These batches have historically timed out. Skip them if they appear:
 - **Throughput**: ~7 agents × ~2 min/batch = ~3.5 batches/min
 - **Similar rate**: ~13.8% of pairs judged similar (Sonnet)
 - **Success rate**: ~100% with batches <45KB
-- **Remaining**: ~7,784 uncached batches (as of June 3, session 3)
-- **Time to completion**: ~25-30 hours of continuous running
+- **Full run**: the original 11,090 batches took ~25-30 hours of continuous running
 
 ## Context Window Conservation
 
@@ -258,4 +263,4 @@ The main conversation context fills up quickly. To maximize session length:
 When all batches are cached:
 1. Run the merge script one final time
 2. Report final stats: total pairs, similar pairs, coverage %
-3. Update `docs/operations.md` and MEMORY.md with final numbers
+3. Update the status banner at the top of this doc with final numbers

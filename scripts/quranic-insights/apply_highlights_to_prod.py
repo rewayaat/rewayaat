@@ -10,9 +10,9 @@ Only updates commentary_text_highlighted — never modifies commentary_text or o
 Skips snippets that already have <em> tags.
 
 Usage:
-    python3 scripts/apply_highlights_to_prod.py
-    python3 scripts/apply_highlights_to_prod.py --dry-run
-    ELASTICSEARCH_URL=http://host:port python3 scripts/apply_highlights_to_prod.py
+    python3 scripts/quranic-insights/apply_highlights_to_prod.py
+    python3 scripts/quranic-insights/apply_highlights_to_prod.py --dry-run
+    ELASTICSEARCH_URL=http://host:port python3 scripts/quranic-insights/apply_highlights_to_prod.py
 """
 
 import json
