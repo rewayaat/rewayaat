@@ -77,7 +77,10 @@ public class SimilarHadithQueryResult implements RewayaatQueryResult {
 
     private HadithObjectCollection semanticResult(ESClientProvider provider) {
         try {
-            GetResponse<Map> sourceResp = provider.client().get(g -> g.index(ESClientProvider.INDEX).id(hadithId), Map.class);
+            GetResponse<Map> sourceResp = provider.client().get(g -> g
+                    .index(ESClientProvider.INDEX)
+                    .id(hadithId)
+                    .sourceExcludes(HadithSourceFilter.excludes()), Map.class);
             if (!sourceResp.found() || sourceResp.source() == null) {
                 LOGGER.info("Semantic lookup skipped for id {} because source document was not found.", hadithId);
                 return null;
@@ -117,6 +120,9 @@ public class SimilarHadithQueryResult implements RewayaatQueryResult {
         return new SearchRequest.Builder()
                 .index(ESClientProvider.INDEX)
                 .size(poolSize)
+                // The kNN query below names semantic_vector in the *query*, which does not
+                // require the field to be present in _source, so it is safe to exclude it.
+                .source(HadithSourceFilter.searchSource())
                 .knn(buildSemanticKnnSearch(semanticText, poolSize, numCandidates))
                 .build();
     }

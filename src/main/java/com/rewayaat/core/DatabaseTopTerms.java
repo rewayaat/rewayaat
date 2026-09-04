@@ -48,6 +48,7 @@ public class DatabaseTopTerms {
             SearchResponse<Map> response = provider.client().search(s -> s
                     .index(ESClientProvider.INDEX)
                     .query(prefixQuery)
+                    .source(HadithSourceFilter.searchSource())
                     .size(this.size * 10), // Fetch more docs to find unique terms
                     Map.class);
 

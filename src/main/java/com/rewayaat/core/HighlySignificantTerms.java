@@ -111,6 +111,7 @@ public class HighlySignificantTerms {
                     .index(ESClientProvider.INDEX)
                     .searchType(SearchType.DfsQueryThenFetch)
                     .size(sampleSize)
+                    .source(HadithSourceFilter.searchSource())
                     .query(query),
                     Map.class);
 
