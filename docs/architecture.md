@@ -51,6 +51,10 @@ from the XML sitemap.
 **JSON API** (`controllers/rest/`) backs the Vue application: live search, the similar
 panel, collections, editing.
 
+The two surfaces share endpoints but not JavaScript. Server-rendered pages load the
+small `hub-pages.js` rather than the 274 KB search bundle, so a reader stays signed in
+and can still save a narration without the page paying for a search app it does not run.
+
 ## Package Structure
 
 ```
@@ -151,8 +155,18 @@ Accounts and saved collections.
 - **Templates** — `index.html` (search app), `hadith.html`, `books.html`, `book.html`,
   `volume.html`, `chapter.html`, `edit.html`; shared chrome in
   `fragments/site.html` and `fragments/home-content.html`
-- **JS** — `rewayaat.js` (the search application), `vue-components.js` (shared
-  components), `hadith-editor.js`, `auth-page.js` (used by `static/signin.html`)
+- **JS** — two bundles, deliberately not shared:
+  - `rewayaat.js` (274 KB) is the search application. It boots the home page, runs a
+    query on ready, and expects Vue, tom-select, swal and the search DOM to exist.
+    Only `index.html` loads it.
+  - `hub-pages.js` is what the server-rendered pages load instead, via
+    `fragments/site.html`. It gives them auth state and save-to-collection by calling
+    the same endpoints and reusing the same element ids and CSS classes, while staying
+    small — pulling the search bundle into a static document would spend the crawl
+    budget those pages exist to earn.
+
+  Plus `vue-components.js` (shared components), `hadith-editor.js`, and `auth-page.js`
+  (used by `static/signin.html`).
 - **CSS** — `manuscript.css` carries the whole visual design on top of Bootstrap.
   It intentionally contains duplicate blocks: base styles, then an ornament pass that
   overrides them. Do not consolidate them.
