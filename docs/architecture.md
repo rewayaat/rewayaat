@@ -77,7 +77,7 @@ com.rewayaat/
 |-----------|--------|---------|
 | `HomeController` | `/`, `/edit`, `/auth/verify`, `/auth/reset` | Home page, rendered server-side; owns the canonical host |
 | `BookPageController` | `/books`, `/books/{book}`, `/books/{book}/volume/{n}`, `/books/{book}/{chapter}` | The book → volume → chapter hierarchy |
-| `HadithPageController` | `/hadith`, `/{id}` | One page per narration, with related reading |
+| `HadithPageController` | `/hadith/{id}` | One page per narration, with related reading |
 | `SitemapController` | `/sitemap.xml`, `/sitemap-static.xml`, `/sitemap-books.xml`, `/sitemap-hadith-{page}.xml` | Crawler sitemaps |
 | `GlobalExceptionHandler` | — | Real 404s via container error dispatch, not redirects |
 
@@ -111,7 +111,9 @@ script can never be paired with newer markup.
 | `UserCollectionService` | User-owned hadith collections |
 | `HadithEditorAccessService` | Static allowlist (`admins.txt`) for edit access |
 
-See [search.md](search.md) for how search, similar narrations and Quranic insights work.
+See [search.md](search.md) for how search, similar narrations and Quranic insights work,
+and [seo.md](seo.md) for the invariants the crawler-facing pages depend on — several of
+them look arbitrary until you know what they are protecting against.
 
 ## Elasticsearch Indices
 

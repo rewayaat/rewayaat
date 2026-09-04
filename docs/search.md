@@ -30,6 +30,33 @@ Strict matching requiring more terms to match:
 - Highlighting of matched terms
 - Topic tag enrichment from taxonomy
 
+## Reading Mode
+
+The search interface doubles as the reader. It switches into reading mode when the query
+scopes the corpus but asks nothing of it — a `book:`/`volume:`/`section:`/`chapter:` query
+with no keyword terms — or when the URL carries `mode=read`. `isReadingMode()` in
+`rewayaat.js` decides; reading mode pages larger and sorts by the book's own numbering
+rather than by score.
+
+This is why the server-rendered book pages do not render narrations themselves. They link
+into reading mode instead, building the same query grammar `buildQueryFromFilters` and
+`buildSortFields` produce:
+
+```
+/?q=book:"Al-Kāfi" volume:"2" section:"20" chapter:"Degrees of Belief"
+  &page=1
+  &sort_fields=volume:asc,part:asc,section:asc,chapter:asc,number:asc
+  &mode=read&match_mode=flexible&entry=browse
+```
+
+`BookCatalog.readingModeUrl` builds it server-side, and a `Chapter` hands out its own via
+`readingUrl()`. The two implementations have to agree and nothing fails loudly if they
+drift — see [seo.md](seo.md#the-one-fragile-coupling).
+
+The division of labour: reading mode is where narrations are *read*, in full and with the
+Arabic. The chapter pages carry English excerpts, because they exist to be crawled and
+reading mode — like every search result page — is `noindex` and renders in the browser.
+
 ## Similar Hadith (SimilarHadithService)
 
 ### Architecture: Pre-Computed LLM Pairs
