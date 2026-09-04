@@ -53,7 +53,7 @@ public class BookCatalog {
     private static final int COMPOSITE_PAGE_SIZE = 1000;
 
     /** Path segments the book routes claim, which a chapter slug must not collide with. */
-    private static final Set<String> RESERVED_SEGMENTS = Set.of("volume");
+    private static final Set<String> RESERVED_SEGMENTS = Set.of("volume", "part");
 
     /** A book, with the chapters that sit under it in reading order. */
     public record Book(String name, String slug, long count, List<Chapter> chapters) {
@@ -73,6 +73,74 @@ public class BookCatalog {
                     .filter(c -> volume == null ? c.volume() == null || c.volume().isBlank()
                                                 : volume.equals(c.volume()))
                     .toList();
+        }
+
+        /**
+         * The parts of this book, in reading order.
+         *
+         * <p>Thirteen of the eighteen books use parts, and for some the part IS the
+         * organising principle — Al-Khisal is arranged as "On One-Numbered
+         * Characteristics" through "On Twelve-Numbered". Listing its 908 chapters flat
+         * under a volume threw that structure away and produced a 1.35MB page.
+         */
+        public List<Part> parts() {
+            List<Part> out = new ArrayList<>();
+            Map<String, Integer> used = new HashMap<>();
+            for (Chapter chapter : chapters) {
+                String title = chapter.part();
+                if (title == null || title.isBlank()) {
+                    continue;
+                }
+                String key = chapter.volume() + "\u0000" + title;
+                if (used.containsKey(key)) {
+                    continue;
+                }
+                used.put(key, 1);
+                out.add(new Part(name, slug, partSlug(out, title), title, chapter.volume(),
+                        chaptersInPart(chapter.volume(), title).size()));
+            }
+            return out;
+        }
+
+        public List<Part> partsInVolume(String volume) {
+            return parts().stream()
+                    .filter(p -> volume == null || volume.isBlank()
+                            ? p.volume() == null || p.volume().isBlank()
+                            : volume.equals(p.volume()))
+                    .toList();
+        }
+
+        public List<Chapter> chaptersInPart(String volume, String partTitle) {
+            return chapters.stream()
+                    .filter(c -> sameFacet(c.volume(), volume) && sameFacet(c.part(), partTitle))
+                    .toList();
+        }
+
+        /** Unique within a book: the same part title can recur across volumes. */
+        private static String partSlug(List<Part> existing, String title) {
+            String base = slugify(title);
+            if (base.isBlank()) {
+                base = "part";
+            }
+            String candidate = base;
+            int n = 1;
+            while (hasSlug(existing, candidate)) {
+                candidate = base + "-" + (++n);
+            }
+            return candidate;
+        }
+
+        private static boolean hasSlug(List<Part> existing, String slug) {
+            return existing.stream().anyMatch(p -> p.slug().equals(slug));
+        }
+    }
+
+    /** One part of one book, between the volume and the chapters. */
+    public record Part(String bookName, String bookSlug, String slug, String title,
+                       String volume, int chapterCount) {
+
+        public String url() {
+            return "/books/" + bookSlug + "/part/" + slug;
         }
     }
 
@@ -162,6 +230,12 @@ public class BookCatalog {
     public Optional<Book> book(String slug) {
         ensureLoaded();
         return Optional.ofNullable(booksBySlug.get(slug));
+    }
+
+    public Optional<Part> part(String bookSlug, String partSlug) {
+        return book(bookSlug).flatMap(b -> b.parts().stream()
+                .filter(p -> p.slug().equals(partSlug))
+                .findFirst());
     }
 
     public Optional<Chapter> chapter(String bookSlug, String chapterSlug) {

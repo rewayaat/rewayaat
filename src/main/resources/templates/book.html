@@ -42,6 +42,18 @@
         </div>
     </section>
 
+    <section class="hub-group" th:if="${!#lists.isEmpty(parts)}">
+        <h2 class="hub-group__label">Parts</h2>
+        <div class="hub-grid">
+            <a class="hub-card" th:each="part : ${parts}" th:href="${part.url}">
+                <div class="hub-card__title" th:text="${part.title}">Part 1</div>
+                <div class="hub-card__meta">
+                    <span><strong th:text="${#numbers.formatInteger(part.chapterCount, 0, 'COMMA')}">100</strong> chapters</span>
+                </div>
+            </a>
+        </div>
+    </section>
+
     <section class="hub-group" th:if="${!#lists.isEmpty(chapters)}">
         <h2 class="hub-group__label">Chapters</h2>
         <!-- Two destinations per row on purpose. The title goes to the chapter's own

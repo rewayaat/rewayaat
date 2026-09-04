@@ -82,19 +82,24 @@ public class BookPageController {
         }
         BookCatalog.Book book = found.get();
 
-        // Al-Kafi alone has 2,693 chapters. Listing every one of them on the book page
-        // made it a 637KB document with 2,693 outbound links — slow on mobile and a
-        // thin spread of link equity. Where a book has volumes, they become the level
-        // in between, so no page in the chain carries more than a few hundred links.
+        // One level at a time, and only levels that exist. Al-Kafi has eight volumes;
+        // Al-Khisal has one, so a volume level there is a page with a single card on it,
+        // and its 908 chapters listed flat made a 1.35MB document. Books fall through to
+        // whichever level actually divides them.
         List<String> volumes = book.volumes();
+        List<BookCatalog.Part> parts = book.parts();
+        boolean useVolumes = volumes.size() > 1;
+        boolean useParts = !useVolumes && parts.size() > 1;
+
         model.addAttribute("book", book);
-        model.addAttribute("volumes", volumes.stream()
+        model.addAttribute("volumes", useVolumes ? volumes.stream()
                 .map(v -> Map.of(
                         "label", "Volume " + v,
                         "url", "/books/" + bookSlug + "/volume/" + encode(v),
                         "chapterCount", book.chaptersInVolume(v).size()))
-                .toList());
-        model.addAttribute("chapters", volumes.isEmpty() ? book.chapters() : List.of());
+                .toList() : List.of());
+        model.addAttribute("parts", useParts ? parts : List.of());
+        model.addAttribute("chapters", useVolumes || useParts ? List.of() : book.chapters());
         model.addAttribute("blurb", blurbs.forSlug(bookSlug));
         model.addAttribute("seoTitle", book.name() + " — Shia Hadith in Arabic & English");
         model.addAttribute("seoDescription", String.format(
@@ -125,10 +130,13 @@ public class BookPageController {
         }
         String label = "Volume " + volume;
         long narrations = chapters.stream().mapToLong(BookCatalog.Chapter::count).sum();
+        List<BookCatalog.Part> parts = book.partsInVolume(volume);
+        boolean useParts = parts.size() > 1;
 
         model.addAttribute("book", book);
         model.addAttribute("volumeLabel", label);
-        model.addAttribute("chapters", chapters);
+        model.addAttribute("parts", useParts ? parts : List.of());
+        model.addAttribute("chapters", useParts ? List.of() : chapters);
         model.addAttribute("volumes", List.of());
         model.addAttribute("narrationCount", narrations);
         model.addAttribute("seoTitle", book.name() + " " + label + " — Shia Hadith in Arabic & English");
@@ -142,6 +150,43 @@ public class BookPageController {
         trail.put(label, "/books/" + bookSlug + "/volume/" + encode(volume));
         addBreadcrumbs(model, trail);
         model.addAttribute("jsonLd", bookJsonLd(book));
+        return "volume";
+    }
+
+    @GetMapping("/books/{bookSlug}/part/{partSlug}")
+    public String partPage(@PathVariable String bookSlug, @PathVariable String partSlug,
+                           Model model, HttpServletResponse response) throws IOException {
+        Optional<BookCatalog.Book> foundBook = catalog.book(bookSlug);
+        Optional<BookCatalog.Part> foundPart = catalog.part(bookSlug, partSlug);
+        if (foundBook.isEmpty() || foundPart.isEmpty()) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return null;
+        }
+        BookCatalog.Book book = foundBook.get();
+        BookCatalog.Part part = foundPart.get();
+        List<BookCatalog.Chapter> chapters = book.chaptersInPart(part.volume(), part.title());
+        long narrations = chapters.stream().mapToLong(BookCatalog.Chapter::count).sum();
+
+        model.addAttribute("book", book);
+        model.addAttribute("volumeLabel", part.title());
+        model.addAttribute("parts", List.of());
+        model.addAttribute("chapters", chapters);
+        model.addAttribute("volumes", List.of());
+        model.addAttribute("narrationCount", narrations);
+        model.addAttribute("seoTitle", part.title() + " — " + book.name());
+        model.addAttribute("seoDescription", String.format(
+                "%s, %s: %,d narrations across %,d chapters, in Arabic and English.",
+                book.name(), part.title(), narrations, chapters.size()));
+        model.addAttribute("canonicalUrl", BASE_URL + part.url());
+        model.addAttribute("jsonLd", bookJsonLd(book));
+
+        LinkedHashMap<String, String> trail = new LinkedHashMap<>();
+        trail.put(book.name(), "/books/" + bookSlug);
+        if (part.volume() != null && !part.volume().isBlank() && book.volumes().size() > 1) {
+            trail.put("Volume " + part.volume(), "/books/" + bookSlug + "/volume/" + encode(part.volume()));
+        }
+        trail.put(part.title(), part.url());
+        addBreadcrumbs(model, trail);
         return "volume";
     }
 

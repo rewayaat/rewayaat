@@ -134,6 +134,11 @@ public class SitemapController {
                     appendUrl(xml, "/books/" + escapeXml(book.slug()) + "/volume/"
                             + escapeXml(urlEncode(volume)), "0.8", "monthly");
                 }
+                // Thirteen of the eighteen books divide into parts, and for some the part
+                // is the organising principle rather than the volume.
+                for (BookCatalog.Part part : book.parts()) {
+                    appendUrl(xml, escapeXml(part.url()), "0.8", "monthly");
+                }
                 for (BookCatalog.Chapter chapter : book.chapters()) {
                     appendUrl(xml, escapeXml(chapter.url()), "0.7", "monthly");
                 }
