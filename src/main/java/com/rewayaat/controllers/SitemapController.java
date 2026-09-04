@@ -50,8 +50,15 @@ public class SitemapController {
     @RequestMapping(value = "/sitemap.xml", method = RequestMethod.GET, produces = MediaType.APPLICATION_XML_VALUE)
     public ResponseEntity<String> sitemapIndex() {
         LOGGER.debug("Generating sitemap index");
-        long total = totalHadithCount();
-        int totalPages = Math.max(1, (int) Math.ceil((double) total / PAGE_SIZE));
+        int totalPages;
+        try {
+            totalPages = Math.max(1, (int) Math.ceil((double) allHadithIds().size() / PAGE_SIZE));
+        } catch (Exception e) {
+            // Falling back to a count of zero still advertises page 1, so crawlers would
+            // follow a link that only 500s. Failing here keeps the index they already have.
+            LOGGER.error("Error counting hadith for sitemap index", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
 
         StringBuilder xml = new StringBuilder();
         xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
@@ -230,15 +237,16 @@ public class SitemapController {
     }
 
     /**
-     * Counts hadith from the same cached list the pages are sliced from, so the index
-     * can never advertise a page the pages themselves would not produce.
+     * Drops the memoised id list so the next request rescans Elasticsearch.
+     *
+     * <p>The cache is otherwise held for {@link #CACHE_TTL}, which is the right answer
+     * for crawler traffic but wrong right after a reindex, and wrong for tests that
+     * seed a different corpus per case.
      */
-    private long totalHadithCount() {
-        try {
-            return allHadithIds().size();
-        } catch (IOException e) {
-            LOGGER.error("Error counting hadith for sitemap", e);
-            return 0;
+    public void invalidateCache() {
+        synchronized (this) {
+            cachedIds = List.of();
+            cachedAt = Instant.EPOCH;
         }
     }
 
