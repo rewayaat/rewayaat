@@ -11,12 +11,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +34,18 @@ public class SitemapController {
     private static final String BASE_URL = "https://hadith.academyofislam.com";
     private static final int PAGE_SIZE = 10000;
     private static final String PIT_KEEP_ALIVE = "2m";
+    private static final Duration CACHE_TTL = Duration.ofHours(6);
+
+    /**
+     * The whole ID list, scanned once and sliced per page.
+     *
+     * <p>Paging straight from Elasticsearch meant page N re-walked pages 1..N-1 and
+     * threw the results away, so /sitemap-hadith-4.xml took 24 seconds and Google
+     * gave up on it ("Couldn't fetch") while the earlier pages succeeded. One scan
+     * of ~32k ids costs about a megabyte of heap and makes every page instant.
+     */
+    private volatile List<String> cachedIds = List.of();
+    private volatile Instant cachedAt = Instant.EPOCH;
 
     @RequestMapping(value = "/sitemap.xml", method = RequestMethod.GET, produces = MediaType.APPLICATION_XML_VALUE)
     public ResponseEntity<String> sitemapIndex() {
@@ -87,7 +103,7 @@ public class SitemapController {
         xml.append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n");
 
         try {
-            List<String> ids = fetchHadithIds(page);
+            List<String> ids = hadithIdsForPage(page);
             for (String id : ids) {
                 appendUrl(xml, "/hadith/" + escapeXml(id), "0.8", "monthly");
             }
@@ -105,16 +121,49 @@ public class SitemapController {
                 .body(xml.toString());
     }
 
+    /** Returns the slice of IDs belonging to one sitemap page. */
+    private List<String> hadithIdsForPage(int page) throws IOException {
+        List<String> all = allHadithIds();
+        int from = (page - 1) * PAGE_SIZE;
+        if (from >= all.size()) {
+            return List.of();
+        }
+        return all.subList(from, Math.min(from + PAGE_SIZE, all.size()));
+    }
+
     /**
-     * Fetches the hadith IDs belonging to one sitemap page.
+     * The full list of hadith IDs, rescanned at most once per {@link #CACHE_TTL}.
      *
-     * <p>Paging is done against a point-in-time so the view of the index stays
-     * fixed for the whole walk, with {@code _shard_doc} as the cursor. Sorting on
-     * {@code _id} would be the obvious choice, but Elasticsearch has disallowed
-     * fielddata access on that field since 8.x, and the resulting error was being
-     * swallowed into an empty sitemap.
+     * <p>Synchronised so a burst of crawler requests triggers one scan rather than
+     * one per request; the happy path reads the volatile field and never blocks.
      */
-    private List<String> fetchHadithIds(int page) throws IOException {
+    private List<String> allHadithIds() throws IOException {
+        List<String> cached = cachedIds;
+        if (!cached.isEmpty() && Duration.between(cachedAt, Instant.now()).compareTo(CACHE_TTL) < 0) {
+            return cached;
+        }
+        synchronized (this) {
+            if (!cachedIds.isEmpty() && Duration.between(cachedAt, Instant.now()).compareTo(CACHE_TTL) < 0) {
+                return cachedIds;
+            }
+            List<String> scanned = scanAllHadithIds();
+            cachedIds = scanned;
+            cachedAt = Instant.now();
+            return scanned;
+        }
+    }
+
+    /**
+     * Walks every document once and collects its ID.
+     *
+     * <p>Paging runs against a point-in-time so the view of the index stays fixed for
+     * the whole walk, with {@code _shard_doc} as the cursor. Sorting on {@code _id}
+     * would be the obvious choice, but Elasticsearch has disallowed fielddata access
+     * on that field since 8.x, and the resulting error was being swallowed into an
+     * empty sitemap.
+     */
+    private List<String> scanAllHadithIds() throws IOException {
+        long startedAt = System.currentTimeMillis();
         try (ESClientProvider provider = new ESClientProvider()) {
             ElasticsearchClient client = provider.client();
             String pitId = client.openPointInTime(p -> p
@@ -122,10 +171,10 @@ public class SitemapController {
                     .keepAlive(t -> t.time(PIT_KEEP_ALIVE))).id();
 
             try {
+                List<String> ids = new ArrayList<>();
                 List<FieldValue> cursor = null;
 
-                // Walk forward a page at a time until we reach the one asked for.
-                for (int current = 1; current <= page; current++) {
+                while (true) {
                     final List<FieldValue> after = cursor;
                     SearchResponse<Void> response = client.search(s -> {
                         s.pit(p -> p.id(pitId).keepAlive(t -> t.time(PIT_KEEP_ALIVE)))
@@ -141,15 +190,17 @@ public class SitemapController {
 
                     List<Hit<Void>> hits = response.hits().hits();
                     if (hits.isEmpty()) {
-                        return List.of();
+                        break;
                     }
-                    if (current == page) {
-                        return hits.stream().map(Hit::id).toList();
+                    for (Hit<Void> hit : hits) {
+                        ids.add(hit.id());
                     }
                     cursor = hits.get(hits.size() - 1).sort();
                 }
 
-                return List.of();
+                LOGGER.info("Scanned {} hadith ids for the sitemap in {}ms",
+                        ids.size(), System.currentTimeMillis() - startedAt);
+                return List.copyOf(ids);
             } finally {
                 try {
                     client.closePointInTime(c -> c.id(pitId));
@@ -161,15 +212,30 @@ public class SitemapController {
         }
     }
 
+    /**
+     * Fills the cache shortly after boot so no crawler is the one that pays for the
+     * scan. Runs on its own daemon thread: readiness must not wait on Elasticsearch.
+     */
+    @EventListener(ApplicationReadyEvent.class)
+    public void warmSitemapCache() {
+        Thread warmer = new Thread(() -> {
+            try {
+                allHadithIds();
+            } catch (Exception e) {
+                LOGGER.warn("Could not warm the sitemap id cache; it will be built on first request", e);
+            }
+        }, "sitemap-cache-warmer");
+        warmer.setDaemon(true);
+        warmer.start();
+    }
+
+    /**
+     * Counts hadith from the same cached list the pages are sliced from, so the index
+     * can never advertise a page the pages themselves would not produce.
+     */
     private long totalHadithCount() {
-        try (ESClientProvider provider = new ESClientProvider()) {
-            // Without trackTotalHits the count saturates at 10,000, which
-            // silently truncated the sitemap index to a single page.
-            SearchResponse<Void> response = provider.client().search(s -> s
-                    .index(ESClientProvider.INDEX)
-                    .size(0)
-                    .trackTotalHits(t -> t.enabled(true)), Void.class);
-            return response.hits().total().value();
+        try {
+            return allHadithIds().size();
         } catch (IOException e) {
             LOGGER.error("Error counting hadith for sitemap", e);
             return 0;
