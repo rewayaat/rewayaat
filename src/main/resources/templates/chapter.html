@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/site :: head}"></head>
+<body>
+<nav th:replace="~{fragments/site :: nav}"></nav>
+
+<main class="container py-3">
+    <nav th:replace="~{fragments/site :: crumbs}"></nav>
+
+    <header class="hub-hero">
+        <h1 class="hub-hero__title" th:text="${chapter.title}">Chapter title</h1>
+        <p class="hub-hero__lede">
+            <a th:href="${bookUrl}" th:text="${chapter.bookName}">Book</a>
+            <th:block th:if="${!#strings.isEmpty(chapter.volume)}">
+                &middot; Volume <span th:text="${chapter.volume}">1</span>
+            </th:block>
+            <th:block th:if="${!#strings.isEmpty(chapter.section)}">
+                &middot; Section <span th:text="${chapter.section}">1</span>
+            </th:block>
+            &middot; <span th:text="${#numbers.formatInteger(chapter.count, 0, 'COMMA')}">12</span> narrations
+        </p>
+    </header>
+
+    <div>
+        <article class="hub-narration" th:each="narration : ${narrations}">
+            <div class="hub-narration__num" th:if="${!#strings.isEmpty(narration.number)}">
+                Hadith <span th:text="${narration.number}">1</span>
+            </div>
+            <p class="hub-narration__text" th:text="${narration.excerpt}">Excerpt of the narration.</p>
+            <a class="hub-narration__link" th:href="${narration.url}">Read the full narration &rarr;</a>
+        </article>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/site :: footer}"></footer>
+<th:block th:replace="~{fragments/site :: analytics}"></th:block>
+</body>
+</html>

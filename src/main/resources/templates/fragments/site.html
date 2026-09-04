@@ -1,0 +1,143 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+  Shared chrome for the server-rendered pages (books, book, chapter).
+
+  These pages exist to be crawled, so everything on them is real HTML rendered by the
+  server: the rest of the site builds its content in the browser, and a crawler that
+  does not run scripts sees an empty shell.
+-->
+<head th:fragment="head">
+    <meta charset="UTF-8"/>
+    <title th:text="${seoTitle}">The Hadith Database</title>
+    <meta name="description" th:content="${seoDescription}"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="canonical" th:href="${canonicalUrl}"/>
+
+    <meta property="og:type" content="website"/>
+    <meta property="og:site_name" content="The Hadith Database"/>
+    <meta property="og:title" th:content="${seoTitle}"/>
+    <meta property="og:description" th:content="${seoDescription}"/>
+    <meta property="og:url" th:content="${canonicalUrl}"/>
+    <meta property="og:image" content="https://hadith.academyofislam.com/img/share-card.png"/>
+    <meta property="og:image:width" content="1200"/>
+    <meta property="og:image:height" content="630"/>
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:title" th:content="${seoTitle}"/>
+    <meta name="twitter:description" th:content="${seoDescription}"/>
+    <meta name="twitter:image" content="https://hadith.academyofislam.com/img/share-card.png"/>
+
+    <script type="application/ld+json" th:utext="${jsonLd}"></script>
+    <script type="application/ld+json" th:utext="${breadcrumbJsonLd}" th:if="${breadcrumbJsonLd != null}"></script>
+
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="/css/manuscript.css" rel="stylesheet" th:href="@{/css/manuscript.css}"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600;700&family=Scheherazade+New:wght@400;700&display=swap"
+          rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+          integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    <style>
+        .hub-hero { padding: 2rem 0 1.25rem; border-bottom: 1px solid var(--bs-border-color); margin-bottom: 1.75rem; }
+        .hub-hero__title { font-family: 'Cormorant Garamond', serif; font-weight: 700; font-size: 2rem; line-height: 1.15; margin-bottom: 0.4rem; }
+        .hub-hero__lede { font-family: 'Source Serif 4', serif; font-size: 1.05rem; line-height: 1.7; color: var(--bs-secondary-color); max-width: 62ch; }
+        .hub-crumbs { display: flex; flex-wrap: wrap; gap: 0.35rem; font-size: 0.85rem; color: var(--bs-secondary-color); margin-bottom: 0.85rem; }
+        .hub-crumbs a { color: var(--bs-secondary-color); text-decoration: none; }
+        .hub-crumbs a:hover { color: var(--bs-body-color); text-decoration: underline; }
+        .hub-crumbs__sep { opacity: 0.4; }
+        .hub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+        .hub-card { display: block; padding: 1rem 1.15rem; border: 1px solid var(--bs-border-color); border-radius: 0.6rem; text-decoration: none; color: inherit; transition: border-color 0.15s, background 0.15s; }
+        .hub-card:hover { border-color: var(--bs-secondary-color); background: var(--bs-tertiary-bg); }
+        .hub-card__title { font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: 1.2rem; line-height: 1.25; margin-bottom: 0.2rem; }
+        .hub-card__meta { font-size: 0.82rem; color: var(--bs-secondary-color); }
+        .hub-group { margin-bottom: 2rem; }
+        .hub-group__label { font-family: 'Source Serif 4', serif; font-weight: 600; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--bs-secondary-color); margin-bottom: 0.75rem; padding-bottom: 0.4rem; border-bottom: 1px solid var(--bs-border-color); }
+        .hub-list { list-style: none; padding: 0; margin: 0; column-width: 20rem; column-gap: 2rem; }
+        .hub-list li { break-inside: avoid; margin-bottom: 0.45rem; font-size: 0.95rem; line-height: 1.45; }
+        .hub-list a { text-decoration: none; color: var(--bs-body-color); }
+        .hub-list a:hover { text-decoration: underline; }
+        .hub-list__count { color: var(--bs-secondary-color); font-size: 0.8rem; }
+        .hub-blurb { font-family: 'Source Serif 4', serif; line-height: 1.7; margin-bottom: 2rem; }
+        .hub-blurb h2 { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; }
+        .hub-narration { padding: 1rem 0; border-bottom: 1px solid var(--bs-border-color); }
+        .hub-narration__num { font-size: 0.8rem; color: var(--bs-secondary-color); letter-spacing: 0.04em; }
+        .hub-narration__text { font-family: 'Source Serif 4', serif; font-size: 1rem; line-height: 1.65; margin: 0.25rem 0 0.4rem; }
+        .hub-narration__link { font-size: 0.85rem; text-decoration: none; }
+    </style>
+</head>
+
+<body>
+<nav th:fragment="nav" class="navbar navbar-expand-lg sticky-top site-nav">
+    <div class="container">
+        <div class="navbar-top w-100 d-flex align-items-center flex-wrap gap-3">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+                <img src="/img/Alilogov2-transparent.png" th:src="@{/img/Alilogov2-transparent.png}" class="brand-logo--full brand-logo--full-v2 d-none d-md-block" alt="ALI Logo"/>
+                <img src="/img/ali_icon.png" th:src="@{/img/ali_icon.png}" class="brand-logo--icon d-md-none" alt="ALI"/>
+            </a>
+            <div class="d-flex home-nav-links">
+                <a href="/" class="home-nav-link">Search</a>
+                <span class="home-nav-dot" aria-hidden="true">&middot;</span>
+                <a href="/books" class="home-nav-link">Books</a>
+                <span class="home-nav-dot" aria-hidden="true">&middot;</span>
+                <a href="/updates.html" class="home-nav-link">Updates</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- The visible trail, rendered from the same list the BreadcrumbList is built from. -->
+<nav th:fragment="crumbs" class="hub-crumbs" aria-label="Breadcrumb">
+    <th:block th:each="crumb, it : ${breadcrumbs}">
+        <span th:if="${!it.first}" class="hub-crumbs__sep">/</span>
+        <a th:if="${!it.last}" th:href="${crumb.url}" th:text="${crumb.name}">Crumb</a>
+        <span th:if="${it.last}" th:text="${crumb.name}">Current</span>
+    </th:block>
+</nav>
+
+<footer th:fragment="footer" class="site-footer">
+    <div class="container">
+        <div class="site-footer__grid">
+            <div>
+                <div class="site-footer__title">Rewayaat</div>
+                <p class="site-footer__text">
+                    A project of the <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" class="site-footer__link">Academy for Learning Islam</a>. Search, browse, and study Shi'i narrations in Arabic and English.
+                </p>
+            </div>
+            <div>
+                <div class="site-footer__label">Explore</div>
+                <div class="site-footer__links">
+                    <a href="/books">All Books</a>
+                    <a href="/updates.html">Updates</a>
+                    <a href="/search_tips.html">Search Tips</a>
+                </div>
+            </div>
+            <div>
+                <div class="site-footer__label">Contact</div>
+                <div class="site-footer__links">
+                    <a href="mailto:rewayaat.org@gmail.com">rewayaat.org@gmail.com</a>
+                    <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
+                    <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer">Academy of Islam</a>
+                </div>
+            </div>
+        </div>
+        <div class="site-footer__bottom">
+            <span>&copy; 2026 Academy for Learning Islam (A.L.I.)</span>
+            <span>Content and translations remain the responsibility of their original sources.</span>
+        </div>
+    </div>
+</footer>
+
+<th:block th:fragment="analytics">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3HSRTQD7GM"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-3HSRTQD7GM');
+    </script>
+</th:block>
+</body>
+</html>
