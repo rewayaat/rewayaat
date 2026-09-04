@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,14 +44,12 @@ public class SitemapController {
         // Static pages sitemap
         xml.append("  <sitemap>\n");
         xml.append("    <loc>").append(BASE_URL).append("/sitemap-static.xml</loc>\n");
-        xml.append("    <lastmod>").append(LocalDate.now()).append("</lastmod>\n");
         xml.append("  </sitemap>\n");
 
         // Hadith sitemap pages
         for (int i = 1; i <= totalPages; i++) {
             xml.append("  <sitemap>\n");
             xml.append("    <loc>").append(BASE_URL).append("/sitemap-hadith-").append(i).append(".xml</loc>\n");
-            xml.append("    <lastmod>").append(LocalDate.now()).append("</lastmod>\n");
             xml.append("  </sitemap>\n");
         }
 
@@ -69,6 +66,7 @@ public class SitemapController {
         xml.append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n");
 
         appendUrl(xml, "/", "1.0", "weekly");
+        appendUrl(xml, "/updates.html", "0.6", "weekly");
         appendUrl(xml, "/search_tips.html", "0.5", "monthly");
 
         xml.append("</urlset>");
@@ -178,10 +176,18 @@ public class SitemapController {
         }
     }
 
+    /**
+     * Writes one {@code <url>} entry.
+     *
+     * <p>No {@code <lastmod>}: nothing in the index records when a narration was last
+     * edited, and the previous code emitted {@code LocalDate.now()} — telling crawlers
+     * that all 32,519 pages had changed today, every day. Search engines discount a
+     * lastmod they can see is unreliable, so omitting it beats fabricating it. If an
+     * updated-at field is ever added to the index, it belongs here.
+     */
     private void appendUrl(StringBuilder xml, String path, String priority, String changefreq) {
         xml.append("  <url>\n");
         xml.append("    <loc>").append(BASE_URL).append(path).append("</loc>\n");
-        xml.append("    <lastmod>").append(LocalDate.now()).append("</lastmod>\n");
         xml.append("    <changefreq>").append(changefreq).append("</changefreq>\n");
         xml.append("    <priority>").append(priority).append("</priority>\n");
         xml.append("  </url>\n");
