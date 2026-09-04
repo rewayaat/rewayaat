@@ -44,12 +44,21 @@
 
     <section class="hub-group" th:if="${!#lists.isEmpty(chapters)}">
         <h2 class="hub-group__label">Chapters</h2>
+        <!-- Two destinations per row on purpose. The title goes to the chapter's own
+             page, which is the crawlable, rankable URL and where a search engine sends
+             people; the icon jumps straight into reading mode for someone already here
+             and browsing to read. A single link could not serve both. -->
         <ul class="hub-chapters">
-            <li th:each="chapter, it : ${chapters}">
+            <li class="hub-chapter-row" th:each="chapter, it : ${chapters}">
                 <a class="hub-chapter" th:href="${chapter.url}">
                     <span class="hub-chapter__index" th:text="${it.count}">1</span>
                     <span class="hub-chapter__title" th:text="${chapter.title}">Chapter title</span>
                     <span class="hub-chapter__count" th:text="${chapter.count}">12</span>
+                </a>
+                <a class="hub-chapter-read" th:href="${chapter.readingUrl}"
+                   th:title="'Read ' + ${chapter.title}"
+                   th:aria-label="'Read ' + ${chapter.title} + ' in reading mode'">
+                    <i class="fa fa-book-open" aria-hidden="true"></i>
                 </a>
             </li>
         </ul>

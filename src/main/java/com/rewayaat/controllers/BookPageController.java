@@ -126,7 +126,7 @@ public class BookPageController {
 
         model.addAttribute("book", book);
         model.addAttribute("volumeLabel", label);
-        model.addAttribute("readingUrl", readingModeUrl(book.name(), volume, null, null, null));
+        model.addAttribute("readingUrl", BookCatalog.readingModeUrl(book.name(), volume, null, null, null));
         model.addAttribute("chapters", chapters);
         model.addAttribute("volumes", List.of());
         model.addAttribute("narrationCount", narrations);
@@ -157,8 +157,7 @@ public class BookPageController {
 
         model.addAttribute("chapter", chapter);
         model.addAttribute("narrations", narrations);
-        model.addAttribute("readingUrl", readingModeUrl(chapter.bookName(), chapter.volume(),
-                chapter.part(), chapter.section(), chapter.title()));
+        model.addAttribute("readingUrl", chapter.readingUrl());
         model.addAttribute("bookUrl", "/books/" + bookSlug);
         model.addAttribute("seoTitle", chapter.title() + " — " + chapter.bookName());
         model.addAttribute("seoDescription", String.format(
@@ -260,58 +259,6 @@ public class BookPageController {
         }
         String content = str(segmented.getOrDefault("englishContent", ""));
         return content.isBlank() ? str(source.get("english")) : content;
-    }
-
-    /**
-     * The URL of the app's existing reading mode, scoped to one chapter.
-     *
-     * <p>The reading experience is already built — the search interface enters it on a
-     * scoped query with no keyword terms, or on {@code mode=read}. These pages link into
-     * it rather than growing a second one: the hub pages exist to be crawled and to give
-     * every chapter a rankable URL, and reading is a job the app already does well.
-     *
-     * <p>Mirrors buildQueryFromFilters and buildSortFields in rewayaat.js. If the query
-     * grammar there changes, this has to follow.
-     */
-    static String readingModeUrl(String book, String volume, String part, String section, String chapter) {
-        StringBuilder query = new StringBuilder();
-        appendScope(query, "book", book);
-        appendScope(query, "volume", volume);
-        appendScope(query, "part", part);
-        appendScope(query, "section", section);
-        appendScope(query, "chapter", chapter);
-
-        List<String> sort = new ArrayList<>();
-        if (notBlank(volume)) { sort.add("volume:asc"); }
-        if (notBlank(part)) { sort.add("part:asc"); }
-        if (notBlank(section)) { sort.add("section:asc"); }
-        if (notBlank(chapter)) { sort.add("chapter:asc"); }
-        if (sort.isEmpty()) {
-            sort.addAll(List.of("volume:asc", "part:asc", "section:asc", "chapter:asc"));
-        }
-        sort.add("number:asc");
-
-        return "/?q=" + encode(query.toString())
-                + "&page=1"
-                + "&sort_fields=" + encode(String.join(",", sort))
-                + "&mode=read"
-                + "&match_mode=flexible"
-                + "&entry=browse";
-    }
-
-    /** Quotes are the query grammar's own delimiter, so a value cannot carry them. */
-    private static void appendScope(StringBuilder query, String field, String value) {
-        if (!notBlank(value)) {
-            return;
-        }
-        if (query.length() > 0) {
-            query.append(' ');
-        }
-        query.append(field).append(":\"").append(value.replace("\"", "").trim()).append('"');
-    }
-
-    private static boolean notBlank(String value) {
-        return value != null && !value.isBlank();
     }
 
     private static String str(Object value) {

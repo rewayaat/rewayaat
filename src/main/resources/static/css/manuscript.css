@@ -10475,6 +10475,64 @@ body.is-search-mode .site-nav .search-entry-shell {
     min-width: 0;
 }
 
+/* The row holds two links, so it is the flex container rather than the anchor. */
+.hub-chapter-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0.15rem;
+    border-radius: var(--radius-md);
+    transition: background 150ms ease;
+}
+
+.hub-chapter-row:hover {
+    background: var(--gold-bg);
+}
+
+.hub-chapter-row .hub-chapter {
+    flex: 1;
+    min-width: 0;
+}
+
+.hub-chapter-row:hover .hub-chapter {
+    background: transparent;
+    transform: none;
+}
+
+/* Straight into reading mode. Faint by default rather than hidden: an affordance
+   that only appears on hover is one most readers never discover, and it is invisible
+   on touch entirely. It brightens on hover instead. */
+.hub-chapter-read {
+    flex: none;
+    display: inline-flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 0.62rem;
+    width: 2.25rem;
+    border-radius: var(--radius-md);
+    color: var(--text-faint);
+    text-decoration: none;
+    opacity: 0.55;
+    transition: color 150ms ease, background 150ms ease, opacity 150ms ease;
+}
+
+.hub-chapter-row:hover .hub-chapter-read,
+.hub-chapter-read:focus-visible {
+    opacity: 1;
+    color: var(--gold-dark);
+}
+
+.hub-chapter-read:hover {
+    background: rgba(200, 162, 61, 0.18);
+    color: var(--gold-dark);
+}
+
+@media (hover: none) {
+    .hub-chapter-read {
+        opacity: 1;
+        color: var(--gold);
+    }
+}
+
 .hub-chapter {
     display: flex;
     align-items: baseline;
@@ -10523,7 +10581,8 @@ body.is-search-mode .site-nav .search-entry-shell {
 
 .hub-chapter__count {
     flex: none;
-    align-self: center;
+    align-self: flex-start;
+    margin-top: 0.05rem;
     min-width: 2.1rem;
     padding: 0.12rem 0.45rem;
     border-radius: var(--radius-pill);

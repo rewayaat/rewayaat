@@ -15,6 +15,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.time.Duration;
 import java.time.Instant;
@@ -87,6 +89,64 @@ public class BookCatalog {
         public String url() {
             return "/books/" + bookSlug + "/" + slug;
         }
+
+        /** Straight into the app's reading mode, scoped to this chapter. */
+        public String readingUrl() {
+            return readingModeUrl(bookName, volume, part, section, title);
+        }
+    }
+
+    /**
+     * The URL of the app's existing reading mode, scoped to a book, volume or chapter.
+     *
+     * <p>The reading experience is already built: the search interface enters it on a
+     * scoped query with no keyword terms. These pages link into it rather than growing a
+     * second one. Mirrors buildQueryFromFilters and buildSortFields in rewayaat.js — if
+     * the query grammar there changes, this has to follow.
+     */
+    public static String readingModeUrl(String book, String volume, String part, String section, String chapter) {
+        StringBuilder query = new StringBuilder();
+        appendScope(query, "book", book);
+        appendScope(query, "volume", volume);
+        appendScope(query, "part", part);
+        appendScope(query, "section", section);
+        appendScope(query, "chapter", chapter);
+
+        List<String> sort = new ArrayList<>();
+        if (notBlank(volume)) { sort.add("volume:asc"); }
+        if (notBlank(part)) { sort.add("part:asc"); }
+        if (notBlank(section)) { sort.add("section:asc"); }
+        if (notBlank(chapter)) { sort.add("chapter:asc"); }
+        if (sort.isEmpty()) {
+            sort.addAll(List.of("volume:asc", "part:asc", "section:asc", "chapter:asc"));
+        }
+        sort.add("number:asc");
+
+        return "/?q=" + urlEncode(query.toString())
+                + "&page=1"
+                + "&sort_fields=" + urlEncode(String.join(",", sort))
+                + "&mode=read"
+                + "&match_mode=flexible"
+                + "&entry=browse";
+    }
+
+    /** Quotes are the query grammar's own delimiter, so a value cannot carry them. */
+    private static void appendScope(StringBuilder query, String field, String value) {
+        if (!notBlank(value)) {
+            return;
+        }
+        if (query.length() > 0) {
+            query.append(' ');
+        }
+        query.append(field).append(":\"").append(value.replace("\"", "").trim()).append('"');
+    }
+
+    private static boolean notBlank(String value) {
+        return value != null && !value.isBlank();
+    }
+
+    private static String urlEncode(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
     }
 
     private volatile List<Book> books = List.of();
