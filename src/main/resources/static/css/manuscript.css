@@ -10968,3 +10968,26 @@ body.is-search-mode .site-nav .search-entry-shell {
     box-shadow: 0 10px 22px rgba(200, 162, 61, 0.32);
     color: var(--primary-dark);
 }
+
+/* ── Server-rendered hadith card ────────────────────────────────────────── */
+/* The card on a chapter page is the same component as on the search page, with the
+   same classes, so it inherits every style above. Two differences, both because there
+   is no Vue instance behind it: the search card clamps its height and offers a "show
+   full hadith" toggle, and its sidecar is resizable. Here the narration is shown in
+   full and the sidecar is a fixed column. */
+.hadith-card--static .card-body {
+    max-height: none;
+    overflow: visible;
+}
+
+.hadith-card--static .hadith-card__resizer {
+    cursor: default;
+}
+
+.hadith-static-list .hadith-entry + .hadith-entry {
+    margin-top: 1.5rem;
+}
+
+.hadith-card--static .hadith-sidecar__rail-btn {
+    text-decoration: none;
+}

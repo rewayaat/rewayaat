@@ -25,38 +25,31 @@
     </header>
 
     <div class="hub-actions">
-        <!-- The app's own reading mode, scoped to this chapter. This page exists to be
-             crawled and to give the chapter a rankable URL; reading is a job the search
-             interface already does, so it links there instead of rebuilding it. -->
+        <!-- The chapter now carries the narrations in full, so this is no longer "read
+             the rest": it opens the same narrations in the app, where tag filtering, PDF
+             export and the inline Related/Tafsir panels live. -->
         <a class="hub-cta" th:href="${readingUrl}">
             <i class="fa fa-book-open" aria-hidden="true"></i>
-            Read in full &mdash; with Arabic
+            Open in reading mode
         </a>
     </div>
 
     <div th:replace="~{fragments/site :: ornament}"></div>
 
-    <h2 class="hub-group__label">
-        In this chapter
-        <span class="hub-group__note">English excerpts &middot; open one for the full text</span>
-    </h2>
+    <h2 class="hub-group__label">In this chapter</h2>
 
-    <div>
-        <article class="hub-narration" th:each="narration : ${narrations}">
-            <span class="hub-narration__num" th:if="${!#strings.isEmpty(narration.number)}"
-                  th:text="${narration.number}">1</span>
-            <p class="hub-narration__text" th:text="${narration.excerpt}">Excerpt of the narration.</p>
-            <div class="hub-narration__actions">
-                <a class="hub-narration__link" th:href="${narration.url}">Read the full narration &rarr;</a>
-                <button type="button" class="hub-save" data-requires-auth
-                        th:attr="data-save-hadith=${narration.id},
-                                 data-save-label=${chapter.bookName} + ' — ' + ${chapter.title}">
-                    <i class="fa fa-bookmark" aria-hidden="true"></i>
-                    <span>Save</span>
-                </button>
+    <!-- The same card the search results render, from the same fragment and the same
+         CSS classes, so moving between the two never feels like changing product. -->
+    <section id="hadithView" class="hadith-static-list">
+        <div class="hadith-layout">
+            <div class="hadith-content">
+                <div class="hadith-entry" th:each="narration, it : ${narrations}">
+                    <div th:replace="~{fragments/hadith-card :: card(${narration}, ${narration.number})}"></div>
+                </div>
             </div>
-        </article>
-    </div>
+        </div>
+    </section>
+
 </main>
 
 <footer th:replace="~{fragments/site :: sitefooter}"></footer>

@@ -49,6 +49,7 @@ public class BookPageController {
 
     private final BookCatalog catalog;
     private final BookBlurbs blurbs = new BookBlurbs();
+    private final TopicLabels topicLabels = new TopicLabels();
 
     public BookPageController(BookCatalog catalog) {
         this.catalog = catalog;
@@ -187,7 +188,10 @@ public class BookPageController {
                     .index(ESClientProvider.INDEX)
                     .size(MAX_CHAPTER_NARRATIONS)
                     .trackTotalHits(t -> t.enabled(false))
-                    .source(src -> src.filter(f -> f.includes("book", "number", "english", "arabic")))
+                    .source(src -> src.filter(f -> f.includes(
+                            "book", "number", "english", "arabic", "notes", "volume", "part",
+                            "section", "chapter", "source", "edition", "publisher",
+                            "topic_tags", "llm_similar")))
                     .query(q -> q.bool(b -> {
                         b.filter(f -> f.term(t -> t.field("book").value(chapter.bookName())));
                         b.filter(f -> f.term(t -> t.field("chapter.keyword").value(chapter.title())));
@@ -203,12 +207,7 @@ public class BookPageController {
                 if (source == null) {
                     continue;
                 }
-                Map<String, Object> row = new LinkedHashMap<>();
-                row.put("id", hit.id());
-                row.put("url", "/hadith/" + hit.id());
-                row.put("number", str(source.get("number")));
-                row.put("excerpt", excerpt(matn(source)));
-                results.add(row);
+                results.add(cardModel(hit.id(), source));
             }
         }
         results.sort((a, b) -> compareNumbers(str(a.get("number")), str(b.get("number"))));
@@ -259,6 +258,85 @@ public class BookPageController {
         }
         String content = str(segmented.getOrDefault("englishContent", ""));
         return content.isBlank() ? str(source.get("english")) : content;
+    }
+
+    /**
+     * One narration shaped for the shared card fragment.
+     *
+     * <p>Mirrors what the Vue app hands its own card: the chain split from the matn, the
+     * metadata rows in the same order with the same icons, topic tags with their taxonomy
+     * labels. The two renderers agree on the class names and on this shape; see
+     * fragments/hadith-card.html for why the duplication is bounded.
+     */
+    private Map<String, Object> cardModel(String id, Map<String, Object> source) {
+        Map<String, Object> segmented = new LinkedHashMap<>();
+        segmented.put("english", source.get("english"));
+        segmented.put("arabic", source.get("arabic"));
+        try {
+            HadithDisplaySegmenter.enrich(segmented);
+        } catch (Exception e) {
+            LOGGER.debug("Could not segment narration {}", id, e);
+        }
+
+        String book = str(source.get("book"));
+        String number = str(source.get("number"));
+
+        Map<String, Object> row = new LinkedHashMap<>();
+        row.put("id", id);
+        row.put("url", "/hadith/" + id);
+        row.put("number", number);
+        row.put("label", (book + (number.isBlank() ? "" : " #" + number)).trim());
+        row.put("englishChain", str(segmented.get("englishChain")));
+        row.put("english", firstNonBlank(str(segmented.get("englishContent")), str(source.get("english"))));
+        row.put("arabicChain", str(segmented.get("arabicChain")));
+        row.put("arabic", firstNonBlank(str(segmented.get("arabicContent")), str(source.get("arabic"))));
+        row.put("notes", str(source.get("notes")));
+        row.put("metadata", metadataRows(source, number));
+        row.put("tags", topicTags(source));
+        row.put("similarCount", source.get("llm_similar") instanceof List<?> l ? l.size() : 0);
+        return row;
+    }
+
+    /** The sidecar rows, in the order and with the icons the Vue card uses. */
+    private static List<Map<String, String>> metadataRows(Map<String, Object> source, String number) {
+        List<Map<String, String>> rows = new ArrayList<>();
+        addRow(rows, "fa fa-hashtag", "Hadith #", number);
+        addRow(rows, "fa fa-book", "Book", str(source.get("book")));
+        addRow(rows, "fa fa-layer-group", "Volume", str(source.get("volume")));
+        addRow(rows, "fa fa-bookmark", "Section", str(source.get("section")));
+        addRow(rows, "fa fa-clone", "Part", str(source.get("part")));
+        addRow(rows, "fa fa-heading", "Chapter", str(source.get("chapter")));
+        addRow(rows, "fa fa-arrow-right-from-bracket", "Source", str(source.get("source")));
+        addRow(rows, "fa fa-pen-to-square", "Edition", str(source.get("edition")));
+        addRow(rows, "fa fa-building", "Publisher", str(source.get("publisher")));
+        return rows;
+    }
+
+    private static void addRow(List<Map<String, String>> rows, String icon, String label, String value) {
+        if (value != null && !value.isBlank()) {
+            rows.add(Map.of("icon", icon, "label", label, "value", value));
+        }
+    }
+
+    /** Tags link into a search for that topic, which is what clicking one does in the app. */
+    private List<Map<String, String>> topicTags(Map<String, Object> source) {
+        List<Map<String, String>> tags = new ArrayList<>();
+        if (!(source.get("topic_tags") instanceof List<?> raw)) {
+            return tags;
+        }
+        for (Object slug : raw) {
+            String value = str(slug);
+            if (value.isBlank()) {
+                continue;
+            }
+            tags.add(Map.of("label", topicLabels.label(value),
+                    "query", encode("topic_tags:\"" + value + "\"")));
+        }
+        return tags;
+    }
+
+    private static String firstNonBlank(String first, String second) {
+        return first != null && !first.isBlank() ? first : (second == null ? "" : second);
     }
 
     private static String str(Object value) {

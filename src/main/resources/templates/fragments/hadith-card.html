@@ -1,0 +1,127 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+  The hadith card, rendered by the server.
+
+  This is the same card the search results paint, and it deliberately reuses the same
+  class names — .hadith-card, .hadith-sidecar, .hadith-details, .hadith-english,
+  .hadith-arabic and the rest. That is the sync contract: the two renderers share one
+  stylesheet, so any change to how a card looks reaches both without anyone remembering
+  to. Only the markup skeleton is duplicated, and HadithCardParityTest fails if the two
+  drift apart structurally.
+
+  What is deliberately not here: the sidecar's Related and Tafsir panels lazy-load over
+  XHR and hold per-card state, so on a server-rendered page the rail links to the
+  narration's own page, which has that material in full.
+-->
+<article th:fragment="card(narration, ordinal)" class="hadith-card hadith-card--metadata hadith-card--static">
+    <div class="hadith-card__result-num" th:if="${ordinal != null}">
+        Hadith <span th:text="${ordinal}">1</span>
+    </div>
+
+    <!-- .card-body carries the three-column grid (sidecar | resizer | main) and the
+         .row inside it is display:contents, so both wrappers are load-bearing. -->
+    <div class="card-body">
+    <div class="row g-4 hadith-card__layout">
+        <aside class="hadith-sidecar hadith-card__meta">
+            <div class="hadith-sidecar__rail" role="tablist" aria-label="Hadith context panels">
+                <span class="hadith-sidecar__rail-btn is-active" aria-selected="true">
+                    <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
+                    <span class="hadith-sidecar__rail-label">DETAILS</span>
+                    <span class="hadith-sidecar__rail-icon"><i class="fa fa-info-circle" aria-hidden="true"></i></span>
+                </span>
+                <a class="hadith-sidecar__rail-btn" th:href="${narration.url}" title="Similar narrations">
+                    <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
+                    <span class="hadith-sidecar__rail-label">RELATED</span>
+                    <span class="hadith-sidecar__rail-icon"><i class="fa fa-clone" aria-hidden="true"></i></span>
+                    <span class="hadith-sidecar__rail-badge"
+                          th:classappend="${narration.similarCount == 0} ? 'is-zero' : ''"
+                          th:text="${narration.similarCount}">0</span>
+                </a>
+                <a class="hadith-sidecar__rail-btn" th:href="${narration.url}" title="Quranic insights">
+                    <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
+                    <span class="hadith-sidecar__rail-label">TAFSIR</span>
+                    <span class="hadith-sidecar__rail-icon"><i class="fa fa-book" aria-hidden="true"></i></span>
+                </a>
+            </div>
+
+            <div class="hadith-sidecar__panel is-metadata">
+                <div class="hadith-sidecar__panel-body">
+                    <div class="hadith-details">
+                        <div class="meta-item" th:each="item : ${narration.metadata}">
+                            <div class="meta-icon"><i th:class="${item.icon}" aria-hidden="true"></i></div>
+                            <div>
+                                <div class="meta-label" th:text="${item.label}">Label</div>
+                                <div class="meta-text" th:text="${item.value}">Value</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- The grid's middle column. Draggable on the search page; inert here. -->
+        <div class="hadith-card__resizer" role="separator" aria-orientation="vertical"></div>
+
+        <section class="hadith-card__main">
+            <div class="hadith-content sidecar-active--metadata">
+                <div class="hadith-card__ornament" aria-hidden="true">
+                    <span class="hadith-card__ornament-line"></span>
+                    <span class="hadith-card__ornament-mark">&#1758;</span>
+                    <span class="hadith-card__ornament-line"></span>
+                </div>
+
+                <div class="hadith-reading-scroll">
+                    <div class="row g-4 hadith-reading-row">
+                        <div class="col-12 col-lg-6">
+                            <div class="hadith-text-block hadith-text-block--primary">
+                                <div class="hadith-chain"
+                                     th:if="${!#strings.isEmpty(narration.englishChain)}"
+                                     th:utext="${narration.englishChain}">Chain</div>
+                                <div class="hadith-english" th:utext="${narration.english}">English</div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-6">
+                            <div class="hadith-text-block hadith-text-block--primary hadith-text-block--arabic">
+                                <div class="hadith-chain hadith-chain--arabic arabic-text"
+                                     th:if="${!#strings.isEmpty(narration.arabicChain)}"
+                                     th:utext="${narration.arabicChain}">Chain</div>
+                                <div class="hadith-arabic arabic-text" th:utext="${narration.arabic}">Arabic</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hadith-notes mt-3" th:if="${!#strings.isEmpty(narration.notes)}">
+                    <div class="hadith-notes__head">
+                        <span class="hadith-notes__label">Notes</span>
+                    </div>
+                    <div class="hadith-notes__body" th:utext="${narration.notes}">Notes</div>
+                </div>
+
+                <div class="hadith-card__footer">
+                    <div class="topic-tag-pills hadith-card__tags"
+                         th:if="${!#lists.isEmpty(narration.tags)}">
+                        <span class="topic-tag-pills__label">Tags</span>
+                        <a class="topic-pill" th:each="tag : ${narration.tags}"
+                           th:href="@{'/?q=' + ${tag.query}}" th:text="${tag.label}">tag</a>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 hadith-header-actions hadith-card__actions">
+                        <button type="button" class="icon-action" data-requires-auth
+                                th:attr="data-save-hadith=${narration.id}, data-save-label=${narration.label}"
+                                aria-label="Save to a collection" title="Save to a collection">
+                            <i class="fa fa-bookmark" aria-hidden="true"></i>
+                        </button>
+                        <a class="icon-action" th:href="${narration.url}"
+                           aria-label="Open this narration" title="Open this narration">
+                            <i class="fa fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    </div>
+</article>
+</html>
