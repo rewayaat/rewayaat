@@ -401,18 +401,26 @@
     /** Renders the chosen Related narration into the main column. */
     function inlineSimilar(item) {
         var title = [item.book, item.number ? '#' + item.number : ''].filter(Boolean).join(' ');
-        var meta = [item.volume ? 'Volume ' + item.volume : '', item.section ? 'Section ' + item.section : '',
-                    item.chapter || ''].filter(Boolean);
+        // Book, volume and chapter each have a page; the URLs are filled in by
+        // linkMetaSegments once the server has resolved them, so the slugs stay
+        // server-side. Section has no page and stays plain text.
+        var meta = [
+            {level: 'book', text: item.book || ''},
+            {level: 'volume', text: item.volume ? 'Volume ' + item.volume : ''},
+            {level: 'section', text: item.section ? 'Section ' + item.section : ''},
+            {level: 'chapter', text: item.chapter || ''}
+        ].filter(function (seg) { return seg.text; });
         var id = item._id || item.id || '';
         return '<div class="hadith-inline-context__meta-band hadith-inline-context__meta-band--compact">'
             + '<div class="hadith-inline-context__title-block">'
             + '<div class="hadith-inline-context__eyebrow">Similar Hadith</div>'
             + '<a class="hadith-inline-context__title-link" href="/hadith/' + encodeURIComponent(id) + '">'
             + escapeHtml(title || 'Similar narration') + '</a>'
-            + (meta.length ? '<div class="hadith-inline-context__meta-line">'
-                + meta.map(function (m, i) {
+            + (meta.length ? '<div class="hadith-inline-context__meta-line" data-hub-meta-line>'
+                + meta.map(function (seg, i) {
                     return (i ? '<span class="hadith-inline-context__meta-separator" aria-hidden="true">\u2022</span>' : '')
-                        + '<span class="hadith-inline-context__meta-inline-text">' + escapeHtml(m) + '</span>';
+                        + '<span class="hadith-inline-context__meta-inline-text" data-hub-seg="'
+                        + seg.level + '">' + escapeHtml(seg.text) + '</span>';
                   }).join('') + '</div>' : '')
             + '</div></div>'
             + '<div class="hadith-inline-context__scroll">'
@@ -474,6 +482,34 @@
 
     var INLINE = {similar: inlineSimilar, quran: inlineQuran};
 
+    /**
+     * Turns the inline panel's meta-line into links, the way the search card's is.
+     * One round trip: /v1/browse/page answers with every level that has a page, so
+     * the slugs are never rebuilt here. Segments stay as text until it answers, and
+     * stay as text if it fails, so nothing on screen is ever a dead link.
+     */
+    function linkMetaSegments(host, item) {
+        var line = host.querySelector('[data-hub-meta-line]');
+        if (!line || !item.book) { return; }
+        var params = new URLSearchParams();
+        ['book', 'volume', 'part', 'section', 'chapter'].forEach(function (key) {
+            if (item[key]) { params.set(key, item[key]); }
+        });
+        apiJSON('/v1/browse/page?' + params.toString(), {method: 'GET'}).then(function (resp) {
+            var d = resp.data || {};
+            var urls = {book: d.bookUrl, volume: d.volumeUrl, chapter: d.chapterUrl};
+            line.querySelectorAll('[data-hub-seg]').forEach(function (span) {
+                var url = urls[span.getAttribute('data-hub-seg')];
+                if (!url) { return; }
+                var a = document.createElement('a');
+                a.className = 'hadith-inline-context__meta-inline-link';
+                a.setAttribute('href', url);
+                a.textContent = span.textContent;
+                span.replaceWith(a);
+            });
+        }).catch(function () { /* leave them as text */ });
+    }
+
     /** Remembers what each panel loaded, so selecting a row can render it inline. */
     var loaded = new WeakMap();
 
@@ -489,6 +525,9 @@
             return;
         }
         host.innerHTML = INLINE[kind](items[index]);
+        if (kind === 'similar') {
+            linkMetaSegments(host, items[index]);
+        }
     }
 
     /** The accordion behaves the way the Vue one does: one open at a time. */

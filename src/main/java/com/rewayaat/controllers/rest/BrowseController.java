@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -66,24 +67,34 @@ public class BrowseController {
         }
         BookCatalog.Book resolved = found.get();
 
+        // Every level that has a page, not just the deepest one. A card's metadata rows
+        // each link somewhere different, and one round trip beats three.
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("ok", true);
+
+        String bookUrl = "/books/" + resolved.slug();
+        out.put("bookUrl", bookUrl);
+
+        String volumeUrl = null;
+        if (volume != null && !volume.isBlank() && resolved.volumes().contains(volume.trim())) {
+            volumeUrl = bookUrl + "/volume/"
+                    + URLEncoder.encode(volume.trim(), StandardCharsets.UTF_8).replace("+", "%20");
+            out.put("volumeUrl", volumeUrl);
+        }
+
+        String chapterUrl = null;
         if (chapter != null && !chapter.isBlank()) {
-            Optional<BookCatalog.Chapter> match =
-                    catalog.chapterFor(book.trim(), volume, part, section, chapter.trim());
-            if (match.isPresent()) {
-                return Map.of("ok", true, "url", match.get().url());
+            chapterUrl = catalog.chapterFor(book.trim(), volume, part, section, chapter.trim())
+                    .map(BookCatalog.Chapter::url).orElse(null);
+            if (chapterUrl != null) {
+                out.put("chapterUrl", chapterUrl);
             }
-            // A chapter the catalog does not know is a stale facet; the book page is
-            // still a better answer than dropping the reader into a search.
-            return Map.of("ok", true, "url", "/books/" + resolved.slug());
         }
 
-        if (volume != null && !volume.isBlank()
-                && resolved.volumes().contains(volume.trim())) {
-            return Map.of("ok", true, "url", "/books/" + resolved.slug()
-                    + "/volume/" + URLEncoder.encode(volume.trim(), StandardCharsets.UTF_8).replace("+", "%20"));
-        }
-
-        return Map.of("ok", true, "url", "/books/" + resolved.slug());
+        // "url" stays the deepest page that exists, which is what the browse panel and
+        // the metadata rows navigate to.
+        out.put("url", chapterUrl != null ? chapterUrl : volumeUrl != null ? volumeUrl : bookUrl);
+        return out;
     }
 
     @CrossOrigin(origins = {"*"}, allowCredentials = "false")
