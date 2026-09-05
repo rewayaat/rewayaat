@@ -24,6 +24,12 @@ import java.util.Map;
  * ChatGPT's company-knowledge path reads the JSON string out of {@code content}, while
  * clients on newer protocol revisions read {@code structuredContent}. Sending one without
  * the other breaks a real client.
+ *
+ * <p>The SDK happens to fill {@code content} from {@code structuredContent} when we leave it
+ * empty, so the second call below is redundant today - verified by removing it and watching
+ * the JSON string still arrive. It stays because that behaviour is the SDK's to change and
+ * the requirement is ours to meet: a silent upstream change here would uninstall us from
+ * ChatGPT, with nothing failing to say so.
  */
 @Component
 public class McpToolCatalog {
