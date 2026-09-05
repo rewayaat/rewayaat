@@ -81,8 +81,13 @@ five search results, shaped         5,396 bytes   (7.8x)
 
 Dropped: `llm_similar` (the largest field, and `find_similar`'s job), `englishContent` /
 `arabicContent` (the matn again, pre-segmented), `englishChain` / `arabicChain` (the isnād,
-split for rendering), and the `semantic_*_source` retrieval inputs. Applied at the
-Elasticsearch `_source` level, so the difference is never transferred.
+split for rendering), and the `semantic_*_source` retrieval inputs.
+
+The saving comes from two places, and it is worth keeping them straight. `llm_similar`, the
+`semantic_*_source` fields and the `*_ar` metadata **are** stored, so a narrow `_source`
+means they are never transferred out of Elasticsearch. The `*Content` and `*Chain` splits are
+**not** stored at all — `HadithDisplaySegmenter` computes them on the way out — so what saves
+those is not invoking it, which is what `QueryStringQueryResult.rawResult` skips.
 
 This is not tidiness. **Claude caps a tool result near 150,000 characters** and Claude Code at
 25,000 tokens, and full Arabic is far denser in tokens than its character count suggests —
@@ -96,10 +101,33 @@ ceilings, and `total_matches` / `chapter_size` mean a short page is not a lossy 
 | `mcp/McpServerConfig.java` | Both transports, server instructions, keepalive |
 | `mcp/McpToolCatalog.java` | Adapts tools to MCP; also the entry point for the site's own chatbot |
 | `mcp/McpTool.java` | What a tool implements |
-| `mcp/NarrationRepository.java` | Elasticsearch reads, with the tight field list |
+| `mcp/NarrationRepository.java` | Elasticsearch reads; search delegates to `QueryStringQueryResult` |
 | `mcp/NarrationView.java` | The shaping contract |
 | `mcp/CorpusScope.java` | The 18-book boundary sentence |
 | `mcp/tools/*.java` | One class per tool |
+
+### One query builder, two output shapes
+
+Search does **not** assemble its own query. It goes through the website's
+`QueryStringQueryResult`, via a `rawResult(sourceIncludes)` seam that returns the raw
+`_source` maps with no highlighting, no facet aggregation and none of the display segmenting.
+
+An earlier version did build its own query, reasoning that the tools need a far tighter field
+list. That was the wrong conclusion from a correct premise: the field list is a `_source`
+argument, not grounds to reimplement a query. The fork silently lost field scoping
+(`chapter:"..."`, `source:"..."`, `volume:"..."` and the rest), the precise-match handling and
+the topic-tag slug normalisation — and it introduced a bug those would have prevented, where
+an inline `book:"..."` was OR-ed against the search terms and widened the result set instead
+of narrowing it. A search scoped to Kāmil al-Ziyārāt returned 3,348 matches, none of them from
+that book.
+
+The rule: a tool call and a website search must interpret the same words the same way. One
+query builder, two output shapes — never two query builders. Three integration tests guard it,
+and all three fail if field scopes stop reaching the query.
+
+The `book` argument on `search_hadith` is expressed as a field scope on the query rather than
+as a separate filter, so it travels that same path; it exists because a model handles a named
+parameter more reliably than embedded Lucene syntax, not as a second mechanism.
 
 It runs **in-process** rather than as a separate service. The tools need the data, not the
 API: `llm_similar` is a nested field `/v1/narrations` does not expose on its own terms, and
