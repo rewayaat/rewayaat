@@ -26,13 +26,16 @@
     <meta property="og:title" th:content="${seoTitle}"/>
     <meta property="og:description" th:content="${seoDescription}"/>
     <meta property="og:url" th:content="${canonicalUrl}"/>
-    <meta property="og:image" content="https://hadith.academyofislam.com/img/share-card.png"/>
+    <!-- Pages that generate a card of their own set shareImageUrl; the rest keep the site card. -->
+    <meta property="og:image"
+          th:content="${shareImageUrl} ?: 'https://hadith.academyofislam.com/img/share-card.png'"/>
     <meta property="og:image:width" content="1200"/>
     <meta property="og:image:height" content="630"/>
     <meta name="twitter:card" content="summary_large_image"/>
     <meta name="twitter:title" th:content="${seoTitle}"/>
     <meta name="twitter:description" th:content="${seoDescription}"/>
-    <meta name="twitter:image" content="https://hadith.academyofislam.com/img/share-card.png"/>
+    <meta name="twitter:image"
+          th:content="${shareImageUrl} ?: 'https://hadith.academyofislam.com/img/share-card.png'"/>
 
     <script type="application/ld+json" th:utext="${jsonLd}"></script>
     <script type="application/ld+json" th:utext="${breadcrumbJsonLd}" th:if="${breadcrumbJsonLd != null}"></script>

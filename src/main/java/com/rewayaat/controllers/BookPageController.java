@@ -117,6 +117,7 @@ public class BookPageController {
                 + "with similar narrations and Quranic insights for each hadith.",
                 book.name(), book.count(), book.chapters().size()));
         model.addAttribute("canonicalUrl", BASE_URL + "/books/" + bookSlug);
+        model.addAttribute("shareImageUrl", BASE_URL + "/books/" + bookSlug + "/card.png");
         model.addAttribute("jsonLd", bookJsonLd(book));
         LinkedHashMap<String, String> trail = new LinkedHashMap<>();
         trail.put(book.name(), "/books/" + bookSlug);
