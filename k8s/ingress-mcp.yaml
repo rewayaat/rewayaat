@@ -1,0 +1,50 @@
+# The MCP endpoints need different nginx settings from the website, and nginx-ingress
+# annotations apply per Ingress object, so they get their own.
+#
+# Three differences from the site ingress, each for a reason:
+#
+#   - Rate limiting. The site allows 50 rpm per client IP, which is generous for a person
+#     and punishing here: every user of the ChatGPT or Claude connector arrives from that
+#     client's shared egress addresses, so one bucket is shared by all of them at once. A
+#     single answer also costs several calls - a search, then a fetch per narration it
+#     wants to read - so the per-request budget is spent far faster than a page view.
+#
+#   - Buffering. Streamable HTTP answers tools/list and tools/call as a one-event SSE
+#     stream. With proxy buffering on, nginx holds the response until the upstream closes,
+#     which turns a streaming transport into a stalled one.
+#
+#   - Read timeout. 60s is fine for a tool call, which returns in milliseconds, but the
+#     client also holds a GET open for server-to-client messages. Claude allows 300s, so
+#     match it rather than dropping a client's stream every minute.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rewayaat-v2-mcp
+  namespace: rewayaat-v2
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/limit-rpm: "300"
+    nginx.ingress.kubernetes.io/limit-burst-multiplier: "5"
+    nginx.ingress.kubernetes.io/proxy-body-size: "1m"
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - hadith.academyofislam.com
+      secretName: rewayaat-v2-mcp-tls
+  rules:
+    # Only the canonical host. Connector URLs are configured once and copied around, so
+    # they should not be handed out on a mirror that may move.
+    - host: hadith.academyofislam.com
+      http:
+        paths:
+          - path: /mcp
+            pathType: Prefix
+            backend:
+              service:
+                name: rewayaat-v2
+                port:
+                  number: 80

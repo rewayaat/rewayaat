@@ -9,6 +9,7 @@
 | [seo.md](seo.md) | The crawler-facing surface, and the invariants that quietly cost traffic if broken |
 | [data-pipeline.md](data-pipeline.md) | How every piece of data gets into Elasticsearch |
 | [deployment.md](deployment.md) | Docker, CI/CD, Kubernetes, monitoring, secrets |
+| [mcp-connector.md](mcp-connector.md) | The MCP server: tools, the ChatGPT and Claude contracts, response shaping |
 
 ## Agent pipelines
 

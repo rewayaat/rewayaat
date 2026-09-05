@@ -13,6 +13,8 @@ import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.Duration;
+
 /**
  * Mounts the MCP server inside the existing application.
  *
@@ -68,6 +70,14 @@ public class McpServerConfig {
             the numbering here follows this edition and may not match a printed one.\
             """.formatted(CorpusScope.BOOK_COUNT, 32519, CorpusScope.SCOPE_SENTENCE);
 
+    /**
+     * Keeps an idle server-to-client stream from being closed underneath us. A client holds a
+     * GET open to receive messages, and both nginx in front of this and whatever sits in front
+     * of that will drop a connection that goes quiet - our own ingress at 300s. A comment
+     * frame every 30s is cheap and keeps the path open.
+     */
+    private static final Duration KEEP_ALIVE = Duration.ofSeconds(30);
+
     @Bean
     public McpJsonMapper mcpJsonMapper(ObjectMapper objectMapper) {
         return new JacksonMcpJsonMapper(objectMapper);
@@ -85,6 +95,7 @@ public class McpServerConfig {
                 // reject the remote clients we exist to serve, whose Host is our own
                 // ingress hostname and whose Origin we do not control.
                 .securityValidator(ServerTransportSecurityValidator.NOOP)
+                .keepAliveInterval(KEEP_ALIVE)
                 .build();
     }
 
@@ -106,6 +117,7 @@ public class McpServerConfig {
                 .sseEndpoint(SSE_ENDPOINT)
                 .messageEndpoint(SSE_MESSAGE_ENDPOINT)
                 .securityValidator(ServerTransportSecurityValidator.NOOP)
+                .keepAliveInterval(KEEP_ALIVE)
                 .build();
     }
 

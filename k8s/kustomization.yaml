@@ -10,6 +10,7 @@ resources:
   - servicemonitor.yaml
   - grafana-dashboard.yaml
   - ingress.yaml
+  - ingress-mcp.yaml
   - prometheus-rules.yaml
 images:
   - name: rewayaat/rewayaat-v2
