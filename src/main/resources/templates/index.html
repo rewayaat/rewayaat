@@ -828,7 +828,23 @@
                                                         <button class="dropdown-item"
                                                                 type="button"
                                                                 v-on:click="copyHadithStaticUrl(narration._id || narration.id)">
-                                                            Copy static URL
+                                                            Copy link
+                                                        </button>
+                                                    </li>
+                                                    <!-- The generated share card, one language at a time.
+                                                         Absent when the narration has no text in that language. -->
+                                                    <li v-if="narration.arabicContent || narration.arabic">
+                                                        <button class="dropdown-item"
+                                                                type="button"
+                                                                v-on:click="copyHadithCardImage(narration, 'ar')">
+                                                            Copy Arabic image
+                                                        </button>
+                                                    </li>
+                                                    <li v-if="narration.englishContent || narration.english">
+                                                        <button class="dropdown-item"
+                                                                type="button"
+                                                                v-on:click="copyHadithCardImage(narration, 'en')">
+                                                            Copy English image
                                                         </button>
                                                     </li>
                                                 </ul>

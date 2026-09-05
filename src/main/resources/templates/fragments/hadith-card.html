@@ -188,7 +188,23 @@
                                 <li>
                                     <button class="dropdown-item" type="button"
                                             th:attr="data-copy-url=${narration.shareUrl}">
-                                        Copy static URL
+                                        Copy link
+                                    </button>
+                                </li>
+                                <!-- The generated share card, one language at a time. Absent
+                                     when the narration has no text in that language. -->
+                                <li th:if="${narration.arabicCardUrl}">
+                                    <button class="dropdown-item" type="button"
+                                            th:attr="data-copy-image=${narration.arabicCardUrl},
+                                                     data-copy-image-label='Arabic image'">
+                                        Copy Arabic image
+                                    </button>
+                                </li>
+                                <li th:if="${narration.englishCardUrl}">
+                                    <button class="dropdown-item" type="button"
+                                            th:attr="data-copy-image=${narration.englishCardUrl},
+                                                     data-copy-image-label='English image'">
+                                        Copy English image
                                     </button>
                                 </li>
                             </ul>

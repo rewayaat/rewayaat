@@ -69,6 +69,14 @@ public class HadithCardFactory {
         row.put("tagSlugs", tagSlugs(source));
         row.put("similarCount", source.get("llm_similar") instanceof List<?> l ? l.size() : 0);
         row.put("shareUrl", baseUrl + "/hadith/" + id);
+        // Absent rather than empty when the narration has no text in that language, so the
+        // share menu can drop the item instead of offering a card with nothing on it.
+        if (!str(row.get("arabic")).isBlank()) {
+            row.put("arabicCardUrl", "/hadith/" + id + "/card.png?lang=ar");
+        }
+        if (!str(row.get("english")).isBlank()) {
+            row.put("englishCardUrl", "/hadith/" + id + "/card.png?lang=en");
+        }
         row.put("reportHref", reportHref(id, book, number, baseUrl));
         row.put("copyJson", write(Map.of(
                 "english", stripHtml(str(source.get("english"))),

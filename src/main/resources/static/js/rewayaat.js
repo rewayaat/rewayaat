@@ -5463,7 +5463,7 @@ function setupVue(query, page, sortFields) {
                     if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
                         navigator.clipboard.writeText(url)
                             .then(function() {
-                                showToast('Static URL copied.', 'information');
+                                showToast('Link copied.', 'information');
                             })
                             .catch(function() {
                                 showToast('Unable to copy link.', 'warning');
@@ -5479,13 +5479,50 @@ function setupVue(query, page, sortFields) {
                         textArea.select();
                         document.execCommand('copy');
                         document.body.removeChild(textArea);
-                        showToast('Static URL copied.', 'information');
+                        showToast('Link copied.', 'information');
                     } catch (err) {
                         showToast('Unable to copy link.', 'warning');
                     }
                 }).catch(function() {
                     showToast('Unable to build link.', 'warning');
                 });
+            },
+            /**
+             * Puts the generated share card on the clipboard as an image, not as a link,
+             * so it pastes straight into WhatsApp or the newsletter editor.
+             *
+             * ClipboardItem is unevenly supported and the clipboard API throws outside a
+             * secure context or outside a user gesture, so every failure falls back to
+             * opening the PNG in a tab. The action must never silently do nothing.
+             */
+            copyHadithCardImage: function(narration, lang) {
+                var hadithId = ((narration && (narration._id || narration.id)) || '').toString().trim();
+                if (!hadithId) {
+                    showToast('Unable to build image.', 'warning');
+                    return;
+                }
+                var url = '/hadith/' + encodeURIComponent(hadithId) + '/card.png?lang=' + lang;
+                var label = lang === 'ar' ? 'Arabic image' : 'English image';
+                var openInstead = function() {
+                    showToast('Unable to copy the image; opening it instead.', 'warning');
+                    window.open(url, '_blank', 'noopener');
+                };
+                if (!window.ClipboardItem || !navigator.clipboard || !navigator.clipboard.write) {
+                    openInstead();
+                    return;
+                }
+                fetch(url).then(function(response) {
+                    if (!response.ok) {
+                        throw new Error('card request failed');
+                    }
+                    return response.blob();
+                }).then(function(blob) {
+                    var item = {};
+                    item[blob.type || 'image/png'] = blob;
+                    return navigator.clipboard.write([new window.ClipboardItem(item)]);
+                }).then(function() {
+                    showToast(label + ' copied.', 'information');
+                }).catch(openInstead);
             },
             requestArabicSuggestion: function(resultNarrations) {
                 this.dismissArabicSuggestion();
