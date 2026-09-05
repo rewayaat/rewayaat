@@ -96,7 +96,7 @@ public class SearchTool implements McpTool {
     @Override
     public Map<String, Object> call(Map<String, Object> arguments) throws Exception {
         String query = ToolArguments.requiredString(arguments, "query");
-        NarrationRepository.Page page = repository.search(query, 0, RESULT_LIMIT, List.of());
+        NarrationRepository.Page page = repository.search(query, 0, RESULT_LIMIT, List.of(), "");
 
         List<Map<String, Object>> results = new ArrayList<>();
         for (NarrationRepository.Narration narration : page.narrations()) {

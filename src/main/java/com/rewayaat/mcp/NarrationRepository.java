@@ -68,7 +68,8 @@ public class NarrationRepository {
      * between existing documents, which is what similarity uses, but not from arbitrary
      * text. The tool descriptions say so rather than letting a model assume otherwise.
      */
-    public Page search(String query, int from, int size, List<String> topicTags) throws Exception {
+    public Page search(String query, int from, int size, List<String> topicTags, String book)
+            throws Exception {
         String enhanced = queryService.enhanceQuery(query, QueryMode.SEARCH, false);
         String finalQuery = enhanced == null || enhanced.isBlank() ? "*" : enhanced.trim();
         List<String> tags = topicTags == null ? List.of() : topicTags;
@@ -78,6 +79,14 @@ public class NarrationRepository {
                 .searchType(SearchType.DfsQueryThenFetch)
                 .query(q -> q.bool(b -> {
                     b.must(s -> s.queryString(qs -> qs.query(finalQuery).defaultOperator(Operator.Or)));
+                    // Book and topic narrowing are filters rather than terms in the query
+                    // string. enhanceQuery joins a flexible query with spaces, so a
+                    // `book:"..."` written inline would be OR-ed against the search terms
+                    // and widen the result set instead of narrowing it - which is what a
+                    // caller asking for one book least expects.
+                    if (book != null && !book.isBlank()) {
+                        b.filter(f -> f.term(t -> t.field("book").value(book.trim())));
+                    }
                     for (String tag : tags) {
                         b.filter(f -> f.term(t -> t.field("topic_tags").value(tag)));
                     }
