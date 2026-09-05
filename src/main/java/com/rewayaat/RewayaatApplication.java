@@ -9,7 +9,7 @@ import org.springframework.cache.annotation.EnableCaching;
  */
 @EnableCaching
 @SpringBootApplication(scanBasePackages = { "com.rewayaat.config", "com.rewayaat.controllers",
-        "com.rewayaat.service" })
+        "com.rewayaat.service", "com.rewayaat.mcp" })
 public class RewayaatApplication {
 
     public static void main(String[] args) {
