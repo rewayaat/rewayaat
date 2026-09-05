@@ -11,6 +11,7 @@
 		<java.version>17</java.version>
 		<docker.image.prefix>rewayaat</docker.image.prefix>
 		<elasticsearch.client.version>9.2.0</elasticsearch.client.version>
+		<mcp.version>2.0.1</mcp.version>
 	</properties>
 
 	<parent>
@@ -205,6 +206,21 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>log4j-over-slf4j</artifactId>
 			<version>2.0.13</version>
+		</dependency>
+		<!-- Model Context Protocol server.
+		     mcp-core carries the Jakarta servlet transports (Streamable HTTP and the
+		     legacy SSE one); mcp-json-jackson2 binds it to the Jackson 2 that Spring
+		     Boot 3.3 manages, rather than the Jackson 3 the default `mcp` artifact
+		     pulls in. -->
+		<dependency>
+			<groupId>io.modelcontextprotocol.sdk</groupId>
+			<artifactId>mcp-core</artifactId>
+			<version>${mcp.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.modelcontextprotocol.sdk</groupId>
+			<artifactId>mcp-json-jackson2</artifactId>
+			<version>${mcp.version}</version>
 		</dependency>
 	</dependencies>
 	<build>
