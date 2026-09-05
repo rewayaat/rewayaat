@@ -8,6 +8,7 @@ import co.elastic.clients.elasticsearch._types.aggregations.CompositeBucket;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.util.NamedValue;
 import com.rewayaat.config.ESClientProvider;
+import com.rewayaat.core.Slugs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -17,7 +18,6 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.text.Normalizer;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -25,7 +25,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -457,33 +456,14 @@ public class BookCatalog {
     }
 
     /**
-     * A URL-safe slug.
+     * The slug a title answers at.
      *
-     * <p>Book and chapter titles are transliterated Arabic full of combining marks and
-     * dots below — "Man Lā Yaḥḍuruh al-Faqīh", "ʿUyūn akhbār al-Riḍā". Stripping the
-     * diacritics before slugifying gives the plain-ASCII spelling people actually type
-     * and link to, so the URL matches the query.
+     * <p>Delegates to {@link Slugs} so the browse facets can slug a book name without
+     * {@code core} having to depend on {@code service}. Kept here as the entry point the
+     * routes and the docs refer to.
      */
     public static String slugify(String input) {
-        if (input == null) {
-            return "";
-        }
-        String decomposed = Normalizer.normalize(input, Normalizer.Form.NFD);
-        StringBuilder ascii = new StringBuilder(decomposed.length());
-        for (int i = 0; i < decomposed.length(); i++) {
-            char c = decomposed.charAt(i);
-            int type = Character.getType(c);
-            if (type == Character.NON_SPACING_MARK || type == Character.COMBINING_SPACING_MARK) {
-                continue;
-            }
-            ascii.append(c);
-        }
-        String slug = ascii.toString()
-                .toLowerCase(Locale.ROOT)
-                .replaceAll("[^a-z0-9]+", "-")
-                .replaceAll("^-+|-+$", "");
-        // Chapter titles run long; a slug past this adds nothing a crawler or a reader uses.
-        return slug.length() > 80 ? slug.substring(0, slug.lastIndexOf('-', 80) < 20 ? 80 : slug.lastIndexOf('-', 80)) : slug;
+        return Slugs.slugify(input);
     }
 
     /** Sorts "Volume 10" after "Volume 9" rather than between 1 and 2. */
