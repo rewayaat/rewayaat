@@ -140,6 +140,12 @@ JRE with no font packages installed; a logical name there resolves to whatever f
 can find, which may be nothing. Verified by rendering with `FONTCONFIG_FILE` pointing at an
 empty config (`fc-list` reports 0 fonts) and getting byte-identical output.
 
+`?theme=light` renders the same card on the site's cream surfaces, for the Friday
+newsletter — MailPoet templates are white and a navy block reads as a foreign object
+dropped into one. **`og:image` stays on the dark default**: navy is more striking in a
+feed, and the parameterless URL is the one already shared. The theme is part of the ETag
+and of the cache key, so the two cannot be served for each other.
+
 `/books/{book}/card.png` does the same for a book hub. Pages that generate a card set
 `shareImageUrl`; everything else falls back to the site card in `fragments/site.html`.
 

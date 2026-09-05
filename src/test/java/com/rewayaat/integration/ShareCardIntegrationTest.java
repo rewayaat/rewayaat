@@ -89,29 +89,42 @@ class ShareCardIntegrationTest extends ElasticsearchTestSupport {
     }
 
     /**
-     * The share menu offers one language at a time, because people forward into an
-     * audience that reads one of them. Each variant must be its own image with its own
-     * ETag, or the second one requested would be served from the first one's cache.
+     * Two themes behind one URL. They must be distinct images with distinct ETags, or the
+     * second one requested would be served out of the first one's cache — and with
+     * {@code immutable} on the response, a viewer would keep the wrong one for a year.
      */
     @Test
-    void eachLanguageVariantIsADistinctImageWithItsOwnEtag() throws Exception {
+    void theLightThemeIsADistinctImageWithItsOwnEtag() throws Exception {
         indexNarration();
 
-        ResponseEntity<byte[]> both = restTemplate.getForEntity(
+        ResponseEntity<byte[]> dark = restTemplate.getForEntity(
                 "/hadith/" + ID + "/card.png", byte[].class);
-        ResponseEntity<byte[]> arabic = restTemplate.getForEntity(
-                "/hadith/" + ID + "/card.png?lang=ar", byte[].class);
-        ResponseEntity<byte[]> english = restTemplate.getForEntity(
-                "/hadith/" + ID + "/card.png?lang=en", byte[].class);
+        ResponseEntity<byte[]> light = restTemplate.getForEntity(
+                "/hadith/" + ID + "/card.png?theme=light", byte[].class);
 
-        assertEquals(HttpStatus.OK, arabic.getStatusCode());
-        assertEquals(HttpStatus.OK, english.getStatusCode());
-        assertFalse(Arrays.equals(both.getBody(), arabic.getBody()),
-                "the Arabic-only card is identical to the bilingual one");
-        assertFalse(Arrays.equals(arabic.getBody(), english.getBody()),
-                "the two language variants rendered the same image");
-        assertFalse(arabic.getHeaders().getETag().equals(english.getHeaders().getETag()),
-                "the variants share an ETag, so a client would be served the wrong one");
+        assertEquals(HttpStatus.OK, light.getStatusCode());
+        assertFalse(Arrays.equals(dark.getBody(), light.getBody()),
+                "the light card rendered identically to the dark one");
+        assertFalse(dark.getHeaders().getETag().equals(light.getHeaders().getETag()),
+                "the themes share an ETag, so a client would be served the wrong one");
+    }
+
+    /**
+     * An unrecognised theme is the dark card, not a 400. These URLs are pasted into
+     * newsletters and chat clients by hand, and a broken image is a worse answer than the
+     * default one.
+     */
+    @Test
+    void anUnknownThemeFallsBackToTheDarkCard() throws Exception {
+        indexNarration();
+
+        ResponseEntity<byte[]> dark = restTemplate.getForEntity(
+                "/hadith/" + ID + "/card.png", byte[].class);
+        ResponseEntity<byte[]> nonsense = restTemplate.getForEntity(
+                "/hadith/" + ID + "/card.png?theme=chartreuse", byte[].class);
+
+        assertEquals(HttpStatus.OK, nonsense.getStatusCode());
+        assertTrue(Arrays.equals(dark.getBody(), nonsense.getBody()));
     }
 
     /** A card for a narration that is not there is a 404, not a 500 and not a blank image. */

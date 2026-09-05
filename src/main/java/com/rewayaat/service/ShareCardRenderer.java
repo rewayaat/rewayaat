@@ -6,6 +6,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 import javax.imageio.ImageIO;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontFormatException;
@@ -57,35 +58,36 @@ public class ShareCardRenderer {
     private static final int PAD = 76;
     private static final int CONTENT_WIDTH = WIDTH - 2 * PAD;
 
-    private static final int EYEBROW_BASELINE = 76;
-    private static final int BODY_TOP = 112;
-    private static final int BODY_BOTTOM = 512;
-    private static final int FOOTER_RULE_Y = 536;
-    private static final int FOOTER_CENTRE_Y = 576;
-    private static final int BOTTOM_RULE_HEIGHT = 5;
+    // The manuscript frame: an inset double rule, not an edge-to-edge band, so the card
+    // reads as a page rather than as a slide. Everything below is measured to clear it.
+    private static final int FRAME_INSET = 26;
+    private static final int FRAME_GAP = 6;
+
+    private static final int EYEBROW_BASELINE = 80;
+    private static final int BODY_TOP = 114;
+    private static final int BODY_BOTTOM = 496;
+    private static final int FOOTER_RULE_Y = 520;
+    private static final int FOOTER_CENTRE_Y = 556;
+    private static final int LOGO_HEIGHT = 42;
 
     /** Room for the ornament that separates the Arabic from the English. */
     private static final int DIVIDER_BAND = 48;
 
-    // Design tokens, mirrored from manuscript.css. The card has to look like it came
-    // from the site, so these track the ".hub-hero" gradient and the gold rule under it.
-    private static final Color GOLD = new Color(0xc8a23d);
-    private static final Color GOLD_LIGHT = new Color(0xf3e5b8);
-    private static final Color EYEBROW = new Color(243, 229, 184, 214);
-    private static final Color ARABIC_INK = new Color(255, 255, 255);
-    private static final Color ENGLISH_INK = new Color(255, 255, 255, 233);
-    private static final Color FOOTER_INK = new Color(243, 229, 184, 168);
-
-    private static final float[] GROUND_STOPS = {0f, 0.20f, 0.50f, 0.80f, 1f};
-    private static final Color[] GROUND_COLORS = {
-            new Color(0x0a1628), new Color(0x0f2440), new Color(0x1e3a5f),
-            new Color(0x1a4a7a), new Color(0x1e3a5f)};
-
-    /** U+06DE, the same ornament the hadith card uses on the site. */
+    /** U+06DE, the same ornament the hadith card and the divider use on the site. */
     private static final String ORNAMENT = "۞";
 
     private final CardFonts fonts = new CardFonts();
-    private final BufferedImage logo = loadLogo();
+    private final Palette dark = darkPalette();
+    private final Palette light = lightPalette();
+
+    /**
+     * Dark is the default and is what {@code og:image} uses — navy is more striking in a
+     * feed. Light exists for the Friday newsletter: MailPoet templates are white, and a
+     * heavy navy block dropped into a white email reads as a foreign object.
+     */
+    public enum Theme {
+        DARK, LIGHT
+    }
 
     /**
      * One card's content, already excerpted and citation-formatted by the caller.
@@ -99,7 +101,8 @@ public class ShareCardRenderer {
     public record Card(String eyebrow, String arabic, String english, String footer) {
     }
 
-    public byte[] render(Card card) {
+    public byte[] render(Card card, Theme theme) {
+        Palette palette = theme == Theme.LIGHT ? light : dark;
         BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = image.createGraphics();
         try {
@@ -111,36 +114,100 @@ public class ShareCardRenderer {
             g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                     RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 
-            paintGround(g);
-            paintEyebrow(g, card.eyebrow());
-            paintBody(g, card.arabic(), card.english());
-            paintFooter(g, card.footer());
+            paintGround(g, palette);
+            paintFrame(g, palette);
+            paintEyebrow(g, palette, card.eyebrow());
+            paintBody(g, palette, card.arabic(), card.english());
+            paintFooter(g, palette, card.footer());
         } finally {
             g.dispose();
         }
         return encode(image);
     }
 
-    // ── Ground ──────────────────────────────────────────────────────────────
+    // ── Palettes ────────────────────────────────────────────────────────────
 
-    private void paintGround(Graphics2D g) {
+    /**
+     * Everything the card's look depends on, so the two themes differ in data rather than
+     * in branching all through the drawing code.
+     *
+     * <p>The colours are the site's own design tokens from manuscript.css. A shared card
+     * has to look like it came from this site, and inventing a second palette for the
+     * light card is how the two would drift.
+     */
+    private record Palette(
+            Color[] ground, float[] groundStops,
+            Color poolHighlight, Color poolAccent,
+            Color frame, Color frameHairline, Color cornerOrnament,
+            Color eyebrow, Color arabicInk, Color englishInk,
+            Color ornament, Color footerRule, Color footerInk,
+            BufferedImage logo) {
+    }
+
+    /** {@code .hub-hero}: the navy gradient with its two light pools and gold accents. */
+    private static Palette darkPalette() {
+        Color gold = new Color(0xc8a23d);
+        return new Palette(
+                new Color[]{new Color(0x0a1628), new Color(0x0f2440), new Color(0x1e3a5f),
+                        new Color(0x1a4a7a), new Color(0x1e3a5f)},
+                new float[]{0f, 0.20f, 0.50f, 0.80f, 1f},
+                new Color(255, 255, 255, 26),
+                new Color(200, 162, 61, 36),
+                new Color(200, 162, 61, 165),
+                new Color(200, 162, 61, 92),
+                new Color(200, 162, 61, 70),
+                new Color(243, 229, 184, 214),
+                new Color(255, 255, 255),
+                new Color(255, 255, 255, 233),
+                new Color(gold.getRed(), gold.getGreen(), gold.getBlue(), 210),
+                new Color(243, 229, 184, 64),
+                new Color(243, 229, 184, 168),
+                loadImage("static/img/Alilogov2-transparent.png"));
+    }
+
+    /**
+     * {@code --surface-warm} into {@code --gold-bg}, the ground the light surfaces on the
+     * site already use.
+     *
+     * <p>Two things here are not interchangeable with the dark palette. The gold is
+     * {@code --gold-dark}: {@code --gold} on cream is too pale to read, and it is the
+     * frame and the eyebrow that would go first. And the mark is {@code ALI-Logo.png}
+     * rather than the white-on-transparent wordmark the dark card uses, which on a cream
+     * ground would be an invisible smudge.
+     */
+    private static Palette lightPalette() {
+        Color goldDark = new Color(0xa07e28);
+        return new Palette(
+                new Color[]{new Color(0xfefdfb), new Color(0xfefcf6), new Color(0xfdf8ed),
+                        new Color(0xfcf5e6)},
+                new float[]{0f, 0.35f, 0.75f, 1f},
+                new Color(255, 255, 255, 130),
+                new Color(200, 162, 61, 26),
+                new Color(goldDark.getRed(), goldDark.getGreen(), goldDark.getBlue(), 170),
+                new Color(goldDark.getRed(), goldDark.getGreen(), goldDark.getBlue(), 95),
+                new Color(goldDark.getRed(), goldDark.getGreen(), goldDark.getBlue(), 75),
+                goldDark,
+                new Color(0x1a1a2e),
+                new Color(26, 26, 46, 240),
+                new Color(goldDark.getRed(), goldDark.getGreen(), goldDark.getBlue(), 200),
+                new Color(160, 126, 40, 71),
+                new Color(0x4a5568),
+                loadImage("static/img/ALI-Logo.png"));
+    }
+
+    // ── Ground and frame ────────────────────────────────────────────────────
+
+    private void paintGround(Graphics2D g, Palette palette) {
         g.setPaint(new LinearGradientPaint(new Point2D.Float(0, 0), new Point2D.Float(WIDTH, HEIGHT),
-                GROUND_STOPS, GROUND_COLORS));
+                palette.groundStops(), palette.ground()));
         g.fillRect(0, 0, WIDTH, HEIGHT);
 
-        // The two light pools from .hub-hero::before. Without them the ground reads as a
-        // flat block of navy, which at feed thumbnail size looks like a rendering failure.
+        // The two light pools from .hub-hero::before. Without them the ground reads as one
+        // flat block, which at feed thumbnail size looks like a rendering failure.
         pool(g, 0.25f * WIDTH, 0.08f * HEIGHT, 0.42f * WIDTH, 0.42f * HEIGHT,
-                new Color(255, 255, 255, 26));
+                palette.poolHighlight());
         pool(g, 0.78f * WIDTH, 0.92f * HEIGHT, 0.36f * WIDTH, 0.36f * HEIGHT,
-                new Color(200, 162, 61, 36));
-
-        // The gold rule that closes every navy panel on this site (.hub-hero::after).
-        g.setPaint(new LinearGradientPaint(
-                new Point2D.Float(0, 0), new Point2D.Float(WIDTH, 0),
-                new float[]{0f, 0.22f, 0.5f, 0.78f, 1f},
-                new Color[]{transparent(GOLD), GOLD, GOLD_LIGHT, GOLD, transparent(GOLD)}));
-        g.fillRect(0, HEIGHT - BOTTOM_RULE_HEIGHT, WIDTH, BOTTOM_RULE_HEIGHT);
+                palette.poolAccent());
     }
 
     /** An elliptical light pool; the rectangle form of the paint is what makes it an ellipse. */
@@ -152,28 +219,59 @@ public class ShareCardRenderer {
         g.fillRect(0, 0, WIDTH, HEIGHT);
     }
 
+    /**
+     * The classic manuscript frame: a 2px rule with a hairline a few pixels inside it, and
+     * a small ornament at each corner.
+     *
+     * <p>All of it is deliberately low-contrast. The card is seen most often as a WhatsApp
+     * thumbnail a couple of hundred pixels wide, where ornament that reads as detail at
+     * full size turns to mud and takes the narration down with it. The text keeps the
+     * contrast; the frame only has to be felt.
+     */
+    private void paintFrame(Graphics2D g, Palette palette) {
+        float outer = FRAME_INSET;
+        float inner = FRAME_INSET + FRAME_GAP;
+
+        g.setColor(palette.frame());
+        g.setStroke(new BasicStroke(2f));
+        g.draw(new Rectangle2D.Float(outer, outer, WIDTH - 2 * outer, HEIGHT - 2 * outer));
+
+        g.setColor(palette.frameHairline());
+        g.setStroke(new BasicStroke(1f));
+        g.draw(new Rectangle2D.Float(inner, inner, WIDTH - 2 * inner, HEIGHT - 2 * inner));
+
+        g.setColor(palette.cornerOrnament());
+        for (float x : new float[]{outer, WIDTH - outer}) {
+            for (float y : new float[]{outer, HEIGHT - outer}) {
+                cornerOrnament(g, x, y);
+            }
+        }
+    }
+
+    /** Centres the ornament glyph on the frame corner, so the rules run behind it. */
+    private void cornerOrnament(Graphics2D g, float cx, float cy) {
+        TextLayout mark = new TextLayout(ORNAMENT, fonts.arabic().deriveFont(18f),
+                g.getFontRenderContext());
+        Rectangle2D bounds = mark.getBounds();
+        mark.draw(g,
+                (float) (cx - bounds.getWidth() / 2 - bounds.getX()),
+                (float) (cy - bounds.getHeight() / 2 - bounds.getY()));
+    }
+
     private static Color transparent(Color colour) {
         return new Color(colour.getRed(), colour.getGreen(), colour.getBlue(), 0);
     }
 
     // ── Eyebrow ─────────────────────────────────────────────────────────────
 
-    private void paintEyebrow(Graphics2D g, String eyebrow) {
-        FontRenderContext frc = g.getFontRenderContext();
-        float x = PAD;
-
-        g.setColor(GOLD);
-        TextLayout mark = new TextLayout(ORNAMENT, fonts.arabic().deriveFont(30f), frc);
-        mark.draw(g, x, EYEBROW_BASELINE);
-        x += mark.getAdvance() + 18;
-
+    private void paintEyebrow(Graphics2D g, Palette palette, String eyebrow) {
         if (eyebrow == null || eyebrow.isBlank()) {
             return;
         }
-        g.setColor(EYEBROW);
+        g.setColor(palette.eyebrow());
         AttributedString text = fonts.runs(eyebrow, fonts.latinBold().deriveFont(21f),
                 fonts.arabic().deriveFont(21f), false, 0.16f);
-        new TextLayout(text.getIterator(), frc).draw(g, x, EYEBROW_BASELINE);
+        new TextLayout(text.getIterator(), g.getFontRenderContext()).draw(g, PAD, EYEBROW_BASELINE);
     }
 
     // ── Body ────────────────────────────────────────────────────────────────
@@ -190,9 +288,9 @@ public class ShareCardRenderer {
      * Lays out the matn in whichever languages the narration actually has.
      *
      * <p>Each block's line budget is derived from the space actually left for it, so a
-     * layout can never overrun into the footer — an earlier version searched sizes and
-     * accepted whatever was smallest when nothing fitted, and the longest narrations drew
-     * their last English line straight through the footer rule.
+     * layout can never overrun into the footer or under the frame — an earlier version
+     * searched sizes and accepted whatever was smallest when nothing fitted, and the
+     * longest narrations drew their last English line straight through the footer rule.
      *
      * <p>Within that, the search takes the largest type size that needs no truncation, and
      * the smallest one otherwise: bigger type means fewer, shorter lines, so preferring
@@ -201,7 +299,7 @@ public class ShareCardRenderer {
      * <p>The result is centred vertically, which is what keeps a short narration and a
      * single-language one from sitting in the top third of an otherwise empty card.
      */
-    private void paintBody(Graphics2D g, String arabic, String english) {
+    private void paintBody(Graphics2D g, Palette palette, String arabic, String english) {
         FontRenderContext frc = g.getFontRenderContext();
         boolean hasArabic = arabic != null && !arabic.isBlank();
         boolean hasEnglish = english != null && !english.isBlank();
@@ -210,9 +308,9 @@ public class ShareCardRenderer {
         }
 
         float available = BODY_BOTTOM - BODY_TOP - (hasArabic && hasEnglish ? DIVIDER_BAND : 0);
-        // Arabic takes the larger type and a little over half the height: it is the primary
-        // text and the part that makes a card recognisable in a feed before anyone reads a
-        // word of it. Alone, each language gets the whole body and more lines.
+        // Arabic takes the larger type: it is the primary text and the part that makes a
+        // card recognisable in a feed before anyone reads a word of it. Alone, each
+        // language gets the whole body and more lines.
         float arabicBase = hasEnglish ? 44f : 52f;
         float englishBase = hasArabic ? 28f : 33f;
         int arabicCap = hasEnglish ? 3 : 5;
@@ -246,16 +344,16 @@ public class ShareCardRenderer {
         float y = BODY_TOP + Math.max(0, (BODY_BOTTOM - BODY_TOP - total) / 2f);
 
         if (ar != null) {
-            g.setColor(ARABIC_INK);
+            g.setColor(palette.arabicInk());
             draw(g, ar, y, true);
             y += height(ar);
         }
         if (hasArabic && hasEnglish) {
-            paintOrnamentRule(g, y + DIVIDER_BAND / 2f);
+            paintOrnamentRule(g, palette, y + DIVIDER_BAND / 2f);
             y += DIVIDER_BAND;
         }
         if (en != null) {
-            g.setColor(ENGLISH_INK);
+            g.setColor(palette.englishInk());
             draw(g, en, y, false);
         }
     }
@@ -274,7 +372,7 @@ public class ShareCardRenderer {
     }
 
     /** Line — ornament — line, the divider the site draws inside every hadith card. */
-    private void paintOrnamentRule(Graphics2D g, float centreY) {
+    private void paintOrnamentRule(Graphics2D g, Palette palette, float centreY) {
         FontRenderContext frc = g.getFontRenderContext();
         TextLayout mark = new TextLayout(ORNAMENT, fonts.arabic().deriveFont(24f), frc);
         float markWidth = mark.getAdvance();
@@ -283,15 +381,17 @@ public class ShareCardRenderer {
         float totalWidth = ruleWidth * 2 + gap * 2 + markWidth;
         float left = (WIDTH - totalWidth) / 2f;
 
-        rule(g, left, centreY, ruleWidth, false);
-        g.setColor(new Color(200, 162, 61, 210));
+        rule(g, palette, left, centreY, ruleWidth, false);
+        g.setColor(palette.ornament());
         mark.draw(g, left + ruleWidth + gap, centreY + 8);
-        rule(g, left + ruleWidth + gap * 2 + markWidth, centreY, ruleWidth, true);
+        rule(g, palette, left + ruleWidth + gap * 2 + markWidth, centreY, ruleWidth, true);
     }
 
-    private static void rule(Graphics2D g, float x, float y, float width, boolean fadeRight) {
-        Color from = fadeRight ? GOLD : transparent(GOLD);
-        Color to = fadeRight ? transparent(GOLD) : GOLD;
+    private static void rule(Graphics2D g, Palette palette, float x, float y, float width,
+                             boolean fadeRight) {
+        Color solid = palette.ornament();
+        Color from = fadeRight ? solid : transparent(solid);
+        Color to = fadeRight ? transparent(solid) : solid;
         g.setPaint(new LinearGradientPaint(new Point2D.Float(x, y), new Point2D.Float(x + width, y),
                 new float[]{0f, 1f}, new Color[]{from, to}));
         g.fill(new Rectangle2D.Float(x, y, width, 1.4f));
@@ -308,24 +408,24 @@ public class ShareCardRenderer {
 
     // ── Footer ──────────────────────────────────────────────────────────────
 
-    private void paintFooter(Graphics2D g, String footer) {
+    private void paintFooter(Graphics2D g, Palette palette, String footer) {
+        Color hairline = palette.footerRule();
         g.setPaint(new LinearGradientPaint(
                 new Point2D.Float(PAD, FOOTER_RULE_Y), new Point2D.Float(WIDTH - PAD, FOOTER_RULE_Y),
                 new float[]{0f, 0.5f, 1f},
-                new Color[]{new Color(243, 229, 184, 46), new Color(243, 229, 184, 74),
-                        new Color(243, 229, 184, 46)}));
+                new Color[]{transparent(hairline), hairline, transparent(hairline)}));
         g.fill(new Rectangle2D.Float(PAD, FOOTER_RULE_Y, CONTENT_WIDTH, 1f));
 
+        BufferedImage logo = palette.logo();
         if (logo != null) {
-            int height = 46;
-            int width = Math.round(height * (float) logo.getWidth() / logo.getHeight());
-            g.drawImage(logo, PAD, FOOTER_CENTRE_Y - height / 2, width, height, null);
+            int width = Math.round(LOGO_HEIGHT * (float) logo.getWidth() / logo.getHeight());
+            g.drawImage(logo, PAD, FOOTER_CENTRE_Y - LOGO_HEIGHT / 2, width, LOGO_HEIGHT, null);
         }
 
         if (footer == null || footer.isBlank()) {
             return;
         }
-        g.setColor(FOOTER_INK);
+        g.setColor(palette.footerInk());
         TextLayout label = new TextLayout(
                 fonts.runs(footer, fonts.latin().deriveFont(21f), fonts.arabic().deriveFont(21f),
                         false, 0.03f).getIterator(),
@@ -443,19 +543,19 @@ public class ShareCardRenderer {
         return out.toByteArray();
     }
 
-    private static BufferedImage loadLogo() {
-        try (InputStream in = new ClassPathResource("static/img/Alilogov2-transparent.png")
-                .getInputStream()) {
+    private static BufferedImage loadImage(String classpathLocation) {
+        try (InputStream in = new ClassPathResource(classpathLocation).getInputStream()) {
             return ImageIO.read(in);
         } catch (Exception e) {
             // A card without the mark still carries the domain, so this is not fatal.
-            LOGGER.warn("Could not load the ALI mark; share cards will render without it", e);
+            LOGGER.warn("Could not load {}; share cards will render without the mark",
+                    classpathLocation, e);
             return null;
         }
     }
 
     /**
-     * The four bundled faces, plus the per-character run splitting they need.
+     * The three bundled faces, plus the per-character run splitting they need.
      */
     private static final class CardFonts {
 

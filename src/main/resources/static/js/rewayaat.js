@@ -5495,14 +5495,15 @@ function setupVue(query, page, sortFields) {
              * secure context or outside a user gesture, so every failure falls back to
              * opening the PNG in a tab. The action must never silently do nothing.
              */
-            copyHadithCardImage: function(narration, lang) {
+            copyHadithCardImage: function(narration, theme) {
                 var hadithId = ((narration && (narration._id || narration.id)) || '').toString().trim();
                 if (!hadithId) {
                     showToast('Unable to build image.', 'warning');
                     return;
                 }
-                var url = '/hadith/' + encodeURIComponent(hadithId) + '/card.png?lang=' + lang;
-                var label = lang === 'ar' ? 'Arabic image' : 'English image';
+                var url = '/hadith/' + encodeURIComponent(hadithId) + '/card.png'
+                    + (theme === 'light' ? '?theme=light' : '');
+                var label = theme === 'light' ? 'Light image' : 'Dark image';
                 var openInstead = function() {
                     showToast('Unable to copy the image; opening it instead.', 'warning');
                     window.open(url, '_blank', 'noopener');

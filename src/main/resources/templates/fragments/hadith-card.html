@@ -191,20 +191,21 @@
                                         Copy link
                                     </button>
                                 </li>
-                                <!-- The generated share card, one language at a time. Absent
-                                     when the narration has no text in that language. -->
-                                <li th:if="${narration.arabicCardUrl}">
+                                <!-- The generated share card. Light exists because MailPoet
+                                     templates are white and a navy block reads as a foreign
+                                     object dropped into one. -->
+                                <li>
                                     <button class="dropdown-item" type="button"
-                                            th:attr="data-copy-image=${narration.arabicCardUrl},
-                                                     data-copy-image-label='Arabic image'">
-                                        Copy Arabic image
+                                            th:attr="data-copy-image=${narration.darkCardUrl},
+                                                     data-copy-image-label='Dark image'">
+                                        Copy image (dark)
                                     </button>
                                 </li>
-                                <li th:if="${narration.englishCardUrl}">
+                                <li>
                                     <button class="dropdown-item" type="button"
-                                            th:attr="data-copy-image=${narration.englishCardUrl},
-                                                     data-copy-image-label='English image'">
-                                        Copy English image
+                                            th:attr="data-copy-image=${narration.lightCardUrl},
+                                                     data-copy-image-label='Light image'">
+                                        Copy image (light)
                                     </button>
                                 </li>
                             </ul>

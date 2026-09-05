@@ -831,20 +831,21 @@
                                                             Copy link
                                                         </button>
                                                     </li>
-                                                    <!-- The generated share card, one language at a time.
-                                                         Absent when the narration has no text in that language. -->
-                                                    <li v-if="narration.arabicContent || narration.arabic">
+                                                    <!-- The generated share card. Light exists because
+                                                         MailPoet templates are white and a navy block
+                                                         reads as a foreign object dropped into one. -->
+                                                    <li>
                                                         <button class="dropdown-item"
                                                                 type="button"
-                                                                v-on:click="copyHadithCardImage(narration, 'ar')">
-                                                            Copy Arabic image
+                                                                v-on:click="copyHadithCardImage(narration, 'dark')">
+                                                            Copy image (dark)
                                                         </button>
                                                     </li>
-                                                    <li v-if="narration.englishContent || narration.english">
+                                                    <li>
                                                         <button class="dropdown-item"
                                                                 type="button"
-                                                                v-on:click="copyHadithCardImage(narration, 'en')">
-                                                            Copy English image
+                                                                v-on:click="copyHadithCardImage(narration, 'light')">
+                                                            Copy image (light)
                                                         </button>
                                                     </li>
                                                 </ul>
