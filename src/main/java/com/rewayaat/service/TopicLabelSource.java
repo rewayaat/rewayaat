@@ -1,33 +1,31 @@
-package com.rewayaat.controllers;
+package com.rewayaat.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Human labels for topic tag slugs, read from the same taxonomy.json the search UI uses.
+ * Human labels for topic tag slugs, from the same taxonomy.json the search UI reads.
  *
- * <p>A card renders "Congregational Prayer", not "congregational-prayer", and both
+ * <p>A card shows "Congregational Prayer", not "congregational-prayer", and both
  * renderers have to agree on that; sharing the file is how they do.
  */
-class TopicLabels {
+@Component
+public class TopicLabelSource {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TopicLabels.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TopicLabelSource.class);
 
-    private final Map<String, String> bySlug;
+    private final Map<String, String> bySlug = load();
 
-    TopicLabels() {
-        this.bySlug = load();
-    }
-
-    /** Falls back to the slug itself, which is what the UI does for an unknown tag. */
-    String label(String slug) {
+    /** Falls back to the slug, which is what the UI shows for an unknown tag. */
+    public String label(String slug) {
         if (slug == null || slug.isBlank()) {
             return "";
         }

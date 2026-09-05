@@ -11255,3 +11255,73 @@ a.hub-stat:hover {
 a.hub-hero__eyebrow:hover {
     color: var(--gold-light);
 }
+
+/* ── Sibling chapter navigation ─────────────────────────────────────────── */
+.hub-pager {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+}
+
+.hub-pager__link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1 1 16rem;
+    min-width: 0;
+    padding: 0.85rem 1.1rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    color: var(--text-secondary);
+    transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.hub-pager__link--next {
+    justify-content: flex-end;
+    text-align: right;
+    margin-left: auto;
+}
+
+.hub-pager__link:hover {
+    border-color: var(--gold);
+    background: var(--gold-bg);
+    color: var(--primary-dark);
+}
+
+.hub-pager__meta { min-width: 0; }
+
+.hub-pager__eyebrow {
+    display: block;
+    font-family: var(--font-ui);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.hub-pager__title {
+    display: block;
+    font-family: var(--font-reference);
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.hub-list-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 0.75rem;
+}
+
+/* Tag overflow on the server-rendered card: the first few show, the rest wait
+   behind the toggle, as they do on the search card. */
+.hadith-card__tags .topic-pill--overflow { display: none; }
+.hadith-card__tags.is-expanded .topic-pill--overflow { display: inline-flex; }
+
+/* The resizer does something now, so it should look like it does. */
+.hadith-card--static .hadith-card__resizer { cursor: col-resize; }
+.hadith-card.is-resizing { user-select: none; }

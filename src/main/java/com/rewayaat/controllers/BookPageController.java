@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rewayaat.config.ESClientProvider;
 import com.rewayaat.core.HadithDisplaySegmenter;
 import com.rewayaat.service.BookCatalog;
+import com.rewayaat.service.HadithCardFactory;
+import com.rewayaat.service.TopicLabelSource;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -49,11 +51,14 @@ public class BookPageController {
     private static final int EXCERPT_CHARS = 220;
 
     private final BookCatalog catalog;
+    private final HadithCardFactory cards;
+    private final TopicLabelSource topicLabels;
     private final BookBlurbs blurbs = new BookBlurbs();
-    private final TopicLabels topicLabels = new TopicLabels();
 
-    public BookPageController(BookCatalog catalog) {
+    public BookPageController(BookCatalog catalog, HadithCardFactory cards, TopicLabelSource topicLabels) {
         this.catalog = catalog;
+        this.cards = cards;
+        this.topicLabels = topicLabels;
     }
 
     @GetMapping("/books")
@@ -235,6 +240,15 @@ public class BookPageController {
         LinkedHashMap<String, String> trail = new LinkedHashMap<>();
         trail.put(chapter.bookName(), "/books/" + bookSlug);
         trail.put(chapter.title(), chapter.url());
+        catalog.siblingChapter(chapter, -1).ifPresent(prev -> {
+            model.addAttribute("prevUrl", prev.url());
+            model.addAttribute("prevLabel", prev.title());
+        });
+        catalog.siblingChapter(chapter, 1).ifPresent(next -> {
+            model.addAttribute("nextUrl", next.url());
+            model.addAttribute("nextLabel", next.title());
+        });
+
         addBreadcrumbs(model, trail);
         return "chapter";
     }
@@ -272,7 +286,7 @@ public class BookPageController {
                 if (source == null) {
                     continue;
                 }
-                results.add(cardModel(hit.id(), source, chapter.url()));
+                results.add(cards.build(hit.id(), source, chapter.url(), BASE_URL));
             }
         }
         results.sort((a, b) -> compareNumbers(str(a.get("number")), str(b.get("number"))));
@@ -325,50 +339,6 @@ public class BookPageController {
         return content.isBlank() ? str(source.get("english")) : content;
     }
 
-    /**
-     * One narration shaped for the shared card fragment.
-     *
-     * <p>Mirrors what the Vue app hands its own card: the chain split from the matn, the
-     * metadata rows in the same order with the same icons, topic tags with their taxonomy
-     * labels. The two renderers agree on the class names and on this shape; see
-     * fragments/hadith-card.html for why the duplication is bounded.
-     */
-    private Map<String, Object> cardModel(String id, Map<String, Object> source, String tagBase) {
-        Map<String, Object> segmented = new LinkedHashMap<>();
-        segmented.put("english", source.get("english"));
-        segmented.put("arabic", source.get("arabic"));
-        try {
-            HadithDisplaySegmenter.enrich(segmented);
-        } catch (Exception e) {
-            LOGGER.debug("Could not segment narration {}", id, e);
-        }
-
-        String book = str(source.get("book"));
-        String number = str(source.get("number"));
-
-        Map<String, Object> row = new LinkedHashMap<>();
-        row.put("id", id);
-        row.put("url", "/hadith/" + id);
-        row.put("number", number);
-        row.put("label", (book + (number.isBlank() ? "" : " #" + number)).trim());
-        row.put("englishChain", str(segmented.get("englishChain")));
-        row.put("english", firstNonBlank(str(segmented.get("englishContent")), str(source.get("english"))));
-        row.put("arabicChain", str(segmented.get("arabicChain")));
-        row.put("arabic", firstNonBlank(str(segmented.get("arabicContent")), str(source.get("arabic"))));
-        row.put("notes", str(source.get("notes")));
-        row.put("metadata", metadataRows(source, number));
-        row.put("tags", topicTags(source, tagBase));
-        row.put("tagSlugs", tagSlugs(source));
-        row.put("similarCount", source.get("llm_similar") instanceof List<?> l ? l.size() : 0);
-        row.put("shareUrl", BASE_URL + "/hadith/" + id);
-        row.put("reportHref", reportHref(id, book, number));
-        // The copy actions work off the text already on the page, so the card carries it
-        // in the markup rather than the script re-fetching what the reader can see.
-        row.put("copyJson", write(Map.of(
-                "english", stripHtml(str(source.get("english"))),
-                "arabic", stripHtml(str(source.get("arabic"))))));
-        return row;
-    }
 
     /** Topic tags present in this chapter, with counts, most common first. */
     private List<Map<String, Object>> tagFacets(List<Map<String, Object>> narrations,
@@ -400,113 +370,12 @@ public class BookPageController {
         return slugsOf(narration).contains(tag);
     }
 
-    /** The same prefilled report mail the search card opens, built server-side. */
-    private static String reportHref(String id, String book, String number) {
-        String descriptor = (book + (number.isBlank() ? "" : " #" + number)).trim();
-        String subject = "Hadith Report: " + (descriptor.isBlank() ? "Hadith " + id : descriptor);
-        String body = String.join("\n",
-                "Please review the hadith linked below.",
-                "",
-                "Hadith link: " + BASE_URL + "/hadith/" + id,
-                "Hadith id: " + id,
-                "",
-                "Issue summary:",
-                "- ",
-                "",
-                "What seems incorrect:",
-                "- ",
-                "",
-                "Suggested correction (optional):",
-                "- ");
-        return "mailto:rewayaat.org@gmail.com?subject=" + encode(subject) + "&body=" + encode(body);
-    }
 
-    /**
-     * The sidecar rows, in the order and with the icons the Vue card uses.
-     *
-     * <p>Book, volume and chapter link to their own pages — the same destinations the
-     * search card's metadata rows now go to, and more internal links into the hubs.
-     * Part and section have no page of their own, so they render as plain text.
-     */
-    private List<Map<String, String>> metadataRows(Map<String, Object> source, String number) {
-        String book = str(source.get("book"));
-        String volume = str(source.get("volume"));
-        String chapter = str(source.get("chapter"));
 
-        Optional<BookCatalog.Book> catalogued = catalog.bookByName(book);
-        String bookUrl = catalogued.map(b -> "/books/" + b.slug()).orElse(null);
-        String volumeUrl = bookUrl == null || volume.isBlank() ? null
-                : bookUrl + "/volume/" + encode(volume);
-        String chapterUrl = catalog.chapterFor(book, volume, str(source.get("part")),
-                str(source.get("section")), chapter).map(BookCatalog.Chapter::url).orElse(null);
 
-        List<Map<String, String>> rows = new ArrayList<>();
-        addRow(rows, "fa fa-hashtag", "Hadith #", number, null);
-        addRow(rows, "fa fa-book", "Book", book, bookUrl);
-        addRow(rows, "fa fa-layer-group", "Volume", volume, volumeUrl);
-        addRow(rows, "fa fa-bookmark", "Section", str(source.get("section")), null);
-        addRow(rows, "fa fa-clone", "Part", str(source.get("part")), null);
-        addRow(rows, "fa fa-heading", "Chapter", chapter, chapterUrl);
-        addRow(rows, "fa fa-arrow-right-from-bracket", "Source", str(source.get("source")), null);
-        addRow(rows, "fa fa-pen-to-square", "Edition", str(source.get("edition")), null);
-        addRow(rows, "fa fa-building", "Publisher", str(source.get("publisher")), null);
-        return rows;
-    }
 
-    private static void addRow(List<Map<String, String>> rows, String icon, String label,
-                               String value, String url) {
-        if (value == null || value.isBlank()) {
-            return;
-        }
-        Map<String, String> row = new LinkedHashMap<>();
-        row.put("icon", icon);
-        row.put("label", label);
-        row.put("value", value);
-        if (url != null) {
-            row.put("url", url);
-        }
-        rows.add(row);
-    }
 
-    /**
-     * A tag pill filters the page it is on, the way the facet bar above it does.
-     *
-     * <p>It used to link at {@code /?q=topic_tags:"slug"}, which returns nothing — the
-     * search backend has no such field syntax — and {@code /?topic_tags=slug} alone runs
-     * no search either, it just renders the home page. Filtering in place is both the
-     * behaviour that works and the one that keeps the reader where they are.
-     */
-    private List<Map<String, String>> topicTags(Map<String, Object> source, String tagBase) {
-        List<Map<String, String>> tags = new ArrayList<>();
-        if (!(source.get("topic_tags") instanceof List<?> raw)) {
-            return tags;
-        }
-        for (Object slug : raw) {
-            String value = str(slug);
-            if (value.isBlank()) {
-                continue;
-            }
-            tags.add(Map.of("label", topicLabels.label(value),
-                    "url", tagBase + "?tag=" + encode(value)));
-        }
-        return tags;
-    }
 
-    /** Plain text for the copy actions; the card shows the marked-up version. */
-    private static String stripHtml(String html) {
-        return html == null ? "" : html.replaceAll("<[^>]*>", " ").replaceAll("\\s+", " ").trim();
-    }
-
-    private static List<String> tagSlugs(Map<String, Object> source) {
-        if (!(source.get("topic_tags") instanceof List<?> raw)) {
-            return List.of();
-        }
-        return raw.stream().map(BookPageController::str).filter(v -> !v.isBlank()).toList();
-    }
-
-    private static String firstNonBlank(String first, String second) {
-        return first != null && !first.isBlank() ? first : (second == null ? "" : second);
-    }
 
     private static String str(Object value) {
         return value == null ? "" : value.toString();

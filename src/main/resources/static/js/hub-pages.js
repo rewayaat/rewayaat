@@ -665,12 +665,147 @@
         });
     }
 
+    /* ── Tag overflow ───────────────────────────────────────────────────────── */
+
+    var VISIBLE_TAGS = 4;
+
+    /**
+     * A narration with many tags pushed the card's footer into a wall of pills on a
+     * phone. The search card collapses them behind a toggle; so does this.
+     */
+    function bindTagOverflow() {
+        document.querySelectorAll('.hadith-card__tags').forEach(function (group) {
+            var pills = Array.prototype.slice.call(group.querySelectorAll('.topic-pill'));
+            if (pills.length <= VISIBLE_TAGS || group.dataset.bound) { return; }
+            group.dataset.bound = '1';
+            pills.slice(VISIBLE_TAGS).forEach(function (p) { p.classList.add('topic-pill--overflow'); });
+
+            var toggle = document.createElement('button');
+            toggle.type = 'button';
+            toggle.className = 'hadith-tags-toggle';
+            toggle.textContent = 'Show all ' + pills.length;
+            toggle.addEventListener('click', function () {
+                var open = group.classList.toggle('is-expanded');
+                toggle.textContent = open ? 'Show fewer' : 'Show all ' + pills.length;
+            });
+            group.appendChild(toggle);
+        });
+    }
+
+    /* ── Sidecar resize ─────────────────────────────────────────────────────── */
+
+    var SIDECAR_MIN = 248, SIDECAR_MAX = 560;
+
+    /**
+     * The resizer is part of the card's grid, so it rendered here whether or not it did
+     * anything — a handle that looks draggable and is not is worse than no handle.
+     */
+    function bindSidecarResize() {
+        document.addEventListener('pointerdown', function (event) {
+            var handle = event.target.closest('.hadith-card__resizer');
+            if (!handle) { return; }
+            var card = handle.closest('.hadith-card');
+            var aside = card && card.querySelector('.hadith-sidecar');
+            if (!aside) { return; }
+            event.preventDefault();
+            var startX = event.clientX;
+            var startWidth = aside.getBoundingClientRect().width;
+            handle.setPointerCapture(event.pointerId);
+            card.classList.add('is-resizing');
+
+            function move(e) {
+                var next = Math.min(SIDECAR_MAX, Math.max(SIDECAR_MIN, startWidth + (e.clientX - startX)));
+                card.style.setProperty('--hadith-sidecar-width', next + 'px');
+            }
+            function stop() {
+                card.classList.remove('is-resizing');
+                handle.removeEventListener('pointermove', move);
+                handle.removeEventListener('pointerup', stop);
+                handle.removeEventListener('pointercancel', stop);
+            }
+            handle.addEventListener('pointermove', move);
+            handle.addEventListener('pointerup', stop);
+            handle.addEventListener('pointercancel', stop);
+        });
+
+        // Double-click resets, as it does on the search page.
+        document.addEventListener('dblclick', function (event) {
+            var handle = event.target.closest('.hadith-card__resizer');
+            if (!handle) { return; }
+            var card = handle.closest('.hadith-card');
+            if (card) { card.style.removeProperty('--hadith-sidecar-width'); }
+        });
+    }
+
+    /* ── Export ─────────────────────────────────────────────────────────────── */
+
+    /**
+     * Prints the narrations on the page, the way the search results export does: build
+     * the document in a hidden iframe and let the browser produce the PDF. No library,
+     * and it works off the text already rendered rather than re-fetching it.
+     */
+    function bindPrintExport() {
+        document.addEventListener('click', function (event) {
+            var trigger = event.target.closest('[data-hub-print]');
+            if (!trigger) { return; }
+            event.preventDefault();
+
+            var title = trigger.getAttribute('data-print-title') || document.title;
+            var rows = Array.prototype.map.call(
+                document.querySelectorAll('.hadith-card'),
+                function (card) {
+                    var num = (card.querySelector('.hadith-card__result-num') || {}).textContent || '';
+                    var en = (card.querySelector('.hadith-english') || {}).innerHTML || '';
+                    var ar = (card.querySelector('.hadith-arabic') || {}).innerHTML || '';
+                    var chain = (card.querySelector('.hadith-chain') || {}).innerHTML || '';
+                    return '<article class="n">'
+                        + '<div class="num">' + escapeHtml(num.trim()) + '</div>'
+                        + (chain ? '<div class="chain">' + chain + '</div>' : '')
+                        + '<div class="en">' + en + '</div>'
+                        + '<div class="ar" dir="rtl">' + ar + '</div>'
+                        + '</article>';
+                }).join('');
+
+            var frame = document.createElement('iframe');
+            frame.setAttribute('aria-hidden', 'true');
+            frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0';
+            document.body.appendChild(frame);
+            var doc = frame.contentWindow && frame.contentWindow.document;
+            if (!doc) { frame.remove(); return; }
+
+            doc.open();
+            doc.write('<!doctype html><html><head><meta charset="utf-8"><title>'
+                + escapeHtml(title) + '</title><style>'
+                + 'body{font-family:Georgia,serif;line-height:1.6;margin:2rem;color:#1a1a2e}'
+                + 'h1{font-size:1.4rem;margin-bottom:0.25rem}'
+                + '.src{color:#666;font-size:0.85rem;margin-bottom:1.5rem}'
+                + '.n{padding:1rem 0;border-bottom:1px solid #ddd;page-break-inside:avoid}'
+                + '.num{font-size:0.75rem;letter-spacing:0.08em;text-transform:uppercase;color:#777}'
+                + '.chain{font-size:0.85rem;color:#555;margin:0.35rem 0}'
+                + '.en{margin:0.35rem 0}'
+                + '.ar{font-family:"Scheherazade New",serif;font-size:1.25rem;line-height:2;margin-top:0.5rem}'
+                + '</style></head><body><h1>' + escapeHtml(title) + '</h1>'
+                + '<div class="src">' + escapeHtml(window.location.href) + '</div>'
+                + rows + '</body></html>');
+            doc.close();
+
+            frame.contentWindow.focus();
+            setTimeout(function () {
+                frame.contentWindow.print();
+                setTimeout(function () { frame.remove(); }, 1000);
+            }, 250);
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         bindNav();
         bindSaveButtons();
         bindCardActions();
         bindSidecarPanels();
         bindAccordions();
+        bindTagOverflow();
+        bindSidecarResize();
+        bindPrintExport();
         apiJSON('/v1/auth/me', { method: 'GET' })
             .then(function (resp) {
                 var data = resp.data || {};

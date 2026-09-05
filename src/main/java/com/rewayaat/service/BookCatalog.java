@@ -243,6 +243,29 @@ public class BookCatalog {
         return Optional.ofNullable(chaptersBySlug.get(bookSlug + "/" + chapterSlug));
     }
 
+    /**
+     * The chapters either side of this one, in reading order within its book.
+     *
+     * <p>Reading a book straight through meant going up to the volume and back down for
+     * every chapter; these are the links that were missing, and they thread the hub
+     * pages together for a crawler as well as a reader.
+     */
+    public Optional<Chapter> siblingChapter(Chapter chapter, int offset) {
+        return book(chapter.bookSlug()).flatMap(b -> {
+            List<Chapter> all = b.chapters();
+            int i = -1;
+            for (int n = 0; n < all.size(); n++) {
+                if (all.get(n).slug().equals(chapter.slug())) {
+                    i = n;
+                    break;
+                }
+            }
+            int target = i + offset;
+            return i < 0 || target < 0 || target >= all.size()
+                    ? Optional.<Chapter>empty() : Optional.of(all.get(target));
+        });
+    }
+
     /** Every chapter in the corpus, for the sitemap. */
     public List<Chapter> allChapters() {
         ensureLoaded();
