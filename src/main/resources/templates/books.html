@@ -8,23 +8,33 @@
     <nav th:replace="~{fragments/site :: crumbtrail}"></nav>
 
     <header class="hub-hero">
+        <div class="hub-hero__eyebrow">The Collections</div>
         <h1 class="hub-hero__title">Shia Hadith Books</h1>
         <p class="hub-hero__lede">
-            The primary Shi'i hadith collections, in Arabic with English translation —
-            <strong th:text="${#numbers.formatInteger(totalNarrations, 0, 'COMMA')}">32,000</strong>
-            narrations across <span th:text="${#lists.size(books)}">18</span> books. Every narration
-            carries its chain of transmission, and is cross-linked to similar narrations and to the
-            Qur'anic verses it draws on.
+            The primary Shi'i hadith collections, in Arabic with English translation.
+            Every narration carries its chain of transmission, and is cross-linked to
+            similar narrations and to the Qur'anic verses it draws on.
         </p>
+        <div class="hub-hero__stats">
+            <span class="hub-stat">
+                <span class="hub-stat__value" th:text="${#numbers.formatInteger(totalNarrations, 0, 'COMMA')}">32,519</span>
+                narrations
+            </span>
+            <span class="hub-stat">
+                <span class="hub-stat__value" th:text="${#lists.size(books)}">18</span>
+                collections
+            </span>
+        </div>
     </header>
+
+    <div th:replace="~{fragments/site :: ornament}"></div>
 
     <div class="hub-grid">
         <a class="hub-card" th:each="book : ${books}" th:href="@{'/books/' + ${book.slug}}">
             <div class="hub-card__title" th:text="${book.name}">Book name</div>
             <div class="hub-card__meta">
-                <span th:text="${#numbers.formatInteger(book.count, 0, 'COMMA')}">1,000</span> narrations
-                &middot;
-                <span th:text="${#numbers.formatInteger(#lists.size(book.chapters), 0, 'COMMA')}">100</span> chapters
+                <span><strong th:text="${#numbers.formatInteger(book.count, 0, 'COMMA')}">1,000</strong> narrations</span>
+                <span><strong th:text="${#numbers.formatInteger(#lists.size(book.chapters), 0, 'COMMA')}">100</strong> chapters</span>
             </div>
         </a>
     </div>

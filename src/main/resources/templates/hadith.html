@@ -87,11 +87,29 @@
                 <img src="/img/ali_icon.png" th:src="@{/img/ali_icon.png}" class="brand-logo--icon d-md-none" alt="ALI"/>
             </a>
             <div class="d-flex home-nav-links">
-                <a href="/" class="home-nav-link">Search</a>
-                <span class="home-nav-dot" aria-hidden="true">&middot;</span>
-                <a href="/books" class="home-nav-link">Books</a>
-                <span class="home-nav-dot" aria-hidden="true">&middot;</span>
-                <a href="/updates.html" class="home-nav-link">Updates</a>
+                <a href="/" class="home-nav-link"><i class="fa fa-magnifying-glass" aria-hidden="true"></i><span>Search</span></a>
+                <a href="/books" class="home-nav-link is-current"><i class="fa fa-book-open" aria-hidden="true"></i><span>Books</span></a>
+                <a href="/updates.html" class="home-nav-link"><i class="fa fa-bolt" aria-hidden="true"></i><span>Updates</span></a>
+            </div>
+
+            <div class="menu-context-row ms-auto">
+                <div class="d-flex gap-2 top-actions flex-nowrap">
+                    <button class="btn btn-dark btn-sm top-action auth-action" id="authSignInBtn" type="button">
+                        <i class="fa fa-right-to-bracket" aria-hidden="true"></i>
+                        <span class="auth-action__label">Sign In</span>
+                    </button>
+                    <div class="profile-menu d-none" id="authProfileShell">
+                        <button class="top-action profile-chip" id="authProfileBtn" type="button"
+                                aria-label="Open profile" aria-expanded="false">
+                            <span class="profile-chip__avatar" id="authProfileInitial">R</span>
+                            <span class="profile-chip__meta">
+                                <span class="profile-chip__name" id="authProfileName">Account</span>
+                            </span>
+                            <i class="fa fa-angle-down" aria-hidden="true"></i>
+                        </button>
+                        <div class="profile-dropdown d-none" id="authProfileMenu" aria-hidden="true"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -99,95 +117,12 @@
 
 <main class="container py-4">
     <article class="hadith-page">
-        <!-- Source Header — Book, hierarchy, hadith number -->
-        <header class="hp-hero">
-            <h1 class="hp-hero__book" th:if="${hadith.book != null and !hadith.book.isBlank()}"
-                th:text="${hadith.book}">Book Name</h1>
-            <span class="hp-hero__number"
-                  th:if="${hadith.number != null and !hadith.number.isBlank()}">
-                Hadith <span th:text="${hadith.number}">123</span>
-            </span>
+        <nav th:replace="~{fragments/site :: crumbtrail}"></nav>
 
-            <!-- Breadcrumb path. These were <span>s: the page named its book, volume and
-                 chapter but linked to none of them, so every narration was a dead end. -->
-            <nav class="hp-hero__path" aria-label="Breadcrumb">
-                <th:block th:each="crumb, it : ${breadcrumbs}">
-                    <span th:if="${!it.first}" class="hp-hero__path-sep">/</span>
-                    <a th:if="${!it.last}" class="hp-hero__path-link"
-                       th:href="${crumb.url}" th:text="${crumb.name}">Crumb</a>
-                    <span th:if="${it.last}" class="hp-hero__path-current" th:text="${crumb.name}">Current</span>
-                </th:block>
-            </nav>
-
-            <!-- Topic Tags -->
-            <div class="hp-tags" th:if="${hadith.topicTags != null and !hadith.topicTags.isEmpty()}">
-                <span class="hp-tag" th:each="tag : ${hadith.topicTags}" th:text="${tag}">tag</span>
-            </div>
-        </header>
-
-        <!-- Hadith Content -->
-        <div class="hp-text-block">
-            <div class="hadith-card__ornament mb-4" aria-hidden="true">
-                <span class="hadith-card__ornament-line"></span>
-                <span class="hadith-card__ornament-mark">۞</span>
-                <span class="hadith-card__ornament-line"></span>
-            </div>
-
-            <!-- Arabic text -->
-            <div class="hp-text-block__arabic arabic-text"
-                 th:if="${hadith.arabic != null and !hadith.arabic.isBlank()}"
-                 th:utext="${hadith.arabic}">Arabic text</div>
-
-            <!-- English text -->
-            <div class="hp-text-block__english"
-                 th:if="${hadith.english != null and !hadith.english.isBlank()}"
-                 th:utext="${hadith.english}">English text</div>
-        </div>
-
-        <!-- Share / Remind -->
-        <div class="hp-share" style="margin-top:1.5rem; padding-top:1rem; border-top:1px solid var(--bs-border-color);">
-            <button id="remindBtn" class="hp-share__btn" onclick="shareHadith()" title="Share this hadith">
-                <i class="fa fa-paper-plane" style="margin-right:0.35rem;"></i> Remind someone
-            </button>
-            <span id="shareToast" class="hp-share__toast" style="display:none;">Link copied!</span>
-        </div>
-
-        <!-- Additional metadata row -->
-        <div class="hp-meta-row" th:if="${hadith.source != null and !hadith.source.isBlank()}">
-            <div class="hp-meta-item">
-                <span class="hp-meta-item__label">Source: </span>
-                <span th:text="${hadith.source}">Source</span>
-            </div>
-            <div class="hp-meta-item" th:if="${hadith.edition != null and !hadith.edition.isBlank()}">
-                <span class="hp-meta-item__label">Edition: </span>
-                <span th:text="${hadith.edition}">Edition</span>
-            </div>
-            <div class="hp-meta-item" th:if="${hadith.publisher != null and !hadith.publisher.isBlank()}">
-                <span class="hp-meta-item__label">Publisher: </span>
-                <span th:text="${hadith.publisher}">Publisher</span>
-            </div>
-        </div>
-
-        <!-- Notes: same apparatus panel as the results page, so the note reads
-             the same however the reader arrived at the hadith. -->
-        <div class="hadith-notes mt-3"
-             th:if="${hadith.notes != null and !hadith.notes.isBlank()}"
-             th:with="collapsible=${hadith.notes.length() > 600}">
-            <div class="hadith-notes__head">
-                <span class="hadith-notes__label">Notes</span>
-            </div>
-            <div class="hadith-notes__body"
-                 id="hadithNotesBody"
-                 th:classappend="${collapsible} ? 'hadith-notes__body--clamped' : ''"
-                 th:utext="${hadith.notes}">Notes content</div>
-            <button type="button"
-                    class="hadith-notes__toggle"
-                    id="hadithNotesToggle"
-                    th:if="${collapsible}"
-                    aria-expanded="false"
-                    aria-controls="hadithNotesBody"
-                    onclick="toggleHadithNotes()">Show more</button>
-        </div>
+        <!-- The same card the chapter pages and the search results render. This page used
+             to carry its own layout, which made the deepest and most-linked page in the
+             site the plainest one. -->
+        <div th:replace="~{fragments/hadith-card :: card(${card}, ${hadith.number})}"></div>
 
         <!-- Related narrations. The pre-computed LLM-judged pairs were already in the
              index and reachable only over an XHR a crawler never makes; rendered here
@@ -269,6 +204,7 @@
         window.LogRocket && window.LogRocket.init('ctebns/rewyaat');
     }
 </script>
+<script src="/js/hub-pages.js" th:src="@{/js/hub-pages.js}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script th:inline="javascript">

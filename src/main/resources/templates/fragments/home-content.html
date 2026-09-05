@@ -20,12 +20,10 @@
                      could read. It is also the only place the phrase the site is trying
                      to rank for appears in the visible copy. -->
                 <p class="home-hero__lede">
-                    A searchable database of <strong>Shia hadith</strong> &mdash;
-                    <strong th:text="${#numbers.formatInteger(totalNarrations, 0, 'COMMA')}">32,000</strong>
+                    A searchable database of Shia hadith &mdash;
+                    <span th:text="${#numbers.formatInteger(totalNarrations, 0, 'COMMA')}">32,000</span>
                     narrations of the Prophet and the Ahlul Bayt, in the original Arabic with English
-                    translation, drawn from <a href="/books">Al-Kafi, Nahj al-Balagha, Man La Yahduruh
-                    al-Faqih and other primary collections</a>. Every narration keeps its chain of
-                    transmission and links to similar narrations and the Qur'anic verses it draws on.
+                    translation, drawn from <a href="/books" class="home-hero__lede-link">Primary Collections</a>.
                 </p>
                 <p class="home-hero__search-note">
                     Search in <span>English</span> or <span>Arabic</span> by single terms or phrases wrapped in quotations.
@@ -94,10 +92,26 @@
     <div class="home-section-header">
         <div>
             <h2 class="home-section-title">Browse by Book</h2>
-            <p class="home-section-subtitle">Select a book, choose any available filters, then submit.</p>
+            <p class="home-section-subtitle">Open a collection to read it by volume and chapter, or <a href="/books">see all books</a>.</p>
         </div>
     </div>
-    <div id="browseBookList" class="browse-book-list" data-skeleton="true"><div class="home-skeleton-book"><div class="home-skeleton-book-icon home-skeleton-bar"></div><div class="home-skeleton-book-copy"><div class="home-skeleton-bar home-skeleton-book-title"></div><div class="home-skeleton-bar home-skeleton-book-count"></div></div></div><div class="home-skeleton-book"><div class="home-skeleton-book-icon home-skeleton-bar"></div><div class="home-skeleton-book-copy"><div class="home-skeleton-bar home-skeleton-book-title"></div><div class="home-skeleton-bar home-skeleton-book-count"></div></div></div><div class="home-skeleton-book"><div class="home-skeleton-book-icon home-skeleton-bar"></div><div class="home-skeleton-book-copy"><div class="home-skeleton-bar home-skeleton-book-title"></div><div class="home-skeleton-bar home-skeleton-book-count"></div></div></div><div class="home-skeleton-book"><div class="home-skeleton-book-icon home-skeleton-bar"></div><div class="home-skeleton-book-copy"><div class="home-skeleton-bar home-skeleton-book-title"></div><div class="home-skeleton-bar home-skeleton-book-count"></div></div></div></div>
+    <!-- Rendered by the server so the links exist without scripts; populateBrowseBooks
+         replaces these with the same links once the browse data loads. -->
+    <div id="browseBookList" class="browse-book-list">
+        <a class="browse-book-card" th:each="book, it : ${books}"
+           th:href="@{'/books/' + ${book.slug}}"
+           th:classappend="${it.index >= 4} ? 'browse-book-card--overflow' : ''">
+            <div class="browse-book-head">
+                <span class="browse-book-icon" aria-hidden="true"><i class="fa fa-book"></i></span>
+                <div class="browse-book-copy">
+                    <div class="browse-book-title" th:text="${book.name}">Al-Kafi</div>
+                    <div class="browse-book-count">
+                        <span th:text="${#numbers.formatInteger(book.count, 0, 'COMMA')}">14,242</span> narrations
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
     <div id="browseFacetPanel" class="browse-panel is-hidden">
         <div id="browseBookField" class="browse-field is-hidden">
             <label for="browseBookSelect">Book</label>
@@ -169,29 +183,6 @@
     <div id="collectionsEmpty" class="small text-muted">No collections yet. Save a hadith to create your first list.</div>
 </section>
 
-
-<section class="home-books" id="collections">
-    <div class="home-section-header">
-        <div>
-            <h2 class="home-section-title">The Collections</h2>
-            <p class="home-section-subtitle">
-                Every book in the database, with its chapters laid out for reading.
-                <a href="/books" class="recent-updates-more">See all books &#8594;</a>
-            </p>
-        </div>
-    </div>
-    <!-- Server-rendered on purpose. The rest of this page is fetched over XHR, so a
-         crawler that does not run scripts saw a page with no content and no links;
-         these are the links that lead down into the 32,000 narrations. -->
-    <div class="home-books__grid">
-        <a class="home-books__item" th:each="book : ${books}" th:href="@{'/books/' + ${book.slug}}">
-            <span class="home-books__name" th:text="${book.name}">Al-Kafi</span>
-            <span class="home-books__count">
-                <span th:text="${#numbers.formatInteger(book.count, 0, 'COMMA')}">14,242</span> narrations
-            </span>
-        </a>
-    </div>
-</section>
 
 <section class="home-notice" id="about">
     <div class="card shadow-sm border-0 home-card">

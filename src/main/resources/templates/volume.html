@@ -8,22 +8,59 @@
     <nav th:replace="~{fragments/site :: crumbtrail}"></nav>
 
     <header class="hub-hero">
-        <h1 class="hub-hero__title">
-            <span th:text="${book.name}">Book</span> &mdash; <span th:text="${volumeLabel}">Volume 1</span>
-        </h1>
-        <p class="hub-hero__lede">
-            <strong th:text="${#numbers.formatInteger(narrationCount, 0, 'COMMA')}">1,000</strong> narrations
-            across <span th:text="${#numbers.formatInteger(#lists.size(chapters), 0, 'COMMA')}">100</span>
-            chapters, in Arabic and English.
-        </p>
+        <a class="hub-hero__eyebrow" th:href="@{'/books/' + ${book.slug}}" th:text="${book.name}">Al-Kafi</a>
+        <h1 class="hub-hero__title" th:text="${volumeLabel}">Volume 1</h1>
+        <div class="hub-hero__stats">
+            <span class="hub-stat">
+                <span class="hub-stat__value" th:text="${#numbers.formatInteger(narrationCount, 0, 'COMMA')}">1,000</span>
+                narrations
+            </span>
+            <span class="hub-stat">
+                <span class="hub-stat__value" th:text="${#numbers.formatInteger(#lists.size(chapters), 0, 'COMMA')}">100</span>
+                chapters
+            </span>
+        </div>
     </header>
 
-    <section>
+    <div th:replace="~{fragments/site :: ornament}"></div>
+
+    <section class="hub-group" th:if="${!#lists.isEmpty(parts)}">
+        <h2 class="hub-group__label">Parts</h2>
+        <div class="hub-grid">
+            <a class="hub-card" th:each="part : ${parts}" th:href="${part.url}">
+                <div class="hub-card__title" th:text="${part.title}">Part 1</div>
+                <div class="hub-card__meta">
+                    <span><strong th:text="${#numbers.formatInteger(part.chapterCount, 0, 'COMMA')}">100</strong> chapters</span>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <section class="hub-group" th:if="${!#lists.isEmpty(chapters)}">
         <h2 class="hub-group__label">Chapters</h2>
-        <ul class="hub-list">
-            <li th:each="chapter : ${chapters}">
-                <a th:href="${chapter.url}" th:text="${chapter.title}">Chapter title</a>
-                <span class="hub-list__count" th:text="'(' + ${chapter.count} + ')'">(12)</span>
+        <!-- Two destinations per row on purpose. The title goes to the chapter's own
+             page, which is the crawlable, rankable URL and where a search engine sends
+             people; the icon jumps straight into reading mode for someone already here
+             and browsing to read. A single link could not serve both. -->
+        <ul class="hub-chapters">
+            <li class="hub-chapter-row" th:each="chapter, it : ${chapters}">
+                <a class="hub-chapter" th:href="${chapter.url}">
+                    <span class="hub-chapter__index" th:text="${it.count} + '.'">1.</span>
+                    <span class="hub-chapter__title" th:text="${chapter.title}">Chapter title</span>
+                    <!-- Labelled, not a bare number: the ordinal on the left is also a
+                         bare number, and across two or three columns the two were
+                         indistinguishable. -->
+                    <span class="hub-chapter__count">
+                        <span th:text="${chapter.count}">12</span>
+                        <span class="hub-chapter__count-unit"
+                              th:text="${chapter.count == 1} ? 'hadith' : 'hadith'">hadith</span>
+                    </span>
+                </a>
+                <a class="hub-chapter-read" th:href="${chapter.readingUrl}"
+                   th:title="'Read ' + ${chapter.title}"
+                   th:aria-label="'Read ' + ${chapter.title} + ' in reading mode'">
+                    <i class="fa fa-book-open" aria-hidden="true"></i>
+                </a>
             </li>
         </ul>
     </section>

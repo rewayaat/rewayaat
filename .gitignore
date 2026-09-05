@@ -64,9 +64,12 @@ __pycache__/
 *.pyc
 
 # Temp/session files
-tmp/
+/tmp
+/tmp/
+test-results/
 *.txt.bak
-20*-local-command-caveat*
+# Claude Code session transcripts dumped into the repo root
+/20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*.txt
 
 # Notebooks (local data)
 notebooks/

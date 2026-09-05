@@ -8,28 +8,92 @@
     <nav th:replace="~{fragments/site :: crumbtrail}"></nav>
 
     <header class="hub-hero">
+        <a class="hub-hero__eyebrow" th:href="${bookUrl}" th:text="${chapter.bookName}">Al-Kafi</a>
         <h1 class="hub-hero__title" th:text="${chapter.title}">Chapter title</h1>
-        <p class="hub-hero__lede">
-            <a th:href="${bookUrl}" th:text="${chapter.bookName}">Book</a>
-            <th:block th:if="${!#strings.isEmpty(chapter.volume)}">
-                &middot; Volume <span th:text="${chapter.volume}">1</span>
-            </th:block>
-            <th:block th:if="${!#strings.isEmpty(chapter.section)}">
-                &middot; Section <span th:text="${chapter.section}">1</span>
-            </th:block>
-            &middot; <span th:text="${#numbers.formatInteger(chapter.count, 0, 'COMMA')}">12</span> narrations
-        </p>
+        <div class="hub-hero__stats">
+            <a class="hub-stat" th:if="${volumeUrl != null}" th:href="${volumeUrl}">
+                Volume <span class="hub-stat__value" th:text="${chapter.volume}">1</span>
+            </a>
+            <span class="hub-stat" th:if="${!#strings.isEmpty(chapter.section)}">
+                Section <span class="hub-stat__value" th:text="${chapter.section}">20</span>
+            </span>
+            <span class="hub-stat">
+                <span class="hub-stat__value" th:text="${#numbers.formatInteger(chapter.count, 0, 'COMMA')}">12</span>
+                narrations
+            </span>
+        </div>
     </header>
 
-    <div>
-        <article class="hub-narration" th:each="narration : ${narrations}">
-            <div class="hub-narration__num" th:if="${!#strings.isEmpty(narration.number)}">
-                Hadith <span th:text="${narration.number}">1</span>
-            </div>
-            <p class="hub-narration__text" th:text="${narration.excerpt}">Excerpt of the narration.</p>
-            <a class="hub-narration__link" th:href="${narration.url}">Read the full narration &rarr;</a>
-        </article>
+    <div th:replace="~{fragments/site :: ornament}"></div>
+
+    <!-- The chapter's tag facet, the one thing reading mode had that these pages did
+         not. Server-rendered as links, so it works without scripts and each filtered
+         view is a real URL a reader can share. -->
+    <div class="tag-filter-bar tag-filter-bar--results mb-3" th:if="${!#lists.isEmpty(tagFacets)}">
+        <div class="tag-filter-bar__head">
+            <span class="tag-filter-bar__label">Filter by Tag</span>
+            <a class="tag-filter-bar__clear" th:if="${activeTag != null}" th:href="${clearTagUrl}">Clear</a>
+        </div>
+        <div class="tag-filter-bar__pills">
+            <a class="topic-pill" th:each="facet : ${tagFacets}"
+               th:href="${facet.active} ? ${clearTagUrl} : ${facet.url}"
+               th:classappend="${facet.active} ? 'topic-pill--active' : ''">
+                <span th:text="${facet.label}">Tag</span>
+                <span class="topic-pill__count" th:text="${facet.count}">2</span>
+            </a>
+        </div>
     </div>
+
+    <div class="hub-list-actions">
+        <button type="button" class="hub-save" data-hub-print
+                th:attr="data-print-title=${chapter.bookName} + ' — ' + ${chapter.title}">
+            <i class="fa fa-file-arrow-down" aria-hidden="true"></i>
+            <span>Export PDF</span>
+        </button>
+    </div>
+
+    <h2 class="hub-group__label">
+        In this chapter
+        <span class="hub-group__note" th:if="${activeTag != null}"
+              th:text="'filtered by ' + ${activeTagLabel}">filtered</span>
+    </h2>
+
+    <p class="text-muted" th:if="${#lists.isEmpty(narrations)}">
+        No narrations in this chapter carry that tag.
+    </p>
+
+    <!-- The same card the search results render, from the same fragment and the same
+         CSS classes, so moving between the two never feels like changing product. -->
+    <section id="hadithView" class="hadith-static-list">
+        <div class="hadith-layout">
+            <div class="hadith-content">
+                <div class="hadith-entry" th:each="narration, it : ${narrations}">
+                    <div th:replace="~{fragments/hadith-card :: card(${narration}, ${narration.number})}"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Sibling chapters, so a book can be read straight through without going up and
+         back down for every chapter. Also threads the hub pages together for a crawler. -->
+    <nav class="hub-pager" th:if="${prevUrl != null or nextUrl != null}" aria-label="Chapter navigation">
+        <a class="hub-pager__link hub-pager__link--prev" th:if="${prevUrl != null}" th:href="${prevUrl}">
+            <i class="fa fa-arrow-left" aria-hidden="true"></i>
+            <span class="hub-pager__meta">
+                <span class="hub-pager__eyebrow">Previous</span>
+                <span class="hub-pager__title" th:text="${prevLabel}">Previous chapter</span>
+            </span>
+        </a>
+        <a class="hub-pager__link hub-pager__link--next" th:if="${nextUrl != null}" th:href="${nextUrl}">
+            <span class="hub-pager__meta">
+                <span class="hub-pager__eyebrow">Next</span>
+                <span class="hub-pager__title" th:text="${nextLabel}">Next chapter</span>
+            </span>
+            <i class="fa fa-arrow-right" aria-hidden="true"></i>
+        </a>
+    </nav>
+
 </main>
 
 <footer th:replace="~{fragments/site :: sitefooter}"></footer>

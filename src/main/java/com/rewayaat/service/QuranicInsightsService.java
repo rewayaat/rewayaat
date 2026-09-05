@@ -1,6 +1,8 @@
 package com.rewayaat.service;
 
 import co.elastic.clients.elasticsearch.core.GetResponse;
+import co.elastic.clients.elasticsearch.core.MgetResponse;
+import co.elastic.clients.elasticsearch.core.mget.MultiGetResponseItem;
 import com.rewayaat.config.ESClientProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +33,40 @@ public class QuranicInsightsService {
 
     @Value("${quranic.insights.max-candidates:10}")
     private int maxCandidates;
+
+    /**
+     * Candidate counts for many narrations at once.
+     *
+     * <p>The card's TAFSIR rail shows a count the way RELATED does, and a chapter page
+     * renders up to 500 cards — asking per narration would be 500 round trips for a
+     * number most readers never look at. One multi-get answers the whole page.
+     */
+    public Map<String, Integer> insightCounts(List<String> hadithIds) {
+        List<String> ids = hadithIds == null ? List.of() : hadithIds.stream()
+                .filter(id -> id != null && !id.isBlank())
+                .distinct()
+                .toList();
+        if (!enabled || ids.isEmpty()) {
+            return Map.of();
+        }
+        Map<String, Integer> counts = new LinkedHashMap<>();
+        try (ESClientProvider provider = new ESClientProvider()) {
+            MgetResponse<Map> response = provider.client().mget(
+                    r -> r.index(indexName).ids(ids).sourceIncludes("candidate_count"), Map.class);
+            for (MultiGetResponseItem<Map> item : response.docs()) {
+                if (item.result() == null || !item.result().found() || item.result().source() == null) {
+                    continue;
+                }
+                @SuppressWarnings("unchecked")
+                Map<String, Object> source = item.result().source();
+                counts.put(item.result().id(), intValue(source.get("candidate_count")));
+            }
+        } catch (Exception e) {
+            // A missing count is a rail without a badge, not a broken page.
+            LOGGER.warn("Could not load Quranic insight counts", e);
+        }
+        return counts;
+    }
 
     public Map<String, Object> insightOverview(String hadithId, boolean countOnly, boolean all) {
         LightDocument document = loadLightDocument(hadithId);

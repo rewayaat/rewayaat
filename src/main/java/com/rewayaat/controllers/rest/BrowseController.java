@@ -1,6 +1,7 @@
 package com.rewayaat.controllers.rest;
 
 import com.rewayaat.core.BrowseFacets;
+import com.rewayaat.service.BookCatalog;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -12,6 +13,13 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * API for browsing books and sections.
@@ -20,6 +28,74 @@ import org.springframework.web.bind.annotation.RequestParam;
 @org.springframework.stereotype.Controller
 @RequestMapping("/v1/browse")
 public class BrowseController {
+
+    private final BookCatalog catalog;
+
+    public BrowseController(BookCatalog catalog) {
+        this.catalog = catalog;
+    }
+
+    /**
+     * The server-rendered page a browse selection corresponds to.
+     *
+     * <p>The browse panel used to submit into the search app's reading mode. It sends
+     * readers to the book, volume or chapter page instead, and asks for the URL rather
+     * than building it, because the slugs come from {@link BookCatalog#slugify} and a
+     * second implementation in the browser would drift from the routes.
+     *
+     * <p>Answers {@code {"ok": false}} when the selection has no page of its own, which
+     * is the caller's cue to fall back to a search.
+     */
+    @CrossOrigin(origins = {"*"}, allowCredentials = "false")
+    @Operation(summary = "Resolves a browse selection to its server-rendered page.")
+    @RequestMapping(value = "/page", method = RequestMethod.GET, produces = "application/json")
+    @ResponseBody
+    public Map<String, Object> page(
+            @RequestParam(value = "book", required = false) String book,
+            @RequestParam(value = "volume", required = false) String volume,
+            @RequestParam(value = "part", required = false) String part,
+            @RequestParam(value = "section", required = false) String section,
+            @RequestParam(value = "chapter", required = false) String chapter) {
+
+        if (book == null || book.isBlank()) {
+            return Map.of("ok", false);
+        }
+
+        Optional<BookCatalog.Book> found = catalog.bookByName(book.trim());
+        if (found.isEmpty()) {
+            return Map.of("ok", false);
+        }
+        BookCatalog.Book resolved = found.get();
+
+        // Every level that has a page, not just the deepest one. A card's metadata rows
+        // each link somewhere different, and one round trip beats three.
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("ok", true);
+
+        String bookUrl = "/books/" + resolved.slug();
+        out.put("bookUrl", bookUrl);
+
+        String volumeUrl = null;
+        if (volume != null && !volume.isBlank() && resolved.volumes().contains(volume.trim())) {
+            volumeUrl = bookUrl + "/volume/"
+                    + URLEncoder.encode(volume.trim(), StandardCharsets.UTF_8).replace("+", "%20");
+            out.put("volumeUrl", volumeUrl);
+        }
+
+        String chapterUrl = null;
+        if (chapter != null && !chapter.isBlank()) {
+            chapterUrl = catalog.chapterFor(book.trim(), volume, part, section, chapter.trim())
+                    .map(BookCatalog.Chapter::url).orElse(null);
+            if (chapterUrl != null) {
+                out.put("chapterUrl", chapterUrl);
+            }
+        }
+
+        // "url" stays the deepest page that exists, which is what the browse panel and
+        // the metadata rows navigate to.
+        out.put("url", chapterUrl != null ? chapterUrl : volumeUrl != null ? volumeUrl : bookUrl);
+        return out;
+    }
 
     @CrossOrigin(origins = {"*"}, allowCredentials = "false")
     @Operation(summary = "Returns all books with counts.")

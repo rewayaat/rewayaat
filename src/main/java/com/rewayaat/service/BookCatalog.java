@@ -8,6 +8,7 @@ import co.elastic.clients.elasticsearch._types.aggregations.CompositeBucket;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.util.NamedValue;
 import com.rewayaat.config.ESClientProvider;
+import com.rewayaat.core.Slugs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -15,7 +16,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.text.Normalizer;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -23,7 +25,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -51,7 +52,7 @@ public class BookCatalog {
     private static final int COMPOSITE_PAGE_SIZE = 1000;
 
     /** Path segments the book routes claim, which a chapter slug must not collide with. */
-    private static final Set<String> RESERVED_SEGMENTS = Set.of("volume");
+    private static final Set<String> RESERVED_SEGMENTS = Set.of("volume", "part");
 
     /** A book, with the chapters that sit under it in reading order. */
     public record Book(String name, String slug, long count, List<Chapter> chapters) {
@@ -72,6 +73,74 @@ public class BookCatalog {
                                                 : volume.equals(c.volume()))
                     .toList();
         }
+
+        /**
+         * The parts of this book, in reading order.
+         *
+         * <p>Thirteen of the eighteen books use parts, and for some the part IS the
+         * organising principle — Al-Khisal is arranged as "On One-Numbered
+         * Characteristics" through "On Twelve-Numbered". Listing its 908 chapters flat
+         * under a volume threw that structure away and produced a 1.35MB page.
+         */
+        public List<Part> parts() {
+            List<Part> out = new ArrayList<>();
+            Map<String, Integer> used = new HashMap<>();
+            for (Chapter chapter : chapters) {
+                String title = chapter.part();
+                if (title == null || title.isBlank()) {
+                    continue;
+                }
+                String key = chapter.volume() + "\u0000" + title;
+                if (used.containsKey(key)) {
+                    continue;
+                }
+                used.put(key, 1);
+                out.add(new Part(name, slug, partSlug(out, title), title, chapter.volume(),
+                        chaptersInPart(chapter.volume(), title).size()));
+            }
+            return out;
+        }
+
+        public List<Part> partsInVolume(String volume) {
+            return parts().stream()
+                    .filter(p -> volume == null || volume.isBlank()
+                            ? p.volume() == null || p.volume().isBlank()
+                            : volume.equals(p.volume()))
+                    .toList();
+        }
+
+        public List<Chapter> chaptersInPart(String volume, String partTitle) {
+            return chapters.stream()
+                    .filter(c -> sameFacet(c.volume(), volume) && sameFacet(c.part(), partTitle))
+                    .toList();
+        }
+
+        /** Unique within a book: the same part title can recur across volumes. */
+        private static String partSlug(List<Part> existing, String title) {
+            String base = slugify(title);
+            if (base.isBlank()) {
+                base = "part";
+            }
+            String candidate = base;
+            int n = 1;
+            while (hasSlug(existing, candidate)) {
+                candidate = base + "-" + (++n);
+            }
+            return candidate;
+        }
+
+        private static boolean hasSlug(List<Part> existing, String slug) {
+            return existing.stream().anyMatch(p -> p.slug().equals(slug));
+        }
+    }
+
+    /** One part of one book, between the volume and the chapters. */
+    public record Part(String bookName, String bookSlug, String slug, String title,
+                       String volume, int chapterCount) {
+
+        public String url() {
+            return "/books/" + bookSlug + "/part/" + slug;
+        }
     }
 
     /**
@@ -87,6 +156,64 @@ public class BookCatalog {
         public String url() {
             return "/books/" + bookSlug + "/" + slug;
         }
+
+        /** Straight into the app's reading mode, scoped to this chapter. */
+        public String readingUrl() {
+            return readingModeUrl(bookName, volume, part, section, title);
+        }
+    }
+
+    /**
+     * The URL of the app's existing reading mode, scoped to a book, volume or chapter.
+     *
+     * <p>The reading experience is already built: the search interface enters it on a
+     * scoped query with no keyword terms. These pages link into it rather than growing a
+     * second one. Mirrors buildQueryFromFilters and buildSortFields in rewayaat.js — if
+     * the query grammar there changes, this has to follow.
+     */
+    public static String readingModeUrl(String book, String volume, String part, String section, String chapter) {
+        StringBuilder query = new StringBuilder();
+        appendScope(query, "book", book);
+        appendScope(query, "volume", volume);
+        appendScope(query, "part", part);
+        appendScope(query, "section", section);
+        appendScope(query, "chapter", chapter);
+
+        List<String> sort = new ArrayList<>();
+        if (notBlank(volume)) { sort.add("volume:asc"); }
+        if (notBlank(part)) { sort.add("part:asc"); }
+        if (notBlank(section)) { sort.add("section:asc"); }
+        if (notBlank(chapter)) { sort.add("chapter:asc"); }
+        if (sort.isEmpty()) {
+            sort.addAll(List.of("volume:asc", "part:asc", "section:asc", "chapter:asc"));
+        }
+        sort.add("number:asc");
+
+        return "/?q=" + urlEncode(query.toString())
+                + "&page=1"
+                + "&sort_fields=" + urlEncode(String.join(",", sort))
+                + "&mode=read"
+                + "&match_mode=flexible"
+                + "&entry=browse";
+    }
+
+    /** Quotes are the query grammar's own delimiter, so a value cannot carry them. */
+    private static void appendScope(StringBuilder query, String field, String value) {
+        if (!notBlank(value)) {
+            return;
+        }
+        if (query.length() > 0) {
+            query.append(' ');
+        }
+        query.append(field).append(":\"").append(value.replace("\"", "").trim()).append('"');
+    }
+
+    private static boolean notBlank(String value) {
+        return value != null && !value.isBlank();
+    }
+
+    private static String urlEncode(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
     }
 
     private volatile List<Book> books = List.of();
@@ -104,9 +231,38 @@ public class BookCatalog {
         return Optional.ofNullable(booksBySlug.get(slug));
     }
 
+    public Optional<Part> part(String bookSlug, String partSlug) {
+        return book(bookSlug).flatMap(b -> b.parts().stream()
+                .filter(p -> p.slug().equals(partSlug))
+                .findFirst());
+    }
+
     public Optional<Chapter> chapter(String bookSlug, String chapterSlug) {
         ensureLoaded();
         return Optional.ofNullable(chaptersBySlug.get(bookSlug + "/" + chapterSlug));
+    }
+
+    /**
+     * The chapters either side of this one, in reading order within its book.
+     *
+     * <p>Reading a book straight through meant going up to the volume and back down for
+     * every chapter; these are the links that were missing, and they thread the hub
+     * pages together for a crawler as well as a reader.
+     */
+    public Optional<Chapter> siblingChapter(Chapter chapter, int offset) {
+        return book(chapter.bookSlug()).flatMap(b -> {
+            List<Chapter> all = b.chapters();
+            int i = -1;
+            for (int n = 0; n < all.size(); n++) {
+                if (all.get(n).slug().equals(chapter.slug())) {
+                    i = n;
+                    break;
+                }
+            }
+            int target = i + offset;
+            return i < 0 || target < 0 || target >= all.size()
+                    ? Optional.<Chapter>empty() : Optional.of(all.get(target));
+        });
     }
 
     /** Every chapter in the corpus, for the sitemap. */
@@ -300,33 +456,14 @@ public class BookCatalog {
     }
 
     /**
-     * A URL-safe slug.
+     * The slug a title answers at.
      *
-     * <p>Book and chapter titles are transliterated Arabic full of combining marks and
-     * dots below — "Man Lā Yaḥḍuruh al-Faqīh", "ʿUyūn akhbār al-Riḍā". Stripping the
-     * diacritics before slugifying gives the plain-ASCII spelling people actually type
-     * and link to, so the URL matches the query.
+     * <p>Delegates to {@link Slugs} so the browse facets can slug a book name without
+     * {@code core} having to depend on {@code service}. Kept here as the entry point the
+     * routes and the docs refer to.
      */
     public static String slugify(String input) {
-        if (input == null) {
-            return "";
-        }
-        String decomposed = Normalizer.normalize(input, Normalizer.Form.NFD);
-        StringBuilder ascii = new StringBuilder(decomposed.length());
-        for (int i = 0; i < decomposed.length(); i++) {
-            char c = decomposed.charAt(i);
-            int type = Character.getType(c);
-            if (type == Character.NON_SPACING_MARK || type == Character.COMBINING_SPACING_MARK) {
-                continue;
-            }
-            ascii.append(c);
-        }
-        String slug = ascii.toString()
-                .toLowerCase(Locale.ROOT)
-                .replaceAll("[^a-z0-9]+", "-")
-                .replaceAll("^-+|-+$", "");
-        // Chapter titles run long; a slug past this adds nothing a crawler or a reader uses.
-        return slug.length() > 80 ? slug.substring(0, slug.lastIndexOf('-', 80) < 20 ? 80 : slug.lastIndexOf('-', 80)) : slug;
+        return Slugs.slugify(input);
     }
 
     /** Sorts "Volume 10" after "Volume 9" rather than between 1 and 2. */

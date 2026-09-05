@@ -7,6 +7,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rewayaat.config.ESClientProvider;
 import com.rewayaat.core.HadithDisplaySegmenter;
 import com.rewayaat.service.BookCatalog;
+import com.rewayaat.service.HadithCardFactory;
+import com.rewayaat.service.QuranicInsightsService;
+import com.rewayaat.service.TopicLabelSource;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -15,6 +18,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -48,10 +52,18 @@ public class BookPageController {
     private static final int EXCERPT_CHARS = 220;
 
     private final BookCatalog catalog;
+    private final HadithCardFactory cards;
+    private final TopicLabelSource topicLabels;
     private final BookBlurbs blurbs = new BookBlurbs();
 
-    public BookPageController(BookCatalog catalog) {
+    private final QuranicInsightsService quranicInsights;
+
+    public BookPageController(BookCatalog catalog, HadithCardFactory cards,
+                              TopicLabelSource topicLabels, QuranicInsightsService quranicInsights) {
         this.catalog = catalog;
+        this.cards = cards;
+        this.topicLabels = topicLabels;
+        this.quranicInsights = quranicInsights;
     }
 
     @GetMapping("/books")
@@ -80,19 +92,24 @@ public class BookPageController {
         }
         BookCatalog.Book book = found.get();
 
-        // Al-Kafi alone has 2,693 chapters. Listing every one of them on the book page
-        // made it a 637KB document with 2,693 outbound links — slow on mobile and a
-        // thin spread of link equity. Where a book has volumes, they become the level
-        // in between, so no page in the chain carries more than a few hundred links.
+        // One level at a time, and only levels that exist. Al-Kafi has eight volumes;
+        // Al-Khisal has one, so a volume level there is a page with a single card on it,
+        // and its 908 chapters listed flat made a 1.35MB document. Books fall through to
+        // whichever level actually divides them.
         List<String> volumes = book.volumes();
+        List<BookCatalog.Part> parts = book.parts();
+        boolean useVolumes = volumes.size() > 1;
+        boolean useParts = !useVolumes && parts.size() > 1;
+
         model.addAttribute("book", book);
-        model.addAttribute("volumes", volumes.stream()
+        model.addAttribute("volumes", useVolumes ? volumes.stream()
                 .map(v -> Map.of(
                         "label", "Volume " + v,
                         "url", "/books/" + bookSlug + "/volume/" + encode(v),
                         "chapterCount", book.chaptersInVolume(v).size()))
-                .toList());
-        model.addAttribute("chapters", volumes.isEmpty() ? book.chapters() : List.of());
+                .toList() : List.of());
+        model.addAttribute("parts", useParts ? parts : List.of());
+        model.addAttribute("chapters", useVolumes || useParts ? List.of() : book.chapters());
         model.addAttribute("blurb", blurbs.forSlug(bookSlug));
         model.addAttribute("seoTitle", book.name() + " — Shia Hadith in Arabic & English");
         model.addAttribute("seoDescription", String.format(
@@ -123,10 +140,13 @@ public class BookPageController {
         }
         String label = "Volume " + volume;
         long narrations = chapters.stream().mapToLong(BookCatalog.Chapter::count).sum();
+        List<BookCatalog.Part> parts = book.partsInVolume(volume);
+        boolean useParts = parts.size() > 1;
 
         model.addAttribute("book", book);
         model.addAttribute("volumeLabel", label);
-        model.addAttribute("chapters", chapters);
+        model.addAttribute("parts", useParts ? parts : List.of());
+        model.addAttribute("chapters", useParts ? List.of() : chapters);
         model.addAttribute("volumes", List.of());
         model.addAttribute("narrationCount", narrations);
         model.addAttribute("seoTitle", book.name() + " " + label + " — Shia Hadith in Arabic & English");
@@ -143,8 +163,46 @@ public class BookPageController {
         return "volume";
     }
 
+    @GetMapping("/books/{bookSlug}/part/{partSlug}")
+    public String partPage(@PathVariable String bookSlug, @PathVariable String partSlug,
+                           Model model, HttpServletResponse response) throws IOException {
+        Optional<BookCatalog.Book> foundBook = catalog.book(bookSlug);
+        Optional<BookCatalog.Part> foundPart = catalog.part(bookSlug, partSlug);
+        if (foundBook.isEmpty() || foundPart.isEmpty()) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return null;
+        }
+        BookCatalog.Book book = foundBook.get();
+        BookCatalog.Part part = foundPart.get();
+        List<BookCatalog.Chapter> chapters = book.chaptersInPart(part.volume(), part.title());
+        long narrations = chapters.stream().mapToLong(BookCatalog.Chapter::count).sum();
+
+        model.addAttribute("book", book);
+        model.addAttribute("volumeLabel", part.title());
+        model.addAttribute("parts", List.of());
+        model.addAttribute("chapters", chapters);
+        model.addAttribute("volumes", List.of());
+        model.addAttribute("narrationCount", narrations);
+        model.addAttribute("seoTitle", part.title() + " — " + book.name());
+        model.addAttribute("seoDescription", String.format(
+                "%s, %s: %,d narrations across %,d chapters, in Arabic and English.",
+                book.name(), part.title(), narrations, chapters.size()));
+        model.addAttribute("canonicalUrl", BASE_URL + part.url());
+        model.addAttribute("jsonLd", bookJsonLd(book));
+
+        LinkedHashMap<String, String> trail = new LinkedHashMap<>();
+        trail.put(book.name(), "/books/" + bookSlug);
+        if (part.volume() != null && !part.volume().isBlank() && book.volumes().size() > 1) {
+            trail.put("Volume " + part.volume(), "/books/" + bookSlug + "/volume/" + encode(part.volume()));
+        }
+        trail.put(part.title(), part.url());
+        addBreadcrumbs(model, trail);
+        return "volume";
+    }
+
     @GetMapping("/books/{bookSlug}/{chapterSlug}")
     public String chapterPage(@PathVariable String bookSlug, @PathVariable String chapterSlug,
+                              @RequestParam(value = "tag", required = false) String tag,
                               Model model, HttpServletResponse response) throws IOException {
         Optional<BookCatalog.Chapter> found = catalog.chapter(bookSlug, chapterSlug);
         if (found.isEmpty()) {
@@ -152,11 +210,31 @@ public class BookPageController {
             return null;
         }
         BookCatalog.Chapter chapter = found.get();
-        List<Map<String, Object>> narrations = narrationsIn(chapter);
+        List<Map<String, Object>> all = narrationsIn(chapter);
+
+        // The tag facet, counted over the whole chapter so the counts do not change as
+        // you filter — the same behaviour the search page's tag bar has.
+        List<Map<String, Object>> facets = tagFacets(all, tag, chapter);
+        String activeTag = tag == null || tag.isBlank() ? null : tag.trim();
+        List<Map<String, Object>> narrations = activeTag == null ? all : all.stream()
+                .filter(n -> hasTag(n, activeTag))
+                .toList();
+
+        model.addAttribute("tagFacets", facets);
+        model.addAttribute("activeTag", activeTag);
+        model.addAttribute("activeTagLabel", activeTag == null ? null : topicLabels.label(activeTag));
+        model.addAttribute("clearTagUrl", chapter.url());
+        // A filtered view is a slice of a page that is already indexed, so it points its
+        // canonical back at the whole chapter rather than competing with it.
+        model.addAttribute("robotsDirective", activeTag == null ? null : "noindex, follow");
 
         model.addAttribute("chapter", chapter);
         model.addAttribute("narrations", narrations);
         model.addAttribute("bookUrl", "/books/" + bookSlug);
+        // The hero chips navigate where a destination exists: the book name and the
+        // volume have pages, the section does not.
+        model.addAttribute("volumeUrl", chapter.volume() == null || chapter.volume().isBlank()
+                ? null : "/books/" + bookSlug + "/volume/" + encode(chapter.volume()));
         model.addAttribute("seoTitle", chapter.title() + " — " + chapter.bookName());
         model.addAttribute("seoDescription", String.format(
                 "%s: %,d narration%s from %s, in Arabic and English with full chains of transmission.",
@@ -167,6 +245,15 @@ public class BookPageController {
         LinkedHashMap<String, String> trail = new LinkedHashMap<>();
         trail.put(chapter.bookName(), "/books/" + bookSlug);
         trail.put(chapter.title(), chapter.url());
+        catalog.siblingChapter(chapter, -1).ifPresent(prev -> {
+            model.addAttribute("prevUrl", prev.url());
+            model.addAttribute("prevLabel", prev.title());
+        });
+        catalog.siblingChapter(chapter, 1).ifPresent(next -> {
+            model.addAttribute("nextUrl", next.url());
+            model.addAttribute("nextLabel", next.title());
+        });
+
         addBreadcrumbs(model, trail);
         return "chapter";
     }
@@ -185,7 +272,10 @@ public class BookPageController {
                     .index(ESClientProvider.INDEX)
                     .size(MAX_CHAPTER_NARRATIONS)
                     .trackTotalHits(t -> t.enabled(false))
-                    .source(src -> src.filter(f -> f.includes("book", "number", "english", "arabic")))
+                    .source(src -> src.filter(f -> f.includes(
+                            "book", "number", "english", "arabic", "notes", "volume", "part",
+                            "section", "chapter", "source", "edition", "publisher",
+                            "topic_tags", "llm_similar")))
                     .query(q -> q.bool(b -> {
                         b.filter(f -> f.term(t -> t.field("book").value(chapter.bookName())));
                         b.filter(f -> f.term(t -> t.field("chapter.keyword").value(chapter.title())));
@@ -201,15 +291,15 @@ public class BookPageController {
                 if (source == null) {
                     continue;
                 }
-                Map<String, Object> row = new LinkedHashMap<>();
-                row.put("id", hit.id());
-                row.put("url", "/hadith/" + hit.id());
-                row.put("number", str(source.get("number")));
-                row.put("excerpt", excerpt(matn(source)));
-                results.add(row);
+                results.add(cards.build(hit.id(), source, chapter.url(), BASE_URL));
             }
         }
         results.sort((a, b) -> compareNumbers(str(a.get("number")), str(b.get("number"))));
+
+        // One query for the whole page: the TAFSIR rail carries a count like RELATED does.
+        Map<String, Integer> counts = quranicInsights.insightCounts(
+                results.stream().map(r -> str(r.get("id"))).toList());
+        results.forEach(r -> r.put("quranCount", counts.getOrDefault(str(r.get("id")), 0)));
         return results;
     }
 
@@ -258,6 +348,44 @@ public class BookPageController {
         String content = str(segmented.getOrDefault("englishContent", ""));
         return content.isBlank() ? str(source.get("english")) : content;
     }
+
+
+    /** Topic tags present in this chapter, with counts, most common first. */
+    private List<Map<String, Object>> tagFacets(List<Map<String, Object>> narrations,
+                                                String activeTag, BookCatalog.Chapter chapter) {
+        Map<String, Long> counts = new LinkedHashMap<>();
+        for (Map<String, Object> narration : narrations) {
+            for (String slug : slugsOf(narration)) {
+                counts.merge(slug, 1L, Long::sum);
+            }
+        }
+        return counts.entrySet().stream()
+                .sorted((a, b) -> Long.compare(b.getValue(), a.getValue()))
+                .map(e -> Map.<String, Object>of(
+                        "slug", e.getKey(),
+                        "label", topicLabels.label(e.getKey()),
+                        "count", e.getValue(),
+                        "active", e.getKey().equals(activeTag),
+                        "url", chapter.url() + "?tag=" + encode(e.getKey())))
+                .toList();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<String> slugsOf(Map<String, Object> narration) {
+        Object raw = narration.get("tagSlugs");
+        return raw instanceof List<?> list ? (List<String>) list : List.of();
+    }
+
+    private static boolean hasTag(Map<String, Object> narration, String tag) {
+        return slugsOf(narration).contains(tag);
+    }
+
+
+
+
+
+
+
 
     private static String str(Object value) {
         return value == null ? "" : value.toString();

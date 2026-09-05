@@ -4,6 +4,8 @@ import com.rewayaat.config.ESClientProvider;
 import com.rewayaat.core.HadithDisplaySegmenter;
 import com.rewayaat.core.HadithObjectCollection;
 import com.rewayaat.service.BookCatalog;
+import com.rewayaat.service.HadithCardFactory;
+import com.rewayaat.service.QuranicInsightsService;
 import com.rewayaat.service.SimilarHadithService;
 import com.rewayaat.core.HadithSourceFilter;
 import com.rewayaat.core.data.HadithObject;
@@ -42,10 +44,15 @@ public class HadithPageController {
 
     private final BookCatalog catalog;
     private final SimilarHadithService similarHadith;
+    private final HadithCardFactory cards;
+    private final QuranicInsightsService quranicInsights;
 
-    public HadithPageController(BookCatalog catalog, SimilarHadithService similarHadith) {
+    public HadithPageController(BookCatalog catalog, SimilarHadithService similarHadith,
+                                HadithCardFactory cards, QuranicInsightsService quranicInsights) {
         this.catalog = catalog;
         this.similarHadith = similarHadith;
+        this.cards = cards;
+        this.quranicInsights = quranicInsights;
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
@@ -105,6 +112,15 @@ public class HadithPageController {
         crumbs.add(Map.of("name", "Hadith " + (hadith.getNumber() == null ? id : hadith.getNumber()),
                 "url", "/hadith/" + id));
 
+        // The narration renders through the same card as a chapter page and the search
+        // results, rather than the hand-rolled layout this page used to carry. Its tag
+        // pills filter the chapter the narration belongs to, since this page has nothing
+        // to filter itself.
+        Map<String, Object> card = cards.build(id, rawSource(id),
+                chapter.map(BookCatalog.Chapter::url).orElse(null), BASE_URL);
+        card.put("quranCount", quranicInsights.insightCounts(List.of(id)).getOrDefault(id, 0));
+        model.addAttribute("card", card);
+
         model.addAttribute("breadcrumbs", crumbs);
         model.addAttribute("breadcrumbJsonLd", breadcrumbJsonLd(crumbs));
         model.addAttribute("chapterUrl", chapter.map(BookCatalog.Chapter::url).orElse(null));
@@ -120,6 +136,22 @@ public class HadithPageController {
         model.addAttribute("baseUrl", BASE_URL);
 
         return "hadith";
+    }
+
+    /** The raw document, which the card factory shapes. */
+    private Map<String, Object> rawSource(String id) {
+        try (ESClientProvider provider = new ESClientProvider()) {
+            var response = provider.client().get(g -> g.index(ESClientProvider.INDEX).id(id), Map.class);
+            if (!response.found() || response.source() == null) {
+                return Map.of();
+            }
+            @SuppressWarnings("unchecked")
+            Map<String, Object> source = new LinkedHashMap<>(response.source());
+            return source;
+        } catch (Exception e) {
+            LOGGER.error("Error loading raw narration {}", id, e);
+            return Map.of();
+        }
     }
 
     private HadithObject loadNarration(String id) {
