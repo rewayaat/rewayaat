@@ -759,29 +759,103 @@ a:hover {
 }
 
 /* Homepage nav links — left side */
+/* ── Primary nav links ──────────────────────────────────────────────────── */
+/* Set as small tabs rather than bare underlined words: an icon to read at a glance,
+   and a gold rule that grows from the centre on hover and stays put on the section
+   you are in. The interpunct separators are gone — the spacing does that work now. */
 .home-nav-links {
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.15rem;
     margin-left: 0.75rem;
 }
+
 .home-nav-link {
-    font-size: 0.78rem;
-    font-weight: 500;
-    color: #fce9a8;
-    text-decoration: none;
-    letter-spacing: 0.06em;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.42rem;
+    padding: 0.42rem 0.7rem 0.46rem;
+    border-radius: var(--radius-md);
+    font-family: var(--font-ui);
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
     text-transform: uppercase;
-    font-family: 'Inter', sans-serif;
-    transition: color 0.15s;
+    color: rgba(252, 233, 168, 0.82);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color 180ms ease, background 180ms ease;
 }
-.home-nav-link:hover {
+
+.home-nav-link i {
+    font-size: 0.82em;
+    opacity: 0.75;
+    transition: opacity 180ms ease, transform 180ms ease;
+}
+
+/* The rule under a link, drawn from the centre out. */
+.home-nav-link::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    right: 50%;
+    bottom: 0.16rem;
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--gold), #f6df88, var(--gold));
+    transition: left 200ms ease, right 200ms ease, opacity 200ms ease;
+    opacity: 0;
+}
+
+.home-nav-link:hover,
+.home-nav-link:focus-visible {
     color: #fff5d6;
-    text-decoration: underline;
+    background: rgba(255, 255, 255, 0.07);
 }
+
+.home-nav-link:hover::after,
+.home-nav-link:focus-visible::after {
+    left: 0.7rem;
+    right: 0.7rem;
+    opacity: 1;
+}
+
+.home-nav-link:hover i {
+    opacity: 1;
+    transform: translateY(-1px);
+}
+
+/* The section you are on keeps its rule, at a quieter weight than hover. */
+.home-nav-link.is-current {
+    color: #fff5d6;
+}
+
+.home-nav-link.is-current::after {
+    left: 0.7rem;
+    right: 0.7rem;
+    opacity: 0.65;
+}
+
+.home-nav-link:focus-visible {
+    outline: 2px solid rgba(246, 223, 136, 0.55);
+    outline-offset: 2px;
+}
+
+/* Kept as a selector because the markup may still carry one; it is not drawn. */
 .home-nav-dot {
-    color: rgba(243, 229, 184, 0.4);
-    font-size: 1.1rem;
-    line-height: 1;
+    display: none;
+}
+
+@media (max-width: 575.98px) {
+    .home-nav-link {
+        padding: 0.36rem 0.5rem 0.4rem;
+        font-size: 0.7rem;
+        letter-spacing: 0.06em;
+    }
+
+    .home-nav-link i {
+        display: none;
+    }
 }
 /* Hide nav links on non-homepage views */
 body.is-reading-mode .home-nav-links,
