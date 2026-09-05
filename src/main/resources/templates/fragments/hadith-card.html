@@ -48,6 +48,9 @@
                     <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
                     <span class="hadith-sidecar__rail-label">TAFSIR</span>
                     <span class="hadith-sidecar__rail-icon"><i class="fa fa-book" aria-hidden="true"></i></span>
+                    <span class="hadith-sidecar__rail-badge"
+                          th:classappend="${narration.quranCount == 0} ? 'is-zero' : ''"
+                          th:text="${narration.quranCount}">0</span>
                 </button>
             </div>
 

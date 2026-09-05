@@ -11325,3 +11325,24 @@ a.hub-hero__eyebrow:hover {
 /* The resizer does something now, so it should look like it does. */
 .hadith-card--static .hadith-card__resizer { cursor: col-resize; }
 .hadith-card.is-resizing { user-select: none; }
+
+/* ── Tafsir snippets inside the Quranic Insight panel ───────────────────── */
+/* The panel is already an accented surface — a cream gradient with a gold edge —
+   and each snippet inside it carried its own tinted block and gold left bar, so
+   every snippet read as a highlight within a highlight. The panel keeps the accent;
+   the snippets inside it are plain, separated by a hairline rather than by a second
+   colour. Scoped to the panel so a snippet shown anywhere else keeps its own styling,
+   and shared by both renderers because both emit this markup. */
+.hadith-inline-context--quran .quranic-snippet {
+    background: transparent;
+    border-left: 0;
+    border-radius: 0;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.hadith-inline-context--quran .quranic-snippet + .quranic-snippet {
+    border-top: 1px solid rgba(160, 126, 40, 0.18);
+    margin-top: 0.35rem;
+    padding-top: 0.7rem;
+}

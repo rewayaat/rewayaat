@@ -8,6 +8,7 @@ import com.rewayaat.config.ESClientProvider;
 import com.rewayaat.core.HadithDisplaySegmenter;
 import com.rewayaat.service.BookCatalog;
 import com.rewayaat.service.HadithCardFactory;
+import com.rewayaat.service.QuranicInsightsService;
 import com.rewayaat.service.TopicLabelSource;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletResponse;
@@ -55,10 +56,14 @@ public class BookPageController {
     private final TopicLabelSource topicLabels;
     private final BookBlurbs blurbs = new BookBlurbs();
 
-    public BookPageController(BookCatalog catalog, HadithCardFactory cards, TopicLabelSource topicLabels) {
+    private final QuranicInsightsService quranicInsights;
+
+    public BookPageController(BookCatalog catalog, HadithCardFactory cards,
+                              TopicLabelSource topicLabels, QuranicInsightsService quranicInsights) {
         this.catalog = catalog;
         this.cards = cards;
         this.topicLabels = topicLabels;
+        this.quranicInsights = quranicInsights;
     }
 
     @GetMapping("/books")
@@ -290,6 +295,11 @@ public class BookPageController {
             }
         }
         results.sort((a, b) -> compareNumbers(str(a.get("number")), str(b.get("number"))));
+
+        // One query for the whole page: the TAFSIR rail carries a count like RELATED does.
+        Map<String, Integer> counts = quranicInsights.insightCounts(
+                results.stream().map(r -> str(r.get("id"))).toList());
+        results.forEach(r -> r.put("quranCount", counts.getOrDefault(str(r.get("id")), 0)));
         return results;
     }
 
