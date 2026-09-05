@@ -9,6 +9,7 @@ import co.elastic.clients.elasticsearch._types.SearchType;
 import co.elastic.clients.elasticsearch._types.SortOptions;
 import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.search.SourceConfig;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Highlight;
 import co.elastic.clients.elasticsearch.core.search.HighlightField;
@@ -138,6 +139,21 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
 
     private SearchRequest buildSearchRequest(
             String fuzziedQuery, Highlight highlightBuilder) throws UnknownHostException {
+        return buildSearchRequest(fuzziedQuery, highlightBuilder, HadithSourceFilter.searchSource());
+    }
+
+    /**
+     * Builds the search this class runs.
+     *
+     * <p>{@code sourceConfig} and a null {@code highlightBuilder} are the seams a caller that
+     * wants the query but not the display shaping uses - see {@link #rawResult(List)}. Every
+     * caller shares the field scoping, the topic-tag filters, the strictness handling and the
+     * sorting below, because a second implementation of those is a second set of search
+     * semantics for the same corpus.
+     */
+    private SearchRequest buildSearchRequest(
+            String fuzziedQuery, Highlight highlightBuilder, SourceConfig sourceConfig)
+            throws UnknownHostException {
         int from = Math.max(0, page * this.pageSize);
         int size = Math.max(0, this.pageSize);
         if (maxResultWindow > 0) {
@@ -199,17 +215,64 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                     }
                     return b;
                 }))
-                .source(HadithSourceFilter.searchSource())
-                .highlight(highlightBuilder)
+                .source(sourceConfig)
                 .from(from)
-                .size(size)
-                .aggregations("topic_tag_counts",
-                        a -> a.terms(t -> t.field("topic_tags").size(200)));
+                .size(size);
+
+        if (highlightBuilder != null) {
+            // Highlighting and the facet aggregation exist for the website's result list.
+            // A tool result has nowhere to render either, and both cost time and bytes.
+            builder.highlight(highlightBuilder)
+                    .aggregations("topic_tag_counts",
+                            a -> a.terms(t -> t.field("topic_tags").size(200)));
+        }
 
         for (SortOptions sort : this.sortBuilders) {
             builder.sort(sort);
         }
         return builder.build();
+    }
+
+    /** One hit, before any display shaping: the id and the trimmed {@code _source}. */
+    public record RawHit(String id, Map<String, Object> source) {
+    }
+
+    /** {@link #rawResult} output: the page, and the true total behind it. */
+    public record RawResult(List<RawHit> hits, long total) {
+    }
+
+    /**
+     * Runs this query and returns the raw {@code _source} maps, limited to
+     * {@code sourceIncludes}, with no highlighting, no facet aggregation and none of the
+     * segmenting {@link #result()} applies.
+     *
+     * <p>For callers that shape their own output - the MCP tools, which send a language model
+     * the matn and the citation and nothing else. They reuse this rather than assembling
+     * their own query so that a tool call and a website search interpret the same words the
+     * same way: a fork loses the field scoping and the strictness handling above, and the
+     * connector then quietly disagrees with the site it claims to index.
+     */
+    public RawResult rawResult(List<String> sourceIncludes) throws Exception {
+        SourceConfig sourceConfig = SourceConfig.of(sc -> sc.filter(f -> f.includes(sourceIncludes)));
+        SearchRequest request = buildSearchRequest(this.query, null, sourceConfig);
+
+        try (ESClientProvider provider = new ESClientProvider()) {
+            SearchResponse<Map> response = provider.client().search(request, Map.class);
+            List<RawHit> hits = new ArrayList<>();
+            for (Hit<Map> hit : response.hits().hits()) {
+                if (hit.source() == null) {
+                    continue;
+                }
+                @SuppressWarnings("unchecked")
+                Map<String, Object> source = new LinkedHashMap<>((Map<String, Object>) hit.source());
+                hits.add(new RawHit(hit.id(), source));
+            }
+            long total = response.hits().total() == null ? hits.size() : response.hits().total().value();
+            if (maxResultWindow > 0) {
+                total = Math.min(total, maxResultWindow);
+            }
+            return new RawResult(hits, total);
+        }
     }
 
     /**

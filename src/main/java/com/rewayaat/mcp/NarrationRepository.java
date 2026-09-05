@@ -1,8 +1,5 @@
 package com.rewayaat.mcp;
 
-import co.elastic.clients.elasticsearch._types.FieldValue;
-import co.elastic.clients.elasticsearch._types.SearchType;
-import co.elastic.clients.elasticsearch._types.query_dsl.Operator;
 import co.elastic.clients.elasticsearch.core.GetResponse;
 import co.elastic.clients.elasticsearch.core.MgetResponse;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
@@ -11,6 +8,7 @@ import co.elastic.clients.elasticsearch.core.mget.MultiGetResponseItem;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import com.rewayaat.config.ESClientProvider;
 import com.rewayaat.core.QueryMode;
+import com.rewayaat.core.QueryStringQueryResult;
 import com.rewayaat.service.HadithQueryService;
 import org.springframework.stereotype.Component;
 
@@ -22,25 +20,34 @@ import java.util.Map;
 /**
  * Elasticsearch reads for the MCP tools.
  *
- * <p>Separate from the website's {@code QueryStringQueryResult} for one reason: the field
- * list. That class fetches everything a page needs to render and strips only the dense
- * vector; here we name the handful of fields a model can use, so the unwanted 36 KB per five
- * results is never transferred out of Elasticsearch at all rather than being discarded after
- * it arrives.
+ * <p>Search delegates to the website's own {@link QueryStringQueryResult}, through its
+ * {@code rawResult} seam, rather than assembling a second query. An earlier version of this
+ * class did build its own, on the reasoning that the tools need a much tighter field list -
+ * but the field list is a {@code _source} argument, not grounds to reimplement a query. The
+ * fork silently lost field scoping ({@code chapter:"..."}, {@code source:"..."} and the
+ * rest), the precise-match handling and the topic-tag slug normalisation, and it introduced a
+ * bug those would have prevented: written inline, {@code book:"..."} was OR-ed against the
+ * search terms and widened the result set instead of narrowing it.
  *
- * <p>Query construction still goes through {@link HadithQueryService#enhanceQuery} so that a
- * tool call and a website search interpret the same words the same way - the synonym pass,
- * the Arabic detection and the fuzzing are all in there, and forking them would mean the
- * connector quietly drifting from the site it claims to index.
+ * <p>The rule that came out of it: a tool call and a website search must interpret the same
+ * words the same way, so there is one query builder and two output shapes - never two query
+ * builders.
  */
 @Component
 public class NarrationRepository {
 
     /**
-     * Everything a citation or a reading needs, and nothing that exists to save the browser
-     * work. Notably absent: {@code llm_similar} (the largest field, and {@code find_similar}'s
-     * job), the {@code *Content} and {@code *Chain} splits of text we already fetch whole,
-     * and the {@code semantic_*_source} retrieval inputs.
+     * Everything a citation or a reading needs, and nothing else.
+     *
+     * <p>What this leaves behind in Elasticsearch is mostly {@code llm_similar} - the largest
+     * field in a document, and {@code find_similar}'s job to return deliberately - along with
+     * the {@code semantic_*_source} retrieval inputs and the {@code *_ar} metadata the site
+     * renders but a tool result has no use for.
+     *
+     * <p>It does not save us the {@code englishContent} / {@code arabicChain} splits, which
+     * are the other half of an API response's bulk: those are not stored at all. They are
+     * computed by {@link com.rewayaat.core.HadithDisplaySegmenter} on the way out, so the
+     * saving there comes from not invoking it - which is what {@code rawResult} avoids.
      */
     private static final List<String> SUMMARY_FIELDS = List.of(
             "book", "volume", "part", "section", "chapter", "number",
@@ -61,52 +68,43 @@ public class NarrationRepository {
     }
 
     /**
-     * Runs a keyword search.
+     * Runs a keyword search, with the website's exact semantics.
      *
      * <p>Keyword, not semantic: embedding a query at request time needs an Elasticsearch
      * inference endpoint that is not currently deployed. The stored vectors support kNN
      * between existing documents, which is what similarity uses, but not from arbitrary
      * text. The tool descriptions say so rather than letting a model assume otherwise.
+     *
+     * @param book optional single-book narrowing. Expressed as a field scope on the query so
+     *        it travels the same path as a {@code book:"..."} a caller writes by hand; the
+     *        structured argument exists because a model handles a named parameter more
+     *        reliably than embedded Lucene syntax, not because it is a second mechanism.
      */
     public Page search(String query, int from, int size, List<String> topicTags, String book)
             throws Exception {
         String enhanced = queryService.enhanceQuery(query, QueryMode.SEARCH, false);
         String finalQuery = enhanced == null || enhanced.isBlank() ? "*" : enhanced.trim();
-        List<String> tags = topicTags == null ? List.of() : topicTags;
-
-        SearchRequest request = new SearchRequest.Builder()
-                .index(ESClientProvider.INDEX)
-                .searchType(SearchType.DfsQueryThenFetch)
-                .query(q -> q.bool(b -> {
-                    b.must(s -> s.queryString(qs -> qs.query(finalQuery).defaultOperator(Operator.Or)));
-                    // Book and topic narrowing are filters rather than terms in the query
-                    // string. enhanceQuery joins a flexible query with spaces, so a
-                    // `book:"..."` written inline would be OR-ed against the search terms
-                    // and widen the result set instead of narrowing it - which is what a
-                    // caller asking for one book least expects.
-                    if (book != null && !book.isBlank()) {
-                        b.filter(f -> f.term(t -> t.field("book").value(book.trim())));
-                    }
-                    for (String tag : tags) {
-                        b.filter(f -> f.term(t -> t.field("topic_tags").value(tag)));
-                    }
-                    return b;
-                }))
-                .source(s -> s.filter(f -> f.includes(SUMMARY_FIELDS)))
-                .from(Math.max(0, from))
-                .size(Math.max(0, size))
-                .trackTotalHits(t -> t.enabled(true))
-                .build();
-
-        try (ESClientProvider provider = new ESClientProvider()) {
-            SearchResponse<Map> response = provider.client().search(request, Map.class);
-            List<Narration> narrations = new ArrayList<>();
-            for (Hit<Map> hit : response.hits().hits()) {
-                narrations.add(new Narration(hit.id(), asSource(hit.source())));
-            }
-            long total = response.hits().total() == null ? narrations.size() : response.hits().total().value();
-            return new Page(narrations, total);
+        if (book != null && !book.isBlank()) {
+            finalQuery = finalQuery + " book:\"" + book.trim() + "\"";
         }
+
+        int page = size > 0 ? from / size : 0;
+        QueryStringQueryResult search = new QueryStringQueryResult(
+                finalQuery,
+                page,
+                size,
+                queryService.setupSortBuilders(""),
+                false,
+                0,
+                topicTags == null ? List.of() : topicTags,
+                List.of());
+
+        QueryStringQueryResult.RawResult raw = search.rawResult(SUMMARY_FIELDS);
+        List<Narration> narrations = new ArrayList<>();
+        for (QueryStringQueryResult.RawHit hit : raw.hits()) {
+            narrations.add(new Narration(hit.id(), hit.source()));
+        }
+        return new Page(narrations, raw.total());
     }
 
     /**
@@ -243,10 +241,5 @@ public class NarrationRepository {
     @SuppressWarnings("unchecked")
     private static Map<String, Object> asSource(Map<?, ?> raw) {
         return new LinkedHashMap<>((Map<String, Object>) raw);
-    }
-
-    /** Field value helper for tools building term filters. */
-    static FieldValue value(String raw) {
-        return FieldValue.of(raw);
     }
 }

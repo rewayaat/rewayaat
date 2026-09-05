@@ -284,6 +284,29 @@ class McpProtocolIntegrationTest {
     }
 
     @Test
+    void searchHadithSupportsTheSameFieldScopingTheWebsiteDoes() throws Exception {
+        // The regression this guards is a design one: an earlier version of the repository
+        // built its own query instead of reusing QueryStringQueryResult, and silently lost
+        // every field scope the site supports. Nothing failed - the searches just quietly
+        // meant something different from the same words typed into the website.
+        Map<String, Object> out = call("search_hadith",
+                Map.of("query", "chapter:\"Chapter of Fasting\""));
+
+        assertEquals(1, ((Number) out.get("total_matches")).intValue());
+        List<?> results = (List<?>) out.get("results");
+        assertEquals("Chapter of Fasting", ((Map<?, ?>) results.get(0)).get("chapter"));
+    }
+
+    @Test
+    void searchHadithScopesOnMetadataFieldsBeyondBook() throws Exception {
+        Map<String, Object> byVolume = call("search_hadith", Map.of("query", "volume:\"1\" wept"));
+        assertEquals(3, ((Number) byVolume.get("total_matches")).intValue());
+
+        Map<String, Object> byNumber = call("search_hadith", Map.of("query", "number:\"4\""));
+        assertEquals(1, ((Number) byNumber.get("total_matches")).intValue());
+    }
+
+    @Test
     void searchHadithDropsTheFieldsThatExistForTheBrowser() throws Exception {
         Map<String, Object> out = call("search_hadith", Map.of("query", "wept"));
         List<?> results = (List<?>) out.get("results");
