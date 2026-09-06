@@ -44,7 +44,7 @@ shape; the rest are for Claude and for ChatGPT's developer mode.
 |---|---|---|
 | `search` | `query` | `{results: [{id, title, url}]}` — ChatGPT's fixed shape |
 | `fetch` | `id` | `{id, title, text, url, metadata}` — ChatGPT's fixed shape |
-| `search_hadith` | `query`, `book?`, `topic_tags?`, `limit?`, `offset?` | Full narrations **plus `total_matches`** |
+| `search_hadith` | `query`, `book?`, `topic_tags?`, `match_mode?`, `limit?`, `offset?` | Full narrations **plus `total_matches`** |
 | `get_chapter` | `book`, `chapter`, `volume?`, `limit?`, `offset?` | A chapter in order **plus `chapter_size`** |
 | `find_similar` | `id`, `match_type?`, `limit?` | Judged links with the written reason |
 | `verses_for_hadith` | `id`, `limit?` | Qur'anic verses with tafsīr extracts |
@@ -129,6 +129,21 @@ The `book` argument on `search_hadith` is expressed as a field scope on the quer
 as a separate filter, so it travels that same path; it exists because a model handles a named
 parameter more reliably than embedded Lucene syntax, not as a second mechanism.
 
+`match_mode` is the same idea applied to strictness. The website has always accepted it; the
+connector hardcoded `flexible`, so a model could not ask "does this exact wording occur"
+at all — every search silently got the fuzzy-OR expansion. It now takes `flexible` (default)
+or `precise`, and the aliases `strict` and `exact` that the REST endpoint accepts, because
+the test for what counts as precise moved into `HadithQueryService` where both surfaces read
+it. The answer echoes `match_mode` back, so a `total_matches` of zero is legible as strict
+matching rather than as an absent narration.
+
+Nearly all of the work is done by `enhanceQuery`, which joins terms with `AND` and stops
+wrapping each one as `(term^6 OR term~)`. The flag is passed to `QueryStringQueryResult` as
+well, matching what the controller does, but there it only sets the default operator and by
+then the `AND`s are already explicit — mutation testing confirms only the `enhanceQuery` half
+is observable today. It is passed anyway so that a later change to what strictness means
+inside that class reaches the connector and the site together.
+
 It runs **in-process** rather than as a separate service. The tools need the data, not the
 API: `llm_similar` is a nested field `/v1/narrations` does not expose on its own terms, and
 shaping a response after 42 KB has crossed a network hop saves nothing. The website's chatbot
@@ -192,9 +207,26 @@ curl -X POST http://localhost:8002/mcp \
   profiles in `tmp/narrators_merged.json`), but Phase 3, the Elasticsearch import, has not
   started and there is no `rewayaat_narrators` index. This is the strongest "no webpage can
   answer this" case in the evaluation, so it is the first thing to add once Phase 3 lands.
-- **Semantic `search_hadith`.** Matching is BM25. Embedding a query at request time needs the
-  `rewayaat-multilingual-e5-large` inference endpoint, which is not deployed — the stored
-  vectors support kNN between existing documents, which is what similarity uses, but not from
-  arbitrary text. The consequences are documented in the tool description rather than left
-  for a model to discover: an English gloss can miss what the Arabic finds exactly, and a
-  common name pulls in isnād chains.
+- **Semantic `search_hadith`.** Matching is BM25, and this is much less of a gap than it
+  first appears. Vector search exists to bridge the distance between how a person phrases a
+  question and how the text is actually written — but on this surface there is already a
+  language model standing in that gap. It reformulates, tries the Arabic, tries a synonym,
+  and retries on an empty result, which is a strictly better version of what an embedding
+  does in one shot, and it can iterate. The embedding model earns its keep in the *similar
+  hadith* feature precisely because no model is in that loop: the comparison is
+  document-to-document and automatic.
+
+  Adding it would mean embedding the query at request time, which the stored vectors cannot
+  do — they only support kNN between existing documents. That needs either the
+  `rewayaat-multilingual-e5-large` inference endpoint (an ML node, plus a non-basic licence:
+  `scripts/embeddings/setup_semantic_similarity.sh` has an explicit
+  `license.expired.feature: inference` branch that starts a trial) or a sidecar that returns
+  a vector to pass as `query_vector`. Two traps if it is ever done: the deployed model must
+  be the LoRA-merged checkpoint with **mean** pooling, or query vectors land in a different
+  space than the stored ones and results are confidently wrong; and the stored vectors
+  predate a change to the embedding text format, so they may need regenerating first.
+
+  What actually helps in the meantime is telling the model how to retry, which the tool
+  description now does: an English gloss can miss what the Arabic finds exactly, a common
+  name pulls in isnād chains, and an empty result is a prompt to rephrase rather than a
+  finding.
