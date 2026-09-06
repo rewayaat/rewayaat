@@ -153,6 +153,18 @@ public class HadithQueryService {
         return token;
     }
 
+    /**
+     * Whether a caller's {@code match_mode} asks for strict matching.
+     *
+     * <p>Lives here because more than one surface accepts the parameter - the REST endpoint
+     * and the MCP {@code search_hadith} tool - and "precise" has to mean the same thing to
+     * both. A second copy of this test is a second definition of strictness.
+     */
+    public boolean isPreciseMatchMode(String matchMode) {
+        String normalized = matchMode == null ? "" : matchMode.trim().toLowerCase();
+        return "precise".equals(normalized) || "strict".equals(normalized) || "exact".equals(normalized);
+    }
+
     public boolean isProbablyArabic(String s) {
         for (int i = 0; i < s.length();) {
             int c = s.codePointAt(i);

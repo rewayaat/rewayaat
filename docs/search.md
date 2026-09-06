@@ -140,7 +140,11 @@ Used internally by the legacy similar hadith system and available for semantic s
 - **Index**: HNSW in ES `semantic_vector` field
 - **Pooling**: Mean pooling (training and inference)
 
-No ES inference model required at query time — vectors are pre-computed and stored directly in ES.
+No ES inference model is required for *similar hadith*, where both sides of the comparison
+are documents that already carry a vector. Free-text search is the different case: an
+arbitrary query has no stored vector, so making search semantic would require embedding it
+at request time — an ES inference endpoint or an external embedder. See
+[mcp-connector.md](mcp-connector.md) for why that is not currently worth doing.
 
 ## Configuration
 

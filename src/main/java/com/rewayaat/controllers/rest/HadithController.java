@@ -151,7 +151,7 @@ public class HadithController {
             // Assumption: If sort values are provided, a lookup query is required.
             queryMode = QueryMode.LOOKUP;
         }
-        boolean strictMatchMode = isPreciseMatchMode(matchMode);
+        boolean strictMatchMode = hadithQueryService.isPreciseMatchMode(matchMode);
         return new QueryStringQueryResult(
                 hadithQueryService.enhanceQuery(query, queryMode, strictMatchMode),
                 page - 1,
@@ -318,7 +318,7 @@ public class HadithController {
 
         List<SortOptions> sortBuilders = hadithQueryService.setupSortBuilders(sortFields);
         QueryMode queryMode = sortFields == null || sortFields.isEmpty() ? QueryMode.SEARCH : QueryMode.LOOKUP;
-        boolean strictMatchMode = isPreciseMatchMode(matchMode);
+        boolean strictMatchMode = hadithQueryService.isPreciseMatchMode(matchMode);
         String enhancedQuery = hadithQueryService.enhanceQuery(safeQuery, queryMode, strictMatchMode);
 
         SearchRequest.Builder searchBuilder = new SearchRequest.Builder()
@@ -343,11 +343,6 @@ public class HadithController {
             }
         }
         return payload;
-    }
-
-    private boolean isPreciseMatchMode(String matchMode) {
-        String normalized = matchMode == null ? "" : matchMode.trim().toLowerCase();
-        return "precise".equals(normalized) || "strict".equals(normalized) || "exact".equals(normalized);
     }
 
     private boolean isReadingMode(String mode) {

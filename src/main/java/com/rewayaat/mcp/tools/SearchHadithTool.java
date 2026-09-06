@@ -4,6 +4,7 @@ import com.rewayaat.mcp.CorpusScope;
 import com.rewayaat.mcp.McpTool;
 import com.rewayaat.mcp.NarrationRepository;
 import com.rewayaat.mcp.NarrationView;
+import com.rewayaat.service.HadithQueryService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -29,11 +30,14 @@ public class SearchHadithTool implements McpTool {
     private static final int MAX_LIMIT = 15;
 
     private final NarrationRepository repository;
+    private final HadithQueryService queryService;
     private final String baseUrl;
 
     public SearchHadithTool(NarrationRepository repository,
+                            HadithQueryService queryService,
                             @Value("${rewayaat.canonical-url:https://hadith.academyofislam.com}") String baseUrl) {
         this.repository = repository;
+        this.queryService = queryService;
         this.baseUrl = baseUrl;
     }
 
@@ -62,7 +66,10 @@ public class SearchHadithTool implements McpTool {
                 + "name will pull in chains of transmission rather than subject matter - "
                 + "searching a narrator's name finds narrations he appears in the isnād of, "
                 + "which is usually not what was wanted. Narrow with `topic_tags` when a "
-                + "query is a common word.";
+                + "query is a common word.\n\n"
+                + "If a search returns nothing, retry before concluding the corpus is "
+                + "silent: the Arabic of the matn, a shorter phrase, a synonym. Matching is "
+                + "literal, so the wording you choose is doing the work.";
     }
 
     @Override
@@ -90,7 +97,16 @@ public class SearchHadithTool implements McpTool {
                         "offset", Map.of(
                                 "type", "integer",
                                 "description", "Results to skip, for paging through "
-                                        + "`total_matches`.")),
+                                        + "`total_matches`."),
+                        "match_mode", Map.of(
+                                "type", "string",
+                                "enum", List.of("flexible", "precise"),
+                                "description", "'flexible' (default) also matches close "
+                                        + "variants of each term and does not require them "
+                                        + "all, which is what you want when you are looking "
+                                        + "for a narration. 'precise' requires every term "
+                                        + "exactly as written, which is what you want to "
+                                        + "check whether a specific wording occurs.")),
                 "required", List.of("query"));
     }
 
@@ -101,8 +117,11 @@ public class SearchHadithTool implements McpTool {
         String book = ToolArguments.optionalString(arguments, "book", "");
         int limit = ToolArguments.boundedInt(arguments, "limit", DEFAULT_LIMIT, 1, MAX_LIMIT);
         int offset = ToolArguments.boundedInt(arguments, "offset", 0, 0, 9_000);
+        String matchMode = ToolArguments.optionalString(arguments, "match_mode", "flexible");
+        boolean precise = queryService.isPreciseMatchMode(matchMode);
 
-        NarrationRepository.Page page = repository.search(query, offset, limit, topicTags, book);
+        NarrationRepository.Page page =
+                repository.search(query, offset, limit, topicTags, book, precise);
 
         List<Map<String, Object>> results = new ArrayList<>();
         for (NarrationRepository.Narration narration : page.narrations()) {
@@ -114,6 +133,7 @@ public class SearchHadithTool implements McpTool {
         if (!book.isEmpty()) {
             out.put("book", book);
         }
+        out.put("match_mode", precise ? "precise" : "flexible");
         out.put("total_matches", page.total());
         out.put("offset", offset);
         out.put("returned", results.size());

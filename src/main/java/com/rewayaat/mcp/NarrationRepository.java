@@ -79,10 +79,21 @@ public class NarrationRepository {
      *        it travels the same path as a {@code book:"..."} a caller writes by hand; the
      *        structured argument exists because a model handles a named parameter more
      *        reliably than embedded Lucene syntax, not because it is a second mechanism.
+     * @param preciseMatch strict matching, as the website's {@code match_mode=precise} means
+     *        it: every term required, and no fuzzy expansion of the ones given. The work is
+     *        done by {@code enhanceQuery}, which joins the terms with {@code AND} and stops
+     *        wrapping each one as {@code (term^6 OR term~)}. It is passed to
+     *        {@link QueryStringQueryResult} as well, where today it only sets the default
+     *        operator and so changes nothing - the {@code AND}s are already explicit by then.
+     *        That argument is here for parity with {@link
+     *        com.rewayaat.controllers.rest.HadithController}, which passes it to both: the
+     *        same query built from the same inputs, so a later change to what strictness
+     *        means inside that class reaches the connector and the site together. Mutation
+     *        testing confirms only the {@code enhanceQuery} half is currently observable.
      */
-    public Page search(String query, int from, int size, List<String> topicTags, String book)
-            throws Exception {
-        String enhanced = queryService.enhanceQuery(query, QueryMode.SEARCH, false);
+    public Page search(String query, int from, int size, List<String> topicTags, String book,
+                       boolean preciseMatch) throws Exception {
+        String enhanced = queryService.enhanceQuery(query, QueryMode.SEARCH, preciseMatch);
         String finalQuery = enhanced == null || enhanced.isBlank() ? "*" : enhanced.trim();
         if (book != null && !book.isBlank()) {
             finalQuery = finalQuery + " book:\"" + book.trim() + "\"";
@@ -94,7 +105,7 @@ public class NarrationRepository {
                 page,
                 size,
                 queryService.setupSortBuilders(""),
-                false,
+                preciseMatch,
                 0,
                 topicTags == null ? List.of() : topicTags,
                 List.of());

@@ -307,6 +307,43 @@ class McpProtocolIntegrationTest {
     }
 
     @Test
+    void searchHadithPreciseModeRequiresEveryTermWhereFlexibleDoesNot() throws Exception {
+        // The website has always had match_mode; the connector hardcoded flexible, so a
+        // model could not ask the question "does this exact wording occur" at all.
+        Map<String, Object> flexible = call("search_hadith", Map.of("query", "heavens wept"));
+        assertEquals(3, ((Number) flexible.get("total_matches")).intValue(),
+                "flexible does not require every term, so all three weeping narrations match");
+
+        Map<String, Object> precise = call("search_hadith",
+                Map.of("query", "heavens wept", "match_mode", "precise"));
+        assertEquals(1, ((Number) precise.get("total_matches")).intValue(),
+                "precise requires both terms, which only the heavens narration has");
+    }
+
+    @Test
+    void searchHadithPreciseModeDropsTheFuzzyExpansionToo() throws Exception {
+        // The test above passes on term coverage alone. This one guards the other half of
+        // strictness: enhanceQuery also stops wrapping each term as (term^6 OR term~), so a
+        // precise search takes the spelling it was given. Threading the flag only as far as
+        // the query and not into enhanceQuery is caught here, not above.
+        Map<String, Object> flexible = call("search_hadith", Map.of("query", "weept"));
+        assertEquals(3, ((Number) flexible.get("total_matches")).intValue(),
+                "flexible fuzzy-matches the misspelling");
+
+        Map<String, Object> precise = call("search_hadith",
+                Map.of("query", "weept", "match_mode", "precise"));
+        assertEquals(0, ((Number) precise.get("total_matches")).intValue(),
+                "precise takes the term as written, and 'weept' is not in the corpus");
+    }
+
+    @Test
+    void searchHadithReportsWhichMatchModeProducedTheCount() throws Exception {
+        assertEquals("flexible", call("search_hadith", Map.of("query", "wept")).get("match_mode"));
+        assertEquals("precise", call("search_hadith",
+                Map.of("query", "wept", "match_mode", "precise")).get("match_mode"));
+    }
+
+    @Test
     void searchHadithDropsTheFieldsThatExistForTheBrowser() throws Exception {
         Map<String, Object> out = call("search_hadith", Map.of("query", "wept"));
         List<?> results = (List<?>) out.get("results");
