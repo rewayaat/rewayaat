@@ -196,7 +196,24 @@
                                 <li>
                                     <button class="dropdown-item" type="button"
                                             th:attr="data-copy-url=${narration.shareUrl}">
-                                        Copy static URL
+                                        Copy link
+                                    </button>
+                                </li>
+                                <!-- The generated share card. Light exists because MailPoet
+                                     templates are white and a navy block reads as a foreign
+                                     object dropped into one. -->
+                                <li>
+                                    <button class="dropdown-item" type="button"
+                                            th:attr="data-copy-image=${narration.darkCardUrl},
+                                                     data-copy-image-label='Dark image'">
+                                        Copy image (dark)
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item" type="button"
+                                            th:attr="data-copy-image=${narration.lightCardUrl},
+                                                     data-copy-image-label='Light image'">
+                                        Copy image (light)
                                     </button>
                                 </li>
                             </ul>

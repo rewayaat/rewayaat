@@ -1,0 +1,299 @@
+package com.rewayaat.controllers;
+
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.search.Hit;
+import com.rewayaat.config.ESClientProvider;
+import com.rewayaat.service.BookCatalog;
+import com.rewayaat.service.HadithCardFactory;
+import com.rewayaat.service.ShareCardRenderer;
+import io.swagger.v3.oas.annotations.Hidden;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
+import java.util.Base64;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Pattern;
+
+/**
+ * The per-narration share image that {@code og:image} and {@code twitter:image} point at.
+ *
+ * <p>Before this, all 32,519 narration pages shared one generic logo card, so every
+ * WhatsApp forward and every tweet of a <em>different</em> narration previewed the same
+ * picture. The same asset is what makes the Friday newsletter linkable: email clients
+ * strip scripts and stylesheets, but an image inside a link renders everywhere.
+ *
+ * <p>Nothing is pre-generated. 32,519 PNGs is a lot of storage for images most of which
+ * are never requested, so a card is drawn on the first request for it and then kept in
+ * memory.
+ */
+@Hidden
+@Controller
+public class ShareCardController {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ShareCardController.class);
+    private static final String BASE_URL = HomeController.BASE_URL;
+
+    /** Drawn opposite the ALI mark, so a screenshotted card still says where it came from. */
+    private static final String DOMAIN = BASE_URL.replaceFirst("^https?://", "");
+
+    private static final Pattern HTML_TAG = Pattern.compile("<[^>]*>");
+    private static final Pattern WHITESPACE = Pattern.compile("\\s+");
+
+    /**
+     * The list marker many narrations open with — "1. " in English, "1ـ " in Arabic.
+     * The citation in the eyebrow already carries the number, and leaving it in front of
+     * the matn wastes the first characters of the line on it.
+     */
+    private static final Pattern LEADING_ORDINAL =
+            Pattern.compile("^[\\d\\u0660-\\u0669]+\\s*[.\\-\\u2013\\u2014\\u0640:)\\]]\\s*");
+
+    private final ShareCardRenderer renderer;
+    private final HadithCardFactory cards;
+    private final BookCatalog catalog;
+    private final BookBlurbs blurbs = new BookBlurbs();
+    private final CardCache cache = new CardCache();
+
+    public ShareCardController(ShareCardRenderer renderer, HadithCardFactory cards,
+                               BookCatalog catalog) {
+        this.renderer = renderer;
+        this.cards = cards;
+        this.catalog = catalog;
+    }
+
+    /**
+     * @param theme {@code light} for the cream card the newsletter wants, absent for the
+     *              navy default. {@code og:image} deliberately stays on the default: navy
+     *              is more striking in a feed, and existing links must not change.
+     */
+    @GetMapping(value = "/hadith/{id}/card.png", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> narrationCard(@PathVariable("id") String id,
+                                                @RequestParam(value = "theme",
+                                                        required = false) String theme,
+                                                @RequestHeader(value = "If-None-Match",
+                                                        required = false) String ifNoneMatch) {
+        Map<String, Object> source = narration(id);
+        if (source.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // The card renders the same matn/isnad split the page does, through the same
+        // factory. A card that opened with "A number of our people have narrated from
+        // Ahmad ibn Muhammad..." would spend the whole image on boilerplate that is
+        // identical across thousands of narrations.
+        Map<String, Object> card = cards.build(id, source, null, BASE_URL);
+
+        return respond(new ShareCardRenderer.Card(narrationEyebrow(source),
+                        clean(str(card.get("arabic"))), clean(str(card.get("english"))), DOMAIN),
+                theme(theme), ifNoneMatch);
+    }
+
+    /** Anything but an explicit {@code light} is the dark card, including a typo. */
+    private static ShareCardRenderer.Theme theme(String requested) {
+        return "light".equalsIgnoreCase(requested)
+                ? ShareCardRenderer.Theme.LIGHT : ShareCardRenderer.Theme.DARK;
+    }
+
+    /**
+     * A book-level card, so a shared hub page previews as something other than the logo.
+     *
+     * <p>The literal {@code card.png} beats {@code /books/{bookSlug}/{chapterSlug}} in
+     * Spring's pattern comparator, so this does not shadow a chapter page.
+     */
+    @GetMapping(value = "/books/{bookSlug}/card.png", produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> bookCard(@PathVariable("bookSlug") String bookSlug,
+                                           @RequestParam(value = "theme",
+                                                   required = false) String theme,
+                                           @RequestHeader(value = "If-None-Match",
+                                                   required = false) String ifNoneMatch) {
+        Optional<BookCatalog.Book> found = catalog.book(bookSlug);
+        if (found.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        BookCatalog.Book book = found.get();
+
+        // The blurb opens with an <h2> repeating the title the eyebrow already carries.
+        String blurb = blurbs.forSlug(bookSlug);
+        String body = blurb == null ? "" : clean(blurb.replaceFirst("(?is)^.*?</h2>", ""));
+
+        String eyebrow = String.format(Locale.ROOT, "%s · %,d narrations", book.name(), book.count());
+        return respond(new ShareCardRenderer.Card(
+                eyebrow.toUpperCase(Locale.ROOT), arabicTitle(book.name()), body, DOMAIN),
+                theme(theme), ifNoneMatch);
+    }
+
+    // ── Response ────────────────────────────────────────────────────────────
+
+    /**
+     * Serves the card, drawing it only if it is not already in memory.
+     *
+     * <p>The ETag is a hash of the card's own text and theme, and it is also the cache
+     * key. That is what makes an edit to a narration invalidate both at once: changed text
+     * hashes differently, so it misses the cache and no longer matches a stored ETag.
+     * Keying the cache by narration id instead would have gone on serving the old image
+     * forever, which is exactly the failure {@code immutable} makes unrecoverable.
+     */
+    private ResponseEntity<byte[]> respond(ShareCardRenderer.Card card,
+                                           ShareCardRenderer.Theme theme, String ifNoneMatch) {
+        // The theme is part of the key as well as the text: the two themes are different
+        // images behind one URL, and sharing an ETag would serve one of them for the other.
+        String hash = hash(theme + " " + card.eyebrow() + " " + card.arabic() + " " + card.english());
+        String etag = "\"" + hash + "\"";
+        CacheControl caching = CacheControl.maxAge(Duration.ofDays(365)).cachePublic().immutable();
+
+        // A conditional request may quote the tag weakly ("W/..."), and a client is
+        // allowed to send several.
+        if (ifNoneMatch != null && ifNoneMatch.contains(hash)) {
+            return ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(etag).cacheControl(caching).build();
+        }
+
+        byte[] png = cache.get(hash);
+        if (png == null) {
+            long started = System.nanoTime();
+            png = renderer.render(card, theme);
+            cache.put(hash, png);
+            LOGGER.debug("Drew share card {} in {} ms ({} bytes)", hash,
+                    (System.nanoTime() - started) / 1_000_000, png.length);
+        }
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .eTag(etag)
+                .cacheControl(caching)
+                .body(png);
+    }
+
+    // ── Content ─────────────────────────────────────────────────────────────
+
+    /** "AL-KĀFI · VOLUME 2 · HADITH 81" — the citation, so a screenshot stays attributable. */
+    private static String narrationEyebrow(Map<String, Object> source) {
+        StringBuilder eyebrow = new StringBuilder(str(source.get("book")));
+        String volume = str(source.get("volume"));
+        if (!volume.isBlank()) {
+            eyebrow.append(" · Volume ").append(volume);
+        }
+        String number = str(source.get("number"));
+        if (!number.isBlank()) {
+            eyebrow.append(" · Hadith ").append(number);
+        }
+        return eyebrow.toString().trim().toUpperCase(Locale.ROOT);
+    }
+
+    private Map<String, Object> narration(String id) {
+        String narrationId = id == null ? "" : id.trim();
+        if (narrationId.isEmpty()) {
+            return Map.of();
+        }
+        try (ESClientProvider provider = new ESClientProvider()) {
+            var response = provider.client().get(g -> g
+                    .index(ESClientProvider.INDEX)
+                    .id(narrationId)
+                    .sourceIncludes("arabic", "english", "book", "volume", "number", "topic_tags"),
+                    Map.class);
+            if (!response.found() || response.source() == null) {
+                return Map.of();
+            }
+            @SuppressWarnings("unchecked")
+            Map<String, Object> source = new LinkedHashMap<>(response.source());
+            return source;
+        } catch (Exception e) {
+            LOGGER.error("Could not load narration {} for its share card", narrationId, e);
+            return Map.of();
+        }
+    }
+
+    /**
+     * The book's Arabic title, taken from any one of its narrations.
+     *
+     * <p>{@code book_ar} is a per-document field rather than something the catalogue
+     * aggregates, so this reads one document to get it. A book with no Arabic title
+     * simply renders as a single-language card.
+     */
+    private String arabicTitle(String bookName) {
+        try (ESClientProvider provider = new ESClientProvider()) {
+            SearchResponse<Map> response = provider.client().search(s -> s
+                    .index(ESClientProvider.INDEX)
+                    .size(1)
+                    .source(src -> src.filter(f -> f.includes("book_ar")))
+                    .query(q -> q.term(t -> t.field("book").value(bookName))), Map.class);
+            for (Hit<Map> hit : response.hits().hits()) {
+                Object title = hit.source() == null ? null : hit.source().get("book_ar");
+                if (title != null) {
+                    return title.toString();
+                }
+            }
+            return "";
+        } catch (Exception e) {
+            LOGGER.warn("Could not read the Arabic title for {}", bookName, e);
+            return "";
+        }
+    }
+
+    /** Markup, the list marker and runs of whitespace all have to go before anything is drawn. */
+    private static String clean(String text) {
+        if (text == null) {
+            return "";
+        }
+        String stripped = WHITESPACE.matcher(HTML_TAG.matcher(text).replaceAll(" ")).replaceAll(" ").trim();
+        return LEADING_ORDINAL.matcher(stripped).replaceFirst("").trim();
+    }
+
+    private static String str(Object value) {
+        return value == null ? "" : value.toString();
+    }
+
+    private static String hash(String text) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256")
+                    .digest(text.getBytes(StandardCharsets.UTF_8));
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(digest).substring(0, 22);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 is required by the platform", e);
+        }
+    }
+
+    /**
+     * The drawn cards, newest-used first, bounded by total bytes rather than by count.
+     *
+     * <p>Drawing takes tens of milliseconds and crawlers revisit the same handful of
+     * narrations, so the second request for one costs nothing. The bound is on bytes
+     * because a card's size varies by a factor of two with how much text is on it, and
+     * the pod has a 2Gi limit to stay well inside.
+     */
+    private static final class CardCache {
+
+        private static final long MAX_BYTES = 48L * 1024 * 1024;
+
+        private final LinkedHashMap<String, byte[]> entries = new LinkedHashMap<>(64, 0.75f, true);
+        private long bytes;
+
+        synchronized byte[] get(String key) {
+            return entries.get(key);
+        }
+
+        synchronized void put(String key, byte[] png) {
+            byte[] previous = entries.put(key, png);
+            bytes += png.length - (previous == null ? 0 : previous.length);
+            Iterator<Map.Entry<String, byte[]>> oldest = entries.entrySet().iterator();
+            while (bytes > MAX_BYTES && oldest.hasNext()) {
+                bytes -= oldest.next().getValue().length;
+                oldest.remove();
+            }
+        }
+    }
+}

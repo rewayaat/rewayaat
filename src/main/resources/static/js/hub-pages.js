@@ -256,6 +256,40 @@
         document.body.removeChild(ta);
     }
 
+    /**
+     * Puts the generated share card on the clipboard as an image, not as a link.
+     *
+     * <p>The point is pasting straight into WhatsApp or the newsletter editor. ClipboardItem
+     * is unevenly supported and the whole API throws outside a secure context or outside a
+     * user gesture, so every failure falls back to opening the PNG in a tab — the reader can
+     * still save or drag it, and the action never silently does nothing.
+     */
+    function copyImage(url, label) {
+        if (!url) { toast('Nothing to copy.', 'error'); return; }
+
+        var openInstead = function () {
+            toast('Could not copy the image; opening it instead.', 'error');
+            window.open(url, '_blank', 'noopener');
+        };
+
+        if (!window.ClipboardItem || !navigator.clipboard || !navigator.clipboard.write) {
+            openInstead();
+            return;
+        }
+        fetch(url)
+            .then(function (response) {
+                if (!response.ok) { throw new Error('card request failed'); }
+                return response.blob();
+            })
+            .then(function (blob) {
+                var item = {};
+                item[blob.type || 'image/png'] = blob;
+                return navigator.clipboard.write([new window.ClipboardItem(item)]);
+            })
+            .then(function () { toast(label + ' copied.'); })
+            .catch(openInstead);
+    }
+
     function bindCardActions() {
         document.addEventListener('click', function (event) {
             // Bootstrap's JS is not loaded on these pages; two menus do not justify it.
@@ -282,6 +316,14 @@
             var copyUrl = event.target.closest('[data-copy-url]');
             if (copyUrl) {
                 copyText(copyUrl.getAttribute('data-copy-url'), 'Link');
+                closeMenus();
+                return;
+            }
+
+            var copyImageUrl = event.target.closest('[data-copy-image]');
+            if (copyImageUrl) {
+                copyImage(copyImageUrl.getAttribute('data-copy-image'),
+                    copyImageUrl.getAttribute('data-copy-image-label') || 'Image');
                 closeMenus();
                 return;
             }

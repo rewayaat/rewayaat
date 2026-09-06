@@ -828,7 +828,24 @@
                                                         <button class="dropdown-item"
                                                                 type="button"
                                                                 v-on:click="copyHadithStaticUrl(narration._id || narration.id)">
-                                                            Copy static URL
+                                                            Copy link
+                                                        </button>
+                                                    </li>
+                                                    <!-- The generated share card. Light exists because
+                                                         MailPoet templates are white and a navy block
+                                                         reads as a foreign object dropped into one. -->
+                                                    <li>
+                                                        <button class="dropdown-item"
+                                                                type="button"
+                                                                v-on:click="copyHadithCardImage(narration, 'dark')">
+                                                            Copy image (dark)
+                                                        </button>
+                                                    </li>
+                                                    <li>
+                                                        <button class="dropdown-item"
+                                                                type="button"
+                                                                v-on:click="copyHadithCardImage(narration, 'light')">
+                                                            Copy image (light)
                                                         </button>
                                                     </li>
                                                 </ul>

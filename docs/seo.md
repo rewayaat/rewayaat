@@ -117,6 +117,40 @@ build, not a running dev server.
 
 The rule: if a crawler that does not run scripts cannot see it, it does not count.
 
+### 9. `og:image` is generated per narration, and must stay cacheable
+
+`/hadith/{id}/card.png` draws a 1200×630 card of the narration itself (`ShareCardController`,
+`ShareCardRenderer`). Every narration page used to advertise the same
+`/img/share-card.png`, so a WhatsApp forward or a tweet of any of 32,519 different
+narrations previewed one logo.
+
+Two things about it are load-bearing:
+
+- **The response carries an `ETag` and `Cache-Control: public, max-age=31536000, immutable`.**
+  Drawing text is not free and crawlers hit these hard. The ETag is a hash of the card's
+  own text and is also the in-memory cache key, so editing a narration invalidates both at
+  once — keying the cache by id would have served the stale image forever, which is what
+  `immutable` makes unrecoverable.
+- **Nothing is pre-generated.** 32,519 PNGs is a lot of storage for images most of which
+  are never requested.
+
+The renderer loads all four faces from `static/fonts/` with `Font.createFont` and never
+names a logical font ("Serif", "SansSerif"). The deployment image is an `eclipse-temurin`
+JRE with no font packages installed; a logical name there resolves to whatever fontconfig
+can find, which may be nothing. Verified by rendering with `FONTCONFIG_FILE` pointing at an
+empty config (`fc-list` reports 0 fonts) and getting byte-identical output.
+
+`?theme=light` renders the same card on the site's cream surfaces, for the Friday
+newsletter — MailPoet templates are white and a navy block reads as a foreign object
+dropped into one. **`og:image` stays on the dark default**: navy is more striking in a
+feed, and the parameterless URL is the one already shared. The theme is part of the ETag
+and of the cache key, so the two cannot be served for each other.
+
+`/books/{book}/card.png` does the same for a book hub. Pages that generate a card set
+`shareImageUrl`; everything else falls back to the site card in `fragments/site.html`.
+
+`ShareCardIntegrationTest` pins the meta tags, the 304 and the language variants.
+
 ## Page inventory
 
 | Surface | Indexable | Rendered by |

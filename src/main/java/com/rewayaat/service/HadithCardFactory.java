@@ -69,6 +69,11 @@ public class HadithCardFactory {
         row.put("tagSlugs", tagSlugs(source));
         row.put("similarCount", source.get("llm_similar") instanceof List<?> l ? l.size() : 0);
         row.put("shareUrl", baseUrl + "/hadith/" + id);
+        // The generated share card, in the two themes the share menu offers. Dark is the
+        // default and is what og:image points at; light exists for the newsletter, whose
+        // templates are white.
+        row.put("darkCardUrl", "/hadith/" + id + "/card.png");
+        row.put("lightCardUrl", "/hadith/" + id + "/card.png?theme=light");
         row.put("reportHref", reportHref(id, book, number, baseUrl));
         row.put("copyJson", write(Map.of(
                 "english", stripHtml(str(source.get("english"))),
