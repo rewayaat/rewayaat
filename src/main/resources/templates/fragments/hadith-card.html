@@ -136,11 +136,12 @@
                            th:href="${tag.url}" th:text="${tag.label}">tag</a>
                     </div>
 
-                    <!-- The same actions the search card offers, minus the two that only
-                         make sense inside the app: editing (needs editor access) and
-                         removing from a collection (only meaningful in collection view).
-                         The dropdowns are driven by hub-pages.js rather than Bootstrap's
-                         JS, so these pages do not pull the bundle in for two menus. -->
+                    <!-- The same actions the search card offers, minus removing from a
+                         collection, which is only meaningful in collection view. Editing
+                         is here too, hidden until /v1/auth/me says the reader may edit;
+                         it links to the standalone /edit page rather than the search
+                         app's modal. The dropdowns are driven by hub-pages.js rather than
+                         Bootstrap's JS, so these pages do not pull the bundle in. -->
                     <div class="d-flex flex-wrap gap-2 hadith-header-actions hadith-card__actions">
                         <div class="dropdown hadith-copy-dropdown hub-menu">
                             <button class="icon-action icon-action--copy hadith-copy-trigger"
@@ -170,6 +171,13 @@
                                 aria-label="Save hadith" title="Save to collection">
                             <i class="fa fa-bookmark" aria-hidden="true"></i>
                         </button>
+
+                        <a class="icon-action icon-action--edit d-none"
+                           th:attr="data-edit-hadith=${narration.id}"
+                           th:href="@{/edit(id=${narration.id})}"
+                           aria-label="Edit hadith" title="Edit hadith">
+                            <i class="fa fa-pencil" aria-hidden="true"></i>
+                        </a>
 
                         <a class="icon-action icon-action--report" target="_blank" rel="noopener noreferrer"
                            th:href="${narration.reportHref}"

@@ -45,12 +45,32 @@
         if (shell) { shell.classList.toggle('d-none', !authed); }
 
         if (authed && authState.user) {
-            var label = authState.user.name || authState.user.email || 'Account';
+            // The payload from /v1/auth/me calls it displayName, the same field the
+            // search app reads. Reading `name` here left every editor labelled by email.
+            var label = authState.user.displayName || authState.user.email || 'Account';
             if (name) { name.textContent = label; }
             if (initial) { initial.textContent = label.charAt(0).toUpperCase(); }
         }
         document.querySelectorAll('[data-requires-auth]').forEach(function (node) {
             node.classList.toggle('is-signed-out', !authed);
+        });
+        applyEditorState(authed && !!(authState.user && authState.user.canEditHadith));
+    }
+
+    /**
+     * The edit pencil ships hidden and stays hidden for everyone the server does not
+     * name as an editor. Revealing it also stamps the current page into returnTo, so
+     * /edit sends the editor back to the chapter or narration they came from rather
+     * than to the search page.
+     */
+    function applyEditorState(canEdit) {
+        var here = window.location.pathname + window.location.search;
+        document.querySelectorAll('[data-edit-hadith]').forEach(function (node) {
+            node.classList.toggle('d-none', !canEdit);
+            if (!canEdit) { return; }
+            node.setAttribute('href', '/edit?id='
+                + encodeURIComponent(node.getAttribute('data-edit-hadith'))
+                + '&returnTo=' + encodeURIComponent(here));
         });
     }
 
