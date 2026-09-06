@@ -138,8 +138,24 @@ public class HomeController {
         if (id != null && !id.isBlank()) {
             model.addAttribute("hadithId", id);
         }
-        model.addAttribute("returnTo", returnTo != null ? returnTo : "/");
+        model.addAttribute("returnTo", safeReturnTo(returnTo));
         return "edit";
+    }
+
+    /**
+     * The editor navigates to this value after a successful save, so anything that is
+     * not a path on this site is an open redirect. Site-relative paths only: a leading
+     * slash, but not a protocol-relative "//host" and not a "/\host" that some browsers
+     * normalise the same way.
+     */
+    static String safeReturnTo(String returnTo) {
+        if (returnTo == null || returnTo.isBlank() || returnTo.charAt(0) != '/') {
+            return "/";
+        }
+        if (returnTo.length() > 1 && (returnTo.charAt(1) == '/' || returnTo.charAt(1) == '\\')) {
+            return "/";
+        }
+        return returnTo;
     }
 
     private String redirectToSigninWithToken(String queryKey, String token) {

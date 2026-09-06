@@ -102,4 +102,19 @@ class HomeControllerTest {
 
         assertEquals("redirect:/signin.html?reset_token=abc123", redirect);
     }
+
+    @Test
+    void editReturnToAcceptsSitePathsAndRejectsEverythingElse() {
+        assertEquals("/hadith/Al-Kafi-Volume-1-Kulayni:2",
+                HomeController.safeReturnTo("/hadith/Al-Kafi-Volume-1-Kulayni:2"));
+        assertEquals("/books/al-kafi?tag=prayer", HomeController.safeReturnTo("/books/al-kafi?tag=prayer"));
+
+        // The editor is sent here after saving, so an off-site value is an open redirect.
+        assertEquals("/", HomeController.safeReturnTo("https://evil.example/"));
+        assertEquals("/", HomeController.safeReturnTo("//evil.example/"));
+        assertEquals("/", HomeController.safeReturnTo("/\\evil.example/"));
+        assertEquals("/", HomeController.safeReturnTo("javascript:alert(1)"));
+        assertEquals("/", HomeController.safeReturnTo(null));
+        assertEquals("/", HomeController.safeReturnTo("  "));
+    }
 }

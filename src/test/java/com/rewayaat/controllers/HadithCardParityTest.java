@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -104,6 +105,20 @@ class HadithCardParityTest {
             "hadith-copy-dropdown",           // copy menu
             "hadith-inline-context");         // the Related / Tafsir inline panels
 
+    /**
+     * Actions the search card carries that cannot mean anything on a server-rendered
+     * page. Removing from a collection needs a collection to be open; nothing else
+     * belongs here, and editing notably does not — it links to /edit.
+     */
+    private static final Set<String> SEARCH_ONLY_ACTIONS = Set.of("remove");
+
+    /**
+     * Menu entries the search card offers that are not the card's to mirror. Exporting
+     * a PDF is a page-level action on the hub pages, reached from the chapter toolbar
+     * rather than from a narration's copy menu.
+     */
+    private static final Set<String> SEARCH_ONLY_MENU_ITEMS = Set.of("Export PDF");
+
     @Test
     void serverCardCarriesEveryStructuralClassTheSearchCardDoes() throws IOException {
         String index = readSearchCard();
@@ -140,6 +155,84 @@ class HadithCardParityTest {
 
         assertTrue(extra.isEmpty(),
                 "The server card uses structural classes the search card does not: " + extra);
+    }
+
+    /**
+     * The action rail is where a missing class costs a reader something they can name.
+     * The list above is hand-maintained, so it only catches drift somebody remembered
+     * to enumerate: the edit pencil went missing from the server card for an entire
+     * release because {@code icon-action--edit} was never added to {@link #STRUCTURAL}.
+     * This test derives the modifiers from the search card instead, so a new action
+     * button has to be mirrored or excused on purpose.
+     */
+    @Test
+    void everyCardActionIsOfferedOnServerRenderedPagesToo() throws IOException {
+        Set<String> searchActions = actionModifiers(readSearchCard());
+        Set<String> serverActions = actionModifiers(read(SERVER_CARD));
+
+        assertFalse(searchActions.isEmpty(), "found no icon-action modifiers in the search card");
+
+        Set<String> missing = new LinkedHashSet<>(searchActions);
+        missing.removeAll(serverActions);
+        missing.removeAll(SEARCH_ONLY_ACTIONS);
+
+        assertTrue(missing.isEmpty(),
+                "The search card offers these actions and the server card does not: " + missing
+                        + "\nAdd them to fragments/hadith-card.html, or to SEARCH_ONLY_ACTIONS "
+                        + "with a reason if they cannot work outside the search app.");
+    }
+
+    /**
+     * The copy and share menus are the other half of the rail, and the same blind spot
+     * applies: a "Copy image" added to one card and not the other reads as a feature
+     * that works everywhere until somebody opens a chapter page. Labels are compared
+     * because they are what the reader is promised, and both cards write them as plain
+     * text in the same place.
+     */
+    @Test
+    void everyCardMenuItemIsOfferedOnServerRenderedPagesToo() throws IOException {
+        Set<String> searchItems = copyMenuItems(readSearchCard());
+        Set<String> serverItems = copyMenuItems(read(SERVER_CARD));
+
+        assertFalse(searchItems.isEmpty(), "found no copy-menu items in the search card");
+
+        Set<String> missing = new LinkedHashSet<>(searchItems);
+        missing.removeAll(serverItems);
+        missing.removeAll(SEARCH_ONLY_MENU_ITEMS);
+
+        assertTrue(missing.isEmpty(),
+                "The search card's copy and share menus offer these and the server card does not: "
+                        + missing + "\nMirror them in fragments/hadith-card.html, or add them to "
+                        + "SEARCH_ONLY_MENU_ITEMS with a reason.");
+    }
+
+    /** The visible labels of every dropdown item inside a hadith-copy-menu. */
+    private static Set<String> copyMenuItems(String html) {
+        Set<String> found = new LinkedHashSet<>();
+        Matcher menu = Pattern.compile(
+                "<ul[^>]*hadith-copy-menu[^>]*>(.*?)</ul>", Pattern.DOTALL).matcher(html);
+        while (menu.find()) {
+            Matcher item = Pattern.compile(
+                    "<button[^>]*class=\"dropdown-item\"[^>]*>(.*?)</button>",
+                    Pattern.DOTALL).matcher(menu.group(1));
+            while (item.find()) {
+                String label = item.group(1).replaceAll("<[^>]*>", " ")
+                        .replaceAll("\\s+", " ").trim();
+                if (!label.isEmpty()) {
+                    found.add(label);
+                }
+            }
+        }
+        return found;
+    }
+
+    private static Set<String> actionModifiers(String html) {
+        Set<String> found = new LinkedHashSet<>();
+        Matcher m = Pattern.compile("icon-action--([a-z][a-z-]*)").matcher(html);
+        while (m.find()) {
+            found.add(m.group(1));
+        }
+        return found;
     }
 
     /** The classes the whole scheme rests on; if these vanish the sharing is over. */
