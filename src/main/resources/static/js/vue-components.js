@@ -171,14 +171,25 @@
                                 onClick: this.showSpecific.bind(this, this.narration, 'volume')
                             });
                         }
+                        // Section is shown but not clickable, unlike the levels around
+                        // it. It is not a level: within one book, volume and part, a
+                        // section value maps to exactly one chapter - it is the chapter's
+                        // number, and its values are bare integers that repeat across
+                        // books ('1' appears 1,159 times). So it has nowhere of its own to
+                        // go. It used to fall through to a scoped search, which
+                        // isReadingMode() classifies as reading mode because it has a
+                        // scope and no keyword terms, so clicking Section dropped the
+                        // reader into an older-looking view for no reason they could see.
+                        // Sending it to the chapter page instead would make two adjacent
+                        // rows do the identical thing. It stays as citation data, read
+                        // rather than followed.
                         if (this.isRealValue(this.narration.section)) {
                             items.push({
                                 key: 'section',
                                 icon: 'fa fa-bookmark',
                                 label: 'Section',
                                 html: this.narration.section,
-                                clickable: true,
-                                onClick: this.showSpecific.bind(this, this.narration, 'section')
+                                clickable: false
                             });
                         }
                         if (this.isRealValue(this.narration.part)) {

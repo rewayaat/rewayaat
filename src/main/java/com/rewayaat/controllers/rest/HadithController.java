@@ -133,7 +133,6 @@ public class HadithController {
     public HadithObjectCollection queryHadith(
             @Parameter(name = "q", description = "The query to execute.") @RequestParam(value = "q", defaultValue = "") String query,
             @Parameter(name = "sort_fields", description = "Sort fields for lookup queries.", required = false) @RequestParam(value = "sort_fields", defaultValue = "", required = false) String sortFields,
-            @Parameter(name = "mode", description = "Display mode: search (default) or read.", required = false) @RequestParam(value = "mode", defaultValue = "search", required = false) String mode,
             @Parameter(name = "match_mode", description = "Search strictness: flexible (default) or precise.", required = false) @RequestParam(value = "match_mode", defaultValue = "flexible", required = false) String matchMode,
             @Parameter(name = "page", description = "The number of the page to return.", required = false) @RequestParam(value = "page", defaultValue = "1") int page,
             @Parameter(name = "per_page", description = "Number of hadith to include per page.") @RequestParam(value = "per_page", defaultValue = "20") int perPage,
@@ -293,8 +292,6 @@ public class HadithController {
             @RequestParam(value = "q") String query,
             @Parameter(name = "sort_fields", description = "Sort fields for lookup queries.", required = false)
             @RequestParam(value = "sort_fields", defaultValue = "", required = false) String sortFields,
-            @Parameter(name = "mode", description = "Display mode: search (default) or read.", required = false)
-            @RequestParam(value = "mode", defaultValue = "search", required = false) String mode,
             @Parameter(name = "match_mode", description = "Search strictness: flexible (default) or precise.", required = false)
             @RequestParam(value = "match_mode", defaultValue = "flexible", required = false) String matchMode,
             @Parameter(name = "per_page", description = "Number of hadith per page.")
@@ -343,10 +340,6 @@ public class HadithController {
             }
         }
         return payload;
-    }
-
-    private boolean isReadingMode(String mode) {
-        return "read".equalsIgnoreCase(mode == null ? "" : mode.trim());
     }
 
     private HadithObject loadNarration(String id) throws Exception {
