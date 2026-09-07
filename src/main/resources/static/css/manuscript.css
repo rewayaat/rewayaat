@@ -196,6 +196,65 @@ a:hover {
 }
 #latest-news-bar:empty { display: none; }
 
+/* ── Site Announcement Bar ───────────────────────────────────────────────── */
+/* Injected as the first child of <body> by js/site-announcement.js, so it sits above the
+   sticky nav on every page. It scrolls away with the page rather than sticking: it is an
+   announcement, not navigation, and a permanently pinned strip costs vertical space on a
+   phone for something a reader only needs to see once. */
+.site-announcement {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 0.5rem 2.75rem 0.5rem 1rem;
+    background: linear-gradient(90deg, #12294d, #1a3a6b 45%, #12294d);
+    color: #fff;
+    font-size: 0.83rem;
+    letter-spacing: 0.01em;
+    text-align: center;
+}
+.site-announcement__inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.75rem;
+}
+.site-announcement__icon { color: #d5aa4d; }
+.site-announcement__text { font-weight: 500; }
+.site-announcement__link {
+    color: #f0d69a;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    white-space: nowrap;
+}
+.site-announcement__link:hover,
+.site-announcement__link:focus { color: #fff; }
+.site-announcement__close {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 1.35rem;
+    line-height: 1;
+    padding: 0 0.4rem;
+    cursor: pointer;
+}
+.site-announcement__close:hover,
+.site-announcement__close:focus { color: #fff; }
+
+@media (max-width: 575.98px) {
+    .site-announcement {
+        font-size: 0.78rem;
+        padding: 0.45rem 2.25rem 0.45rem 0.75rem;
+    }
+}
+
 /* ── Eid al-Ghadeer Banner ────────────────────────────────────────────────── */
 .eid-banner {
     background: linear-gradient(90deg, #faf6ee, #f5edd8, #faf6ee);
