@@ -65,9 +65,17 @@ public class ShareCardRenderer {
 
     private static final int EYEBROW_BASELINE = 80;
     private static final int BODY_TOP = 114;
-    private static final int BODY_BOTTOM = 496;
-    private static final int FOOTER_RULE_Y = 520;
-    private static final int FOOTER_CENTRE_Y = 556;
+    /** Distances from the bottom edge, so the footer survives the card growing taller. */
+    private static final int BODY_BOTTOM_INSET = 134;
+    private static final int FOOTER_RULE_INSET = 110;
+    private static final int FOOTER_CENTRE_INSET = 74;
+
+    /**
+     * A ceiling on a full card. Some narrations run to thousands of words, and an image
+     * tall enough for all of them is one no mail client will show; past this the card
+     * truncates as it always did.
+     */
+    private static final int MAX_FULL_HEIGHT = 4200;
     private static final int LOGO_HEIGHT = 42;
 
     /** Room for the ornament that separates the Arabic from the English. */
@@ -85,6 +93,21 @@ public class ShareCardRenderer {
      * feed. Light exists for the Friday newsletter: MailPoet templates are white, and a
      * heavy navy block dropped into a white email reads as a foreign object.
      */
+    /** Which of the two texts the card carries. */
+    public enum Language { BOTH, ARABIC, ENGLISH }
+
+    /**
+     * What the reader asked for in the share dialog.
+     *
+     * <p>{@code full} trades the Open Graph ratio for completeness: the card grows
+     * downwards until the narration fits rather than ending in an ellipsis. That is the
+     * wrong shape for a link preview and the right one for an email or a printout, which
+     * is why it is a choice and not the default.
+     */
+    public record Options(Language language, boolean full) {
+        public static final Options DEFAULT = new Options(Language.BOTH, false);
+    }
+
     public enum Theme {
         DARK, LIGHT
     }
@@ -102,8 +125,16 @@ public class ShareCardRenderer {
     }
 
     public byte[] render(Card card, Theme theme) {
+        return render(card, theme, Options.DEFAULT);
+    }
+
+    public byte[] render(Card card, Theme theme, Options options) {
         Palette palette = theme == Theme.LIGHT ? light : dark;
-        BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
+        Options opts = options == null ? Options.DEFAULT : options;
+        String arabic = opts.language() == Language.ENGLISH ? null : card.arabic();
+        String english = opts.language() == Language.ARABIC ? null : card.english();
+        int height = opts.full() ? fullHeight(arabic, english) : HEIGHT;
+        BufferedImage image = new BufferedImage(WIDTH, height, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = image.createGraphics();
         try {
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -114,11 +145,11 @@ public class ShareCardRenderer {
             g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                     RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 
-            paintGround(g, palette);
-            paintFrame(g, palette);
+            paintGround(g, palette, height);
+            paintFrame(g, palette, height);
             paintEyebrow(g, palette, card.eyebrow());
-            paintBody(g, palette, card.arabic(), card.english());
-            paintFooter(g, palette, card.footer());
+            paintBody(g, palette, arabic, english, height, opts.full());
+            paintFooter(g, palette, card.footer(), height);
         } finally {
             g.dispose();
         }
@@ -197,26 +228,27 @@ public class ShareCardRenderer {
 
     // ── Ground and frame ────────────────────────────────────────────────────
 
-    private void paintGround(Graphics2D g, Palette palette) {
-        g.setPaint(new LinearGradientPaint(new Point2D.Float(0, 0), new Point2D.Float(WIDTH, HEIGHT),
+    private void paintGround(Graphics2D g, Palette palette, int height) {
+        g.setPaint(new LinearGradientPaint(new Point2D.Float(0, 0), new Point2D.Float(WIDTH, height),
                 palette.groundStops(), palette.ground()));
-        g.fillRect(0, 0, WIDTH, HEIGHT);
+        g.fillRect(0, 0, WIDTH, height);
 
         // The two light pools from .hub-hero::before. Without them the ground reads as one
         // flat block, which at feed thumbnail size looks like a rendering failure.
-        pool(g, 0.25f * WIDTH, 0.08f * HEIGHT, 0.42f * WIDTH, 0.42f * HEIGHT,
-                palette.poolHighlight());
-        pool(g, 0.78f * WIDTH, 0.92f * HEIGHT, 0.36f * WIDTH, 0.36f * HEIGHT,
-                palette.poolAccent());
+        pool(g, 0.25f * WIDTH, 0.08f * height, 0.42f * WIDTH, 0.42f * height,
+                palette.poolHighlight(), height);
+        pool(g, 0.78f * WIDTH, 0.92f * height, 0.36f * WIDTH, 0.36f * height,
+                palette.poolAccent(), height);
     }
 
     /** An elliptical light pool; the rectangle form of the paint is what makes it an ellipse. */
-    private static void pool(Graphics2D g, float cx, float cy, float rx, float ry, Color colour) {
+    private static void pool(Graphics2D g, float cx, float cy, float rx, float ry,
+                             Color colour, int height) {
         g.setPaint(new RadialGradientPaint(
                 new Rectangle2D.Float(cx - rx, cy - ry, rx * 2, ry * 2),
                 new float[]{0f, 1f}, new Color[]{colour, transparent(colour)},
                 MultipleGradientPaint.CycleMethod.NO_CYCLE));
-        g.fillRect(0, 0, WIDTH, HEIGHT);
+        g.fillRect(0, 0, WIDTH, height);
     }
 
     /**
@@ -228,21 +260,21 @@ public class ShareCardRenderer {
      * full size turns to mud and takes the narration down with it. The text keeps the
      * contrast; the frame only has to be felt.
      */
-    private void paintFrame(Graphics2D g, Palette palette) {
+    private void paintFrame(Graphics2D g, Palette palette, int height) {
         float outer = FRAME_INSET;
         float inner = FRAME_INSET + FRAME_GAP;
 
         g.setColor(palette.frame());
         g.setStroke(new BasicStroke(2f));
-        g.draw(new Rectangle2D.Float(outer, outer, WIDTH - 2 * outer, HEIGHT - 2 * outer));
+        g.draw(new Rectangle2D.Float(outer, outer, WIDTH - 2 * outer, height - 2 * outer));
 
         g.setColor(palette.frameHairline());
         g.setStroke(new BasicStroke(1f));
-        g.draw(new Rectangle2D.Float(inner, inner, WIDTH - 2 * inner, HEIGHT - 2 * inner));
+        g.draw(new Rectangle2D.Float(inner, inner, WIDTH - 2 * inner, height - 2 * inner));
 
         g.setColor(palette.cornerOrnament());
         for (float x : new float[]{outer, WIDTH - outer}) {
-            for (float y : new float[]{outer, HEIGHT - outer}) {
+            for (float y : new float[]{outer, height - outer}) {
                 cornerOrnament(g, x, y);
             }
         }
@@ -299,7 +331,8 @@ public class ShareCardRenderer {
      * <p>The result is centred vertically, which is what keeps a short narration and a
      * single-language one from sitting in the top third of an otherwise empty card.
      */
-    private void paintBody(Graphics2D g, Palette palette, String arabic, String english) {
+    private void paintBody(Graphics2D g, Palette palette, String arabic, String english,
+                           int height, boolean full) {
         FontRenderContext frc = g.getFontRenderContext();
         boolean hasArabic = arabic != null && !arabic.isBlank();
         boolean hasEnglish = english != null && !english.isBlank();
@@ -307,14 +340,17 @@ public class ShareCardRenderer {
             return;
         }
 
-        float available = BODY_BOTTOM - BODY_TOP - (hasArabic && hasEnglish ? DIVIDER_BAND : 0);
+        int bodyBottom = height - BODY_BOTTOM_INSET;
+        float available = bodyBottom - BODY_TOP - (hasArabic && hasEnglish ? DIVIDER_BAND : 0);
         // Arabic takes the larger type: it is the primary text and the part that makes a
         // card recognisable in a feed before anyone reads a word of it. Alone, each
         // language gets the whole body and more lines.
         float arabicBase = hasEnglish ? 44f : 52f;
         float englishBase = hasArabic ? 28f : 33f;
-        int arabicCap = hasEnglish ? 3 : 5;
-        int englishCap = hasArabic ? 5 : 8;
+        // A full card was sized to hold everything, so the caps that keep a 630px card
+        // balanced would be the only thing still cutting the narration short.
+        int arabicCap = full ? Integer.MAX_VALUE : (hasEnglish ? 3 : 5);
+        int englishCap = full ? Integer.MAX_VALUE : (hasArabic ? 5 : 8);
 
         Block ar = null;
         Block en = null;
@@ -341,7 +377,7 @@ public class ShareCardRenderer {
         }
 
         float total = height(ar) + (hasArabic && hasEnglish ? DIVIDER_BAND : 0) + height(en);
-        float y = BODY_TOP + Math.max(0, (BODY_BOTTOM - BODY_TOP - total) / 2f);
+        float y = BODY_TOP + Math.max(0, (bodyBottom - BODY_TOP - total) / 2f);
 
         if (ar != null) {
             g.setColor(palette.arabicInk());
@@ -355,6 +391,38 @@ public class ShareCardRenderer {
         if (en != null) {
             g.setColor(palette.englishInk());
             draw(g, en, y, false);
+        }
+    }
+
+    /**
+     * How tall the card has to be for this narration to fit whole.
+     *
+     * <p>Measured against a scratch context because the real one does not exist until the
+     * image does, and the image cannot be made until this answer is known. The type sizes
+     * are the ones {@link #paintBody} uses at scale 1, so what is measured here is what
+     * gets drawn.
+     */
+    private int fullHeight(String arabic, String english) {
+        boolean hasArabic = arabic != null && !arabic.isBlank();
+        boolean hasEnglish = english != null && !english.isBlank();
+        if (!hasArabic && !hasEnglish) {
+            return HEIGHT;
+        }
+        BufferedImage scratch = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = scratch.createGraphics();
+        try {
+            FontRenderContext frc = g.getFontRenderContext();
+            float arabicBase = hasEnglish ? 44f : 52f;
+            float englishBase = hasArabic ? 28f : 33f;
+            Block ar = hasArabic
+                    ? block(arabic, true, arabicBase, Integer.MAX_VALUE, 1.72f, frc) : null;
+            Block en = hasEnglish
+                    ? block(english, false, englishBase, Integer.MAX_VALUE, 1.46f, frc) : null;
+            float content = height(ar) + (hasArabic && hasEnglish ? DIVIDER_BAND : 0) + height(en);
+            int needed = Math.round(BODY_TOP + content) + BODY_BOTTOM_INSET;
+            return Math.max(HEIGHT, Math.min(MAX_FULL_HEIGHT, needed));
+        } finally {
+            g.dispose();
         }
     }
 
@@ -408,18 +476,20 @@ public class ShareCardRenderer {
 
     // ── Footer ──────────────────────────────────────────────────────────────
 
-    private void paintFooter(Graphics2D g, Palette palette, String footer) {
+    private void paintFooter(Graphics2D g, Palette palette, String footer, int height) {
+        float ruleY = height - FOOTER_RULE_INSET;
+        float centreY = height - FOOTER_CENTRE_INSET;
         Color hairline = palette.footerRule();
         g.setPaint(new LinearGradientPaint(
-                new Point2D.Float(PAD, FOOTER_RULE_Y), new Point2D.Float(WIDTH - PAD, FOOTER_RULE_Y),
+                new Point2D.Float(PAD, ruleY), new Point2D.Float(WIDTH - PAD, ruleY),
                 new float[]{0f, 0.5f, 1f},
                 new Color[]{transparent(hairline), hairline, transparent(hairline)}));
-        g.fill(new Rectangle2D.Float(PAD, FOOTER_RULE_Y, CONTENT_WIDTH, 1f));
+        g.fill(new Rectangle2D.Float(PAD, ruleY, CONTENT_WIDTH, 1f));
 
         BufferedImage logo = palette.logo();
         if (logo != null) {
             int width = Math.round(LOGO_HEIGHT * (float) logo.getWidth() / logo.getHeight());
-            g.drawImage(logo, PAD, FOOTER_CENTRE_Y - LOGO_HEIGHT / 2, width, LOGO_HEIGHT, null);
+            g.drawImage(logo, PAD, Math.round(centreY) - LOGO_HEIGHT / 2, width, LOGO_HEIGHT, null);
         }
 
         if (footer == null || footer.isBlank()) {
@@ -430,7 +500,7 @@ public class ShareCardRenderer {
                 fonts.runs(footer, fonts.latin().deriveFont(21f), fonts.arabic().deriveFont(21f),
                         false, 0.03f).getIterator(),
                 g.getFontRenderContext());
-        label.draw(g, WIDTH - PAD - label.getAdvance(), FOOTER_CENTRE_Y + 7);
+        label.draw(g, WIDTH - PAD - label.getAdvance(), centreY + 7);
     }
 
     // ── Text layout ─────────────────────────────────────────────────────────

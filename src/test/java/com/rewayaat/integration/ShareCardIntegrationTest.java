@@ -13,6 +13,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Arrays;
+import java.util.Set;
+import java.util.List;
+import java.util.HashSet;
+import javax.imageio.ImageIO;
+import java.io.ByteArrayInputStream;
+import java.awt.image.BufferedImage;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -125,6 +131,77 @@ class ShareCardIntegrationTest extends ElasticsearchTestSupport {
 
         assertEquals(HttpStatus.OK, nonsense.getStatusCode());
         assertTrue(Arrays.equals(dark.getBody(), nonsense.getBody()));
+    }
+
+    /**
+     * The share dialog offers a language, and it has to reach the renderer. An earlier
+     * build accepted {@code lang} and drew the same bilingual card regardless, which is
+     * worse than rejecting it: the reader believes they chose something.
+     */
+    @Test
+    void eachLanguageIsItsOwnImageWithItsOwnEtag() throws Exception {
+        indexNarration();
+
+        ResponseEntity<byte[]> both = restTemplate.getForEntity(
+                "/hadith/" + ID + "/card.png", byte[].class);
+        ResponseEntity<byte[]> arabic = restTemplate.getForEntity(
+                "/hadith/" + ID + "/card.png?lang=ar", byte[].class);
+        ResponseEntity<byte[]> english = restTemplate.getForEntity(
+                "/hadith/" + ID + "/card.png?lang=en", byte[].class);
+
+        assertEquals(HttpStatus.OK, arabic.getStatusCode());
+        assertEquals(HttpStatus.OK, english.getStatusCode());
+        assertFalse(Arrays.equals(both.getBody(), arabic.getBody()),
+                "lang=ar rendered the bilingual card");
+        assertFalse(Arrays.equals(both.getBody(), english.getBody()),
+                "lang=en rendered the bilingual card");
+        assertFalse(Arrays.equals(arabic.getBody(), english.getBody()),
+                "the two single-language cards rendered identically");
+
+        Set<String> etags = new HashSet<>(List.of(
+                both.getHeaders().getETag(),
+                arabic.getHeaders().getETag(),
+                english.getHeaders().getETag()));
+        assertEquals(3, etags.size(), "the three languages share an ETag");
+    }
+
+    /** An unrecognised language is the bilingual card, for the same reason a bad theme is dark. */
+    @Test
+    void anUnknownLanguageFallsBackToBothTexts() throws Exception {
+        indexNarration();
+
+        ResponseEntity<byte[]> both = restTemplate.getForEntity(
+                "/hadith/" + ID + "/card.png", byte[].class);
+        ResponseEntity<byte[]> nonsense = restTemplate.getForEntity(
+                "/hadith/" + ID + "/card.png?lang=klingon", byte[].class);
+
+        assertEquals(HttpStatus.OK, nonsense.getStatusCode());
+        assertTrue(Arrays.equals(both.getBody(), nonsense.getBody()));
+    }
+
+    /**
+     * The whole point of the full card: it is taller than the Open Graph ratio, because
+     * it grew until the narration fitted rather than ending in an ellipsis.
+     */
+    @Test
+    void theFullCardGrowsPastTheOpenGraphHeight() throws Exception {
+        indexNarration();
+
+        ResponseEntity<byte[]> trimmed = restTemplate.getForEntity(
+                "/hadith/" + ID + "/card.png", byte[].class);
+        ResponseEntity<byte[]> full = restTemplate.getForEntity(
+                "/hadith/" + ID + "/card.png?full=true", byte[].class);
+
+        assertEquals(HttpStatus.OK, full.getStatusCode());
+        BufferedImage trimmedImage = ImageIO.read(new ByteArrayInputStream(trimmed.getBody()));
+        BufferedImage fullImage = ImageIO.read(new ByteArrayInputStream(full.getBody()));
+
+        assertEquals(1200, fullImage.getWidth(), "a full card changed width");
+        assertEquals(630, trimmedImage.getHeight());
+        assertTrue(fullImage.getHeight() >= trimmedImage.getHeight(),
+                "the full card is shorter than the trimmed one");
+        assertFalse(trimmed.getHeaders().getETag().equals(full.getHeaders().getETag()),
+                "trimmed and full share an ETag, so a client would be served the wrong one");
     }
 
     /** A card for a narration that is not there is a 404, not a 500 and not a blank image. */

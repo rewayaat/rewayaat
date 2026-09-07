@@ -226,9 +226,68 @@
         document.querySelectorAll('[data-hub-menu]').forEach(function (menu) {
             if (menu === except) { return; }
             menu.classList.remove('show');
+            unpinMenu(menu);
             var trigger = menu.parentElement.querySelector('[data-hub-menu-trigger]');
             if (trigger) { trigger.setAttribute('aria-expanded', 'false'); }
         });
+    }
+
+    /*
+     * The card's own scroll container (.hadith-card__main, overflow:auto) clips an
+     * absolutely positioned menu, and every menu on every card is taller than the room
+     * below its trigger — the share menu lost 66 of its 105 pixels. Switching the open
+     * menu to position:fixed takes it out of that clipping box; nothing between the menu
+     * and the viewport establishes a containing block, so fixed really does reach the
+     * viewport here. The menu is measured after it is shown, because a hidden element
+     * has no height to flip against.
+     */
+    var pinned = null;
+
+    function pinMenu(menu, trigger) {
+        var t = trigger.getBoundingClientRect();
+        menu.style.position = 'fixed';
+        menu.style.margin = '0';
+        menu.style.zIndex = '1080';
+        menu.style.left = 'auto';
+        menu.style.right = 'auto';
+        menu.style.bottom = 'auto';
+        menu.style.top = '0';
+
+        var m = menu.getBoundingClientRect();
+        var gap = 4;
+        var below = window.innerHeight - t.bottom - gap;
+        var top = (m.height > below && t.top - gap > m.height)
+            ? t.top - gap - m.height          // no room under the trigger: flip above it
+            : t.bottom + gap;
+        // dropdown-menu-end means right-aligned to the trigger; keep it on screen.
+        var left = Math.min(
+            Math.max(8, t.right - m.width),
+            Math.max(8, document.documentElement.clientWidth - m.width - 8));
+
+        // Neither side may fit on a short viewport; keep the whole menu on screen.
+        top = Math.min(top, window.innerHeight - m.height - 8);
+        menu.style.top = Math.round(Math.max(8, top)) + 'px';
+        menu.style.left = Math.round(left) + 'px';
+        pinned = { menu: menu, trigger: trigger };
+    }
+
+    function unpinMenu(menu) {
+        if (pinned && pinned.menu === menu) { pinned = null; }
+        menu.style.position = '';
+        menu.style.margin = '';
+        menu.style.zIndex = '';
+        menu.style.top = '';
+        menu.style.left = '';
+        menu.style.right = '';
+        menu.style.bottom = '';
+    }
+
+    function repinOpenMenu() {
+        if (!pinned) { return; }
+        // Scrolled far enough that the trigger has left the viewport: just close.
+        var t = pinned.trigger.getBoundingClientRect();
+        if (t.bottom < 0 || t.top > window.innerHeight) { closeMenus(); return; }
+        pinMenu(pinned.menu, pinned.trigger);
     }
 
     function cardData(node) {
@@ -264,31 +323,9 @@
      * user gesture, so every failure falls back to opening the PNG in a tab — the reader can
      * still save or drag it, and the action never silently does nothing.
      */
-    function copyImage(url, label) {
-        if (!url) { toast('Nothing to copy.', 'error'); return; }
 
-        var openInstead = function () {
-            toast('Could not copy the image; opening it instead.', 'error');
-            window.open(url, '_blank', 'noopener');
-        };
-
-        if (!window.ClipboardItem || !navigator.clipboard || !navigator.clipboard.write) {
-            openInstead();
-            return;
-        }
-        fetch(url)
-            .then(function (response) {
-                if (!response.ok) { throw new Error('card request failed'); }
-                return response.blob();
-            })
-            .then(function (blob) {
-                var item = {};
-                item[blob.type || 'image/png'] = blob;
-                return navigator.clipboard.write([new window.ClipboardItem(item)]);
-            })
-            .then(function () { toast(label + ' copied.'); })
-            .catch(openInstead);
-    }
+    // The share dialog is shared with the search app and looks for this.
+    window.hubToast = function (message, kind) { toast(message, kind); };
 
     function bindCardActions() {
         document.addEventListener('click', function (event) {
@@ -301,6 +338,7 @@
                 closeMenus();
                 menu.classList.toggle('show', !open);
                 trigger.setAttribute('aria-expanded', open ? 'false' : 'true');
+                if (!open) { pinMenu(menu, trigger); }
                 return;
             }
 
@@ -320,11 +358,11 @@
                 return;
             }
 
-            var copyImageUrl = event.target.closest('[data-copy-image]');
-            if (copyImageUrl) {
-                copyImage(copyImageUrl.getAttribute('data-copy-image'),
-                    copyImageUrl.getAttribute('data-copy-image-label') || 'Image');
+            var shareCard = event.target.closest('[data-share-card]');
+            if (shareCard && window.HadithShareCard) {
                 closeMenus();
+                window.HadithShareCard.open(shareCard.getAttribute('data-share-card'),
+                    shareCard.getAttribute('data-share-card-label') || '');
                 return;
             }
 
@@ -334,6 +372,10 @@
         document.addEventListener('keydown', function (event) {
             if (event.key === 'Escape') { closeMenus(); }
         });
+
+        window.addEventListener('resize', repinOpenMenu);
+        // Capture phase, so the card's own scroll container is heard as well as the page.
+        window.addEventListener('scroll', repinOpenMenu, true);
     }
 
     /* ── Related and Tafsir panels ──────────────────────────────────────────── */

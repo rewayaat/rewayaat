@@ -172,9 +172,15 @@
                             <i class="fa fa-bookmark" aria-hidden="true"></i>
                         </button>
 
+                        <!-- No href here on purpose. robots.txt disallows /edit, so a
+                             server-rendered link to it puts a crawlable pointer at a
+                             blocked path on all 32,519 narration pages and every chapter
+                             page, which is how a URL ends up "indexed, though blocked by
+                             robots.txt". hub-pages.js sets the href when it reveals the
+                             pencil, and only for readers the server names as editors. -->
                         <a class="icon-action icon-action--edit d-none"
                            th:attr="data-edit-hadith=${narration.id}"
-                           th:href="@{/edit(id=${narration.id})}"
+                           role="button" rel="nofollow"
                            aria-label="Edit hadith" title="Edit hadith">
                             <i class="fa fa-pencil" aria-hidden="true"></i>
                         </a>
@@ -199,21 +205,16 @@
                                         Copy link
                                     </button>
                                 </li>
-                                <!-- The generated share card. Light exists because MailPoet
-                                     templates are white and a navy block reads as a foreign
-                                     object dropped into one. -->
+                                <!-- One entry, not two: the dialog behind it shows the card
+                                     and lets you switch theme there, where you can see what
+                                     the choice does. Light exists because MailPoet templates
+                                     are white and a navy block reads as a foreign object
+                                     dropped into one. -->
                                 <li>
                                     <button class="dropdown-item" type="button"
-                                            th:attr="data-copy-image=${narration.darkCardUrl},
-                                                     data-copy-image-label='Dark image'">
-                                        Copy image (dark)
-                                    </button>
-                                </li>
-                                <li>
-                                    <button class="dropdown-item" type="button"
-                                            th:attr="data-copy-image=${narration.lightCardUrl},
-                                                     data-copy-image-label='Light image'">
-                                        Copy image (light)
+                                            th:attr="data-share-card=${narration.id},
+                                                     data-share-card-label=${narration.label}">
+                                        Share as image
                                     </button>
                                 </li>
                             </ul>
