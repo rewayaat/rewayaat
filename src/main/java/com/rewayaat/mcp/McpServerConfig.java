@@ -9,6 +9,7 @@ import io.modelcontextprotocol.server.transport.HttpServletSseServerTransportPro
 import io.modelcontextprotocol.server.transport.HttpServletStreamableServerTransportProvider;
 import io.modelcontextprotocol.server.transport.ServerTransportSecurityValidator;
 import io.modelcontextprotocol.spec.McpSchema;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -107,6 +108,16 @@ public class McpServerConfig {
         registration.setName("mcpStreamableTransport");
         registration.setAsyncSupported(true);
         registration.setLoadOnStartup(1);
+        return registration;
+    }
+
+    @Bean
+    public FilterRegistrationBean<McpProtocolVersionFilter> mcpProtocolVersionFilter() {
+        FilterRegistrationBean<McpProtocolVersionFilter> registration =
+                new FilterRegistrationBean<>(new McpProtocolVersionFilter());
+        registration.addUrlPatterns(STREAMABLE_ENDPOINT, SSE_ENDPOINT, SSE_MESSAGE_ENDPOINT);
+        registration.setName("mcpProtocolVersionFilter");
+        registration.setAsyncSupported(true);
         return registration;
     }
 

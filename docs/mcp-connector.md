@@ -247,6 +247,68 @@ two disagree by design rather than by an off-by-one. The application is self-con
 does. If a case is found where a citation built this way is wrong, this is the note to
 revisit.
 
+## Registering the connector
+
+Each client has its own path in, and each was checked against a running server rather than
+against memory.
+
+### Claude
+
+Settings → Connectors → Add custom connector, with the URL `https://hadith.academyofislam.com/mcp`.
+
+- **Auth is optional.** OAuth client id and secret live under Advanced settings and can be
+  left empty, which is what a public read-only server wants.
+- **Plans:** Free, Pro, Max, Team and Enterprise. Free is limited to one custom connector.
+- **Reachability:** the server must answer from Anthropic's IP ranges over the public
+  internet. A private network, a VPN or a firewall will not connect. Our ingress is public,
+  so this is satisfied once it is applied.
+- **No verification or directory submission.** Custom connectors are simply marked unverified
+  by Anthropic, which is a label and not a gate.
+
+### ChatGPT
+
+Settings → Apps → Advanced settings → Developer mode, then Create app and paste the same URL.
+
+- **`search` and `fetch` are mandatory and fixed.** Without developer mode ChatGPT rejects any
+  server lacking both; with it, deep research still calls only those two. Each takes one string
+  argument, and the result must come back as `structuredContent` *and* as the same JSON encoded
+  into a text block. `search` results need `id`, `title`, `url`; `fetch` needs `id`, `title`,
+  `text`, `url`, `metadata`. Citations appear only when `url` is a non-empty string.
+- **Plans:** developer mode is beta on Plus, Pro, Business, Enterprise and Edu, on the web.
+  Read-only connectors like this one work on all of them; only write-capable connectors are
+  restricted to Business, Enterprise and Edu.
+- **HTTPS and public reachability.** ChatGPT cannot reach localhost.
+- **Training data:** on Free, Plus, Go and Pro, connector data may be used for training unless
+  the user turns off "Improve the model for everyone". Everything here is already public, so
+  this is a note rather than a risk.
+
+### The site's own chatbot
+
+No registration and no JSON-RPC: it calls `McpToolCatalog.invoke(name, arguments)` in-process.
+This is why the tool catalogue is a bean rather than something welded to the transport.
+
+## Where this deviates from the spec, deliberately
+
+One deviation, recorded rather than hidden.
+
+`ServerTransportSecurityValidator.NOOP` means the `Origin` header is not validated, and the
+Streamable HTTP spec words that as a MUST. The requirement exists to stop a web page in a
+victim's browser from driving a server it should not be able to reach — a server on loopback or
+inside a private network, whose protection is its network position. This server has no such
+position to borrow: it is public, unauthenticated and read-only, so a page that could reach it
+through a browser could equally reach it directly.
+
+Enforcing it would also cost something real. Native clients send no `Origin` at all, so a
+policy strict enough to matter has to allowlist whatever origins Claude and ChatGPT happen to
+send, which we do not control and which can change without notice — a live outage traded for no
+confidentiality. Note also that no CORS headers are returned on `/mcp`, verified against a
+running server, so a browser cannot read a cross-origin response regardless.
+
+The other MUST in that section — a 400 for an unsupported `MCP-Protocol-Version` — *is*
+enforced, by `McpProtocolVersionFilter`, because the SDK's transport answers 200 and there is
+no cost to being correct. Measured before the fix: `MCP-Protocol-Version: 1999-01-01` returned
+200.
+
 ## Not built yet
 
 - **`lookup_narrator` — deliberately out of scope for the first version.** Not a gap to be

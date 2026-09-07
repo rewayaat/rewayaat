@@ -20,6 +20,7 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
@@ -564,6 +565,57 @@ class McpProtocolIntegrationTest {
                     tool.get("name") + " has a thin description. It is the only channel we "
                             + "have - we do not control the host prompt.");
         }
+    }
+
+    @Test
+    void anUnsupportedProtocolVersionHeaderIsRejectedWithFourHundred() throws Exception {
+        // Spec, Streamable HTTP: "If the server receives a request with an invalid or
+        // unsupported MCP-Protocol-Version, it MUST respond with 400 Bad Request." The SDK
+        // transport answers 200, so McpProtocolVersionFilter enforces it.
+        assertEquals(HttpStatus.BAD_REQUEST, postWithProtocolVersion("1999-01-01").getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, postWithProtocolVersion("not-a-date").getStatusCode());
+    }
+
+    @Test
+    void everyVersionTheServerNegotiatesIsAlsoOneItAccepts() throws Exception {
+        // The filter's allowlist and the SDK's negotiation are two lists that have to agree.
+        // If they drift, the server negotiates a revision and then rejects requests naming
+        // it back - a failure that would only appear against a real client.
+        for (String version : McpProtocolVersionFilter.SUPPORTED) {
+            sessionId = null;
+            Map<String, Object> result = asMap(rpc(Map.of(
+                    "jsonrpc", "2.0", "id", ++requestId, "method", "initialize",
+                    "params", Map.of("protocolVersion", version, "capabilities", Map.of(),
+                            "clientInfo", Map.of("name", "test", "version", "1.0"))))
+                    .get("result"));
+            assertEquals(version, result.get("protocolVersion"),
+                    "server negotiated a different revision than the one requested");
+            assertEquals(HttpStatus.OK, postWithProtocolVersion(version).getStatusCode(),
+                    "server negotiates " + version + " but the filter rejects it");
+        }
+    }
+
+    @Test
+    void anAbsentProtocolVersionHeaderIsNotAnError() throws Exception {
+        // The header is optional; the spec tells a server that receives none to assume
+        // 2025-03-26 rather than fail. Rejecting its absence would break older clients.
+        assertEquals(HttpStatus.OK, postWithProtocolVersion(null).getStatusCode());
+    }
+
+    private ResponseEntity<String> postWithProtocolVersion(String version) throws Exception {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set(HttpHeaders.ACCEPT, "application/json, text/event-stream");
+        if (version != null) {
+            headers.set("MCP-Protocol-Version", version);
+        }
+        if (sessionId != null) {
+            headers.set("Mcp-Session-Id", sessionId);
+        }
+        String body = mapper.writeValueAsString(Map.of(
+                "jsonrpc", "2.0", "id", ++requestId, "method", "tools/list"));
+        return restTemplate.exchange(MCP, HttpMethod.POST,
+                new HttpEntity<>(body, headers), String.class);
     }
 
     @Test
