@@ -190,14 +190,18 @@ public class ShareCardRenderer {
                 new Color(200, 162, 61, 92),
                 new Color(200, 162, 61, 70),
                 // #f3e5b8 measured 8.74:1 on the ground but composites to rgb(210,201,168) —
-                // a beige, not a gold. This is saturated enough to read as one, and takes the
-                // footer domain from 4.42:1, under AA for its size, to 6.4:1.
-                new Color(0xff, 0xd7, 0x6a),
+                // a beige, not a gold. Brightness and goldenness pull against each other
+                // here: every lighter yellow is also a less saturated one, which is how
+                // the original ended up looking washed out. #ffdb5c is the exception,
+                // brighter than #ffd76a (10.56:1 against 10.32:1) and more saturated than
+                // it too, and it takes the footer domain from 4.42:1, under AA for its
+                // size, to 7.0:1.
+                new Color(0xff, 0xdb, 0x5c),
                 new Color(255, 255, 255),
                 new Color(255, 255, 255, 233),
                 new Color(gold.getRed(), gold.getGreen(), gold.getBlue(), 210),
-                new Color(255, 215, 106, 80),
-                new Color(255, 215, 106, 240),
+                new Color(255, 219, 92, 80),
+                new Color(255, 219, 92, 245),
                 loadImage("static/img/Alilogov2-transparent.png"));
     }
 
@@ -318,14 +322,14 @@ public class ShareCardRenderer {
      *
      * <p>Java2D has no blur, and a real one would be wasted here anyway: this is read at
      * WhatsApp thumbnail size as often as at full size, where a wide soft glow turns to
-     * haze. Two thin low-alpha outlines give the letters weight against the navy without
-     * thickening them.
+     * haze. One thin low-alpha outline gives the letters a little weight against the
+     * navy. An earlier pair of wider strokes read as an actual glow, which was too much.
      */
     private static void glow(Graphics2D g, TextLayout layout, Color colour, float x, float y) {
         Shape outline = layout.getOutline(AffineTransform.getTranslateInstance(x, y));
         Object hint = g.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        for (float[] pass : new float[][]{{4.2f, 26f}, {2.2f, 46f}}) {
+        for (float[] pass : new float[][]{{1.8f, 30f}}) {
             g.setColor(new Color(colour.getRed(), colour.getGreen(), colour.getBlue(),
                     Math.round(pass[1])));
             g.setStroke(new BasicStroke(pass[0], BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
