@@ -269,7 +269,19 @@ holds for books extracted one-profile-per-headed-entry.
 
 **Layer 4: Manual review queue** (edge cases)
 - Cases where even LLM judgment is uncertain get flagged for human review
+- Low-confidence Layer 3 answers land here rather than being applied
 - Should be rare if layers 1-3 work well
+
+**Not every deferral is a Layer 3 question.** Where no candidate carries any positive
+context, there is nothing for an agent to read: the names collided and the sources say
+nothing bearing on identity. Those resolve as *separate* by the standing default, and are
+recorded with their basis rather than sent out — asking for a judgment on absent evidence
+invites exactly the confident wrong merge the guards above exist to prevent.
+
+**Layer 3 batches are versioned against the merge that produced them.** Task ids are
+merge-relative, so a decision file is only meaningful against its own merge. Batches carry
+a fingerprint of the merge; applying decisions across merges is refused rather than
+silently mixed. This is what lets the merge keep improving while answers are outstanding.
 
 **Merge invariants.** These are checked after every merge and after the run as a whole; a
 violation stops the pipeline rather than being recorded as a statistic:
@@ -415,6 +427,11 @@ speed over 5A, and is only worth doing once merge precision is established.
 | `tmp/narrators_merge/deferred.json` | 3,095 pairwise deferrals |
 | `tmp/narrators_merge/quarantine.json` | 7 disambiguation pages held out |
 | `tmp/narrators_merge/violations.json` | 66 invariant violations |
+| `tmp/narrators_l3/batches/` | 112 Layer 3 batches — 32 group, 80 pair |
+| `tmp/narrators_l3/outputs/` | sub-agent decisions, one file per answered batch |
+| `tmp/narrators_l3/auto_separate.json` | 652 deferrals resolved without an agent |
+| `tmp/narrators_l3/merged_final.json` | Layer 3 output, once batches are answered |
+| `tmp/narrators_l3/review_queue.json` | low-confidence answers, for Layer 4 |
 | `tmp/narrators_merged.json` | **Superseded** — the 2026-06 merge, 29,305 profiles; do not index |
 
 **Code** — the Phase 1-2 pipeline is rebuilt in the tree:
@@ -424,7 +441,21 @@ speed over 5A, and is only worth doing once merge precision is established.
 | `scripts/narrators/narrator_schema.py` | normalizers, reliability vocabulary, Infallible registry |
 | `scripts/narrators/normalize_extraction.py` | the output contract, applied retroactively |
 | `scripts/narrators/merge_narrator_profiles.py` | Layers 0-2, invariants, Layer 3 task generation |
+| `scripts/narrators/l3_prepare.py` | Layer 3 batches, with the source quotations as evidence |
+| `scripts/narrators/l3_agent_prompt.md` | the sub-agent brief |
+| `scripts/narrators/l3_dispatch.py` | progress, and prompts for unanswered batches |
+| `scripts/narrators/l3_apply.py` | validate and apply decisions, union-find |
 | `scripts/narrators/audit_narrator_quality.py` | per-book completeness audit |
+
+Run order:
+
+```bash
+python3 scripts/narrators/normalize_extraction.py --strict
+python3 scripts/narrators/merge_narrator_profiles.py       # ~4 min
+python3 scripts/narrators/l3_prepare.py
+python3 scripts/narrators/l3_dispatch.py --next 8          # prompts to hand to sub-agents
+python3 scripts/narrators/l3_apply.py --dry-run
+```
 
 Phases 3-5 remain deleted, all recoverable from git:
 
@@ -549,8 +580,8 @@ Nothing here requires re-downloading a page except step 5.
 2. ~~**Implement Layer 0.**~~ Done — 1,086 batch fragments collapsed. Smaller than expected,
    because most Khoei and Mamaqani repeats are mentions rather than fragments.
 3. ~~**Rewrite the merge.**~~ Done — see the table above.
-4. **Drain Layer 3**, via sub-agents: 519 name-group partition tasks, then the 3,095
-   pairwise deferrals.
+4. **Drain Layer 3**, via sub-agents. Runner built; 112 batches outstanding. 652 of the
+   3,095 pairwise deferrals already resolved as keep-separate without an agent.
 5. **Re-run Tusi and Ardabili extraction** at a smaller batch size. Rijal al-Tusi at 123
    profiles is a hole the system cannot ship around.
 6. **Phase 3** — restore `NarratorIndexManager` and import.
