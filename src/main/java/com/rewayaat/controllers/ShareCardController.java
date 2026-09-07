@@ -174,6 +174,9 @@ public class ShareCardController {
      * Keying the cache by narration id instead would have gone on serving the old image
      * forever, which is exactly the failure {@code immutable} makes unrecoverable.
      */
+    /** Says whether the default card cut this narration short. Read by the share dialog. */
+    private static final String TRIMMED_HEADER = "X-Card-Trimmed";
+
     private ResponseEntity<byte[]> respond(ShareCardRenderer.Card card,
                                            ShareCardRenderer.Theme theme, String ifNoneMatch) {
         return respond(card, theme, ShareCardRenderer.Options.DEFAULT, ifNoneMatch);
@@ -193,7 +196,9 @@ public class ShareCardController {
         // A conditional request may quote the tag weakly ("W/..."), and a client is
         // allowed to send several.
         if (ifNoneMatch != null && ifNoneMatch.contains(hash)) {
-            return ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(etag).cacheControl(caching).build();
+            return ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(etag).cacheControl(caching)
+                    .header(TRIMMED_HEADER, Boolean.toString(renderer.truncates(card, options)))
+                    .build();
         }
 
         byte[] png = cache.get(hash);
@@ -208,6 +213,9 @@ public class ShareCardController {
                 .contentType(MediaType.IMAGE_PNG)
                 .eTag(etag)
                 .cacheControl(caching)
+                // Lets the share dialog drop the trimmed/full choice when this narration
+                // fits either way, rather than offering a control that changes nothing.
+                .header(TRIMMED_HEADER, Boolean.toString(renderer.truncates(card, options)))
                 .body(png);
     }
 

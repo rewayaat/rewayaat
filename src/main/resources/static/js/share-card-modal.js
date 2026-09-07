@@ -13,6 +13,7 @@
 (function () {
     'use strict';
 
+    var lengthCheck = 0;
     var state = {
         id: null, label: '', root: null, lastFocus: null,
         theme: 'dark',      // dark | light
@@ -138,6 +139,31 @@
             btn.setAttribute('aria-pressed', on ? 'true' : 'false');
         });
         state.root.querySelector('[data-share-address]').value = absolute(url);
+        updateLengthControl(url);
+    }
+
+    /**
+     * Trimmed and Full are the same image for most narrations — they are short enough to
+     * fit either way — and a control that changes nothing is worse than no control. The
+     * server says which case this is, per language, in X-Card-Trimmed.
+     */
+    function updateLengthControl(url) {
+        var group = state.root.querySelector('[data-share-group="full"]');
+        if (!group) { return; }
+        var token = ++lengthCheck;
+        fetch(url, {method: 'HEAD'})
+            .then(function (response) {
+                // A stale answer must not decide the current one: the reader may have
+                // switched language while this was in flight.
+                if (token !== lengthCheck || !state.root) { return; }
+                var trimmed = response.headers.get('X-Card-Trimmed') === 'true';
+                group.hidden = !trimmed;
+                if (!trimmed && state.full) {
+                    state.full = false;
+                    refresh();
+                }
+            })
+            .catch(function () { /* leave the control as it is */ });
     }
 
     function close() {
@@ -160,7 +186,7 @@
 
     function controlsMarkup() {
         return '<div class="share-card-modal__controls">' + CONTROLS.map(function (control) {
-            return '<div class="share-card-modal__control">'
+            return '<div class="share-card-modal__control" data-share-group="' + control.key + '">'
                 + '<span class="share-card-modal__control-label" id="share-ctl-' + control.key + '">'
                 + control.label + '</span>'
                 + '<div class="share-card-modal__segmented" role="group" '

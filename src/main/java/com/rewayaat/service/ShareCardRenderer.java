@@ -15,6 +15,8 @@ import java.awt.LinearGradientPaint;
 import java.awt.MultipleGradientPaint;
 import java.awt.RadialGradientPaint;
 import java.awt.RenderingHints;
+import java.awt.geom.AffineTransform;
+import java.awt.Shape;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.font.FontRenderContext;
@@ -41,7 +43,7 @@ import java.util.List;
  * can find, which may be nothing at all. Loading the exact TTFs we ship makes the output
  * identical on a developer laptop and in the cluster.
  *
- * <p>DroidKufi has no Latin glyphs at all and Source Serif has no Arabic ones, so text is
+ * <p>Noto Naskh has no Latin glyphs to speak of and Source Serif has no Arabic ones, so text is
  * split into runs by which font can actually draw each character. 711 of the English
  * fields in the index contain Arabic script, so a single-font card would have rendered
  * rows of .notdef boxes on those.
@@ -187,12 +189,15 @@ public class ShareCardRenderer {
                 new Color(200, 162, 61, 165),
                 new Color(200, 162, 61, 92),
                 new Color(200, 162, 61, 70),
-                new Color(243, 229, 184, 214),
+                // #f3e5b8 measured 8.74:1 on the ground but composites to rgb(210,201,168) —
+                // a beige, not a gold. This is saturated enough to read as one, and takes the
+                // footer domain from 4.42:1, under AA for its size, to 6.4:1.
+                new Color(0xff, 0xd7, 0x6a),
                 new Color(255, 255, 255),
                 new Color(255, 255, 255, 233),
                 new Color(gold.getRed(), gold.getGreen(), gold.getBlue(), 210),
-                new Color(243, 229, 184, 64),
-                new Color(243, 229, 184, 168),
+                new Color(255, 215, 106, 80),
+                new Color(255, 215, 106, 240),
                 loadImage("static/img/Alilogov2-transparent.png"));
     }
 
@@ -300,10 +305,35 @@ public class ShareCardRenderer {
         if (eyebrow == null || eyebrow.isBlank()) {
             return;
         }
-        g.setColor(palette.eyebrow());
         AttributedString text = fonts.runs(eyebrow, fonts.latinBold().deriveFont(21f),
                 fonts.arabic().deriveFont(21f), false, 0.16f);
-        new TextLayout(text.getIterator(), g.getFontRenderContext()).draw(g, PAD, EYEBROW_BASELINE);
+        TextLayout layout = new TextLayout(text.getIterator(), g.getFontRenderContext());
+        glow(g, layout, palette.eyebrow(), PAD, EYEBROW_BASELINE);
+        g.setColor(palette.eyebrow());
+        layout.draw(g, PAD, EYEBROW_BASELINE);
+    }
+
+    /**
+     * A soft halo in the text's own colour, drawn as two widening strokes underneath it.
+     *
+     * <p>Java2D has no blur, and a real one would be wasted here anyway: this is read at
+     * WhatsApp thumbnail size as often as at full size, where a wide soft glow turns to
+     * haze. Two thin low-alpha outlines give the letters weight against the navy without
+     * thickening them.
+     */
+    private static void glow(Graphics2D g, TextLayout layout, Color colour, float x, float y) {
+        Shape outline = layout.getOutline(AffineTransform.getTranslateInstance(x, y));
+        Object hint = g.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        for (float[] pass : new float[][]{{4.2f, 26f}, {2.2f, 46f}}) {
+            g.setColor(new Color(colour.getRed(), colour.getGreen(), colour.getBlue(),
+                    Math.round(pass[1])));
+            g.setStroke(new BasicStroke(pass[0], BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g.draw(outline);
+        }
+        if (hint != null) {
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, hint);
+        }
     }
 
     // ── Body ────────────────────────────────────────────────────────────────
@@ -341,40 +371,9 @@ public class ShareCardRenderer {
         }
 
         int bodyBottom = height - BODY_BOTTOM_INSET;
-        float available = bodyBottom - BODY_TOP - (hasArabic && hasEnglish ? DIVIDER_BAND : 0);
-        // Arabic takes the larger type: it is the primary text and the part that makes a
-        // card recognisable in a feed before anyone reads a word of it. Alone, each
-        // language gets the whole body and more lines.
-        float arabicBase = hasEnglish ? 44f : 52f;
-        float englishBase = hasArabic ? 28f : 33f;
-        // A full card was sized to hold everything, so the caps that keep a 630px card
-        // balanced would be the only thing still cutting the narration short.
-        int arabicCap = full ? Integer.MAX_VALUE : (hasEnglish ? 3 : 5);
-        int englishCap = full ? Integer.MAX_VALUE : (hasArabic ? 5 : 8);
-
-        Block ar = null;
-        Block en = null;
-        for (float scale : TYPE_SCALES) {
-            float arabicLeading = arabicBase * scale * 1.72f;
-            float englishLeading = englishBase * scale * 1.46f;
-            // Arabic may take everything except two lines the English is always owed, so
-            // a long narration cannot squeeze the translation down to a single clause.
-            float reservedForEnglish = hasEnglish ? 2 * englishLeading : 0;
-            Block a = hasArabic
-                    ? block(arabic, true, arabicBase * scale,
-                            budget(available - reservedForEnglish, arabicLeading, arabicCap),
-                            1.72f, frc)
-                    : null;
-            Block e = hasEnglish
-                    ? block(english, false, englishBase * scale,
-                            budget(available - height(a), englishLeading, englishCap), 1.46f, frc)
-                    : null;
-            ar = a;
-            en = e;
-            if (!truncated(a) && !truncated(e)) {
-                break;
-            }
-        }
+        Laid laid = layout(frc, arabic, english, height, full);
+        Block ar = laid.arabic();
+        Block en = laid.english();
 
         float total = height(ar) + (hasArabic && hasEnglish ? DIVIDER_BAND : 0) + height(en);
         float y = BODY_TOP + Math.max(0, (bodyBottom - BODY_TOP - total) / 2f);
@@ -412,15 +411,92 @@ public class ShareCardRenderer {
         Graphics2D g = scratch.createGraphics();
         try {
             FontRenderContext frc = g.getFontRenderContext();
-            float arabicBase = hasEnglish ? 44f : 52f;
-            float englishBase = hasArabic ? 28f : 33f;
+            float arabicBase = hasEnglish ? 32f : 37f;
+            float englishBase = hasArabic ? 24f : 29f;
             Block ar = hasArabic
-                    ? block(arabic, true, arabicBase, Integer.MAX_VALUE, 1.72f, frc) : null;
+                    ? block(arabic, true, arabicBase, Integer.MAX_VALUE, 1.58f, frc) : null;
             Block en = hasEnglish
                     ? block(english, false, englishBase, Integer.MAX_VALUE, 1.46f, frc) : null;
             float content = height(ar) + (hasArabic && hasEnglish ? DIVIDER_BAND : 0) + height(en);
             int needed = Math.round(BODY_TOP + content) + BODY_BOTTOM_INSET;
             return Math.max(HEIGHT, Math.min(MAX_FULL_HEIGHT, needed));
+        } finally {
+            g.dispose();
+        }
+    }
+
+    /** The two text blocks as they will be drawn. */
+    private record Laid(Block arabic, Block english) {
+        boolean truncated() {
+            return (arabic != null && arabic.truncated()) || (english != null && english.truncated());
+        }
+    }
+
+    /**
+     * Chooses a type size and a line budget for each block.
+     *
+     * <p>Arabic takes the larger type: it is the primary text and the part that makes a
+     * card recognisable in a feed before anyone reads a word of it. Alone, each language
+     * gets the whole body and more lines. Amiri is a naskh face that sits low in its em,
+     * so it reads smaller than these numbers suggest beside the Latin.
+     */
+    private Laid layout(FontRenderContext frc, String arabic, String english,
+                        int height, boolean full) {
+        boolean hasArabic = arabic != null && !arabic.isBlank();
+        boolean hasEnglish = english != null && !english.isBlank();
+        int bodyBottom = height - BODY_BOTTOM_INSET;
+        float available = bodyBottom - BODY_TOP - (hasArabic && hasEnglish ? DIVIDER_BAND : 0);
+        float arabicBase = hasEnglish ? 32f : 37f;
+        float englishBase = hasArabic ? 24f : 29f;
+        // A full card was sized to hold everything, so the caps that keep a 630px card
+        // balanced would be the only thing still cutting the narration short.
+        int arabicCap = full ? Integer.MAX_VALUE : (hasEnglish ? 7 : 11);
+        int englishCap = full ? Integer.MAX_VALUE : (hasArabic ? 8 : 13);
+
+        Block ar = null;
+        Block en = null;
+        for (float scale : TYPE_SCALES) {
+            float arabicLeading = arabicBase * scale * 1.58f;
+            float englishLeading = englishBase * scale * 1.46f;
+            // Arabic may take everything except two lines the English is always owed, so
+            // a long narration cannot squeeze the translation down to a single clause.
+            float reservedForEnglish = hasEnglish ? 2 * englishLeading : 0;
+            Block a = hasArabic
+                    ? block(arabic, true, arabicBase * scale,
+                            budget(available - reservedForEnglish, arabicLeading, arabicCap),
+                            1.58f, frc)
+                    : null;
+            Block e = hasEnglish
+                    ? block(english, false, englishBase * scale,
+                            budget(available - height(a), englishLeading, englishCap), 1.46f, frc)
+                    : null;
+            ar = a;
+            en = e;
+            if (!truncated(a) && !truncated(e)) {
+                break;
+            }
+        }
+        return new Laid(ar, en);
+    }
+
+    /**
+     * Whether the default card would cut this narration short.
+     *
+     * <p>The share dialog asks so it can drop the trimmed/full choice when there is
+     * nothing to choose between — most narrations are short enough that both settings
+     * produce the same image, and a control that does nothing is worse than no control.
+     */
+    public boolean truncates(Card card, Options options) {
+        Options opts = options == null ? Options.DEFAULT : options;
+        String arabic = opts.language() == Language.ENGLISH ? null : card.arabic();
+        String english = opts.language() == Language.ARABIC ? null : card.english();
+        if ((arabic == null || arabic.isBlank()) && (english == null || english.isBlank())) {
+            return false;
+        }
+        BufferedImage scratch = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = scratch.createGraphics();
+        try {
+            return layout(g.getFontRenderContext(), arabic, english, HEIGHT, false).truncated();
         } finally {
             g.dispose();
         }
@@ -495,12 +571,14 @@ public class ShareCardRenderer {
         if (footer == null || footer.isBlank()) {
             return;
         }
-        g.setColor(palette.footerInk());
         TextLayout label = new TextLayout(
                 fonts.runs(footer, fonts.latin().deriveFont(21f), fonts.arabic().deriveFont(21f),
                         false, 0.03f).getIterator(),
                 g.getFontRenderContext());
-        label.draw(g, WIDTH - PAD - label.getAdvance(), centreY + 7);
+        float labelX = WIDTH - PAD - label.getAdvance();
+        glow(g, label, palette.footerInk(), labelX, centreY + 7);
+        g.setColor(palette.footerInk());
+        label.draw(g, labelX, centreY + 7);
     }
 
     // ── Text layout ─────────────────────────────────────────────────────────
@@ -629,12 +707,32 @@ public class ShareCardRenderer {
      */
     private static final class CardFonts {
 
+        /*
+         * Noto Naskh Arabic, and the choice is made by the shaper rather than by taste.
+         * Java2D applies neither OpenType GSUB nor GPOS: it shapes Arabic by mapping to
+         * the legacy Presentation Forms-B block and stacks combining marks by their own
+         * metrics. A face has to survive both to be usable here, and the obvious
+         * candidates do not:
+         *
+         *   Scheherazade New — the face the site itself uses. Carries none of the
+         *       presentation forms, so the mandatory lam-alif ligature never formed and
+         *       لا rendered as two separate strokes.
+         *   Amiri — has the presentation forms, so it ligates correctly, but positions
+         *       every mark through GPOS. The harakat floated clear of their letters.
+         *   DroidKufi — correct on both counts, but kufi: geometric, heavy, and hard to
+         *       read at length. It is what this replaced.
+         *
+         * Noto Naskh has the full presentation-forms range and mark metrics that stand up
+         * without GPOS. Check any replacement for U+FEFB/U+FEFC and look at the harakat
+         * before adopting it; both failures are silent.
+         */
+
         private final Font arabic;
         private final Font latin;
         private final Font latinBold;
 
         private CardFonts() {
-            this.arabic = load("DroidKufi-Regular.ttf");
+            this.arabic = load("NotoNaskhArabic-Regular.ttf");
             this.latin = load("SourceSerif4-Regular.ttf");
             this.latinBold = load("SourceSerif4-Semibold.ttf");
         }
