@@ -378,14 +378,46 @@ public class ShareCardController {
     /**
      * Serves the card, drawing it only if it is not already in memory.
      *
-     * <p>The ETag is a hash of the card's own text and theme, and it is also the cache
-     * key. That is what makes an edit to a narration invalidate both at once: changed text
-     * hashes differently, so it misses the cache and no longer matches a stored ETag.
-     * Keying the cache by narration id instead would have gone on serving the old image
-     * forever, which is exactly the failure {@code immutable} makes unrecoverable.
+     * <p>The ETag is a hash of the card's own text, theme, language and completeness, and
+     * it is also the in-memory cache key. That is what makes an edit to a narration
+     * invalidate the render: changed text hashes differently, so it misses the cache and no
+     * longer matches a stored ETag.
+     *
+     * <p>What that does <em>not</em> do on its own is reach caches outside this process.
+     * The URL is stable across an edit - {@code /hadith/{id}/card.png} plus the theme,
+     * language and completeness parameters, eight variants of one narration - so a browser
+     * or CDN holding the old PNG will keep serving it until it revalidates. This response
+     * was previously marked {@code immutable} with a year's {@code max-age}, which tells a
+     * client in as many words never to revalidate: the ETag was then unreachable, and an
+     * edited narration would have shown its old card for a year with no way to force the
+     * issue short of changing the URL.
+     *
+     * <p>{@code immutable} is a promise that the bytes behind a URL will never change, and
+     * it is only safe when the URL carries a content hash. This one does not, so the header
+     * says what is true instead: cache briefly, then revalidate. The ETag makes that
+     * revalidation cheap - a 304 with no body - and {@code stale-while-revalidate} lets a
+     * shared cache serve the old card while it fetches the new one, so correcting the
+     * header costs latency nowhere.
      */
     /** Says whether the default card cut this narration short. Read by the share dialog. */
     private static final String TRIMMED_HEADER = "X-Card-Trimmed";
+
+    /**
+     * How long a card may be served without asking us again.
+     *
+     * <p>Short, because the URL does not change when a narration is edited, and long enough
+     * that a page embedding several cards does not revalidate each one on every view.
+     */
+    private static final Duration CARD_MAX_AGE = Duration.ofMinutes(10);
+
+    /**
+     * How long a shared cache may serve a stale card while it fetches a fresh one.
+     *
+     * <p>This is what keeps the correction free: a CDN answers immediately from what it
+     * has and refreshes behind the request, so an edit propagates within minutes without
+     * anyone waiting on a render.
+     */
+    private static final Duration CARD_STALE_WHILE_REVALIDATE = Duration.ofDays(1);
 
     /** Enough to find the lowest-numbered narration without paging a whole volume. */
     private static final int OPENING_CANDIDATES = 60;
@@ -411,7 +443,8 @@ public class ShareCardController {
         String hash = hash(theme + " " + options.language() + " " + options.full() + " "
                 + card.eyebrow() + " " + card.arabic() + " " + card.english());
         String etag = "\"" + hash + "\"";
-        CacheControl caching = CacheControl.maxAge(Duration.ofDays(365)).cachePublic().immutable();
+        CacheControl caching = CacheControl.maxAge(CARD_MAX_AGE).cachePublic()
+                .staleWhileRevalidate(CARD_STALE_WHILE_REVALIDATE);
 
         // A conditional request may quote the tag weakly ("W/..."), and a client is
         // allowed to send several.

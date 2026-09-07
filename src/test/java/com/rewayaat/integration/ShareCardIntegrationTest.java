@@ -82,8 +82,19 @@ class ShareCardIntegrationTest extends ElasticsearchTestSupport {
 
         String cacheControl = first.getHeaders().getCacheControl();
         assertNotNull(cacheControl);
-        assertTrue(cacheControl.contains("max-age=31536000"), "expected a year, got: " + cacheControl);
         assertTrue(cacheControl.contains("public"), "expected public, got: " + cacheControl);
+
+        // The card URL is stable across an edit - it carries no content hash - so the
+        // response must not claim to be immutable. That header tells a client never to
+        // revalidate, which puts the ETag below out of reach and would leave an edited
+        // narration showing its old card until the cache entry expired.
+        assertFalse(cacheControl.contains("immutable"),
+                "a card URL that does not change when the narration does must not be "
+                        + "marked immutable, got: " + cacheControl);
+        assertFalse(cacheControl.contains("max-age=31536000"),
+                "a year of max-age outlives any edit to the narration, got: " + cacheControl);
+        assertTrue(cacheControl.contains("stale-while-revalidate"),
+                "revalidation should be free to a shared cache, got: " + cacheControl);
 
         HttpHeaders conditional = new HttpHeaders();
         conditional.setIfNoneMatch(etag);
@@ -96,8 +107,8 @@ class ShareCardIntegrationTest extends ElasticsearchTestSupport {
 
     /**
      * Two themes behind one URL. They must be distinct images with distinct ETags, or the
-     * second one requested would be served out of the first one's cache — and with
-     * {@code immutable} on the response, a viewer would keep the wrong one for a year.
+     * second one requested would be served out of the first one's cache, and a viewer
+     * would keep the wrong one until their copy expired.
      */
     @Test
     void theLightThemeIsADistinctImageWithItsOwnEtag() throws Exception {
