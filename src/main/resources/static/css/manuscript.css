@@ -5457,9 +5457,22 @@ body::after {
     color: #0b1728 !important;
 }
 
+/* 1440px was too wide twice over. A narration card holds two text columns, English and
+   Arabic, and at that width each ran to a line length that is tiring to read while the
+   card itself carried large empty margins around them. It also collided with Bootstrap's
+   container gutter, which is about 12px: between roughly 1440 and 1520 the container hit
+   its cap with almost nothing left over, so the card sat flush against both edges of the
+   window - full-bleed at 1440, comfortably inset at 1920, for no reason a reader could
+   see.
+
+   1280 keeps the sidebar-plus-card layout intact and gives the columns a sane measure.
+   The explicit inline padding is the other half: a max-width alone cannot stop the
+   container touching the edges at the widths just above it. */
 main.container {
-    max-width: 1440px;
+    max-width: 1280px;
     padding-top: 1.5rem;
+    padding-left: clamp(1rem, 3vw, 2.5rem);
+    padding-right: clamp(1rem, 3vw, 2.5rem);
 }
 
 .home-hero {
