@@ -22,7 +22,7 @@ import sys
 from collections import Counter, defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from l3_prepare import merge_fingerprint  # noqa: E402
+from l3_prepare import merge_fingerprint, run_directory  # noqa: E402
 
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 TMP = os.path.join(REPO, "tmp")
@@ -104,16 +104,22 @@ def main():
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--merge-dir", default=os.path.join(TMP, "narrators_merge"))
     parser.add_argument("--l3-dir", default=os.path.join(TMP, "narrators_l3"))
+    parser.add_argument("--run", help="run directory to apply (default: this merge's)")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
-
-    tasks, origin = load_tasks(os.path.join(args.l3_dir, "batches"))
-    outputs = sorted(glob.glob(os.path.join(args.l3_dir, "outputs", "*.json")))
-    print(f"{len(tasks)} tasks prepared, {len(outputs)} decision files present")
 
     with open(os.path.join(args.merge_dir, "merged.json")) as handle:
         merged = json.load(handle)
     current = merge_fingerprint(merged)
+    run_dir = args.run or run_directory(args.l3_dir, current)
+    if not os.path.isdir(run_dir):
+        raise SystemExit(f"no run directory for this merge ({current}) at {run_dir} — "
+                         f"run l3_prepare.py first")
+
+    tasks, origin = load_tasks(os.path.join(run_dir, "batches"))
+    outputs = sorted(glob.glob(os.path.join(run_dir, "outputs", "*.json")))
+    print(f"run {os.path.basename(run_dir)}: {len(tasks)} tasks, "
+          f"{len(outputs)} decision files present")
     stale = {fp for _batch, fp in origin.values() if fp and fp != current}
     if stale:
         raise SystemExit(
@@ -174,7 +180,7 @@ def main():
     unanswered = sorted(set(tasks) - answered)
     counts["unanswered_tasks"] = len(unanswered)
 
-    auto_path = os.path.join(args.l3_dir, "auto_separate.json")
+    auto_path = os.path.join(run_dir, "auto_separate.json")
     if os.path.exists(auto_path):
         with open(auto_path) as handle:
             counts["auto_separate"] = len(json.load(handle))
@@ -230,11 +236,11 @@ def main():
                           ("apply_stats", {"counts": dict(counts),
                                            "errors": errors,
                                            "unanswered": unanswered[:200]})):
-        with open(os.path.join(args.l3_dir, f"{name}.json"), "w") as handle:
+        with open(os.path.join(run_dir, f"{name}.json"), "w") as handle:
             json.dump(payload, handle, ensure_ascii=False)
 
     print(f"\n{len(merged)} -> {len(final)} profiles")
-    print(f"Output: {args.l3_dir}")
+    print(f"Output: {run_dir}")
 
 
 if __name__ == "__main__":

@@ -307,6 +307,16 @@ merge-relative, so a decision file is only meaningful against its own merge. Bat
 a fingerprint of the merge; applying decisions across merges is refused rather than
 silently mixed. This is what lets the merge keep improving while answers are outstanding.
 
+**Each merge gets its own immutable run directory**, `tmp/narrators_l3/runs/<fingerprint>/`.
+Batch files are never rewritten in place. Sub-agents read a batch over several minutes, and
+re-running the merge underneath them silently changed both the task ids and the profile
+ids they were reasoning about — three agents in one wave detected it themselves and redid
+their work, which is not a property to rely on. A new merge writes a new directory, answers
+to an older merge stay where they were, and nothing needs archiving by hand.
+
+Even so, **do not re-run the merge while agents are in flight.** The layout makes the race
+harmless rather than absent.
+
 **Merge invariants.** These are checked after every merge and after the run as a whole; a
 violation stops the pipeline rather than being recorded as a statistic:
 

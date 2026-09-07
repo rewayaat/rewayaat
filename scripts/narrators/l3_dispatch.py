@@ -13,6 +13,7 @@ Usage:
 """
 
 import argparse
+import glob
 import json
 import os
 
@@ -57,6 +58,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--l3-dir", default=os.path.join(TMP, "narrators_l3"))
+    parser.add_argument("--run", help="run directory (default: most recent)")
     parser.add_argument("--next", type=int, default=0,
                         help="print prompts for this many pending batches")
     parser.add_argument("--kind", choices=["group", "pair"],
@@ -64,11 +66,19 @@ def main():
     args = parser.parse_args()
 
     l3_dir = os.path.realpath(args.l3_dir)
-    with open(os.path.join(l3_dir, "manifest.json")) as handle:
+    run_dir = args.run
+    if run_dir is None:
+        runs = sorted(glob.glob(os.path.join(l3_dir, "runs", "*")), key=os.path.getmtime)
+        if not runs:
+            raise SystemExit(f"no runs under {l3_dir}/runs — run l3_prepare.py first")
+        run_dir = runs[-1]
+    print(f"run: {os.path.basename(run_dir)}\n")
+
+    with open(os.path.join(run_dir, "manifest.json")) as handle:
         manifest = json.load(handle)
 
-    batch_dir = os.path.join(l3_dir, "batches")
-    output_dir = os.path.join(l3_dir, "outputs")
+    batch_dir = os.path.join(run_dir, "batches")
+    output_dir = os.path.join(run_dir, "outputs")
     entries = [b for b in manifest["batches"]
                if not args.kind or b["kind"] == args.kind]
     pending = [b for b in entries

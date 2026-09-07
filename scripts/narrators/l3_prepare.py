@@ -16,8 +16,16 @@ Two kinds of task:
   pair   — a profile matched a candidate on an alias or partial name and context was
            inconclusive. Same person as one of the candidates, or nobody?
 
+Each merge gets its own immutable run directory, named for its fingerprint:
+
+    tmp/narrators_l3/runs/<fingerprint>/{batches,outputs}/
+
+Batches are never rewritten in place. A sub-agent reading a batch file cannot have it
+change under it because the merge was re-run, and answers to an older merge stay where
+they were rather than needing to be archived by hand.
+
 Reads  tmp/narrators_merge/{merged,name_group_tasks,deferred}.json
-Writes tmp/narrators_l3/batches/{group,pair}_NNNN.json  and  manifest.json
+Writes tmp/narrators_l3/runs/<fingerprint>/batches/{group,pair}_NNNN.json
 
 Usage:
     python3 scripts/narrators/l3_prepare.py
@@ -41,6 +49,15 @@ MAX_CHAIN_NAMES = 6
 # group larger than this is still emitted alone rather than split, because splitting a
 # partition task destroys the comparison it exists to make.
 DEFAULT_BUDGET = 120000
+
+
+def run_directory(out_dir, fingerprint):
+    """Immutable per-merge run directory.
+
+    The fingerprint carries a colon, which is legal on this filesystem but awkward in
+    shell paths, so it becomes a hyphen in the directory name.
+    """
+    return os.path.join(out_dir, "runs", fingerprint.replace(":", "-"))
 
 
 def merge_fingerprint(merged):
@@ -194,16 +211,18 @@ def main():
         for source in profile["contributing_sources"]:
             source_to_merged[(source["book"], source["source_index"])] = profile["merged_id"]
 
-    batch_dir = os.path.join(args.out_dir, "batches")
+    run_dir = run_directory(args.out_dir, merge_fingerprint(merged))
+    batch_dir = os.path.join(run_dir, "batches")
     os.makedirs(batch_dir, exist_ok=True)
-    os.makedirs(os.path.join(args.out_dir, "outputs"), exist_ok=True)
+    os.makedirs(os.path.join(run_dir, "outputs"), exist_ok=True)
 
     fingerprint = merge_fingerprint(merged)
-    print(f"merge fingerprint: {fingerprint}\n")
+    print(f"merge fingerprint: {fingerprint}")
+    print(f"run directory:     {run_dir}\n")
 
     # Preserve entries for kinds this run is not regenerating. Running with --kinds group
     # must not drop the pair batches from the manifest and strand their answers.
-    manifest_path = os.path.join(args.out_dir, "manifest.json")
+    manifest_path = os.path.join(run_dir, "manifest.json")
     kept = []
     if os.path.exists(manifest_path):
         with open(manifest_path) as handle:
@@ -226,7 +245,7 @@ def main():
             with open(os.path.join(args.merge_dir, "deferred.json")) as handle:
                 tasks, auto_separate = build_pair_tasks(
                     merged_by_id, json.load(handle), source_to_merged)
-            with open(os.path.join(args.out_dir, "auto_separate.json"), "w") as handle:
+            with open(os.path.join(run_dir, "auto_separate.json"), "w") as handle:
                 json.dump(auto_separate, handle, ensure_ascii=False, indent=1)
             print(f"pair: {len(auto_separate)} resolved as keep-separate without an agent "
                   f"(no positive evidence)")
