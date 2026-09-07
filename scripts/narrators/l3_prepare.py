@@ -184,6 +184,7 @@ def main():
     parser.add_argument("--budget", type=int, default=DEFAULT_BUDGET)
     args = parser.parse_args()
 
+    kinds = [k.strip() for k in args.kinds.split(",") if k.strip()]
     with open(os.path.join(args.merge_dir, "merged.json")) as handle:
         merged = json.load(handle)
     merged_by_id = {p["merged_id"]: p for p in merged}
@@ -192,16 +193,30 @@ def main():
         for source in profile["contributing_sources"]:
             source_to_merged[(source["book"], source["source_index"])] = profile["merged_id"]
 
-    kinds = [k.strip() for k in args.kinds.split(",") if k.strip()]
     batch_dir = os.path.join(args.out_dir, "batches")
     os.makedirs(batch_dir, exist_ok=True)
     os.makedirs(os.path.join(args.out_dir, "outputs"), exist_ok=True)
 
     fingerprint = merge_fingerprint(merged)
     print(f"merge fingerprint: {fingerprint}\n")
+
+    # Preserve entries for kinds this run is not regenerating. Running with --kinds group
+    # must not drop the pair batches from the manifest and strand their answers.
+    manifest_path = os.path.join(args.out_dir, "manifest.json")
+    kept = []
+    if os.path.exists(manifest_path):
+        with open(manifest_path) as handle:
+            previous = json.load(handle)
+        if previous.get("merge_fingerprint") in (None, fingerprint):
+            kept = [b for b in previous.get("batches", []) if b["kind"] not in kinds]
+            if kept:
+                print(f"keeping {len(kept)} existing batch entries for "
+                      f"{sorted({b['kind'] for b in kept})}")
+        else:
+            print("existing manifest is from a different merge — replacing it")
     manifest = {"budget": args.budget,
                 "merge_fingerprint": fingerprint,
-                "batches": []}
+                "batches": list(kept)}
     for kind in kinds:
         if kind == "group":
             with open(os.path.join(args.merge_dir, "name_group_tasks.json")) as handle:
@@ -235,7 +250,8 @@ def main():
                 "chars": os.path.getsize(path),
             })
 
-    with open(os.path.join(args.out_dir, "manifest.json"), "w") as handle:
+    manifest["batches"].sort(key=lambda b: (b["kind"], b["batch"]))
+    with open(manifest_path, "w") as handle:
         json.dump(manifest, handle, ensure_ascii=False, indent=1)
     total = sum(b["chars"] for b in manifest["batches"])
     print(f"\n{len(manifest['batches'])} batches, {total // 1000}K chars -> {batch_dir}")
