@@ -87,9 +87,6 @@
 	            </div>
 	        </div>
             <div class="menu-context-row">
-                <div id="menuReadingScope" class="menu-reading-scope d-none" aria-live="polite">
-                    <span class="menu-reading-scope__value"></span>
-                </div>
                 <div class="d-flex gap-2 top-actions flex-nowrap">
                     <div class="auth-mobile-menu-wrapper">
                         <button class="btn btn-dark btn-sm top-action auth-action" id="authSignInBtn" type="button">
@@ -129,54 +126,6 @@
 <section id="hadithView" class="mb-4" v-cloak>
     <div class="hadith-layout">
         <div class="hadith-content">
-        <div id="readingToolbar" class="reading-toolbar d-none">
-            <div class="reading-controls browse-panel">
-                <div class="reading-field browse-field">
-                    <label for="readingBookSelect">Book</label>
-                    <div class="facet-select-wrap">
-                        <select id="readingBookSelect" class="form-select form-select-sm">
-                            <option value="">Select a book</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="reading-field browse-field is-hidden" data-reading-facet="volume">
-                    <label for="readingVolumeSelect">Volume</label>
-                    <div class="facet-select-wrap">
-                        <select id="readingVolumeSelect" class="form-select form-select-sm" disabled>
-                            <option value="">Select a volume</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="reading-field browse-field is-hidden" data-reading-facet="part">
-                    <label for="readingPartSelect">Part</label>
-                    <div class="facet-select-wrap">
-                        <select id="readingPartSelect" class="form-select form-select-sm" disabled>
-                            <option value="">Show All</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="reading-field browse-field is-hidden" data-reading-facet="section">
-                    <label for="readingSectionSelect">Section</label>
-                    <div class="facet-select-wrap">
-                        <select id="readingSectionSelect" class="form-select form-select-sm" disabled>
-                            <option value="">Show All</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="reading-field browse-field is-hidden" data-reading-facet="chapter">
-                    <label for="readingChapterSelect">Chapter</label>
-                    <div class="facet-select-wrap">
-                        <select id="readingChapterSelect" class="form-select form-select-sm" disabled>
-                            <option value="">Show All</option>
-                        </select>
-                    </div>
-                </div>
-                <button id="readingApplyBtn" class="btn btn-primary btn-sm reading-apply browse-action" disabled>
-                    <i class="fa fa-refresh" aria-hidden="true" style="margin-right: 8px;"></i>
-                    Update Results
-                </button>
-            </div>
-        </div>
         <div class="tag-filter-bar tag-filter-bar--results mb-3"
              v-if="collectionMode || totalHits || allNarrations.length > 0">
             <div class="tag-filter-bar__results-head">
@@ -263,8 +212,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="results-toolbar" v-if="readingMode || collectionMode">
-                    <pagination v-if="readingMode || collectionMode" class="pagination pagination--top"></pagination>
+                <div class="results-toolbar" v-if="collectionMode">
+                    <pagination v-if="collectionMode" class="pagination pagination--top"></pagination>
                 </div>
             </div>
             <div class="tag-filter-bar__head"
@@ -369,7 +318,7 @@
                          v-bind:class="'hadith-card--' + activeNarrationSidecarTab(narration)"
                          v-bind:style="sidecarStyleVars"
                          v-bind:id="narrationDomId(narration)">
-                    <div class="hadith-card__result-num">{{ collectionMode || readingMode ? 'Hadith' : 'Result' }} {{ resultOrdinal(narration, index) }}/{{ totalHits }}</div>
+                    <div class="hadith-card__result-num">{{ collectionMode ? 'Hadith' : 'Result' }} {{ resultOrdinal(narration, index) }}/{{ totalHits }}</div>
                     <div class="card-body">
                         <div class="row g-4 hadith-card__layout">
                             <aside class="hadith-sidecar hadith-card__meta">
@@ -862,13 +811,13 @@
             </div>
         </div>
 
-        <div v-if="!readingMode && !collectionMode && hasMoreNarrationsToReveal"
+        <div v-if="!collectionMode && hasMoreNarrationsToReveal"
              ref="scrollSentinel"
              class="search-reveal-sentinel">
             Loading more results...
         </div>
 
-        <div class="mt-4" v-if="readingMode || collectionMode">
+        <div class="mt-4" v-if="collectionMode">
             <pagination class="pagination pagination--bottom"></pagination>
         </div>
     </div>
