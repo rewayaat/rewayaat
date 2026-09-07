@@ -81,6 +81,59 @@ def name_tokens(normalized_ar):
     return [t for t in normalized_ar.split(" ") if t and t not in _AR_STOP_TOKENS]
 
 
+# Arabic editorial shorthand for "the person under discussion". Mamaqani uses these
+# constantly and the extractor recorded them as aliases; they are not names in any sense
+# and 280 profiles carry one.
+EDITORIAL_PLACEHOLDERS = {
+    "المترجم", "المترجم له", "المعنون", "المعنون له", "صاحب الترجمه",
+    "الرجل", "المذكور", "المزبور", "نفسه", "هو", "المشار اليه", "الراوي",
+}
+
+
+# The English counterparts of _AR_STOP_TOKENS, across the transliteration schemes the
+# sources use.
+_EN_STOP_TOKENS = {
+    "ibn", "bin", "b", "bint", "abu", "abi", "aba", "umm", "um", "al", "abd",
+    "abdul", "mawla", "ben", "the", "of", "sheikh", "shaykh", "sayyid",
+}
+
+
+def english_name_tokens(normalized_en):
+    """Identifying tokens of a normalized English name."""
+    if not normalized_en:
+        return []
+    return [t for t in normalized_en.split(" ") if t and t not in _EN_STOP_TOKENS]
+
+
+def is_identifying_english_alias(name):
+    """English counterpart of is_identifying_alias.
+
+    A word count is not enough: "abu muhammad" is two words and no more identifying than
+    أبو محمد, which is why it kept generating candidates after the Arabic side was fixed.
+    """
+    normalized = normalize_english(name or "")
+    return len(english_name_tokens(normalized)) >= 2
+
+
+def is_identifying_alias(name):
+    """True when an alias may generate merge candidates.
+
+    Aliases legitimately carry kunyahs (أبو العباس) and bare nisbahs (الكوفي) alongside
+    real name variants. Those are disambiguators, not identifiers — the same rule that
+    keeps `titles` and `kunyah_arabic` out of the name index has to apply to alias strings
+    of the same shape, or the exclusion is laundered through the alias list. `الكوفي`
+    alone once linked nine unrelated narrators into one profile.
+
+    Two identifying tokens is the bar; name_tokens already discards بن/ابن/أبو/أم and the
+    other connectors, so a bare kunyah or single nisbah scores zero or one. Such aliases
+    are still stored and displayed — they just cannot be the reason two profiles merge.
+    """
+    normalized = normalize_arabic(name or "")
+    if not normalized or normalized in EDITORIAL_PLACEHOLDERS:
+        return False
+    return len(name_tokens(normalized)) >= 2
+
+
 # --- Reliability vocabulary ---
 #
 # Two axes, deliberately separate. Reliability is a verdict on a narrator's transmission;
