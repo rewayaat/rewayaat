@@ -82,8 +82,9 @@ public class HadithCardFactory {
     /**
      * The sidecar rows, in the order and with the icons the search card uses.
      *
-     * <p>Book, volume and chapter carry a URL; part and section have no page of their
-     * own, so they render as plain text rather than as links that lead nowhere useful.
+     * <p>Book, volume, part and chapter each carry a URL. Section is the one level with
+     * no page of its own, so it renders as plain text rather than as a link that leads
+     * nowhere. Part was plain text too until part pages existed; it is a link now.
      */
     private List<Map<String, String>> metadataRows(Map<String, Object> source, String number) {
         String book = str(source.get("book"));
@@ -96,13 +97,22 @@ public class HadithCardFactory {
                 ? null : bookUrl + "/volume/" + encode(volume);
         String chapterUrl = catalog.chapterFor(book, volume, str(source.get("part")),
                 str(source.get("section")), chapter).map(BookCatalog.Chapter::url).orElse(null);
+        // Matched within the volume: the same part title recurs across volumes, and the
+        // catalogue disambiguates the slugs accordingly.
+        String partTitle = str(source.get("part"));
+        String partUrl = partTitle.isBlank() ? null : catalogued
+                .flatMap(b -> b.partsInVolume(volume).stream()
+                        .filter(candidate -> partTitle.equals(candidate.title()))
+                        .findFirst())
+                .map(BookCatalog.Part::url)
+                .orElse(null);
 
         List<Map<String, String>> rows = new ArrayList<>();
         addRow(rows, "fa fa-hashtag", "Hadith #", number, null);
         addRow(rows, "fa fa-book", "Book", book, bookUrl);
         addRow(rows, "fa fa-layer-group", "Volume", volume, volumeUrl);
         addRow(rows, "fa fa-bookmark", "Section", str(source.get("section")), null);
-        addRow(rows, "fa fa-clone", "Part", str(source.get("part")), null);
+        addRow(rows, "fa fa-clone", "Part", partTitle, partUrl);
         addRow(rows, "fa fa-heading", "Chapter", chapter, chapterUrl);
         addRow(rows, "fa fa-arrow-right-from-bracket", "Source", str(source.get("source")), null);
         addRow(rows, "fa fa-pen-to-square", "Edition", str(source.get("edition")), null);

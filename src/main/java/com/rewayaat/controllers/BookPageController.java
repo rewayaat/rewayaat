@@ -155,6 +155,7 @@ public class BookPageController {
                 "%s, %s: %,d narrations across %,d chapters, in Arabic and English.",
                 book.name(), label, narrations, chapters.size()));
         model.addAttribute("canonicalUrl", BASE_URL + "/books/" + bookSlug + "/volume/" + encode(volume));
+        model.addAttribute("shareImageUrl", BASE_URL + "/books/" + bookSlug + "/volume/" + encode(volume) + "/card.png");
 
         LinkedHashMap<String, String> trail = new LinkedHashMap<>();
         trail.put(book.name(), "/books/" + bookSlug);
@@ -189,6 +190,7 @@ public class BookPageController {
                 "%s, %s: %,d narrations across %,d chapters, in Arabic and English.",
                 book.name(), part.title(), narrations, chapters.size()));
         model.addAttribute("canonicalUrl", BASE_URL + part.url());
+        model.addAttribute("shareImageUrl", BASE_URL + part.url() + "/card.png");
         model.addAttribute("jsonLd", bookJsonLd(book));
 
         LinkedHashMap<String, String> trail = new LinkedHashMap<>();
@@ -241,6 +243,7 @@ public class BookPageController {
                 "%s: %,d narration%s from %s, in Arabic and English with full chains of transmission.",
                 chapter.title(), chapter.count(), chapter.count() == 1 ? "" : "s", chapter.bookName()));
         model.addAttribute("canonicalUrl", BASE_URL + chapter.url());
+        model.addAttribute("shareImageUrl", BASE_URL + chapter.url() + "/card.png");
         model.addAttribute("jsonLd", chapterJsonLd(chapter, narrations));
 
         LinkedHashMap<String, String> trail = new LinkedHashMap<>();
