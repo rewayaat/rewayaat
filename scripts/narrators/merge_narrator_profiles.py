@@ -24,7 +24,10 @@ import sys
 from collections import Counter, defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from narrator_schema import normalize_arabic, normalize_english  # noqa: E402
+from narrator_schema import (  # noqa: E402
+    is_identifying_alias, is_identifying_english_alias,
+    normalize_arabic, normalize_english,
+)
 
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 TMP = os.path.join(REPO, "tmp")
@@ -236,25 +239,45 @@ class MergeState:
         self._index(merged["merged_id"], profile)
 
     def _index(self, mid, profile):
-        for name in [profile["primary_arabic_name"]] + profile["arabic_aliases"]:
-            key = normalize_arabic(name or "")
+        # A profile's own primary name always indexes. Aliases index only when they are
+        # identifiers rather than disambiguators — see is_identifying_alias.
+        key = normalize_arabic(profile["primary_arabic_name"] or "")
+        if key:
+            self.arabic_index[key].add(mid)
+        for name in profile["arabic_aliases"]:
+            if not is_identifying_alias(name):
+                continue
+            key = normalize_arabic(name)
             if key:
                 self.arabic_index[key].add(mid)
-        for name in [profile["primary_english_name"]] + profile["english_aliases"]:
-            key = normalize_english(name or "")
+        key = normalize_english(profile["primary_english_name"] or "")
+        if key:
+            self.english_index[key].add(mid)
+        for name in profile["english_aliases"]:
+            if not is_identifying_english_alias(name):
+                continue
+            key = normalize_english(name)
             if key:
                 self.english_index[key].add(mid)
 
     def candidates(self, profile):
         """Candidate merged ids, keyed by the name that produced them."""
         found = defaultdict(set)
-        for name in [profile["primary_arabic_name"]] + profile["arabic_aliases"]:
+        probes = [profile["primary_arabic_name"]] + [
+            a for a in profile["arabic_aliases"] if is_identifying_alias(a)
+        ]
+        for name in probes:
             key = normalize_arabic(name or "")
             for mid in self.arabic_index.get(key, ()):
                 found[mid].add(key)
         if not found:
-            for name in [profile["primary_english_name"]] + profile["english_aliases"]:
+            english = [profile["primary_english_name"]] + [
+                a for a in profile["english_aliases"] if is_identifying_english_alias(a)
+            ]
+            for name in english:
                 key = normalize_english(name or "")
+                if not key or not is_identifying_english_alias(key):
+                    continue
                 for mid in self.english_index.get(key, ()):
                     found[mid].add(key)
         return found

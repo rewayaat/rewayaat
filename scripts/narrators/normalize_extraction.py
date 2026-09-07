@@ -24,7 +24,7 @@ from collections import Counter, defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from narrator_schema import (  # noqa: E402
-    GRADE_KEYWORDS_AR, RELIABILITY_GRADES, SECT_FLAGS,
+    EDITORIAL_PLACEHOLDERS, GRADE_KEYWORDS_AR, RELIABILITY_GRADES, SECT_FLAGS,
     is_infallible, name_tokens, normalize_arabic, normalize_english, parse_grade,
 )
 
@@ -207,6 +207,12 @@ def normalize_profile(raw, book_slug, index, stats, errors):
 
     flags = []
     aliases_ar = sorted({a for a in map(as_text, as_list(cleaned.get("arabic_aliases"))) if a})
+    # "المترجم" ("the biographee") is Mamaqani's shorthand for the person under discussion,
+    # not a name he is known by. Dropped rather than flagged: there is nothing to recover.
+    dropped = [a for a in aliases_ar if normalize_arabic(a) in EDITORIAL_PLACEHOLDERS]
+    if dropped:
+        aliases_ar = [a for a in aliases_ar if a not in dropped]
+        stats["dropped_editorial_aliases"] += len(dropped)
     if len(name_tokens(norm_ar)) <= 1 and len(aliases_ar) >= INDEX_PAGE_ALIASES:
         # A one-token name carrying dozens of aliases is a disambiguation page, not a
         # person: Khoei and Mamaqani both head a page listing everyone called حفص, and the
@@ -281,6 +287,7 @@ def normalize_book(book_slug, tmp_dir, out_dir, strict, verbose):
         "flag_no_arabic_matching_key": 0,
         "flag_grade_recoverable": 0,
         "flag_index_page_suspect": 0,
+        "dropped_editorial_aliases": 0,
     }
     errors = []
     out = []
@@ -319,7 +326,8 @@ def normalize_book(book_slug, tmp_dir, out_dir, strict, verbose):
         print(f"      flags: latin-in-arabic {stats['flag_latin_in_arabic_name']}, "
               f"no-key {stats['flag_no_arabic_matching_key']}, "
               f"grade-recoverable {stats['flag_grade_recoverable']}, "
-              f"index-page {stats['flag_index_page_suspect']}")
+              f"index-page {stats['flag_index_page_suspect']}, "
+              f"editorial-aliases-dropped {stats['dropped_editorial_aliases']}")
 
     stats["rescued_keys"] = dict(stats["rescued_keys"])
     stats["unparsed_grades"] = dict(stats["unparsed_grades"])
