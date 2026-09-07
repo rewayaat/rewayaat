@@ -76,6 +76,9 @@ KEY_RESCUE = {
 KEY_DISCARD = {"assessed"}
 
 _LATIN = re.compile(r"[A-Za-z]")
+
+# Alias count at which a one-token name is a disambiguation page rather than a narrator.
+INDEX_PAGE_ALIASES = 8
 _YEAR = re.compile(r"(\d{1,4})")
 
 
@@ -203,6 +206,13 @@ def normalize_profile(raw, book_slug, index, stats, errors):
     stats["grades"][grade] += 1
 
     flags = []
+    aliases_ar = sorted({a for a in map(as_text, as_list(cleaned.get("arabic_aliases"))) if a})
+    if len(name_tokens(norm_ar)) <= 1 and len(aliases_ar) >= INDEX_PAGE_ALIASES:
+        # A one-token name carrying dozens of aliases is a disambiguation page, not a
+        # person: Khoei and Mamaqani both head a page listing everyone called حفص, and the
+        # extractor turned it into one profile with 89 "aliases" that are 89 people.
+        flags.append("index_page_suspect")
+        stats["flag_index_page_suspect"] += 1
     if arabic_name and _LATIN.search(arabic_name):
         flags.append("latin_in_arabic_name")
         stats["flag_latin_in_arabic_name"] += 1
@@ -222,7 +232,7 @@ def normalize_profile(raw, book_slug, index, stats, errors):
         "source_index": index,
         "primary_arabic_name": arabic_name,
         "primary_english_name": english_name,
-        "arabic_aliases": sorted({a for a in map(as_text, as_list(cleaned.get("arabic_aliases"))) if a}),
+        "arabic_aliases": aliases_ar,
         "english_aliases": sorted({a for a in map(as_text, as_list(cleaned.get("english_aliases"))) if a}),
         "kunyah_arabic": as_text(cleaned.get("kunyah_arabic")),
         "kunyah_english": as_text(cleaned.get("kunyah_english")),
@@ -270,6 +280,7 @@ def normalize_book(book_slug, tmp_dir, out_dir, strict, verbose):
         "flag_latin_in_arabic_name": 0,
         "flag_no_arabic_matching_key": 0,
         "flag_grade_recoverable": 0,
+        "flag_index_page_suspect": 0,
     }
     errors = []
     out = []
@@ -307,7 +318,8 @@ def normalize_book(book_slug, tmp_dir, out_dir, strict, verbose):
             print(f"      UNPARSED GRADES: {dict(stats['unparsed_grades'])}")
         print(f"      flags: latin-in-arabic {stats['flag_latin_in_arabic_name']}, "
               f"no-key {stats['flag_no_arabic_matching_key']}, "
-              f"grade-recoverable {stats['flag_grade_recoverable']}")
+              f"grade-recoverable {stats['flag_grade_recoverable']}, "
+              f"index-page {stats['flag_index_page_suspect']}")
 
     stats["rescued_keys"] = dict(stats["rescued_keys"])
     stats["unparsed_grades"] = dict(stats["unparsed_grades"])
