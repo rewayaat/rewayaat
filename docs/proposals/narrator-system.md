@@ -1,9 +1,9 @@
 # Narrator Biography System — Proposal
 
-> **Status: Phase 1 ran, Phase 2 ran and is defective, Phases 3-5 were written and deleted.**
-> Audited 2026-09-07. Nothing here is serving traffic. The section
-> [Current State](#current-state-2026-09-07) records exactly what exists, what its quality is,
-> and what has to be fixed before any of it is indexed.
+> **Status: Phase 1 ran, Phase 2 has been rebuilt, Phases 3-5 were written and deleted.**
+> Audited and rebuilt 2026-09-07. Nothing here is serving traffic yet. The section
+> [Current State](#current-state-2026-09-07) records exactly what exists and what its quality
+> is; tracked in [#88](https://github.com/rewayaat/rewayaat/issues/88).
 
 ## Goal
 
@@ -189,6 +189,9 @@ against a schema before it is written to the per-book file:
   "an assessment exists" carries no information and is not a permitted value.
 - **Latin characters in an Arabic field, or Arabic characters in a key name, fail the batch.**
   These indicate a corrupted generation, and the batch is re-run rather than repaired.
+- **Disambiguation pages are not narrators.** Both Khoei and Mamaqani head a page listing
+  everyone called حفص; extracted naively it becomes one profile whose 89 "aliases" are 89
+  people. A one-token name carrying eight or more aliases is quarantined, never merged.
 - **Verbatim quotation check.** `assessment_ar` must be a substring of the downloaded page
   text after whitespace normalization. This is the only defence against a paraphrase being
   published as a quotation attributed to a named scholar.
@@ -208,11 +211,19 @@ Different Rijal sources (and hadith chains) refer to the same narrator in differ
 **Layer 0: Intra-book consolidation** (automatic, runs before any cross-book work)
 
 A single narrator's entry in a large Rijal work spans many pages, and page-batched
-extraction emits one profile per batch. These fragments are the same entry, not different
-people, and they must be collapsed *within* the book before the book is merged with
-anything else. Consolidate consecutive same-normalized-name profiles from adjacent page
-ranges into one profile. Skipping this inflates the input and hands the cross-book layers
-thousands of spurious same-name collisions to adjudicate.
+extraction emits one profile per batch. Those fragments are the same entry, and they are
+recognisable because they are adjacent *in the file* and contiguous *in pages*. Collapse
+them before the book meets any other book.
+
+Layer 0 must not go further than that. Not every repeat of a name inside one book is a
+fragment: Khoei and Mamaqani were extracted per **mention**, so a prolific narrator named
+inside someone else's entry got his own profile. سهل بن زياد appears at page spans 381,
+671, 3961 and 7011 of a book that heads him once. Those are the same person, but that is a
+conclusion for the name-matching layers to reach on the evidence, not something Layer 0 may
+assume from a shared name.
+
+The distinction matters for the invariants too: per-book uniqueness of a primary name only
+holds for books extracted one-profile-per-headed-entry.
 
 **Layer 1: Exact normalized match** (automatic, high confidence)
 - Normalize both names (strip diacritics, normalize alef/ya/ta marbuta)
@@ -245,9 +256,16 @@ thousands of spurious same-name collisions to adjudicate.
 - Input: both name variants + surrounding biographical text from each source
 - Output: same/different + reasoning
 - Run via Claude sub-agents, consistent with the no-external-API decision above.
-- **Layer 3 is not optional.** Deferred pairs that are never judged do not stay neutral —
+- **Layer 3 is not optional.** Deferred cases that are never judged do not stay neutral —
   they were provisionally added as new profiles, so an unjudged backlog silently ships as
-  duplicate narrators. A run is not complete until the deferred queue is empty.
+  duplicate narrators. A run is not complete until the queue is empty.
+- **Large same-name groups are one task, not many pairs.** Where a name is held by more
+  than a handful of profiles, pairwise questions are the wrong shape: kunyah is absent on
+  82-92% of same-name profiles, so most pairs carry no evidence either way and the ranking
+  between candidates is ranking noise. أحمد بن محمد spans 96 profiles with five kunyahs and
+  six nisbahs (several people); محمد بن سنان spans 64 with one kunyah (one person). Neither
+  is separable by rule, and both are answerable as a single question: *partition these
+  profiles into people*. That is 519 tasks rather than 11,149 pairwise judgments.
 
 **Layer 4: Manual review queue** (edge cases)
 - Cases where even LLM judgment is uncertain get flagged for human review
@@ -390,14 +408,25 @@ speed over 5A, and is only worth doing once merge precision is established.
 
 | File | Contents |
 |------|----------|
-| `tmp/narrators_book_{slug}.json` | Per-book extraction output for all 8 Rijal sources — 42,076 profiles |
-| `tmp/narrators_merged.json` | 29,305 merged profiles after layers 1-3 (126 MB) |
-| `tmp/narrators_merged.json.pre_l3_backup` | Same, before the LLM merge layer (30,807 profiles) |
-| `tmp/narrators_l3_pairs.json` | 11,149 deferred pairs awaiting Layer 3 |
-| `tmp/narrators_l3_decisions.json` | 3,976 LLM pair judgments, 1,502 merges applied |
-| `tmp/narrator_review_queue.jsonl` | 35 flagged profiles |
+| `tmp/narrators_book_{slug}.json` | Phase 1 extraction, as produced — 42,076 profiles |
+| `tmp/narrators_normalized/{slug}.json` | Contract-normalized — 42,046 profiles |
+| `tmp/narrators_merge/merged.json` | **Current** — 28,463 merged profiles |
+| `tmp/narrators_merge/name_group_tasks.json` | 519 partition tasks covering 6,417 profiles |
+| `tmp/narrators_merge/deferred.json` | 3,095 pairwise deferrals |
+| `tmp/narrators_merge/quarantine.json` | 7 disambiguation pages held out |
+| `tmp/narrators_merge/violations.json` | 66 invariant violations |
+| `tmp/narrators_merged.json` | **Superseded** — the 2026-06 merge, 29,305 profiles; do not index |
 
-**Code** — all deleted, all recoverable from git:
+**Code** — the Phase 1-2 pipeline is rebuilt in the tree:
+
+| Script | Does |
+|---|---|
+| `scripts/narrators/narrator_schema.py` | normalizers, reliability vocabulary, Infallible registry |
+| `scripts/narrators/normalize_extraction.py` | the output contract, applied retroactively |
+| `scripts/narrators/merge_narrator_profiles.py` | Layers 0-2, invariants, Layer 3 task generation |
+| `scripts/narrators/audit_narrator_quality.py` | per-book completeness audit |
+
+Phases 3-5 remain deleted, all recoverable from git:
 
 | Component | Commit | Notes |
 |---|---|---|
@@ -449,54 +478,79 @@ Small bilingual sources were hit hardest, because they were processed first and 
 index: 57.7% of Du'afa and 43.5% of Kashshi profiles landed in a ≥5-source cluster, against
 18.4% for Khoei and 8.4% for Mamaqani.
 
-**The merge is simultaneously too conservative across books.** Only 3,438 of 29,305 profiles
-(11.7%) draw on more than one book, and 23,800 have exactly one assessment. Khoei's Mu'jam
-alone should cover nearly every narrator in Najashi, Tusi and Kashshi. Aggressive chaining
-on nisbahs coexists with near-absent genuine cross-book linkage.
+**The merge was simultaneously too conservative across books.** Only 3,438 of 29,305
+profiles (11.7%) drew on more than one book, and 23,800 had exactly one assessment. Khoei's
+Mu'jam alone should cover nearly every narrator in Najashi, Tusi and Kashshi. Aggressive
+chaining on nisbahs coexisted with near-absent genuine cross-book linkage.
 
-**Layer 0 was never implemented, and Khoei shows it.** 21,938 profiles across 14,795 distinct
-normalized names — `أحمد بن محمد` appears as 88 separate profiles, `أحمد بن محمد بن عيسى`
-as 67. The real Mu'jam has roughly 15,700 entries. These fragments are what fed the deferred
-queue.
+**Khoei and Mamaqani were extracted per mention, not per entry.** 21,938 Khoei profiles
+across 14,795 distinct normalized names. The original reading — that these were page-batch
+fragments — is wrong: سهل بن زياد appears at page spans 381, 671, 3961 and 7011 of a book
+that heads him once, so most repeats are mentions inside other narrators' entries. Only 780
+Khoei profiles and 293 Mamaqani profiles are true batch fragments. The rest are real
+same-person mentions that the name-matching layers must resolve on evidence, and they are
+what fed the deferred queue.
 
 **Two books are effectively missing.** Rijal al-Tusi yielded 123 profiles from 417 pages
 against roughly 8,000 entries (92 batch errors, documented at the time as needing a re-run
 at `--batch-size 2`, never re-run). Jami' al-Ruwat yielded 1,796 from 1,210 pages, an order
 of magnitude short, from the same truncation failure.
 
-**The output contract was not enforced.** Invented keys across the per-book files:
+**The output contract was not enforced.** 289 invented keys across 42,076 profiles (0.7%):
 `is_doubtual`, `is_doubtous`, `is_doubtious`, `is_doubtualble`, `doubtual_reason`,
 `doubtous_reason`, `kunyah_ar`, `kunyah_English`, `city_or_ribe`, `assessment_arabic`,
 `assessment_english`, `narrated_from_extra`, and `death_year_hijري` — an identifier with
-Arabic letters spliced into it. Every one is invisible to the merge, so that data was
-dropped. A handful of Arabic names contain Latin fragments (`محمد بن يحيى العطARN`).
+Arabic letters spliced into it. Small in count, but every one was invisible to the merge, so
+that data was dropped. Seven Arabic names contain Latin fragments (`محمد بن يحيى العطARN`).
 
-**`reliability_grade` is free text: 87 distinct values.** `unknown (majhul)` (17,107) beside
+**`reliability_grade` was free text: 88 distinct values.** `unknown (majhul)` (17,107) beside
 bare `unknown` (1,349); `reliable (thiqa)` beside `reliable`; `ghali` beside `ghālī`. And
-`assessed` — 10,188 occurrences, roughly a quarter of all grades — which asserts only that
-an assessment exists.
+`assessed` — 10,190 occurrences, roughly a quarter of all grades — which asserts only that
+an assessment exists. Now 12 canonical grades on one axis and 8 doctrinal flags on another.
 
 **The best disambiguator is missing.** `death_year_hijri` is filled on 2.8% of Khoei profiles
-and 9.6% of Mamaqani. Layer 2 was running almost entirely on kunyah and nisbah, the two
-weakest signals.
+and 9.6% of Mamaqani, and kunyah is absent on 82-92% of same-name profiles. Layer 2 was
+running on almost nothing, which is why the large name groups are a Layer 3 problem rather
+than a scoring problem.
 
-**Layer 4 never ran.** 35 entries in the review queue.
+**Layer 4 never ran.** 35 entries in the old review queue.
 
 **Layer 3 used the Anthropic API directly**, against the no-external-LLM-APIs decision.
 
+### Result of the rebuild
+
+Steps 1-3 below are done. Rebuilt from the same per-book extraction, nothing re-downloaded:
+
+| | 2026-06 merge | Rebuilt |
+|---|---|---|
+| Merged profiles | 29,305 | 28,463 |
+| Largest cluster | 195 source profiles | 18 |
+| Clusters of 20+ | 43 | 0 |
+| Absorbed into clusters of 5+ | 15.9% | 11.3% |
+| Most aliases on one profile | 129 | 34 |
+| Profiles drawing on >1 book | 11.7% | 16.5% |
+| Unresolved, for Layer 3 | 11,149 pairwise (36% judged) | 519 partition tasks + 3,095 pairs |
+| Invariant violations | not checked | 66 |
+
+Less over-merging and more genuine cross-book merging at the same time, which is the
+combination that matters: the old merge was chaining on nisbahs while failing to connect
+the same narrator across sources.
+
+The 66 remaining violations are all `alias_is_foreign_primary_name` on headed-entry books —
+real signal, and small enough to inspect individually. They are the natural input to
+Layer 4.
+
 ### Remediation order
 
-Nothing here requires re-downloading a page. Steps 1-4 rebuild the merged file from the
-per-book data that already exists.
+Nothing here requires re-downloading a page except step 5.
 
-1. **Enforce the output contract retroactively.** Map the near-miss keys onto their intended
-   fields and collapse `reliability_grade` onto the controlled vocabulary, before anything
-   reads the per-book files again. Fail the load on anything unmappable.
-2. **Implement Layer 0** and re-run it over Khoei and Mamaqani. Expect roughly 6,000 phantom
-   profiles to disappear and the deferred queue to shrink with them.
-3. **Rewrite the merge** from `681d7f3`: name index only, no unconditional unique-candidate
-   merge, death-year conflicts disqualifying, cluster cap, invariants asserted. Re-run.
-4. **Drain Layer 3** on the reduced deferred set, via sub-agents.
+1. ~~**Enforce the output contract retroactively.**~~ Done — `normalize_extraction.py`,
+   runs clean under `--strict`.
+2. ~~**Implement Layer 0.**~~ Done — 1,086 batch fragments collapsed. Smaller than expected,
+   because most Khoei and Mamaqani repeats are mentions rather than fragments.
+3. ~~**Rewrite the merge.**~~ Done — see the table above.
+4. **Drain Layer 3**, via sub-agents: 519 name-group partition tasks, then the 3,095
+   pairwise deferrals.
 5. **Re-run Tusi and Ardabili extraction** at a smaller batch size. Rijal al-Tusi at 123
    profiles is a hole the system cannot ship around.
 6. **Phase 3** — restore `NarratorIndexManager` and import.
@@ -518,8 +572,8 @@ fixed.
 | Rijal al-Najashi | `najashi` | 461 pages | 1,310 | 461/461 | clean |
 | Rijal al-Tusi | `tusi` | 417 pages | 123 | 412/417 | **truncated** — 92 errors, needs re-run at `--batch-size 2` |
 | Jami' al-Ruwat | `ardabili` | 1,210 pages | 1,796 | 1,210/1,210 | **truncated** — yield an order of magnitude short |
-| Mu'jam Rijal al-Hadith | `khoei` | 10,924 pages | 21,938 | 10,924/10,924 | **fragmented** — needs Layer 0; ~15,700 real entries |
-| Tanqih al-Maqal | `mamaqani` | 34 vols | 15,747 | 15,873 batches | needs Layer 0; volume coverage unverified |
+| Mu'jam Rijal al-Hadith | `khoei` | 10,924 pages | 21,938 | 10,924/10,924 | per-**mention**, not per-entry; ~15,700 real entries |
+| Tanqih al-Maqal | `mamaqani` | 34 vols | 15,747 | 15,873 batches | per-**mention**; volume coverage unverified |
 
 Total before merging: 42,076.
 
