@@ -624,8 +624,11 @@ Nothing here requires re-downloading a page except step 5.
 2. ~~**Implement Layer 0.**~~ Done — 1,086 batch fragments collapsed. Smaller than expected,
    because most Khoei and Mamaqani repeats are mentions rather than fragments.
 3. ~~**Rewrite the merge.**~~ Done — see the table above.
-4. **Drain Layer 3**, via sub-agents. Runner built; 112 batches outstanding. 652 of the
-   3,095 pairwise deferrals already resolved as keep-separate without an agent.
+4. **Drain Layer 3**, via sub-agents. **In progress: 14 of 73 batches answered**, run
+   `28687-a993d061519aaa64`. 432 pairwise deferrals resolve as keep-separate
+   without an agent. Applied so far: 873 group merges across 526 clusters, 72 pair merges,
+   7 low-confidence answers to the Layer 4 queue — 28,687 to 27,742 profiles. Every
+   decision file validated with zero errors.
 5. **Re-run Tusi and Ardabili extraction** at a smaller batch size. Rijal al-Tusi at 123
    profiles is a hole the system cannot ship around.
 6. **Phase 3** — restore `NarratorIndexManager` and import.
