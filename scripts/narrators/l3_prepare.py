@@ -25,6 +25,7 @@ Usage:
 """
 
 import argparse
+import glob
 import hashlib
 import json
 import os
@@ -233,6 +234,20 @@ def main():
             raise SystemExit(f"unknown kind: {kind}")
 
         batches = pack(tasks, args.budget)
+
+        # Remove this kind's batch files from any previous run. A run that produces fewer
+        # batches than the last one would otherwise leave the tail behind, and those stale
+        # files carry the old merge's fingerprint and task ids.
+        stale = sorted(glob.glob(os.path.join(batch_dir, f"{kind}_*.json")))
+        keep = {f"{kind}_{n:04d}.json" for n in range(len(batches))}
+        removed = 0
+        for path in stale:
+            if os.path.basename(path) not in keep:
+                os.remove(path)
+                removed += 1
+        if removed:
+            print(f"{kind}: removed {removed} stale batch file(s) from a previous run")
+
         print(f"{kind}: {len(tasks)} tasks -> {len(batches)} batches")
         for number, batch in enumerate(batches):
             name = f"{kind}_{number:04d}.json"
