@@ -15,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -41,10 +42,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * well-meaning rename or a "redundant" field removal from silently uninstalling us from one
  * of the two clients we are building this for.
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = {
+                "quranic.insights.index=" + McpProtocolIntegrationTest.INSIGHTS_INDEX,
+                "quran.index=" + McpProtocolIntegrationTest.QURAN_INDEX
+        })
+// The two index properties above give this class a different @SpringBootTest signature from
+// the rest of the suite, so Spring builds it a second application context instead of sharing
+// the cached one. That matters because ESClientProvider.INDEX is a mutable static written by
+// a @PostConstruct: with two contexts alive, whichever initialised last owns the index name,
+// and the suites that follow read or write the wrong index. Without this annotation the
+// sitemap and REST integration tests fail with "index [rewayaat] already exists" and stray
+// documents. Dirtying the context closes this one and has the shared context rebuilt.
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class McpProtocolIntegrationTest {
 
     private static final String INDEX = "rewayaat_mcp_test";
+    static final String INSIGHTS_INDEX = "rewayaat_mcp_test_insights";
+    static final String QURAN_INDEX = "rewayaat_mcp_test_quran";
     private static final String MCP = "/mcp";
 
     @Autowired
@@ -74,6 +89,9 @@ class McpProtocolIntegrationTest {
               "chapter":{"type":"text","fields":{"keyword":{"type":"keyword"}}},
               "english":{"type":"text"},
               "arabic":{"type":"text"},
+              "notes":{"type":"text"},
+              "history":{"type":"text"},
+              "semantic_matn_source":{"type":"text"},
               "llm_similar":{"type":"nested","properties":{
                 "id":{"type":"keyword"},"match_type":{"type":"keyword"},
                 "reason":{"type":"text","index":false}}}
@@ -116,6 +134,29 @@ class McpProtocolIntegrationTest {
                 {"book":"Test Book","volume":"1","number":"4","chapter":"Chapter of Fasting",
                  "english":"Fasting is a shield.","arabic":"الصوم جنة",
                  "topic_tags":["fasting"]}""");
+
+        // The isnād pair. Yahya is the *subject* of :5 and merely a *transmitter* of :6.
+        // Unweighted, a chain wins on term frequency alone - it is nothing but names.
+        index("Test-Book:5", """
+                {"book":"Test Book","volume":"1","number":"5","chapter":"Chapter of Prophets",
+                 "english":"Yahya ibn Zakariyya was given wisdom as a child.",
+                 "arabic":"يحيى بن زكريا أوتي الحكم صبيا",
+                 "semantic_matn_source":"يحيى بن زكريا أوتي الحكم صبيا",
+                 "topic_tags":["prophets"]}""");
+        index("Test-Book:6", """
+                {"book":"Test Book","volume":"1","number":"6","chapter":"Chapter of Prayer",
+                 "english":"Muhammad ibn Yahya from Ahmad ibn Yahya from Yahya ibn Zakariyya al-Qattan said: prayer is a pillar.",
+                 "arabic":"محمد بن يحيى عن أحمد بن يحيى عن يحيى بن زكريا القطان قال الصلاة عمود",
+                 "semantic_matn_source":"الصلاة عمود",
+                 "topic_tags":["prayer"]}""");
+
+        // zzquux sits in `history`, outside the searched field set; zzcorpus sits in
+        // `english`, inside it. The pair is what makes the field set falsifiable.
+        index("Test-Book:7", """
+                {"book":"Test Book","volume":"1","number":"7","chapter":"Chapter of Records",
+                 "english":"A narration carrying the marker zzcorpus.","arabic":"رواية",
+                 "history":"revised zzquux","topic_tags":["records"]}""");
+        seedVerseIndices();
         client.indices().refresh(r -> r.index(INDEX));
 
         sessionId = null;
@@ -123,11 +164,56 @@ class McpProtocolIntegrationTest {
         initialize();
     }
 
+    /**
+     * The two indices hadith_for_verse joins across: the verse text, and the pre-computed
+     * connections keyed by {@code top_verse_keys}. Both need explicit mappings for the same
+     * reason the narration index does - a dynamic mapping makes the verse key a text field
+     * and the term filter matches nothing.
+     */
+    private void seedVerseIndices() throws Exception {
+        for (String index : List.of(INSIGHTS_INDEX, QURAN_INDEX)) {
+            if (client.indices().exists(ExistsRequest.of(b -> b.index(index))).value()) {
+                client.indices().delete(DeleteIndexRequest.of(b -> b.index(index)));
+            }
+        }
+        client.indices().create(CreateIndexRequest.of(b -> b.index(QURAN_INDEX)
+                .withJson(new StringReader("""
+                        {"mappings":{"properties":{
+                          "text_arabic":{"type":"text"},"text_english":{"type":"text"}}}}"""))));
+        client.indices().create(CreateIndexRequest.of(b -> b.index(INSIGHTS_INDEX)
+                .withJson(new StringReader("""
+                        {"mappings":{"properties":{
+                          "hadith_id":{"type":"keyword"},
+                          "top_verse_keys":{"type":"keyword"}}}}"""))));
+
+        index(QURAN_INDEX, "2:255", """
+                {"text_arabic":"اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ",
+                 "text_english":"Allah - there is no deity except Him, the Ever-Living."}""");
+        index(QURAN_INDEX, "19:12", """
+                {"text_arabic":"يَا يَحْيَىٰ خُذِ الْكِتَابَ بِقُوَّةٍ",
+                 "text_english":"O Yahya, take the Scripture with determination."}""");
+
+        // 2:255 has two connected narrations, 19:12 has none - so an empty result and a
+        // populated one are both exercised, and a verse that exists is distinguishable from
+        // one that does not.
+        index(INSIGHTS_INDEX, "Test-Book:1", """
+                {"hadith_id":"Test-Book:1","top_verse_keys":["2:255"]}""");
+        index(INSIGHTS_INDEX, "Test-Book:4", """
+                {"hadith_id":"Test-Book:4","top_verse_keys":["2:255","3:1"]}""");
+        index(INSIGHTS_INDEX, "Test-Book:6", """
+                {"hadith_id":"Test-Book:6","top_verse_keys":[]}""");
+
+        client.indices().refresh(r -> r.index(INSIGHTS_INDEX));
+        client.indices().refresh(r -> r.index(QURAN_INDEX));
+    }
+
     @AfterEach
     void cleanup() throws Exception {
-        if (client != null
-                && client.indices().exists(ExistsRequest.of(b -> b.index(INDEX))).value()) {
-            client.indices().delete(DeleteIndexRequest.of(b -> b.index(INDEX)));
+        for (String index : List.of(INDEX, INSIGHTS_INDEX, QURAN_INDEX)) {
+            if (client != null
+                    && client.indices().exists(ExistsRequest.of(b -> b.index(index))).value()) {
+                client.indices().delete(DeleteIndexRequest.of(b -> b.index(index)));
+            }
         }
         if (transport != null) {
             transport.close();
@@ -344,6 +430,32 @@ class McpProtocolIntegrationTest {
     }
 
     @Test
+    void searchHadithSearchesADefinedFieldSetRatherThanEveryField() throws Exception {
+        // The isnād weighting is only meaningful if the query is confined to fields we
+        // chose. Left to Elasticsearch, a query_string searches every field in the document
+        // and the boosts have nothing to bite on. `history` is deliberately outside the set.
+        assertEquals(0, ((Number) call("search_hadith",
+                        Map.of("query", "zzquux")).get("total_matches")).intValue(),
+                "a term that appears only in an unsearched field must not match");
+
+        assertEquals(1, ((Number) call("search_hadith",
+                        Map.of("query", "zzcorpus")).get("total_matches")).intValue(),
+                "the same shape of term inside the field set does match");
+    }
+
+    @Test
+    void searchHadithSearchesTheMatnFieldWithTheIsnadStripped() throws Exception {
+        // semantic_matn_source exists as an embedding input; this pins that it is also a
+        // search field, which is what lets the matn outweigh the chain on the live corpus.
+        // The ranking effect itself is measured there, not here - see NarrationRepository.
+        Map<String, Object> out = call("search_hadith", Map.of("query", "\"الصلاة عمود\""));
+
+        assertEquals(1, ((Number) out.get("total_matches")).intValue());
+        List<?> results = (List<?>) out.get("results");
+        assertEquals("Test-Book:6", ((Map<?, ?>) results.get(0)).get("id"));
+    }
+
+    @Test
     void searchHadithDropsTheFieldsThatExistForTheBrowser() throws Exception {
         Map<String, Object> out = call("search_hadith", Map.of("query", "wept"));
         List<?> results = (List<?>) out.get("results");
@@ -355,6 +467,44 @@ class McpProtocolIntegrationTest {
                     excluded + " is in a search result; it is the reason a raw response is "
                             + "eight times larger than it needs to be.");
         }
+    }
+
+    @Test
+    void hadithForVerseReturnsTheNarrationsJoinedToAVerseWithATrueCount() throws Exception {
+        Map<String, Object> out = call("hadith_for_verse", Map.of("verse", "2:255"));
+
+        assertEquals("2:255", ((Map<?, ?>) out.get("verse")).get("key"));
+        assertEquals(2, ((Number) out.get("total_matches")).intValue());
+        List<?> results = (List<?>) out.get("results");
+        assertEquals(2, results.size());
+        assertEquals("Test-Book:1", ((Map<?, ?>) results.get(0)).get("id"));
+    }
+
+    @Test
+    void hadithForVerseEchoesTheVerseTextSoTheJoinIsLegible() throws Exception {
+        Map<?, ?> verse = (Map<?, ?>) call("hadith_for_verse", Map.of("verse", "2:255")).get("verse");
+
+        assertTrue(String.valueOf(verse.get("english")).contains("Ever-Living"));
+        assertFalse(String.valueOf(verse.get("arabic")).isBlank());
+    }
+
+    @Test
+    void hadithForVerseSeparatesAVerseWithNoConnectionsFromAVerseThatDoesNotExist()
+            throws Exception {
+        // The distinction the tool exists to make. A verse nothing was judged to connect to
+        // is a finding; an unparseable reference is a mistake, and they must not look alike.
+        Map<String, Object> none = call("hadith_for_verse", Map.of("verse", "19:12"));
+        assertEquals(0, ((Number) none.get("total_matches")).intValue());
+        assertTrue(String.valueOf(none.get("note")).contains("filter's verdict"));
+
+        Map<String, Object> error = callRaw("hadith_for_verse", Map.of("verse", "999:1"));
+        assertEquals(Boolean.TRUE, error.get("isError"));
+    }
+
+    @Test
+    void hadithForVerseRejectsAReferenceThatIsNotSurahAyah() throws Exception {
+        Map<String, Object> error = callRaw("hadith_for_verse", Map.of("verse", "Ayat al-Kursi"));
+        assertEquals(Boolean.TRUE, error.get("isError"));
     }
 
     @Test
@@ -509,6 +659,10 @@ class McpProtocolIntegrationTest {
     }
 
     private void index(String id, String json) throws Exception {
-        client.index(i -> i.index(INDEX).id(id).withJson(new StringReader(json)));
+        index(INDEX, id, json);
+    }
+
+    private void index(String index, String id, String json) throws Exception {
+        client.index(i -> i.index(index).id(id).withJson(new StringReader(json)));
     }
 }

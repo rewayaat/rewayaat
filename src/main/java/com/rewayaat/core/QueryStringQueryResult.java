@@ -56,6 +56,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
     private int maxResultWindow;
     private List<String> topicTags = Collections.emptyList();
     private List<String> topicTagsAny = Collections.emptyList();
+    private List<String> queryFields = null;
     private final ObjectMapper mapper = new ObjectMapper();
 
     public QueryStringQueryResult(String query, int page, int perPage,
@@ -75,6 +76,22 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
         this.maxResultWindow = maxResultWindow;
         this.topicTags = sanitizeTags(topicTags);
         this.topicTagsAny = sanitizeTags(topicTagsAny);
+    }
+
+    /**
+     * Restricts and weights the fields the query string searches.
+     *
+     * <p>Null, the default, leaves Elasticsearch to search every field, which is what the
+     * website does and what its relevance has always been tuned against. It is a seam for
+     * callers whose failure mode is different - see
+     * {@link com.rewayaat.mcp.NarrationRepository}, where an unweighted search over every
+     * field lets isnād chains outrank the matn.
+     *
+     * @param fields query_string field specs, boosts included, e.g. {@code "english^2"}.
+     */
+    public QueryStringQueryResult queryFields(List<String> fields) {
+        this.queryFields = fields == null || fields.isEmpty() ? null : List.copyOf(fields);
+        return this;
     }
 
     @Override
@@ -180,6 +197,9 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                     if (!residualQuery.isBlank()) {
                         b.must(s -> s.queryString(qs -> {
                             qs.query(residualQuery);
+                            if (queryFields != null) {
+                                qs.fields(queryFields);
+                            }
                             if (strictMatchMode) {
                                 qs.defaultOperator(Operator.And);
                             }
@@ -293,6 +313,9 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                     if (!residualQuery.isBlank()) {
                         b.must(s -> s.queryString(qs -> {
                             qs.query(residualQuery);
+                            if (queryFields != null) {
+                                qs.fields(queryFields);
+                            }
                             if (strictMatchMode) {
                                 qs.defaultOperator(Operator.And);
                             }

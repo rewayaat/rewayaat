@@ -10,6 +10,7 @@ import com.rewayaat.config.ESClientProvider;
 import com.rewayaat.core.QueryMode;
 import com.rewayaat.core.QueryStringQueryResult;
 import com.rewayaat.service.HadithQueryService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -53,10 +54,62 @@ public class NarrationRepository {
             "book", "volume", "part", "section", "chapter", "number",
             "english", "arabic", "gradings", "topic_tags");
 
-    private final HadithQueryService queryService;
+    /**
+     * The fields a tool search runs over, and what each is worth.
+     *
+     * <p>The evaluation in issue #66 recorded that keyword search drowns in isnād: a query
+     * for Yaḥyā b. Zakariyyā returned narrations transmitted by Muḥammad ibn Yaḥyā, because
+     * {@code arabic} and {@code english} both carry the chain of transmission and a chain is
+     * a dense thicket of names. {@code semantic_matn_source} is the same narration with the
+     * isnād removed - it exists as an embedding input, but it is an ordinary {@code text}
+     * field, so BM25 can search it, and 32,516 of 32,519 narrations have one.
+     *
+     * <p>It is weighted rather than searched alone. {@code arabic} stays in the list, so a
+     * search for a narrator still finds the narrations he transmitted - demoted, not
+     * deleted - because that is sometimes exactly the question. There is no matn-only field
+     * on the English side to pair with it: {@code semantic_english_hint_source} averages
+     * about 116 characters, well short of a translation, so {@code english} carries its
+     * isnād and is boosted anyway.
+     *
+     * <p>Measured on the live corpus for {@code يحيى بن زكريا}, the query the evaluation
+     * used: of the top 20, chain-only matches fall from 4 to 0 and matn matches rise from 11
+     * to 15. {@code scripts/search/measure_field_weighting.py} reproduces it. The effect
+     * does not show up in a handful of test documents, where BM25's length normalisation and
+     * IDF behave nothing like they do across 32,519, so the integration test pins the field
+     * set rather than an emergent ranking - a synthetic ranking fixture here would only be
+     * proving that it had been tuned until it passed.
+     *
+     * <p>{@code chapter_ar} and {@code semantic_significant_terms_source} are in the list
+     * only to hold recall level: without them an Arabic query loses matches the website
+     * would have returned ({@code غدير}: 17 down to 13). With them, every query measured is
+     * at parity or within 0.1%.
+     */
+    private static final List<String> SEARCH_FIELDS = List.of(
+            "semantic_matn_source^4",
+            "english^2",
+            "arabic",
+            "chapter",
+            "chapter_ar",
+            "semantic_significant_terms_source",
+            "notes",
+            "book",
+            "topic_tags");
 
-    public NarrationRepository(HadithQueryService queryService) {
+    private final HadithQueryService queryService;
+    private final String insightsIndex;
+    private final String quranIndex;
+
+    public NarrationRepository(
+            HadithQueryService queryService,
+            @Value("${quranic.insights.index:rewayaat_quranic_light_filtered}") String insightsIndex,
+            @Value("${quran.index:rewayaat_quran}") String quranIndex) {
         this.queryService = queryService;
+        this.insightsIndex = insightsIndex;
+        this.quranIndex = quranIndex;
+    }
+
+    /** One Qurʾānic verse, as {@code hadith_for_verse} echoes it back. */
+    public record Verse(String key, String arabic, String english) {
     }
 
     /** A page of search hits, plus the total so a tool can report an exhaustive count. */
@@ -108,7 +161,8 @@ public class NarrationRepository {
                 preciseMatch,
                 0,
                 topicTags == null ? List.of() : topicTags,
-                List.of());
+                List.of())
+                .queryFields(SEARCH_FIELDS);
 
         QueryStringQueryResult.RawResult raw = search.rawResult(SUMMARY_FIELDS);
         List<Narration> narrations = new ArrayList<>();
@@ -231,6 +285,89 @@ public class NarrationRepository {
             }
             return ordered;
         }
+    }
+
+    /**
+     * The narrations connected to one Qurʾānic verse.
+     *
+     * <p>The reverse of {@code verses_for_hadith}, and it reads the same precomputed
+     * judgements from the other end: {@code top_verse_keys} on the insights index is a
+     * keyword array of {@code surah:ayah}, so a term filter answers "what was judged to
+     * connect to this verse" directly. Only connections judged strong survived the filter
+     * that built that index, so this is a curated set rather than a retrieval score.
+     *
+     * <p>Paging happens on the insights index and the narrations are fetched by id, which
+     * keeps the ordering stable across pages and means a verse with hundreds of connections
+     * costs one search plus one multi-get regardless.
+     */
+    public Page hadithForVerse(String verseKey, int from, int size) throws Exception {
+        String key = normaliseVerseKey(verseKey);
+        try (ESClientProvider provider = new ESClientProvider()) {
+            SearchRequest request = new SearchRequest.Builder()
+                    .index(insightsIndex)
+                    .query(q -> q.term(t -> t.field("top_verse_keys").value(key)))
+                    .source(src -> src.filter(f -> f.includes(List.of("hadith_id"))))
+                    .sort(so -> so.field(f -> f.field("hadith_id")))
+                    .from(Math.max(0, from))
+                    .size(Math.max(0, size))
+                    .trackTotalHits(t -> t.enabled(true))
+                    .build();
+            SearchResponse<Map> response = provider.client().search(request, Map.class);
+            List<String> ids = new ArrayList<>();
+            for (Hit<Map> hit : response.hits().hits()) {
+                if (hit.source() == null) {
+                    continue;
+                }
+                Object id = hit.source().get("hadith_id");
+                if (id != null) {
+                    ids.add(String.valueOf(id));
+                }
+            }
+            long total = response.hits().total() == null ? ids.size() : response.hits().total().value();
+            return new Page(getAll(ids), total);
+        }
+    }
+
+    /** One verse's text, so a result can show what was connected rather than only its key. */
+    public Verse verse(String verseKey) throws Exception {
+        String key = normaliseVerseKey(verseKey);
+        try (ESClientProvider provider = new ESClientProvider()) {
+            GetResponse<Map> response = provider.client().get(g -> g
+                    .index(quranIndex)
+                    .id(key)
+                    .sourceIncludes(List.of("text_arabic", "text_english")), Map.class);
+            if (!response.found() || response.source() == null) {
+                return null;
+            }
+            Map<String, Object> source = asSource(response.source());
+            return new Verse(key,
+                    NarrationView.str(source.get("text_arabic")),
+                    NarrationView.str(source.get("text_english")));
+        }
+    }
+
+    /**
+     * Accepts what a model is likely to send and rejects what cannot be a verse.
+     *
+     * <p>Surah 1-114, and an ayah that is at least 1. The upper bound on the ayah is left to
+     * the index: a verse that does not exist simply is not found, which reads better than a
+     * validation error that has to encode the length of every surah.
+     */
+    private static String normaliseVerseKey(String raw) {
+        String cleaned = raw == null ? "" : raw.trim().replaceAll("\\s+", "");
+        java.util.regex.Matcher matcher =
+                java.util.regex.Pattern.compile("^(\\d{1,3})[:.-](\\d{1,3})$").matcher(cleaned);
+        if (!matcher.matches()) {
+            throw new IllegalArgumentException(
+                    "verse must be given as surah:ayah, for example \"2:255\"; got \"" + raw + "\"");
+        }
+        int surah = Integer.parseInt(matcher.group(1));
+        int ayah = Integer.parseInt(matcher.group(2));
+        if (surah < 1 || surah > 114 || ayah < 1) {
+            throw new IllegalArgumentException(
+                    "no such verse: surah must be 1-114 and ayah at least 1; got \"" + raw + "\"");
+        }
+        return surah + ":" + ayah;
     }
 
     /** Distinct book names with their narration counts, largest first. */

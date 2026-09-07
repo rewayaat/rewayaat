@@ -48,6 +48,7 @@ shape; the rest are for Claude and for ChatGPT's developer mode.
 | `get_chapter` | `book`, `chapter`, `volume?`, `limit?`, `offset?` | A chapter in order **plus `chapter_size`** |
 | `find_similar` | `id`, `match_type?`, `limit?` | Judged links with the written reason |
 | `verses_for_hadith` | `id`, `limit?` | Qur'anic verses with tafsīr extracts |
+| `hadith_for_verse` | `verse`, `limit?`, `offset?` | Narrations judged to bear on a verse **plus `total_matches`** |
 
 Every tool is annotated `readOnlyHint: true`, which ChatGPT requires before it will treat one
 as a knowledge source.
@@ -143,6 +144,40 @@ well, matching what the controller does, but there it only sets the default oper
 then the `AND`s are already explicit — mutation testing confirms only the `enhanceQuery` half
 is observable today. It is passed anyway so that a later change to what strictness means
 inside that class reaches the connector and the site together.
+
+### Weighting the matn against the isnād
+
+The evaluation recorded that keyword search drowns in chains of transmission: a query for
+Yaḥyā b. Zakariyyā returned narrations transmitted by Muḥammad ibn Yaḥyā, because `arabic` and
+`english` both carry the isnād and an isnād is a dense thicket of names. The issue proposed
+solving this with vectors. It does not need them.
+
+`semantic_matn_source` is the same narration with the chain removed. It exists as an input to
+the embedding pipeline, but it is an ordinary `text` field, so BM25 searches it, and 32,516 of
+32,519 narrations have one. `search_hadith` therefore searches a defined, weighted field set
+rather than every field:
+
+```
+semantic_matn_source^4  english^2  arabic  chapter  chapter_ar
+semantic_significant_terms_source  notes  book  topic_tags
+```
+
+Weighted, not restricted to the matn. `arabic` stays in the list so a search for a narrator
+still finds the narrations he transmitted — demoted, not deleted, because that is sometimes
+the question being asked. There is no matn-only field on the English side to pair with it:
+`semantic_english_hint_source` averages about 116 characters, well short of a translation.
+
+Measured on the live corpus with the evaluation's own query, of the top 20: chain-only matches
+fall from 4 to 0, matn matches rise from 11 to 15. `chapter_ar` and
+`semantic_significant_terms_source` are in the set only to hold recall level — without them an
+Arabic query loses matches the website would return (`غدير`: 17 down to 13). With them every
+query measured is at parity or within 0.1%. `scripts/search/measure_field_weighting.py`
+reproduces all of it.
+
+The integration test pins the **field set**, not the ranking. The ranking effect does not
+reproduce across a handful of documents, where BM25's length normalisation and IDF behave
+nothing like they do across 32,519; a synthetic fixture that produced the "right" order would
+only be evidence that it had been tuned until it did.
 
 It runs **in-process** rather than as a separate service. The tools need the data, not the
 API: `llm_similar` is a nested field `/v1/narrations` does not expose on its own terms, and
