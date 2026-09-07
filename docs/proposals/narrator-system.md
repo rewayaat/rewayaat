@@ -289,6 +289,13 @@ holds for books extracted one-profile-per-headed-entry.
 - Low-confidence Layer 3 answers land here rather than being applied
 - Should be rare if layers 1-3 work well
 
+*Known limitation of the pair format.* A pair task offers up to three candidates and
+accepts one answer, but the candidate set sometimes contains two profiles that are each
+other's duplicates — Layer 1-2 left both unmerged and the subject matches both. The agent
+can only name one. Union-find in `l3_apply` recovers most of these, because a later task
+linking the two composes with the first, but it is not guaranteed. Candidate sets with
+internal duplicates are worth surfacing to Layer 4 explicitly.
+
 **Not every deferral is a Layer 3 question.** Where no candidate carries any positive
 context, there is nothing for an agent to read: the names collided and the sources say
 nothing bearing on identity. Those resolve as *separate* by the standing default, and are
