@@ -112,7 +112,43 @@ def is_identifying_english_alias(name):
     أبو محمد, which is why it kept generating candidates after the Arabic side was fixed.
     """
     normalized = normalize_english(name or "")
+    if not normalized:
+        return False
+    if _strips_to_generic_kunyah(normalized, _EN_GENERIC_KUNYAHS, _EN_STOP_TOKENS):
+        return False
     return len(english_name_tokens(normalized)) >= 2
+
+
+# Kunyahs shared by hundreds of narrators — the Imams' own, and the handful of everyday
+# ones. "أبو ذر" and "أبو غالب" are not here, because those name one person each.
+GENERIC_KUNYAHS = {
+    "ابو عبد الله", "ابو جعفر", "ابو الحسن", "ابو محمد", "ابو علي",
+    "ابو القاسم", "ابو الحسين", "ابراهيم", "ابو ابراهيم", "ابو بكر",
+    "ابو احمد", "ابو الفضل", "ابو العباس", "ابو يوسف", "ابو الطيب",
+}
+_EN_GENERIC_KUNYAHS = {
+    "abu abd allah", "abu abdallah", "abu abdullah", "abu jafar", "abu al hasan",
+    "abu muhammad", "abu ali", "abu al qasim", "abu al husayn", "abu ibrahim",
+    "abu bakr", "abu ahmad", "abu al fadl", "abu al abbas", "abu yusuf",
+}
+
+
+def _strips_to_generic_kunyah(normalized, generic, stop_tokens):
+    """True when a name is a generic kunyah plus too little else.
+
+    `أبو الحسن القزويني` is "Abu al-Hasan the Qazwini" — a kunyah hundreds of men share
+    plus one nisbah. As a merge key it fused حنظلة بن زكريا with علي بن محمد بن عبد الله.
+    `أبو ذر الغفاري` has the same shape but names one man, because its kunyah is his alone.
+    The discriminator is whether the kunyah itself is generic, not the shape of the phrase.
+    """
+    for kunyah in generic:
+        if normalized == kunyah:
+            return True
+        if normalized.startswith(kunyah + " "):
+            rest = normalized[len(kunyah) + 1:]
+            tokens = [t for t in rest.split(" ") if t and t not in stop_tokens]
+            return len(tokens) < 2
+    return False
 
 
 def is_identifying_alias(name):
@@ -130,6 +166,8 @@ def is_identifying_alias(name):
     """
     normalized = normalize_arabic(name or "")
     if not normalized or normalized in EDITORIAL_PLACEHOLDERS:
+        return False
+    if _strips_to_generic_kunyah(normalized, GENERIC_KUNYAHS, _AR_STOP_TOKENS):
         return False
     return len(name_tokens(normalized)) >= 2
 
@@ -281,7 +319,8 @@ INFALLIBLE_AMBIGUOUS_AR = {
 }
 
 _HONORIFIC_AR = ("عليه السلام", "عليهم السلام", "عليها السلام", "عليهما السلام",
-                 "صلى الله عليه", "(ع)", "(ص)", "(عج)")
+                 "صلى الله عليه", "صلوات الله علي", "سلام الله علي",
+                 "عليه الصلاة", "روحي له الفداء", "(ع)", "(ص)", "(عج)")
 _HONORIFIC_EN = ("(as)", "(a.s.)", "(pbuh)", "(p.b.u.h.)", "peace be upon him",
                  "peace be upon them", "(af)", "(a.j.)")
 
