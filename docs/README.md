@@ -29,7 +29,7 @@ Designs that are not built. Kept because the thinking is worth more than the cod
 
 | Proposal | State |
 |----------|-------|
-| [proposals/narrator-system.md](proposals/narrator-system.md) | Phases 1-2 ran and the data survives in `tmp/`; the code was deleted and phases 3-5 never started |
+| [proposals/narrator-system.md](proposals/narrator-system.md) | Phase 1 ran, Phase 2 ran and is defective, Phases 3-5 were written and deleted; audited 2026-09-07, the merged data is not fit to index |
 
 ## Conventions
 
