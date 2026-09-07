@@ -8325,11 +8325,11 @@ body.is-resizing-sidecar * {
    HOME HERO REFRESH
    ======================================================================== */
 .home-hero {
-    padding: 1rem 0 2.4rem;
+    padding: 0.75rem 0 1.6rem;
 }
 
 .home-hero__card {
-    padding: clamp(1.6rem, 3vw, 2.9rem);
+    padding: clamp(1.2rem, 2.2vw, 2rem);
     border-radius: 34px;
     border: 1px solid rgba(243, 229, 184, 0.16);
     background:
@@ -8415,8 +8415,8 @@ body.is-resizing-sidecar * {
     position: absolute;
     left: 50%;
     top: 52%;
-    width: min(72vw, 520px);
-    height: min(72vw, 520px);
+    width: min(52vw, 380px);
+    height: min(52vw, 380px);
     transform: translate(-50%, -50%);
     border-radius: 50%;
     background:
@@ -8431,16 +8431,20 @@ body.is-resizing-sidecar * {
     position: absolute;
     left: 50%;
     top: 52%;
-    width: min(64vw, 440px);
-    height: min(64vw, 440px);
+    width: min(46vw, 320px);
+    height: min(46vw, 320px);
     transform: translate(-50%, -50%);
     background: url('/img/hero-pattern.svg') center / contain no-repeat;
     opacity: 0.16;
     pointer-events: none;
 }
 
+/* The card was ~807px tall at 1280x720 - taller than the viewport it opens in, so
+   nothing below the fold was ever visible on a laptop without scrolling. The logo was
+   most of that on its own; the glow and pattern behind it are sized off it and come
+   down proportionally, or a smaller mark sits inside a halo built for a bigger one. */
 .home-hero__logo {
-    width: clamp(300px, 38vw, 500px);
+    width: clamp(200px, 24vw, 320px);
     max-width: 100%;
     height: auto;
     display: block;
