@@ -236,12 +236,26 @@ curl -X POST http://localhost:8002/mcp \
 
 `tools/list` and `tools/call` need the returned `Mcp-Session-Id` header, and answer as SSE.
 
+## The `number` field
+
+Issue #66 recorded that `number` is off by one from the displayed hadith number, and warned
+that a citation-emitting tool must handle it. Sampling 200 documents does not show this. The
+prefix inside the narration text is chapter-local; `number` is book- or volume-global, so the
+two disagree by design rather than by an off-by-one. The application is self-consistent with
+`number`: `HadithCardFactory` renders `Hadith #{number}`, and the id suffix in a URL is
+`number`. The tools therefore cite `number` unadjusted, which is what the website already
+does. If a case is found where a citation built this way is wrong, this is the note to
+revisit.
+
 ## Not built yet
 
-- **`lookup_narrator`.** Blocked: narrator work is complete through Phase 2 (29,305 merged
-  profiles in `tmp/narrators_merged.json`), but Phase 3, the Elasticsearch import, has not
-  started and there is no `rewayaat_narrators` index. This is the strongest "no webpage can
-  answer this" case in the evaluation, so it is the first thing to add once Phase 3 lands.
+- **`lookup_narrator` — deliberately out of scope for the first version.** Not a gap to be
+  closed before shipping. Narrator work is complete through Phase 2 (29,305 merged profiles in
+  `tmp/narrators_merged.json`), but Phase 3, the Elasticsearch import, has not started and
+  there is no `rewayaat_narrators` index; building the tool means building that pipeline
+  first, which is its own project and not a prerequisite for serving narrations. It remains
+  the strongest "no webpage can answer this" case in the evaluation, so it is the natural
+  first addition after v1 — once Phase 3 lands, on its own schedule.
 - **Semantic `search_hadith`.** Matching is BM25, and this is much less of a gap than it
   first appears. Vector search exists to bridge the distance between how a person phrases a
   question and how the text is actually written — but on this surface there is already a
