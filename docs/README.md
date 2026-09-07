@@ -5,6 +5,7 @@
 | Document | What it covers |
 |----------|----------------|
 | [architecture.md](architecture.md) | How the system is put together: packages, controllers, services, indices, design decisions |
+| [architecture/](architecture/) | Decision records: why the system is this and not something else, with the checkable rules enforced by `ArchitectureRulesTest` |
 | [search.md](search.md) | How search, similar narrations and Quranic insights actually work at query time |
 | [seo.md](seo.md) | The crawler-facing surface, and the invariants that quietly cost traffic if broken |
 | [data-pipeline.md](data-pipeline.md) | How every piece of data gets into Elasticsearch |
