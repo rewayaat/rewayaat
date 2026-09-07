@@ -26,9 +26,12 @@ import java.time.Duration;
 import java.util.Base64;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.regex.Pattern;
 
 /**
@@ -163,6 +166,213 @@ public class ShareCardController {
                 theme(theme), ifNoneMatch);
     }
 
+    /**
+     * Cards for the three levels between a book and a narration.
+     *
+     * <p>Every one of the 8,035 volume, part and chapter pages previewed as the same site
+     * mark before this, which made a shared chapter link indistinguishable from a shared
+     * anything-else link. Each now opens with the first narration it contains: the eyebrow
+     * says which page it is, and the body shows a reader what is actually in there. The
+     * alternative — a list of chapter titles — needs a layout the renderer does not have,
+     * and reads as a table of contents rather than as hadith.
+     *
+     * <p>The literal {@code card.png} outranks {@code /books/&#123;bookSlug&#125;/&#123;chapterSlug&#125;}
+     * in Spring's pattern comparator, so none of these shadow a page.
+     */
+    @GetMapping(value = "/books/{bookSlug}/volume/{volume}/card.png",
+            produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> volumeCard(@PathVariable("bookSlug") String bookSlug,
+                                             @PathVariable("volume") String volume,
+                                             @RequestParam(value = "theme",
+                                                     required = false) String theme,
+                                             @RequestParam(value = "lang",
+                                                     required = false) String lang,
+                                             @RequestParam(value = "full",
+                                                     required = false) String full,
+                                             @RequestHeader(value = "If-None-Match",
+                                                     required = false) String ifNoneMatch) {
+        Optional<BookCatalog.Book> found = catalog.book(bookSlug);
+        if (found.isEmpty() || !found.get().volumes().contains(volume)) {
+            return ResponseEntity.notFound().build();
+        }
+        BookCatalog.Book book = found.get();
+        long count = book.chaptersInVolume(volume).stream()
+                .mapToLong(BookCatalog.Chapter::count).sum();
+        String eyebrow = String.format(Locale.ROOT, "%s · Volume %s · %,d narrations",
+                book.name(), volume, count);
+
+        // A volume page is an outline, so the card is one too. Parts where the volume has
+        // them, chapters where it does not, which is the same split the page itself makes.
+        List<BookCatalog.Part> parts = book.partsInVolume(volume);
+        List<String> entries = parts.isEmpty()
+                ? book.chaptersInVolume(volume).stream().map(BookCatalog.Chapter::title).toList()
+                : parts.stream().map(BookCatalog.Part::title).toList();
+        return outlineCard(eyebrow, book.name(), entries, theme, lang, full, ifNoneMatch);
+    }
+
+    @GetMapping(value = "/books/{bookSlug}/part/{partSlug}/card.png",
+            produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> partCard(@PathVariable("bookSlug") String bookSlug,
+                                           @PathVariable("partSlug") String partSlug,
+                                           @RequestParam(value = "theme",
+                                                   required = false) String theme,
+                                           @RequestParam(value = "lang",
+                                                   required = false) String lang,
+                                           @RequestParam(value = "full",
+                                                   required = false) String full,
+                                           @RequestHeader(value = "If-None-Match",
+                                                   required = false) String ifNoneMatch) {
+        Optional<BookCatalog.Part> found = catalog.part(bookSlug, partSlug);
+        if (found.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        BookCatalog.Part part = found.get();
+        String eyebrow = String.format(Locale.ROOT, "%s · %s · %,d chapters",
+                part.bookName(), part.title(), part.chapterCount());
+        Optional<BookCatalog.Book> book = catalog.book(bookSlug);
+        List<String> entries = book.isEmpty() ? List.of()
+                : book.get().chaptersInPart(part.volume(), part.title()).stream()
+                        .map(BookCatalog.Chapter::title).toList();
+        return outlineCard(eyebrow, part.bookName(), entries, theme, lang, full, ifNoneMatch);
+    }
+
+    @GetMapping(value = "/books/{bookSlug}/{chapterSlug}/card.png",
+            produces = MediaType.IMAGE_PNG_VALUE)
+    public ResponseEntity<byte[]> chapterCard(@PathVariable("bookSlug") String bookSlug,
+                                              @PathVariable("chapterSlug") String chapterSlug,
+                                              @RequestParam(value = "theme",
+                                                      required = false) String theme,
+                                              @RequestParam(value = "lang",
+                                                      required = false) String lang,
+                                              @RequestParam(value = "full",
+                                                      required = false) String full,
+                                              @RequestHeader(value = "If-None-Match",
+                                                      required = false) String ifNoneMatch) {
+        Optional<BookCatalog.Chapter> found = catalog.chapter(bookSlug, chapterSlug);
+        if (found.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        BookCatalog.Chapter chapter = found.get();
+        String eyebrow = String.format(Locale.ROOT, "%s · %s · %,d narrations",
+                chapter.bookName(), chapter.title(), chapter.count());
+
+        // Blank facets are carried rather than dropped: the chapter page treats "no
+        // volume" as a distinction in its own right, and omitting it here would match
+        // every volume and open the card with a narration from a different chapter.
+        Map<String, String> filters = new LinkedHashMap<>();
+        filters.put("book", chapter.bookName());
+        filters.put("chapter", chapter.title());
+        filters.put("volume", chapter.volume() == null ? "" : chapter.volume());
+        filters.put("part", chapter.part() == null ? "" : chapter.part());
+        filters.put("section", chapter.section() == null ? "" : chapter.section());
+        return openingCard(eyebrow, filters, theme, lang, full, ifNoneMatch);
+    }
+
+    /**
+     * A card for a page that is a list rather than a text: the book's name in Arabic over
+     * what the page contains.
+     *
+     * <p>The titles run together separated by a middle dot rather than stacking as a real
+     * list, because the renderer lays out two blocks of prose and a list layout would be a
+     * third thing to keep working. Run together they still read as an outline, and the
+     * count in the eyebrow says how much of it is showing.
+     */
+    private ResponseEntity<byte[]> outlineCard(String eyebrow, String bookName,
+                                               List<String> entries, String theme, String lang,
+                                               String full, String ifNoneMatch) {
+        String outline = entries.stream()
+                .map(ShareCardController::clean)
+                .filter(entry -> !entry.isBlank())
+                .collect(Collectors.joining("  ·  "));
+        return respond(new ShareCardRenderer.Card(eyebrow.toUpperCase(Locale.ROOT),
+                        arabicTitle(bookName), outline, DOMAIN),
+                theme(theme), options(lang, full), ifNoneMatch);
+    }
+
+    /**
+     * Draws a card headed by {@code eyebrow} and bodied by the lowest-numbered narration
+     * matching {@code filters}. An empty result still gets a card: the eyebrow alone says
+     * which page it is, which beats falling back to the site mark.
+     */
+    private ResponseEntity<byte[]> openingCard(String eyebrow, Map<String, String> filters,
+                                               String theme, String lang, String full,
+                                               String ifNoneMatch) {
+        Map<String, Object> source = openingNarration(filters);
+        String arabic = "";
+        String english = "";
+        if (!source.isEmpty()) {
+            Map<String, Object> card = cards.build("", source, null, BASE_URL);
+            arabic = clean(str(card.get("arabic")));
+            english = clean(str(card.get("english")));
+        }
+        return respond(new ShareCardRenderer.Card(
+                        eyebrow.toUpperCase(Locale.ROOT), arabic, english, DOMAIN),
+                theme(theme), options(lang, full), ifNoneMatch);
+    }
+
+    /**
+     * The opening narration of a chapter, part or volume.
+     *
+     * <p>Sorted in memory rather than by Elasticsearch because {@code number} is a string
+     * field in this index — "10" sorts before "9" lexically — and the page listings use
+     * the same numeric comparison to order themselves. A card that opened with a different
+     * narration from the one at the top of the page would be a small lie.
+     */
+    private Map<String, Object> openingNarration(Map<String, String> filters) {
+        try (ESClientProvider provider = new ESClientProvider()) {
+            SearchResponse<Map> response = provider.client().search(s -> s
+                    .index(ESClientProvider.INDEX)
+                    .size(OPENING_CANDIDATES)
+                    .trackTotalHits(t -> t.enabled(false))
+                    .source(src -> src.filter(f -> f.includes(
+                            "book", "number", "english", "arabic", "volume", "part",
+                            "section", "chapter")))
+                    .query(q -> q.bool(b -> {
+                        filters.forEach((field, value) -> {
+                            if (value == null || value.isBlank()) {
+                                b.mustNot(m -> m.exists(e -> e.field(field)));
+                                return;
+                            }
+                            b.filter(f -> f.term(t -> t
+                                    .field(TEXT_FIELDS.contains(field) ? field + ".keyword" : field)
+                                    .value(value)));
+                        });
+                        return b;
+                    })), Map.class);
+
+            Map<String, Object> best = null;
+            String bestNumber = null;
+            for (Hit<Map> hit : response.hits().hits()) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> source = hit.source();
+                if (source == null) {
+                    continue;
+                }
+                String number = str(source.get("number"));
+                if (best == null || compareNumbers(number, bestNumber) < 0) {
+                    best = source;
+                    bestNumber = number;
+                }
+            }
+            return best == null ? Map.of() : best;
+        } catch (Exception e) {
+            LOGGER.debug("Could not read the opening narration for {}", filters, e);
+            return Map.of();
+        }
+    }
+
+    /** Numeric where both sides are numbers, so "9" precedes "10". */
+    private static int compareNumbers(String a, String b) {
+        if (b == null) {
+            return -1;
+        }
+        try {
+            return Long.compare(Long.parseLong(a.trim()), Long.parseLong(b.trim()));
+        } catch (RuntimeException e) {
+            return String.valueOf(a).compareTo(b);
+        }
+    }
+
     // ── Response ────────────────────────────────────────────────────────────
 
     /**
@@ -176,6 +386,16 @@ public class ShareCardController {
      */
     /** Says whether the default card cut this narration short. Read by the share dialog. */
     private static final String TRIMMED_HEADER = "X-Card-Trimmed";
+
+    /** Enough to find the lowest-numbered narration without paging a whole volume. */
+    private static final int OPENING_CANDIDATES = 60;
+
+    /**
+     * The one analysed field among the facets, so the only one matched on a keyword
+     * sub-field. {@code part} and {@code section} are plain keywords and have none;
+     * appending .keyword to them matches nothing at all, silently.
+     */
+    private static final Set<String> TEXT_FIELDS = Set.of("chapter");
 
     private ResponseEntity<byte[]> respond(ShareCardRenderer.Card card,
                                            ShareCardRenderer.Theme theme, String ifNoneMatch) {
