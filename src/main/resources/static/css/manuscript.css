@@ -10693,41 +10693,6 @@ body.is-search-mode .site-nav .search-entry-shell {
     transform: none;
 }
 
-/* Straight into reading mode. Faint by default rather than hidden: an affordance
-   that only appears on hover is one most readers never discover, and it is invisible
-   on touch entirely. It brightens on hover instead. */
-.hub-chapter-read {
-    flex: none;
-    display: inline-flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding-top: 0.62rem;
-    width: 2.25rem;
-    border-radius: var(--radius-md);
-    color: var(--text-faint);
-    text-decoration: none;
-    opacity: 0.55;
-    transition: color 150ms ease, background 150ms ease, opacity 150ms ease;
-}
-
-.hub-chapter-row:hover .hub-chapter-read,
-.hub-chapter-read:focus-visible {
-    opacity: 1;
-    color: var(--gold-dark);
-}
-
-.hub-chapter-read:hover {
-    background: rgba(200, 162, 61, 0.18);
-    color: var(--gold-dark);
-}
-
-@media (hover: none) {
-    .hub-chapter-read {
-        opacity: 1;
-        color: var(--gold);
-    }
-}
-
 .hub-chapter {
     display: flex;
     align-items: baseline;
