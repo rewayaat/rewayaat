@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -286,6 +287,45 @@ class HadithCardParityTest {
                 "These templates load " + CARD_SCRIPT + ", which binds the card's "
                         + "Share-as-image entry, but not " + SHARE_DIALOG + ": " + silent
                         + "\nThe menu entry renders and clicking it does nothing.");
+    }
+
+    /**
+     * The tag list must collapse identically on both cards.
+     *
+     * <p>These are two implementations of one behaviour - Vue's
+     * {@code visibleNarrationTopicTags} on the search page, {@code bindTagOverflow} in
+     * hub-pages.js on the server-rendered ones - and they drifted: the static pages
+     * collapsed after 4 tags at every width while the search card collapsed after 2 and
+     * only below 768px. A narration therefore showed all its tags in search results and a
+     * truncated list on its own page, which is the kind of difference a reader notices and
+     * no test was watching.
+     *
+     * <p>Reading the numbers out of the source is deliberate. The alternative - asserting
+     * the rendered output - needs both a browser and a narration with enough tags, and
+     * would still not say which of the two was wrong.
+     */
+    @Test
+    void bothCardsCollapseTagsAtTheSameCountAndBreakpoint() throws IOException {
+        String searchJs = read(Path.of("src/main/resources/static/js/rewayaat.js"));
+        String hubJs = read(Path.of("src/main/resources/static/js/hub-pages.js"));
+
+        assertEquals(intConstant(searchJs, "MOBILE_VISIBLE_TAGS"),
+                intConstant(hubJs, "VISIBLE_TAGS"),
+                "the two cards collapse the tag list after a different number of tags");
+
+        assertEquals(768, intConstant(hubJs, "TAG_COLLAPSE_MAX_WIDTH"),
+                "hub-pages.js collapses at a different width than the search card's "
+                        + "mobileViewport test (window.innerWidth <= 768)");
+        assertTrue(searchJs.contains("window.innerWidth <= 768"),
+                "the search card's breakpoint moved; hub-pages.js still says 768");
+    }
+
+    /** Reads {@code var NAME = <int>;} out of a script. */
+    private static int intConstant(String source, String name) {
+        Matcher m = Pattern.compile("\\b" + Pattern.quote(name) + "\\s*=\\s*(\\d+)").matcher(source);
+        assertTrue(m.find(), "could not find " + name + ", so this test is not checking "
+                + "anything - fix the test rather than deleting it");
+        return Integer.parseInt(m.group(1));
     }
 
     /** The classes the whole scheme rests on; if these vanish the sharing is over. */
