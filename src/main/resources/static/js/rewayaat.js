@@ -61,12 +61,75 @@ var SIMILAR_ARABIC_DIACRITIC_PATTERN = /[\u0610-\u061A\u064B-\u065F\u0670\u06D6-
 var SIMILAR_NON_ARABIC_PATTERN = /[^\u0621-\u064A\u0660-\u0669\u06F0-\u06F90-9\s]/g;
 var SIMILAR_MULTI_SPACE_PATTERN = /\s+/g;
 var SIMILAR_ARABIC_TOKEN_PATTERN = /[\u0621-\u064A\u0660-\u0669\u06F0-\u06F90-9\u064B-\u065F\u0670\u06D6-\u06ED\u0640]+/g;
+
+/** A query carrying a hierarchy scope and no search terms: browsing, not searching. */
+function isPureScopeQuery(query) {
+    var state = extractQueryState(query);
+    return state.hasScope && state.keywordTerms.length === 0;
+}
+
+/**
+ * Sends a pure-scope query to the page that already exists for it.
+ *
+ * <p>Calls onFallback instead of navigating whenever the scope cannot be honoured exactly,
+ * because /v1/browse/page degrades rather than failing: ask it for book + chapter without
+ * the volume and part between them and it answers with the book's URL, having quietly
+ * dropped the chapter. Redirecting on that would throw away the reader's filter and land
+ * them on 14,242 narrations when they asked for seven. So the resolved URL is only used
+ * when it reaches the deepest level the query actually named.
+ *
+ * <p>A section is never deep enough on its own. It has no page - it is the chapter's
+ * number - so a scope that names one without a chapter falls back to a search that can
+ * still honour it.
+ */
+function resolveScopedBrowsePage(query, onFallback) {
+    var filters = extractQueryState(query).scopeFilters;
+    if (!filters.book || (filters.section && !filters.chapter)) {
+        onFallback();
+        return;
+    }
+    var deepest = filters.chapter ? 'chapterUrl'
+            : filters.part ? 'partUrl'
+            : filters.volume ? 'volumeUrl'
+            : 'bookUrl';
+
+    var params = new URLSearchParams();
+    ['book', 'volume', 'part', 'section', 'chapter'].forEach(function(key) {
+        if (filters[key]) {
+            params.set(key, filters[key]);
+        }
+    });
+
+    fetch('/v1/browse/page?' + params.toString(), { credentials: 'same-origin' })
+        .then(function(resp) { return resp.ok ? resp.json() : null; })
+        .then(function(data) {
+            var url = data && data.ok ? data[deepest] : null;
+            if (url) {
+                // replace, not assign: the scoped URL is a staging post, and leaving it in
+                // history means Back returns here and redirects forward again.
+                window.location.replace(url);
+                return;
+            }
+            onFallback();
+        })
+        .catch(onFallback);
+}
+
 /**
  * Main entry point to the website. If does not exist, display default welcome
  * content. If there is a valid query, setup a Vue.js instance to display it.s
  */
-function loadQuery(query, page = 1, sortFields) {
+function loadQuery(query, page = 1, sortFields, skipBrowseRedirect) {
     query = resolveInitialQueryInput(query);
+    // A query that is nothing but a scope - book:"Al-Kāfi", or that plus a volume - is a
+    // request to browse, not to search. Those pages exist and are server-rendered, so send
+    // the reader to the real URL instead of rendering a scoped result set here.
+    if (!skipBrowseRedirect && query && !isCollectionMode() && isPureScopeQuery(query)) {
+        resolveScopedBrowsePage(query, function() {
+            loadQuery(query, page, sortFields, true);
+        });
+        return;
+    }
     if (isCollectionMode()) {
         $.getJSON("book_blurbs.json", function(book_blurbs) {
             bookBlurbs = book_blurbs;
