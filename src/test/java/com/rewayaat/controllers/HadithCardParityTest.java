@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -111,6 +112,9 @@ class HadithCardParityTest {
      * belongs here, and editing notably does not — it links to /edit.
      */
     private static final Set<String> SEARCH_ONLY_ACTIONS = Set.of("remove");
+
+    private static final String SHARE_DIALOG = "share-card-modal.js";
+    private static final String CARD_SCRIPT = "hub-pages.js";
 
     /**
      * Menu entries the search card offers that are not the card's to mirror. Exporting
@@ -226,6 +230,13 @@ class HadithCardParityTest {
         return found;
     }
 
+    /** Whether the page actually pulls the script in, rather than merely naming it. */
+    private static boolean loads(String html, String script) {
+        return Pattern.compile("<script[^>]*\\b(?:src|th:src)\\s*=\\s*[\"'][^\"']*"
+                        + Pattern.quote(script), Pattern.CASE_INSENSITIVE)
+                .matcher(html).find();
+    }
+
     private static Set<String> actionModifiers(String html) {
         Set<String> found = new LinkedHashSet<>();
         Matcher m = Pattern.compile("icon-action--([a-z][a-z-]*)").matcher(html);
@@ -233,6 +244,48 @@ class HadithCardParityTest {
             found.add(m.group(1));
         }
         return found;
+    }
+
+    /**
+     * hub-pages.js binds the card's Share-as-image entry to a dialog that lives in
+     * share-card-modal.js, so a page that loads one and not the other has a button that
+     * does nothing at all — no error, no dialog. That is what /hadith/{id} shipped:
+     * hadith.html builds its own head rather than taking fragments/site :: sitehead, so
+     * it picked up hub-pages.js and missed the dialog.
+     *
+     * <p>Checking "does the page reference fragments/site" is not enough, and an earlier
+     * version of this test made exactly that mistake: hadith.html does reference it, for
+     * a breadcrumb, and the test passed while the button was dead. The dependency between
+     * the two scripts is the thing worth asserting, because it holds however a page is
+     * composed.
+     */
+    @Test
+    void everyPageLoadingTheCardScriptAlsoLoadsTheShareDialog() throws IOException {
+        Path templates = Path.of("src/main/resources/templates");
+        Set<String> silent = new LinkedHashSet<>();
+        int carriers = 0;
+
+        try (Stream<Path> walk = Files.walk(templates)) {
+            for (Path page : walk.filter(Files::isRegularFile)
+                    .filter(path -> path.toString().endsWith(".html")).toList()) {
+                String html = read(page);
+                // A script tag, not a mention: the card fragment names hub-pages.js in a
+                // comment explaining who drives its dropdowns.
+                if (!loads(html, CARD_SCRIPT)) {
+                    continue;
+                }
+                carriers++;
+                if (!loads(html, SHARE_DIALOG)) {
+                    silent.add(page.getFileName().toString());
+                }
+            }
+        }
+
+        assertTrue(carriers > 0, "no template loads " + CARD_SCRIPT + " any more");
+        assertTrue(silent.isEmpty(),
+                "These templates load " + CARD_SCRIPT + ", which binds the card's "
+                        + "Share-as-image entry, but not " + SHARE_DIALOG + ": " + silent
+                        + "\nThe menu entry renders and clicking it does nothing.");
     }
 
     /** The classes the whole scheme rests on; if these vanish the sharing is over. */
@@ -268,7 +321,11 @@ class HadithCardParityTest {
         return combined.toString();
     }
 
-    private static String read(Path path) throws IOException {
-        return Files.readString(path, StandardCharsets.UTF_8);
+    private static String read(Path path) {
+        try {
+            return Files.readString(path, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new java.io.UncheckedIOException(e);
+        }
     }
 }

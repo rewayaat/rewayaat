@@ -456,19 +456,51 @@ public class ShareCardRenderer {
         Block ar = null;
         Block en = null;
         for (float scale : TYPE_SCALES) {
-            float arabicLeading = arabicBase * scale * 1.58f;
-            float englishLeading = englishBase * scale * 1.46f;
-            // Arabic may take everything except two lines the English is always owed, so
-            // a long narration cannot squeeze the translation down to a single clause.
-            float reservedForEnglish = hasEnglish ? 2 * englishLeading : 0;
+            float arabicSize = arabicBase * scale;
+            float englishSize = englishBase * scale;
+            float arabicLeading = arabicSize * 1.58f;
+            float englishLeading = englishSize * 1.46f;
+
+            // What each language would take if it had the card to itself. Asking first,
+            // rather than laying one out and giving the other the remainder, is the whole
+            // point: the remainder rule handed Arabic five lines and English two, and got
+            // worse as the type shrank — seven and two — because the reserve was a flat
+            // two lines rather than a share.
+            Block wholeArabic = hasArabic
+                    ? block(arabic, true, arabicSize, Integer.MAX_VALUE, 1.58f, frc) : null;
+            Block wholeEnglish = hasEnglish
+                    ? block(english, false, englishSize, Integer.MAX_VALUE, 1.46f, frc) : null;
+            float needArabic = wholeArabic == null ? 0 : wholeArabic.lines().size() * arabicLeading;
+            float needEnglish = wholeEnglish == null ? 0 : wholeEnglish.lines().size() * englishLeading;
+
+            if (needArabic + needEnglish <= available) {
+                ar = wholeArabic;
+                en = wholeEnglish;
+                break;
+            }
+
+            // Neither fits, so split the body evenly and hand back whatever one of them
+            // does not want. A short translation beside a long matn keeps all of itself
+            // and the matn takes the rest; two long texts are cut by the same measure.
+            float shareArabic = hasArabic && hasEnglish ? available / 2f : available;
+            float shareEnglish = hasArabic && hasEnglish ? available / 2f : available;
+            if (hasArabic && hasEnglish) {
+                if (needArabic < shareArabic) {
+                    shareEnglish += shareArabic - needArabic;
+                    shareArabic = needArabic;
+                } else if (needEnglish < shareEnglish) {
+                    shareArabic += shareEnglish - needEnglish;
+                    shareEnglish = needEnglish;
+                }
+            }
+
             Block a = hasArabic
-                    ? block(arabic, true, arabicBase * scale,
-                            budget(available - reservedForEnglish, arabicLeading, arabicCap),
-                            1.58f, frc)
+                    ? block(arabic, true, arabicSize,
+                            budget(shareArabic, arabicLeading, arabicCap), 1.58f, frc)
                     : null;
             Block e = hasEnglish
-                    ? block(english, false, englishBase * scale,
-                            budget(available - height(a), englishLeading, englishCap), 1.46f, frc)
+                    ? block(english, false, englishSize,
+                            budget(shareEnglish, englishLeading, englishCap), 1.46f, frc)
                     : null;
             ar = a;
             en = e;
