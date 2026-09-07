@@ -39,7 +39,7 @@ public class BrowseController {
      * The server-rendered page a browse selection corresponds to.
      *
      * <p>The browse panel used to submit into the search app's reading mode. It sends
-     * readers to the book, volume or chapter page instead, and asks for the URL rather
+     * readers to the book, volume, part or chapter page instead, and asks for the URL rather
      * than building it, because the slugs come from {@link BookCatalog#slugify} and a
      * second implementation in the browser would drift from the routes.
      *
@@ -82,6 +82,22 @@ public class BrowseController {
             out.put("volumeUrl", volumeUrl);
         }
 
+        // Parts are keyed by volume as well as title — the same title recurs across
+        // volumes and the slugs are disambiguated accordingly — so the volume has to be
+        // part of the lookup or a reader lands on the wrong one.
+        String partUrl = null;
+        if (part != null && !part.isBlank()) {
+            String wantedPart = part.trim();
+            partUrl = resolved.partsInVolume(volume == null ? "" : volume.trim()).stream()
+                    .filter(candidate -> wantedPart.equals(candidate.title()))
+                    .findFirst()
+                    .map(BookCatalog.Part::url)
+                    .orElse(null);
+            if (partUrl != null) {
+                out.put("partUrl", partUrl);
+            }
+        }
+
         String chapterUrl = null;
         if (chapter != null && !chapter.isBlank()) {
             chapterUrl = catalog.chapterFor(book.trim(), volume, part, section, chapter.trim())
@@ -93,7 +109,9 @@ public class BrowseController {
 
         // "url" stays the deepest page that exists, which is what the browse panel and
         // the metadata rows navigate to.
-        out.put("url", chapterUrl != null ? chapterUrl : volumeUrl != null ? volumeUrl : bookUrl);
+        out.put("url", chapterUrl != null ? chapterUrl
+                : partUrl != null ? partUrl
+                : volumeUrl != null ? volumeUrl : bookUrl);
         return out;
     }
 

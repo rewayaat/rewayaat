@@ -306,12 +306,12 @@
                             redirectToSearchResult(query, 1, sortFields);
                         }
 
-                        // Book, volume and chapter each have a page of their own, so the
-                        // metadata row goes there rather than to a scoped search: it is a
-                        // real URL, it carries the same cards, and it is the page a reader
-                        // would have found from Google. Part and section have no page, so
-                        // they keep the search they always ran.
-                        if (targetLevel !== 'book' && targetLevel !== 'volume' && targetLevel !== 'chapter') {
+                        // Book, volume, part and chapter each have a page of their own, so
+                        // the metadata row goes there rather than to a scoped search: it is
+                        // a real URL, it carries the same cards, and it is the page a reader
+                        // would have found from Google. Section is the one level with no
+                        // page, so it keeps the search it always ran.
+                        if (['book', 'volume', 'part', 'chapter'].indexOf(targetLevel) < 0) {
                             runSearch();
                             return;
                         }

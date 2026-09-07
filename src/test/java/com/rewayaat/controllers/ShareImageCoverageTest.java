@@ -87,4 +87,38 @@ class ShareImageCoverageTest {
         assertFalse(routes.isBlank(), "could not read ShareCardController");
         assertTrue(absent.isEmpty(), "ShareCardController is missing these card routes: " + absent);
     }
+
+    /**
+     * Every level with a page of its own should be reachable from a card's metadata rows.
+     *
+     * <p>Part pages were added during the SEO work and the two card renderers were never
+     * told: both still carried a comment saying part had no page, and both left the row
+     * as plain text. Section is the one level that genuinely has none.
+     */
+    @Test
+    void everyMetadataRowWithAPageLinksToIt() throws IOException {
+        String factory = Files.readString(
+                Path.of("src/main/java/com/rewayaat/service/HadithCardFactory.java"),
+                StandardCharsets.UTF_8);
+        String searchCard = Files.readString(
+                Path.of("src/main/resources/static/js/vue-components.js"),
+                StandardCharsets.UTF_8);
+        String resolver = Files.readString(
+                Path.of("src/main/java/com/rewayaat/controllers/rest/BrowseController.java"),
+                StandardCharsets.UTF_8);
+
+        // The server card passes a URL for each linkable level and null for section.
+        for (String level : new String[]{"bookUrl", "volumeUrl", "partUrl", "chapterUrl"}) {
+            assertTrue(factory.contains(level),
+                    "HadithCardFactory builds no " + level + ", so that metadata row cannot link");
+        }
+        assertTrue(factory.contains("\"Part\", partTitle, partUrl"),
+                "the Part row is not wired to partUrl, so it renders as plain text");
+
+        // The search card resolves the same levels through the browse endpoint.
+        assertTrue(searchCard.contains("['book', 'volume', 'part', 'chapter'].indexOf(targetLevel)"),
+                "the search card does not route part to its page");
+        assertTrue(resolver.contains("partUrl"),
+                "the browse resolver cannot answer with a part page");
+    }
 }
