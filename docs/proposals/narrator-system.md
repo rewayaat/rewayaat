@@ -100,6 +100,23 @@ Kunyahs and nisbahs are **disambiguators, not identifiers**. They belong in the 
 score (below), never in the name index used to generate merge candidates. Indexing them as
 names makes `أبو جعفر` a join key across the whole corpus.
 
+**The rule is about string shape, not about which field a string arrived in.** Extractors
+record kunyahs and bare nisbahs inside `arabic_aliases` as well as in their own fields, so
+excluding the `titles` and `kunyah_arabic` fields alone leaves the exclusion laundered
+through the alias list — `الكوفي` and `أبو العباس` go on generating candidates. An alias
+qualifies as an identifier only with **two or more identifying tokens**, counted after
+discarding the connectors (بن، ابن، أبو، أم، عبد، مولى). Bare kunyahs, single nisbahs and
+editorial placeholders score below that. They are still stored and displayed; they simply
+cannot be the reason two profiles merge.
+
+English needs its own connector list rather than a word count: `abu muhammad` is two words
+and no more identifying than `أبو محمد`.
+
+**Editorial shorthand is not a name.** Mamaqani writes المترجم ("the biographee"), المعنون,
+صاحب الترجمة, الرجل to refer to whoever the entry is about. Extracted as aliases these
+become join keys of enormous reach. They carry nothing recoverable and are dropped at the
+contract stage.
+
 ### Diacritics Standardization
 
 Arabic and English name fields each need two forms:
@@ -545,6 +562,16 @@ running on almost nothing, which is why the large name groups are a Layer 3 prob
 than a scoring problem.
 
 **Layer 4 never ran.** 35 entries in the old review queue.
+
+**The alias list re-opened the same hole (found 2026-09-07 by the Layer 3 agents).** The
+rebuilt merge stopped indexing `titles` and `kunyah_arabic`, but kunyahs and nisbahs also
+live inside `arabic_aliases`, so they kept generating candidates. `الكوفي` linked nine
+unrelated narrators into one profile; `أبو العباس` pulled Ibn Uqda into a profile seeded by
+Ibn al-Ghadaʾiri's entry for أحمد بن علي أبو العباس الرازي. An agent reported this as an
+upstream extraction defect — "header name and biographical body come from different
+entries" — which was worth checking and turned out to be wrong: the per-book files are
+clean, and the merge had put them together. Worth recording as a caution in both
+directions.
 
 **Layer 3 used the Anthropic API directly**, against the no-external-LLM-APIs decision.
 
