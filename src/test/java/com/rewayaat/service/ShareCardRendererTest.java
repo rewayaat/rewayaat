@@ -165,4 +165,29 @@ class ShareCardRendererTest {
     private static double luminance(int rgb) {
         return 0.2126 * ((rgb >> 16) & 0xff) + 0.7152 * ((rgb >> 8) & 0xff) + 0.0722 * (rgb & 0xff);
     }
+
+    /**
+     * Java2D applies neither GSUB nor GPOS: it shapes Arabic through the legacy
+     * Presentation Forms-B block. A face without those codepoints cannot form the
+     * mandatory lam-alif ligature, and لا renders as two loose strokes — which is exactly
+     * what happened when this card was briefly set in Scheherazade New. The failure is
+     * silent, so it needs a test rather than an eye.
+     */
+    @Test
+    void theArabicFaceCarriesTheFormsJava2dShapesWith() throws Exception {
+        java.awt.Font arabic;
+        try (java.io.InputStream in = new org.springframework.core.io.ClassPathResource(
+                "static/fonts/NotoNaskhArabic-Regular.ttf").getInputStream()) {
+            arabic = java.awt.Font.createFont(java.awt.Font.TRUETYPE_FONT, in);
+        }
+
+        // U+FEFB/U+FEFC are the lam-alif ligature; the rest are the joining forms a
+        // shaped word is built from.
+        int[] required = {0xFEFB, 0xFEFC, 0xFEF5, 0xFEF7, 0xFE8D, 0xFEDF};
+        for (int codepoint : required) {
+            assertTrue(arabic.canDisplay(codepoint),
+                    () -> String.format("the Arabic face cannot display U+%04X, so Java2D "
+                            + "will not shape correctly with it", codepoint));
+        }
+    }
 }

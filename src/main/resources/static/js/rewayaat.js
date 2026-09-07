@@ -5495,35 +5495,18 @@ function setupVue(query, page, sortFields) {
              * secure context or outside a user gesture, so every failure falls back to
              * opening the PNG in a tab. The action must never silently do nothing.
              */
-            copyHadithCardImage: function(narration, theme) {
-                var hadithId = ((narration && (narration._id || narration.id)) || '').toString().trim();
-                if (!hadithId) {
-                    showToast('Unable to build image.', 'warning');
+            shareHadithCardImage: function(narration) {
+                var hadithId = narration && (narration._id || narration.id);
+                if (!hadithId || !window.HadithShareCard) {
                     return;
                 }
-                var url = '/hadith/' + encodeURIComponent(hadithId) + '/card.png'
-                    + (theme === 'light' ? '?theme=light' : '');
-                var label = theme === 'light' ? 'Light image' : 'Dark image';
-                var openInstead = function() {
-                    showToast('Unable to copy the image; opening it instead.', 'warning');
-                    window.open(url, '_blank', 'noopener');
-                };
-                if (!window.ClipboardItem || !navigator.clipboard || !navigator.clipboard.write) {
-                    openInstead();
-                    return;
-                }
-                fetch(url).then(function(response) {
-                    if (!response.ok) {
-                        throw new Error('card request failed');
-                    }
-                    return response.blob();
-                }).then(function(blob) {
-                    var item = {};
-                    item[blob.type || 'image/png'] = blob;
-                    return navigator.clipboard.write([new window.ClipboardItem(item)]);
-                }).then(function() {
-                    showToast(label + ' copied.', 'information');
-                }).catch(openInstead);
+                // Same dialog the book and narration pages open, from the same file.
+                window.HadithShareCard.open(hadithId, this.narrationShareLabel(narration));
+            },
+            narrationShareLabel: function(narration) {
+                if (!narration) { return ''; }
+                var book = narration.book || 'Narration';
+                return (book + (narration.number ? (' #' + narration.number) : '')).trim();
             },
             requestArabicSuggestion: function(resultNarrations) {
                 this.dismissArabicSuggestion();

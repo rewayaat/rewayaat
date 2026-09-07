@@ -86,6 +86,10 @@ public class ShareCardController {
     public ResponseEntity<byte[]> narrationCard(@PathVariable("id") String id,
                                                 @RequestParam(value = "theme",
                                                         required = false) String theme,
+                                                @RequestParam(value = "lang",
+                                                        required = false) String lang,
+                                                @RequestParam(value = "full",
+                                                        required = false) String full,
                                                 @RequestHeader(value = "If-None-Match",
                                                         required = false) String ifNoneMatch) {
         Map<String, Object> source = narration(id);
@@ -101,7 +105,28 @@ public class ShareCardController {
 
         return respond(new ShareCardRenderer.Card(narrationEyebrow(source),
                         clean(str(card.get("arabic"))), clean(str(card.get("english"))), DOMAIN),
-                theme(theme), ifNoneMatch);
+                theme(theme), options(lang, full), ifNoneMatch);
+    }
+
+    /**
+     * The share dialog's two other choices. Anything unrecognised falls back to the
+     * defaults rather than erroring, because these arrive from links people have edited
+     * by hand as often as from the dialog.
+     */
+    private static ShareCardRenderer.Options options(String lang, String full) {
+        ShareCardRenderer.Language language = ShareCardRenderer.Language.BOTH;
+        if (lang != null) {
+            String wanted = lang.trim().toLowerCase(java.util.Locale.ROOT);
+            if (wanted.equals("ar") || wanted.equals("arabic")) {
+                language = ShareCardRenderer.Language.ARABIC;
+            } else if (wanted.equals("en") || wanted.equals("english")) {
+                language = ShareCardRenderer.Language.ENGLISH;
+            }
+        }
+        boolean whole = full != null
+                && (full.isBlank() || "true".equalsIgnoreCase(full.trim())
+                    || "1".equals(full.trim()) || "yes".equalsIgnoreCase(full.trim()));
+        return new ShareCardRenderer.Options(language, whole);
     }
 
     /** Anything but an explicit {@code light} is the dark card, including a typo. */
@@ -149,24 +174,37 @@ public class ShareCardController {
      * Keying the cache by narration id instead would have gone on serving the old image
      * forever, which is exactly the failure {@code immutable} makes unrecoverable.
      */
+    /** Says whether the default card cut this narration short. Read by the share dialog. */
+    private static final String TRIMMED_HEADER = "X-Card-Trimmed";
+
     private ResponseEntity<byte[]> respond(ShareCardRenderer.Card card,
                                            ShareCardRenderer.Theme theme, String ifNoneMatch) {
-        // The theme is part of the key as well as the text: the two themes are different
-        // images behind one URL, and sharing an ETag would serve one of them for the other.
-        String hash = hash(theme + " " + card.eyebrow() + " " + card.arabic() + " " + card.english());
+        return respond(card, theme, ShareCardRenderer.Options.DEFAULT, ifNoneMatch);
+    }
+
+    private ResponseEntity<byte[]> respond(ShareCardRenderer.Card card,
+                                           ShareCardRenderer.Theme theme,
+                                           ShareCardRenderer.Options options, String ifNoneMatch) {
+        // Theme, language and completeness are part of the key as well as the text: they
+        // are different images behind one URL, and a shared ETag would serve one for
+        // another.
+        String hash = hash(theme + " " + options.language() + " " + options.full() + " "
+                + card.eyebrow() + " " + card.arabic() + " " + card.english());
         String etag = "\"" + hash + "\"";
         CacheControl caching = CacheControl.maxAge(Duration.ofDays(365)).cachePublic().immutable();
 
         // A conditional request may quote the tag weakly ("W/..."), and a client is
         // allowed to send several.
         if (ifNoneMatch != null && ifNoneMatch.contains(hash)) {
-            return ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(etag).cacheControl(caching).build();
+            return ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(etag).cacheControl(caching)
+                    .header(TRIMMED_HEADER, Boolean.toString(renderer.truncates(card, options)))
+                    .build();
         }
 
         byte[] png = cache.get(hash);
         if (png == null) {
             long started = System.nanoTime();
-            png = renderer.render(card, theme);
+            png = renderer.render(card, theme, options);
             cache.put(hash, png);
             LOGGER.debug("Drew share card {} in {} ms ({} bytes)", hash,
                     (System.nanoTime() - started) / 1_000_000, png.length);
@@ -175,6 +213,9 @@ public class ShareCardController {
                 .contentType(MediaType.IMAGE_PNG)
                 .eTag(etag)
                 .cacheControl(caching)
+                // Lets the share dialog drop the trimmed/full choice when this narration
+                // fits either way, rather than offering a control that changes nothing.
+                .header(TRIMMED_HEADER, Boolean.toString(renderer.truncates(card, options)))
                 .body(png);
     }
 

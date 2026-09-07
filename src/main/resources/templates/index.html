@@ -831,21 +831,16 @@
                                                             Copy link
                                                         </button>
                                                     </li>
-                                                    <!-- The generated share card. Light exists because
-                                                         MailPoet templates are white and a navy block
-                                                         reads as a foreign object dropped into one. -->
+                                                    <!-- One entry, not two: the dialog behind it shows
+                                                         the card and lets you switch theme there, where
+                                                         you can see what the choice does. Light exists
+                                                         because MailPoet templates are white and a navy
+                                                         block reads as a foreign object dropped into one. -->
                                                     <li>
                                                         <button class="dropdown-item"
                                                                 type="button"
-                                                                v-on:click="copyHadithCardImage(narration, 'dark')">
-                                                            Copy image (dark)
-                                                        </button>
-                                                    </li>
-                                                    <li>
-                                                        <button class="dropdown-item"
-                                                                type="button"
-                                                                v-on:click="copyHadithCardImage(narration, 'light')">
-                                                            Copy image (light)
+                                                                v-on:click="shareHadithCardImage(narration)">
+                                                            Share as image
                                                         </button>
                                                     </li>
                                                 </ul>
@@ -923,6 +918,7 @@
 <script crossorigin="anonymous" src="https://cdn.ravenjs.com/3.22.3/raven.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/noty/3.1.4/noty.min.js"></script>
 <script crossorigin="anonymous" src="https://cdn.lr-ingest.io/LogRocket.min.js"></script>
+<script src="/js/share-card-modal.js" th:src="@{/js/share-card-modal.js}"></script>
 <script src="/js/vue-components.js" th:src="@{/js/vue-components.js}"></script>
 <script src="/js/rewayaat.js" th:src="@{/js/rewayaat.js}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" th:async="async"></script>
