@@ -196,6 +196,20 @@ a:hover {
 }
 #latest-news-bar:empty { display: none; }
 
+/* Every one of these is decoration. Someone who has asked their system for less motion
+   gets the same layout with none of it - the hero keeps its glow, the cards keep their
+   hover states, and nothing moves. */
+@media (prefers-reduced-motion: reduce) {
+    .hub-hero::before {
+        animation: none;
+        background-position: -150% 0, 0 0, 0 0;
+    }
+    .hub-card::before,
+    .hub-chapter::before {
+        display: none;
+    }
+}
+
 /* ── Site Announcement Bar ───────────────────────────────────────────────── */
 /* Injected as the first child of <body> by js/site-announcement.js, so it sits above the
    sticky nav on every page. It scrolls away with the page rather than sticking: it is an
@@ -10167,9 +10181,30 @@ body.is-search-mode .site-nav .search-entry-shell {
     position: absolute;
     inset: 0;
     background:
+        linear-gradient(105deg,
+            transparent 42%,
+            rgba(255, 255, 255, 0.05) 47%,
+            rgba(243, 229, 184, 0.07) 50%,
+            rgba(255, 255, 255, 0.05) 53%,
+            transparent 58%),
         radial-gradient(ellipse at 25% 8%, rgba(255,255,255,0.10) 0%, transparent 38%),
         radial-gradient(ellipse at 78% 92%, rgba(200,162,61,0.14) 0%, transparent 32%);
+    background-size: 250% 100%, auto, auto;
+    background-position: 250% 0, 0 0, 0 0;
+    background-repeat: no-repeat;
     pointer-events: none;
+    animation: hub-hero-sheen 11s ease-in-out infinite;
+}
+
+/* The sweep occupies a fifth of the cycle and the rest is stillness, so it reads as a
+   catch of light on a surface rather than a loading state. Peak opacity is 0.07 - at
+   0.15 it looked like a skeleton placeholder, which is the wrong association for a page
+   whose content has already arrived. Only the first background layer moves; the two
+   radial glows underneath stay where they are. */
+@keyframes hub-hero-sheen {
+    0%   { background-position: 250% 0, 0 0, 0 0; }
+    22%  { background-position: -150% 0, 0 0, 0 0; }
+    100% { background-position: -150% 0, 0 0, 0 0; }
 }
 
 /* The gold rule that closes every navy panel on this site. */
@@ -10450,6 +10485,31 @@ body.is-search-mode .site-nav .search-entry-shell {
     transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease, background 180ms ease;
 }
 
+/* A sweep across the card on hover. Hover-only on purpose: a chapter listing can carry
+   hundreds of these, and animating them all at rest would be both distracting and a
+   pointless compositing cost. ::before is free here; ::after is the medallion below. */
+.hub-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 55%;
+    background: linear-gradient(105deg,
+        transparent,
+        rgba(255, 255, 255, 0.55) 45%,
+        rgba(200, 162, 61, 0.16) 55%,
+        transparent);
+    transform: translateX(-190%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.hub-card:hover::before {
+    transform: translateX(340%);
+    transition: transform 850ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
 /* A faint corner medallion, so a card is not just a rectangle. */
 .hub-card::after {
     content: "۞";
@@ -10553,6 +10613,8 @@ body.is-search-mode .site-nav .search-entry-shell {
 }
 
 .hub-chapter {
+    position: relative;
+    overflow: hidden;
     display: flex;
     align-items: baseline;
     gap: 0.9rem;
@@ -10561,6 +10623,33 @@ body.is-search-mode .site-nav .search-entry-shell {
     border-left: 2px solid transparent;
     text-decoration: none;
     transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
+}
+
+.hub-chapter::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 45%;
+    background: linear-gradient(105deg,
+        transparent,
+        rgba(255, 255, 255, 0.6) 45%,
+        rgba(200, 162, 61, 0.14) 55%,
+        transparent);
+    transform: translateX(-190%);
+    pointer-events: none;
+}
+
+.hub-chapter:hover::before {
+    transform: translateX(420%);
+    transition: transform 800ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* The row's own content has to sit above the sweep. */
+.hub-chapter > * {
+    position: relative;
+    z-index: 1;
 }
 
 .hub-chapter:hover {
