@@ -196,36 +196,6 @@ a:hover {
 }
 #latest-news-bar:empty { display: none; }
 
-/* ── Book page introduction ──────────────────────────────────────────────── */
-/* Sits between the hero and the volume grid. Measured rather than full-width: a
-   single paragraph set across 1200px is a worse read than the same paragraph set
-   across 68 characters, and this one is meant to be read, not scanned. */
-.book-intro {
-    max-width: 62ch;
-    margin: 1.75rem 0 0;
-    padding: 1.25rem 1.5rem;
-    border-left: 3px solid var(--gold, #c8a23d);
-    border-radius: 0 var(--radius-md, 14px) var(--radius-md, 14px) 0;
-    background: linear-gradient(90deg, rgba(200, 162, 61, 0.07), rgba(200, 162, 61, 0.02) 60%, transparent);
-}
-
-.book-intro__text {
-    margin: 0;
-    font-family: 'Source Serif 4', Georgia, serif;
-    font-size: 1.02rem;
-    line-height: 1.72;
-    color: var(--text-body, #2c3a4b);
-}
-
-@media (max-width: 575.98px) {
-    .book-intro {
-        margin-top: 1.25rem;
-        padding: 1rem 1.1rem;
-        border-radius: 0 10px 10px 0;
-    }
-    .book-intro__text { font-size: 0.97rem; line-height: 1.65; }
-}
-
 /* ── Site Announcement Bar ───────────────────────────────────────────────── */
 /* Injected as the first child of <body> by js/site-announcement.js, so it sits above the
    sticky nav on every page. It scrolls away with the page rather than sticking: it is an
@@ -10236,6 +10206,75 @@ body.is-search-mode .site-nav .search-entry-shell {
     color: #fff;
     text-wrap: balance;
 }
+
+/* ── Book hero, split ────────────────────────────────────────────────────── */
+/* The banner already reserved a full-width band for a centred title and three stat
+   pills, which left most of its area empty. On book pages it now carries the
+   introduction in a second column: identity on one side, what the collection is on the
+   other.
+
+   Body text in gold on this navy measures about 4.5:1 - defensible for a 21px uppercase
+   eyebrow, not for a paragraph - so the introduction is set in near-white and gold stays
+   the accent it is everywhere else on the site. The identity column also stops being
+   centred here: a paragraph beside a centred title has no shared edge to line up on. */
+.hub-hero--split {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    align-items: center;
+    gap: 2.5rem;
+    text-align: left;
+    padding: 2.5rem;
+}
+
+.hub-hero--split .hub-hero__identity,
+.hub-hero--split .hub-hero__intro {
+    position: relative;   /* above ::before, which paints the glow */
+    z-index: 1;
+}
+
+.hub-hero--split .hub-hero__stats {
+    justify-content: flex-start;
+}
+
+.hub-hero__intro {
+    border-left: 2px solid rgba(200, 162, 61, 0.45);
+    padding-left: 1.75rem;
+}
+
+.hub-hero__intro-text {
+    margin: 0;
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 1rem;
+    line-height: 1.75;
+    color: rgba(255, 255, 255, 0.88);
+}
+
+/* One column below the split, with the rule moved to the top so it still reads as a
+   separator rather than an orphaned edge. The hero is the whole first screen on a
+   phone, so the type comes down a step and the padding with it. */
+@media (max-width: 767.98px) {
+    .hub-hero--split {
+        grid-template-columns: 1fr;
+        gap: 1.4rem;
+        padding: 2rem 1.5rem;
+        text-align: center;
+    }
+    .hub-hero--split .hub-hero__stats {
+        justify-content: center;
+    }
+    .hub-hero__intro {
+        border-left: 0;
+        border-top: 2px solid rgba(200, 162, 61, 0.4);
+        padding-left: 0;
+        padding-top: 1.3rem;
+        text-align: left;
+    }
+    .hub-hero__intro-text {
+        font-size: 0.94rem;
+        line-height: 1.68;
+    }
+}
+
 
 .hub-hero__lede {
     position: relative;
