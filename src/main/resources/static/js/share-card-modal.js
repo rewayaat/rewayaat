@@ -14,6 +14,7 @@
     'use strict';
 
     var lengthCheck = 0;
+    var chainCheck = 0;
     var state = {
         id: null, label: '', root: null, lastFocus: null,
         theme: 'dark',      // dark | light
@@ -146,6 +147,7 @@
         });
         state.root.querySelector('[data-share-address]').value = absolute(url);
         updateLengthControl(url);
+        updateChainControl(url);
     }
 
     /**
@@ -166,6 +168,31 @@
                 group.hidden = !trimmed;
                 if (!trimmed && state.full) {
                     state.full = false;
+                    refresh();
+                }
+            })
+            .catch(function () { /* leave the control as it is */ });
+    }
+
+    /**
+     * The isnād is separated from the matn per language, and that detection does not
+     * always succeed on both sides. Where only the Arabic chain was found, turning the
+     * toggle on changes the Arabic and leaves the English untouched - and on an
+     * English-only card it does nothing at all, which reads as a broken switch. The
+     * server reports what it managed to separate for the current language in
+     * X-Card-Chain, and the control is offered only when it will visibly do something.
+     */
+    function updateChainControl(url) {
+        var group = state.root.querySelector('[data-share-group="chain"]');
+        if (!group) { return; }
+        var token = ++chainCheck;
+        fetch(url, {method: 'HEAD'})
+            .then(function (response) {
+                if (token !== chainCheck || !state.root) { return; }
+                var available = response.headers.get('X-Card-Chain') === 'true';
+                group.hidden = !available;
+                if (!available && state.chain) {
+                    state.chain = false;
                     refresh();
                 }
             })
