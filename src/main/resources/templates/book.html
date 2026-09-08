@@ -26,6 +26,13 @@
         </div>
     </header>
 
+    <!-- One paragraph on what this collection is, before the reader is asked to pick a
+         volume. A page that opens straight into a grid of "Volume 1..8" assumes you
+         already know what the book is; most people arriving from a search do not. -->
+    <section class="book-intro" th:if="${bookSummary != null}">
+        <p class="book-intro__text" th:text="${bookSummary}">A short introduction.</p>
+    </section>
+
     <div th:replace="~{fragments/site :: ornament}"></div>
 
     <!-- Books with volumes list those; the chapters live one level down so that no

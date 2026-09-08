@@ -111,6 +111,7 @@ public class BookPageController {
         model.addAttribute("parts", useParts ? parts : List.of());
         model.addAttribute("chapters", useVolumes || useParts ? List.of() : book.chapters());
         model.addAttribute("blurb", blurbs.forSlug(bookSlug));
+        model.addAttribute("bookSummary", blurbs.summaryForSlug(bookSlug));
         model.addAttribute("seoTitle", book.name() + " — Shia Hadith in Arabic & English");
         model.addAttribute("seoDescription", String.format(
                 "Read %s in Arabic and English: %,d narrations across %,d chapters, "

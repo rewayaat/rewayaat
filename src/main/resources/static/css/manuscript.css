@@ -196,6 +196,36 @@ a:hover {
 }
 #latest-news-bar:empty { display: none; }
 
+/* ── Book page introduction ──────────────────────────────────────────────── */
+/* Sits between the hero and the volume grid. Measured rather than full-width: a
+   single paragraph set across 1200px is a worse read than the same paragraph set
+   across 68 characters, and this one is meant to be read, not scanned. */
+.book-intro {
+    max-width: 62ch;
+    margin: 1.75rem 0 0;
+    padding: 1.25rem 1.5rem;
+    border-left: 3px solid var(--gold, #c8a23d);
+    border-radius: 0 var(--radius-md, 14px) var(--radius-md, 14px) 0;
+    background: linear-gradient(90deg, rgba(200, 162, 61, 0.07), rgba(200, 162, 61, 0.02) 60%, transparent);
+}
+
+.book-intro__text {
+    margin: 0;
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 1.02rem;
+    line-height: 1.72;
+    color: var(--text-body, #2c3a4b);
+}
+
+@media (max-width: 575.98px) {
+    .book-intro {
+        margin-top: 1.25rem;
+        padding: 1rem 1.1rem;
+        border-radius: 0 10px 10px 0;
+    }
+    .book-intro__text { font-size: 0.97rem; line-height: 1.65; }
+}
+
 /* ── Site Announcement Bar ───────────────────────────────────────────────── */
 /* Injected as the first child of <body> by js/site-announcement.js, so it sits above the
    sticky nav on every page. It scrolls away with the page rather than sticking: it is an
