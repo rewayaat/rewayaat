@@ -575,24 +575,6 @@ a:hover {
     border-bottom: none;
 }
 
-.search-mode-option:hover {
-    background: rgba(200, 162, 61, 0.12);
-}
-
-.search-mode-option.active {
-    background: rgba(200, 162, 61, 0.2);
-    color: var(--primary-dark);
-}
-
-.search-mode-option i.fa-check {
-    color: transparent;
-    font-size: 0.85rem;
-    transition: color 150ms ease;
-}
-
-.search-mode-option.active i.fa-check {
-    color: var(--gold-dark);
-}
 
 .mode-content {
     flex: 1;
@@ -11768,4 +11750,117 @@ a.hub-hero__eyebrow:hover {
 @media (max-width: 575.98px) {
     .share-card-modal__panel { padding: 1rem; }
     .share-card-modal__actions .share-card-modal__btn { flex: 1 1 auto; }
+}
+
+/* ── Search mode menu ────────────────────────────────────────────────────── */
+/* It was a flat #efefef panel with centred uppercase labels, no icons, and - the part
+   that actually mattered - an .is-active rule that set `background: transparent`, so the
+   mode you were currently in looked exactly like the one you were not. A menu whose only
+   job is to show a current choice was not showing it.
+
+   It is now an extension of the button it hangs from: same navy, gold on top. Each row
+   carries an icon for what the mode does, a label, a line of plain English, and a check
+   that appears only on the mode in force. Rows are left-aligned so the labels share an
+   edge, which is what makes even a two-item menu scannable. */
+.search-mode-menu {
+    min-width: 268px !important;
+    padding: 0.3rem !important;
+    border: 1px solid rgba(200, 162, 61, 0.42) !important;
+    border-radius: 12px !important;
+    background: linear-gradient(180deg, #16305a 0%, #0f2440 100%) !important;
+    box-shadow: 0 18px 38px rgba(6, 13, 25, 0.42) !important;
+    gap: 0.15rem !important;
+}
+
+.search-mode-option {
+    grid-template-columns: 1.35rem 1fr auto !important;
+    grid-template-rows: auto auto !important;
+    column-gap: 0.6rem !important;
+    row-gap: 0.1rem !important;
+    padding: 0.5rem 0.6rem !important;
+    border-radius: 9px !important;
+    border-left: 2px solid transparent !important;
+    text-align: left !important;
+    background: transparent !important;
+    transition: background 150ms ease, border-color 150ms ease !important;
+}
+
+.search-mode-option__icon {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    align-self: center;
+    justify-self: center;
+    font-size: 0.8rem;
+    color: rgba(243, 229, 184, 0.55);
+    transition: color 150ms ease;
+}
+
+.search-mode-option__label {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    color: #f3e5b8 !important;
+    text-align: left;
+}
+
+.search-mode-option__meta {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    font-size: 0.63rem !important;
+    font-weight: 500 !important;
+    text-transform: none !important;
+    line-height: 1.35;
+    color: rgba(226, 234, 246, 0.62) !important;
+    text-align: left;
+    white-space: normal;
+}
+
+/* The arrow that used to appear on hover said "this row is under the pointer", which the
+   highlight already says. A check on the active row says the thing the menu exists for. */
+.search-mode-option::after {
+    content: none !important;
+}
+
+.search-mode-option__check {
+    /* !important because an older rule set every .fa-check in this menu to transparent
+       and undid it only for .active - a class the script never sets, it sets .is-active.
+       That pair is deleted above; this stays explicit so reintroducing it cannot make the
+       check silently invisible again. */
+    color: var(--gold) !important;
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    align-self: center;
+    font-size: 0.72rem;
+    opacity: 0;
+    transition: opacity 150ms ease;
+}
+
+.search-mode-option:hover,
+.search-mode-option:focus-visible {
+    background: rgba(255, 255, 255, 0.07) !important;
+}
+
+.search-mode-option:hover .search-mode-option__icon,
+.search-mode-option:focus-visible .search-mode-option__icon {
+    color: rgba(243, 229, 184, 0.85);
+}
+
+.search-mode-option.is-active,
+.search-mode-option[aria-pressed="true"] {
+    background: rgba(200, 162, 61, 0.16) !important;
+    border-left-color: var(--gold) !important;
+}
+
+.search-mode-option.is-active .search-mode-option__icon,
+.search-mode-option[aria-pressed="true"] .search-mode-option__icon {
+    color: var(--gold-light);
+}
+
+.search-mode-option.is-active .search-mode-option__meta,
+.search-mode-option[aria-pressed="true"] .search-mode-option__meta {
+    color: rgba(243, 229, 184, 0.78) !important;
+}
+
+.search-mode-option.is-active .search-mode-option__check,
+.search-mode-option[aria-pressed="true"] .search-mode-option__check {
+    opacity: 1;
 }
