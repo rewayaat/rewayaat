@@ -320,6 +320,29 @@ class HadithCardParityTest {
                 "the search card's breakpoint moved; hub-pages.js still says 768");
     }
 
+    /**
+     * The filter-by-tag pills must be built from the same classes on both surfaces.
+     *
+     * <p>They were not: the server-rendered chapter page put the count in
+     * {@code .topic-pill__count}, plain dimmed text, while the search page put it in
+     * {@code .tag-filter-bar__pill-count}, a filled badge. Same bar, same data, two
+     * different-looking pills - and nothing failed, because each class existed and was
+     * styled, just differently.
+     */
+    @Test
+    void theTagFilterPillsUseTheSameClassesOnBothSurfaces() throws IOException {
+        String search = read(Path.of("src/main/resources/templates/index.html"));
+        String chapter = read(Path.of("src/main/resources/templates/chapter.html"));
+
+        for (String cls : List.of("tag-filter-bar__pill", "tag-filter-bar__pill-label",
+                "tag-filter-bar__pill-count")) {
+            assertTrue(containsClass(search, cls), "the search page's filter pill lost " + cls);
+            assertTrue(containsClass(chapter, cls),
+                    "the chapter page's filter pill is missing " + cls
+                            + ", so its pills will not look like the search page's");
+        }
+    }
+
     /** Reads {@code var NAME = <int>;} out of a script. */
     private static int intConstant(String source, String name) {
         Matcher m = Pattern.compile("\\b" + Pattern.quote(name) + "\\s*=\\s*(\\d+)").matcher(source);

@@ -11133,12 +11133,6 @@ body.is-search-mode .site-nav .search-entry-shell {
     text-decoration: none;
 }
 
-.topic-pill__count {
-    margin-left: 0.4rem;
-    opacity: 0.7;
-    font-size: 0.72em;
-}
-
 /* Hero chips and eyebrows that lead somewhere look like it, without becoming loud
    enough to compete with the title they sit under. */
 a.hub-stat,
