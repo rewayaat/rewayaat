@@ -25,10 +25,12 @@ class BookBlurbs {
 
     private final Map<String, String> bySlug;
     private final Map<String, String> summaries;
+    private final Map<String, String> sectionSummaries;
 
     BookBlurbs() {
         this.bySlug = load();
-        this.summaries = loadSummaries();
+        this.summaries = loadSummaries("static/book_summaries.json");
+        this.sectionSummaries = loadSummaries("static/section_summaries.json");
     }
 
     String forSlug(String slug) {
@@ -48,9 +50,26 @@ class BookBlurbs {
         return summaries.get(slug);
     }
 
-    private static Map<String, String> loadSummaries() {
+    /**
+     * The note for a volume or part page, keyed by its path without the leading slash.
+     *
+     * <p>Deliberately partial, and absence is the normal case. A note is only worth
+     * carrying where the title does not already say the whole thing: Al-Kāfi's volumes map
+     * onto the Uṣūl/Furūʿ/Rawḍa division and its parts are the classical kitāb headings,
+     * whereas Al-Khiṣāl's parts are titled "On Three-Numbered Characteristics" and have
+     * nothing left to explain. The hero falls back to its centred layout when there is
+     * nothing here, exactly as a book with no summary does.
+     */
+    String sectionSummaryForPath(String path) {
+        if (path == null || path.isBlank()) {
+            return null;
+        }
+        return sectionSummaries.get(path.startsWith("/") ? path.substring(1) : path);
+    }
+
+    private static Map<String, String> loadSummaries(String resource) {
         Map<String, String> loaded = new LinkedHashMap<>();
-        try (InputStream in = new ClassPathResource("static/book_summaries.json").getInputStream()) {
+        try (InputStream in = new ClassPathResource(resource).getInputStream()) {
             JsonNode root = new ObjectMapper().readTree(in);
             root.fields().forEachRemaining(entry -> {
                 // A leading underscore marks the file's own note to the reader, not a book.
@@ -59,8 +78,8 @@ class BookBlurbs {
                 }
             });
         } catch (Exception e) {
-            LOGGER.warn("Could not read book_summaries.json; book pages will render without "
-                    + "their introduction", e);
+            LOGGER.warn("Could not read {}; those pages will render without an introduction",
+                    resource, e);
         }
         return Map.copyOf(loaded);
     }

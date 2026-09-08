@@ -156,6 +156,8 @@ public class BookPageController {
                 "%s, %s: %,d narrations across %,d chapters, in Arabic and English.",
                 book.name(), label, narrations, chapters.size()));
         model.addAttribute("canonicalUrl", BASE_URL + "/books/" + bookSlug + "/volume/" + encode(volume));
+        model.addAttribute("sectionSummary",
+                blurbs.sectionSummaryForPath("books/" + bookSlug + "/volume/" + volume));
         model.addAttribute("shareImageUrl", BASE_URL + "/books/" + bookSlug + "/volume/" + encode(volume) + "/card.png");
 
         LinkedHashMap<String, String> trail = new LinkedHashMap<>();
@@ -191,6 +193,7 @@ public class BookPageController {
                 "%s, %s: %,d narrations across %,d chapters, in Arabic and English.",
                 book.name(), part.title(), narrations, chapters.size()));
         model.addAttribute("canonicalUrl", BASE_URL + part.url());
+        model.addAttribute("sectionSummary", blurbs.sectionSummaryForPath(part.url()));
         model.addAttribute("shareImageUrl", BASE_URL + part.url() + "/card.png");
         model.addAttribute("jsonLd", bookJsonLd(book));
 
