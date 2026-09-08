@@ -5997,33 +5997,14 @@ function setupVue(query, page, sortFields) {
                 return !!this.narrationExpandedKeys[this.narrationExpandKey(narration)];
             },
             toggleNarrationExpand: function(narration) {
+                // No scroll correction needed. This used to pin the button's position
+                // on collapse, because it sat below the text and collapsing pulled
+                // content out from above it - the page shrank under the reader and the
+                // narration jumped off screen. The button now sits in a header above the
+                // text, so collapsing only removes content below it and nothing the
+                // reader is looking at moves.
                 var key = this.narrationExpandKey(narration);
-                var expanding = !this.narrationExpandedKeys[key];
-                var domId = this.narrationDomId(narration);
-                var card = domId ? document.getElementById(domId) : null;
-                // Collapsing removes content above the button, so the page
-                // shrinks underneath the reader and the hadith ends up above
-                // the viewport. Pin the button where it already is on screen so
-                // the card stays put. Expanding needs no correction: the card's
-                // top does not move, the text simply grows downward.
-                var button = card ? card.querySelector('.hadith-reading-toggle') : null;
-                var anchorBefore = (!expanding && button)
-                    ? button.getBoundingClientRect().top
-                    : null;
-                Vue.set(this.narrationExpandedKeys, key, expanding);
-                if (anchorBefore === null) {
-                    return;
-                }
-                this.$nextTick(function() {
-                    var after = card.querySelector('.hadith-reading-toggle');
-                    if (!after) {
-                        return;
-                    }
-                    var delta = after.getBoundingClientRect().top - anchorBefore;
-                    if (Math.abs(delta) > 1) {
-                        window.scrollBy(0, delta);
-                    }
-                });
+                Vue.set(this.narrationExpandedKeys, key, !this.narrationExpandedKeys[key]);
             },
             notesExpandKey: function(narration) {
                 return (narration._id || narration.id || '') + '-notes';

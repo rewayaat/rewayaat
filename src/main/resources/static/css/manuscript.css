@@ -2303,37 +2303,12 @@ main.container::before {
     mask-image: linear-gradient(180deg, #000 58%, transparent 100%);
 }
 
-.hadith-notes__toggle {
-    position: relative;
-    align-self: flex-start;
-    margin-top: 0.45rem;
-    border: 1px solid rgba(13, 148, 136, 0.4);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.8);
-    color: #0f766e;
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    padding: 0.22rem 0.72rem;
-    cursor: pointer;
-    transition: all 150ms ease;
-}
-
 /* The pill reads better small, but 28px is under the 44px minimum touch
    target, so extend the hit area past the visual bounds instead of inflating
-   it. The upward 6px sits inside the existing margin, so it does not steal
-   taps from the notes text above. */
-.hadith-notes__toggle::after {
+   it. The upward 6px sits inside the existing margin{
     content: "";
     position: absolute;
     inset: -7px -8px -13px -8px;
-}
-
-.hadith-notes__toggle:hover {
-    background: #fff;
-    border-color: #0d9488;
-    color: #0b5f59;
 }
 
 .hadith-content .highlight,
@@ -6903,10 +6878,7 @@ body.is-resizing-sidecar * {
     mask-image: linear-gradient(180deg, #000 76%, transparent 100%);
 }
 
-/* Revealing the narration is the card's primary action: a solid grey button,
-   centred under the text it reveals and squared off so it reads as a control
-   rather than a tag. */
-.hadith-reading-toggle {
+/* Revealing the narration is the card's primary action: a solid grey button{
     position: relative;
     align-self: center;
     flex: 0 0 auto;
@@ -6928,24 +6900,6 @@ body.is-resizing-sidecar * {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16);
     cursor: pointer;
     transition: all 150ms ease;
-}
-
-.hadith-reading-toggle .fa {
-    font-size: 0.76rem;
-}
-
-/* Keep the visual pill small but meet the 44px touch target. */
-.hadith-reading-toggle::after {
-    content: "";
-    position: absolute;
-    inset: -8px -8px -12px -8px;
-}
-
-.hadith-reading-toggle:hover {
-    background: #c2c2c2;
-    border-color: #9e9e9e;
-    color: #000000;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.22);
 }
 
 .hadith-reading-scroll::-webkit-scrollbar,
@@ -10242,6 +10196,64 @@ body.is-search-mode .site-nav .search-entry-shell {
     text-wrap: balance;
 }
 
+/* ── Text toggles ────────────────────────────────────────────────────────── */
+/* One control for every "this text is longer than what you can see" case. There were
+   three: the narration said "Show full hadith" in a grey pill centred under the text,
+   the notes said "Show more" in a teal pill at the bottom left, and a tafsir snippet
+   said "Expand" in a small navy chip at the top right. Same job, three vocabularies and
+   three positions.
+
+   "Show more" wins over "Expand" because all three are truncated running text rather
+   than containers, and it is the word the tag lists already use. Top right of the
+   block's header wins on position: it is the one spot that does not move when the text
+   grows, so the control a reader just clicked is still under the cursor. */
+.text-toggle {
+    flex: 0 0 auto;
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.18rem 0.55rem;
+    border: 1px solid rgba(16, 35, 63, 0.22);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.85);
+    color: #3d5170;
+    font-family: var(--font-ui);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    line-height: 1.5;
+    cursor: pointer;
+    transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.text-toggle:hover,
+.text-toggle:focus-visible {
+    background: #fff;
+    border-color: var(--gold);
+    color: var(--primary-dark, #10233f);
+}
+
+.text-toggle .fa {
+    font-size: 0.62rem;
+    opacity: 0.75;
+}
+
+/* The narration's header exists only to carry the toggle, so it takes no vertical room
+   of its own beyond the control. */
+.hadith-reading-head {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: -0.25rem;
+}
+
+/* The notes header was a label alone; it now has to place one against the other. */
+.hadith-notes__head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 /* ── Book hero, split ────────────────────────────────────────────────────── */
 /* The banner already reserved a full-width band for a centred title and three stat
    pills, which left most of its area empty. On book pages it now carries the
@@ -10313,7 +10325,6 @@ body.is-search-mode .site-nav .search-entry-shell {
         line-height: 1.6;
     }
 }
-
 
 .hub-hero__lede {
     position: relative;

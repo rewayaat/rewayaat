@@ -532,6 +532,21 @@
                                  v-on:dblclick.prevent="resetSidecarWidth"></div>
                             <section class="hadith-card__main">
                                 <div class="hadith-content" v-bind:class="'sidecar-active--' + (narration.sidecarActiveTab || 'metadata')">
+                                    <!-- A header row solely so this toggle can sit where the notes and
+                                         tafsir ones do. The text below it is two columns, the right of
+                                         which is right-aligned Arabic, so there is nowhere inside the
+                                         text block for a top-right control that does not collide. -->
+                                    <div class="hadith-reading-head" v-if="isNarrationCollapsible(narration)">
+                                        <button type="button"
+                                                class="text-toggle"
+                                                v-bind:aria-expanded="isNarrationExpanded(narration) ? 'true' : 'false'"
+                                                v-on:click="toggleNarrationExpand(narration)">
+                                            <span>{{ isNarrationExpanded(narration) ? 'Show less' : 'Show more' }}</span>
+                                            <i class="fa"
+                                               v-bind:class="isNarrationExpanded(narration) ? 'fa-chevron-up' : 'fa-chevron-down'"
+                                               aria-hidden="true"></i>
+                                        </button>
+                                    </div>
                                     <div class="hadith-card__ornament" aria-hidden="true">
                                         <span class="hadith-card__ornament-line"></span>
                                         <span class="hadith-card__ornament-mark">۞</span>
@@ -556,34 +571,27 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <button type="button"
-                                            class="hadith-reading-toggle"
-                                            v-if="isNarrationCollapsible(narration)"
-                                            v-bind:aria-expanded="isNarrationExpanded(narration) ? 'true' : 'false'"
-                                            v-on:click="toggleNarrationExpand(narration)">
-                                        <i class="fa"
-                                           v-bind:class="isNarrationExpanded(narration) ? 'fa-chevron-up' : 'fa-chevron-down'"
-                                           aria-hidden="true"></i>
-                                        <span>{{ isNarrationExpanded(narration) ? 'Show less' : 'Show full hadith' }}</span>
-                                    </button>
                                     <!-- Notes gloss the narration itself, so they sit with the text,
                                          above the similar/tafsir panels which are separate corpora. -->
                                     <div class="hadith-notes mt-3" v-if="narration.notes">
                                         <div class="hadith-notes__head">
                                             <span class="hadith-notes__label">Notes</span>
+                                            <button type="button"
+                                                    class="text-toggle"
+                                                    v-if="isNotesCollapsible(narration)"
+                                                    v-bind:aria-expanded="isNotesExpanded(narration) ? 'true' : 'false'"
+                                                    v-bind:aria-controls="narrationDomId(narration) + '-notes'"
+                                                    v-on:click="toggleNotesExpand(narration)">
+                                                <span>{{ isNotesExpanded(narration) ? 'Show less' : 'Show more' }}</span>
+                                                <i class="fa"
+                                                   v-bind:class="isNotesExpanded(narration) ? 'fa-chevron-up' : 'fa-chevron-down'"
+                                                   aria-hidden="true"></i>
+                                            </button>
                                         </div>
                                         <div class="hadith-notes__body"
                                              v-bind:id="narrationDomId(narration) + '-notes'"
                                              v-bind:class="{'hadith-notes__body--clamped': isNotesCollapsible(narration) && !isNotesExpanded(narration)}"
                                              v-html="narration.notes"></div>
-                                        <button type="button"
-                                                class="hadith-notes__toggle"
-                                                v-if="isNotesCollapsible(narration)"
-                                                v-bind:aria-expanded="isNotesExpanded(narration) ? 'true' : 'false'"
-                                                v-bind:aria-controls="narrationDomId(narration) + '-notes'"
-                                                v-on:click="toggleNotesExpand(narration)">
-                                            {{ isNotesExpanded(narration) ? 'Show less' : 'Show more' }}
-                                        </button>
                                     </div>
                                     <div class="hadith-inline-context hadith-inline-context--similar"
                                          v-if="activeNarrationSidecarTab(narration) === 'similar' && activeSimilar(narration)">
@@ -678,10 +686,14 @@
                                                     <span v-else class="quranic-snippet__source">{{snippet.tafsir_name || snippet.tafsir_slug}}</span>
                                                     <span class="quranic-snippet__section" v-if="snippet.section_title">&mdash; {{snippet.section_title}}</span>
                                                     <button type="button"
-                                                            class="quranic-snippet__expand"
+                                                            class="text-toggle quranic-snippet__expand"
                                                             v-if="snippetPreview(snippet.commentary_text, narration).length < snippet.commentary_text.replace(/<\/?em>/g,'').trim().length"
+                                                            v-bind:aria-expanded="isSnippetExpanded(narration, sidx) ? 'true' : 'false'"
                                                             v-on:click="toggleSnippetExpand(narration, sidx)">
-                                                        {{ isSnippetExpanded(narration, sidx) ? 'Collapse' : 'Expand' }}
+                                                        <span>{{ isSnippetExpanded(narration, sidx) ? 'Show less' : 'Show more' }}</span>
+                                                        <i class="fa"
+                                                           v-bind:class="isSnippetExpanded(narration, sidx) ? 'fa-chevron-up' : 'fa-chevron-down'"
+                                                           aria-hidden="true"></i>
                                                     </button>
                                                 </div>
                                                 <div class="quranic-snippet__text"
