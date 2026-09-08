@@ -309,12 +309,47 @@ public class ShareCardRenderer {
         if (eyebrow == null || eyebrow.isBlank()) {
             return;
         }
-        AttributedString text = fonts.runs(eyebrow, fonts.latinBold().deriveFont(21f),
-                fonts.arabic().deriveFont(21f), false, 0.16f);
-        TextLayout layout = new TextLayout(text.getIterator(), g.getFontRenderContext());
+        TextLayout layout = eyebrowLayout(g, fitEyebrow(g, eyebrow));
         glow(g, layout, palette.eyebrow(), PAD, EYEBROW_BASELINE);
         g.setColor(palette.eyebrow());
         layout.draw(g, PAD, EYEBROW_BASELINE);
+    }
+
+    private TextLayout eyebrowLayout(Graphics2D g, String eyebrow) {
+        AttributedString text = fonts.runs(eyebrow, fonts.latinBold().deriveFont(21f),
+                fonts.arabic().deriveFont(21f), false, 0.16f);
+        return new TextLayout(text.getIterator(), g.getFontRenderContext());
+    }
+
+    /**
+     * Drops citation segments from the middle until the line fits the card.
+     *
+     * <p>The eyebrow is drawn as a single unwrapped line, so it used to be the caller's
+     * job never to hand over anything long. Now that it carries the part and the chapter,
+     * whose titles run to sixty characters in Al-Kāfi, it is this method's job.
+     *
+     * <p>The middle goes first because the ends carry the identity: the book at the start
+     * and the hadith number at the end are what make the citation resolvable, while the
+     * levels between them are context. Truncating the tail instead would drop the number,
+     * which is the one part a reader might type back into the search box.
+     */
+    private String fitEyebrow(Graphics2D g, String eyebrow) {
+        String separator = " · ";
+        if (eyebrowLayout(g, eyebrow).getAdvance() <= CONTENT_WIDTH) {
+            return eyebrow;
+        }
+        List<String> parts = new ArrayList<>(List.of(eyebrow.split(java.util.regex.Pattern.quote(separator))));
+        while (parts.size() > 2) {
+            parts.remove(parts.size() / 2);
+            String candidate = String.join(separator,
+                    parts.subList(0, parts.size() / 2))
+                    + separator + "…" + separator
+                    + String.join(separator, parts.subList(parts.size() / 2, parts.size()));
+            if (eyebrowLayout(g, candidate).getAdvance() <= CONTENT_WIDTH) {
+                return candidate;
+            }
+        }
+        return parts.isEmpty() ? eyebrow : parts.get(0);
     }
 
     /**

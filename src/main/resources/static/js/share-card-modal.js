@@ -18,7 +18,9 @@
         id: null, label: '', root: null, lastFocus: null,
         theme: 'dark',      // dark | light
         lang: 'both',       // both | ar | en
-        full: false         // false trims to the Open Graph ratio, true fits the whole text
+        full: false,        // false trims to the Open Graph ratio, true fits the whole text
+        chain: false        // the isnad in front of the matn, off because it is long and
+                            // near-identical across thousands of narrations
     };
 
     // Each control is a named set of choices, so adding one is a row here rather than a
@@ -27,7 +29,9 @@
         {key: 'theme', label: 'Theme', options: [['dark', 'Dark'], ['light', 'Light']]},
         {key: 'lang', label: 'Text', options: [['both', 'Both'], ['ar', 'Arabic'], ['en', 'English']]},
         {key: 'full', label: 'Length',
-         options: [[false, 'Trimmed'], [true, 'Full']]}
+         options: [[false, 'Trimmed'], [true, 'Full']]},
+        {key: 'chain', label: 'Chain',
+         options: [[false, 'Matn only'], [true, 'With isnād']]}
     ];
 
     function cardUrl() {
@@ -38,6 +42,7 @@
         if (state.theme === 'light') { query.push('theme=light'); }
         if (state.lang !== 'both') { query.push('lang=' + state.lang); }
         if (state.full) { query.push('full=true'); }
+        if (state.chain) { query.push('chain=true'); }
         return url + (query.length ? '?' + query.join('&') : '');
     }
 
@@ -115,7 +120,8 @@
         var a = document.createElement('a');
         a.href = cardUrl();
         a.download = String(state.id).replace(/[^A-Za-z0-9._-]+/g, '-')
-            + '-' + state.theme + '-' + state.lang + (state.full ? '-full' : '') + '.png';
+            + '-' + state.theme + '-' + state.lang + (state.full ? '-full' : '')
+            + (state.chain ? '-isnad' : '') + '.png';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -281,6 +287,7 @@
         state.theme = 'dark';
         state.lang = 'both';
         state.full = false;
+        state.chain = false;
         refresh();
         document.addEventListener('keydown', onKeydown, true);
         var first = state.root.querySelector('[data-share-copy]');
