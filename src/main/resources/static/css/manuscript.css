@@ -10327,12 +10327,28 @@ body.is-search-mode .site-nav .search-entry-shell {
     opacity: 0.75;
 }
 
-/* The narration's header exists only to carry the toggle, so it takes no vertical room
-   of its own beyond the control. */
-.hadith-reading-head {
+/* Under the narration, centred. The block is two columns with mirrored reading
+   directions - English left, Arabic right - so aligning the control to either side would
+   attach it to one language. Centred belongs to both, which is what it controls. */
+.hadith-reading-foot {
     display: flex;
-    justify-content: flex-end;
-    margin-bottom: -0.25rem;
+    justify-content: center;
+    margin-top: 0.85rem;
+}
+
+/* .text-toggle carries margin-left:auto so it sits at the far end of a header row. A
+   flex child with an auto margin absorbs the free space itself and justify-content has
+   nothing left to distribute, so centring only works once that margin is cleared. */
+.hadith-reading-foot .text-toggle {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* In a header the control is pushed to the far end; standing under its own text it
+   should sit at the start of that text instead. */
+.text-toggle--start {
+    margin-left: 0 !important;
+    margin-top: 0.5rem;
 }
 
 /* The notes header was a label alone; it now has to place one against the other. */
