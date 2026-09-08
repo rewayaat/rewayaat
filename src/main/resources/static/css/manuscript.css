@@ -10196,6 +10196,79 @@ body.is-search-mode .site-nav .search-entry-shell {
     text-wrap: balance;
 }
 
+/* ── Search tips ─────────────────────────────────────────────────────────── */
+/* The page used to load Bootswatch "materia" - a different Bootstrap theme from the
+   rest of the site - with no nav and no footer, which is why it read as someone else's
+   page. It now uses the site's own chrome, and these are the only rules it needs. */
+.tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: 1.1rem;
+    margin-top: 1.5rem;
+}
+
+.tips-card {
+    padding: 1.25rem 1.4rem;
+    border: 1px solid rgba(30, 58, 95, 0.12);
+    border-top: 3px solid rgba(30, 58, 95, 0.7);
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(245,248,252,0.99));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 10px 24px rgba(15, 23, 42, 0.05);
+}
+
+.tips-card__title {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin: 0 0 0.7rem;
+    font-family: var(--font-ornament);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--primary-dark, #10233f);
+}
+
+.tips-card__title .fa {
+    font-size: 0.85rem;
+    color: var(--gold);
+}
+
+.tips-card p {
+    margin: 0 0 0.6rem;
+    font-size: 0.92rem;
+    line-height: 1.6;
+}
+
+.tips-card p:last-child { margin-bottom: 0; }
+
+.tips-card__example {
+    padding: 0.6rem 0.75rem;
+    border-left: 2px solid var(--gold);
+    border-radius: 0 8px 8px 0;
+    background: rgba(200, 162, 61, 0.07);
+    line-height: 1.9;
+}
+
+.tips-card code {
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    background: rgba(16, 35, 63, 0.06);
+    color: #10233f;
+    font-size: 0.86em;
+    direction: ltr;
+    unicode-bidi: isolate;
+}
+
+.tips-card__note {
+    font-size: 0.86rem !important;
+    color: var(--text-muted, #5a6a7a);
+}
+
+.tips-footnote {
+    margin: 1.75rem 0 0;
+    font-size: 0.92rem;
+    color: var(--text-muted, #5a6a7a);
+}
+
 /* ── Text toggles ────────────────────────────────────────────────────────── */
 /* One control for every "this text is longer than what you can see" case. There were
    three: the narration said "Show full hadith" in a grey pill centred under the text,
