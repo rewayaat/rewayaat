@@ -10196,6 +10196,30 @@ body.is-search-mode .site-nav .search-entry-shell {
     text-wrap: balance;
 }
 
+/* ── Search button ──────────────────────────────────────────────────────── */
+/* The button was a gold fill inside a 1px #b7bec8 border - a grey outline around a gold
+   surface, which appears nowhere else on the site and reads as a disabled control that
+   happens to be yellow. That is what was wrong with it and why it was hard to name: the
+   fill says "primary action" and the border says "inactive".
+
+   The border now belongs to the fill. It still carries the button's edge - the gold
+   against the light field is only about 1.6:1, so the shape needs an outline of its own
+   - but in a darker tone of the same colour, which is how every other button on this
+   site is drawn.
+
+   The radius follows the field it sits inside rather than being an arbitrary 9px:
+   concentric rounded shapes want inner = outer - gap, and this one sits about 4px inside
+   a 14px field. */
+.search-btn-with-border {
+    border-color: var(--gold-dark, #a8842f) !important;
+    border-radius: 10px !important;
+}
+
+.search-btn-with-border:hover,
+.search-btn-with-border:focus-visible {
+    border-color: var(--gold-dark, #a8842f) !important;
+}
+
 /* ── Search tips ─────────────────────────────────────────────────────────── */
 /* The page used to load Bootswatch "materia" - a different Bootstrap theme from the
    rest of the site - with no nav and no footer, which is why it read as someone else's
