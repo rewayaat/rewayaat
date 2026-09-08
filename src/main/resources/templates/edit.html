@@ -264,7 +264,12 @@
                 <span v-if="narration.number"> #{{ narration.number }}</span>
             </div>
         </div>
-        <a href="/" class="btn-back">
+        <!-- The same returnTo the editor navigates to after a save. Hardcoding "/" here
+             sent every reader to the home page regardless of where they opened the
+             editor from, while saving took them back correctly - so Back was the one
+             way out of this page that forgot where you came from. Server-side value,
+             already through safeReturnTo. -->
+        <a th:href="${returnTo}" href="/" class="btn-back">
             <i class="fa fa-arrow-left"></i> Back
         </a>
     </div>
