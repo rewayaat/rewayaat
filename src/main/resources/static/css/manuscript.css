@@ -10197,27 +10197,36 @@ body.is-search-mode .site-nav .search-entry-shell {
 }
 
 /* ── Search button ──────────────────────────────────────────────────────── */
-/* The button was a gold fill inside a 1px #b7bec8 border - a grey outline around a gold
-   surface, which appears nowhere else on the site and reads as a disabled control that
-   happens to be yellow. That is what was wrong with it and why it was hard to name: the
-   fill says "primary action" and the border says "inactive".
+/* It was a pale gold fill (#f7e1a6) inside the light search field, and measured against
+   that field it came to 1.04:1 - the button and its container were the same lightness,
+   so only a 1px border said a button was there at all. That is why it looked wrong
+   without looking like anything in particular: it read as a highlighted patch of the
+   input rather than the primary action on the page. Recolouring the border, which is
+   what I tried first, changed nothing anyone could see.
 
-   The border now belongs to the fill. It still carries the button's edge - the gold
-   against the light field is only about 1.6:1, so the shape needs an outline of its own
-   - but in a darker tone of the same colour, which is how every other button on this
-   site is drawn.
+   Navy fill with gold-light text instead: 9.29:1 against the nav's grey field, 11.5:1
+   against the white field in the hero, and 9.15:1 for the text on the fill. It is also
+   the site's own pairing - navy surface, gold on top - and it puts the search button
+   above the neighbouring Sign In, which is the correct order of the two.
 
-   The radius follows the field it sits inside rather than being an arbitrary 9px:
-   concentric rounded shapes want inner = outer - gap, and this one sits about 4px inside
-   a 14px field. */
+   The radius follows the field it sits inside rather than an arbitrary 9px: concentric
+   rounded shapes want inner = outer - gap. */
 .search-btn-with-border {
-    border-color: var(--gold-dark, #a8842f) !important;
+    background: var(--primary) !important;
+    border: 1px solid var(--primary-dark) !important;
     border-radius: 10px !important;
+    color: var(--gold-light) !important;
 }
 
 .search-btn-with-border:hover,
 .search-btn-with-border:focus-visible {
-    border-color: var(--gold-dark, #a8842f) !important;
+    background: var(--primary-dark) !important;
+    border-color: var(--gold) !important;
+    color: #fff !important;
+}
+
+.search-btn-with-border i {
+    color: inherit !important;
 }
 
 /* ── Search tips ─────────────────────────────────────────────────────────── */
