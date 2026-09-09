@@ -9,7 +9,25 @@ before promoting one.
 
     python3 scripts/search/evaluate_search.py [--base http://localhost:8002]
 """
-import argparse, json, sys, urllib.parse, urllib.request
+import argparse, json, re, sys, unicodedata, urllib.parse, urllib.request
+
+ARABIC_MARKS = re.compile(r"[ً-ْٰـۖ-ۭ]")
+
+def fold(s):
+    """Normalise text the way the index does, before comparing it.
+
+    A result is stored as it was written - الْمُبَاهَلَةِ vowelled, Kisā with its
+    macron - so looking for the typed form as a plain substring finds nothing and
+    reports a correct result as a miss. This mirrors arabic_norm and english_fold
+    closely enough to tell whether a narration really contains the word.
+    """
+    s = ARABIC_MARKS.sub("", s)
+    s = re.sub("[أإآ]", "ا", s).replace("ى", "ي").replace("ة", "ه")
+    s = "".join(c for c in unicodedata.normalize("NFKD", s)
+                if not unicodedata.combining(c))
+    for ch in "ʿʾ‘’`´ʼ":
+        s = s.replace(ch, "")
+    return s.lower()
 
 def search(base, q, mode=None, page=1):
     url = f"{base}/v1/narrations?page={page}&q=" + urllib.parse.quote(q)
@@ -145,7 +163,7 @@ def main():
         hits = search(b, t)["collection"][:10]
         rank = None
         for i, h in enumerate(hits, 1):
-            if t.lower() in json.dumps(h, ensure_ascii=False).lower():
+            if fold(t) in fold(json.dumps(h, ensure_ascii=False)):
                 rank = i
                 break
         ok = rank == 1

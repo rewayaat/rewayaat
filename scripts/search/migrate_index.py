@@ -84,7 +84,12 @@ def main():
     ap.add_argument("--alias", default=ALIAS)
     ap.add_argument("--dry-run", action="store_true",
                     help="build and verify the new index but leave the alias alone")
+    ap.add_argument("--promote", action="store_true",
+                    help="move the alias onto an index built by an earlier --dry-run, "
+                         "without rebuilding it")
     args = ap.parse_args()
+    if args.dry_run and args.promote:
+        raise SystemExit("--dry-run and --promote are opposites; pass one")
 
     host = args.host.rstrip("/")
     target = args.target or f"{args.alias}_{datetime.date.today():%Y%m%d}"
@@ -105,26 +110,38 @@ def main():
             f"'{args.alias}' already exists as an index, so it cannot become an alias.\n"
             f"Pick another alias name, or reindex that index away first."
         )
-    if target in names:
-        raise SystemExit(f"target index '{target}' already exists; delete it or pass --target")
 
     source_count = count(host, args.source)
     print(f"source holds {source_count:,} documents")
 
-    with open(MAPPING) as f:
-        mapping = json.load(f)
+    if args.promote:
+        # The index was built and checked by an earlier --dry-run and an application
+        # has been pointed at it since. Rebuilding it here would discard exactly the
+        # thing that was verified, so only the counts are re-checked.
+        if target not in names:
+            raise SystemExit(f"index '{target}' does not exist; run without --promote to build it")
+        print(f"promoting existing {target} (not rebuilding)")
+    else:
+        if target in names:
+            raise SystemExit(
+                f"target index '{target}' already exists.\n"
+                f"If an earlier --dry-run built it and you have verified it, promote it with:\n"
+                f"  --promote --target {target}"
+            )
+        with open(MAPPING) as f:
+            mapping = json.load(f)
 
-    print(f"creating {target} ...")
-    call(host, "PUT", f"/{target}", mapping, timeout=120)
+        print(f"creating {target} ...")
+        call(host, "PUT", f"/{target}", mapping, timeout=120)
 
-    print("reindexing ...")
-    r = call(host, "POST", "/_reindex?wait_for_completion=true&refresh=true",
-             {"source": {"index": args.source}, "dest": {"index": target}})
-    failures = r.get("failures") or []
-    print(f"  created {r.get('created'):,}, failures {len(failures)}")
-    if failures:
-        print(json.dumps(failures[:2], ensure_ascii=False, indent=1)[:900])
-        raise SystemExit("reindex reported failures; the alias has not been moved")
+        print("reindexing ...")
+        r = call(host, "POST", "/_reindex?wait_for_completion=true&refresh=true",
+                 {"source": {"index": args.source}, "dest": {"index": target}})
+        failures = r.get("failures") or []
+        print(f"  created {r.get('created'):,}, failures {len(failures)}")
+        if failures:
+            print(json.dumps(failures[:2], ensure_ascii=False, indent=1)[:900])
+            raise SystemExit("reindex reported failures; the alias has not been moved")
 
     target_count = count(host, target)
     print(f"target holds {target_count:,} documents")
