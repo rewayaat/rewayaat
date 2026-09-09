@@ -15,6 +15,7 @@ import co.elastic.clients.elasticsearch.core.search.Highlight;
 import co.elastic.clients.elasticsearch.core.search.HighlightField;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.elasticsearch._types.query_dsl.Operator;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.util.NamedValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -368,12 +369,20 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                 .preTags("<span class=\"highlight\">")
                 .highlightQuery(q -> {
                     String highlightQuery = buildHighlightQueryString(query);
-                    return q.queryString(qs -> {
+                    Query textClause = Query.of(t -> t.queryString(qs -> {
                         qs.query(highlightQuery).defaultField("*");
                         if (strictMatchMode) {
                             qs.defaultOperator(Operator.And);
                         }
                         return qs;
+                    }));
+                    List<Query> metadataClauses = keywordMetadataClauses(query);
+                    return q.bool(b -> {
+                        b.should(textClause);
+                        for (Query clause : metadataClauses) {
+                            b.should(clause);
+                        }
+                        return b.minimumShouldMatch("1");
                     });
                 })
                 .numberOfFragments(0);
@@ -460,10 +469,27 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
     private void applyKeywordMetadataClauses(
             co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery.Builder boolBuilder,
             String residualQuery) {
+        for (Query clause : keywordMetadataClauses(residualQuery)) {
+            boolBuilder.should(clause);
+        }
+    }
+
+    /**
+     * The wildcard clauses themselves, so that matching and highlighting share one source.
+     *
+     * <p>Highlighting runs its own query against the matched documents, and a
+     * {@code query_string} cannot mark up a keyword value for the same reason it cannot
+     * match one. Without these clauses a narration found only through its metadata comes
+     * back with the matched words unmarked, which reads as a wrong result rather than a
+     * missing highlight. Anything that changes how a term reaches the metadata has to
+     * change both queries at once, so neither builds its own list.
+     */
+    private List<Query> keywordMetadataClauses(String residualQuery) {
         String normalized = buildHighlightQueryString(residualQuery);
         if (normalized == null || normalized.isBlank() || "*".equals(normalized)) {
-            return;
+            return Collections.emptyList();
         }
+        List<Query> clauses = new ArrayList<>();
         int used = 0;
         for (String token : normalized.split("\\s+")) {
             String term = token.replace("\"", "").trim();
@@ -475,13 +501,14 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
             }
             String pattern = "*" + term + "*";
             for (String field : KEYWORD_METADATA_FIELDS) {
-                boolBuilder.should(s -> s.wildcard(w -> w
+                clauses.add(Query.of(s -> s.wildcard(w -> w
                         .field(field)
                         .value(pattern)
                         .caseInsensitive(true)
-                        .boost(METADATA_MATCH_BOOST)));
+                        .boost(METADATA_MATCH_BOOST))));
             }
         }
+        return clauses;
     }
 
     private Map<String, Long> extractTopicTagFacets(SearchResponse<Map> response) {

@@ -127,6 +127,33 @@ class QueryStringQueryResultTest {
         assertEquals("1", request.query().bool().minimumShouldMatch());
     }
 
+    /**
+     * A narration found through its metadata has to come back with that metadata marked up.
+     *
+     * <p>Highlighting is a second query run against the matched documents, so teaching only
+     * the matching query about keyword fields returns the right narrations with the matched
+     * words unmarked. Both queries carry the same clauses or neither does.
+     */
+    @Test
+    void theHighlightQueryReachesTheKeywordMetadataFieldsToo() throws Exception {
+        Highlight highlight = buildHighlight("(commerce^6 OR commerce~)", false);
+
+        List<String> wildcarded = new ArrayList<>();
+        boolean sawTextClause = false;
+        for (Query q : highlight.highlightQuery().bool().should()) {
+            if (q.isWildcard()) {
+                assertEquals("*commerce*", q.wildcard().value());
+                assertEquals(Boolean.TRUE, q.wildcard().caseInsensitive());
+                wildcarded.add(q.wildcard().field());
+            } else if (q.isQueryString()) {
+                sawTextClause = true;
+            }
+        }
+        assertEquals(List.of("book", "volume", "part", "section", "source"), wildcarded);
+        assertEquals(true, sawTextClause, "the highlight query lost its text clause");
+        assertEquals("1", highlight.highlightQuery().bool().minimumShouldMatch());
+    }
+
     /** Two-letter noise would wildcard-match most of the metadata; it is not asked. */
     @Test
     void tooShortATermIsNotAskedOfTheMetadata() throws Exception {
@@ -138,7 +165,26 @@ class QueryStringQueryResultTest {
     }
 
     private SearchRequest buildSearchRequest(String query, boolean strictMatchMode) throws Exception {
-        QueryStringQueryResult result = new QueryStringQueryResult(
+        QueryStringQueryResult result = newResult(query, strictMatchMode);
+        Highlight highlight = invokeHighlightBuilder(result, query);
+
+        Method buildMethod = QueryStringQueryResult.class.getDeclaredMethod("buildSearchRequest", String.class, Highlight.class);
+        buildMethod.setAccessible(true);
+        return (SearchRequest) buildMethod.invoke(result, query, highlight);
+    }
+
+    private Highlight buildHighlight(String query, boolean strictMatchMode) throws Exception {
+        return invokeHighlightBuilder(newResult(query, strictMatchMode), query);
+    }
+
+    private Highlight invokeHighlightBuilder(QueryStringQueryResult result, String query) throws Exception {
+        Method highlightMethod = QueryStringQueryResult.class.getDeclaredMethod("getHighlightBuilder", String.class);
+        highlightMethod.setAccessible(true);
+        return (Highlight) highlightMethod.invoke(result, query);
+    }
+
+    private QueryStringQueryResult newResult(String query, boolean strictMatchMode) {
+        return new QueryStringQueryResult(
                 query,
                 0,
                 20,
@@ -146,12 +192,5 @@ class QueryStringQueryResultTest {
                 strictMatchMode,
                 0
         );
-        Method highlightMethod = QueryStringQueryResult.class.getDeclaredMethod("getHighlightBuilder", String.class);
-        highlightMethod.setAccessible(true);
-        Highlight highlight = (Highlight) highlightMethod.invoke(result, query);
-
-        Method buildMethod = QueryStringQueryResult.class.getDeclaredMethod("buildSearchRequest", String.class, Highlight.class);
-        buildMethod.setAccessible(true);
-        return (SearchRequest) buildMethod.invoke(result, query, highlight);
     }
 }
