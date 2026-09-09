@@ -117,6 +117,9 @@ class QueryStringQueryResultTest {
             if (q.isWildcard()) {
                 assertEquals("*commerce*", q.wildcard().value());
                 assertEquals(Boolean.TRUE, q.wildcard().caseInsensitive());
+                // A wildcard scores a flat 1.0 against BM25 in the tens, so without a
+                // boost well clear of that spread the metadata match sorts last.
+                assertEquals(1000f, q.wildcard().boost());
                 wildcarded.add(q.wildcard().field());
             }
         }

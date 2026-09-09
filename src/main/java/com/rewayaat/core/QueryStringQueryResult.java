@@ -431,6 +431,21 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
     private static final int MAX_METADATA_TERMS = 4;
 
     /**
+     * Puts a metadata match above every text match.
+     *
+     * <p>Someone searching "commerce" wants the Book of Commerce before a narration that
+     * happens to use the word. A wildcard scores a flat 1.0 while BM25 on these fields
+     * runs to 38-85 for ordinary queries - measured across commerce, zakat, prayer,
+     * ghadir, hassan, mercy and wudu, with the flexible {@code ^6} boost inflating it -
+     * so the gap has to be closed by more than the spread. A thousand clears it for any
+     * plausible query rather than for the seven that were sampled.
+     *
+     * <p>Matches on several metadata fields add, so a narration whose book and part both
+     * match sorts above one where only the part does, which is the right secondary order.
+     */
+    private static final float METADATA_MATCH_BOOST = 1000f;
+
+    /**
      * Lets a plain word find narrations whose only match is in keyword metadata.
      *
      * <p>A case-insensitive wildcard is what reaches inside a keyword value without
@@ -463,7 +478,8 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                 boolBuilder.should(s -> s.wildcard(w -> w
                         .field(field)
                         .value(pattern)
-                        .caseInsensitive(true)));
+                        .caseInsensitive(true)
+                        .boost(METADATA_MATCH_BOOST)));
             }
         }
     }
