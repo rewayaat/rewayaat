@@ -4,19 +4,19 @@
     <meta charset="UTF-8"/>
     <meta content="width=device-width, initial-scale=1" name="viewport"/>
     <title>Search Tips — Rewayaat Hadith Database</title>
-    <meta name="description" content="How to search 32,519 Shia narrations: field filters, exact phrases, precise and flexible matching, topic tags, and how to type Arabic for the widest results."/>
+    <meta name="description" content="How to search 32,519 Shia narrations: field filters, exact phrases, precise and flexible matching, topic tags, and searching in Arabic or English."/>
     <link rel="canonical" href="https://hadith.academyofislam.com/search_tips.html"/>
     <meta property="og:type" content="website"/>
     <meta property="og:site_name" content="Rewayaat — Shia Hadith Database"/>
     <meta property="og:title" content="Search Tips — Rewayaat Hadith Database"/>
-    <meta property="og:description" content="How to search 32,519 Shia narrations: field filters, exact phrases, precise and flexible matching, topic tags, and how to type Arabic for the widest results."/>
+    <meta property="og:description" content="How to search 32,519 Shia narrations: field filters, exact phrases, precise and flexible matching, topic tags, and searching in Arabic or English."/>
     <meta property="og:url" content="https://hadith.academyofislam.com/search_tips.html"/>
     <meta property="og:image" content="https://hadith.academyofislam.com/img/share-card.png"/>
     <meta property="og:image:width" content="1200"/>
     <meta property="og:image:height" content="630"/>
     <meta name="twitter:card" content="summary_large_image"/>
     <meta name="twitter:title" content="Search Tips — Rewayaat Hadith Database"/>
-    <meta name="twitter:description" content="How to search 32,519 Shia narrations: field filters, exact phrases, precise and flexible matching, topic tags, and how to type Arabic for the widest results."/>
+    <meta name="twitter:description" content="How to search 32,519 Shia narrations: field filters, exact phrases, precise and flexible matching, topic tags, and searching in Arabic or English."/>
     <meta name="twitter:image" content="https://hadith.academyofislam.com/img/share-card.png"/>
 
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>
@@ -92,7 +92,7 @@
             </p>
             <p class="tips-card__note">Available fields: <code>book</code>, <code>volume</code>, <code>part</code>,
             <code>section</code>, <code>chapter</code>, <code>number</code>, <code>source</code>,
-            <code>gradings</code>, <code>notes</code>, <code>tags</code>, <code>id</code>.</p>
+            <code>topic_tags</code>.</p>
         </section>
 
         <section class="tips-card">
@@ -104,22 +104,23 @@
         </section>
 
         <section class="tips-card">
-            <h2 class="tips-card__title"><i class="fa fa-language" aria-hidden="true"></i> Arabic</h2>
-            <p>Search in Arabic or English. For Arabic, type the letters without vowel marks.</p>
+            <h2 class="tips-card__title"><i class="fa fa-language" aria-hidden="true"></i> Arabic and English</h2>
+            <p>Search in either language, and type it however is easiest.</p>
             <p class="tips-card__example">
-                <code>الصوم جنة</code> &mdash; 1,094 matches<br/>
-                <code>الصَّوْمُ جُنَّةٌ</code> &mdash; 174 matches
+                <code>الصوم جنة</code> and <code>الصَّوْمُ جُنَّةٌ</code> &mdash; the same results<br/>
+                <code>Muhammad</code> and <code>Muḥammad</code> &mdash; the same results
             </p>
-            <p class="tips-card__note">Diacritics are matched literally, so adding them narrows the search rather
-            than refining it. The text stored here is fully vowelled, so the bare form finds it and the vowelled
-            form only finds the passages voweled identically.</p>
+            <p class="tips-card__note">Vowel marks are ignored, so a bare Arabic word finds the fully vowelled text
+            stored here. Transliteration is folded the same way: <code>Ali</code> finds <code>ʿAlī</code> and
+            <code>hadith</code> finds <code>ḥadīth</code>. English plurals are matched with their
+            singular, so <code>prayers</code> finds narrations that say <code>prayer</code>.</p>
         </section>
 
         <section class="tips-card">
             <h2 class="tips-card__title"><i class="fa fa-crosshairs" aria-hidden="true"></i> Precise or flexible</h2>
             <p>The dropdown beside the search button chooses how strictly your words are read.</p>
-            <p class="tips-card__note"><strong>Flexible</strong> (the default) also matches close variants and near
-            spellings, and does not require every word — useful when you are unsure of a transliteration.
+            <p class="tips-card__note"><strong>Flexible</strong> (the default) forgives a single mistyped letter and
+            does not require every word, which is what you want when you are unsure of a spelling.
             <strong>Precise</strong> requires every word exactly as typed, which is how you check whether a
             particular wording occurs at all.</p>
         </section>
