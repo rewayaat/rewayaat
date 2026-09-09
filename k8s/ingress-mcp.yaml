@@ -29,25 +29,12 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-buffering: "off"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
-    # Send every request in a session to the pod that owns it.
-    #
-    # The MCP session lives in memory in the pod that answered `initialize`, and the
-    # SDK has no stateless mode, so with four replicas and round-robin a client's next
-    # call reaches a pod that has never heard of its session and is refused. Measured
-    # against production before this existed: 4 of 12 calls on one session succeeded,
-    # which is exactly the one-in-four the replica count predicts.
-    #
-    # It has to be a cookie rather than a hash of the session header. The session id is
-    # minted by the server *after* the request has been routed, so hashing on it would
-    # send later calls to whichever pod the id happens to hash to, not the one holding
-    # the session. nginx assigns this cookie on first contact, which is early enough.
-    nginx.ingress.kubernetes.io/affinity: "cookie"
-    nginx.ingress.kubernetes.io/affinity-mode: "persistent"
-    nginx.ingress.kubernetes.io/session-cookie-name: "rewayaat-mcp-pod"
-    nginx.ingress.kubernetes.io/session-cookie-path: "/mcp"
-    nginx.ingress.kubernetes.io/session-cookie-max-age: "3600"
-    nginx.ingress.kubernetes.io/session-cookie-same-site: "None"
-    nginx.ingress.kubernetes.io/session-cookie-secure: "true"
+    # No session affinity here: it does not work for this client. Claude's connector
+    # calls from several egress addresses within one conversation and does not return
+    # the cookie nginx sets, so requests were spread across replicas and a session
+    # created on one pod was unknown to the next - 4 of 10 calls succeeded without the
+    # cookie against 10 of 10 with it. The MCP ingress now points at a Deployment with
+    # a single replica instead, which removes the question rather than negotiating it.
 spec:
   ingressClassName: nginx
   tls:
@@ -64,6 +51,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: rewayaat-v2
+                name: rewayaat-v2-mcp
                 port:
                   number: 80

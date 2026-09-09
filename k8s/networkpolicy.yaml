@@ -4,9 +4,16 @@ metadata:
   name: rewayaat-v2-management
   namespace: rewayaat-v2
 spec:
+  # Both the website pods and the MCP pod. A NetworkPolicy only restricts pods it
+  # selects, so naming just one of them would leave the other's management port open to
+  # anything in the cluster rather than protected by omission.
   podSelector:
-    matchLabels:
-      app: rewayaat-v2
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - rewayaat-v2
+          - rewayaat-v2-mcp
   policyTypes:
     - Ingress
   ingress:

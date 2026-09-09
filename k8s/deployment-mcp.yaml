@@ -1,0 +1,110 @@
+# The MCP server, on its own pod.
+#
+# It is the same image and the same configuration as the website; the only difference is
+# that exactly one replica of it exists, and nothing scales it.
+#
+# An MCP session lives in the memory of the pod that created it and SDK 2.0.1 offers no
+# shared store, so a client whose next call reaches a different pod is told its session
+# does not exist. That cannot be solved at the ingress here: Claude's connector calls from
+# several egress addresses within one conversation and does not return the affinity cookie
+# nginx sets, so requests were landing on whichever pod round-robin chose. Measured against
+# production: with the cookie 10 of 10 calls succeeded, without it 4 of 10.
+#
+# One replica removes the question. It costs the redundancy the website keeps - if this pod
+# is restarting, /mcp is down for those seconds - which is the right trade for a read-only
+# connector that is useless when it is wrong. Sessions end on a deploy either way, since
+# the pod holding them is replaced; Recreate makes that a clean stop rather than a period
+# where two pods both answer and half the calls fail.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rewayaat-v2-mcp
+  namespace: rewayaat-v2
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: rewayaat-v2-mcp
+  template:
+    metadata:
+      labels:
+        app: rewayaat-v2-mcp
+    spec:
+      terminationGracePeriodSeconds: 40
+      containers:
+        - name: rewayaat-v2-mcp
+          # Overridden by k8s/kustomization.yaml images.newTag during GitOps deploys.
+          image: rewayaat/rewayaat-v2:v2-base
+          imagePullPolicy: Always
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+          ports:
+            - name: http
+              containerPort: 8002
+            - name: management
+              containerPort: 8003
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+            - name: ELASTIC_HOST
+              value: "elasticsearch-v2.elastic-v2.svc.cluster.local"
+            # An alias, not an index. Analyzers cannot be changed in place, so every
+            # mapping change means a reindex; pointing at an alias keeps that a data
+            # operation instead of one that has to be timed against a deploy.
+            # See scripts/search/migrate_index.py.
+            - name: REWAYAAT_INDEX
+              value: "rewayaat_hadith"
+            - name: APP_BASE_URL
+              value: "https://rewayaat.info"
+            - name: MAIL_FROM
+              valueFrom:
+                secretKeyRef:
+                  name: rewayaat-v2-mail
+                  key: MAIL_FROM
+            - name: RESEND_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: rewayaat-v2-mail
+                  key: RESEND_API_KEY
+            - name: SENTRY_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: rewayaat-v2-sentry
+                  key: SENTRY_DSN
+          # Stop taking new work before shutting down, so nothing is cut mid-request.
+          #
+          # Removing a pod from its Service and telling the container to stop are not
+          # ordered: without this the container can begin shutting down while nginx is
+          # still sending it requests. The sleep covers that gap; Spring's graceful
+          # shutdown, configured in application-prod.properties, then drains what is
+          # already in flight. It matters most for MCP, where a session lives in this
+          # pod's memory and a client that loses one mid-answer reports the entire
+          # response as lost rather than retrying one call.
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 8"]
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8003
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8003
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "2"
+              memory: "2Gi"

@@ -1,0 +1,21 @@
+# Fronts the single MCP pod. Separate from the website's Service so that the MCP ingress
+# can reach that pod and only that pod - routing /mcp through the shared Service would put
+# it back in front of every replica, which is the thing being avoided.
+apiVersion: v1
+kind: Service
+metadata:
+  name: rewayaat-v2-mcp
+  namespace: rewayaat-v2
+  labels:
+    app: rewayaat-v2-mcp
+spec:
+  type: ClusterIP
+  selector:
+    app: rewayaat-v2-mcp
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8002
+    - name: management
+      port: 8003
+      targetPort: 8003

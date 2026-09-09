@@ -3,10 +3,12 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - deployment.yaml
+  - deployment-mcp.yaml
   - pdb.yaml
   - hpa.yaml
   - networkpolicy.yaml
   - service.yaml
+  - service-mcp.yaml
   - servicemonitor.yaml
   - grafana-dashboard.yaml
   - ingress.yaml
