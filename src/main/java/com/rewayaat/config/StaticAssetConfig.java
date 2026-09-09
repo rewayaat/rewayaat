@@ -43,6 +43,14 @@ public class StaticAssetConfig implements WebMvcConfigurer {
 
     private static final String CACHE_FOREVER = "max-age=31536000, public, immutable";
 
+    /**
+     * Revalidate every time, but keep the 304s.
+     *
+     * <p>Not {@code no-store}: the browser may hold the file, it simply has to ask whether
+     * it is still current. An unchanged page then costs a 304 and no body.
+     */
+    private static final String ALWAYS_REVALIDATE = "no-cache";
+
     private final boolean devMode;
 
     public StaticAssetConfig(Environment environment) {
@@ -81,6 +89,33 @@ public class StaticAssetConfig implements WebMvcConfigurer {
      * with a hand-written {@code ?v=N}. Freezing those for a year would turn a forgotten
      * bump into a permanent one, so they keep the browser's default heuristic caching.
      */
+    /**
+     * Stops the unfingerprinted pages at the static root going stale in a browser.
+     *
+     * <p>Spring Boot sends these with a {@code Last-Modified} and no {@code Cache-Control},
+     * which leaves the browser to guess how long to keep them - and the usual guess is a
+     * tenth of the file's age. A page untouched for two months is then held for most of a
+     * week, so a reader who has been here before sees an updates page with the newest entry
+     * missing and no way to know why. That happened to this page.
+     *
+     * <p>The asset directories are excluded: those URLs carry a content hash and are handled
+     * above, where caching them forever is exactly right.
+     */
+    @Bean
+    public FilterRegistrationBean<Filter> rootPageRevalidationFilter() {
+        Filter filter = (request, response, chain) -> {
+            String path = ((HttpServletRequest) request).getRequestURI();
+            boolean inAssetDir = ASSET_DIRS.stream().anyMatch(dir -> path.startsWith("/" + dir + "/"));
+            if (!inAssetDir && (path.endsWith(".html") || path.endsWith(".json"))) {
+                ((HttpServletResponse) response).setHeader(HttpHeaders.CACHE_CONTROL, ALWAYS_REVALIDATE);
+            }
+            chain.doFilter(request, response);
+        };
+        FilterRegistrationBean<Filter> registration = new FilterRegistrationBean<>(filter);
+        registration.addUrlPatterns("/*");
+        return registration;
+    }
+
     @Bean
     public FilterRegistrationBean<Filter> fingerprintedAssetCacheFilter() {
         Filter filter = (request, response, chain) -> {
