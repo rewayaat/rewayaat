@@ -22,6 +22,20 @@ public class HadithQueryService {
     private static final Logger log = LoggerFactory.getLogger(HadithQueryService.class);
     private static final int FLEXIBLE_EXACT_BOOST = 6;
 
+    /**
+     * How far flexible mode will bend a word: one edit, not Lucene's AUTO.
+     *
+     * <p>AUTO allows two edits on anything six characters or longer, which stops being a
+     * typo and starts being a different word. Measured against the exact hit count:
+     * ghadir returned 625 where 24 narrations contain it, narration 3,037 against 864,
+     * believer 3,595 against 2,099. One edit brings those to 31, 864 and 3,077 - it still
+     * forgives a slip, which is the point of the mode, without burying the 24 real hits
+     * for ghadir under six hundred that merely look like it.
+     *
+     * <p>Precise mode does not fuzz at all, so this only sets how loose the loose end is.
+     */
+    private static final String FLEXIBLE_FUZZINESS = "~1";
+
     // Fields that are already keyword type (no .keyword subfield needed)
     private static final String[] KEYWORD_ONLY_FIELDS = new String[]{"book", "volume", "part", "section", "number", "edition", "publisher"};
 
@@ -121,10 +135,11 @@ public class HadithQueryService {
                 continue; // Skip empty strings to avoid invalid "~" queries
             }
             s = normalizeFieldAlias(s);
+            s = stripArabicDiacritics(s);
             if (!strictMatchMode &&
                     !s.contains("~") && !s.contains(":") && !s.contains("^") && !s.contains("(") && !s.contains("\"") &&
                     !s.startsWith("+") && !s.startsWith("-")) {
-                s = "(" + s + "^" + FLEXIBLE_EXACT_BOOST + " OR " + s + "~)";
+                s = "(" + s + "^" + FLEXIBLE_EXACT_BOOST + " OR " + s + FLEXIBLE_FUZZINESS + ")";
             }
             allFieldItems.add(s);
         }
@@ -135,6 +150,32 @@ public class HadithQueryService {
         }
         log.debug("Final query post modifications: {}", query);
         return query;
+    }
+
+    /**
+     * Arabic combining marks: fatha through sukun, the daggers, and tatweel.
+     */
+    private static final java.util.regex.Pattern ARABIC_DIACRITICS =
+            java.util.regex.Pattern.compile("[\\u064B-\\u0652\\u0670\\u0640\\u06D6-\\u06ED]");
+
+    /**
+     * Strips Arabic vowel marks from a term before the fuzzy operator is attached.
+     *
+     * <p>The index normalizes diacritics away, so this changes nothing about what a plain
+     * term matches. It matters because {@code ~} does not go through the analyzer: Lucene
+     * sizes AUTO fuzziness from the raw string, where a mark is a character like any other.
+     * مسلم is four characters and gets an edit distance of one; مُسلِم is six and gets two.
+     * The same word typed two ways then returned 2,953 and 5,938 results - not because the
+     * index disagreed, but because one of them was searched twice as loosely.
+     *
+     * <p>Applied to every term, not only fuzzied ones, so that a quoted phrase and a bare
+     * term are cut the same way and the query the user sees explained stays honest.
+     */
+    private String stripArabicDiacritics(String token) {
+        if (token == null || token.isEmpty()) {
+            return token;
+        }
+        return ARABIC_DIACRITICS.matcher(token).replaceAll("");
     }
 
     private String normalizeFieldAlias(String token) {

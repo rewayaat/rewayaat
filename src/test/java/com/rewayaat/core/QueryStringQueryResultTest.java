@@ -127,17 +127,40 @@ class QueryStringQueryResultTest {
     }
 
     /**
-     * The highlight query stays a plain query_string.
+     * The highlight query reads the same fields as the matching query.
      *
-     * <p>It reaches the metadata the same way the matching query does, so the two cannot
-     * drift apart the way they did when only one of them knew about keyword fields.
+     * <p>It is the same plain query_string over the same explicit list, so the two cannot
+     * drift apart the way they did when only one of them knew about keyword fields. The
+     * list is explicit rather than "*" because "*" also searched the embedding pipeline's
+     * working copies, which double-counted a match - see SEARCHABLE_FIELDS.
      */
     @Test
-    void theHighlightQueryIsThePlainTextQuery() throws Exception {
+    void theHighlightQueryReadsTheSameFieldsAsTheSearch() throws Exception {
         Highlight highlight = buildHighlight("(commerce^6 OR commerce~)", false);
 
         assertEquals(true, highlight.highlightQuery().isQueryString());
-        assertEquals("*", highlight.highlightQuery().queryString().defaultField());
+        List<String> fields = highlight.highlightQuery().queryString().fields();
+        assertEquals(true, fields.contains("english"), "the matn is not searched");
+        assertEquals(true, fields.contains("arabic"), "the arabic is not searched");
+        assertEquals(true, fields.contains("part.text"), "the metadata is not searched");
+        for (String derived : List.of("semantic_matn_source", "semantic_english_hint_source",
+                "semantic_significant_terms_source")) {
+            assertEquals(false, fields.contains(derived),
+                    derived + " is searched, which counts the same match twice");
+        }
+    }
+
+    /** The search reads that same list, so a field cannot be searched but not highlighted. */
+    @Test
+    void theSearchReadsTheExplicitFieldList() throws Exception {
+        SearchRequest request = buildSearchRequest("(commerce^6 OR commerce~)", false);
+        List<String> fields = textClause(request).queryString().fields();
+
+        assertEquals(true, fields.contains("english"));
+        assertEquals(false, fields.contains("semantic_matn_source"));
+        assertEquals(buildHighlight("(commerce^6 OR commerce~)", false)
+                .highlightQuery().queryString().fields(), fields,
+                "the search and the highlighter read different fields");
     }
 
     private SearchRequest buildSearchRequest(String query, boolean strictMatchMode) throws Exception {

@@ -22,7 +22,7 @@ class HadithQueryServiceTest {
     @Test
     void permissiveModeOnlyFuzziesKeywordTerms() {
         assertEquals(
-                "(anger^6 OR anger~) book:\"Nahj al-Balāgha\"",
+                "(anger^6 OR anger~1) book:\"Nahj al-Balāgha\"",
                 service.enhanceQuery("anger book:\"Nahj al-Balāgha\"", QueryMode.SEARCH, false)
         );
     }
@@ -45,7 +45,7 @@ class HadithQueryServiceTest {
     @Test
     void flexibleModeBoostsExactTokenBeforeFuzzyFallback() {
         assertEquals(
-                "(غدير^6 OR غدير~)",
+                "(غدير^6 OR غدير~1)",
                 service.enhanceQuery("غدير", QueryMode.SEARCH, false)
         );
     }

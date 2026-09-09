@@ -82,8 +82,8 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
     /**
      * Restricts and weights the fields the query string searches.
      *
-     * <p>Null, the default, leaves Elasticsearch to search every field, which is what the
-     * website does and what its relevance has always been tuned against. It is a seam for
+     * <p>Null, the default, uses {@link #SEARCHABLE_FIELDS}, which is what the website
+     * does and what its relevance has always been tuned against. It is a seam for
      * callers whose failure mode is different - see
      * {@link com.rewayaat.mcp.NarrationRepository}, where an unweighted search over every
      * field lets isnād chains outrank the matn.
@@ -209,9 +209,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                         // matn and metadata alike. See METADATA_TEXT_FIELDS.
                         b.must(s -> s.queryString(qs -> {
                             qs.query(residualQuery);
-                            if (queryFields != null) {
-                                qs.fields(queryFields);
-                            }
+                            qs.fields(queryFields != null ? queryFields : SEARCHABLE_FIELDS);
                             if (strictMatchMode) {
                                 qs.defaultOperator(Operator.And);
                             }
@@ -329,9 +327,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                         // matn and metadata alike. See METADATA_TEXT_FIELDS.
                         b.must(s -> s.queryString(qs -> {
                             qs.query(residualQuery);
-                            if (queryFields != null) {
-                                qs.fields(queryFields);
-                            }
+                            qs.fields(queryFields != null ? queryFields : SEARCHABLE_FIELDS);
                             if (strictMatchMode) {
                                 qs.defaultOperator(Operator.And);
                             }
@@ -369,7 +365,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
      */
     private Highlight getHighlightBuilder(String fuzziedQuery) {
         List<NamedValue<HighlightField>> fields = new ArrayList<>();
-        for (String field : List.of("english", "allFields", "notes", "arabic", "chapter")) {
+        for (String field : List.of("english", "arabic", "chapter", "notes")) {
             fields.add(NamedValue.of(field, new HighlightField.Builder().build()));
         }
         for (String field : METADATA_TEXT_FIELDS) {
@@ -380,7 +376,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                 .postTags("</span>")
                 .preTags("<span class=\"highlight\">")
                 .highlightQuery(q -> q.queryString(qs -> {
-                    qs.query(buildHighlightQueryString(query)).defaultField("*");
+                    qs.query(buildHighlightQueryString(query)).fields(SEARCHABLE_FIELDS);
                     if (strictMatchMode) {
                         qs.defaultOperator(Operator.And);
                     }
@@ -421,6 +417,28 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
         return String.join(" ", uniqueTokens);
     }
 
+
+    /**
+     * The fields a free-text search actually reads.
+     *
+     * <p>The default was Elasticsearch's "*", which searches every field in the mapping.
+     * That included the embedding pipeline's working copies - semantic_matn_source is the
+     * chain-stripped matn and holds no narration that {@code arabic} does not, measured at
+     * zero unique hits for الصلاة, الزكاة and الصوم - so a match counted two or three times
+     * and the affected narrations outranked equally good ones for no reason a reader could
+     * see. It also included a dozen fields that hold nothing at all.
+     *
+     * <p>Arabic and English metadata are both listed: the sub-fields are analysed, so they
+     * match a bare word, and {@link #applyMetadataRankingBoost} decides where they sort.
+     * Anything absent here is deliberately unsearchable - annotations, footnotes, gradings,
+     * translation suggestions, the llm_similar bookkeeping and the semantic sources.
+     */
+    private static final List<String> SEARCHABLE_FIELDS = List.of(
+            "english", "arabic", "chapter", "notes",
+            "book.text", "volume.text", "part.text", "section.text",
+            "source.text", "publisher.text",
+            "book_ar", "chapter_ar.text", "part_ar.text", "section_ar.text", "source_ar.text",
+            "topic_tags");
 
     /**
      * The metadata fields that carry an analysed {@code .text} sub-field.
@@ -562,7 +580,17 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
      * Fields that are keyword type (no .keyword subfield needed).
      * These fields use exact matching without text analysis.
      */
-    private static final String[] KEYWORD_ONLY_FIELDS = new String[]{"book", "volume", "part", "section", "number", "edition", "publisher"};
+    /**
+     * Fields that are mapped {@code keyword} outright and so have no {@code .keyword} child.
+     *
+     * <p>A field missing from this list is filtered as {@code field.keyword}, which for a
+     * field that is already a keyword names something that does not exist - the filter then
+     * matches nothing and the scope silently returns no results. That is what
+     * {@code source:"..."} and {@code topic_tags:"..."} did: both are populated, on 32,519
+     * and 31,809 narrations, and both returned zero.
+     */
+    private static final String[] KEYWORD_ONLY_FIELDS = new String[]{"book", "volume", "part", "section",
+            "number", "edition", "publisher", "source", "topic_tags"};
 
     private boolean isKeywordOnlyField(String fieldName) {
         for (String kwField : KEYWORD_ONLY_FIELDS) {

@@ -4,6 +4,20 @@
    "number_of_shards": 1,
    "number_of_replicas": 0,
    "analysis": {
+    "char_filter": {
+     "strip_hamza": {
+      "type": "mapping",
+      "mappings": [
+       "ʿ=>",
+       "ʾ=>",
+       "‘=>",
+       "’=>",
+       "`=>",
+       "´=>",
+       "ʼ=>"
+      ]
+     }
+    },
     "analyzer": {
      "arabic_norm": {
       "tokenizer": "standard",
@@ -11,6 +25,17 @@
        "lowercase",
        "decimal_digit",
        "arabic_normalization"
+      ]
+     },
+     "english_fold": {
+      "char_filter": [
+       "strip_hamza"
+      ],
+      "tokenizer": "standard",
+      "filter": [
+       "lowercase",
+       "asciifolding",
+       "kstem"
       ]
      }
     }
@@ -32,7 +57,7 @@
     "fields": {
      "text": {
       "type": "text",
-      "analyzer": "standard"
+      "analyzer": "english_fold"
      }
     }
    },
@@ -53,7 +78,8 @@
       "type": "keyword",
       "ignore_above": 1024
      }
-    }
+    },
+    "analyzer": "english_fold"
    },
    "chapter_ar": {
     "type": "keyword",
@@ -69,13 +95,15 @@
    },
    "daily_reason": {
     "type": "text",
-    "index": false
+    "index": false,
+    "analyzer": "english_fold"
    },
    "edition": {
     "type": "keyword"
    },
    "english": {
-    "type": "text"
+    "type": "text",
+    "analyzer": "english_fold"
    },
    "english_annotated": {
     "type": "text",
@@ -109,7 +137,8 @@
     }
    },
    "history": {
-    "type": "text"
+    "type": "text",
+    "analyzer": "english_fold"
    },
    "llm_similar": {
     "type": "nested",
@@ -128,7 +157,8 @@
     }
    },
    "notes": {
-    "type": "text"
+    "type": "text",
+    "analyzer": "english_fold"
    },
    "number": {
     "type": "keyword"
@@ -138,7 +168,7 @@
     "fields": {
      "text": {
       "type": "text",
-      "analyzer": "standard"
+      "analyzer": "english_fold"
      }
     }
    },
@@ -156,7 +186,7 @@
     "fields": {
      "text": {
       "type": "text",
-      "analyzer": "standard"
+      "analyzer": "english_fold"
      }
     }
    },
@@ -176,7 +206,7 @@
     "fields": {
      "text": {
       "type": "text",
-      "analyzer": "standard"
+      "analyzer": "english_fold"
      }
     }
    },
@@ -196,7 +226,8 @@
       "type": "keyword",
       "ignore_above": 256
      }
-    }
+    },
+    "analyzer": "english_fold"
    },
    "semantic_matn_source": {
     "type": "text",
@@ -234,7 +265,7 @@
     "fields": {
      "text": {
       "type": "text",
-      "analyzer": "standard"
+      "analyzer": "english_fold"
      }
     }
    },
@@ -277,7 +308,7 @@
     "fields": {
      "text": {
       "type": "text",
-      "analyzer": "standard"
+      "analyzer": "english_fold"
      }
     }
    }
