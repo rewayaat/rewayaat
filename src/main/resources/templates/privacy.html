@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/site :: sitehead}"></head>
+<body>
+<nav th:replace="~{fragments/site :: sitenav}"></nav>
+
+<main class="container py-3">
+    <nav th:replace="~{fragments/site :: crumbtrail}"></nav>
+
+    <header class="hub-hero hub-hero--split">
+        <div class="hub-hero__main">
+            <div class="hub-hero__eyebrow">Policy</div>
+            <h1 class="hub-hero__title">Privacy</h1>
+        </div>
+        <div class="hub-hero__intro">
+            <p>
+                What this site records, why, and who else sees it. It is short because
+                there is not much: the corpus is public, and reading it needs no account.
+            </p>
+        </div>
+    </header>
+
+    <div th:replace="~{fragments/site :: ornament}"></div>
+
+    <div class="tips-grid">
+        <section class="tips-card">
+            <h2 class="tips-card__title"><i class="fa fa-book-open" aria-hidden="true"></i> Reading and searching</h2>
+            <p>Browsing and searching require no account and no sign-in. We do not ask who you
+            are, and nothing you search for is tied to a person.</p>
+            <p class="tips-card__note">Our web server keeps ordinary access logs — the address
+            the request came from, the page asked for, the time, and the browser's user-agent
+            string. They are used to keep the service running and to investigate faults.</p>
+        </section>
+
+        <section class="tips-card">
+            <h2 class="tips-card__title"><i class="fa fa-user" aria-hidden="true"></i> Accounts, if you make one</h2>
+            <p>An account is optional. It exists so that you can save narrations into
+            collections of your own.</p>
+            <p class="tips-card__note">We store your email address, the display name you choose,
+            and your password — hashed, never in a form we can read. Sign-in, email
+            verification and password reset tokens are stored hashed too. Your saved
+            collections are held against your email address. That is all an account is.</p>
+        </section>
+
+        <section class="tips-card">
+            <h2 class="tips-card__title"><i class="fa fa-plug" aria-hidden="true"></i> The MCP connector</h2>
+            <p>The connector at <code>/mcp</code> lets an AI assistant search this corpus on your
+            behalf. It is read-only and unauthenticated.</p>
+            <p class="tips-card__note">It has no accounts and no sign-in, so it never learns who
+            you are. It receives the search terms your assistant sends, answers them, and keeps
+            no record of them beyond the access logs above. It cannot read your conversation,
+            and it cannot change anything here.</p>
+        </section>
+
+        <section class="tips-card">
+            <h2 class="tips-card__title"><i class="fa fa-share-nodes" aria-hidden="true"></i> Who else sees anything</h2>
+            <p>Three services, each for one job:</p>
+            <p class="tips-card__note">
+                <strong>Google Analytics</strong> — page views on the website, to see which parts
+                are used. Not loaded on the connector.<br/>
+                <strong>Sentry</strong> — errors, so faults are noticed and fixed.<br/>
+                <strong>Resend</strong> — sends verification and password-reset email, and
+                receives your address in order to do so.
+            </p>
+        </section>
+
+        <section class="tips-card">
+            <h2 class="tips-card__title"><i class="fa fa-ban" aria-hidden="true"></i> What we do not do</h2>
+            <p>We do not sell or rent your information, and we do not share it with anyone
+            beyond the three services above.</p>
+            <p class="tips-card__note">There is no advertising here and no advertising trackers.
+            We do not build profiles of readers, and we do not use anything you search for or
+            save to train a model.</p>
+        </section>
+
+        <section class="tips-card">
+            <h2 class="tips-card__title"><i class="fa fa-envelope" aria-hidden="true"></i> Your data, and reaching us</h2>
+            <p>Ask us for a copy of what your account holds, or ask us to delete it, and we
+            will. Deleting an account removes its collections with it.</p>
+            <p class="tips-card__note">Write to
+            <a href="mailto:rewayaat.org@gmail.com">rewayaat.org@gmail.com</a> for anything on
+            this page, including a correction to it. If this policy changes materially we will
+            say so on the site rather than quietly amend it.</p>
+        </section>
+    </div>
+
+    <p class="tips-footnote">
+        Rewayaat is a project of the Academy for Learning Islam. Last updated
+        <time datetime="2026-09-09">9 September 2026</time>.
+    </p>
+</main>
+
+<footer th:replace="~{fragments/site :: sitefooter}"></footer>
+<th:block th:replace="~{fragments/site :: analytics}"></th:block>
+</body>
+</html>
