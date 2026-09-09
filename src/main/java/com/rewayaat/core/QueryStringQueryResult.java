@@ -147,7 +147,15 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
         if (highlights != null) {
             for (Entry<String, List<String>> entry : highlights.entrySet()) {
                 if (!entry.getValue().isEmpty()) {
-                    result.put(entry.getKey(), entry.getValue().get(0));
+                    // Metadata is highlighted through its analysed .text sub-field, but the
+                    // client knows the field by its base name and overlays the marked-up
+                    // value onto it. Without this the highlight arrives under a key nothing
+                    // reads and the metadata renders unmarked.
+                    String field = entry.getKey();
+                    if (field.endsWith(METADATA_TEXT_SUFFIX)) {
+                        field = field.substring(0, field.length() - METADATA_TEXT_SUFFIX.length());
+                    }
+                    result.put(field, entry.getValue().get(0));
                 }
             }
         }
@@ -196,10 +204,10 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                 .searchType(SearchType.DfsQueryThenFetch)
                 .query(q -> q.bool(b -> {
                     if (!residualQuery.isBlank()) {
-                        // should, not must: a narration whose only match is in keyword
-                        // metadata has to be able to come back on its own. See
-                        // applyKeywordMetadataClauses.
-                        b.should(s -> s.queryString(qs -> {
+                        // The metadata fields carry an analysed .text sub-field, which the
+                        // default "*" field expansion reaches, so one query_string covers
+                        // matn and metadata alike. See METADATA_TEXT_FIELDS.
+                        b.must(s -> s.queryString(qs -> {
                             qs.query(residualQuery);
                             if (queryFields != null) {
                                 qs.fields(queryFields);
@@ -209,8 +217,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                             }
                             return qs;
                         }));
-                        applyKeywordMetadataClauses(b, residualQuery);
-                        b.minimumShouldMatch("1");
+                        applyMetadataRankingBoost(b, residualQuery);
                     } else if (fieldScopes.isEmpty()) {
                         b.must(s -> s.queryString(qs -> qs.query("*")));
                     }
@@ -317,10 +324,10 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                 .searchType(SearchType.DfsQueryThenFetch)
                 .query(q -> q.bool(b -> {
                     if (!residualQuery.isBlank()) {
-                        // should, not must: a narration whose only match is in keyword
-                        // metadata has to be able to come back on its own. See
-                        // applyKeywordMetadataClauses.
-                        b.should(s -> s.queryString(qs -> {
+                        // The metadata fields carry an analysed .text sub-field, which the
+                        // default "*" field expansion reaches, so one query_string covers
+                        // matn and metadata alike. See METADATA_TEXT_FIELDS.
+                        b.must(s -> s.queryString(qs -> {
                             qs.query(residualQuery);
                             if (queryFields != null) {
                                 qs.fields(queryFields);
@@ -330,8 +337,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                             }
                             return qs;
                         }));
-                        applyKeywordMetadataClauses(b, residualQuery);
-                        b.minimumShouldMatch("1");
+                        applyMetadataRankingBoost(b, residualQuery);
                     } else if (fieldScopes.isEmpty()) {
                         b.must(s -> s.queryString(qs -> qs.query("*")));
                     }
@@ -351,40 +357,35 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
         return builder.build();
     }
 
+    /**
+     * Builds the highlighting, which is a second query run over the matched documents.
+     *
+     * <p>The metadata is asked for by its {@code .text} sub-field: the base {@code keyword}
+     * is one token, so highlighting it marks the whole value, and "The Book of Commerce"
+     * comes back wholly wrapped for a search for {@code commerce}. The sub-field marks the
+     * word. Both field lists and the query below are plain query_string, which reaches a
+     * multi-field through the default "*" expansion, so this stays in step with the
+     * matching query without either side maintaining clauses of its own.
+     */
     private Highlight getHighlightBuilder(String fuzziedQuery) {
+        List<NamedValue<HighlightField>> fields = new ArrayList<>();
+        for (String field : List.of("english", "allFields", "notes", "arabic", "chapter")) {
+            fields.add(NamedValue.of(field, new HighlightField.Builder().build()));
+        }
+        for (String field : METADATA_TEXT_FIELDS) {
+            fields.add(NamedValue.of(field, new HighlightField.Builder().build()));
+        }
         Highlight.Builder highlightBuilder = new Highlight.Builder()
-                .fields(
-                        NamedValue.of("english", new HighlightField.Builder().build()),
-                        NamedValue.of("allFields", new HighlightField.Builder().build()),
-                        NamedValue.of("notes", new HighlightField.Builder().build()),
-                        NamedValue.of("arabic", new HighlightField.Builder().build()),
-                        NamedValue.of("book", new HighlightField.Builder().build()),
-                        NamedValue.of("section", new HighlightField.Builder().build()),
-                        NamedValue.of("part", new HighlightField.Builder().build()),
-                        NamedValue.of("chapter", new HighlightField.Builder().build()),
-                        NamedValue.of("publisher", new HighlightField.Builder().build()),
-                        NamedValue.of("source", new HighlightField.Builder().build()),
-                        NamedValue.of("volume", new HighlightField.Builder().build()))
+                .fields(fields)
                 .postTags("</span>")
                 .preTags("<span class=\"highlight\">")
-                .highlightQuery(q -> {
-                    String highlightQuery = buildHighlightQueryString(query);
-                    Query textClause = Query.of(t -> t.queryString(qs -> {
-                        qs.query(highlightQuery).defaultField("*");
-                        if (strictMatchMode) {
-                            qs.defaultOperator(Operator.And);
-                        }
-                        return qs;
-                    }));
-                    List<Query> metadataClauses = keywordMetadataClauses(query);
-                    return q.bool(b -> {
-                        b.should(textClause);
-                        for (Query clause : metadataClauses) {
-                            b.should(clause);
-                        }
-                        return b.minimumShouldMatch("1");
-                    });
-                })
+                .highlightQuery(q -> q.queryString(qs -> {
+                    qs.query(buildHighlightQueryString(query)).defaultField("*");
+                    if (strictMatchMode) {
+                        qs.defaultOperator(Operator.And);
+                    }
+                    return qs;
+                }))
                 .numberOfFragments(0);
         return highlightBuilder.build();
     }
@@ -422,93 +423,70 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
 
 
     /**
-     * The metadata fields a free-text term cannot reach on its own.
+     * The metadata fields that carry an analysed {@code .text} sub-field.
      *
-     * <p>These are mapped as {@code keyword}, so the whole value is a single token: the
+     * <p>These are mapped as {@code keyword}, so the stored value is a single token: the
      * 1,062 narrations under part "The Book of Commerce" hold one term, "The Book of
-     * Commerce", and a search for {@code commerce} matches none of them. Only
-     * {@code chapter} is analysed among the hierarchy fields, which is why chapter titles
-     * have always been findable and book, part, section and source have not.
+     * Commerce", and a bare search for {@code commerce} matches none of them. The sub-field
+     * indexes the same value word by word, which is what makes it both findable and
+     * highlightable a word at a time rather than a whole value at a time.
+     *
+     * <p>The base {@code keyword} is left in place, so the exact term filters in
+     * {@link #applyFieldScopes} are unaffected. Nothing here needs a clause of its own:
+     * query_string's default "*" expansion already covers a multi-field, so matching and
+     * highlighting both pick these up from the one query. The list exists so the highlight
+     * builder asks for the right field names.
      */
-    private static final List<String> KEYWORD_METADATA_FIELDS =
-            List.of("book", "volume", "part", "section", "source");
+    /** The sub-field suffix, stripped before a highlight is handed to the client. */
+    /**
+     * How far a metadata match is lifted above a matn match.
+     *
+     * <p>Both sides are BM25 over analysed text, so they sit on one scale and the gap is
+     * small - the old wildcard scored a flat 1.0 and needed a thousand to be seen at all.
+     * The figure is the knee rather than a margin: swept over commerce, zakat, prayer,
+     * fasting, pilgrimage, knowledge, marriage, hassan, mercy and ghadir against the
+     * enhanced {@code (term^6 OR term~)} form the site actually sends, twelve still left
+     * The Book of Commerce below three matn hits, twenty-five put every query that has
+     * matching metadata at the top of its results, and fifty, eighty, a hundred and twenty
+     * and two hundred changed nothing further. Past the knee a larger number buys no
+     * ordering and only flattens relevance within the metadata itself.
+     *
+     * <p>hassan, mercy and ghadir stay matn-first at every value, which is correct: no
+     * book, part or section is named for them, so there is nothing to lift.
+     */
+    private static final float METADATA_RANKING_BOOST = 25f;
 
-    /** Below this a term matches too much of the metadata to be worth asking about. */
-    private static final int MIN_METADATA_TERM_LENGTH = 3;
+    /** The sub-field suffix, stripped before a highlight is handed to the client. */
+    private static final String METADATA_TEXT_SUFFIX = ".text";
 
-    /** Enough to cover a real query without turning one search into forty clauses. */
-    private static final int MAX_METADATA_TERMS = 4;
+    private static final List<String> METADATA_TEXT_FIELDS =
+            List.of("book.text", "volume.text", "part.text", "section.text",
+                    "source.text", "publisher.text");
 
     /**
-     * Puts a metadata match above every text match.
+     * Sorts a metadata match above a matn match without changing what matches.
      *
-     * <p>Someone searching "commerce" wants the Book of Commerce before a narration that
-     * happens to use the word. A wildcard scores a flat 1.0 while BM25 on these fields
-     * runs to 38-85 for ordinary queries - measured across commerce, zakat, prayer,
-     * ghadir, hassan, mercy and wudu, with the flexible {@code ^6} boost inflating it -
-     * so the gap has to be closed by more than the spread. A thousand clears it for any
-     * plausible query rather than for the seven that were sampled.
+     * <p>Someone searching "commerce" wants The Book of Commerce before a narration that
+     * happens to use the word in passing. This is a {@code should} beside the {@code must}
+     * above, so it contributes score only - the {@code must} has already decided the result
+     * set, and a narration that matches nothing here is neither excluded nor required to.
      *
-     * <p>Matches on several metadata fields add, so a narration whose book and part both
-     * match sorts above one where only the part does, which is the right secondary order.
+     * <p>The boost is modest because both sides are now BM25 over analysed text and so are
+     * already on one scale; the old wildcard scored a flat 1.0 and needed three orders of
+     * magnitude to be seen at all. A short metadata value also scores high on its own
+     * through BM25 field-length normalisation, which does much of the work unaided.
      */
-    private static final float METADATA_MATCH_BOOST = 1000f;
-
-    /**
-     * Lets a plain word find narrations whose only match is in keyword metadata.
-     *
-     * <p>A case-insensitive wildcard is what reaches inside a keyword value without
-     * reindexing. The proper fix is an analysed sub-field on each of these and a mapping
-     * change, which is a migration; this gets the behaviour right today and stays correct
-     * afterwards, since a wildcard over five short fields on 32,519 documents is cheap.
-     *
-     * <p>Added as {@code should} beside the text query, which is why the text query is a
-     * {@code should} too - with {@code must} the metadata clause could only ever narrow a
-     * set the text had already matched, which is the opposite of what is wanted.
-     */
-    private void applyKeywordMetadataClauses(
+    private void applyMetadataRankingBoost(
             co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery.Builder boolBuilder,
             String residualQuery) {
-        for (Query clause : keywordMetadataClauses(residualQuery)) {
-            boolBuilder.should(clause);
-        }
-    }
-
-    /**
-     * The wildcard clauses themselves, so that matching and highlighting share one source.
-     *
-     * <p>Highlighting runs its own query against the matched documents, and a
-     * {@code query_string} cannot mark up a keyword value for the same reason it cannot
-     * match one. Without these clauses a narration found only through its metadata comes
-     * back with the matched words unmarked, which reads as a wrong result rather than a
-     * missing highlight. Anything that changes how a term reaches the metadata has to
-     * change both queries at once, so neither builds its own list.
-     */
-    private List<Query> keywordMetadataClauses(String residualQuery) {
         String normalized = buildHighlightQueryString(residualQuery);
         if (normalized == null || normalized.isBlank() || "*".equals(normalized)) {
-            return Collections.emptyList();
+            return;
         }
-        List<Query> clauses = new ArrayList<>();
-        int used = 0;
-        for (String token : normalized.split("\\s+")) {
-            String term = token.replace("\"", "").trim();
-            if (term.length() < MIN_METADATA_TERM_LENGTH || term.startsWith("*")) {
-                continue;
-            }
-            if (used++ >= MAX_METADATA_TERMS) {
-                break;
-            }
-            String pattern = "*" + term + "*";
-            for (String field : KEYWORD_METADATA_FIELDS) {
-                clauses.add(Query.of(s -> s.wildcard(w -> w
-                        .field(field)
-                        .value(pattern)
-                        .caseInsensitive(true)
-                        .boost(METADATA_MATCH_BOOST))));
-            }
-        }
-        return clauses;
+        boolBuilder.should(s -> s.multiMatch(m -> m
+                .query(normalized)
+                .fields(METADATA_TEXT_FIELDS)
+                .boost(METADATA_RANKING_BOOST)));
     }
 
     private Map<String, Long> extractTopicTagFacets(SearchResponse<Map> response) {

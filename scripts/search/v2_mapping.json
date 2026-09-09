@@ -1,0 +1,286 @@
+{
+ "settings": {
+  "index": {
+   "number_of_shards": 1,
+   "number_of_replicas": 0,
+   "analysis": {
+    "analyzer": {
+     "arabic_norm": {
+      "tokenizer": "standard",
+      "filter": [
+       "lowercase",
+       "decimal_digit",
+       "arabic_normalization"
+      ]
+     }
+    }
+   }
+  }
+ },
+ "mappings": {
+  "properties": {
+   "arabic": {
+    "type": "text",
+    "analyzer": "arabic_norm"
+   },
+   "arabic_annotated": {
+    "type": "text",
+    "index": false
+   },
+   "book": {
+    "type": "keyword",
+    "fields": {
+     "text": {
+      "type": "text",
+      "analyzer": "standard"
+     }
+    }
+   },
+   "book_ar": {
+    "type": "text",
+    "fields": {
+     "keyword": {
+      "type": "keyword",
+      "ignore_above": 256
+     }
+    },
+    "analyzer": "arabic_norm"
+   },
+   "chapter": {
+    "type": "text",
+    "fields": {
+     "keyword": {
+      "type": "keyword",
+      "ignore_above": 1024
+     }
+    }
+   },
+   "chapter_ar": {
+    "type": "keyword",
+    "fields": {
+     "text": {
+      "type": "text",
+      "analyzer": "arabic_norm"
+     }
+    }
+   },
+   "daily_candidate": {
+    "type": "boolean"
+   },
+   "daily_reason": {
+    "type": "text",
+    "index": false
+   },
+   "edition": {
+    "type": "keyword"
+   },
+   "english": {
+    "type": "text"
+   },
+   "english_annotated": {
+    "type": "text",
+    "index": false
+   },
+   "footnotes": {
+    "type": "nested",
+    "dynamic": "false",
+    "properties": {
+     "id": {
+      "type": "integer"
+     },
+     "note": {
+      "type": "text",
+      "index": false
+     },
+     "term": {
+      "type": "keyword"
+     }
+    }
+   },
+   "gradings": {
+    "type": "nested",
+    "properties": {
+     "grader": {
+      "type": "keyword"
+     },
+     "grading": {
+      "type": "keyword"
+     }
+    }
+   },
+   "history": {
+    "type": "text"
+   },
+   "llm_similar": {
+    "type": "nested",
+    "dynamic": "false",
+    "properties": {
+     "id": {
+      "type": "keyword"
+     },
+     "match_type": {
+      "type": "keyword"
+     },
+     "reason": {
+      "type": "text",
+      "index": false
+     }
+    }
+   },
+   "notes": {
+    "type": "text"
+   },
+   "number": {
+    "type": "keyword"
+   },
+   "part": {
+    "type": "keyword",
+    "fields": {
+     "text": {
+      "type": "text",
+      "analyzer": "standard"
+     }
+    }
+   },
+   "part_ar": {
+    "type": "keyword",
+    "fields": {
+     "text": {
+      "type": "text",
+      "analyzer": "arabic_norm"
+     }
+    }
+   },
+   "publisher": {
+    "type": "keyword",
+    "fields": {
+     "text": {
+      "type": "text",
+      "analyzer": "standard"
+     }
+    }
+   },
+   "related": {
+    "type": "nested",
+    "properties": {
+     "title": {
+      "type": "text"
+     },
+     "url": {
+      "type": "keyword"
+     }
+    }
+   },
+   "section": {
+    "type": "keyword",
+    "fields": {
+     "text": {
+      "type": "text",
+      "analyzer": "standard"
+     }
+    }
+   },
+   "section_ar": {
+    "type": "keyword",
+    "fields": {
+     "text": {
+      "type": "text",
+      "analyzer": "arabic_norm"
+     }
+    }
+   },
+   "semantic_english_hint_source": {
+    "type": "text",
+    "fields": {
+     "keyword": {
+      "type": "keyword",
+      "ignore_above": 256
+     }
+    }
+   },
+   "semantic_matn_source": {
+    "type": "text",
+    "fields": {
+     "keyword": {
+      "type": "keyword",
+      "ignore_above": 256
+     }
+    },
+    "analyzer": "arabic_norm"
+   },
+   "semantic_significant_terms_source": {
+    "type": "text",
+    "fields": {
+     "keyword": {
+      "type": "keyword",
+      "ignore_above": 256
+     }
+    },
+    "analyzer": "arabic_norm"
+   },
+   "semantic_vector": {
+    "type": "dense_vector",
+    "dims": 1024,
+    "index": true,
+    "similarity": "cosine",
+    "index_options": {
+     "type": "int8_hnsw",
+     "m": 16,
+     "ef_construction": 100
+    }
+   },
+   "source": {
+    "type": "keyword",
+    "fields": {
+     "text": {
+      "type": "text",
+      "analyzer": "standard"
+     }
+    }
+   },
+   "source_ar": {
+    "type": "keyword",
+    "fields": {
+     "text": {
+      "type": "text",
+      "analyzer": "arabic_norm"
+     }
+    }
+   },
+   "tags": {
+    "type": "keyword"
+   },
+   "topic_tags": {
+    "type": "keyword",
+    "ignore_above": 256
+   },
+   "translation_suggestions": {
+    "type": "nested",
+    "dynamic": "false",
+    "properties": {
+     "original": {
+      "type": "text",
+      "index": false
+     },
+     "reason": {
+      "type": "text",
+      "index": false
+     },
+     "suggested": {
+      "type": "text",
+      "index": false
+     }
+    }
+   },
+   "volume": {
+    "type": "keyword",
+    "fields": {
+     "text": {
+      "type": "text",
+      "analyzer": "standard"
+     }
+    }
+   }
+  }
+ }
+}

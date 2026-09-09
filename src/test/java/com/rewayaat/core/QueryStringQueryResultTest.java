@@ -4,6 +4,8 @@ import co.elastic.clients.elasticsearch._types.query_dsl.Operator;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.search.Highlight;
+import co.elastic.clients.elasticsearch.core.search.HighlightField;
+import co.elastic.clients.util.NamedValue;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
@@ -84,13 +86,12 @@ class QueryStringQueryResultTest {
     /**
      * The free-text clause, wherever it sits in the bool.
      *
-     * <p>It is a {@code should} rather than a {@code must} so that a narration matching
-     * only on keyword metadata can come back on its own - see the metadata test below.
-     * These three tests asserted {@code must().get(0)} and failed with an
-     * IndexOutOfBounds when it moved, which is the right way for them to fail.
+     * <p>The clause is a {@code must}: the metadata is reached through analysed
+     * {@code .text} sub-fields that query_string's "*" expansion already covers, so there
+     * is no second clause the text query has to sit beside as a {@code should}.
      */
     private static Query textClause(SearchRequest request) {
-        for (Query q : request.query().bool().should()) {
+        for (Query q : request.query().bool().must()) {
             if (q.isQueryString()) {
                 return q;
             }
@@ -99,69 +100,44 @@ class QueryStringQueryResultTest {
     }
 
     /**
-     * A plain word has to reach book, volume, part, section and source.
+     * The metadata has to be highlighted through its analysed sub-field, not its base name.
      *
-     * <p>Those are mapped as keyword, so the whole value is one token: the 1,062
-     * narrations under "The Book of Commerce" were unreachable by a search for
-     * "commerce" until these clauses existed. The wildcard has to be case-insensitive -
-     * the stored value is capitalised and the query is not - and the bool needs
-     * minimumShouldMatch, or the should clauses would only boost a set the text query
-     * had already decided.
+     * <p>book, part, section, source, volume and publisher are mapped as keyword, so the
+     * stored value is one token and highlighting the base field marks the whole of "The
+     * Book of Commerce" for a search for "commerce". The .text sub-field indexes the value
+     * word by word, which is what marks the word alone. Matching needs no clause of its
+     * own - query_string's "*" expansion reaches a multi-field - so the field list here is
+     * the only thing that has to name them.
      */
     @Test
-    void plainTermsReachTheKeywordMetadataFields() throws Exception {
-        SearchRequest request = buildSearchRequest("(commerce^6 OR commerce~)", false);
+    void theMetadataIsHighlightedThroughItsAnalysedSubField() throws Exception {
+        Highlight highlight = buildHighlight("(commerce^6 OR commerce~)", false);
 
-        List<String> wildcarded = new ArrayList<>();
-        for (Query q : request.query().bool().should()) {
-            if (q.isWildcard()) {
-                assertEquals("*commerce*", q.wildcard().value());
-                assertEquals(Boolean.TRUE, q.wildcard().caseInsensitive());
-                // A wildcard scores a flat 1.0 against BM25 in the tens, so without a
-                // boost well clear of that spread the metadata match sorts last.
-                assertEquals(1000f, q.wildcard().boost());
-                wildcarded.add(q.wildcard().field());
-            }
+        List<String> fields = new ArrayList<>();
+        for (NamedValue<HighlightField> f : highlight.fields()) {
+            fields.add(f.name());
         }
-        assertEquals(List.of("book", "volume", "part", "section", "source"), wildcarded);
-        assertEquals("1", request.query().bool().minimumShouldMatch());
+        for (String expected : List.of("book.text", "volume.text", "part.text",
+                "section.text", "source.text", "publisher.text")) {
+            assertEquals(true, fields.contains(expected), expected + " is not highlighted");
+            assertEquals(false, fields.contains(expected.replace(".text", "")),
+                    expected.replace(".text", "") + " is highlighted on its keyword base, which marks the whole value");
+        }
+        assertEquals(true, fields.contains("english"), "the matn stopped being highlighted");
     }
 
     /**
-     * A narration found through its metadata has to come back with that metadata marked up.
+     * The highlight query stays a plain query_string.
      *
-     * <p>Highlighting is a second query run against the matched documents, so teaching only
-     * the matching query about keyword fields returns the right narrations with the matched
-     * words unmarked. Both queries carry the same clauses or neither does.
+     * <p>It reaches the metadata the same way the matching query does, so the two cannot
+     * drift apart the way they did when only one of them knew about keyword fields.
      */
     @Test
-    void theHighlightQueryReachesTheKeywordMetadataFieldsToo() throws Exception {
+    void theHighlightQueryIsThePlainTextQuery() throws Exception {
         Highlight highlight = buildHighlight("(commerce^6 OR commerce~)", false);
 
-        List<String> wildcarded = new ArrayList<>();
-        boolean sawTextClause = false;
-        for (Query q : highlight.highlightQuery().bool().should()) {
-            if (q.isWildcard()) {
-                assertEquals("*commerce*", q.wildcard().value());
-                assertEquals(Boolean.TRUE, q.wildcard().caseInsensitive());
-                wildcarded.add(q.wildcard().field());
-            } else if (q.isQueryString()) {
-                sawTextClause = true;
-            }
-        }
-        assertEquals(List.of("book", "volume", "part", "section", "source"), wildcarded);
-        assertEquals(true, sawTextClause, "the highlight query lost its text clause");
-        assertEquals("1", highlight.highlightQuery().bool().minimumShouldMatch());
-    }
-
-    /** Two-letter noise would wildcard-match most of the metadata; it is not asked. */
-    @Test
-    void tooShortATermIsNotAskedOfTheMetadata() throws Exception {
-        SearchRequest request = buildSearchRequest("(of^6 OR of~)", false);
-
-        for (Query q : request.query().bool().should()) {
-            assertEquals(false, q.isWildcard(), "a two-letter term reached the metadata");
-        }
+        assertEquals(true, highlight.highlightQuery().isQueryString());
+        assertEquals("*", highlight.highlightQuery().queryString().defaultField());
     }
 
     private SearchRequest buildSearchRequest(String query, boolean strictMatchMode) throws Exception {
