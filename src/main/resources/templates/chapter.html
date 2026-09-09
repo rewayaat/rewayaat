@@ -101,6 +101,11 @@
 </main>
 
 <footer th:replace="~{fragments/site :: sitefooter}"></footer>
+<!-- Folds narrations too long to scan in a list. A chapter can run to dozens of them and
+     some are thousands of characters, so without this the page is unreadable as a list.
+     Deliberately not on the single-narration page, where the reader asked for that one
+     narration and clamping it would be an obstacle rather than a help. -->
+<script src="/js/narration-collapse.js" th:src="@{/js/narration-collapse.js}"></script>
 <th:block th:replace="~{fragments/site :: analytics}"></th:block>
 </body>
 </html>

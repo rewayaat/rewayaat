@@ -2285,14 +2285,6 @@ main.container::before {
     mask-image: linear-gradient(180deg, #000 58%, transparent 100%);
 }
 
-/* The pill reads better small, but 28px is under the 44px minimum touch
-   target, so extend the hit area past the visual bounds instead of inflating
-   it. The upward 6px sits inside the existing margin{
-    content: "";
-    position: absolute;
-    inset: -7px -8px -13px -8px;
-}
-
 /* A search hit has to be findable by glance. #1a3a6b20 - navy at 12.5% - blends to
    rgb(226,230,236) on a white card, which is a neutral grey a shade off the background:
    the markup was there and nobody could see it. A highlight reads by hue, not lightness,
@@ -6864,30 +6856,6 @@ body.is-resizing-sidecar * {
     overflow: hidden;
     -webkit-mask-image: linear-gradient(180deg, #000 76%, transparent 100%);
     mask-image: linear-gradient(180deg, #000 76%, transparent 100%);
-}
-
-/* Revealing the narration is the card's primary action: a solid grey button{
-    position: relative;
-    align-self: center;
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.75rem;
-    /* #cfcfcf sits only 1.5:1 against the card, so the fill alone does not
-       define the button's edge; the border carries it at 3.3:1. */
-    border: 1px solid #8a8a8a;
-    border-radius: 6px;
-    background: #cfcfcf;
-    color: #000000;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 0.46rem 1.15rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16);
-    cursor: pointer;
-    transition: all 150ms ease;
 }
 
 .hadith-reading-scroll::-webkit-scrollbar,
