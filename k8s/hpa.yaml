@@ -17,3 +17,22 @@ spec:
         target:
           type: Utilization
           averageUtilization: 70
+  # An MCP session lives in the memory of the pod that created it, and the SDK has no
+  # shared store, so removing a pod ends every conversation it was holding - the client
+  # gets 404 on its next call, mid-answer. The default scale-down window is 5 minutes,
+  # which under the ordinary up-and-down of site traffic was taking pods away often
+  # enough to break connector sessions while they were still being used: 16 of 62 /mcp
+  # requests were session-not-found during one such window.
+  #
+  # Scaling up is left responsive because adding a pod harms nothing. Scaling down waits
+  # half an hour of genuinely low CPU and then removes one pod at a time, which is slower
+  # than any reasonable conversation and costs at most a couple of idle pods.
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 1800
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 600

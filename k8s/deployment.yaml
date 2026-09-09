@@ -37,6 +37,9 @@ spec:
           labelSelector:
             matchLabels:
               app: rewayaat-v2
+      # 8s preStop plus a 25s Spring drain, with room to spare so the container is never
+      # killed partway through finishing a request.
+      terminationGracePeriodSeconds: 40
       containers:
         - name: rewayaat-v2
           # Overridden by k8s/kustomization.yaml images.newTag during GitOps deploys.
@@ -80,6 +83,19 @@ spec:
                 secretKeyRef:
                   name: rewayaat-v2-sentry
                   key: SENTRY_DSN
+          # Stop taking new work before shutting down, so nothing is cut mid-request.
+          #
+          # Removing a pod from its Service and telling the container to stop are not
+          # ordered: without this the container can begin shutting down while nginx is
+          # still sending it requests. The sleep covers that gap; Spring's graceful
+          # shutdown, configured in application-prod.properties, then drains what is
+          # already in flight. It matters most for MCP, where a session lives in this
+          # pod's memory and a client that loses one mid-answer reports the entire
+          # response as lost rather than retrying one call.
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 8"]
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness
