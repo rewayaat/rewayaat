@@ -1,5 +1,19 @@
 [
   {
+    "date": "2026-09-09",
+    "title": "Share a narration as an image",
+    "summary": "Every narration can now be turned into a card you can post or send — Arabic and English together, with the book, chapter and number on it so the source travels with the text.",
+    "highlights": [
+      "Share button on any narration produces a ready-made image",
+      "Choose whether to include the chain of narrators, or show the matn alone",
+      "Book, volume, part and chapter pages carry the same card as their link preview, so a shared link unfurls with the section it points at",
+      "Images are generated on request, so a card always matches the current text"
+    ],
+    "video": "https://www.loom.com/embed/ac014036800b457db43b7061dbd84cd4",
+    "videoTitle": "A short walkthrough of sharing a narration as an image",
+    "videoAspect": "1280 / 960"
+  },
+  {
     "date": "2026-06-02",
     "title": "Eid al-Ghadeer Release",
     "summary": "Major release coinciding with Eid al-Ghadeer: fully redesigned interface, SEO overhaul, and significant new features across the platform.",

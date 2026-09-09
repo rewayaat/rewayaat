@@ -47,6 +47,10 @@
         .update-entry__highlights { list-style: none; padding: 0; margin: 0; }
         .update-entry__highlights li { font-size: 0.85rem; color: #4a5a6c; padding: 0.2rem 0 0.2rem 1.1rem; position: relative; }
         .update-entry__highlights li::before { content: ""; position: absolute; left: 0; top: 0.6rem; width: 5px; height: 5px; border-radius: 50%; background: rgba(26,58,107,0.25); }
+        /* Capped rather than full width: the walkthrough is 4:3, and a 4:3 video allowed to
+           fill this column becomes taller than the screen on a phone. */
+        .update-entry__video { margin-top: 1rem; max-width: 520px; width: 100%; border-radius: 10px; overflow: hidden; border: 1px solid rgba(26,58,107,0.16); background: #0b1728; box-shadow: 0 2px 10px rgba(11,23,40,0.10); }
+        .update-entry__video iframe { display: block; width: 100%; height: 100%; border: 0; }
         .updates-back { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; color: #3a5a8a; text-decoration: none; margin-bottom: 2rem; }
         .updates-back:hover { color: #0b1728; text-decoration: underline; }
     </style>
@@ -108,15 +112,82 @@ fetch('/recent_updates.json')
                     u.highlights.map(function(h) { return '<li>' + h + '</li>'; }).join('') +
                     '</ul>';
             }
+            var video = '';
+            if (u.video) {
+                // muted is not politeness, it is the only way this plays at all: browsers
+                // refuse to autoplay a video with sound, and refuse silently.
+                var src = u.video + (u.video.indexOf('?') === -1 ? '?' : '&') +
+                    'autoplay=1&muted=1&hideEmbedTopBar=true';
+                video =
+                    '<div class="update-entry__video" style="aspect-ratio: ' +
+                    (u.videoAspect || '16 / 9') + '">' +
+                    '<iframe src="' + src + '" title="' +
+                    (u.videoTitle || u.title) + '" frameborder="0" loading="lazy"' +
+                    ' allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>' +
+                    '</div>';
+            }
             entry.innerHTML =
                 '<div class="update-entry__dot"></div>' +
                 '<div class="update-entry__date">' + dateStr + '</div>' +
                 '<div class="update-entry__title">' + u.title + '</div>' +
                 '<div class="update-entry__summary">' + u.summary + '</div>' +
-                highlights;
+                highlights +
+                video;
             container.appendChild(entry);
+            if (u.video) {
+                loopWhileIgnored(entry.querySelector('.update-entry__video iframe'), src);
+            }
         });
     });
+
+/*
+ * Restarts the demo when it finishes, until somebody actually watches it.
+ *
+ * Loom has no loop parameter - autoplay, hideEmbedTopBar and a start time are the whole
+ * vocabulary - and the player is cross-origin, so its ended event is not ours to read.
+ * Remounting the iframe is what is left. That is a blunt instrument, so it is aimed
+ * carefully:
+ *
+ *   - only while the video is on screen, so a page left open on another section is not
+ *     silently restarting something nobody can see;
+ *   - only while the tab is visible, for the same reason;
+ *   - and never again once the reader has clicked into the player. Focus moving into the
+ *     iframe is the one interaction a parent page can still observe cross-origin, and
+ *     someone who has pressed pause or scrubbed back does not want the thing reloading
+ *     underneath them.
+ *
+ * The interval is the video's length plus a second of slack, since there is no way to ask
+ * how far along it is.
+ */
+function loopWhileIgnored(frame, src) {
+    if (!frame) {
+        return;
+    }
+    var LENGTH_MS = 39000;
+    var onScreen = false;
+    var watched = false;
+
+    if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (entries) {
+            onScreen = entries[0].isIntersecting;
+        }, { threshold: 0.4 }).observe(frame);
+    } else {
+        onScreen = true;
+    }
+
+    window.addEventListener('blur', function () {
+        if (document.activeElement === frame) {
+            watched = true;
+        }
+    });
+
+    setInterval(function () {
+        if (watched || !onScreen || document.hidden) {
+            return;
+        }
+        frame.src = src;
+    }, LENGTH_MS);
+}
 </script>
 
 <script src="/js/site-announcement.js"></script>
