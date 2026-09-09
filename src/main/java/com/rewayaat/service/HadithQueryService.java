@@ -136,7 +136,7 @@ public class HadithQueryService {
             }
             s = normalizeFieldAlias(s);
             s = stripArabicDiacritics(s);
-            if (!strictMatchMode &&
+            if (!strictMatchMode && !isArabicScript(s) &&
                     !s.contains("~") && !s.contains(":") && !s.contains("^") && !s.contains("(") && !s.contains("\"") &&
                     !s.startsWith("+") && !s.startsWith("-")) {
                 s = "(" + s + "^" + FLEXIBLE_EXACT_BOOST + " OR " + s + FLEXIBLE_FUZZINESS + ")";
@@ -150,6 +150,24 @@ public class HadithQueryService {
         }
         log.debug("Final query post modifications: {}", query);
         return query;
+    }
+
+    /** Any Arabic letter marks the term as Arabic; a mixed term is treated as Arabic. */
+    private static final java.util.regex.Pattern ARABIC_LETTER =
+            java.util.regex.Pattern.compile("[\\u0621-\\u064A\\u0660-\\u0669\\u06D5]");
+
+    /**
+     * Whether a term is written in Arabic script, and so should not be fuzzied.
+     *
+     * <p>One edit lands on a different Arabic word far more often than it lands on the
+     * intended one, because the roots are short and densely packed: غدير matched 26
+     * narrations exactly and 2,143 with a single edit, الصوم 155 against 1,546. The same
+     * edit on an English word is usually a typo. Nothing is lost by dropping it - the
+     * index normalizes diacritics and alef and teh marbuta variants already, which is what
+     * a reader actually types differently.
+     */
+    private boolean isArabicScript(String token) {
+        return token != null && ARABIC_LETTER.matcher(token).find();
     }
 
     /**

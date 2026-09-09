@@ -210,6 +210,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                         b.must(s -> s.queryString(qs -> {
                             qs.query(residualQuery);
                             qs.fields(queryFields != null ? queryFields : SEARCHABLE_FIELDS);
+                            qs.fuzzyPrefixLength(FUZZY_PREFIX_LENGTH);
                             if (strictMatchMode) {
                                 qs.defaultOperator(Operator.And);
                             }
@@ -328,6 +329,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                         b.must(s -> s.queryString(qs -> {
                             qs.query(residualQuery);
                             qs.fields(queryFields != null ? queryFields : SEARCHABLE_FIELDS);
+                            qs.fuzzyPrefixLength(FUZZY_PREFIX_LENGTH);
                             if (strictMatchMode) {
                                 qs.defaultOperator(Operator.And);
                             }
@@ -377,6 +379,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                 .preTags("<span class=\"highlight\">")
                 .highlightQuery(q -> q.queryString(qs -> {
                     qs.query(buildHighlightQueryString(query)).fields(SEARCHABLE_FIELDS);
+                    qs.fuzzyPrefixLength(FUZZY_PREFIX_LENGTH);
                     if (strictMatchMode) {
                         qs.defaultOperator(Operator.And);
                     }
@@ -473,6 +476,19 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
      * book, part or section is named for them, so there is nothing to lift.
      */
     private static final float METADATA_RANKING_BOOST = 25f;
+
+    /**
+     * How much of a fuzzied word has to be right before the first edit is allowed.
+     *
+     * <p>A single edit at the front of a short word lands somewhere unrelated: kisa loses
+     * its k and becomes isa, which names ʿIsa and appears in 3,929 isnād chains, so a term
+     * with one real match reported 4,218 results. Requiring the first letter holds cuts
+     * that to 190 - people mistype the middle of a word, not its opening.
+     *
+     * <p>It keeps the edits that are worth having, which are at the end: ziyara still
+     * reaches Ziyarat and Ziyārah, sajda still reaches Sajdah.
+     */
+    private static final int FUZZY_PREFIX_LENGTH = 1;
 
     /** The sub-field suffix, stripped before a highlight is handed to the client. */
     private static final String METADATA_TEXT_SUFFIX = ".text";

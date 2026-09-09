@@ -18,6 +18,42 @@
       ]
      }
     },
+    "filter": {
+     "translit_names": {
+      "type": "synonym_graph",
+      "synonyms": [
+       "husayn,hussain,husain,hussayn,hussein,husein",
+       "hasan,hassan,hasan",
+       "abdullah,abdallah,abdulla,abdalla",
+       "muhammad,muhammed,mohammad,mohammed",
+       "ghadir,ghadeer,ghadier",
+       "sadiq,sadeeq,saadiq",
+       "jafar,jaffar,jaafar",
+       "ridha,rida,reza,ridah",
+       "baqir,baqer",
+       "kadhim,kazim,kadhem",
+       "askari,askary",
+       "mahdi,mehdi",
+       "fatima,fatimah,fatema",
+       "zahra,zahraa",
+       "abbas,abas",
+       "umar,omar",
+       "uthman,othman",
+       "aisha,ayesha",
+       "zakat,zakah,zakaat",
+       "salat,salah,salaat",
+       "sawm,saum",
+       "hajj,haj",
+       "quran,koran",
+       "sunnah,sunna",
+       "hadith,hadeeth",
+       "imam,imaam",
+       "shia,shiah,shiite",
+       "kufa,koofa",
+       "karbala,kerbala"
+      ]
+     }
+    },
     "analyzer": {
      "arabic_norm": {
       "tokenizer": "standard",
@@ -35,6 +71,18 @@
       "filter": [
        "lowercase",
        "asciifolding",
+       "kstem"
+      ]
+     },
+     "english_fold_search": {
+      "char_filter": [
+       "strip_hamza"
+      ],
+      "tokenizer": "standard",
+      "filter": [
+       "lowercase",
+       "asciifolding",
+       "translit_names",
        "kstem"
       ]
      }
@@ -57,7 +105,8 @@
     "fields": {
      "text": {
       "type": "text",
-      "analyzer": "english_fold"
+      "analyzer": "english_fold",
+      "search_analyzer": "english_fold_search"
      }
     }
    },
@@ -79,7 +128,8 @@
       "ignore_above": 1024
      }
     },
-    "analyzer": "english_fold"
+    "analyzer": "english_fold",
+    "search_analyzer": "english_fold_search"
    },
    "chapter_ar": {
     "type": "keyword",
@@ -96,14 +146,16 @@
    "daily_reason": {
     "type": "text",
     "index": false,
-    "analyzer": "english_fold"
+    "analyzer": "english_fold",
+    "search_analyzer": "english_fold_search"
    },
    "edition": {
     "type": "keyword"
    },
    "english": {
     "type": "text",
-    "analyzer": "english_fold"
+    "analyzer": "english_fold",
+    "search_analyzer": "english_fold_search"
    },
    "english_annotated": {
     "type": "text",
@@ -138,7 +190,8 @@
    },
    "history": {
     "type": "text",
-    "analyzer": "english_fold"
+    "analyzer": "english_fold",
+    "search_analyzer": "english_fold_search"
    },
    "llm_similar": {
     "type": "nested",
@@ -158,7 +211,8 @@
    },
    "notes": {
     "type": "text",
-    "analyzer": "english_fold"
+    "analyzer": "english_fold",
+    "search_analyzer": "english_fold_search"
    },
    "number": {
     "type": "keyword"
@@ -168,7 +222,8 @@
     "fields": {
      "text": {
       "type": "text",
-      "analyzer": "english_fold"
+      "analyzer": "english_fold",
+      "search_analyzer": "english_fold_search"
      }
     }
    },
@@ -186,7 +241,8 @@
     "fields": {
      "text": {
       "type": "text",
-      "analyzer": "english_fold"
+      "analyzer": "english_fold",
+      "search_analyzer": "english_fold_search"
      }
     }
    },
@@ -206,7 +262,8 @@
     "fields": {
      "text": {
       "type": "text",
-      "analyzer": "english_fold"
+      "analyzer": "english_fold",
+      "search_analyzer": "english_fold_search"
      }
     }
    },
@@ -227,7 +284,8 @@
       "ignore_above": 256
      }
     },
-    "analyzer": "english_fold"
+    "analyzer": "english_fold",
+    "search_analyzer": "english_fold_search"
    },
    "semantic_matn_source": {
     "type": "text",
@@ -265,7 +323,8 @@
     "fields": {
      "text": {
       "type": "text",
-      "analyzer": "english_fold"
+      "analyzer": "english_fold",
+      "search_analyzer": "english_fold_search"
      }
     }
    },
@@ -308,7 +367,8 @@
     "fields": {
      "text": {
       "type": "text",
-      "analyzer": "english_fold"
+      "analyzer": "english_fold",
+      "search_analyzer": "english_fold_search"
      }
     }
    }

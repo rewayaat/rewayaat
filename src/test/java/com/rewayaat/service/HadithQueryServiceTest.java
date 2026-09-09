@@ -45,8 +45,29 @@ class HadithQueryServiceTest {
     @Test
     void flexibleModeBoostsExactTokenBeforeFuzzyFallback() {
         assertEquals(
-                "(غدير^6 OR غدير~1)",
-                service.enhanceQuery("غدير", QueryMode.SEARCH, false)
+                "(ghadir^6 OR ghadir~1)",
+                service.enhanceQuery("ghadir", QueryMode.SEARCH, false)
         );
+    }
+
+    /**
+     * Arabic is left alone in flexible mode.
+     *
+     * <p>An Arabic root is short and its neighbours are all real words, so one edit finds a
+     * different word rather than the intended one: غدير matches 26 narrations and 2,143
+     * with a single edit. The index already folds the variation a reader actually types -
+     * diacritics, alef and teh marbuta - so there is nothing left for fuzziness to repair.
+     */
+    @Test
+    void flexibleModeDoesNotFuzzyArabic() {
+        assertEquals("غدير", service.enhanceQuery("غدير", QueryMode.SEARCH, false));
+        assertEquals("الصلاة", service.enhanceQuery("الصلاة", QueryMode.SEARCH, false));
+    }
+
+    /** A Latin term beside an Arabic one keeps its own treatment. */
+    @Test
+    void aMixedQueryFuzziesOnlyTheLatinTerm() {
+        assertEquals("(prayer^6 OR prayer~1) الصلاة",
+                service.enhanceQuery("prayer الصلاة", QueryMode.SEARCH, false));
     }
 }
