@@ -57,8 +57,12 @@ spec:
               value: "prod"
             - name: ELASTIC_HOST
               value: "elasticsearch-v2.elastic-v2.svc.cluster.local"
+            # An alias, not an index. Analyzers cannot be changed in place, so every
+            # mapping change means a reindex; pointing at an alias keeps that a data
+            # operation instead of one that has to be timed against a deploy.
+            # See scripts/search/migrate_index.py.
             - name: REWAYAAT_INDEX
-              value: "rewayaat_updated"
+              value: "rewayaat_hadith"
             - name: APP_BASE_URL
               value: "https://rewayaat.info"
             - name: MAIL_FROM

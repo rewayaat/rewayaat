@@ -9,11 +9,13 @@ import co.elastic.clients.elasticsearch._types.SearchType;
 import co.elastic.clients.elasticsearch._types.SortOptions;
 import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.search.SourceConfig;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Highlight;
 import co.elastic.clients.elasticsearch.core.search.HighlightField;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.elasticsearch._types.query_dsl.Operator;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.util.NamedValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +57,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
     private int maxResultWindow;
     private List<String> topicTags = Collections.emptyList();
     private List<String> topicTagsAny = Collections.emptyList();
+    private List<String> queryFields = null;
     private final ObjectMapper mapper = new ObjectMapper();
 
     public QueryStringQueryResult(String query, int page, int perPage,
@@ -74,6 +77,22 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
         this.maxResultWindow = maxResultWindow;
         this.topicTags = sanitizeTags(topicTags);
         this.topicTagsAny = sanitizeTags(topicTagsAny);
+    }
+
+    /**
+     * Restricts and weights the fields the query string searches.
+     *
+     * <p>Null, the default, uses {@link #SEARCHABLE_FIELDS}, which is what the website
+     * does and what its relevance has always been tuned against. It is a seam for
+     * callers whose failure mode is different - see
+     * {@link com.rewayaat.mcp.NarrationRepository}, where an unweighted search over every
+     * field lets isnād chains outrank the matn.
+     *
+     * @param fields query_string field specs, boosts included, e.g. {@code "english^2"}.
+     */
+    public QueryStringQueryResult queryFields(List<String> fields) {
+        this.queryFields = fields == null || fields.isEmpty() ? null : List.copyOf(fields);
+        return this;
     }
 
     @Override
@@ -128,7 +147,15 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
         if (highlights != null) {
             for (Entry<String, List<String>> entry : highlights.entrySet()) {
                 if (!entry.getValue().isEmpty()) {
-                    result.put(entry.getKey(), entry.getValue().get(0));
+                    // Metadata is highlighted through its analysed .text sub-field, but the
+                    // client knows the field by its base name and overlays the marked-up
+                    // value onto it. Without this the highlight arrives under a key nothing
+                    // reads and the metadata renders unmarked.
+                    String field = entry.getKey();
+                    if (field.endsWith(METADATA_TEXT_SUFFIX)) {
+                        field = field.substring(0, field.length() - METADATA_TEXT_SUFFIX.length());
+                    }
+                    result.put(field, entry.getValue().get(0));
                 }
             }
         }
@@ -138,6 +165,21 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
 
     private SearchRequest buildSearchRequest(
             String fuzziedQuery, Highlight highlightBuilder) throws UnknownHostException {
+        return buildSearchRequest(fuzziedQuery, highlightBuilder, HadithSourceFilter.searchSource());
+    }
+
+    /**
+     * Builds the search this class runs.
+     *
+     * <p>{@code sourceConfig} and a null {@code highlightBuilder} are the seams a caller that
+     * wants the query but not the display shaping uses - see {@link #rawResult(List)}. Every
+     * caller shares the field scoping, the topic-tag filters, the strictness handling and the
+     * sorting below, because a second implementation of those is a second set of search
+     * semantics for the same corpus.
+     */
+    private SearchRequest buildSearchRequest(
+            String fuzziedQuery, Highlight highlightBuilder, SourceConfig sourceConfig)
+            throws UnknownHostException {
         int from = Math.max(0, page * this.pageSize);
         int size = Math.max(0, this.pageSize);
         if (maxResultWindow > 0) {
@@ -162,13 +204,19 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                 .searchType(SearchType.DfsQueryThenFetch)
                 .query(q -> q.bool(b -> {
                     if (!residualQuery.isBlank()) {
+                        // The metadata fields carry an analysed .text sub-field, which the
+                        // default "*" field expansion reaches, so one query_string covers
+                        // matn and metadata alike. See METADATA_TEXT_FIELDS.
                         b.must(s -> s.queryString(qs -> {
                             qs.query(residualQuery);
+                            qs.fields(queryFields != null ? queryFields : SEARCHABLE_FIELDS);
+                            qs.fuzzyPrefixLength(FUZZY_PREFIX_LENGTH);
                             if (strictMatchMode) {
                                 qs.defaultOperator(Operator.And);
                             }
                             return qs;
                         }));
+                        applyMetadataRankingBoost(b, residualQuery);
                     } else if (fieldScopes.isEmpty()) {
                         b.must(s -> s.queryString(qs -> qs.query("*")));
                     }
@@ -199,17 +247,64 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                     }
                     return b;
                 }))
-                .source(HadithSourceFilter.searchSource())
-                .highlight(highlightBuilder)
+                .source(sourceConfig)
                 .from(from)
-                .size(size)
-                .aggregations("topic_tag_counts",
-                        a -> a.terms(t -> t.field("topic_tags").size(200)));
+                .size(size);
+
+        if (highlightBuilder != null) {
+            // Highlighting and the facet aggregation exist for the website's result list.
+            // A tool result has nowhere to render either, and both cost time and bytes.
+            builder.highlight(highlightBuilder)
+                    .aggregations("topic_tag_counts",
+                            a -> a.terms(t -> t.field("topic_tags").size(200)));
+        }
 
         for (SortOptions sort : this.sortBuilders) {
             builder.sort(sort);
         }
         return builder.build();
+    }
+
+    /** One hit, before any display shaping: the id and the trimmed {@code _source}. */
+    public record RawHit(String id, Map<String, Object> source) {
+    }
+
+    /** {@link #rawResult} output: the page, and the true total behind it. */
+    public record RawResult(List<RawHit> hits, long total) {
+    }
+
+    /**
+     * Runs this query and returns the raw {@code _source} maps, limited to
+     * {@code sourceIncludes}, with no highlighting, no facet aggregation and none of the
+     * segmenting {@link #result()} applies.
+     *
+     * <p>For callers that shape their own output - the MCP tools, which send a language model
+     * the matn and the citation and nothing else. They reuse this rather than assembling
+     * their own query so that a tool call and a website search interpret the same words the
+     * same way: a fork loses the field scoping and the strictness handling above, and the
+     * connector then quietly disagrees with the site it claims to index.
+     */
+    public RawResult rawResult(List<String> sourceIncludes) throws Exception {
+        SourceConfig sourceConfig = SourceConfig.of(sc -> sc.filter(f -> f.includes(sourceIncludes)));
+        SearchRequest request = buildSearchRequest(this.query, null, sourceConfig);
+
+        try (ESClientProvider provider = new ESClientProvider()) {
+            SearchResponse<Map> response = provider.client().search(request, Map.class);
+            List<RawHit> hits = new ArrayList<>();
+            for (Hit<Map> hit : response.hits().hits()) {
+                if (hit.source() == null) {
+                    continue;
+                }
+                @SuppressWarnings("unchecked")
+                Map<String, Object> source = new LinkedHashMap<>((Map<String, Object>) hit.source());
+                hits.add(new RawHit(hit.id(), source));
+            }
+            long total = response.hits().total() == null ? hits.size() : response.hits().total().value();
+            if (maxResultWindow > 0) {
+                total = Math.min(total, maxResultWindow);
+            }
+            return new RawResult(hits, total);
+        }
     }
 
     /**
@@ -228,13 +323,19 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                 .searchType(SearchType.DfsQueryThenFetch)
                 .query(q -> q.bool(b -> {
                     if (!residualQuery.isBlank()) {
+                        // The metadata fields carry an analysed .text sub-field, which the
+                        // default "*" field expansion reaches, so one query_string covers
+                        // matn and metadata alike. See METADATA_TEXT_FIELDS.
                         b.must(s -> s.queryString(qs -> {
                             qs.query(residualQuery);
+                            qs.fields(queryFields != null ? queryFields : SEARCHABLE_FIELDS);
+                            qs.fuzzyPrefixLength(FUZZY_PREFIX_LENGTH);
                             if (strictMatchMode) {
                                 qs.defaultOperator(Operator.And);
                             }
                             return qs;
                         }));
+                        applyMetadataRankingBoost(b, residualQuery);
                     } else if (fieldScopes.isEmpty()) {
                         b.must(s -> s.queryString(qs -> qs.query("*")));
                     }
@@ -254,32 +355,36 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
         return builder.build();
     }
 
+    /**
+     * Builds the highlighting, which is a second query run over the matched documents.
+     *
+     * <p>The metadata is asked for by its {@code .text} sub-field: the base {@code keyword}
+     * is one token, so highlighting it marks the whole value, and "The Book of Commerce"
+     * comes back wholly wrapped for a search for {@code commerce}. The sub-field marks the
+     * word. Both field lists and the query below are plain query_string, which reaches a
+     * multi-field through the default "*" expansion, so this stays in step with the
+     * matching query without either side maintaining clauses of its own.
+     */
     private Highlight getHighlightBuilder(String fuzziedQuery) {
+        List<NamedValue<HighlightField>> fields = new ArrayList<>();
+        for (String field : List.of("english", "arabic", "chapter", "notes")) {
+            fields.add(NamedValue.of(field, new HighlightField.Builder().build()));
+        }
+        for (String field : METADATA_TEXT_FIELDS) {
+            fields.add(NamedValue.of(field, new HighlightField.Builder().build()));
+        }
         Highlight.Builder highlightBuilder = new Highlight.Builder()
-                .fields(
-                        NamedValue.of("english", new HighlightField.Builder().build()),
-                        NamedValue.of("allFields", new HighlightField.Builder().build()),
-                        NamedValue.of("notes", new HighlightField.Builder().build()),
-                        NamedValue.of("arabic", new HighlightField.Builder().build()),
-                        NamedValue.of("book", new HighlightField.Builder().build()),
-                        NamedValue.of("section", new HighlightField.Builder().build()),
-                        NamedValue.of("part", new HighlightField.Builder().build()),
-                        NamedValue.of("chapter", new HighlightField.Builder().build()),
-                        NamedValue.of("publisher", new HighlightField.Builder().build()),
-                        NamedValue.of("source", new HighlightField.Builder().build()),
-                        NamedValue.of("volume", new HighlightField.Builder().build()))
+                .fields(fields)
                 .postTags("</span>")
                 .preTags("<span class=\"highlight\">")
-                .highlightQuery(q -> {
-                    String highlightQuery = buildHighlightQueryString(query);
-                    return q.queryString(qs -> {
-                        qs.query(highlightQuery).defaultField("*");
-                        if (strictMatchMode) {
-                            qs.defaultOperator(Operator.And);
-                        }
-                        return qs;
-                    });
-                })
+                .highlightQuery(q -> q.queryString(qs -> {
+                    qs.query(buildHighlightQueryString(query)).fields(SEARCHABLE_FIELDS);
+                    qs.fuzzyPrefixLength(FUZZY_PREFIX_LENGTH);
+                    if (strictMatchMode) {
+                        qs.defaultOperator(Operator.And);
+                    }
+                    return qs;
+                }))
                 .numberOfFragments(0);
         return highlightBuilder.build();
     }
@@ -313,6 +418,109 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
             return "*";
         }
         return String.join(" ", uniqueTokens);
+    }
+
+
+    /**
+     * The fields a free-text search actually reads.
+     *
+     * <p>The default was Elasticsearch's "*", which searches every field in the mapping.
+     * That included the embedding pipeline's working copies - semantic_matn_source is the
+     * chain-stripped matn and holds no narration that {@code arabic} does not, measured at
+     * zero unique hits for الصلاة, الزكاة and الصوم - so a match counted two or three times
+     * and the affected narrations outranked equally good ones for no reason a reader could
+     * see. It also included a dozen fields that hold nothing at all.
+     *
+     * <p>Arabic and English metadata are both listed: the sub-fields are analysed, so they
+     * match a bare word, and {@link #applyMetadataRankingBoost} decides where they sort.
+     * Anything absent here is deliberately unsearchable - annotations, footnotes, gradings,
+     * translation suggestions, the llm_similar bookkeeping and the semantic sources.
+     */
+    private static final List<String> SEARCHABLE_FIELDS = List.of(
+            "english", "arabic", "chapter", "notes",
+            "book.text", "volume.text", "part.text", "section.text",
+            "source.text", "publisher.text",
+            "book_ar", "chapter_ar.text", "part_ar.text", "section_ar.text", "source_ar.text",
+            "topic_tags");
+
+    /**
+     * The metadata fields that carry an analysed {@code .text} sub-field.
+     *
+     * <p>These are mapped as {@code keyword}, so the stored value is a single token: the
+     * 1,062 narrations under part "The Book of Commerce" hold one term, "The Book of
+     * Commerce", and a bare search for {@code commerce} matches none of them. The sub-field
+     * indexes the same value word by word, which is what makes it both findable and
+     * highlightable a word at a time rather than a whole value at a time.
+     *
+     * <p>The base {@code keyword} is left in place, so the exact term filters in
+     * {@link #applyFieldScopes} are unaffected. Nothing here needs a clause of its own:
+     * query_string's default "*" expansion already covers a multi-field, so matching and
+     * highlighting both pick these up from the one query. The list exists so the highlight
+     * builder asks for the right field names.
+     */
+    /** The sub-field suffix, stripped before a highlight is handed to the client. */
+    /**
+     * How far a metadata match is lifted above a matn match.
+     *
+     * <p>Both sides are BM25 over analysed text, so they sit on one scale and the gap is
+     * small - the old wildcard scored a flat 1.0 and needed a thousand to be seen at all.
+     * The figure is the knee rather than a margin: swept over commerce, zakat, prayer,
+     * fasting, pilgrimage, knowledge, marriage, hassan, mercy and ghadir against the
+     * enhanced {@code (term^6 OR term~)} form the site actually sends, twelve still left
+     * The Book of Commerce below three matn hits, twenty-five put every query that has
+     * matching metadata at the top of its results, and fifty, eighty, a hundred and twenty
+     * and two hundred changed nothing further. Past the knee a larger number buys no
+     * ordering and only flattens relevance within the metadata itself.
+     *
+     * <p>hassan, mercy and ghadir stay matn-first at every value, which is correct: no
+     * book, part or section is named for them, so there is nothing to lift.
+     */
+    private static final float METADATA_RANKING_BOOST = 25f;
+
+    /**
+     * How much of a fuzzied word has to be right before the first edit is allowed.
+     *
+     * <p>A single edit at the front of a short word lands somewhere unrelated: kisa loses
+     * its k and becomes isa, which names ʿIsa and appears in 3,929 isnād chains, so a term
+     * with one real match reported 4,218 results. Requiring the first letter holds cuts
+     * that to 190 - people mistype the middle of a word, not its opening.
+     *
+     * <p>It keeps the edits that are worth having, which are at the end: ziyara still
+     * reaches Ziyarat and Ziyārah, sajda still reaches Sajdah.
+     */
+    private static final int FUZZY_PREFIX_LENGTH = 1;
+
+    /** The sub-field suffix, stripped before a highlight is handed to the client. */
+    private static final String METADATA_TEXT_SUFFIX = ".text";
+
+    private static final List<String> METADATA_TEXT_FIELDS =
+            List.of("book.text", "volume.text", "part.text", "section.text",
+                    "source.text", "publisher.text");
+
+    /**
+     * Sorts a metadata match above a matn match without changing what matches.
+     *
+     * <p>Someone searching "commerce" wants The Book of Commerce before a narration that
+     * happens to use the word in passing. This is a {@code should} beside the {@code must}
+     * above, so it contributes score only - the {@code must} has already decided the result
+     * set, and a narration that matches nothing here is neither excluded nor required to.
+     *
+     * <p>The boost is modest because both sides are now BM25 over analysed text and so are
+     * already on one scale; the old wildcard scored a flat 1.0 and needed three orders of
+     * magnitude to be seen at all. A short metadata value also scores high on its own
+     * through BM25 field-length normalisation, which does much of the work unaided.
+     */
+    private void applyMetadataRankingBoost(
+            co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery.Builder boolBuilder,
+            String residualQuery) {
+        String normalized = buildHighlightQueryString(residualQuery);
+        if (normalized == null || normalized.isBlank() || "*".equals(normalized)) {
+            return;
+        }
+        boolBuilder.should(s -> s.multiMatch(m -> m
+                .query(normalized)
+                .fields(METADATA_TEXT_FIELDS)
+                .boost(METADATA_RANKING_BOOST)));
     }
 
     private Map<String, Long> extractTopicTagFacets(SearchResponse<Map> response) {
@@ -388,7 +596,17 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
      * Fields that are keyword type (no .keyword subfield needed).
      * These fields use exact matching without text analysis.
      */
-    private static final String[] KEYWORD_ONLY_FIELDS = new String[]{"book", "volume", "part", "section", "number", "edition", "publisher"};
+    /**
+     * Fields that are mapped {@code keyword} outright and so have no {@code .keyword} child.
+     *
+     * <p>A field missing from this list is filtered as {@code field.keyword}, which for a
+     * field that is already a keyword names something that does not exist - the filter then
+     * matches nothing and the scope silently returns no results. That is what
+     * {@code source:"..."} and {@code topic_tags:"..."} did: both are populated, on 32,519
+     * and 31,809 narrations, and both returned zero.
+     */
+    private static final String[] KEYWORD_ONLY_FIELDS = new String[]{"book", "volume", "part", "section",
+            "number", "edition", "publisher", "source", "topic_tags"};
 
     private boolean isKeywordOnlyField(String fieldName) {
         for (String kwField : KEYWORD_ONLY_FIELDS) {

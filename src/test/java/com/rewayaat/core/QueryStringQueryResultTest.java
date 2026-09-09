@@ -4,10 +4,14 @@ import co.elastic.clients.elasticsearch._types.query_dsl.Operator;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.search.Highlight;
+import co.elastic.clients.elasticsearch.core.search.HighlightField;
+import co.elastic.clients.util.NamedValue;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
+import java.util.List;
+import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -17,11 +21,11 @@ class QueryStringQueryResultTest {
     @Test
     void strictScopedSearchRetainsResidualKeywordAndBookFilter() throws Exception {
         SearchRequest request = buildSearchRequest("anger AND book:\"Nahj al-Balāgha\"", true);
-        Query boolMust = request.query().bool().must().get(0);
+        Query textQuery = textClause(request);
         Query filter = request.query().bool().filter().get(0);
 
-        assertEquals("anger", boolMust.queryString().query());
-        assertEquals(Operator.And, boolMust.queryString().defaultOperator());
+        assertEquals("anger", textQuery.queryString().query());
+        assertEquals(Operator.And, textQuery.queryString().defaultOperator());
         assertEquals("book", filter.term().field());
         assertEquals("Nahj al-Balāgha", filter.term().value().stringValue());
     }
@@ -29,9 +33,9 @@ class QueryStringQueryResultTest {
     @Test
     void strictScopedSearchWithTwoFiltersRetainsResidualKeywordWithoutDanglingBoolean() throws Exception {
         SearchRequest request = buildSearchRequest("anger AND book:\"Al-Kāfi\" AND volume:\"1\"", true);
-        Query boolMust = request.query().bool().must().get(0);
+        Query textQuery = textClause(request);
 
-        assertEquals("anger", boolMust.queryString().query());
+        assertEquals("anger", textQuery.queryString().query());
         assertEquals(2, request.query().bool().filter().size());
         assertEquals("book", request.query().bool().filter().get(0).term().field());
         assertEquals("volume", request.query().bool().filter().get(1).term().field());
@@ -40,10 +44,10 @@ class QueryStringQueryResultTest {
     @Test
     void permissiveScopedSearchRetainsFlexibleKeywordAndBookFilter() throws Exception {
         SearchRequest request = buildSearchRequest("anger~ book:\"Nahj al-Balāgha\"", false);
-        Query boolMust = request.query().bool().must().get(0);
+        Query textQuery = textClause(request);
         Query filter = request.query().bool().filter().get(0);
 
-        assertEquals("anger~", boolMust.queryString().query());
+        assertEquals("anger~", textQuery.queryString().query());
         assertEquals("book", filter.term().field());
         assertEquals("Nahj al-Balāgha", filter.term().value().stringValue());
     }
@@ -78,8 +82,108 @@ class QueryStringQueryResultTest {
         assertEquals("anger", method.invoke(null, "(anger^6 OR anger~) book:\"Nahj al-Balāgha\""));
     }
 
+
+    /**
+     * The free-text clause, wherever it sits in the bool.
+     *
+     * <p>The clause is a {@code must}: the metadata is reached through analysed
+     * {@code .text} sub-fields that query_string's "*" expansion already covers, so there
+     * is no second clause the text query has to sit beside as a {@code should}.
+     */
+    private static Query textClause(SearchRequest request) {
+        for (Query q : request.query().bool().must()) {
+            if (q.isQueryString()) {
+                return q;
+            }
+        }
+        throw new AssertionError("no query_string clause in the bool");
+    }
+
+    /**
+     * The metadata has to be highlighted through its analysed sub-field, not its base name.
+     *
+     * <p>book, part, section, source, volume and publisher are mapped as keyword, so the
+     * stored value is one token and highlighting the base field marks the whole of "The
+     * Book of Commerce" for a search for "commerce". The .text sub-field indexes the value
+     * word by word, which is what marks the word alone. Matching needs no clause of its
+     * own - query_string's "*" expansion reaches a multi-field - so the field list here is
+     * the only thing that has to name them.
+     */
+    @Test
+    void theMetadataIsHighlightedThroughItsAnalysedSubField() throws Exception {
+        Highlight highlight = buildHighlight("(commerce^6 OR commerce~)", false);
+
+        List<String> fields = new ArrayList<>();
+        for (NamedValue<HighlightField> f : highlight.fields()) {
+            fields.add(f.name());
+        }
+        for (String expected : List.of("book.text", "volume.text", "part.text",
+                "section.text", "source.text", "publisher.text")) {
+            assertEquals(true, fields.contains(expected), expected + " is not highlighted");
+            assertEquals(false, fields.contains(expected.replace(".text", "")),
+                    expected.replace(".text", "") + " is highlighted on its keyword base, which marks the whole value");
+        }
+        assertEquals(true, fields.contains("english"), "the matn stopped being highlighted");
+    }
+
+    /**
+     * The highlight query reads the same fields as the matching query.
+     *
+     * <p>It is the same plain query_string over the same explicit list, so the two cannot
+     * drift apart the way they did when only one of them knew about keyword fields. The
+     * list is explicit rather than "*" because "*" also searched the embedding pipeline's
+     * working copies, which double-counted a match - see SEARCHABLE_FIELDS.
+     */
+    @Test
+    void theHighlightQueryReadsTheSameFieldsAsTheSearch() throws Exception {
+        Highlight highlight = buildHighlight("(commerce^6 OR commerce~)", false);
+
+        assertEquals(true, highlight.highlightQuery().isQueryString());
+        List<String> fields = highlight.highlightQuery().queryString().fields();
+        assertEquals(true, fields.contains("english"), "the matn is not searched");
+        assertEquals(true, fields.contains("arabic"), "the arabic is not searched");
+        assertEquals(true, fields.contains("part.text"), "the metadata is not searched");
+        for (String derived : List.of("semantic_matn_source", "semantic_english_hint_source",
+                "semantic_significant_terms_source")) {
+            assertEquals(false, fields.contains(derived),
+                    derived + " is searched, which counts the same match twice");
+        }
+    }
+
+    /** The search reads that same list, so a field cannot be searched but not highlighted. */
+    @Test
+    void theSearchReadsTheExplicitFieldList() throws Exception {
+        SearchRequest request = buildSearchRequest("(commerce^6 OR commerce~)", false);
+        List<String> fields = textClause(request).queryString().fields();
+
+        assertEquals(true, fields.contains("english"));
+        assertEquals(false, fields.contains("semantic_matn_source"));
+        assertEquals(buildHighlight("(commerce^6 OR commerce~)", false)
+                .highlightQuery().queryString().fields(), fields,
+                "the search and the highlighter read different fields");
+    }
+
     private SearchRequest buildSearchRequest(String query, boolean strictMatchMode) throws Exception {
-        QueryStringQueryResult result = new QueryStringQueryResult(
+        QueryStringQueryResult result = newResult(query, strictMatchMode);
+        Highlight highlight = invokeHighlightBuilder(result, query);
+
+        Method buildMethod = QueryStringQueryResult.class.getDeclaredMethod("buildSearchRequest", String.class, Highlight.class);
+        buildMethod.setAccessible(true);
+        return (SearchRequest) buildMethod.invoke(result, query, highlight);
+    }
+
+    private Highlight buildHighlight(String query, boolean strictMatchMode) throws Exception {
+        return invokeHighlightBuilder(newResult(query, strictMatchMode), query);
+    }
+
+    private Highlight invokeHighlightBuilder(QueryStringQueryResult result, String query) throws Exception {
+        Method highlightMethod = QueryStringQueryResult.class.getDeclaredMethod("getHighlightBuilder", String.class);
+        highlightMethod.setAccessible(true);
+        return (Highlight) highlightMethod.invoke(result, query);
+    }
+
+    private QueryStringQueryResult newResult(String query, boolean strictMatchMode) {
+        return new QueryStringQueryResult(
                 query,
                 0,
                 20,
@@ -87,12 +191,5 @@ class QueryStringQueryResultTest {
                 strictMatchMode,
                 0
         );
-        Method highlightMethod = QueryStringQueryResult.class.getDeclaredMethod("getHighlightBuilder", String.class);
-        highlightMethod.setAccessible(true);
-        Highlight highlight = (Highlight) highlightMethod.invoke(result, query);
-
-        Method buildMethod = QueryStringQueryResult.class.getDeclaredMethod("buildSearchRequest", String.class, Highlight.class);
-        buildMethod.setAccessible(true);
-        return (SearchRequest) buildMethod.invoke(result, query, highlight);
     }
 }

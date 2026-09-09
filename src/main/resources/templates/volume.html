@@ -7,7 +7,10 @@
 <main class="container py-3">
     <nav th:replace="~{fragments/site :: crumbtrail}"></nav>
 
-    <header class="hub-hero">
+    <!-- Splits only where there is a note to put in the second column. Most volume and
+         part titles say the whole thing already, so most of these heroes stay centred. -->
+    <header class="hub-hero" th:classappend="${sectionSummary != null} ? 'hub-hero--split' : ''">
+      <div class="hub-hero__identity">
         <a class="hub-hero__eyebrow" th:href="@{'/books/' + ${book.slug}}" th:text="${book.name}">Al-Kafi</a>
         <h1 class="hub-hero__title" th:text="${volumeLabel}">Volume 1</h1>
         <div class="hub-hero__stats">
@@ -20,6 +23,10 @@
                 chapters
             </span>
         </div>
+      </div>
+      <div class="hub-hero__intro" th:if="${sectionSummary != null}">
+        <p class="hub-hero__intro-text" th:text="${sectionSummary}">A short note.</p>
+      </div>
     </header>
 
     <div th:replace="~{fragments/site :: ornament}"></div>
@@ -55,11 +62,6 @@
                         <span class="hub-chapter__count-unit"
                               th:text="${chapter.count == 1} ? 'hadith' : 'hadith'">hadith</span>
                     </span>
-                </a>
-                <a class="hub-chapter-read" th:href="${chapter.readingUrl}"
-                   th:title="'Read ' + ${chapter.title}"
-                   th:aria-label="'Read ' + ${chapter.title} + ' in reading mode'">
-                    <i class="fa fa-book-open" aria-hidden="true"></i>
                 </a>
             </li>
         </ul>

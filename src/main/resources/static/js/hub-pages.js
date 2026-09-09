@@ -771,26 +771,51 @@
 
     /* ── Tag overflow ───────────────────────────────────────────────────────── */
 
-    var VISIBLE_TAGS = 4;
+    /*
+     * These three must equal MOBILE_VISIBLE_TAGS, the 768px breakpoint and the toggle
+     * wording in rewayaat.js. The same card is rendered by Vue on the search page and by
+     * Thymeleaf here, and a reader moving between them should not see the tag list change
+     * shape. They drifted once - this collapsed after 4 tags at every width while the
+     * search card collapsed after 2 and only on a phone, so a narration showed all its
+     * tags in search results and a truncated list on its own page.
+     * HadithCardParityTest pins them together.
+     */
+    var VISIBLE_TAGS = 2;
+    var TAG_COLLAPSE_MAX_WIDTH = 768;
+    var TAG_TOGGLE_MORE = 'Show more';
+    var TAG_TOGGLE_LESS = 'Show less';
 
     /**
      * A narration with many tags pushed the card's footer into a wall of pills on a
-     * phone. The search card collapses them behind a toggle; so does this.
+     * phone. The search card collapses them behind a toggle; so does this, on the same
+     * terms - which means not collapsing at all above the breakpoint, where there is room
+     * for the full list.
      */
     function bindTagOverflow() {
+        var collapse = window.innerWidth <= TAG_COLLAPSE_MAX_WIDTH;
         document.querySelectorAll('.hadith-card__tags').forEach(function (group) {
             var pills = Array.prototype.slice.call(group.querySelectorAll('.topic-pill'));
-            if (pills.length <= VISIBLE_TAGS || group.dataset.bound) { return; }
+            var existing = group.querySelector('.hadith-tags-toggle');
+
+            // Re-entrant: a resize past the breakpoint has to be able to undo this.
+            if (!collapse || pills.length <= VISIBLE_TAGS) {
+                group.classList.remove('is-expanded');
+                pills.forEach(function (p) { p.classList.remove('topic-pill--overflow'); });
+                if (existing) { existing.remove(); }
+                delete group.dataset.bound;
+                return;
+            }
+            if (group.dataset.bound) { return; }
             group.dataset.bound = '1';
             pills.slice(VISIBLE_TAGS).forEach(function (p) { p.classList.add('topic-pill--overflow'); });
 
             var toggle = document.createElement('button');
             toggle.type = 'button';
             toggle.className = 'hadith-tags-toggle';
-            toggle.textContent = 'Show all ' + pills.length;
+            toggle.textContent = TAG_TOGGLE_MORE;
             toggle.addEventListener('click', function () {
                 var open = group.classList.toggle('is-expanded');
-                toggle.textContent = open ? 'Show fewer' : 'Show all ' + pills.length;
+                toggle.textContent = open ? TAG_TOGGLE_LESS : TAG_TOGGLE_MORE;
             });
             group.appendChild(toggle);
         });
@@ -908,6 +933,13 @@
         bindSidecarPanels();
         bindAccordions();
         bindTagOverflow();
+        // The search card re-evaluates its tag list on resize; so must this, or a window
+        // dragged past the breakpoint keeps whichever shape it had at load.
+        var tagResizeTimer = null;
+        window.addEventListener('resize', function () {
+            clearTimeout(tagResizeTimer);
+            tagResizeTimer = setTimeout(bindTagOverflow, 150);
+        });
         bindSidecarResize();
         bindPrintExport();
         apiJSON('/v1/auth/me', { method: 'GET' })

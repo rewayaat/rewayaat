@@ -73,12 +73,16 @@
 	                        </button>
 	                        <div class="search-mode-menu" id="searchModeDropdown" role="menu" aria-label="Search mode">
 	                            <button type="button" class="search-mode-option" data-mode="flexible" role="menuitem">
+	                                <i class="fa fa-arrows-left-right search-mode-option__icon" aria-hidden="true"></i>
 	                                <span class="search-mode-option__label">Flexible</span>
-	                                <span class="search-mode-option__meta">includes broader wording matches</span>
+	                                <span class="search-mode-option__meta">Near spellings and variants; not every word required</span>
+	                                <i class="fa fa-check search-mode-option__check" aria-hidden="true"></i>
 	                            </button>
 	                            <button type="button" class="search-mode-option" data-mode="precise" role="menuitem">
+	                                <i class="fa fa-bullseye search-mode-option__icon" aria-hidden="true"></i>
 	                                <span class="search-mode-option__label">Precise</span>
-	                                <span class="search-mode-option__meta">keeps results closer to your wording</span>
+	                                <span class="search-mode-option__meta">Every word exactly as you typed it</span>
+	                                <i class="fa fa-check search-mode-option__check" aria-hidden="true"></i>
 	                            </button>
 	                        </div>
 	                        </div>
@@ -87,9 +91,6 @@
 	            </div>
 	        </div>
             <div class="menu-context-row">
-                <div id="menuReadingScope" class="menu-reading-scope d-none" aria-live="polite">
-                    <span class="menu-reading-scope__value"></span>
-                </div>
                 <div class="d-flex gap-2 top-actions flex-nowrap">
                     <div class="auth-mobile-menu-wrapper">
                         <button class="btn btn-dark btn-sm top-action auth-action" id="authSignInBtn" type="button">
@@ -129,54 +130,6 @@
 <section id="hadithView" class="mb-4" v-cloak>
     <div class="hadith-layout">
         <div class="hadith-content">
-        <div id="readingToolbar" class="reading-toolbar d-none">
-            <div class="reading-controls browse-panel">
-                <div class="reading-field browse-field">
-                    <label for="readingBookSelect">Book</label>
-                    <div class="facet-select-wrap">
-                        <select id="readingBookSelect" class="form-select form-select-sm">
-                            <option value="">Select a book</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="reading-field browse-field is-hidden" data-reading-facet="volume">
-                    <label for="readingVolumeSelect">Volume</label>
-                    <div class="facet-select-wrap">
-                        <select id="readingVolumeSelect" class="form-select form-select-sm" disabled>
-                            <option value="">Select a volume</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="reading-field browse-field is-hidden" data-reading-facet="part">
-                    <label for="readingPartSelect">Part</label>
-                    <div class="facet-select-wrap">
-                        <select id="readingPartSelect" class="form-select form-select-sm" disabled>
-                            <option value="">Show All</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="reading-field browse-field is-hidden" data-reading-facet="section">
-                    <label for="readingSectionSelect">Section</label>
-                    <div class="facet-select-wrap">
-                        <select id="readingSectionSelect" class="form-select form-select-sm" disabled>
-                            <option value="">Show All</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="reading-field browse-field is-hidden" data-reading-facet="chapter">
-                    <label for="readingChapterSelect">Chapter</label>
-                    <div class="facet-select-wrap">
-                        <select id="readingChapterSelect" class="form-select form-select-sm" disabled>
-                            <option value="">Show All</option>
-                        </select>
-                    </div>
-                </div>
-                <button id="readingApplyBtn" class="btn btn-primary btn-sm reading-apply browse-action" disabled>
-                    <i class="fa fa-refresh" aria-hidden="true" style="margin-right: 8px;"></i>
-                    Update Results
-                </button>
-            </div>
-        </div>
         <div class="tag-filter-bar tag-filter-bar--results mb-3"
              v-if="collectionMode || totalHits || allNarrations.length > 0">
             <div class="tag-filter-bar__results-head">
@@ -263,8 +216,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="results-toolbar" v-if="readingMode || collectionMode">
-                    <pagination v-if="readingMode || collectionMode" class="pagination pagination--top"></pagination>
+                <div class="results-toolbar" v-if="collectionMode">
+                    <pagination v-if="collectionMode" class="pagination pagination--top"></pagination>
                 </div>
             </div>
             <div class="tag-filter-bar__head"
@@ -369,7 +322,7 @@
                          v-bind:class="'hadith-card--' + activeNarrationSidecarTab(narration)"
                          v-bind:style="sidecarStyleVars"
                          v-bind:id="narrationDomId(narration)">
-                    <div class="hadith-card__result-num">{{ collectionMode || readingMode ? 'Hadith' : 'Result' }} {{ resultOrdinal(narration, index) }}/{{ totalHits }}</div>
+                    <div class="hadith-card__result-num">{{ collectionMode ? 'Hadith' : 'Result' }} {{ resultOrdinal(narration, index) }}/{{ totalHits }}</div>
                     <div class="card-body">
                         <div class="row g-4 hadith-card__layout">
                             <aside class="hadith-sidecar hadith-card__meta">
@@ -607,16 +560,24 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <button type="button"
-                                            class="hadith-reading-toggle"
-                                            v-if="isNarrationCollapsible(narration)"
-                                            v-bind:aria-expanded="isNarrationExpanded(narration) ? 'true' : 'false'"
-                                            v-on:click="toggleNarrationExpand(narration)">
-                                        <i class="fa"
-                                           v-bind:class="isNarrationExpanded(narration) ? 'fa-chevron-up' : 'fa-chevron-down'"
-                                           aria-hidden="true"></i>
-                                        <span>{{ isNarrationExpanded(narration) ? 'Show less' : 'Show full hadith' }}</span>
-                                    </button>
+                                    <!-- Under the text, centred. The control answers a clamp, and the
+                                         clamp is at the bottom edge - putting it above meant reading
+                                         down to the cut and then travelling back up to act on it.
+                                         Centred rather than aligned to either side because the block is
+                                         two columns with mirrored reading directions: left belongs to
+                                         the English, right to the Arabic, and this governs both. -->
+                                    <div class="hadith-reading-foot" v-if="isNarrationCollapsible(narration)">
+                                        <button type="button"
+                                                class="text-toggle"
+                                                v-bind:aria-expanded="isNarrationExpanded(narration) ? 'true' : 'false'"
+                                                v-on:click="toggleNarrationExpand(narration)">
+                                            <span>{{ isNarrationExpanded(narration) ? 'Show less' : 'Show more' }}</span>
+                                            <i class="fa"
+                                               v-bind:class="isNarrationExpanded(narration) ? 'fa-chevron-up' : 'fa-chevron-down'"
+                                               aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+
                                     <!-- Notes gloss the narration itself, so they sit with the text,
                                          above the similar/tafsir panels which are separate corpora. -->
                                     <div class="hadith-notes mt-3" v-if="narration.notes">
@@ -628,12 +589,15 @@
                                              v-bind:class="{'hadith-notes__body--clamped': isNotesCollapsible(narration) && !isNotesExpanded(narration)}"
                                              v-html="narration.notes"></div>
                                         <button type="button"
-                                                class="hadith-notes__toggle"
+                                                class="text-toggle text-toggle--start"
                                                 v-if="isNotesCollapsible(narration)"
                                                 v-bind:aria-expanded="isNotesExpanded(narration) ? 'true' : 'false'"
                                                 v-bind:aria-controls="narrationDomId(narration) + '-notes'"
                                                 v-on:click="toggleNotesExpand(narration)">
-                                            {{ isNotesExpanded(narration) ? 'Show less' : 'Show more' }}
+                                            <span>{{ isNotesExpanded(narration) ? 'Show less' : 'Show more' }}</span>
+                                            <i class="fa"
+                                               v-bind:class="isNotesExpanded(narration) ? 'fa-chevron-up' : 'fa-chevron-down'"
+                                               aria-hidden="true"></i>
                                         </button>
                                     </div>
                                     <div class="hadith-inline-context hadith-inline-context--similar"
@@ -729,10 +693,14 @@
                                                     <span v-else class="quranic-snippet__source">{{snippet.tafsir_name || snippet.tafsir_slug}}</span>
                                                     <span class="quranic-snippet__section" v-if="snippet.section_title">&mdash; {{snippet.section_title}}</span>
                                                     <button type="button"
-                                                            class="quranic-snippet__expand"
+                                                            class="text-toggle quranic-snippet__expand"
                                                             v-if="snippetPreview(snippet.commentary_text, narration).length < snippet.commentary_text.replace(/<\/?em>/g,'').trim().length"
+                                                            v-bind:aria-expanded="isSnippetExpanded(narration, sidx) ? 'true' : 'false'"
                                                             v-on:click="toggleSnippetExpand(narration, sidx)">
-                                                        {{ isSnippetExpanded(narration, sidx) ? 'Collapse' : 'Expand' }}
+                                                        <span>{{ isSnippetExpanded(narration, sidx) ? 'Show less' : 'Show more' }}</span>
+                                                        <i class="fa"
+                                                           v-bind:class="isSnippetExpanded(narration, sidx) ? 'fa-chevron-up' : 'fa-chevron-down'"
+                                                           aria-hidden="true"></i>
                                                     </button>
                                                 </div>
                                                 <div class="quranic-snippet__text"
@@ -862,13 +830,13 @@
             </div>
         </div>
 
-        <div v-if="!readingMode && !collectionMode && hasMoreNarrationsToReveal"
+        <div v-if="!collectionMode && hasMoreNarrationsToReveal"
              ref="scrollSentinel"
              class="search-reveal-sentinel">
             Loading more results...
         </div>
 
-        <div class="mt-4" v-if="readingMode || collectionMode">
+        <div class="mt-4" v-if="collectionMode">
             <pagination class="pagination pagination--bottom"></pagination>
         </div>
     </div>
@@ -923,6 +891,7 @@
 <script src="/js/share-card-modal.js" th:src="@{/js/share-card-modal.js}"></script>
 <script src="/js/vue-components.js" th:src="@{/js/vue-components.js}"></script>
 <script src="/js/rewayaat.js" th:src="@{/js/rewayaat.js}"></script>
+<script src="/js/site-announcement.js" th:src="@{/js/site-announcement.js}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" th:async="async"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.6/marked.min.js" th:defer="defer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js" th:defer="defer"></script>

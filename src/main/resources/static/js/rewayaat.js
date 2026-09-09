@@ -20,7 +20,6 @@ var readingFacetConfig = [
     { key: 'section', selectId: 'readingSectionSelect', fieldAttr: 'data-reading-facet' },
     { key: 'chapter', selectId: 'readingChapterSelect', fieldAttr: 'data-reading-facet' }
 ];
-var facetHierarchy = ['volume', 'part', 'section', 'chapter'];
 var facetKeys = ['volume', 'part', 'section', 'chapter'];
 var readingNavOrder = ['chapter', 'section', 'part', 'volume'];
 var optionalFiltersHint = '';
@@ -40,7 +39,6 @@ var searchPlaceholderAnimation = {
     deleting: false
 };
 var SEARCH_PAGE_SIZE = 100;
-var READING_PAGE_SIZE = 50;
 var INITIAL_VISIBLE_NARRATIONS = 16;
 var REVEAL_BATCH_SIZE = 12;
 var INITIAL_VISIBLE_TAG_FILTERS = 15;
@@ -61,17 +59,80 @@ var SIMILAR_ARABIC_DIACRITIC_PATTERN = /[\u0610-\u061A\u064B-\u065F\u0670\u06D6-
 var SIMILAR_NON_ARABIC_PATTERN = /[^\u0621-\u064A\u0660-\u0669\u06F0-\u06F90-9\s]/g;
 var SIMILAR_MULTI_SPACE_PATTERN = /\s+/g;
 var SIMILAR_ARABIC_TOKEN_PATTERN = /[\u0621-\u064A\u0660-\u0669\u06F0-\u06F90-9\u064B-\u065F\u0670\u06D6-\u06ED\u0640]+/g;
+
+/** A query carrying a hierarchy scope and no search terms: browsing, not searching. */
+function isPureScopeQuery(query) {
+    var state = extractQueryState(query);
+    return state.hasScope && state.keywordTerms.length === 0;
+}
+
+/**
+ * Sends a pure-scope query to the page that already exists for it.
+ *
+ * <p>Calls onFallback instead of navigating whenever the scope cannot be honoured exactly,
+ * because /v1/browse/page degrades rather than failing: ask it for book + chapter without
+ * the volume and part between them and it answers with the book's URL, having quietly
+ * dropped the chapter. Redirecting on that would throw away the reader's filter and land
+ * them on 14,242 narrations when they asked for seven. So the resolved URL is only used
+ * when it reaches the deepest level the query actually named.
+ *
+ * <p>A section is never deep enough on its own. It has no page - it is the chapter's
+ * number - so a scope that names one without a chapter falls back to a search that can
+ * still honour it.
+ */
+function resolveScopedBrowsePage(query, onFallback) {
+    var filters = extractQueryState(query).scopeFilters;
+    if (!filters.book || (filters.section && !filters.chapter)) {
+        onFallback();
+        return;
+    }
+    var deepest = filters.chapter ? 'chapterUrl'
+            : filters.part ? 'partUrl'
+            : filters.volume ? 'volumeUrl'
+            : 'bookUrl';
+
+    var params = new URLSearchParams();
+    ['book', 'volume', 'part', 'section', 'chapter'].forEach(function(key) {
+        if (filters[key]) {
+            params.set(key, filters[key]);
+        }
+    });
+
+    fetch('/v1/browse/page?' + params.toString(), { credentials: 'same-origin' })
+        .then(function(resp) { return resp.ok ? resp.json() : null; })
+        .then(function(data) {
+            var url = data && data.ok ? data[deepest] : null;
+            if (url) {
+                // replace, not assign: the scoped URL is a staging post, and leaving it in
+                // history means Back returns here and redirects forward again.
+                window.location.replace(url);
+                return;
+            }
+            onFallback();
+        })
+        .catch(onFallback);
+}
+
 /**
  * Main entry point to the website. If does not exist, display default welcome
  * content. If there is a valid query, setup a Vue.js instance to display it.s
  */
-function loadQuery(query, page = 1, sortFields) {
+function loadQuery(query, page = 1, sortFields, skipBrowseRedirect) {
     query = resolveInitialQueryInput(query);
+    // A query that is nothing but a scope - book:"Al-Kāfi", or that plus a volume - is a
+    // request to browse, not to search. Those pages exist and are server-rendered, so send
+    // the reader to the real URL instead of rendering a scoped result set here.
+    if (!skipBrowseRedirect && query && !isCollectionMode() && isPureScopeQuery(query)) {
+        resolveScopedBrowsePage(query, function() {
+            loadQuery(query, page, sortFields, true);
+        });
+        return;
+    }
     if (isCollectionMode()) {
         $.getJSON("book_blurbs.json", function(book_blurbs) {
             bookBlurbs = book_blurbs;
             setupVue(query || '', page, sortFields);
-            syncReadingModeUI(query || '', sortFields);
+            syncChromeForQuery(query || '', sortFields);
         });
         return;
     }
@@ -89,7 +150,7 @@ function loadQuery(query, page = 1, sortFields) {
                 bookBlurbs = book_blurbs
                 // load the query
                 setupVue(query, page, sortFields);
-                syncReadingModeUI(query, sortFields);
+                syncChromeForQuery(query, sortFields);
             });
             // Update latest new bar
             //setLatestNewsBarHTML();
@@ -551,9 +612,6 @@ function shouldTriggerSearchOnEnter(pendingTerms, suppressUntil, now) {
 function setupGlobalSearchSubmit() {
     document.addEventListener('keydown', function(e) {
         if (e.key !== 'Enter') {
-            return;
-        }
-        if (isReadingMode()) {
             return;
         }
         if (isSearchBarFocused()) {
@@ -2515,7 +2573,6 @@ function executeSearchSubmission(scopeOverride, options) {
         submission.query,
         browseOnly ? 1 : '',
         browseOnly ? buildSortFields(submission.scopeFilters) : '',
-        browseOnly ? 'read' : '',
         '',
         submissionMatchMode,
         nextEntry
@@ -2531,17 +2588,13 @@ function submitSearchQuery(modeOverride) {
     });
 }
 
-function redirectToSearchResult(query, page, sortFields, mode, focusId, matchMode, entryContext) {
+function redirectToSearchResult(query, page, sortFields, focusId, matchMode, entryContext) {
     var queryParamString = '?q=' + encodeURIComponent(query.trim())
     if (sortFields) {
         queryParamString += '&sort_fields=' + encodeURIComponent(sortFields.trim())
     }
     if (page) {
         queryParamString += '&page=' + page;
-    }
-    var modeValue = typeof mode === 'string' ? mode : resolveModeParam();
-    if (modeValue) {
-        queryParamString += '&mode=' + encodeURIComponent(modeValue);
     }
     var matchValue = normalizeSearchMatchMode(typeof matchMode === 'string' ? matchMode : resolveSearchMatchModeParam());
     queryParamString += '&match_mode=' + encodeURIComponent(matchValue);
@@ -2812,19 +2865,6 @@ function displayQuery(query) {
     setupSelect2EnterKeyListener('searchTerms');
 }
 
-function isReadingMode(query) {
-    var modeParam = (resolveModeParam() || '').toLowerCase();
-    if (modeParam === 'read') {
-        return true;
-    }
-    var sourceQuery = typeof query === 'string' ? query : (getQueryStringValue('q') || '');
-    if (!sourceQuery) {
-        return false;
-    }
-    var state = extractQueryState(sourceQuery);
-    return state.hasScope && state.keywordTerms.length === 0;
-}
-
 function normalizeSearchMatchMode(mode) {
     var normalized = String(mode || '').trim().toLowerCase();
     if (normalized === 'precise' || normalized === 'strict' || normalized === 'exact') {
@@ -2865,9 +2905,6 @@ function updateSearchModeDropdownDisplay() {
     }
 }
 
-function resolveModeParam() {
-    return (getQueryStringValue('mode') || '').trim();
-}
 
 function resolveEntryContextParam() {
     if (isCollectionMode()) {
@@ -3187,47 +3224,34 @@ function buildFacetSummary(facets) {
     return summary.join(' · ');
 }
 
-function syncReadingModeUI(query, sortFields) {
+/**
+ * Puts the chrome into search or collection state.
+ *
+ * <p>Was syncReadingModeUI, and carried a third state: reading mode hid the search bar and
+ * replaced the nav with a scope chip. A scope-only query now navigates to the book,
+ * volume, part or chapter page instead, so nothing enters that state and nothing is left
+ * to leave it in.
+ */
+function syncChromeForQuery(query, sortFields) {
     var queryBar = document.getElementById('queryBar');
-    var menuReadingScope = document.getElementById('menuReadingScope');
-    var readingToolbar = document.getElementById('readingToolbar');
     var hadithView = document.getElementById('hadithView');
     var welcome = document.getElementById('welcome');
-    var activeReadingMode = isReadingMode(query);
     var activeCollectionMode = isCollectionMode();
     if (hadithView) {
-        hadithView.classList.toggle('is-reading-mode', activeReadingMode);
         hadithView.classList.toggle('is-collection-mode', activeCollectionMode);
     }
     if (document && document.body) {
-        document.body.classList.toggle('is-reading-mode', activeReadingMode);
         document.body.classList.toggle('is-collection-mode', activeCollectionMode);
-        document.body.classList.toggle('is-search-mode', !!query && !activeReadingMode && !activeCollectionMode);
+        document.body.classList.toggle('is-search-mode', !!query && !activeCollectionMode);
     }
     if (queryBar) {
-        queryBar.classList.toggle('is-hidden', activeReadingMode || activeCollectionMode);
-        queryBar.classList.toggle('is-visible', !activeReadingMode && !activeCollectionMode);
+        queryBar.classList.toggle('is-hidden', activeCollectionMode);
+        queryBar.classList.toggle('is-visible', !activeCollectionMode);
     }
     if (welcome) {
         welcome.classList.toggle('d-none', activeCollectionMode);
     }
-    if (menuReadingScope) {
-        menuReadingScope.classList.toggle('d-none', !activeReadingMode || activeCollectionMode);
-        if (!activeReadingMode) {
-            setContainerValueText(menuReadingScope, 'menu-reading-scope__value', '');
-            menuReadingScope.classList.remove('is-empty');
-        }
-    }
-    if (readingToolbar && (!activeReadingMode || activeCollectionMode)) {
-        readingToolbar.classList.add('d-none');
-    }
-    if (activeReadingMode) {
-        setupReadingMode(query, sortFields);
-    } else if (activeCollectionMode) {
-        setupSearchMatchToggle('', '');
-    } else {
-        setupSearchMatchToggle(query, sortFields);
-    }
+    setupSearchMatchToggle(activeCollectionMode ? '' : query, activeCollectionMode ? '' : sortFields);
 }
 
 function setupModeSwitch(query, sortFields) {
@@ -3252,353 +3276,6 @@ function applySearchMatchMode(mode, query, sortFields) {
 
     // Update UI but don't redirect - the new dropdown handles this differently
     setupSearchMatchToggle(query, sortFields);
-}
-
-function setupReadingMode(query, sortFields) {
-    var toolbar = document.getElementById('readingToolbar');
-    if (!toolbar) {
-        return;
-    }
-    toolbar.classList.remove('d-none');
-    if (!toolbar.dataset.bound) {
-        var applyBtn = document.getElementById('readingApplyBtn');
-        if (applyBtn) {
-            applyBtn.addEventListener('click', function() {
-                var selections = getReadingSelections();
-                if (!selections.book) {
-                    return;
-                }
-                clearActionButtonPending('readingApplyBtn');
-                var nextQuery = buildQueryFromFilters(selections);
-                var nextSort = buildSortFields(selections);
-                redirectToSearchResult(nextQuery, 1, nextSort, 'read');
-            });
-        }
-        var bookSelect = document.getElementById('readingBookSelect');
-        if (bookSelect) {
-            bookSelect.addEventListener('change', function() {
-                var selections = getReadingSelections();
-                selections.volume = '';
-                selections.part = '';
-                selections.section = '';
-                selections.chapter = '';
-                indicateActionButtonPending('readingApplyBtn');
-                updateReadingApplyState(selections);
-                updateReadingPath(selections);
-                if (selections.book) {
-                    fetchReadingFacets(selections);
-                } else {
-                    resetReadingFacetSelects();
-                }
-            });
-        }
-        readingFacetConfig.forEach(function(config) {
-            var select = document.getElementById(config.selectId);
-            if (select) {
-                select.addEventListener('change', function() {
-                    var selections = getReadingSelections();
-                    if (selections.book) {
-                        fetchReadingFacets(selections);
-                    }
-                    indicateActionButtonPending('readingApplyBtn');
-                    updateReadingApplyState(selections);
-                    updateReadingPath(selections);
-                });
-            }
-        });
-        var prevBtn = document.getElementById('readingPrevBtn');
-        if (prevBtn) {
-            prevBtn.addEventListener('click', function() {
-                handleReadingNav('prev');
-            });
-        }
-        var nextBtn = document.getElementById('readingNextBtn');
-        if (nextBtn) {
-            nextBtn.addEventListener('click', function() {
-                handleReadingNav('next');
-            });
-        }
-        toolbar.dataset.bound = 'true';
-    }
-    var selections = parseQueryFilters(query);
-    updateReadingApplyState(selections);
-    updateReadingPath(selections);
-    loadReadingBooks(selections.book);
-    if (selections.book) {
-        fetchReadingFacets(selections);
-    } else {
-        resetReadingFacetSelects();
-        updateReadingMeta({});
-    }
-    updateReadingNav();
-}
-
-function loadReadingBooks(selectedBook) {
-    var select = document.getElementById('readingBookSelect');
-    if (!select) {
-        return;
-    }
-    fetch('/v1/browse/books')
-        .then(function(resp) { return resp.json(); })
-        .then(function(data) {
-            select.innerHTML = '<option value=\"\">Select a book</option>';
-            (data || []).forEach(function(item) {
-                var name = item.name || item.key || '';
-                if (!name) {
-                    return;
-                }
-                var count = item.count || 0;
-                var option = document.createElement('option');
-                option.value = name;
-                option.textContent = name + ' (' + formatHadithCount(count) + ')';
-                select.appendChild(option);
-            });
-            if (selectedBook) {
-                select.value = selectedBook;
-            }
-        })
-        .catch(function() {});
-}
-
-function resetReadingFacetSelects() {
-    readingFacetConfig.forEach(function(config) {
-        var ph = (config.key === 'part' || config.key === 'section' || config.key === 'chapter') ? 'Show All' : undefined;
-        updateFacetSelect(config, [], '', ph);
-    });
-    readingFacetData = {};
-    updateReadingNav();
-}
-
-function getReadingSelections() {
-    return {
-        book: getSelectValue('readingBookSelect'),
-        volume: getSelectValue('readingVolumeSelect'),
-        part: getSelectValue('readingPartSelect'),
-        section: getSelectValue('readingSectionSelect'),
-        chapter: getSelectValue('readingChapterSelect')
-    };
-}
-
-function fetchReadingFacets(filters) {
-    var activeFilters = cloneFacetSelections(filters || getReadingSelections());
-    activeFilters.book = (filters && filters.book) ? filters.book : getSelectValue('readingBookSelect');
-    var url = buildFacetsUrl(activeFilters);
-    fetch(url)
-        .then(function(resp) { return resp.json(); })
-        .then(function(data) {
-            readingFacetData = (data && data.facets) ? data.facets : {};
-            applyReadingFacets(data, activeFilters);
-        })
-        .catch(function() {
-            updateReadingMeta({});
-        });
-}
-
-function applyReadingFacets(data, selections) {
-    var facets = (data && data.facets) ? data.facets : {};
-    var currentSelections = cloneFacetSelections(selections || getReadingSelections());
-    currentSelections.book = (selections && selections.book) ? selections.book : getSelectValue('readingBookSelect');
-    var resolvedSelections = cloneFacetSelections(currentSelections);
-    resolvedSelections.book = currentSelections.book;
-    readingFacetConfig.forEach(function(config) {
-        var items = facets[config.key] || [];
-        var selectedValue = resolvedSelections[config.key];
-        var ph = (config.key === 'part' || config.key === 'section' || config.key === 'chapter') ? 'Show All' : undefined;
-        resolvedSelections[config.key] = updateFacetSelect(config, items, selectedValue, ph);
-    });
-    updateReadingMeta(facets);
-    updateReadingApplyState(resolvedSelections);
-    updateReadingPath(resolvedSelections);
-    updateReadingNav();
-    if (facetSelectionsChanged(currentSelections, resolvedSelections)) {
-        fetchReadingFacets(resolvedSelections);
-    }
-}
-
-function updateReadingApplyState(selections) {
-    var btn = document.getElementById('readingApplyBtn');
-    if (!btn) {
-        return;
-    }
-    btn.disabled = !selections.book;
-    if (btn.disabled) {
-        clearActionButtonPending('readingApplyBtn');
-    }
-}
-
-function updateReadingPath(filters) {
-    var path = document.getElementById('readingPath');
-    var menuScope = document.getElementById('menuReadingScope');
-    if (!path) {
-        // continue to update navbar scope, if present.
-    }
-    var parts = [];
-    if (filters.book) {
-        parts.push(filters.book);
-    }
-    if (filters.volume) {
-        parts.push(formatFacetDisplay('volume', filters.volume));
-    }
-    if (filters.part) {
-        parts.push(filters.part);
-    }
-    if (filters.section) {
-        parts.push(filters.section);
-    }
-    if (filters.chapter) {
-        parts.push(filters.chapter);
-    }
-    var hasPath = parts.length > 0;
-    var scopeText = hasPath ? parts.join(' · ') : 'Select a book to start reading.';
-    if (path) {
-        setContainerValueText(path, 'reading-path__value', scopeText);
-        path.classList.toggle('is-empty', !hasPath);
-    }
-    if (menuScope) {
-        setContainerValueText(menuScope, 'menu-reading-scope__value', scopeText);
-        menuScope.classList.toggle('is-empty', !hasPath);
-    }
-    updateReadingScope(filters);
-}
-
-function updateReadingScope(filters) {
-    var scope = document.getElementById('readingScope');
-    if (!scope) {
-        return;
-    }
-    if (!filters || !filters.book) {
-        scope.innerHTML = '';
-        return;
-    }
-    var items = [];
-    items.push({ label: 'Book', value: filters.book });
-    if (filters.volume) {
-        items.push({ label: 'Volume', value: filters.volume });
-    }
-    if (filters.part) {
-        items.push({ label: 'Part', value: filters.part });
-    }
-    if (filters.section) {
-        items.push({ label: 'Section', value: filters.section });
-    }
-    if (filters.chapter) {
-        items.push({ label: 'Chapter', value: filters.chapter });
-    }
-    scope.innerHTML = items.map(function(item) {
-        return '<span class="reading-scope-chip"><span class="reading-scope-label">' +
-            escapeHtml(item.label) + ':</span> ' + escapeHtml(item.value) + '</span>';
-    }).join('');
-}
-
-function updateReadingMeta(facets) {
-    var meta = document.getElementById('readingMeta');
-    if (!meta) {
-        return;
-    }
-    var summary = buildFacetSummary(facets || {});
-    if (summary) {
-        meta.textContent = 'Available: ' + summary + '. ' + optionalFiltersHint;
-    } else {
-        meta.textContent = optionalFiltersHint;
-    }
-}
-
-function updateReadingNav() {
-    var selections = getReadingSelections();
-    var nav = document.getElementById('menuReadingNav');
-    var prevBtn = document.getElementById('readingPrevBtn');
-    var nextBtn = document.getElementById('readingNextBtn');
-    if (!nav || !prevBtn || !nextBtn) {
-        return;
-    }
-    var facet = getReadingNavFacet(selections);
-    if (!selections.book || !facet) {
-        nav.classList.add('d-none');
-        prevBtn.disabled = true;
-        nextBtn.disabled = true;
-        return;
-    }
-    var list = readingFacetData[facet] || [];
-    if (list.length <= 1) {
-        nav.classList.add('d-none');
-        prevBtn.disabled = true;
-        nextBtn.disabled = true;
-        return;
-    }
-    nav.classList.remove('d-none');
-    var label = humanizeFacetLabel(facet);
-    prevBtn.textContent = 'Previous ' + label;
-    nextBtn.textContent = 'Next ' + label;
-    var currentValue = selections[facet] || '';
-    var idx = -1;
-    for (var i = 0; i < list.length; i++) {
-        if (normalizeFacetItemValue(list[i]) === currentValue) {
-            idx = i;
-            break;
-        }
-    }
-    prevBtn.disabled = !(idx > 0);
-    nextBtn.disabled = !(idx !== -1 && idx < (list.length - 1));
-}
-
-function getReadingNavFacet(selections) {
-    var currentSelections = selections || getReadingSelections();
-    if (!currentSelections.book) {
-        return '';
-    }
-    for (var i = 0; i < readingNavOrder.length; i++) {
-        var facet = readingNavOrder[i];
-        var field = document.querySelector('[data-reading-facet="' + facet + '"]');
-        if (field && field.classList.contains('is-hidden')) {
-            continue;
-        }
-        var list = readingFacetData[facet] || [];
-        if (list.length > 0) {
-            return facet;
-        }
-    }
-    return '';
-}
-
-function handleReadingNav(direction) {
-    var selections = getReadingSelections();
-    var facet = getReadingNavFacet(selections);
-    if (!facet) {
-        return;
-    }
-    var list = readingFacetData[facet] || [];
-    if (!list.length || !selections[facet]) {
-        return;
-    }
-    var idx = -1;
-    for (var i = 0; i < list.length; i++) {
-        if (normalizeFacetItemValue(list[i]) === selections[facet]) {
-            idx = i;
-            break;
-        }
-    }
-    if (idx === -1) {
-        return;
-    }
-    var nextIdx = direction === 'next' ? idx + 1 : idx - 1;
-    if (nextIdx < 0 || nextIdx >= list.length) {
-        return;
-    }
-    selections[facet] = list[nextIdx].name || list[nextIdx].key;
-    clearLowerFacets(selections, facet);
-    var nextQuery = buildQueryFromFilters(selections);
-    var nextSort = buildSortFields(selections);
-    redirectToSearchResult(nextQuery, 1, nextSort, 'read');
-}
-
-function clearLowerFacets(selections, facet) {
-    var index = facetHierarchy.indexOf(facet);
-    if (index === -1) {
-        return;
-    }
-    for (var i = index + 1; i < facetHierarchy.length; i++) {
-        selections[facetHierarchy[i]] = '';
-    }
 }
 
 function loadRecentUpdates() {
@@ -4537,11 +4214,10 @@ function setupVue(query, page, sortFields) {
             narrationsLoading: true,
             queryStr: query,
             sortFields: sortFields,
-            page: (isReadingMode(query) || isCollectionMode()) ? page : 1,
+            page: isCollectionMode() ? page : 1,
             totalHits: 0,
-            pageSize: isReadingMode(query) ? READING_PAGE_SIZE : SEARCH_PAGE_SIZE,
+            pageSize: SEARCH_PAGE_SIZE,
             book_blurbs: bookBlurbs,
-            readingMode: isReadingMode(query),
             collectionMode: isCollectionMode(),
             collectionId: resolveCollectionIdParam(),
             collectionTitle: '',
@@ -4680,15 +4356,6 @@ function setupVue(query, page, sortFields) {
                     }
                     return this.collectionTitle || 'Saved Hadith';
                 }
-                if (this.readingMode) {
-                    // In reading mode, use server counts (totalHits is filtered, baseNarrationTotal is total scope)
-                    if (this.activeTopicTags.length > 0) {
-                        var filteredCount = Number(this.totalHits) || 0;
-                        var baseCount = Number(this.baseNarrationTotal) || 0;
-                        return 'Showing ' + filteredCount + '/' + baseCount + ' hadith';
-                    }
-                    return (Number(this.baseNarrationTotal) || 0) + ' hadith found.';
-                }
                 if (this.activeTopicTags.length > 0) {
                     var tagTotal = this.topicTagTotalForActive;
                     var totalCount = Number(this.baseNarrationTotal) || Number(this.totalHits) || 0;
@@ -4700,7 +4367,7 @@ function setupVue(query, page, sortFields) {
                 var self = this;
                 // In reading mode or collection mode, filtering is done server-side
                 // so totalHits/baseNarrationTotal is the correct count
-                if (this.readingMode || this.collectionMode) {
+                if (this.collectionMode) {
                     var base = Number(this.baseNarrationTotal) || 0;
                     if (base > 0) {
                         return base;
@@ -4904,7 +4571,7 @@ function setupVue(query, page, sortFields) {
                     this.activeTopicTags.forEach(function(tag) {
                         url.searchParams.append('topic_tags', tag);
                     });
-                    if (!this.readingMode && !this.collectionMode) {
+                    if (!this.collectionMode) {
                         url.searchParams.delete('page');
                     }
                     window.history.replaceState({}, '', url.toString());
@@ -4950,7 +4617,7 @@ function setupVue(query, page, sortFields) {
             clearScope: function() {
                 var queryState = extractQueryState(this.queryStr || '');
                 var nextQuery = queryState.keywordQuery || '*:*';
-                redirectToSearchResult(nextQuery, 1, this.sortFields || '', '', '', searchMatchMode, 'search');
+                redirectToSearchResult(nextQuery, 1, this.sortFields || '', '', searchMatchMode, 'search');
             },
             buildCollectionViewUrl: function(collectionId) {
                 return '/collection/' + encodeURIComponent(collectionId);
@@ -5010,7 +4677,7 @@ function setupVue(query, page, sortFields) {
                 return narration ? String(narration._id || narration.id || '').trim() : '';
             },
             assignSearchResultOrdinal: function(narration, fallbackOrdinal) {
-                if (!narration || this.readingMode || this.collectionMode) {
+                if (!narration || this.collectionMode) {
                     return narration;
                 }
                 var key = this.searchResultOrdinalKey(narration);
@@ -5033,7 +4700,7 @@ function setupVue(query, page, sortFields) {
                 return narration;
             },
             resultOrdinal: function(narration, index) {
-                if (!this.readingMode && !this.collectionMode) {
+                if (!this.collectionMode) {
                     var storedOrdinal = Number(narration && narration._resultOrdinal);
                     if (!isNaN(storedOrdinal) && storedOrdinal > 0) {
                         return storedOrdinal;
@@ -5268,8 +4935,7 @@ function setupVue(query, page, sortFields) {
                     this.filteredNarrationTotal,
                     (Math.max(0, Number(this.visibleNarrationCount) || 0) + REVEAL_BATCH_SIZE)
                 );
-                if (!this.readingMode
-                        && nextVisibleCount > this.allNarrations.length
+                if (nextVisibleCount > this.allNarrations.length
                         && this.allNarrations.length < this.totalHits) {
                     this.visibleNarrationCount = nextVisibleCount;
                     if (!this.searchAppendInFlight) {
@@ -5314,7 +4980,7 @@ function setupVue(query, page, sortFields) {
             },
             setupArabicSuggestionObserver: function() {
                 this.teardownArabicSuggestionObserver();
-                if (this.readingMode || this.collectionMode || this.arabicSuggestionThresholdPassed
+                if (this.collectionMode || this.arabicSuggestionThresholdPassed
                         || typeof IntersectionObserver === 'undefined') {
                     return;
                 }
@@ -5347,7 +5013,7 @@ function setupVue(query, page, sortFields) {
                 closeArabicSuggestionToast();
             },
             maybeShowArabicSuggestionToast: function() {
-                if (this.readingMode || this.collectionMode || this.arabicSuggestionToastShown) {
+                if (this.collectionMode || this.arabicSuggestionToastShown) {
                     return;
                 }
                 if (!this.arabicSuggestionThresholdPassed) {
@@ -5510,7 +5176,7 @@ function setupVue(query, page, sortFields) {
             },
             requestArabicSuggestion: function(resultNarrations) {
                 this.dismissArabicSuggestion();
-                if (this.readingMode || this.collectionMode) {
+                if (this.collectionMode) {
                     return;
                 }
                 var englishTerms = extractEnglishKeywordTerms(this.queryStr || '')
@@ -5567,7 +5233,7 @@ function setupVue(query, page, sortFields) {
             fetchNarrations: function(options) {
                 var self = this;
                 var appendMode = !!(options && options.append);
-                if (appendMode && (this.readingMode || this.collectionMode || this.searchAppendInFlight)) {
+                if (appendMode && (this.collectionMode || this.searchAppendInFlight)) {
                     return;
                 }
                 if (appendMode) {
@@ -5584,7 +5250,7 @@ function setupVue(query, page, sortFields) {
                     this.collectionTitle = '';
                     this.collectionMeta = null;
                     this.searchResultOrdinalMap = {};
-                    if (!this.readingMode && !this.collectionMode) {
+                    if (!this.collectionMode) {
                         this.page = 1;
                     }
                 }
@@ -5696,15 +5362,9 @@ function setupVue(query, page, sortFields) {
                     self.searchAppendInFlight = false;
                     clearPendingSearchTermsIndicator();
                 };
-                // Build query: in reading mode, include scope filters; in search mode, just use queryStr
                 var queryToUse = this.queryStr;
-                if (this.readingMode && this.hasActiveScope) {
-                    // Use keywordQuery if present, otherwise use null (buildScopedQuery will use only scope)
-                    var keywordPart = this.queryState.keywordQuery || null;
-                    queryToUse = buildScopedQuery(keywordPart, this.activeScopeFilters);
-                }
-                var requestPage = this.readingMode ? this.page : Math.max(1, Number(this.page) || 1);
-                var requestPageSize = this.readingMode ? this.pageSize : SEARCH_PAGE_SIZE;
+                var requestPage = Math.max(1, Number(this.page) || 1);
+                var requestPageSize = SEARCH_PAGE_SIZE;
                 var reqUrl = '/v1/narrations?q=' + encodeURIComponent(queryToUse) +
                 '&page=' + requestPage +
                 '&per_page=' + requestPageSize;
@@ -5714,9 +5374,6 @@ function setupVue(query, page, sortFields) {
                 this.activeTopicTags.forEach(function(tag) {
                     reqUrl += '&topic_tags=' + encodeURIComponent(tag);
                 });
-                if (this.readingMode) {
-                    reqUrl += '&mode=read';
-                }
                 reqUrl += '&match_mode=' + encodeURIComponent(resolveSearchMatchModeParam());
                 xhr.open('GET', reqUrl);
                 xhr.send();
@@ -6344,12 +6001,12 @@ function setupVue(query, page, sortFields) {
                 var expanding = !this.narrationExpandedKeys[key];
                 var domId = this.narrationDomId(narration);
                 var card = domId ? document.getElementById(domId) : null;
-                // Collapsing removes content above the button, so the page
-                // shrinks underneath the reader and the hadith ends up above
-                // the viewport. Pin the button where it already is on screen so
-                // the card stays put. Expanding needs no correction: the card's
-                // top does not move, the text simply grows downward.
-                var button = card ? card.querySelector('.hadith-reading-toggle') : null;
+                // The control sits below the text it governs, so collapsing removes
+                // content from above it: the page shrinks under the reader and the
+                // narration ends up off the top of the viewport. Pin the button where it
+                // already is on screen so the card stays put. Expanding needs no
+                // correction - the card's top does not move, the text grows downward.
+                var button = card ? card.querySelector('.text-toggle') : null;
                 var anchorBefore = (!expanding && button)
                     ? button.getBoundingClientRect().top
                     : null;
@@ -6358,7 +6015,7 @@ function setupVue(query, page, sortFields) {
                     return;
                 }
                 this.$nextTick(function() {
-                    var after = card.querySelector('.hadith-reading-toggle');
+                    var after = card.querySelector('.text-toggle');
                     if (!after) {
                         return;
                     }
@@ -6499,7 +6156,7 @@ function setupVue(query, page, sortFields) {
                 var nextQuery = buildQueryFromFilters(selections);
                 var nextSort = buildSortFields(selections);
                 // Redirect to filtered search results (page 1), not to specific hadith in reading mode
-                redirectToSearchResult(nextQuery, 1, nextSort, null, null,
+                redirectToSearchResult(nextQuery, 1, nextSort, null,
                     resolveSearchMatchModeParam(), 'browse');
             },
             similarityColor: function(similar) {
@@ -6667,10 +6324,6 @@ function setupVue(query, page, sortFields) {
                 var subtitle = '';
                 if (this.collectionMode) {
                     subtitle = 'Collection: ' + (this.collectionTitle || 'Saved Hadith');
-                } else if (this.readingMode) {
-                    subtitle = this.scopeBreadcrumbText
-                        ? ('Reading scope: ' + this.scopeBreadcrumbText)
-                        : ('Reading mode · page ' + this.page);
                 } else if (this.queryStr) {
                     subtitle = 'Search query: ' + strip(this.queryStr);
                 }
@@ -6684,7 +6337,7 @@ function setupVue(query, page, sortFields) {
                 openPdfExportWindow({
                     title: this.collectionMode
                         ? (this.collectionTitle || 'Saved Hadith')
-                        : (this.readingMode ? ('Reading Mode - Page ' + this.page) : 'Search Results'),
+                        : 'Search Results',
                     subtitle: subtitle,
                     metaLine: metaLine,
                     narrations: narrations,

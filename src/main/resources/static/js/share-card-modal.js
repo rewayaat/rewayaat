@@ -14,11 +14,14 @@
     'use strict';
 
     var lengthCheck = 0;
+    var chainCheck = 0;
     var state = {
         id: null, label: '', root: null, lastFocus: null,
         theme: 'dark',      // dark | light
         lang: 'both',       // both | ar | en
-        full: false         // false trims to the Open Graph ratio, true fits the whole text
+        full: false,        // false trims to the Open Graph ratio, true fits the whole text
+        chain: false        // the isnad in front of the matn, off because it is long and
+                            // near-identical across thousands of narrations
     };
 
     // Each control is a named set of choices, so adding one is a row here rather than a
@@ -27,7 +30,9 @@
         {key: 'theme', label: 'Theme', options: [['dark', 'Dark'], ['light', 'Light']]},
         {key: 'lang', label: 'Text', options: [['both', 'Both'], ['ar', 'Arabic'], ['en', 'English']]},
         {key: 'full', label: 'Length',
-         options: [[false, 'Trimmed'], [true, 'Full']]}
+         options: [[false, 'Trimmed'], [true, 'Full']]},
+        {key: 'chain', label: 'Chain',
+         options: [[false, 'Matn only'], [true, 'With isnād']]}
     ];
 
     function cardUrl() {
@@ -38,6 +43,7 @@
         if (state.theme === 'light') { query.push('theme=light'); }
         if (state.lang !== 'both') { query.push('lang=' + state.lang); }
         if (state.full) { query.push('full=true'); }
+        if (state.chain) { query.push('chain=true'); }
         return url + (query.length ? '?' + query.join('&') : '');
     }
 
@@ -115,7 +121,8 @@
         var a = document.createElement('a');
         a.href = cardUrl();
         a.download = String(state.id).replace(/[^A-Za-z0-9._-]+/g, '-')
-            + '-' + state.theme + '-' + state.lang + (state.full ? '-full' : '') + '.png';
+            + '-' + state.theme + '-' + state.lang + (state.full ? '-full' : '')
+            + (state.chain ? '-isnad' : '') + '.png';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -140,6 +147,7 @@
         });
         state.root.querySelector('[data-share-address]').value = absolute(url);
         updateLengthControl(url);
+        updateChainControl(url);
     }
 
     /**
@@ -160,6 +168,31 @@
                 group.hidden = !trimmed;
                 if (!trimmed && state.full) {
                     state.full = false;
+                    refresh();
+                }
+            })
+            .catch(function () { /* leave the control as it is */ });
+    }
+
+    /**
+     * The isnād is separated from the matn per language, and that detection does not
+     * always succeed on both sides. Where only the Arabic chain was found, turning the
+     * toggle on changes the Arabic and leaves the English untouched - and on an
+     * English-only card it does nothing at all, which reads as a broken switch. The
+     * server reports what it managed to separate for the current language in
+     * X-Card-Chain, and the control is offered only when it will visibly do something.
+     */
+    function updateChainControl(url) {
+        var group = state.root.querySelector('[data-share-group="chain"]');
+        if (!group) { return; }
+        var token = ++chainCheck;
+        fetch(url, {method: 'HEAD'})
+            .then(function (response) {
+                if (token !== chainCheck || !state.root) { return; }
+                var available = response.headers.get('X-Card-Chain') === 'true';
+                group.hidden = !available;
+                if (!available && state.chain) {
+                    state.chain = false;
                     refresh();
                 }
             })
@@ -281,6 +314,7 @@
         state.theme = 'dark';
         state.lang = 'both';
         state.full = false;
+        state.chain = false;
         refresh();
         document.addEventListener('keydown', onKeydown, true);
         var first = state.root.querySelector('[data-share-copy]');

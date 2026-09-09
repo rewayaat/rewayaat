@@ -196,6 +196,79 @@ a:hover {
 }
 #latest-news-bar:empty { display: none; }
 
+/* Every one of these is decoration. Someone who has asked their system for less motion
+   gets the same layout with none of it - the hero keeps its glow, the cards keep their
+   hover states, and nothing moves. */
+@media (prefers-reduced-motion: reduce) {
+    .hub-hero::before {
+        animation: none;
+        background-position: -150% 0, 0 0, 0 0;
+    }
+    .hub-card::before,
+    .hub-chapter::before {
+        display: none;
+    }
+}
+
+/* ── Site Announcement Bar ───────────────────────────────────────────────── */
+/* Injected as the first child of <body> by js/site-announcement.js, so it sits above the
+   sticky nav on every page. It scrolls away with the page rather than sticking: it is an
+   announcement, not navigation, and a permanently pinned strip costs vertical space on a
+   phone for something a reader only needs to see once. */
+.site-announcement {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 0.5rem 2.75rem 0.5rem 1rem;
+    background: linear-gradient(90deg, #12294d, #1a3a6b 45%, #12294d);
+    color: #fff;
+    font-size: 0.83rem;
+    letter-spacing: 0.01em;
+    text-align: center;
+}
+.site-announcement__inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.75rem;
+}
+.site-announcement__icon { color: #d5aa4d; }
+.site-announcement__text { font-weight: 500; }
+.site-announcement__link {
+    color: #f0d69a;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    white-space: nowrap;
+}
+.site-announcement__link:hover,
+.site-announcement__link:focus { color: #fff; }
+.site-announcement__close {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 1.35rem;
+    line-height: 1;
+    padding: 0 0.4rem;
+    cursor: pointer;
+}
+.site-announcement__close:hover,
+.site-announcement__close:focus { color: #fff; }
+
+@media (max-width: 575.98px) {
+    .site-announcement {
+        font-size: 0.78rem;
+        padding: 0.45rem 2.25rem 0.45rem 0.75rem;
+    }
+}
+
 /* ── Eid al-Ghadeer Banner ────────────────────────────────────────────────── */
 .eid-banner {
     background: linear-gradient(90deg, #faf6ee, #f5edd8, #faf6ee);
@@ -502,24 +575,6 @@ a:hover {
     border-bottom: none;
 }
 
-.search-mode-option:hover {
-    background: rgba(200, 162, 61, 0.12);
-}
-
-.search-mode-option.active {
-    background: rgba(200, 162, 61, 0.2);
-    color: var(--primary-dark);
-}
-
-.search-mode-option i.fa-check {
-    color: transparent;
-    font-size: 0.85rem;
-    transition: color 150ms ease;
-}
-
-.search-mode-option.active i.fa-check {
-    color: var(--gold-dark);
-}
 
 .mode-content {
     flex: 1;
@@ -857,69 +912,12 @@ a:hover {
         display: none;
     }
 }
-/* Hide nav links on non-homepage views */
-body.is-reading-mode .home-nav-links,
 body.is-collection-mode .home-nav-links,
 body.is-search-mode .home-nav-links {
     display: none !important;
 }
 
-.menu-reading-scope {
-    position: relative;
-    display: block;
-    /* The scope shares one line with the sign-in button and must never wrap off it, so
-       it is the item that absorbs the slack and ellipsises when there is none.
-       Two failure modes to avoid, both seen here: flex-shrink 0 (the original) meant a
-       long scope could not shrink below its own text and pushed the navbar wider than
-       the window; a min-width floor instead of ellipsis just moved the overflow. The
-       floor is a max-width on the label side, not a minimum on this one. */
-    flex: 1 1 auto;
-    min-width: 0;
-    max-width: 100%;
-    padding: 0.5rem 0.7rem;
-    border: 1px solid rgba(255,255,255,0.2);
-    border-left: 3px solid var(--gold);
-    border-radius: var(--radius-sm);
-    background: rgba(255,255,255,0.08);
-    box-shadow: var(--shadow-xs);
-    color: #fff;
-    font-family: var(--font-ui);
-    font-size: 0.88rem;
-    font-weight: 700;
-    line-height: 1.3;
-    overflow: hidden;
-}
-
-.menu-reading-scope::before {
-    content: "Reading Scope";
-    display: block;
-    margin-bottom: 0.15rem;
-    font-size: 0.6rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--gold);
-    line-height: 1;
-}
-
-.menu-reading-scope__value {
-    display: block;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
 .reading-path__value { display: block; min-width: 0; }
-
-.menu-reading-scope.is-empty {
-    color: rgba(255,255,255,0.5);
-    background: rgba(255,255,255,0.05);
-}
-.menu-reading-scope.is-empty::before { content: "Reading Mode"; }
-
-body.is-reading-mode .top-actions { margin-left: 0 !important; flex: 0 0 auto; }
-body.is-reading-mode .menu-context-row { flex: 1 1 auto; min-width: 0; max-width: 100%; }
 
 /* The reading scope and the account actions belong on one line together. Letting the
    row wrap dropped the scope onto a second line beside the sign-in button around
@@ -939,10 +937,6 @@ body.is-reading-mode .menu-context-row { flex: 1 1 auto; min-width: 0; max-width
 .menu-context-row > .top-actions {
     flex: 0 0 auto;
     width: max-content;
-}
-
-body.is-reading-mode .navbar-top {
-    flex-wrap: nowrap;
 }
 
 /* ── Profile Chip ───────────────────────────────────────────────────────── */
@@ -2291,45 +2285,26 @@ main.container::before {
     mask-image: linear-gradient(180deg, #000 58%, transparent 100%);
 }
 
-.hadith-notes__toggle {
-    position: relative;
-    align-self: flex-start;
-    margin-top: 0.45rem;
-    border: 1px solid rgba(13, 148, 136, 0.4);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.8);
-    color: #0f766e;
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    padding: 0.22rem 0.72rem;
-    cursor: pointer;
-    transition: all 150ms ease;
-}
-
 /* The pill reads better small, but 28px is under the 44px minimum touch
    target, so extend the hit area past the visual bounds instead of inflating
-   it. The upward 6px sits inside the existing margin, so it does not steal
-   taps from the notes text above. */
-.hadith-notes__toggle::after {
+   it. The upward 6px sits inside the existing margin{
     content: "";
     position: absolute;
     inset: -7px -8px -13px -8px;
 }
 
-.hadith-notes__toggle:hover {
-    background: #fff;
-    border-color: #0d9488;
-    color: #0b5f59;
-}
-
+/* A search hit has to be findable by glance. #1a3a6b20 - navy at 12.5% - blends to
+   rgb(226,230,236) on a white card, which is a neutral grey a shade off the background:
+   the markup was there and nobody could see it. A highlight reads by hue, not lightness,
+   so this is the site's gold at an alpha that actually registers, with a slightly
+   stronger underline edge to hold the shape at small sizes. */
 .hadith-content .highlight,
 .hadith-text-block .highlight,
 .hadith-english .highlight,
 .hadith-arabic .highlight,
 .hadith-inline-context .highlight {
-    background: #1a3a6b20;
+    background: rgba(200, 162, 61, 0.34);
+    box-shadow: inset 0 -1px 0 rgba(160, 126, 40, 0.45);
     border-radius: 3px;
     padding: 0 2px;
     box-decoration-break: clone;
@@ -2429,83 +2404,9 @@ main.container::before {
     font-weight: 700;
 }
 
-/* ========================================================================
-   READING TOOLBAR
-   ======================================================================== */
-.reading-toolbar {
-    background: var(--surface);
-    border: 1.5px solid var(--border-strong);
-    padding: 0.85rem 1.15rem;
-    margin-bottom: 1rem;
-    box-shadow: var(--shadow-md);
-}
-
-.reading-controls {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: end;
-    gap: 0.75rem 1rem;
-}
-
-.reading-field {
-    min-width: 160px;
-    flex: 1 1 160px;
-    max-width: 220px;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.reading-field label {
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--primary);
-    margin-bottom: 0.25rem;
-}
-
-.reading-field .form-select,
-.reading-field select {
-    background-color: var(--surface);
-    border: 2px solid var(--border-strong);
-    color: var(--text);
-    border-radius: var(--radius-sm);
-    padding: 0.4rem 0.6rem;
-    font-size: 0.88rem;
-    font-weight: 500;
-    transition: border-color 150ms ease, box-shadow 150ms ease;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8.5L1 3.5h10z'/%3E%3C/svg%3E");
-}
-
-.reading-field .form-select:disabled,
-.reading-field select:disabled {
-    opacity: 0.45;
-    background-color: var(--border);
-    color: var(--text-muted);
-    cursor: not-allowed;
-}
-
-.reading-field.is-hidden label,
-.reading-field select:disabled + label,
-.reading-field:has(select:disabled) label {
-    opacity: 0.45;
-    color: var(--text-muted);
-}
-
-.reading-field .form-select:focus,
-.reading-field select:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(30,58,95,0.15);
-    outline: none;
-}
-
 .facet-select-wrap {
     position: relative;
 }
-
-.reading-field.is-hidden,
 .browse-field.is-hidden {
     display: none !important;
 }
@@ -2521,51 +2422,10 @@ main.container::before {
     color: var(--text-muted);
 }
 
-/* Update Results button */
-.reading-toolbar .reading-apply,
-.reading-toolbar .browse-action.btn-primary {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 42px;
-    padding: 0.5rem 1.25rem;
-    font-size: 0.88rem;
-    font-weight: 700;
-    background: linear-gradient(180deg, #1a3a6b 0%, #0f2440 100%);
-    border: 1px solid var(--gold-light);
-    color: var(--gold-light);
-    border-radius: 12px;
-    box-shadow: var(--shadow-sm);
-    transition: all 250ms ease;
-    line-height: 1;
-}
-.reading-toolbar .reading-apply:hover:not(:disabled),
-.reading-toolbar .browse-action.btn-primary:hover:not(:disabled) {
-    background: linear-gradient(180deg, #1d467f 0%, #122945 100%);
-    border-color: #f7e1a6;
-    color: #f7e1a6;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(16, 35, 63, 0.2);
-}
-.reading-toolbar .reading-apply:disabled,
-.reading-toolbar .browse-action.btn-primary:disabled {
-    background: var(--border-strong);
-    border-color: var(--border-strong);
-    color: var(--text-muted);
-    box-shadow: none;
-}
-
 /* Glow animation for update button when changes pending */
 @keyframes updateBtnGlow {
     0%, 100% { box-shadow: 0 0 6px rgba(247, 225, 166, 0.3), 0 2px 8px rgba(0, 0, 0, 0.1); }
     50% { box-shadow: 0 0 18px rgba(247, 225, 166, 0.6), 0 4px 16px rgba(0, 0, 0, 0.15); }
-}
-.reading-toolbar .reading-apply.needs-update {
-    animation: updateBtnGlow 1.8s ease-in-out infinite;
-    border-color: var(--gold-light);
-}
-.reading-toolbar .reading-apply.needs-update .fa-refresh {
-    animation: spin 1.2s linear infinite;
 }
 @keyframes spin {
     from { transform: rotate(0deg); }
@@ -4751,8 +4611,6 @@ code.welcome {
 
     .top-actions { width: 100%; justify-content: flex-end; }
 
-    body.is-reading-mode .navbar-top { flex-wrap: nowrap !important; }
-
     .site-footer__grid { grid-template-columns: 1fr; }
 
     .hadith-editor-modal { min-width: min(92vw, 92vw); }
@@ -4769,8 +4627,6 @@ code.welcome {
     .profile-chip { padding-right: 0.45rem !important; }
     .profile-chip__meta { max-width: 6rem; }
     .profile-dropdown { width: min(300px, 92vw); }
-
-    .menu-reading-scope { max-width: calc(100vw - 130px); }
 
     .navbar-top {
         flex-wrap: wrap;
@@ -5187,7 +5043,6 @@ body::after {
     -webkit-backdrop-filter: none;
 }
 
-
 /* Dark search input on dark nav */
 .site-nav .ts-wrapper,
 .site-nav .ts-wrapper.form-control,
@@ -5371,20 +5226,6 @@ body::after {
     color: #0b1728 !important;
 }
 
-.menu-reading-scope {
-    border: 1px solid rgba(255,255,255,0.2);
-    border-left: 3px solid var(--gold-light);
-    border-radius: 16px;
-    padding: 0.7rem 0.95rem;
-    background: rgba(255,255,255,0.08);
-    color: #fff;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.menu-reading-scope::before {
-    color: var(--gold-light);
-}
-
 .profile-chip {
     border-radius: 16px !important;
     background: rgba(255,255,255,0.88) !important;
@@ -5398,9 +5239,22 @@ body::after {
     color: #0b1728 !important;
 }
 
+/* 1440px was too wide twice over. A narration card holds two text columns, English and
+   Arabic, and at that width each ran to a line length that is tiring to read while the
+   card itself carried large empty margins around them. It also collided with Bootstrap's
+   container gutter, which is about 12px: between roughly 1440 and 1520 the container hit
+   its cap with almost nothing left over, so the card sat flush against both edges of the
+   window - full-bleed at 1440, comfortably inset at 1920, for no reason a reader could
+   see.
+
+   1280 keeps the sidebar-plus-card layout intact and gives the columns a sane measure.
+   The explicit inline padding is the other half: a max-width alone cannot stop the
+   container touching the edges at the widths just above it. */
 main.container {
-    max-width: 1440px;
+    max-width: 1280px;
     padding-top: 1.5rem;
+    padding-left: clamp(1rem, 3vw, 2.5rem);
+    padding-right: clamp(1rem, 3vw, 2.5rem);
 }
 
 .home-hero {
@@ -5882,8 +5736,6 @@ main.container {
     color: #0b1728;
     text-decoration: underline;
 }
-
-.reading-toolbar,
 .tag-filter-bar {
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 255, 0.92));
     border: 1px solid #8080805c;
@@ -5893,8 +5745,6 @@ main.container {
     position: relative;
     overflow: hidden;
 }
-
-.reading-toolbar::before,
 .tag-filter-bar::before {
     content: "";
     position: absolute;
@@ -5902,18 +5752,6 @@ main.container {
     height: 4px;
     background: linear-gradient(90deg, #245bc6 0%, #5e8df1 56%, #c79a3b 100%);
 }
-
-.reading-toolbar {
-    padding: 1.15rem 1.2rem 1.05rem;
-    margin-bottom: 1.15rem;
-}
-
-.reading-controls {
-    gap: 0.9rem 1rem;
-}
-
-.reading-field .form-select,
-.reading-field select,
 .home-browse .browse-panel .form-select {
     min-height: 42px;
     border-radius: 12px;
@@ -7028,10 +6866,7 @@ body.is-resizing-sidecar * {
     mask-image: linear-gradient(180deg, #000 76%, transparent 100%);
 }
 
-/* Revealing the narration is the card's primary action: a solid grey button,
-   centred under the text it reveals and squared off so it reads as a control
-   rather than a tag. */
-.hadith-reading-toggle {
+/* Revealing the narration is the card's primary action: a solid grey button{
     position: relative;
     align-self: center;
     flex: 0 0 auto;
@@ -7053,24 +6888,6 @@ body.is-resizing-sidecar * {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16);
     cursor: pointer;
     transition: all 150ms ease;
-}
-
-.hadith-reading-toggle .fa {
-    font-size: 0.76rem;
-}
-
-/* Keep the visual pill small but meet the 44px touch target. */
-.hadith-reading-toggle::after {
-    content: "";
-    position: absolute;
-    inset: -8px -8px -12px -8px;
-}
-
-.hadith-reading-toggle:hover {
-    background: #c2c2c2;
-    border-color: #9e9e9e;
-    color: #000000;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.22);
 }
 
 .hadith-reading-scroll::-webkit-scrollbar,
@@ -7596,8 +7413,6 @@ body.is-resizing-sidecar * {
     grid-row: auto;
     align-self: auto;
 }
-
-
 
 .site-footer {
     margin-top: 4.8rem;
@@ -8266,11 +8081,11 @@ body.is-resizing-sidecar * {
    HOME HERO REFRESH
    ======================================================================== */
 .home-hero {
-    padding: 1rem 0 2.4rem;
+    padding: 0.75rem 0 1.6rem;
 }
 
 .home-hero__card {
-    padding: clamp(1.6rem, 3vw, 2.9rem);
+    padding: clamp(1.2rem, 2.2vw, 2rem);
     border-radius: 34px;
     border: 1px solid rgba(243, 229, 184, 0.16);
     background:
@@ -8356,8 +8171,8 @@ body.is-resizing-sidecar * {
     position: absolute;
     left: 50%;
     top: 52%;
-    width: min(72vw, 520px);
-    height: min(72vw, 520px);
+    width: min(52vw, 380px);
+    height: min(52vw, 380px);
     transform: translate(-50%, -50%);
     border-radius: 50%;
     background:
@@ -8372,16 +8187,20 @@ body.is-resizing-sidecar * {
     position: absolute;
     left: 50%;
     top: 52%;
-    width: min(64vw, 440px);
-    height: min(64vw, 440px);
+    width: min(46vw, 320px);
+    height: min(46vw, 320px);
     transform: translate(-50%, -50%);
     background: url('/img/hero-pattern.svg') center / contain no-repeat;
     opacity: 0.16;
     pointer-events: none;
 }
 
+/* The card was ~807px tall at 1280x720 - taller than the viewport it opens in, so
+   nothing below the fold was ever visible on a laptop without scrolling. The logo was
+   most of that on its own; the glow and pattern behind it are sized off it and come
+   down proportionally, or a smaller mark sits inside a halo built for a bigger one. */
 .home-hero__logo {
-    width: clamp(300px, 38vw, 500px);
+    width: clamp(200px, 24vw, 320px);
     max-width: 100%;
     height: auto;
     display: block;
@@ -10126,7 +9945,6 @@ body.is-search-mode .site-nav .search-entry-shell {
     }
 }
 
-
 /* ═══════════════════════════════════════════════════════════════════════
    COMPACT HEADER  (phones portrait and landscape, small tablets)
    A landscape phone is ~844px wide, above the 768px phone breakpoint, so it
@@ -10305,9 +10123,30 @@ body.is-search-mode .site-nav .search-entry-shell {
     position: absolute;
     inset: 0;
     background:
+        linear-gradient(105deg,
+            transparent 42%,
+            rgba(255, 255, 255, 0.05) 47%,
+            rgba(243, 229, 184, 0.07) 50%,
+            rgba(255, 255, 255, 0.05) 53%,
+            transparent 58%),
         radial-gradient(ellipse at 25% 8%, rgba(255,255,255,0.10) 0%, transparent 38%),
         radial-gradient(ellipse at 78% 92%, rgba(200,162,61,0.14) 0%, transparent 32%);
+    background-size: 250% 100%, auto, auto;
+    background-position: 250% 0, 0 0, 0 0;
+    background-repeat: no-repeat;
     pointer-events: none;
+    animation: hub-hero-sheen 11s ease-in-out infinite;
+}
+
+/* The sweep occupies a fifth of the cycle and the rest is stillness, so it reads as a
+   catch of light on a surface rather than a loading state. Peak opacity is 0.07 - at
+   0.15 it looked like a skeleton placeholder, which is the wrong association for a page
+   whose content has already arrived. Only the first background layer moves; the two
+   radial glows underneath stay where they are. */
+@keyframes hub-hero-sheen {
+    0%   { background-position: 250% 0, 0 0, 0 0; }
+    22%  { background-position: -150% 0, 0 0, 0 0; }
+    100% { background-position: -150% 0, 0 0, 0 0; }
 }
 
 /* The gold rule that closes every navy panel on this site. */
@@ -10343,6 +10182,258 @@ body.is-search-mode .site-nav .search-entry-shell {
     letter-spacing: -0.01em;
     color: #fff;
     text-wrap: balance;
+}
+
+/* ── Search button ──────────────────────────────────────────────────────── */
+/* It was a pale gold fill (#f7e1a6) inside the light search field, and measured against
+   that field it came to 1.04:1 - the button and its container were the same lightness,
+   so only a 1px border said a button was there at all. That is why it looked wrong
+   without looking like anything in particular: it read as a highlighted patch of the
+   input rather than the primary action on the page. Recolouring the border, which is
+   what I tried first, changed nothing anyone could see.
+
+   Navy fill with gold-light text instead: 9.29:1 against the nav's grey field, 11.5:1
+   against the white field in the hero, and 9.15:1 for the text on the fill. It is also
+   the site's own pairing - navy surface, gold on top - and it puts the search button
+   above the neighbouring Sign In, which is the correct order of the two.
+
+   The radius follows the field it sits inside rather than an arbitrary 9px: concentric
+   rounded shapes want inner = outer - gap. */
+.search-btn-with-border {
+    background: var(--primary) !important;
+    border: 1px solid var(--primary-dark) !important;
+    border-radius: 10px !important;
+    color: var(--gold-light) !important;
+}
+
+.search-btn-with-border:hover,
+.search-btn-with-border:focus-visible {
+    background: var(--primary-dark) !important;
+    border-color: var(--gold) !important;
+    color: #fff !important;
+}
+
+.search-btn-with-border i {
+    color: inherit !important;
+}
+
+/* ── Search tips ─────────────────────────────────────────────────────────── */
+/* The page used to load Bootswatch "materia" - a different Bootstrap theme from the
+   rest of the site - with no nav and no footer, which is why it read as someone else's
+   page. It now uses the site's own chrome, and these are the only rules it needs. */
+.tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: 1.1rem;
+    margin-top: 1.5rem;
+}
+
+.tips-card {
+    padding: 1.25rem 1.4rem;
+    border: 1px solid rgba(30, 58, 95, 0.12);
+    border-top: 3px solid rgba(30, 58, 95, 0.7);
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(245,248,252,0.99));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 10px 24px rgba(15, 23, 42, 0.05);
+}
+
+.tips-card__title {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin: 0 0 0.7rem;
+    font-family: var(--font-ornament);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--primary-dark, #10233f);
+}
+
+.tips-card__title .fa {
+    font-size: 0.85rem;
+    color: var(--gold);
+}
+
+.tips-card p {
+    margin: 0 0 0.6rem;
+    font-size: 0.92rem;
+    line-height: 1.6;
+}
+
+.tips-card p:last-child { margin-bottom: 0; }
+
+.tips-card__example {
+    padding: 0.6rem 0.75rem;
+    border-left: 2px solid var(--gold);
+    border-radius: 0 8px 8px 0;
+    background: rgba(200, 162, 61, 0.07);
+    line-height: 1.9;
+}
+
+.tips-card code {
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    background: rgba(16, 35, 63, 0.06);
+    color: #10233f;
+    font-size: 0.86em;
+    direction: ltr;
+    unicode-bidi: isolate;
+}
+
+.tips-card__note {
+    font-size: 0.86rem !important;
+    color: var(--text-muted, #5a6a7a);
+}
+
+.tips-footnote {
+    margin: 1.75rem 0 0;
+    font-size: 0.92rem;
+    color: var(--text-muted, #5a6a7a);
+}
+
+/* ── Text toggles ────────────────────────────────────────────────────────── */
+/* One control for every "this text is longer than what you can see" case. There were
+   three: the narration said "Show full hadith" in a grey pill centred under the text,
+   the notes said "Show more" in a teal pill at the bottom left, and a tafsir snippet
+   said "Expand" in a small navy chip at the top right. Same job, three vocabularies and
+   three positions.
+
+   "Show more" wins over "Expand" because all three are truncated running text rather
+   than containers, and it is the word the tag lists already use. Top right of the
+   block's header wins on position: it is the one spot that does not move when the text
+   grows, so the control a reader just clicked is still under the cursor. */
+.text-toggle {
+    flex: 0 0 auto;
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.18rem 0.55rem;
+    border: 1px solid rgba(16, 35, 63, 0.22);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.85);
+    color: #3d5170;
+    font-family: var(--font-ui);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    line-height: 1.5;
+    cursor: pointer;
+    transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.text-toggle:hover,
+.text-toggle:focus-visible {
+    background: #fff;
+    border-color: var(--gold);
+    color: var(--primary-dark, #10233f);
+}
+
+.text-toggle .fa {
+    font-size: 0.62rem;
+    opacity: 0.75;
+}
+
+/* Under the narration, centred. The block is two columns with mirrored reading
+   directions - English left, Arabic right - so aligning the control to either side would
+   attach it to one language. Centred belongs to both, which is what it controls. */
+.hadith-reading-foot {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.85rem;
+}
+
+/* .text-toggle carries margin-left:auto so it sits at the far end of a header row. A
+   flex child with an auto margin absorbs the free space itself and justify-content has
+   nothing left to distribute, so centring only works once that margin is cleared. */
+.hadith-reading-foot .text-toggle {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* In a header the control is pushed to the far end; standing under its own text it
+   should sit at the start of that text instead. */
+.text-toggle--start {
+    margin-left: 0 !important;
+    margin-top: 0.5rem;
+}
+
+/* The notes header was a label alone; it now has to place one against the other. */
+.hadith-notes__head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* ── Book hero, split ────────────────────────────────────────────────────── */
+/* The banner already reserved a full-width band for a centred title and three stat
+   pills, which left most of its area empty. On book pages it now carries the
+   introduction in a second column: identity on one side, what the collection is on the
+   other.
+
+   Body text in gold on this navy measures about 4.5:1 - defensible for a 21px uppercase
+   eyebrow, not for a paragraph - so the introduction is set in near-white and gold stays
+   the accent it is everywhere else on the site. The identity column also stops being
+   centred here: a paragraph beside a centred title has no shared edge to line up on. */
+.hub-hero--split {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    align-items: center;
+    gap: 2.25rem;
+    text-align: left;
+    padding: 2.5rem;
+}
+
+.hub-hero--split .hub-hero__identity,
+.hub-hero--split .hub-hero__intro {
+    position: relative;   /* above ::before, which paints the glow */
+    z-index: 1;
+}
+
+.hub-hero--split .hub-hero__stats {
+    justify-content: flex-start;
+}
+
+.hub-hero__intro {
+    border-left: 2px solid rgba(200, 162, 61, 0.45);
+    padding-left: 1.75rem;
+}
+
+.hub-hero__intro-text {
+    margin: 0;
+    font-family: 'Source Serif 4', Georgia, serif;
+    /* Smaller than body copy on purpose. At 1rem a 150-word overview pushed the banner
+       past the fold on a laptop; at 0.86 it reads as the standfirst it is, and the volume
+       grid stays on the first screen. Line height stays generous to keep it readable at
+       that size. */
+    font-size: 0.86rem;
+    line-height: 1.68;
+    color: rgba(255, 255, 255, 0.86);
+}
+
+/* One column below the split, with the rule moved to the top so it still reads as a
+   separator rather than an orphaned edge. The hero is the whole first screen on a
+   phone, so the type comes down a step and the padding with it. */
+@media (max-width: 767.98px) {
+    .hub-hero--split {
+        grid-template-columns: 1fr;
+        gap: 1.4rem;
+        padding: 2rem 1.5rem;
+        text-align: center;
+    }
+    .hub-hero--split .hub-hero__stats {
+        justify-content: center;
+    }
+    .hub-hero__intro {
+        border-left: 0;
+        border-top: 2px solid rgba(200, 162, 61, 0.4);
+        padding-left: 0;
+        padding-top: 1.3rem;
+        text-align: left;
+    }
+    .hub-hero__intro-text {
+        font-size: 0.82rem;
+        line-height: 1.6;
+    }
 }
 
 .hub-hero__lede {
@@ -10515,6 +10606,31 @@ body.is-search-mode .site-nav .search-entry-shell {
     transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease, background 180ms ease;
 }
 
+/* A sweep across the card on hover. Hover-only on purpose: a chapter listing can carry
+   hundreds of these, and animating them all at rest would be both distracting and a
+   pointless compositing cost. ::before is free here; ::after is the medallion below. */
+.hub-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 55%;
+    background: linear-gradient(105deg,
+        transparent,
+        rgba(255, 255, 255, 0.55) 45%,
+        rgba(200, 162, 61, 0.16) 55%,
+        transparent);
+    transform: translateX(-190%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.hub-card:hover::before {
+    transform: translateX(340%);
+    transition: transform 850ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
 /* A faint corner medallion, so a card is not just a rectangle. */
 .hub-card::after {
     content: "۞";
@@ -10617,42 +10733,9 @@ body.is-search-mode .site-nav .search-entry-shell {
     transform: none;
 }
 
-/* Straight into reading mode. Faint by default rather than hidden: an affordance
-   that only appears on hover is one most readers never discover, and it is invisible
-   on touch entirely. It brightens on hover instead. */
-.hub-chapter-read {
-    flex: none;
-    display: inline-flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding-top: 0.62rem;
-    width: 2.25rem;
-    border-radius: var(--radius-md);
-    color: var(--text-faint);
-    text-decoration: none;
-    opacity: 0.55;
-    transition: color 150ms ease, background 150ms ease, opacity 150ms ease;
-}
-
-.hub-chapter-row:hover .hub-chapter-read,
-.hub-chapter-read:focus-visible {
-    opacity: 1;
-    color: var(--gold-dark);
-}
-
-.hub-chapter-read:hover {
-    background: rgba(200, 162, 61, 0.18);
-    color: var(--gold-dark);
-}
-
-@media (hover: none) {
-    .hub-chapter-read {
-        opacity: 1;
-        color: var(--gold);
-    }
-}
-
 .hub-chapter {
+    position: relative;
+    overflow: hidden;
     display: flex;
     align-items: baseline;
     gap: 0.9rem;
@@ -10661,6 +10744,33 @@ body.is-search-mode .site-nav .search-entry-shell {
     border-left: 2px solid transparent;
     text-decoration: none;
     transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
+}
+
+.hub-chapter::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 45%;
+    background: linear-gradient(105deg,
+        transparent,
+        rgba(255, 255, 255, 0.6) 45%,
+        rgba(200, 162, 61, 0.14) 55%,
+        transparent);
+    transform: translateX(-190%);
+    pointer-events: none;
+}
+
+.hub-chapter:hover::before {
+    transform: translateX(420%);
+    transition: transform 800ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* The row's own content has to sit above the sweep. */
+.hub-chapter > * {
+    position: relative;
+    z-index: 1;
 }
 
 .hub-chapter:hover {
@@ -11306,12 +11416,6 @@ body.is-search-mode .site-nav .search-entry-shell {
     text-decoration: none;
 }
 
-.topic-pill__count {
-    margin-left: 0.4rem;
-    opacity: 0.7;
-    font-size: 0.72em;
-}
-
 /* Hero chips and eyebrows that lead somewhere look like it, without becoming loud
    enough to compete with the title they sit under. */
 a.hub-stat,
@@ -11668,4 +11772,117 @@ a.hub-hero__eyebrow:hover {
 @media (max-width: 575.98px) {
     .share-card-modal__panel { padding: 1rem; }
     .share-card-modal__actions .share-card-modal__btn { flex: 1 1 auto; }
+}
+
+/* ── Search mode menu ────────────────────────────────────────────────────── */
+/* It was a flat #efefef panel with centred uppercase labels, no icons, and - the part
+   that actually mattered - an .is-active rule that set `background: transparent`, so the
+   mode you were currently in looked exactly like the one you were not. A menu whose only
+   job is to show a current choice was not showing it.
+
+   It is now an extension of the button it hangs from: same navy, gold on top. Each row
+   carries an icon for what the mode does, a label, a line of plain English, and a check
+   that appears only on the mode in force. Rows are left-aligned so the labels share an
+   edge, which is what makes even a two-item menu scannable. */
+.search-mode-menu {
+    min-width: 268px !important;
+    padding: 0.3rem !important;
+    border: 1px solid rgba(200, 162, 61, 0.42) !important;
+    border-radius: 12px !important;
+    background: linear-gradient(180deg, #16305a 0%, #0f2440 100%) !important;
+    box-shadow: 0 18px 38px rgba(6, 13, 25, 0.42) !important;
+    gap: 0.15rem !important;
+}
+
+.search-mode-option {
+    grid-template-columns: 1.35rem 1fr auto !important;
+    grid-template-rows: auto auto !important;
+    column-gap: 0.6rem !important;
+    row-gap: 0.1rem !important;
+    padding: 0.5rem 0.6rem !important;
+    border-radius: 9px !important;
+    border-left: 2px solid transparent !important;
+    text-align: left !important;
+    background: transparent !important;
+    transition: background 150ms ease, border-color 150ms ease !important;
+}
+
+.search-mode-option__icon {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    align-self: center;
+    justify-self: center;
+    font-size: 0.8rem;
+    color: rgba(243, 229, 184, 0.55);
+    transition: color 150ms ease;
+}
+
+.search-mode-option__label {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    color: #f3e5b8 !important;
+    text-align: left;
+}
+
+.search-mode-option__meta {
+    grid-column: 2 !important;
+    grid-row: 2 !important;
+    font-size: 0.63rem !important;
+    font-weight: 500 !important;
+    text-transform: none !important;
+    line-height: 1.35;
+    color: rgba(226, 234, 246, 0.62) !important;
+    text-align: left;
+    white-space: normal;
+}
+
+/* The arrow that used to appear on hover said "this row is under the pointer", which the
+   highlight already says. A check on the active row says the thing the menu exists for. */
+.search-mode-option::after {
+    content: none !important;
+}
+
+.search-mode-option__check {
+    /* !important because an older rule set every .fa-check in this menu to transparent
+       and undid it only for .active - a class the script never sets, it sets .is-active.
+       That pair is deleted above; this stays explicit so reintroducing it cannot make the
+       check silently invisible again. */
+    color: var(--gold) !important;
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    align-self: center;
+    font-size: 0.72rem;
+    opacity: 0;
+    transition: opacity 150ms ease;
+}
+
+.search-mode-option:hover,
+.search-mode-option:focus-visible {
+    background: rgba(255, 255, 255, 0.07) !important;
+}
+
+.search-mode-option:hover .search-mode-option__icon,
+.search-mode-option:focus-visible .search-mode-option__icon {
+    color: rgba(243, 229, 184, 0.85);
+}
+
+.search-mode-option.is-active,
+.search-mode-option[aria-pressed="true"] {
+    background: rgba(200, 162, 61, 0.16) !important;
+    border-left-color: var(--gold) !important;
+}
+
+.search-mode-option.is-active .search-mode-option__icon,
+.search-mode-option[aria-pressed="true"] .search-mode-option__icon {
+    color: var(--gold-light);
+}
+
+.search-mode-option.is-active .search-mode-option__meta,
+.search-mode-option[aria-pressed="true"] .search-mode-option__meta {
+    color: rgba(243, 229, 184, 0.78) !important;
+}
+
+.search-mode-option.is-active .search-mode-option__check,
+.search-mode-option[aria-pressed="true"] .search-mode-option__check {
+    opacity: 1;
 }

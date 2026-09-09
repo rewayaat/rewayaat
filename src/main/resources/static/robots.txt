@@ -2,6 +2,9 @@ User-agent: *
 Allow: /
 Disallow: /edit
 Disallow: /v1/
+# MCP endpoints. Agent traffic, not crawler traffic - robots.txt does not govern an
+# MCP client, but a crawler has nothing to index here either.
+Disallow: /mcp
 Disallow: /swagger-ui.html
 Disallow: /signin.html
 

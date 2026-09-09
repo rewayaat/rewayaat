@@ -7,7 +7,11 @@
 <main class="container py-3">
     <nav th:replace="~{fragments/site :: crumbtrail}"></nav>
 
-    <header class="hub-hero">
+    <!-- Split only when there is something to put in the second column; volume, part and
+         chapter heroes keep the centred layout, and a book with no introduction would
+         otherwise show an empty half. -->
+    <header class="hub-hero" th:classappend="${bookSummary != null} ? 'hub-hero--split' : ''">
+      <div class="hub-hero__identity">
         <div class="hub-hero__eyebrow">Collection</div>
         <h1 class="hub-hero__title" th:text="${book.name}">Book name</h1>
         <div class="hub-hero__stats">
@@ -24,6 +28,14 @@
                 volumes
             </a>
         </div>
+      </div>
+
+      <!-- What the collection is, next to what it is called. A page that opens straight
+           into a grid of "Volume 1..8" assumes the reader already knows the book; most
+           people arriving from a search do not. -->
+      <div class="hub-hero__intro" th:if="${bookSummary != null}">
+        <p class="hub-hero__intro-text" th:text="${bookSummary}">An introduction.</p>
+      </div>
     </header>
 
     <div th:replace="~{fragments/site :: ornament}"></div>
@@ -73,11 +85,6 @@
                         <span class="hub-chapter__count-unit"
                               th:text="${chapter.count == 1} ? 'hadith' : 'hadith'">hadith</span>
                     </span>
-                </a>
-                <a class="hub-chapter-read" th:href="${chapter.readingUrl}"
-                   th:title="'Read ' + ${chapter.title}"
-                   th:aria-label="'Read ' + ${chapter.title} + ' in reading mode'">
-                    <i class="fa fa-book-open" aria-hidden="true"></i>
                 </a>
             </li>
         </ul>

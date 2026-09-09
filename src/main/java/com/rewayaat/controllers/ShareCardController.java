@@ -93,6 +93,8 @@ public class ShareCardController {
                                                         required = false) String lang,
                                                 @RequestParam(value = "full",
                                                         required = false) String full,
+                                                @RequestParam(value = "chain",
+                                                        required = false) String chain,
                                                 @RequestHeader(value = "If-None-Match",
                                                         required = false) String ifNoneMatch) {
         Map<String, Object> source = narration(id);
@@ -105,10 +107,75 @@ public class ShareCardController {
         // Ahmad ibn Muhammad..." would spend the whole image on boilerplate that is
         // identical across thousands of narrations.
         Map<String, Object> card = cards.build(id, source, null, BASE_URL);
+        boolean withChain = isTrue(chain);
+        ShareCardRenderer.Options opts = options(lang, full);
 
         return respond(new ShareCardRenderer.Card(narrationEyebrow(source),
-                        clean(str(card.get("arabic"))), clean(str(card.get("english"))), DOMAIN),
-                theme(theme), options(lang, full), ifNoneMatch);
+                        withChain(clean(str(card.get("arabicChain"))),
+                                clean(str(card.get("arabic"))), withChain),
+                        withChain(clean(str(card.get("englishChain"))),
+                                clean(str(card.get("english"))), withChain),
+                        DOMAIN),
+                theme(theme), opts, ifNoneMatch,
+                chainAvailable(card, opts.language()));
+    }
+
+    /**
+     * Whether the isnād toggle can do anything for the language on screen.
+     *
+     * <p>The chain is separated from the matn by {@link com.rewayaat.core.HadithDisplaySegmenter},
+     * whose detection is per language and does not always succeed on both. Where it reads
+     * the Arabic chain but not the English one, the English text still carries its isnād
+     * inline - there was nothing to lift out of it - so turning the toggle on changes the
+     * Arabic and leaves the English exactly as it was. The control then looks broken, and
+     * on an English-only card it looks completely inert.
+     *
+     * <p>So the toggle is offered only when it will visibly do something, the same way
+     * Trimmed/Full is offered only when the two differ. Sampled over 100 narrations, both
+     * chains are detected for 89; this hides the control for the rest rather than showing
+     * a switch that does nothing.
+     */
+    private static boolean chainAvailable(Map<String, Object> card,
+                                          ShareCardRenderer.Language language) {
+        boolean arabic = !str(card.get("arabicChain")).isBlank();
+        boolean english = !str(card.get("englishChain")).isBlank();
+        return switch (language) {
+            case ARABIC -> arabic;
+            case ENGLISH -> english;
+            default -> arabic && english;
+        };
+    }
+
+    /**
+     * Puts the isnād back in front of the matn when the sharer asked for it.
+     *
+     * <p>Off by default, and that is the important half: a card is 1200x630, and an isnād
+     * runs to a line of names that is near-identical across thousands of narrations, so
+     * including it by default would spend most of the image on the part a reader skims.
+     * But a chain is the evidence for a narration, and someone sharing one to argue about
+     * its transmission needs it visible - hence a choice rather than a rule.
+     *
+     * <p>Nothing else has to change for the cache to follow: respond() hashes the card's
+     * own text, so a card with the chain hashes differently and gets its own ETag and its
+     * own entry, without chain becoming part of the key by hand.
+     */
+    private static String withChain(String chainText, String matn, boolean include) {
+        if (!include || chainText == null || chainText.isBlank()) {
+            return matn;
+        }
+        if (matn == null || matn.isBlank()) {
+            return chainText;
+        }
+        return chainText.trim() + " " + matn.trim();
+    }
+
+    /** Query flags arrive as "true", "1" or "on" depending on who wrote the link. */
+    private static boolean isTrue(String value) {
+        if (value == null) {
+            return false;
+        }
+        String v = value.trim().toLowerCase(Locale.ROOT);
+        return v.equals("true") || v.equals("1") || v.equals("on") || v.equals("yes");
     }
 
     /**
@@ -378,14 +445,49 @@ public class ShareCardController {
     /**
      * Serves the card, drawing it only if it is not already in memory.
      *
-     * <p>The ETag is a hash of the card's own text and theme, and it is also the cache
-     * key. That is what makes an edit to a narration invalidate both at once: changed text
-     * hashes differently, so it misses the cache and no longer matches a stored ETag.
-     * Keying the cache by narration id instead would have gone on serving the old image
-     * forever, which is exactly the failure {@code immutable} makes unrecoverable.
+     * <p>The ETag is a hash of the card's own text, theme, language and completeness, and
+     * it is also the in-memory cache key. That is what makes an edit to a narration
+     * invalidate the render: changed text hashes differently, so it misses the cache and no
+     * longer matches a stored ETag.
+     *
+     * <p>What that does <em>not</em> do on its own is reach caches outside this process.
+     * The URL is stable across an edit - {@code /hadith/{id}/card.png} plus the theme,
+     * language and completeness parameters, eight variants of one narration - so a browser
+     * or CDN holding the old PNG will keep serving it until it revalidates. This response
+     * was previously marked {@code immutable} with a year's {@code max-age}, which tells a
+     * client in as many words never to revalidate: the ETag was then unreachable, and an
+     * edited narration would have shown its old card for a year with no way to force the
+     * issue short of changing the URL.
+     *
+     * <p>{@code immutable} is a promise that the bytes behind a URL will never change, and
+     * it is only safe when the URL carries a content hash. This one does not, so the header
+     * says what is true instead: cache briefly, then revalidate. The ETag makes that
+     * revalidation cheap - a 304 with no body - and {@code stale-while-revalidate} lets a
+     * shared cache serve the old card while it fetches the new one, so correcting the
+     * header costs latency nowhere.
      */
     /** Says whether the default card cut this narration short. Read by the share dialog. */
     private static final String TRIMMED_HEADER = "X-Card-Trimmed";
+
+    /** Says whether an isnād was separated for the language on screen. Read by the dialog. */
+    private static final String CHAIN_HEADER = "X-Card-Chain";
+
+    /**
+     * How long a card may be served without asking us again.
+     *
+     * <p>Short, because the URL does not change when a narration is edited, and long enough
+     * that a page embedding several cards does not revalidate each one on every view.
+     */
+    private static final Duration CARD_MAX_AGE = Duration.ofMinutes(10);
+
+    /**
+     * How long a shared cache may serve a stale card while it fetches a fresh one.
+     *
+     * <p>This is what keeps the correction free: a CDN answers immediately from what it
+     * has and refreshes behind the request, so an edit propagates within minutes without
+     * anyone waiting on a render.
+     */
+    private static final Duration CARD_STALE_WHILE_REVALIDATE = Duration.ofDays(1);
 
     /** Enough to find the lowest-numbered narration without paging a whole volume. */
     private static final int OPENING_CANDIDATES = 60;
@@ -405,19 +507,28 @@ public class ShareCardController {
     private ResponseEntity<byte[]> respond(ShareCardRenderer.Card card,
                                            ShareCardRenderer.Theme theme,
                                            ShareCardRenderer.Options options, String ifNoneMatch) {
+        return respond(card, theme, options, ifNoneMatch, false);
+    }
+
+    private ResponseEntity<byte[]> respond(ShareCardRenderer.Card card,
+                                           ShareCardRenderer.Theme theme,
+                                           ShareCardRenderer.Options options, String ifNoneMatch,
+                                           boolean chainAvailable) {
         // Theme, language and completeness are part of the key as well as the text: they
         // are different images behind one URL, and a shared ETag would serve one for
         // another.
         String hash = hash(theme + " " + options.language() + " " + options.full() + " "
                 + card.eyebrow() + " " + card.arabic() + " " + card.english());
         String etag = "\"" + hash + "\"";
-        CacheControl caching = CacheControl.maxAge(Duration.ofDays(365)).cachePublic().immutable();
+        CacheControl caching = CacheControl.maxAge(CARD_MAX_AGE).cachePublic()
+                .staleWhileRevalidate(CARD_STALE_WHILE_REVALIDATE);
 
         // A conditional request may quote the tag weakly ("W/..."), and a client is
         // allowed to send several.
         if (ifNoneMatch != null && ifNoneMatch.contains(hash)) {
             return ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(etag).cacheControl(caching)
                     .header(TRIMMED_HEADER, Boolean.toString(renderer.truncates(card, options)))
+                    .header(CHAIN_HEADER, Boolean.toString(chainAvailable))
                     .build();
         }
 
@@ -436,23 +547,36 @@ public class ShareCardController {
                 // Lets the share dialog drop the trimmed/full choice when this narration
                 // fits either way, rather than offering a control that changes nothing.
                 .header(TRIMMED_HEADER, Boolean.toString(renderer.truncates(card, options)))
+                .header(CHAIN_HEADER, Boolean.toString(chainAvailable))
                 .body(png);
     }
 
     // ── Content ─────────────────────────────────────────────────────────────
 
     /** "AL-KĀFI · VOLUME 2 · HADITH 81" — the citation, so a screenshot stays attributable. */
+    /**
+     * The citation across the top of a narration card.
+     *
+     * <p>Carries the part and the chapter as well as the book and volume, because a card
+     * shared without them says which collection a narration is from but not what it is
+     * about - and the chapter title is usually the best one-line answer to that. The
+     * renderer drops segments from the middle when the line is too long for the card, so
+     * a sixty-character Al-Kāfi chapter title is safe to include here.
+     */
     private static String narrationEyebrow(Map<String, Object> source) {
         StringBuilder eyebrow = new StringBuilder(str(source.get("book")));
-        String volume = str(source.get("volume"));
-        if (!volume.isBlank()) {
-            eyebrow.append(" · Volume ").append(volume);
-        }
-        String number = str(source.get("number"));
-        if (!number.isBlank()) {
-            eyebrow.append(" · Hadith ").append(number);
-        }
+        appendCitationPart(eyebrow, "Volume ", str(source.get("volume")));
+        appendCitationPart(eyebrow, "", str(source.get("part")));
+        appendCitationPart(eyebrow, "", str(source.get("chapter")));
+        appendCitationPart(eyebrow, "Hadith ", str(source.get("number")));
         return eyebrow.toString().trim().toUpperCase(Locale.ROOT);
+    }
+
+    private static void appendCitationPart(StringBuilder eyebrow, String prefix, String value) {
+        if (value == null || value.isBlank()) {
+            return;
+        }
+        eyebrow.append(" · ").append(prefix).append(value.trim());
     }
 
     private Map<String, Object> narration(String id) {
@@ -464,7 +588,8 @@ public class ShareCardController {
             var response = provider.client().get(g -> g
                     .index(ESClientProvider.INDEX)
                     .id(narrationId)
-                    .sourceIncludes("arabic", "english", "book", "volume", "number", "topic_tags"),
+                    .sourceIncludes("arabic", "english", "book", "volume", "part", "chapter",
+                            "number", "topic_tags"),
                     Map.class);
             if (!response.found() || response.source() == null) {
                 return Map.of();

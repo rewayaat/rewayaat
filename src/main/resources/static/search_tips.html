@@ -3,47 +3,159 @@
 <head>
     <meta charset="UTF-8"/>
     <meta content="width=device-width, initial-scale=1" name="viewport"/>
-    <title>Search Tips - Rewayaat</title>
-    <meta name="description" content="How to search the Shia hadith database: field queries, phrase matching, topic tags and Arabic diacritic-insensitive search."/>
+    <title>Search Tips — Rewayaat Hadith Database</title>
+    <meta name="description" content="How to search 32,519 Shia narrations: field filters, exact phrases, precise and flexible matching, topic tags, and searching in Arabic or English."/>
     <link rel="canonical" href="https://hadith.academyofislam.com/search_tips.html"/>
     <meta property="og:type" content="website"/>
     <meta property="og:site_name" content="Rewayaat — Shia Hadith Database"/>
     <meta property="og:title" content="Search Tips — Rewayaat Hadith Database"/>
-    <meta property="og:description" content="How to search the Shia hadith database: field queries, phrase matching, topic tags and Arabic diacritic-insensitive search."/>
+    <meta property="og:description" content="How to search 32,519 Shia narrations: field filters, exact phrases, precise and flexible matching, topic tags, and searching in Arabic or English."/>
     <meta property="og:url" content="https://hadith.academyofislam.com/search_tips.html"/>
     <meta property="og:image" content="https://hadith.academyofislam.com/img/share-card.png"/>
     <meta property="og:image:width" content="1200"/>
     <meta property="og:image:height" content="630"/>
-    <meta property="og:image:alt" content="Rewayaat — a searchable database of Shia hadith in Arabic and English"/>
     <meta name="twitter:card" content="summary_large_image"/>
     <meta name="twitter:title" content="Search Tips — Rewayaat Hadith Database"/>
-    <meta name="twitter:description" content="How to search the Shia hadith database: field queries, phrase matching, topic tags and Arabic diacritic-insensitive search."/>
+    <meta name="twitter:description" content="How to search 32,519 Shia narrations: field filters, exact phrases, precise and flexible matching, topic tags, and searching in Arabic or English."/>
     <meta name="twitter:image" content="https://hadith.academyofislam.com/img/share-card.png"/>
-    <meta name="twitter:image:alt" content="Rewayaat — a searchable database of Shia hadith in Arabic and English"/>
-    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/materia/bootstrap.min.css" rel="stylesheet"/>
-    <link href="/css/manuscript.css?v=32" rel="stylesheet"/>
+
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+          integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    <link href="/css/manuscript.css" rel="stylesheet"/>
+    <script src="/js/site-announcement.js" defer></script>
 </head>
-<body class="bg-light">
-<main class="container py-4">
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-4">
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-                <h1 class="h4 mb-0">Search Tips</h1>
-                <a href="/" class="btn btn-outline-dark btn-sm">Back to Home</a>
+<body>
+<nav class="navbar navbar-expand-lg sticky-top site-nav">
+    <div class="container">
+        <div class="navbar-top w-100 d-flex align-items-center flex-wrap gap-3">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+                <img src="/img/Alilogov2-transparent.png" class="brand-logo--full brand-logo--full-v2 d-none d-md-block" alt="ALI Logo"/>
+                <img src="/img/ali_icon.png" class="brand-logo--icon d-md-none" alt="ALI"/>
+            </a>
+            <div class="d-flex home-nav-links">
+                <a href="/" class="home-nav-link"><i class="fa fa-magnifying-glass" aria-hidden="true"></i><span>Search</span></a>
+                <a href="/books" class="home-nav-link"><i class="fa fa-book-open" aria-hidden="true"></i><span>Books</span></a>
+                <a href="/updates.html" class="home-nav-link"><i class="fa fa-bolt" aria-hidden="true"></i><span>Updates</span></a>
             </div>
-            <div class="text-muted mb-3">
-                Use these tips to get faster, cleaner results from the hadith search bar.
+            <div class="ms-auto d-flex align-items-center gap-2 top-actions flex-nowrap">
+                <a class="btn btn-dark btn-sm top-action auth-action" href="/signin.html?mode=login&amp;return=%2Fsearch_tips.html">
+                    <i class="fa fa-right-to-bracket" aria-hidden="true"></i>
+                    Sign In
+                </a>
             </div>
-            <ul class="mb-0">
-                <li>Use quotes for exact phrases, for example <code>"pledge of allegiance"</code>.</li>
-                <li>Use field filters like <code>book:"Al-Kafi"</code> or <code>chapter:"Prayer"</code>.</li>
-                <li>Combine terms to narrow results, for example <code>book:"Al-Kafi" prayer intention</code>.</li>
-                <li>Search in Arabic or English; both are supported.</li>
-                <li>Switch to Reading Mode when you want ordered navigation through a book.</li>
-            </ul>
         </div>
     </div>
+</nav>
+
+<main class="container py-4">
+    <nav class="hub-crumbs" aria-label="Breadcrumb">
+        <a href="/">Home</a> <span aria-hidden="true">/</span> <span>Search Tips</span>
+    </nav>
+
+    <header class="hub-hero hub-hero--split">
+      <div class="hub-hero__identity">
+        <div class="hub-hero__eyebrow">Guide</div>
+        <h1 class="hub-hero__title">Search Tips</h1>
+        <div class="hub-hero__stats">
+            <span class="hub-stat"><span class="hub-stat__value">32,519</span> narrations</span>
+            <span class="hub-stat"><span class="hub-stat__value">18</span> books</span>
+        </div>
+      </div>
+      <div class="hub-hero__intro">
+        <p class="hub-hero__intro-text">The search bar takes plain words, but it also understands phrases, field
+        filters and two matching modes. A few of these make the difference between
+        finding one narration and finding the chapter it sits in.</p>
+      </div>
+    </header>
+
+    <div class="tips-grid">
+        <section class="tips-card">
+            <h2 class="tips-card__title"><i class="fa fa-quote-right" aria-hidden="true"></i> Exact phrases</h2>
+            <p>Wrap words in double quotes to match them together, in order.</p>
+            <p class="tips-card__example"><code>"pledge of allegiance"</code></p>
+            <p class="tips-card__note">Without quotes the words are matched separately and a narration containing
+            only one of them can still rank.</p>
+        </section>
+
+        <section class="tips-card">
+            <h2 class="tips-card__title"><i class="fa fa-filter" aria-hidden="true"></i> Filter by field</h2>
+            <p>Narrow to part of the corpus with <code>field:"value"</code>. Quotes are required.</p>
+            <p class="tips-card__example">
+                <code>book:"Al-Kāfi"</code><br/>
+                <code>chapter:"The meaning of the intellect"</code>
+            </p>
+            <p class="tips-card__note">Available fields: <code>book</code>, <code>volume</code>, <code>part</code>,
+            <code>section</code>, <code>chapter</code>, <code>number</code>, <code>source</code>,
+            <code>topic_tags</code>.</p>
+        </section>
+
+        <section class="tips-card">
+            <h2 class="tips-card__title"><i class="fa fa-layer-group" aria-hidden="true"></i> Combine the two</h2>
+            <p>A field filter and search terms together search only inside that scope.</p>
+            <p class="tips-card__example"><code>book:"Al-Kāfi" prayer intention</code></p>
+            <p class="tips-card__note">A filter on its own, with no search terms, is a request to browse: it opens
+            the book, volume, part or chapter page instead of returning results.</p>
+        </section>
+
+        <section class="tips-card">
+            <h2 class="tips-card__title"><i class="fa fa-language" aria-hidden="true"></i> Arabic and English</h2>
+            <p>Search in either language, and type it however is easiest.</p>
+            <p class="tips-card__example">
+                <code>الصوم جنة</code> and <code>الصَّوْمُ جُنَّةٌ</code> &mdash; the same results<br/>
+                <code>Muhammad</code> and <code>Muḥammad</code> &mdash; the same results
+            </p>
+            <p class="tips-card__note">Vowel marks are ignored, so a bare Arabic word finds the fully vowelled text
+            stored here. Transliteration is folded the same way: <code>Ali</code> finds <code>ʿAlī</code> and
+            <code>hadith</code> finds <code>ḥadīth</code>. English plurals are matched with their
+            singular, so <code>prayers</code> finds narrations that say <code>prayer</code>.</p>
+        </section>
+
+        <section class="tips-card">
+            <h2 class="tips-card__title"><i class="fa fa-crosshairs" aria-hidden="true"></i> Precise or flexible</h2>
+            <p>The dropdown beside the search button chooses how strictly your words are read.</p>
+            <p class="tips-card__note"><strong>Flexible</strong> (the default) forgives a single mistyped letter and
+            does not require every word, which is what you want when you are unsure of a spelling.
+            <strong>Precise</strong> requires every word exactly as typed, which is how you check whether a
+            particular wording occurs at all.</p>
+        </section>
+
+        <section class="tips-card">
+            <h2 class="tips-card__title"><i class="fa fa-tags" aria-hidden="true"></i> Topic tags</h2>
+            <p>Results carry tag pills, and the bar above them lists the tags present in the current results with a
+            count against each.</p>
+            <p class="tips-card__note">Clicking one filters what you already have rather than starting a new search,
+            which is the quickest way to cut a broad query down to a subject.</p>
+        </section>
+    </div>
+
+    <p class="tips-footnote">
+        Still stuck? <a href="/books">Browse by book</a> instead — every collection, volume, part and chapter has a
+        page of its own.
+    </p>
 </main>
+
+<footer class="site-footer">
+    <div class="container">
+        <div class="site-footer__grid">
+            <div>
+                <div class="site-footer__title">Rewayaat</div>
+                <p class="site-footer__text">
+                    A project of the <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" class="site-footer__link">Academy for Learning Islam</a>. Search, browse, and study Shi'i narrations in Arabic and English.
+                </p>
+            </div>
+        </div>
+        <div class="site-footer__bottom">
+            <span>&copy; 2026 Academy for Learning Islam (A.L.I.)</span>
+        </div>
+    </div>
+</footer>
+
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-3HSRTQD7GM"></script>
 <script>
     window.dataLayer = window.dataLayer || [];

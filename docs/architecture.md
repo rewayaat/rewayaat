@@ -38,9 +38,9 @@ pipelines and read straight out of the index.
 | Deploy | Docker → DigitalOcean Kubernetes, GitHub Actions, Argo CD |
 | ML | sentence-transformers (`multilingual-e5-large` + LoRA), Claude sub-agents |
 
-## Two Front Doors
+## Three Front Doors
 
-The site serves the same corpus two ways, and the distinction runs through the whole
+The same corpus is served three ways, and the distinction runs through the whole
 codebase.
 
 **Server-rendered pages** (`controllers/`) return HTML with real `<a href>` links. They
@@ -51,7 +51,12 @@ from the XML sitemap.
 **JSON API** (`controllers/rest/`) backs the Vue application: live search, the similar
 panel, collections, editing.
 
-The two surfaces share endpoints but not JavaScript. Server-rendered pages load the
+**MCP tools** (`mcp/`) serve the corpus to language models — Claude, ChatGPT, and this
+site's own chatbot — which want narrations rather than pages, shaped for a context window
+and counted so an answer can be complete rather than partial. See
+[MCP Connector](#mcp-connector).
+
+The two browser surfaces share endpoints but not JavaScript. Server-rendered pages load the
 small `hub-pages.js` rather than the 274 KB search bundle, so a reader stays signed in
 and can still save a narration without the page paying for a search app it does not run.
 
@@ -68,6 +73,8 @@ com.rewayaat/
 │   └── extractors/       # 13 source-specific HTML extractors
 ├── loader/               # One-time corpus loaders, per book
 ├── tools/                # Runnable offline backfill / audit tools
+├── mcp/                  # MCP connector: the corpus as tools
+│   └── tools/            # One class per tool
 └── config/               # Spring configuration
 ```
 
@@ -196,6 +203,41 @@ Runnable Java classes in `com.rewayaat.tools`, invoked with the built classpath 
 | `QuranVerseEmbeddingTool`, `TafsirEmbeddingTool` | Embedding backfills |
 | `TopicTaxonomyAuditTool`, `TopicTagsQaTool`, `TopicTagGoldSet*Tool` | Tag quality |
 | `TagMigrationTool` | Taxonomy remapping |
+
+## MCP Connector
+
+The third front door, and the one that is not a browser. `/mcp` serves the corpus over the
+Model Context Protocol so Claude, ChatGPT and this site's own chatbot can query it as tools
+rather than as pages. It runs in this application: the chatbot calls
+`McpToolCatalog.invoke(name, arguments)` directly and never speaks JSON-RPC to itself.
+
+| Tool | Purpose |
+|---|---|
+| `search`, `fetch` | ChatGPT's fixed compatibility schema — one string in, a prescribed shape out |
+| `search_hadith` | Field-aware search **plus `total_matches`** |
+| `get_chapter` | A chapter in order **plus `chapter_size`** |
+| `find_similar` | Judged similarity links, with the written reason |
+| `verses_for_hadith`, `hadith_for_verse` | The Qurʾānic connections, both directions |
+
+The counts are the point rather than decoration: a model reading ten results with no
+denominator cannot tell whether it has seen a subject or a tenth of it.
+
+Search runs through `QueryStringQueryResult`, the same builder the website uses, via its
+`rawResult` and `queryFields` seams — one query builder, two output shapes. The reasoning,
+the alternatives rejected, and the rules that follow from it are in
+[architecture/adr-001-mcp-connector.md](architecture/adr-001-mcp-connector.md), and the
+mechanically checkable ones are enforced by `ArchitectureRulesTest`.
+
+Operationally it has its own Ingress (`k8s/ingress-mcp.yaml`): nginx annotations are
+per-object, and this endpoint needs a higher rate limit, buffering off for streaming, and a
+300s read timeout. See [mcp-connector.md](mcp-connector.md).
+
+## Architecture Decision Records
+
+Decisions that constrain future work live in [architecture/](architecture/). This page
+describes what the system is; those describe why it is that and not something else, and
+`src/test/java/com/rewayaat/architecture/ArchitectureRulesTest.java` fails the build when the
+checkable parts drift.
 
 ## Design Decisions
 
