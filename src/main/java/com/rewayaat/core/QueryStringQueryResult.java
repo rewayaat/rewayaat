@@ -195,7 +195,10 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                 .searchType(SearchType.DfsQueryThenFetch)
                 .query(q -> q.bool(b -> {
                     if (!residualQuery.isBlank()) {
-                        b.must(s -> s.queryString(qs -> {
+                        // should, not must: a narration whose only match is in keyword
+                        // metadata has to be able to come back on its own. See
+                        // applyKeywordMetadataClauses.
+                        b.should(s -> s.queryString(qs -> {
                             qs.query(residualQuery);
                             if (queryFields != null) {
                                 qs.fields(queryFields);
@@ -205,6 +208,8 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                             }
                             return qs;
                         }));
+                        applyKeywordMetadataClauses(b, residualQuery);
+                        b.minimumShouldMatch("1");
                     } else if (fieldScopes.isEmpty()) {
                         b.must(s -> s.queryString(qs -> qs.query("*")));
                     }
@@ -311,7 +316,10 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                 .searchType(SearchType.DfsQueryThenFetch)
                 .query(q -> q.bool(b -> {
                     if (!residualQuery.isBlank()) {
-                        b.must(s -> s.queryString(qs -> {
+                        // should, not must: a narration whose only match is in keyword
+                        // metadata has to be able to come back on its own. See
+                        // applyKeywordMetadataClauses.
+                        b.should(s -> s.queryString(qs -> {
                             qs.query(residualQuery);
                             if (queryFields != null) {
                                 qs.fields(queryFields);
@@ -321,6 +329,8 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                             }
                             return qs;
                         }));
+                        applyKeywordMetadataClauses(b, residualQuery);
+                        b.minimumShouldMatch("1");
                     } else if (fieldScopes.isEmpty()) {
                         b.must(s -> s.queryString(qs -> qs.query("*")));
                     }
@@ -399,6 +409,63 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
             return "*";
         }
         return String.join(" ", uniqueTokens);
+    }
+
+
+    /**
+     * The metadata fields a free-text term cannot reach on its own.
+     *
+     * <p>These are mapped as {@code keyword}, so the whole value is a single token: the
+     * 1,062 narrations under part "The Book of Commerce" hold one term, "The Book of
+     * Commerce", and a search for {@code commerce} matches none of them. Only
+     * {@code chapter} is analysed among the hierarchy fields, which is why chapter titles
+     * have always been findable and book, part, section and source have not.
+     */
+    private static final List<String> KEYWORD_METADATA_FIELDS =
+            List.of("book", "volume", "part", "section", "source");
+
+    /** Below this a term matches too much of the metadata to be worth asking about. */
+    private static final int MIN_METADATA_TERM_LENGTH = 3;
+
+    /** Enough to cover a real query without turning one search into forty clauses. */
+    private static final int MAX_METADATA_TERMS = 4;
+
+    /**
+     * Lets a plain word find narrations whose only match is in keyword metadata.
+     *
+     * <p>A case-insensitive wildcard is what reaches inside a keyword value without
+     * reindexing. The proper fix is an analysed sub-field on each of these and a mapping
+     * change, which is a migration; this gets the behaviour right today and stays correct
+     * afterwards, since a wildcard over five short fields on 32,519 documents is cheap.
+     *
+     * <p>Added as {@code should} beside the text query, which is why the text query is a
+     * {@code should} too - with {@code must} the metadata clause could only ever narrow a
+     * set the text had already matched, which is the opposite of what is wanted.
+     */
+    private void applyKeywordMetadataClauses(
+            co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery.Builder boolBuilder,
+            String residualQuery) {
+        String normalized = buildHighlightQueryString(residualQuery);
+        if (normalized == null || normalized.isBlank() || "*".equals(normalized)) {
+            return;
+        }
+        int used = 0;
+        for (String token : normalized.split("\\s+")) {
+            String term = token.replace("\"", "").trim();
+            if (term.length() < MIN_METADATA_TERM_LENGTH || term.startsWith("*")) {
+                continue;
+            }
+            if (used++ >= MAX_METADATA_TERMS) {
+                break;
+            }
+            String pattern = "*" + term + "*";
+            for (String field : KEYWORD_METADATA_FIELDS) {
+                boolBuilder.should(s -> s.wildcard(w -> w
+                        .field(field)
+                        .value(pattern)
+                        .caseInsensitive(true)));
+            }
+        }
     }
 
     private Map<String, Long> extractTopicTagFacets(SearchResponse<Map> response) {
