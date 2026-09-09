@@ -2293,12 +2293,18 @@ main.container::before {
     inset: -7px -8px -13px -8px;
 }
 
+/* A search hit has to be findable by glance. #1a3a6b20 - navy at 12.5% - blends to
+   rgb(226,230,236) on a white card, which is a neutral grey a shade off the background:
+   the markup was there and nobody could see it. A highlight reads by hue, not lightness,
+   so this is the site's gold at an alpha that actually registers, with a slightly
+   stronger underline edge to hold the shape at small sizes. */
 .hadith-content .highlight,
 .hadith-text-block .highlight,
 .hadith-english .highlight,
 .hadith-arabic .highlight,
 .hadith-inline-context .highlight {
-    background: #1a3a6b20;
+    background: rgba(200, 162, 61, 0.34);
+    box-shadow: inset 0 -1px 0 rgba(160, 126, 40, 0.45);
     border-radius: 3px;
     padding: 0 2px;
     box-decoration-break: clone;
