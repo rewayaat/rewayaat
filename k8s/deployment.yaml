@@ -68,6 +68,12 @@ spec:
               value: "rewayaat_hadith"
             - name: APP_BASE_URL
               value: "https://rewayaat.info"
+            # The domain-verification token from OpenAI's app submission portal, served
+            # at /.well-known/openai-apps-challenge. Empty until a submission is started,
+            # and the route 404s while it is - see WellKnownController. Kept here rather
+            # than in the image so that issuing or rotating a token is a sync, not a build.
+            - name: OPENAI_APPS_CHALLENGE
+              value: ""
             - name: MAIL_FROM
               valueFrom:
                 secretKeyRef:
