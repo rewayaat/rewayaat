@@ -1,0 +1,334 @@
+{
+ "description": "Corrections confirmed against reader reports emailed to rewayaat.org@gmail.com, Jun-Sep 2026. Each replacement was verified against the Arabic in the same document.",
+ "deferred": [
+  {
+   "id": "Maani-al-Akhbar-Saduq:276",
+   "reason": "The ARABIC is truncated (ends at the verse توبوا إلى الله توبة نصوحا); the English already carries the answer. Restoring it needs a printed edition - not derivable from anything in the corpus."
+  },
+  {
+   "id": "Kitab-al-Zuhd-Ahwazi:85",
+   "reason": "Arabic is a byte-identical copy of Zuhd:84. The true Arabic for the 'Gate of Goodness' narration exists nowhere in the corpus. Needs a printed edition."
+  }
+ ],
+ "corrections": [
+  {
+   "ids": [
+    "Al-Kafi-Volume-3-Kulayni:261"
+   ],
+   "field": "english",
+   "replacements": [
+    [
+     "Tour water on it twice",
+     "Pour water on it twice"
+    ]
+   ],
+   "kind": "typo",
+   "note": "Reporter gave the correction outright.",
+   "reported_in": "19f6eae41de35fd1 2026-07-17"
+  },
+  {
+   "ids": [
+    "Al-Kafi-Volume-5-Kulayni:501"
+   ],
+   "field": "english",
+   "replacements": [
+    [
+     "above fair piece",
+     "above fair price"
+    ]
+   ],
+   "kind": "typo",
+   "note": "AR غبن. Reporter noted the wider sense is 'cheating'; only the typo is applied.",
+   "reported_in": "19f363dea86ba07e 2026-07-06"
+  },
+  {
+   "ids": [
+    "Al-Kafi-Volume-2-Kulayni:1519"
+   ],
+   "field": "english",
+   "replacements": [
+    [
+     "from morning to evening",
+     "from morning to night"
+    ]
+   ],
+   "kind": "term",
+   "note": "AR أُجِّلَ مِنْ غُدْوَةٍ إِلَى اللَّيْلِ — layl is night.",
+   "reported_in": "19eac8dfe69b1f1f 2026-06-09"
+  },
+  {
+   "ids": [
+    "Al-Kafi-Volume-2-Kulayni:2232"
+   ],
+   "field": "english",
+   "replacements": [
+    [
+     "the Most Holy, grant you forgiveness.",
+     "the Most Holy, have mercy on you."
+    ]
+   ],
+   "kind": "term",
+   "note": "AR يَرْحَمُكَ اللهُ = mercy. Only the final sentence is wrong; the earlier one is correct.",
+   "reported_in": "19f58edfb50568dc 2026-07-13"
+  },
+  {
+   "ids": [
+    "Al-Kafi-Volume-3-Kulayni:863"
+   ],
+   "field": "english",
+   "replacements": [
+    [
+     "a person who is suffering sorrow and grief due to the death of his son,",
+     "a person who is afflicted,"
+    ]
+   ],
+   "kind": "insertion",
+   "note": "AR مَنْ عَزَّى مُصَاباً — no son in the Arabic; the insertion narrows the ruling.",
+   "reported_in": "19ed40e9b9c87793 2026-06-17"
+  },
+  {
+   "ids": [
+    "Al-Kafi-Volume-1-Kulayni:1441"
+   ],
+   "field": "english",
+   "replacements": [
+    [
+     "Lord, my al-Khums was paid.",
+     "Lord, my khums!"
+    ]
+   ],
+   "kind": "insertion",
+   "note": "AR يَا رَبِّ خُمُسِي is a bare claim; 'was paid' inverts who is owed.",
+   "reported_in": "19fa72d351f5965c 2026-07-28"
+  },
+  {
+   "ids": [
+    "Al-Kafi-Volume-3-Kulayni:288"
+   ],
+   "field": "english",
+   "replacements": [
+    [
+     "If a dog pollutes your clothes",
+     "If a dog touches your clothes"
+    ],
+    [
+     "just pour water on your clothes",
+     "just sprinkle water on your clothes"
+    ]
+   ],
+   "kind": "term",
+   "note": "AR مسّ = contact (the ruling turns on it); انضحه = sprinkle, not pour.",
+   "reported_in": "19fa4c47b0ab80ab 2026-07-27"
+  },
+  {
+   "ids": [
+    "Al-Kafi-Volume-6-Kulayni:1095"
+   ],
+   "field": "english",
+   "replacements": [
+    [
+     "a vein called ‘Isha’",
+     "a vein called al-‘Asha’"
+    ]
+   ],
+   "kind": "term",
+   "note": "AR العَشاء = supper. 'Isha' turns it into the night prayer; the narration is about skipping dinner.",
+   "reported_in": "1a01a9fa0e88d103 2026-08-19"
+  },
+  {
+   "ids": [
+    "Nahj-al-Balagha-Radi:1973"
+   ],
+   "field": "english",
+   "replacements": [
+    [
+     "so much so that sometimes death results from effort.",
+     "so much so that sometimes death lies in the very contrivance."
+    ]
+   ],
+   "kind": "term",
+   "note": "AR التدبير = deliberate planning; the aphorism is that the scheme becomes the undoing.",
+   "reported_in": "1a088c7846c6fbf0 2026-09-10"
+  },
+  {
+   "ids": [
+    "Thawab-al-Amal-wa-iqab-al-Amal-Saduq:401"
+   ],
+   "field": "english",
+   "replacements": [
+    [
+     "One who recites it on Friday eve",
+     "One who recites Surah al-Sajdah on Friday eve"
+    ]
+   ],
+   "kind": "omission",
+   "note": "AR names سُورَةَ السَّجْدَةِ; the English dropped it.",
+   "reported_in": "1a0683675f6e09fe 2026-09-03"
+  },
+  {
+   "ids": [
+    "Thawab-al-Amal-wa-iqab-al-Amal-Saduq:521"
+   ],
+   "field": "english",
+   "replacements": [
+    [
+     "and he will get the reward of giving Sadaqah.",
+     "and he will get the reward of giving Sadaqah until it is returned to him."
+    ]
+   ],
+   "kind": "omission",
+   "note": "AR حَتَّى يَرْجِعَ إِلَيْهِ — the reward runs only while the loan is outstanding.",
+   "reported_in": "1a068493b15b0116 2026-09-03"
+  },
+  {
+   "ids": [
+    "Thawab-al-Amal-wa-iqab-al-Amal-Saduq:589"
+   ],
+   "field": "english",
+   "replacements": [
+    [
+     "salutations  on  the  Holy  Prophet  (s.a.w.s.)",
+     "salutations  on  the  Holy  Prophet  (s.a.w.s.)  and  his  progeny"
+    ]
+   ],
+   "kind": "omission",
+   "note": "AR الصَّلَاةَ عَلَى النَّبِيِّ وَآلِهِ — 'wa alihi' dropped. (Source text has double spaces; matched verbatim.)",
+   "reported_in": "19f7518516be2118 2026-07-18"
+  },
+  {
+   "ids": [
+    "Thawab-al-Amal-wa-iqab-al-Amal-Saduq:765"
+   ],
+   "field": "english",
+   "replacements": [
+    [
+     "will be awarded a fine dress to be worn on the Day of Judgment.",
+     "will be clothed at the Mawqif with a robe by which he is consoled."
+    ]
+   ],
+   "kind": "omission",
+   "note": "AR كُسِيَ فِي الْمَوْقِفِ حُلَّةً يُجْبَرُ بِهَا — reporter quoted the dropped words verbatim.",
+   "reported_in": "19f75206ef1d0bc1 2026-07-18"
+  },
+  {
+   "ids": [
+    "Man-La-Yahduruh-al-Faqih-Volume-4-Saduq:455"
+   ],
+   "field": "english",
+   "replacements": [
+    [
+     "Imam (as) also said: \"Whoever bequeaths one-third without leaving anything behind has gone to excess.\"",
+     "Imam (as) also said: \"Whoever bequeaths one-third has not left [anything behind].\""
+    ]
+   ],
+   "kind": "insertion",
+   "note": "'has gone to excess' has no counterpart in the Arabic. NB the AR (فَلَمْ يَتَّرِكْ) looks damaged in the source too — check a printed edition.",
+   "reported_in": "19f5ed98a5c47536 2026-07-14"
+  },
+  {
+   "ids": [
+    "Man-La-Yahduruh-al-Faqih-Volume-1-Saduq:567"
+   ],
+   "field": "english",
+   "replacements": [
+    [
+     "He has sent them wind after a calm, for without it, no one would bury a loved one;",
+     "He has cast upon them the odour after the soul departs, for without it, no one would bury a loved one;"
+    ],
+    [
+     "and He has put sustenance in this grain, for without it, kings would hoard it as they hoard gold and silver.",
+     "and He has set the creature upon this grain, for without it, kings would hoard it as they hoard gold and silver."
+    ]
+   ],
+   "kind": "term",
+   "note": "AR الرِّيحَ بَعْدَ الرُّوحِ (rih/ruh confused) and الدَّابَّةَ ('creature', not 'sustenance'). As translated neither clause explained its own 'for without it'.",
+   "reported_in": "19f9262c91baf349 2026-07-24"
+  },
+  {
+   "ids": [
+    "Kitab-al-Mumin-Ahwazi:53"
+   ],
+   "field": "english",
+   "replacements": [
+    [
+     "and that is the meaning of Allah's words: And Allah multiplies for whom He pleases. [Holy Quran 2/261]",
+     "and that is the meaning of Allah's words: The parable of those who spend their wealth in the way of Allah is as the parable of a grain that grows seven ears, in every ear a hundred grains. And Allah multiplies for whom He pleases, and Allah is All-Encompassing, All-Knowing. [Holy Quran 2/261]"
+    ]
+   ],
+   "kind": "omission",
+   "note": "The verse quoted in the document's own Arabic runs the full length; the English carried only the last clause and dropped وَاللَّهُ وَاسِعٌ عَلِيمٌ.",
+   "reported_in": "1a0491d7c11a5de7 2026-08-28"
+  },
+  {
+   "ids": [
+    "Kitab-al-Ghayba-Tusi:437"
+   ],
+   "field": "english",
+   "replacements": [
+    [
+     "As soon as I said this, I saw the she-camel rise up to the sky along with the litter.",
+     "As soon as I said this, I saw the she-camel rise up to the sky along with the litter. And the man had gestured towards a man of brown complexion, whose colour was like gold, with a mark of prostration between his eyes."
+    ]
+   ],
+   "kind": "omission",
+   "note": "Renders the final AR sentence وكان الرجل أومأ إلى رجل به سمرة، وكان لونه الذهب، بين عينيه سجادة.",
+   "reported_in": "19eba790a13213f2 2026-06-12"
+  },
+  {
+   "ids": [
+    "Thawab-al-Amal-wa-iqab-al-Amal-Saduq:448"
+   ],
+   "field": "english",
+   "replacements": [
+    [
+     "“One who recites Surah Abas and Takrim would remain under the shade of Allah and would remain safe from usurping others’ property. He would receive favor of Allah and go to Paradise. And it is not a big thing for Almighty Allah.”",
+     "“One who recites Surah ‘Abasa wa Tawalla and Idha al-Shamsu Kuwwirat will be beneath the wing of Allah among the gardens, and in the shade of Allah and His honour within His gardens; and that is no great matter for Allah, if Allah wills.”"
+    ]
+   ],
+   "kind": "rewrite",
+   "note": "REVIEW. Reporter flagged only the surah name (Takrim -> al-Takwir), but the rest of the English did not match the Arabic either. Full re-rendering of the matn.",
+   "reported_in": "19ec6e8897b0563d 2026-06-14"
+  },
+  {
+   "ids": [
+    "Thawab-al-Amal-wa-iqab-al-Amal-Saduq:869"
+   ],
+   "field": "english",
+   "replacements": [
+    [
+     "“A virtuous person will be made to sit inside a grave and told that he will be punished with a hundred lashes. He will say that he does not have the strength to bear that punishment. The punishment will be reduced continuously on his insistence till it is brought to a single lash. He will be told that a single lash is the minimum possible. That person will ask the reason for the punishment. He would be told that one day he offered Salaat without Wuzu and passed by a poor man without helping him. The person will be given punishment of one lash and because of which his grave will become full of fire.”",
+     "“A man from among the virtuous was made to sit in his grave and was told that he would be given a hundred lashes. He said that he did not have the strength to bear it. They kept reducing it at his insistence until they came down to a single lash, and they said that a single lash was the least possible. He asked what they were lashing him for. They said: one day you prayed without ablution, and you passed by a weak man and did not help him. So they gave him one lash of the punishment of Allah, Mighty and Majestic, and his grave filled with fire.”"
+    ]
+   ],
+   "kind": "rewrite",
+   "note": "REVIEW. AR opens أُقْعِدَ رَجُلٌ مِنَ الْأَخْيَارِ — past passive. The whole narration had been tense-shifted to the future.",
+   "reported_in": "19fa1e70256d1af7 2026-07-27"
+  },
+  {
+   "ids": [
+    "Al-Amali-Saduq:134",
+    "Al-Amali-Saduq:133",
+    "Al-Amali-Saduq:255",
+    "Al-Amali-Saduq:436",
+    "Al-Amali-Saduq:731",
+    "Al-Amali-Saduq:889",
+    "Al-Amali-Saduq:1002",
+    "Al-Amali-Saduq:1003",
+    "Al-Amali-Saduq:1006",
+    "Al-Amali-Saduq:1027",
+    "Al-Amali-Saduq:1033",
+    "Al-Amali-Saduq:1082"
+   ],
+   "field": "english",
+   "replacements": [
+    [
+     "Thuhr",
+     "Dhuhr"
+    ]
+   ],
+   "kind": "style",
+   "note": "House style: Dhuhr 88 docs, Zuhr 31, Thuhr 12. All 12 Thuhr hits are the prayer name, all in Al-Amali. Reported on :134; normalised across the set.",
+   "reported_in": "19f72cfdea04c848 2026-07-18"
+  }
+ ]
+}
