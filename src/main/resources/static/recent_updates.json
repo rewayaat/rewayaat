@@ -9,9 +9,10 @@
       "Book, volume, part and chapter pages carry the same card as their link preview, so a shared link unfurls with the section it points at",
       "Images are generated on request, so a card always matches the current text"
     ],
-    "video": "https://www.loom.com/embed/ac014036800b457db43b7061dbd84cd4",
+    "video": "https://www.loom.com/embed/c2d4a360f906440f80c5b326f4d87632",
     "videoTitle": "A short walkthrough of sharing a narration as an image",
-    "videoAspect": "1280 / 960"
+    "videoAspect": "1280 / 960",
+    "videoSeconds": 34
   },
   {
     "date": "2026-06-02",

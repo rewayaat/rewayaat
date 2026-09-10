@@ -135,7 +135,8 @@ fetch('/recent_updates.json')
                 video;
             container.appendChild(entry);
             if (u.video) {
-                loopWhileIgnored(entry.querySelector('.update-entry__video iframe'), src);
+                loopWhileIgnored(entry.querySelector('.update-entry__video iframe'), src,
+                    u.videoSeconds);
             }
         });
     });
@@ -156,14 +157,17 @@ fetch('/recent_updates.json')
  *     someone who has pressed pause or scrubbed back does not want the thing reloading
  *     underneath them.
  *
- * The interval is the video's length plus a second of slack, since there is no way to ask
- * how far along it is.
+ * The interval is the video's length, carried on the entry, plus a second of slack - there
+ * is no way to ask the player how far along it is.
  */
-function loopWhileIgnored(frame, src) {
+function loopWhileIgnored(frame, src, seconds) {
     if (!frame) {
         return;
     }
-    var LENGTH_MS = 39000;
+    // Its own length plus a second of slack. There is no way to ask the player how far
+    // along it is, so the entry carries the duration and this trusts it; without one,
+    // a minute is long enough not to cut anything short.
+    var LENGTH_MS = ((seconds || 60) + 1) * 1000;
     var onScreen = false;
     var watched = false;
 

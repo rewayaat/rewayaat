@@ -3307,8 +3307,12 @@ function loadRecentUpdates() {
             container.innerHTML = '';
             var displayUpdates = updates.slice(0, 4);
             displayUpdates.forEach(function(update) {
-                var card = document.createElement('article');
+                // A link, not an article: the card already lifts on hover, so it has been
+                // promising a click it could not answer. It opens the full timeline, which
+                // is the only place the entry exists in full.
+                var card = document.createElement('a');
                 card.className = 'recent-update-card';
+                card.href = '/updates.html';
                 var highlights = Array.isArray(update.highlights) ? update.highlights : [];
                 card.innerHTML =
                     '<div class="recent-update-date">' + escapeHtml(update.date || '') + '</div>' +
