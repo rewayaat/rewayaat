@@ -6620,10 +6620,20 @@ function setupSearchModeDropdown() {
             var mode = this.dataset.mode;
             if (mode) {
                 selectSearchMode(mode);
+                dismissSearchModeMenu(this);
                 submitSearchQuery(mode);
             }
         });
     });
+
+    var submitMenu = control.closest('.search-submit-menu');
+    if (submitMenu) {
+        ['mouseleave', 'focusin'].forEach(function(type) {
+            submitMenu.addEventListener(type, function() {
+                submitMenu.classList.remove('is-dismissed');
+            });
+        });
+    }
 
     if (searchBtn) {
         searchBtn.addEventListener('mousedown', function() {
@@ -6647,6 +6657,15 @@ function setupSearchModeDropdown() {
 
         searchMatchMode = normalizedMode;
         updateSearchModeDropdownDisplay();
+    }
+
+    // The menu opens on :hover/:focus-within, so a clicked option would leave it open
+    // under the pointer; it stays closed until the pointer leaves or focus comes back.
+    function dismissSearchModeMenu(option) {
+        option.blur();
+        if (submitMenu) {
+            submitMenu.classList.add('is-dismissed');
+        }
     }
 }
 
