@@ -29,7 +29,7 @@ Designs that are not built. Kept because the thinking is worth more than the cod
 
 | Proposal | State |
 |----------|-------|
-| [proposals/narrator-system.md](proposals/narrator-system.md) | Phases 1-2 ran and the data survives in `tmp/`; the code was deleted and phases 3-5 never started |
+| [proposals/narrator-system.md](proposals/narrator-system.md) | Phases 1-2 rebuilt 2026-09-07 (28,463 merged profiles); Layer 3 outstanding, phases 3-5 still deleted — [#88](https://github.com/rewayaat/rewayaat/issues/88) |
 
 ## Conventions
 

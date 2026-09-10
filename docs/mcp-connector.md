@@ -312,12 +312,18 @@ no cost to being correct. Measured before the fix: `MCP-Protocol-Version: 1999-0
 ## Not built yet
 
 - **`lookup_narrator` — deliberately out of scope for the first version.** Not a gap to be
-  closed before shipping. Narrator work is complete through Phase 2 (29,305 merged profiles in
-  `tmp/narrators_merged.json`), but Phase 3, the Elasticsearch import, has not started and
-  there is no `rewayaat_narrators` index; building the tool means building that pipeline
-  first, which is its own project and not a prerequisite for serving narrations. It remains
-  the strongest "no webpage can answer this" case in the evaluation, so it is the natural
-  first addition after v1 — once Phase 3 lands, on its own schedule.
+  closed before shipping. Narrator work reached Phase 2 and stopped there: 29,305 merged
+  profiles exist in `tmp/narrators_merged.json`, but the September 2026 audit found the merge
+  over-clusters — 15.9% of source profiles landed in a cluster of five or more, and the
+  worst fuses ten separate Ibn al-Ghadaʾiri entries into one biography. There is no
+  `rewayaat_narrators` index. Shipping the tool means fixing the merge and then running the
+  import, which is its own project and not a prerequisite for serving narrations. Precision
+  matters more here than anywhere else in the corpus, because the tool would attribute
+  reliability verdicts to named scholars by name; a fused profile is a fabricated
+  attribution, not a ranking error. It remains the strongest "no webpage can answer this"
+  case in the evaluation, so it is the natural first addition after v1 — once the merge and
+  Phase 3 land, on their own schedule. See
+  [proposals/narrator-system.md](proposals/narrator-system.md).
 - **Semantic `search_hadith`.** Matching is BM25, and this is much less of a gap than it
   first appears. Vector search exists to bridge the distance between how a person phrases a
   question and how the text is actually written — but on this surface there is already a
