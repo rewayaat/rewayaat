@@ -9150,6 +9150,14 @@ body.is-search-mode .site-nav .search-entry-shell {
     transform: translateY(0);
 }
 
+/* Set once a mode is chosen, so the menu closes while the pointer is still over it.
+   Equal specificity to the rule above, so it must stay after it. */
+.search-submit-menu.is-dismissed .search-mode-menu {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+}
+
 .search-mode-option {
     appearance: none;
     border: 0;

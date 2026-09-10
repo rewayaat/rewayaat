@@ -67,9 +67,12 @@
         b.addEventListener('click', function () {
             var expanding = scroll.classList.contains('hadith-reading-scroll--clamped');
             // Collapsing from below the fold would otherwise leave the reader somewhere
-            // further down the page than the narration they just closed. Hold the card's
-            // position and put them back on it.
-            var before = expanding ? null : scroll.getBoundingClientRect().top;
+            // further down the page than the narration they just closed. Hold the control
+            // where it is on screen, as the search card does: it sits under the text, so
+            // it is what moves. The text's own top edge never moves on a collapse, and
+            // holding that corrected by nothing - a reader who had read to the end was
+            // left thousands of pixels past the narration.
+            var before = expanding ? null : b.getBoundingClientRect().top;
 
             scroll.classList.toggle('hadith-reading-scroll--clamped', !expanding);
             b.setAttribute('aria-expanded', expanding ? 'true' : 'false');
@@ -78,7 +81,7 @@
                 'fa ' + (expanding ? 'fa-chevron-up' : 'fa-chevron-down');
 
             if (before !== null) {
-                window.scrollBy(0, scroll.getBoundingClientRect().top - before);
+                window.scrollBy(0, b.getBoundingClientRect().top - before);
             }
         });
     }
