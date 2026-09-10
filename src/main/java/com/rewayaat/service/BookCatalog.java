@@ -47,6 +47,18 @@ public class BookCatalog {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BookCatalog.class);
     private static final Duration CACHE_TTL = Duration.ofHours(6);
+
+    /**
+     * How often to ask Elasticsearch whether anything has actually changed.
+     *
+     * <p>The six-hour expiry above is a backstop, not the mechanism: rebuilding costs
+     * seconds, so it cannot be done speculatively, and waiting six hours to notice an edit
+     * meant a renamed chapter disappeared for the rest of the day. This is a single get by
+     * id, cheap enough for every half minute, and the rebuild still only happens when the
+     * marker has moved. An editor sees a rename take effect within thirty seconds, on
+     * every pod.
+     */
+    private static final Duration CHANGE_CHECK_INTERVAL = Duration.ofSeconds(30);
     private static final int COMPOSITE_PAGE_SIZE = 1000;
 
     /** Path segments the book routes claim, which a chapter slug must not collide with. */
@@ -160,6 +172,8 @@ public class BookCatalog {
     private volatile Map<String, Book> booksBySlug = Map.of();
     private volatile Map<String, Chapter> chaptersBySlug = Map.of();
     private volatile Instant loadedAt = Instant.EPOCH;
+    private volatile Instant lastChangeCheck = Instant.EPOCH;
+    private volatile boolean lastCheckSaidFresh = true;
 
     public List<Book> books() {
         ensureLoaded();
@@ -240,11 +254,11 @@ public class BookCatalog {
     }
 
     private void ensureLoaded() {
-        if (!books.isEmpty() && Duration.between(loadedAt, Instant.now()).compareTo(CACHE_TTL) < 0) {
+        if (!books.isEmpty() && isFresh()) {
             return;
         }
         synchronized (this) {
-            if (!books.isEmpty() && Duration.between(loadedAt, Instant.now()).compareTo(CACHE_TTL) < 0) {
+            if (!books.isEmpty() && isFresh()) {
                 return;
             }
             try {
@@ -257,8 +271,34 @@ public class BookCatalog {
         }
     }
 
+    /**
+     * Whether the catalog in memory can still be served.
+     *
+     * <p>Two ways to go stale. The expiry is the backstop, for anything that changes the
+     * corpus without going through the edit path. The marker is the one that matters: it
+     * is how an edit made on another pod, or by a script, reaches this one.
+     */
+    private boolean isFresh() {
+        Instant now = Instant.now();
+        if (Duration.between(loadedAt, now).compareTo(CACHE_TTL) >= 0) {
+            return false;
+        }
+        // The verdict is remembered, not just the time of it. ensureLoaded double-checks
+        // around its lock, so this is asked twice in a row; returning a bare "checked
+        // recently, so fresh" the second time cancelled the very reload the first had just
+        // decided on, and the catalog never rebuilt.
+        if (Duration.between(lastChangeCheck, now).compareTo(CHANGE_CHECK_INTERVAL) < 0) {
+            return lastCheckSaidFresh;
+        }
+        lastChangeCheck = now;
+        lastCheckSaidFresh = !CatalogSignal.lastChangedAt().isAfter(loadedAt);
+        return lastCheckSaidFresh;
+    }
+
     private void load() throws IOException {
         long startedAt = System.currentTimeMillis();
+        // Whatever the last check concluded was about the catalog being replaced now.
+        lastCheckSaidFresh = true;
         List<CompositeBucket> buckets = scanChapterBuckets();
 
         Map<String, List<Chapter>> byBook = new LinkedHashMap<>();

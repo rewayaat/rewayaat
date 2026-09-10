@@ -3305,16 +3305,19 @@ function loadRecentUpdates() {
                 return;
             }
             container.innerHTML = '';
-            var displayUpdates = updates.slice(0, 4);
+            var displayUpdates = updates.slice(0, 2);
             displayUpdates.forEach(function(update) {
-                // A link, not an article: the card already lifts on hover, so it has been
-                // promising a click it could not answer. It opens the full timeline, which
-                // is the only place the entry exists in full.
-                var card = document.createElement('a');
+                // The card lifts on hover, so it has to answer a click. The text is wrapped
+                // in the link rather than the card itself: a card can carry a video, and an
+                // iframe inside an anchor is both invalid and hostile - every attempt to
+                // press play would navigate away instead.
+                var card = document.createElement('article');
                 card.className = 'recent-update-card';
-                card.href = '/updates.html';
                 var highlights = Array.isArray(update.highlights) ? update.highlights : [];
-                card.innerHTML =
+                var link = document.createElement('a');
+                link.className = 'recent-update-card__link';
+                link.href = '/updates.html';
+                link.innerHTML =
                     '<div class="recent-update-date">' + escapeHtml(update.date || '') + '</div>' +
                     '<h3 class="recent-update-title">' + escapeHtml(update.title || 'Update') + '</h3>' +
                     '<p class="recent-update-summary">' + escapeHtml(update.summary || '') + '</p>';
@@ -3326,7 +3329,24 @@ function loadRecentUpdates() {
                         li.textContent = item;
                         list.appendChild(li);
                     });
-                    card.appendChild(list);
+                    link.appendChild(list);
+                }
+                card.appendChild(link);
+                if (update.video) {
+                    // Not autoplayed here. On the updates page the video is the point of
+                    // the visit; on the home page it is one card among a column, and two
+                    // of them starting by themselves would be noise.
+                    var frame = document.createElement('div');
+                    frame.className = 'recent-update-video';
+                    frame.style.aspectRatio = update.videoAspect || '16 / 9';
+                    var iframe = document.createElement('iframe');
+                    iframe.src = update.video;
+                    iframe.title = update.videoTitle || update.title || 'Walkthrough';
+                    iframe.loading = 'lazy';
+                    iframe.setAttribute('allow', 'fullscreen; picture-in-picture');
+                    iframe.setAttribute('allowfullscreen', '');
+                    frame.appendChild(iframe);
+                    card.appendChild(frame);
                 }
                 container.appendChild(card);
             });
