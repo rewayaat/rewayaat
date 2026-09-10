@@ -62,7 +62,15 @@ Before the first rollout, or if the alias itself is the problem, set
 ## Retiring an old index
 
 Keep the previous index until the new one has served real traffic. Once you are
-satisfied, `DELETE /rewayaat_updated`. Nothing else refers to it - the
+satisfied, delete it - `rewayaat_updated` was removed this way on 2026-09-10.
+
+Do not treat an old index as a long-lived rollback. It stops receiving edits the
+moment the alias moves, so within a day it will silently revert whatever has been
+edited since. The nightly snapshot is the real safety net: it captures the live
+index, and a restore was verified end to end - 32,519 documents, analyzers and
+synonyms intact. Its limit is its schedule, so a restore loses up to a day of edits.
+
+Nothing else refers to the old index - the
 `rewayaat_quran`, `rewayaat_tafsir`, `rewayaat_users` and
 `rewayaat_user_collections` indices are separate and unaffected by any of this.
 

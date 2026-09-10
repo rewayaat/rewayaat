@@ -77,8 +77,9 @@ def move_alias(host, alias, new_index, old_indices):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--host", default="http://localhost:9200")
-    ap.add_argument("--source", default="rewayaat_updated",
-                    help="index to read documents from")
+    ap.add_argument("--source", default=ALIAS,
+                    help="index or alias to read documents from; the live one by default, "
+                         "since each migration builds on the last")
     ap.add_argument("--target", default=None,
                     help="index to create (default: rewayaat_hadith_<today>)")
     ap.add_argument("--alias", default=ALIAS)

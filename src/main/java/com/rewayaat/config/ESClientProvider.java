@@ -28,7 +28,18 @@ public class ESClientProvider implements AutoCloseable {
     private static final Logger LOGGER = LoggerFactory.getLogger(ESClientProvider.class);
 
     // Mutable static so that Spring's @PostConstruct can update it from config.
-    public static volatile String INDEX = resolveFromEnv("REWAYAAT_INDEX", "rewayaat_updated");
+    /**
+     * The narrations index, or rather the alias in front of it.
+     *
+     * <p>The default names {@code rewayaat_hadith}, which is an alias: analyzers cannot be
+     * changed on an existing field, so every mapping change means a new index, and pointing
+     * at the alias keeps that a data operation instead of a deploy. The concrete index it
+     * resolves to is dated - see scripts/search/migrate_index.py and
+     * docs/search-index-migration.md.
+     *
+     * <p>It used to default to {@code rewayaat_updated}, which no longer exists.
+     */
+    public static volatile String INDEX = resolveFromEnv("REWAYAAT_INDEX", "rewayaat_hadith");
 
     // Shared static connection – initialised from env vars at class-load time and
     // then overwritten by the Spring singleton's @PostConstruct if Spring is active.
@@ -108,7 +119,7 @@ public class ESClientProvider implements AutoCloseable {
      * that need to override the index after system properties have been set.
      */
     public static synchronized void resetIndex() {
-        INDEX = resolveFromEnv("REWAYAAT_INDEX", "rewayaat_updated");
+        INDEX = resolveFromEnv("REWAYAAT_INDEX", "rewayaat_hadith");
     }
 
     /**
