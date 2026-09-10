@@ -7,6 +7,11 @@ only applied when its `old` string is found verbatim, so a document that has alr
 been corrected -- or that never matched -- is reported and skipped rather than
 guessed at.
 
+`mirror_fields` carries the same replacement into the derived fields that feed the
+embedding pipeline. semantic_english_hint_source is a separate stored copy of the
+first ~120 characters of the English, so correcting `english` alone leaves the
+embedding input describing the old wording.
+
 Dry run by default; pass --live to write.
 
 Usage:
@@ -43,8 +48,13 @@ def fetch(es_host, index, ids):
     return {d["_id"]: (d.get("_source") if d.get("found") else None) for d in docs}
 
 
-def plan_document(source, field, replacements):
-    """Return (new_value, applied, missing) for one document."""
+def plan_field(source, field, replacements, required):
+    """Return (new_value, applied, missing) for one field of one document.
+
+    `required` is False for mirror fields, where a replacement that does not
+    match is expected rather than a problem: the hint holds only the opening of
+    the English, so a correction further in simply is not there.
+    """
     original = source.get(field) or ""
     value = original
     applied, missing = [], []
@@ -57,7 +67,7 @@ def plan_document(source, field, replacements):
         elif old in value:
             value = value.replace(old, new)
             applied.append(old)
-        else:
+        elif required:
             missing.append((old, "not found"))
     return (value if value != original else None), applied, missing
 
@@ -81,23 +91,34 @@ def main():
 
     updates, skipped, problems = {}, [], []
 
+    mirrors = spec.get("mirror_fields", {})
+
     for entry in entries:
+        field = entry["field"]
+        targets = [(field, True)] + [(m, False) for m in mirrors.get(field, [])]
         for doc_id in entry["ids"]:
             source = sources.get(doc_id)
             if source is None:
                 problems.append((doc_id, "document not found"))
                 continue
-            new_value, applied, missing = plan_document(source, entry["field"], entry["replacements"])
-            for old, why in missing:
-                (skipped if why == "already applied" else problems).append(
-                    (doc_id, f"{why}: {old[:60]}"))
-            if new_value is not None:
-                updates[doc_id] = {"field": entry["field"], "value": new_value,
-                                   "kind": entry["kind"], "count": len(applied)}
+            for target, required in targets:
+                new_value, applied, missing = plan_field(
+                    source, target, entry["replacements"], required)
+                for old, why in missing:
+                    (skipped if why == "already applied" else problems).append(
+                        (doc_id, f"{target}: {why}: {old[:50]}"))
+                if new_value is not None:
+                    doc = updates.setdefault(doc_id, {"fields": {}, "kind": entry["kind"],
+                                                      "count": 0, "reindex": False})
+                    doc["fields"][target] = new_value
+                    doc["count"] += len(applied)
+                    if target != field:
+                        doc["reindex"] = True
 
     for doc_id, info in sorted(updates.items()):
-        flag = "  <-- REVIEW" if info["kind"] == "rewrite" else ""
-        print(f"  {doc_id:46} {info['kind']:10} {info['count']} edit(s){flag}")
+        flags = "  <-- REVIEW" if info["kind"] == "rewrite" else ""
+        flags += "  <-- RE-EMBED" if info["reindex"] else ""
+        print(f"  {doc_id:46} {info['kind']:10} {info['count']} edit(s){flags}")
 
     print(f"\n{len(updates)} document(s) to change, {len(skipped)} already correct, "
           f"{len(problems)} problem(s)")
@@ -116,7 +137,7 @@ def main():
     lines = []
     for doc_id, info in updates.items():
         lines.append(json.dumps({"update": {"_id": doc_id, "_index": args.index}}))
-        lines.append(json.dumps({"doc": {info["field"]: info["value"]}}, ensure_ascii=False))
+        lines.append(json.dumps({"doc": info["fields"]}, ensure_ascii=False))
     payload = ("\n".join(lines) + "\n").encode("utf-8")
 
     url = f"{args.es_host.rstrip('/')}/_bulk?refresh=true"
@@ -133,11 +154,18 @@ def main():
         return 1
 
     print(f"\nWrote {len(updates)} document(s) to {args.index} on {args.es_host}.")
+
+    reindex = sorted(d for d, i in updates.items() if i["reindex"])
     if args.ids_out:
-        args.ids_out.write_text("\n".join(sorted(updates)) + "\n", encoding="utf-8")
-        print(f"Changed ids -> {args.ids_out}")
-    print("These documents now need re-embedding: their semantic_vector still "
-          "describes the old text.")
+        args.ids_out.write_text("\n".join(reindex) + "\n", encoding="utf-8")
+        print(f"Re-embed ids -> {args.ids_out}")
+    if reindex:
+        print(f"{len(reindex)} document(s) had their embedding input "
+              f"(semantic_english_hint_source) corrected and need re-embedding. The "
+              f"rest were corrected past the hint cutoff, so their vectors never saw "
+              f"the old wording.")
+    else:
+        print("No embedding input changed; no re-embedding needed.")
     return 0
 
 

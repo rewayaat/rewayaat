@@ -330,5 +330,10 @@
    "note": "House style: Dhuhr 88 docs, Zuhr 31, Thuhr 12. All 12 Thuhr hits are the prayer name, all in Al-Amali. Reported on :134; normalised across the set.",
    "reported_in": "19f72cfdea04c848 2026-07-18"
   }
- ]
+ ],
+ "mirror_fields": {
+  "english": [
+   "semantic_english_hint_source"
+  ]
+ }
 }
