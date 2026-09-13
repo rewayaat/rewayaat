@@ -94,6 +94,7 @@ Every stage is held to these. Part II shows what happened when they were not in 
 | 2026-09-13 | **Layer 3 complete.** 73 batches of agent decisions, zero validation errors: 24,239 people. |
 | 2026-09-13 | Checking the most-cited narrators shows one man still spread across several profiles, fusions the pipeline cannot undo, and identities that cannot be corrected without redoing agent work. This shapes Part III. |
 | 2026-09-13 | **Stage 1: permanent identity.** Every decision so far — 16,494 of them, including all 73 batches of agent answers — recorded against permanent source keys. People rebuilt from the record reproduce the 24,239 exactly, and each has a permanent identifier. |
+| 2026-09-14 | **Stage 2: name forms and agent precedence.** Kunyahs compared case-folded; a man's relatives kept out of his aliases, which separates the father and son 1405 had fused; an agent's separation now binds the rules; names that are only a kunyah go to the agents. Every file written durably after a run was killed for memory mid-merge. |
 
 ### What went wrong in June
 
@@ -240,10 +241,10 @@ measured.
 |---|---|---|
 | ✓ | Output contract, merge rebuild, Layer 3 through sub-agents | 24,239 people; every agent decision validated (2026-09-13) |
 | ✓ 1 | **Permanent identity and the decision record.** Key every source entry; record every existing decision against those keys — the rule merges, the 73 batches of agent answers, the automatic separations; derive people from the record; issue permanent person identifiers with redirects. | Done 2026-09-13. Rebuilding from the record reproduces all 24,239 people exactly; recording twice adds nothing; rebuilding twice changes no identifier. Agent answers now outlive the merge — stage 2's re-run is the first to rely on it. |
-| 2 | **Fix the name-form defects** in one re-run: case-folded kunyahs, patronymic aliases, nisbahs belonging to other people. | Conflict counts and invariants re-measured; no regression on the famous-narrator check. |
-| 3 | **Reconcile name forms across profiles.** Propose pairs of whole profiles where one's aliases are the other's name and a kunyah or nisbah agrees; agents confirm against the quotations. | Each of the twelve most-cited narrators is one person; the corpus-wide split estimate re-measured. |
+| ✓ 2 | **Fix the name-form defects** in one re-run: case-folded kunyahs, patronymic aliases, nisbahs belonging to other people. | Done 2026-09-14. Verdict clashes 155 → 151, kunyah clashes 317 → 312, invariant violations 69 → 66, no regression on the famous-narrator check; 1405's father and son are two people. Nisbah bleed was measured and left to the agent passes. |
+| 3 | **Top up Layer 3, then reconcile name forms across profiles.** First the agent work stage 2 created: 486 name-group tasks covering 1,330 profiles, 484 of them names that are only a kunyah, and 369 pair deferrals no agent has judged. Then Propose pairs of whole profiles where one's aliases are the other's name and a kunyah or nisbah agrees; agents confirm against the quotations. | Each of the twelve most-cited narrators is one person; the corpus-wide split estimate re-measured. |
 | 4 | **Split pass.** Agents review profiles that may fuse several men — the 17 strongest candidates, then those with conflicting verdicts or impossible dates. | All 17 resolved; the rest reviewed or queued. |
-| 5 | **Accuracy audit.** A random sample of applied merges, each checked against the sources, gives a measured accuracy with its margin. | The figure meets a publication threshold agreed beforehand — proposed at 95%. |
+| 5 | **Accuracy audit.** A random sample of applied merges, each checked against the sources, gives a measured accuracy with its margin — per rule layer, so the rules' acceptance thresholds are set from data. Stage 2 showed an alias match three names deep accepted at a context score of 0. | The figure meets a publication threshold agreed beforehand — proposed at 95%. |
 | 6 | **Complete the sources.** Re-extract Rijal al-Ṭūsī and Jāmiʿ al-Ruwāt, which were truncated. | Each book's yield matches its known entry count. |
 | 7 | **Publish.** Restore the narrator index, service and API deleted in `9b6adb6`; write the narrator page; add `lookup_narrator` to the MCP connector. | Narrator pages live, on permanent identifiers. |
 | 8 | **Resolve every chain.** Per-mention records linking each name in each chain to a person, following each book's conventions. | Coverage and confidence measured per book. |
@@ -262,11 +263,11 @@ published.
 |---|---|
 | Extracted, Phase 1 | 42,076 entries from eight books |
 | Contract-normalized | 42,045 (31 Infallibles removed) |
-| Merged, rule layers 0–2 | 28,687 profiles |
-| After Layer 3 | **24,239 people**, each with a permanent identifier |
-| Identity decisions on record | 16,494, of which 16,321 in force |
-| Review signals | 25 `not_same` judgments that other decisions have joined |
-| Drawing on more than one book | 21.2% |
+| Merged, rule layers 0–2 | 29,514 profiles (merge `29514:d382409476873fe5`) |
+| People, after stage 2 | **25,099**, each with a permanent identifier — 24,239 before stage 2 held kunyah-only names back for a top-up Layer 3 run |
+| Identity decisions on record | 57,487 on file across three merge runs, of which 14,494 in force |
+| Review signals | 0 — no agent separation falls inside one person |
+| Drawing on more than one book | 19.5% (21.2% before stage 2; recovers as the top-up run lands) |
 | Held for human review | 173 low-confidence decisions |
 | Most-cited narrators still split | 10 of 12 checked |
 | Strongest fusion candidates | 17 |
@@ -279,7 +280,7 @@ Under `tmp/`, which is symlinked to `/mnt/share/rewayaat-backup/tmp/`:
 |---|---|
 | `narrators_book_{slug}.json` | Phase 1 extraction as produced — 42,076 entries |
 | `narrators_normalized/{slug}.json` | contract-normalized — 42,046 |
-| `narrators_merge/merged.json` | rule-layer merge — 28,687 profiles, fingerprint `28687:a993d061519aaa64` |
+| `narrators_merge/merged.json` | rule-layer merge — 29,514 profiles, fingerprint `29514:d382409476873fe5` |
 | `narrators_merge/{name_group_tasks,deferred,quarantine,violations}.json` | Layer 3 inputs and invariant checks |
 | `narrators_l3/runs/28687-a993d061519aaa64/batches/` | 73 Layer 3 batches — 32 group, 41 pair |
 | `narrators_l3/runs/28687-a993d061519aaa64/outputs/` | the agents' decisions, one file per batch |
@@ -288,10 +289,11 @@ Under `tmp/`, which is symlinked to `/mnt/share/rewayaat-backup/tmp/`:
 | `narrators_l3/runs/28687-a993d061519aaa64/auto_separate.json` | 432 deferrals kept separate without an agent |
 | `narrators_l3/archive/` | agent answers to earlier, superseded merges |
 | `narrators_l3/runs/<fingerprint>/id_map.json` | each run's merged ids translated to source keys |
-| `narrators_identity/decisions.jsonl` | **the decision record** — 16,494 decisions on source keys |
-| `narrators_identity/person_ids.jsonl` | the permanent-identifier registry — 24,239 active |
-| `narrators_identity/people.json` | **current** — 24,239 people, derived from the record |
-| `narrators_identity/review_signals.json` | 25 judgments now inside one person, for review |
+| `narrators_identity/decisions.jsonl` | **the decision record** — 57,487 decisions on source keys |
+| `narrators_identity/person_ids.jsonl` | the permanent-identifier registry — 25,099 active |
+| `narrators_identity/people.json` | **current** — 25,099 people, derived from the record |
+| `narrators_identity/review_signals.json` | agent judgments now inside one person — none at present |
+| `narrators_archive/2026-09-14-pre-stage2/` | the merge, normalized files and people before stage 2 — its measurement baseline |
 | `narrators_merged.json` | **superseded** — the June merge; do not use |
 
 ### Code
@@ -774,6 +776,46 @@ A corpus-wide count is not reliable yet: a name-extension test chains through am
 forms — `الحسن بن علي` links Ibn Faḍḍāl to al-Washshāʾ — and gives only an upper bound of about
 1,400. Stage 3 compares whole profiles instead; profile 62 already lists `سهل بن زياد الآدمي`
 among its own aliases, the link that was never tried.
+
+### Stage 2 (2026-09-14)
+
+One merge re-run with the name-form fixes, measured against the build before it — both sides
+from `people.json`, so Layer 0 fragments count the same way.
+
+| | Before stage 2 | After |
+|---|---|---|
+| People | 24,239 | 25,099 |
+| Verdict clashes | 155 | 151 |
+| Kunyah clashes, case-folded | 317 | 312 |
+| Invariant violations | 69 | 66 |
+| Agent separations inside one person | — | 0 of 1,215 |
+| Drawing on more than one book | 21.2% | 19.5% |
+
+**The targeted defects are fixed.** Exact-name deferrals blocked by a kunyah conflict fell from
+44 to 25 — most had been two sources inflecting one kunyah differently. 195 Arabic and 186
+English aliases were a relative's, and moved out of the alias lists; merged_id 1405's father
+and son are now two people. Nothing regressed on the famous-narrator check, and agent answers
+survived three merge re-runs, still joining 4,415 profiles.
+
+**The first re-run exposed two things the stated tests would not have caught.** Removing the
+accidental blockers moved cases from "deferred to the agents" to "decided by rule": 71 rule
+merges joined people the previous build kept apart, and 11 of those went against an agent's
+considered separation — mostly names that are only a kunyah, أبي بصير, whose protection had been
+a kunyah conflict the case-folding removed. Hence an agent's separation now binds the rules,
+and kunyah-only names go to the agents. The ancestor rule also needed widening twice: it first
+missed the start of an ancestor's name, and then missed the reverse — the father's entry
+listing the son, which was 1405's actual mechanism.
+
+**What remains.** Holding kunyah-only names back raised people by 860 and lowered cross-book
+linkage to 19.5% until the top-up Layer 3 run partitions them (stage 3). The rule layer is
+still lenient — an alias match three names deep is accepted at context score 0 — and English
+transliteration defeats the relatives rule where Arabic does not: `abdullah ibn ajlan` merged
+قيس بن عبد الله بن عجلان into his father because the English forms spelled the lineage
+differently. Thresholds are for the stage 5 audit to set from data. merged_id 1008 is still
+fused; that is the split pass's.
+
+**A run was killed for memory mid-merge.** Nothing was lost only because the kill landed before
+the write; every file is now written durably.
 
 ---
 
