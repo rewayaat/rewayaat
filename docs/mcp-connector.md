@@ -254,7 +254,9 @@ against memory.
 
 ### Claude
 
-Settings → Connectors → Add custom connector, with the URL `https://hadith.academyofislam.com/mcp`.
+Customize → Connectors → **+** → Add custom connector, with the URL
+`https://hadith.academyofislam.com/mcp`. Claude's help centre moved this out of Settings in
+2026; on Team and Enterprise an owner adds it once under Organization settings → Connectors.
 
 - **Auth is optional.** OAuth client id and secret live under Advanced settings and can be
   left empty, which is what a public read-only server wants.
@@ -286,6 +288,80 @@ Settings → Apps → Advanced settings → Developer mode, then Create app and 
 
 No registration and no JSON-RPC: it calls `McpToolCatalog.invoke(name, arguments)` in-process.
 This is why the tool catalogue is a bean rather than something welded to the transport.
+
+### Setup guides on the updates page
+
+`/updates.html#connector` carries written steps for each client followed by a looping
+walkthrough. The videos are plain MP4s on the `rewayaat-media` Space, served through its CDN
+endpoint (`rewayaat-media.nyc3.cdn.digitaloceanspaces.com`, 7-day edge TTL), not from the pods
+and not through a player. Names carry a version (`claude-v1.mp4`): replacing a video means
+uploading `-v2` and changing the URL in `recent_updates.json`, never overwriting, because the
+edge would keep serving the old bytes for a week.
+
+They are rendered, not recorded: `scripts/connector-guides/` holds the animation page and the
+renderer, so a UI change in either client is a text edit and a re-render rather than a new
+screen capture. The mock-ups follow each client's wording but are not pixel copies.
+
+## Distribution: custom connector or directory listing
+
+A custom connector is what works today, and it is a poor front door for this audience. In
+ChatGPT it needs developer mode — paid plans, web only, behind an "unverified" warning — and in
+Claude it means pasting a URL. Both clients have a directory that removes all of that, and a
+listing is the long-term path; the setup guides stay as the fallback and cover the time a
+review takes.
+
+- **Claude Connectors Directory.** Submitted from the organisation admin portal, so it needs a
+  **Team or Enterprise** organisation — that plan is the price of a listing, not a way to reach
+  users. Requires tool titles and read-only annotations (both already present), a privacy
+  policy URL (`/privacy` exists), documentation, and test instructions; a no-auth server is an
+  accepted authentication mode.
+- **ChatGPT app directory.** Submitted from a verified OpenAI Platform account (individual or
+  organisation), not a ChatGPT workspace. Requires domain verification — served at
+  `/.well-known/openai-apps-challenge` since dc8eec9 — a privacy policy, listing assets and
+  test cases. There is no `/terms` page yet; add one before submitting if the form asks.
+
+Paying for ChatGPT Business or Claude Team to *distribute* the connector does not work:
+workspace connectors reach that workspace's members only.
+
+## Analytics (designed, not built)
+
+The question to answer is whether the connector is used, from which client, for what, and
+whether it finds anything. GA4 is where the website's traffic already lives
+(`G-3HSRTQD7GM`), so connector usage goes to the same property through the **Measurement
+Protocol**: a server-side `POST` to `https://www.google-analytics.com/mp/collect` with the
+measurement id and an API secret created under the web data stream (Admin → Data streams →
+Measurement Protocol API secrets).
+
+| Event | When | Parameters |
+|---|---|---|
+| `mcp_session_start` | `initialize` | `client_name`, `client_version`, `protocol_version` |
+| `mcp_tool_call` | every `tools/call` | `tool`, `client_name`, `outcome`, `result_count`, `total_matches`, `latency_ms`, `book`, `match_mode` |
+
+- **`client_name`** is `exchange.getClientInfo().name()` normalised to `claude`, `chatgpt` or
+  `other`, with the raw value kept in `client_version`'s neighbour only if it proves useful.
+- **`outcome`** is `results`, `empty`, `invalid` (an `IllegalArgumentException`, which the
+  model can retry) or `error`. `empty` is the one worth watching: it is where the corpus boundary
+  or the BM25 wording advice is doing its job, or failing to.
+- **`book` and `match_mode`** are closed vocabularies, so they are safe to send.
+- **No query text.** A free-text query can contain anything a person types, and GA4's terms
+  forbid personal data. If query analysis is wanted later, it belongs in our own logs with a
+  retention limit, not in GA4.
+- **`client_id` is a hash of `exchange.sessionId()`.** The server is unauthenticated and every
+  user of a hosted client arrives from that vendor's egress addresses, so there is no person
+  to identify. GA4 "users" in these reports are MCP sessions, and no `user_id` is ever sent.
+
+The hook is the handler in `McpToolCatalog.specification`, which already receives the
+exchange: time `execute`, classify the result, hand the event to a sender. The site's chatbot
+calls `invoke` and never passes through it, so it stays out of the counts unless it is tagged
+deliberately.
+
+Delivery is off the request path: a bounded queue drained by one background thread, batches
+of up to 25 events (the protocol's limit), a two-second timeout, and events dropped rather
+than retried when GA4 is unreachable. It is disabled unless `GA4_API_SECRET` is set, so the
+build and the tests never talk to Google. On the GA4 side, `tool`, `client_name`, `outcome`,
+`book` and `match_mode` are registered as event-scoped custom dimensions and `latency_ms`,
+`result_count` as custom metrics; the `/debug/mp/collect` endpoint validates payloads before
+anything is switched on.
 
 ## Where this deviates from the spec, deliberately
 

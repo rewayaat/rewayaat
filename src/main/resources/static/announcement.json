@@ -1,3 +1,8 @@
 {
-  "active": false
+  "id": "mcp-connector-2026-09",
+  "active": true,
+  "icon": "fa-plug",
+  "text": "New: use the hadith database directly inside Claude and ChatGPT.",
+  "linkText": "See how",
+  "linkUrl": "/updates.html#connector"
 }

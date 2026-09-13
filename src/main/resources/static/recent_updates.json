@@ -1,5 +1,51 @@
 [
   {
+    "id": "connector",
+    "date": "2026-09-13",
+    "title": "Use the Database Inside Claude and ChatGPT",
+    "summary": "Rewayaat is now available as a connector, so you can search and read the collection without leaving your AI assistant. Ask a question in your own words and it queries all 32,519 narrations directly — in Arabic or English — and cites what it finds back to this site.",
+    "highlights": [
+      "Search the full corpus by field, in Arabic or English, with the true number of matches reported so an answer can be complete rather than partial",
+      "Read a whole chapter in order, with its real size — the difference between \"these appear to be the main narrations\" and all seven of them",
+      "Follow the 47,522 judged similarity links between narrations, each with the reason it was judged similar",
+      "Move in both directions between narrations and the Qur'anic verses connected to them",
+      "Works with Claude and ChatGPT today, and powers the assistant on this site"
+    ],
+    "connectorUrl": "https://hadith.academyofislam.com/mcp",
+    "guides": [
+      {
+        "id": "connector-claude",
+        "name": "Add it to Claude",
+        "steps": [
+          "In claude.ai, open <strong>Customize → Connectors</strong>.",
+          "Click <strong>+</strong>, then <strong>Add custom connector</strong>.",
+          "Name it <strong>Hadith</strong> and paste the connector URL above. Leave <strong>Advanced settings</strong> empty — there is nothing to sign in to.",
+          "In a chat, open <strong>+ → Connectors</strong> and switch <strong>Hadith</strong> on, then ask your question."
+        ],
+        "note": "Works on every Claude plan; the free plan allows one custom connector. On Team and Enterprise, an owner adds it once under Organization settings → Connectors.",
+        "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v1.mp4",
+        "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v1.jpg",
+        "videoTitle": "Adding the Hadith connector in Claude",
+        "videoAspect": "1600 / 1088"
+      },
+      {
+        "id": "connector-chatgpt",
+        "name": "Add it to ChatGPT",
+        "steps": [
+          "In chatgpt.com, open <strong>Settings → Apps → Advanced settings</strong> and turn on <strong>Developer mode</strong>.",
+          "Click <strong>Create app</strong>. Name it <strong>Hadith</strong>, paste the connector URL above, and set <strong>Authentication</strong> to <strong>No Auth</strong>.",
+          "Confirm that you trust the app, then click <strong>Create</strong>.",
+          "In a chat, open <strong>+</strong> and choose <strong>Hadith</strong>, then ask your question."
+        ],
+        "note": "Developer mode is available on the web for Plus, Pro, Business, Enterprise and Edu plans.",
+        "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/chatgpt-v1.mp4",
+        "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/chatgpt-v1.jpg",
+        "videoTitle": "Adding the Hadith connector in ChatGPT",
+        "videoAspect": "1600 / 1088"
+      }
+    ]
+  },
+  {
     "date": "2026-09-09",
     "title": "Share a narration as an image",
     "summary": "Every narration can now be turned into a card you can post or send — Arabic and English together, with the book, chapter and number on it so the source travels with the text.",
