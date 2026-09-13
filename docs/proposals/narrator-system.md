@@ -665,6 +665,39 @@ agents routed them to review, but nothing in the pipeline undoes them.
 - Patronymic aliases. An entry that opens with the narrator's lineage leaves the father's
   name in the son's alias list, and the alias index then treats the father as the son.
 
+**One man is still spread across several profiles, because his name forms never met.**
+Layer 3 partitions profiles that share an *identical* normalized name, so the forms one
+narrator goes by — the full lineage Najashi heads him with, the short form Khoei's chain
+mentions use, an "Ibn X" form, a kunyah form — land in different groups and are never
+compared. Sahl b. Ziyād al-Ādamī al-Rāzī is the clearest case: profile 62 holds 41 sources
+under `سهل بن زياد`, while Najashi's own entry — the decisive «ضعيفا في الحديث غير معتمد
+عليه» — sits in a separate profile under `سهل بن زياد الآدمي`, and Tusi's Fihrist in a
+third under `سهل بن زياد الادمي الرازي`. Checked against each narrator's defining nisbah or
+kunyah, 10 of 12 of the most-cited narrators are split the same way:
+
+| Narrator | Profiles that are him | Sources per profile |
+|---|---|---|
+| Aḥmad b. Muhammad b. ʿĪsā al-Ashʿarī | 7 | 46, 5, 4, 3, 2, 2 |
+| Sahl b. Ziyād | 4 | 41, 7, 3, 2 |
+| al-Ḥusayn b. Saʿīd | 4 | 50, 4, 3, 2 |
+| Ibn Abī ʿUmayr | at least 2 | 45 as `ابن أبي عمير`, 37 as `محمد بن أبي عمير` |
+| Yūnus b. ʿAbd al-Raḥmān | 3 | 24, 14, 1 |
+| Muhammad b. Muslim | 3 | 36, 3, 2 |
+| Ibrāhīm b. Hāshim | 3 | 56, 4, 2 |
+| al-Faḍl b. Shādhān | 2 | 37, 3 |
+| Zurāra b. Aʿyan | 2 | 45, 2 |
+| Ṣafwān b. Yaḥyā; Jamīl b. Darrāj | 1 | unified |
+
+Thin, context-free chain mentions also sit beside these — 37 beside Aḥmad b. Muhammad b.
+ʿĪsā — correctly held apart until something identifies them. A corpus-wide count is not
+yet reliable: a name-extension test chains through ambiguous short forms (`الحسن بن علي`
+links Ibn Faḍḍāl to al-Washshāʾ), which is the original merge's failure in a new place, and
+gives only an upper bound of about 1,400. The remedy is a cross-form pass that compares
+whole clusters, now that each carries its accumulated aliases — profile 62 already lists
+`سهل بن زياد الآدمي` among its own aliases, which is exactly the link that was never tried.
+Its profile also shows nisbah bleed: الأشعري, which belongs to his accuser named in his
+entry, and الآملي, which belongs to a different man.
+
 **Every merge re-run currently discards all Layer 3 answers**, because they are keyed on
 merge-relative ids that are renumbered each run. Fixing the defects above requires a
 re-run, so the answers need re-keying onto source-profile keys (`book:source_index`, which
