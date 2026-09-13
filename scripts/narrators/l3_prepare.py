@@ -200,6 +200,8 @@ def main():
     parser.add_argument("--out-dir", default=os.path.join(TMP, "narrators_l3"))
     parser.add_argument("--kinds", default="group,pair")
     parser.add_argument("--budget", type=int, default=DEFAULT_BUDGET)
+    parser.add_argument("--normalized-dir", default=os.path.join(TMP, "narrators_normalized"),
+                        help="for translating merged ids to source keys (id_map.json)")
     args = parser.parse_args()
 
     kinds = [k.strip() for k in args.kinds.split(",") if k.strip()]
@@ -283,6 +285,15 @@ def main():
                                 for t in batch),
                 "chars": os.path.getsize(path),
             })
+
+    # Answers name merged ids, which the next merge renumbers. The map from merged id to
+    # permanent source keys travels with the run, so its answers stay translatable into the
+    # decision record (record_decisions.py) after merged.json has been overwritten.
+    from identity import merged_id_map
+    id_map, map_method = merged_id_map(merged, args.normalized_dir)
+    with open(os.path.join(run_dir, "id_map.json"), "w") as handle:
+        json.dump({"merge_fingerprint": fingerprint, "method": map_method,
+                   "map": {str(k): v for k, v in id_map.items()}}, handle, ensure_ascii=False)
 
     manifest["batches"].sort(key=lambda b: (b["kind"], b["batch"]))
     with open(manifest_path, "w") as handle:
