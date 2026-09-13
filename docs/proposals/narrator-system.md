@@ -1,7 +1,7 @@
 # Narrator Biography System — Proposal
 
-> **Status: Phase 1 ran, Phase 2 has been rebuilt, Phases 3-5 were written and deleted.**
-> Audited and rebuilt 2026-09-07. Nothing here is serving traffic yet. The section
+> **Status: Phase 1 ran, Phase 2 rebuilt and Layer 3 drained (24,239 profiles), Phases 3-5 were written and deleted.**
+> Audited and rebuilt 2026-09-07; Layer 3 completed 2026-09-13. Nothing here is serving traffic yet. The section
 > [Current State](#current-state-2026-09-07) records exactly what exists and what its quality
 > is; tracked in [#88](https://github.com/rewayaat/rewayaat/issues/88).
 
@@ -456,7 +456,7 @@ speed over 5A, and is only worth doing once merge precision is established.
 |------|----------|
 | `tmp/narrators_book_{slug}.json` | Phase 1 extraction, as produced — 42,076 profiles |
 | `tmp/narrators_normalized/{slug}.json` | Contract-normalized — 42,046 profiles |
-| `tmp/narrators_merge/merged.json` | **Current** — 28,463 merged profiles |
+| `tmp/narrators_merge/merged.json` | Pre-Layer-3 merge — 28,687 profiles, fingerprint `28687:a993d061519aaa64` |
 | `tmp/narrators_merge/name_group_tasks.json` | 519 partition tasks covering 6,417 profiles |
 | `tmp/narrators_merge/deferred.json` | 3,095 pairwise deferrals |
 | `tmp/narrators_merge/quarantine.json` | 7 disambiguation pages held out |
@@ -464,8 +464,8 @@ speed over 5A, and is only worth doing once merge precision is established.
 | `tmp/narrators_l3/batches/` | 112 Layer 3 batches — 32 group, 80 pair |
 | `tmp/narrators_l3/outputs/` | sub-agent decisions, one file per answered batch |
 | `tmp/narrators_l3/auto_separate.json` | 652 deferrals resolved without an agent |
-| `tmp/narrators_l3/merged_final.json` | Layer 3 output, once batches are answered |
-| `tmp/narrators_l3/review_queue.json` | low-confidence answers, for Layer 4 |
+| `tmp/narrators_l3/runs/28687-a993d061519aaa64/merged_final.json` | **Current** — 24,239 profiles after Layer 3 |
+| `tmp/narrators_l3/runs/28687-a993d061519aaa64/review_queue.json` | 173 low-confidence answers, for Layer 4 |
 | `tmp/narrators_merged.json` | **Superseded** — the 2026-06 merge, 29,305 profiles; do not index |
 
 **Code** — the Phase 1-2 pipeline is rebuilt in the tree:
@@ -615,6 +615,61 @@ The 66 remaining violations are all `alias_is_foreign_primary_name` on headed-en
 real signal, and small enough to inspect individually. They are the natural input to
 Layer 4.
 
+### Layer 3 results (2026-09-13)
+
+All 73 batches answered by sub-agents, run `28687-a993d061519aaa64`. Every decision file
+validated with zero errors; zero tasks unanswered.
+
+| | Before Layer 3 | After Layer 3 |
+|---|---|---|
+| Profiles | 28,687 | 24,239 |
+| Drawing on more than one book | 16.6% | 21.2% |
+| Largest cluster | 15 | 56, a single name form (محمد بن سنان) |
+| Group merges applied | — | 3,533 across 2,922 clusters |
+| Pair merges applied | — | 915, with 353 kept separate |
+| Low confidence, routed to Layer 4 | — | 173 |
+| Resolved separate without an agent | — | 432 |
+
+The largest clusters reunite prolific narrators whose Khoei and Mamaqani *mentions* were
+extracted one profile each — Ibrāhīm b. Hāshim, al-Ḥusayn b. Saʿīd, Ibn Abī ʿUmayr — under
+one name form, with verdicts that match the scholarship.
+
+**Grade clashes rose from 98 to 143, and that is mostly correct.** Of the 68 clashes that
+involve a Layer 3 merge, 60 take their conflicting verdicts from different books: Layer 3
+reunited the scattered entries of narrators the Rijal scholars genuinely dispute —
+al-Nahdī and Ḥamdān al-Qalānisī, whom Kashshī identifies outright; Jaʿfar b. Muhammad b.
+Mālik al-Fazārī; Ibrāhīm b. Isḥāq al-Aḥmarī al-Nahāwandī. Per-source attribution is what
+makes that safe to publish. A handful are contested identity (ʿAbbād al-Rawājinī; Hishām
+b. Ibrāhīm) and belong in review.
+
+**Layer 3 can merge but cannot split.** Agents repeatedly flagged candidates that already
+mix two people. On the pre-Layer-3 merge, of 6,705 multi-source profiles, 98 carry both a
+positive and a negative verdict, 260 carry two or more distinct kunyahs (inflated by the
+case defect below), and 17 carry both. 328 of the 379 merge steps behind the grade-clash
+set were Layer 1 exact or full-name matches on thin profiles, where "nothing conflicts"
+meant nothing was stated. The worst: merged_id 1008 fuses Najashi's thiqa ʿAmr b. Ḥurayth
+al-Ṣayrafī with the Companion of the same name; 1405 fuses a father and son because the
+son's aliases carry the father's name. The grade-clash count is a lower bound — 1008 is a
+generation conflict, not a grade conflict. Layer 3 added nothing to either, because the
+agents routed them to review, but nothing in the pipeline undoes them.
+
+**Two normalizer defects, both measured.**
+
+- Kunyahs are not case-folded. 323 of 10,009 kunyah values are accusative or genitive
+  (أبا / أبي) and 119 are truncated junk (`ا`, a bare `ابو`). That inflates kunyah clashes
+  by about a quarter (390 → 288 once folded) and produced 46 spurious `kunyah_conflict`
+  penalties among 203 in Layer 2 — the safe direction, keeping profiles apart. The same gap
+  lets 48 accusative aliases (`ابا علي الرازي`, `ابي بكر الحضرمي`) past the generic-kunyah
+  guard; two merges ran through them. The fold must skip أبي before بن: أبي بن كعب is the
+  name Ubayy.
+- Patronymic aliases. An entry that opens with the narrator's lineage leaves the father's
+  name in the son's alias list, and the alias index then treats the father as the son.
+
+**Every merge re-run currently discards all Layer 3 answers**, because they are keyed on
+merge-relative ids that are renumbered each run. Fixing the defects above requires a
+re-run, so the answers need re-keying onto source-profile keys (`book:source_index`, which
+never change) before it happens.
+
 ### Remediation order
 
 Nothing here requires re-downloading a page except step 5.
@@ -624,11 +679,10 @@ Nothing here requires re-downloading a page except step 5.
 2. ~~**Implement Layer 0.**~~ Done — 1,086 batch fragments collapsed. Smaller than expected,
    because most Khoei and Mamaqani repeats are mentions rather than fragments.
 3. ~~**Rewrite the merge.**~~ Done — see the table above.
-4. **Drain Layer 3**, via sub-agents. **In progress: 14 of 73 batches answered**, run
-   `28687-a993d061519aaa64`. 432 pairwise deferrals resolve as keep-separate
-   without an agent. Applied so far: 873 group merges across 526 clusters, 72 pair merges,
-   7 low-confidence answers to the Layer 4 queue — 28,687 to 27,742 profiles. Every
-   decision file validated with zero errors.
+4. ~~**Drain Layer 3.**~~ Done 2026-09-13 — all 73 batches, zero validation errors. See
+   [Layer 3 results](#layer-3-results-2026-09-13). It surfaced three defects the next merge
+   re-run must carry — kunyah case folding, patronymic aliases, and the missing split
+   operation — and a re-run currently discards every Layer 3 answer.
 5. **Re-run Tusi and Ardabili extraction** at a smaller batch size. Rijal al-Tusi at 123
    profiles is a hole the system cannot ship around.
 6. **Phase 3** — restore `NarratorIndexManager` and import.
