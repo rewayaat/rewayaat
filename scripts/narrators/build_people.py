@@ -162,6 +162,8 @@ def main():
         "built": today,
         "rules_run": rules_run,
         "decisions_on_file": len(record),
+        "decisions_retracted": len({t for d in record if d["kind"] == "retract"
+                                    for t in d.get("targets", [])}),
         "decisions_in_force": dict(Counter(f"{d['actor']}/{d['kind']}/{d['method']}" for d in force)),
         "sources": len(profiles),
         "excluded": len(excluded),

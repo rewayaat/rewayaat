@@ -289,11 +289,13 @@ def main():
     # Answers name merged ids, which the next merge renumbers. The map from merged id to
     # permanent source keys travels with the run, so its answers stay translatable into the
     # decision record (record_decisions.py) after merged.json has been overwritten.
-    from identity import merged_id_map
+    from identity import merged_id_map, merged_seeds
     id_map, map_method = merged_id_map(merged, args.normalized_dir)
+    seeds = merged_seeds(merged)
     with open(os.path.join(run_dir, "id_map.json"), "w") as handle:
         json.dump({"merge_fingerprint": fingerprint, "method": map_method,
-                   "map": {str(k): v for k, v in id_map.items()}}, handle, ensure_ascii=False)
+                   "map": {str(k): v for k, v in id_map.items()},
+                   "seeds": {str(k): v for k, v in seeds.items()}}, handle, ensure_ascii=False)
 
     manifest["batches"].sort(key=lambda b: (b["kind"], b["batch"]))
     with open(manifest_path, "w") as handle:
