@@ -114,6 +114,9 @@ def is_identifying_english_alias(name):
     normalized = normalize_english(name or "")
     if not normalized:
         return False
+    tokens = normalized.split(" ")
+    if tokens[0] in ("aba", "abi"):
+        normalized = " ".join(["abu"] + tokens[1:])
     if _strips_to_generic_kunyah(normalized, _EN_GENERIC_KUNYAHS, _EN_STOP_TOKENS):
         return False
     return len(english_name_tokens(normalized)) >= 2
@@ -131,6 +134,114 @@ _EN_GENERIC_KUNYAHS = {
     "abu muhammad", "abu ali", "abu al qasim", "abu al husayn", "abu ibrahim",
     "abu bakr", "abu ahmad", "abu al fadl", "abu al abbas", "abu yusuf",
 }
+
+
+def fold_kunyah_case(normalized):
+    """Fold an accusative or genitive kunyah (أبا، أبي) to the nominative أبو.
+
+    Sources inflect kunyahs by grammatical case — «يكنى أبا جعفر», «عن أبي جعفر» — so one
+    kunyah arrives in three spellings, and compared unfolded, two sources naming the same
+    kunyah looked like a conflict. أبي followed by بن is not a kunyah but the name Ubayy
+    (أبي بن كعب), and is left alone.
+    """
+    tokens = normalized.split(" ")
+    if tokens and tokens[0] in ("ابا", "ابي") and not (len(tokens) > 1 and tokens[1] == "بن"):
+        tokens[0] = "ابو"
+    return " ".join(tokens)
+
+
+_KUNYAH_JUNK = {"", "ا", "ابو", "ابي", "ابا", "ام"}
+
+
+def fold_kunyah(raw):
+    """A kunyah's comparison key — normalized and case-folded — or None for truncated junk."""
+    folded = fold_kunyah_case(normalize_arabic(raw or ""))
+    return None if folded in _KUNYAH_JUNK or len(folded) <= 2 else folded
+
+
+def ancestor_tails(normalized, separators):
+    """Every part of a normalized name that follows a separator: the ancestors' names.
+
+    `عبد الله بن احمد بن عامر` yields `احمد بن عامر` and `عامر` — his father and grandfather.
+    """
+    tails = set()
+    for separator in separators:
+        start = normalized.find(separator)
+        while start != -1:
+            tail = normalized[start + len(separator):].strip()
+            if tail:
+                tails.add(tail)
+            start = normalized.find(separator, start + 1)
+    return tails
+
+
+SEPARATORS_AR = (" بن ", " ابن ", " بنت ")
+SEPARATORS_EN = (" ibn ", " b ", " bin ", " bint ")
+
+
+def _opening(normalized, separators):
+    """Everything before a name's first بن — titles, kunyah and the man's own first name."""
+    cut = len(normalized)
+    for separator in separators:
+        at = normalized.find(separator)
+        if at != -1:
+            cut = min(cut, at)
+    return normalized[:cut].strip()
+
+
+def _bare(token):
+    """A first name without the definite article, so حسين and الحسين compare equal."""
+    return token[2:] if token.startswith("ال") and len(token) > 3 else token
+
+
+def lineage_relation(subject, alias, separators=SEPARATORS_AR, tokens_of=None):
+    """Whether `alias` names the subject's ancestor or descendant — or neither (None).
+
+    An entry opens with its subject's lineage and names his sons and transmitters, so an
+    extractor's alias list mixes the man's own names with his relatives'. Indexed as aliases,
+    a relative's name merges the relative into him: 1405 fused a father and son because the
+    father's Najashi entry, which names the son who transmitted his book, listed the son as
+    an alias. Both arguments are normalized names.
+
+      ancestor    the alias is the start of what follows a بن in the subject's name —
+                  «أحمد بن عامر» on «عبد الله بن أحمد بن عامر»
+      descendant  «X بن» followed by the start of the subject's own name, two identifying
+                  names deep — «عبد الله بن أحمد بن عامر» on «أحمد بن عامر بن سليمان»
+
+    None whenever the alias's own first name is among the names that open the subject's,
+    ignoring the article: a man who shares his grandfather's name, or a heading that begins
+    with titles, would otherwise have his own name read as a relative's.
+
+    Siblings are deliberately not detected. A different first name over the same lineage is
+    far more often a variant reading of the man's own name — الحسن and الحسين, سليمان and
+    سلمان — than a brother, and treating it as a brother would discard his own names.
+    """
+    tokens_of = tokens_of or name_tokens
+    if not subject or not alias or alias == subject:
+        return None
+    has_separator = any(sep in alias for sep in separators)
+    if has_separator:
+        opening = _opening(alias, separators).split()
+        alias_first = opening[-1] if opening else ""
+    else:
+        alias_first = alias.split()[0]
+    if _bare(alias_first) in {_bare(t) for t in _opening(subject, separators).split()}:
+        return None
+    for tail in ancestor_tails(subject, separators):
+        if tail == alias or tail.startswith(alias + " "):
+            return "ancestor"
+    if not has_separator:
+        return None
+    own = subject.split()
+    for tail in ancestor_tails(alias, separators):
+        shared = []
+        for a, b in zip(tail.split(), own):
+            if a != b:
+                break
+            shared.append(a)
+        if len(tokens_of(" ".join(shared))) >= 2:
+            return "descendant"
+    return None
 
 
 def _strips_to_generic_kunyah(normalized, generic, stop_tokens):
@@ -167,7 +278,7 @@ def is_identifying_alias(name):
     normalized = normalize_arabic(name or "")
     if not normalized or normalized in EDITORIAL_PLACEHOLDERS:
         return False
-    if _strips_to_generic_kunyah(normalized, GENERIC_KUNYAHS, _AR_STOP_TOKENS):
+    if _strips_to_generic_kunyah(fold_kunyah_case(normalized), GENERIC_KUNYAHS, _AR_STOP_TOKENS):
         return False
     return len(name_tokens(normalized)) >= 2
 

@@ -323,7 +323,10 @@ python3 scripts/narrators/build_people.py                  # people and permanen
 ```
 
 Sub-agents run at most 20 at a time. An agent stopped before it writes leaves no file, and
-one stopped after leaves a complete file, so an interrupted run resumes cleanly.
+one stopped after leaves a complete file, so an interrupted run resumes cleanly. The pipeline's own files are written the same
+way: every JSON output goes to a temporary file and is renamed over the old one, and the
+append-only decision record and identifier registry trim a torn final line before appending.
+This machine's memory is shared with other work, and the kernel has killed runs mid-step.
 
 Recoverable from git:
 
@@ -427,8 +430,43 @@ Such forms are still stored and displayed; they simply cannot be the reason two 
 **Editorial shorthand is not a name.** Mamaqani refers to the person under discussion as المترجم,
 المعنون, صاحب الترجمة, الرجل. These are dropped at the contract stage.
 
-**Open defects in this area** — stage 2: kunyahs are not yet case-folded; a son's alias list can
-carry his father's name; nisbahs of other people named in an entry can attach to its subject.
+**Kunyahs are compared case-folded.** Sources inflect kunyahs by case — «يكنى أبا جعفر», «عن
+أبي جعفر» — so أبا and أبي fold to أبو before any comparison, and the generic-kunyah rule sees
+the folded form. أبي followed by بن is the name Ubayy (أبي بن كعب) and is left alone. Truncated
+kunyahs — a lone ا, a bare أبو — are dropped at the contract stage.
+
+**Relatives are not aliases.** An entry opens with its subject's lineage and names his sons
+and transmitters, so an extractor's alias list mixes the man's own names with his relatives'.
+Indexed as aliases, a relative's name merges the relative into him — merged_id 1405 fused a
+father and son because the father's Najashi entry, which names the son who transmitted his
+book, listed the son among the father's aliases. Two relations are recognised and moved to
+`relative_names`, kept for lineage and display, never indexed:
+
+- *ancestor* — the alias is the start of what follows a بن in the subject's name:
+  «أحمد بن عامر» on «عبد الله بن أحمد بن عامر»;
+- *descendant* — «X بن» followed by the start of the subject's own name, at least two
+  identifying names deep: «عبد الله بن أحمد بن عامر» on «أحمد بن عامر بن سليمان».
+
+Neither applies when the alias's own first name is among the names that open the subject's,
+ignoring the article — a man who shares his grandfather's name («علي بن محمد بن علي الخزاز»
+→ «علي الخزاز»), or a heading that begins with titles, would otherwise have his own name read
+as a relative's.
+
+Siblings are measured and not detected. A different first name over the same lineage flagged
+494 aliases, and they were mostly variant readings of the man's own name — الحسن and الحسين
+بن عقيل, سليمان and سلمان, جيفر and جفير — recorded from the sources' notes on other copies.
+Treating them as brothers would discard his own names. Brother-aliases remain a known risk
+for the agent passes.
+
+**Nisbah bleed is not handled by rule.** The nisbah of a man named in someone else's entry can
+attach to its subject: Sahl b. Ziyād carries الأشعري, his accuser's. Two rules were measured and
+neither is precise enough to ship. Requiring a title to appear in the subject's own name forms
+or entry heading would demote 20.8% of all titles, nearly all correctly attributed — the
+verdict quotation omits most of an entry, so absence from it proves nothing. Requiring every
+occurrence to follow another man's name flagged 133 titles, most of them the subject's own long
+lineage. Bleed is rare, under 0.5% of titles, and a title alone adds +2 to a context score, less
+than a merge needs, so its harm is mostly on display. Each nisbah is shown with the book it came
+from, and the agent passes of stages 3–4, which read the text, correct the rest.
 
 ### Extraction output contract
 
@@ -480,7 +518,9 @@ within a book is not assumed to be a fragment.
 **Layer 1 — exact names.** Candidates come from the name index only (see the rule above). A
 single candidate is not enough to merge. An exact match on the primary name merges only when
 few profiles corpus-wide share that name — six or fewer — and nothing conflicts; larger
-same-name groups go to Layer 3 whole. A match through an alias needs a name at least three
+same-name groups go to Layer 3 whole. So does an exact match on a primary name that is only a
+kunyah — `أبي بصير` names several men as surely as a large group does; the name-class rule
+applies to primary names as much as to aliases. A match through an alias needs a name at least three
 identifying tokens deep, or supporting context. Every absorbed alias is indexed, so a merge
 without these guards would chain: A absorbs B's aliases, C matches one of them, C joins A,
 and the cluster grows without any two members having been compared.
@@ -544,16 +584,21 @@ and identified by a hash of its content, so recording it twice adds nothing.
 | Kind | Meaning | Effect on people |
 |---|---|---|
 | `same` | these sources are one person | joins them |
-| `partition` | a Layer 3 group task: each group is one person | joins within groups; asserts nothing across them |
-| `not_same` | judged not shown to be the same | none — reported if other decisions join them |
+| `partition` | a Layer 3 group task: each group is one person | joins within groups; across them, binds rules only |
+| `not_same` | judged not shown to be the same | binds rules only; reported if an agent or reviewer joins them |
 | `distinct` | positively different people | refuses a `same` from an actor of equal or lower rank |
 | `exclude` | not a narrator | removes the sources |
 
-`not_same` is deliberately weak. The agent brief says to default to separate, so an agent's
-"not the same" often means "not shown to be the same", and a profile left on its own in a
-partition may be one the agent could not place. Enforcing either would block legitimate merges
-later. Only `distinct` is enforced, and it is reserved for reviewers and the split pass. Actors
-rank reviewer over agent over rule.
+An agent's separation — `not_same`, or different groups of one partition — binds rules and
+nothing else. It is the agent's reading of the sources, and a rule ranks below an agent. The
+stage 2 re-merge showed why this matters: of 71 rule merges that joined people the previous
+build kept apart, 11 went against an agent's considered separation, most of them names that
+are only a kunyah (أبي بصير, أبي عبيدة) whose earlier protection had been an accidental kunyah
+conflict the case-folding removed. Against another agent or a reviewer the separation stays
+weak, because "not the same", or a profile left on its own, often means only "not shown to be
+the same" — stage 3's cross-form agents must remain free to join them. `distinct` is hard: it
+binds every actor of equal or lower rank, and is reserved for reviewers and the split pass.
+Actors rank reviewer over agent over rule.
 
 Rule decisions belong to one merge run and are replaced wholesale when the merge is re-run;
 agent and reviewer decisions are judgments about sources and stand across runs. People are the

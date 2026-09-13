@@ -17,9 +17,9 @@ The decision record
 
       kind       meaning                                         effect on people
       same       `sources` are one person                        enforced
-      partition  each of `groups` is one person (a Layer 3       enforced within groups;
-                 group task); groups are NOT asserted distinct   nothing across them
-      not_same   `groups` were judged not shown to be the same   review signal only
+      partition  each of `groups` is one person (a Layer 3       joins within groups;
+                 group task); groups are NOT asserted distinct   across them, binds rules only
+      not_same   `groups` were judged not shown to be the same   binds rules only
       distinct   `groups` are positively different people        enforced against `same`
       exclude    `sources` are not narrators                     removed
       retract    `targets` (decision ids) are withdrawn          they no longer count
@@ -47,6 +47,7 @@ import datetime
 import hashlib
 import json
 import os
+import sys
 from collections import defaultdict
 
 ACTOR_RANK = {"reviewer": 3, "agent": 2, "rule": 1}
@@ -163,31 +164,88 @@ def make_decision(kind, *, method, actor, sources=None, groups=None, targets=Non
     return decision
 
 
+# --- Durable files ---
+#
+# This machine's memory is shared with other work, and the kernel has killed runs mid-step.
+# Every file here is therefore written so that a kill leaves the previous version intact, and
+# the append-only files never keep a torn line.
+
+def write_json_atomic(path, payload, indent=None):
+    """Write JSON to a temporary file beside `path`, then rename it over `path`."""
+    directory = os.path.dirname(os.path.abspath(path))
+    os.makedirs(directory, exist_ok=True)
+    tmp = os.path.join(directory, f".{os.path.basename(path)}.{os.getpid()}.tmp")
+    with open(tmp, "w") as handle:
+        json.dump(payload, handle, ensure_ascii=False, indent=indent)
+        handle.flush()
+        os.fsync(handle.fileno())
+    os.replace(tmp, path)
+
+
+def _trim_torn_tail(path):
+    """Cut an append-only file back to its last complete line.
+
+    A kill during an append leaves a final line without its newline; the next append would
+    glue a new entry onto it and corrupt both. The torn entry was never fully written, so it
+    was never recorded, and dropping it loses nothing.
+    """
+    if not os.path.exists(path) or not os.path.getsize(path):
+        return
+    with open(path, "rb+") as handle:
+        data = handle.read()
+        if data.endswith(b"\n"):
+            return
+        handle.truncate(data.rfind(b"\n") + 1)
+    print(f"warning: {path}: trimmed an incomplete final line left by an interrupted append",
+          file=sys.stderr)
+
+
+def append_lines(path, objects):
+    """Append JSON objects, one per line, in a single flushed write."""
+    _trim_torn_tail(path)
+    os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
+    blob = "".join(json.dumps(o, ensure_ascii=False) + "\n" for o in objects)
+    if not blob:
+        return
+    with open(path, "a") as handle:
+        handle.write(blob)
+        handle.flush()
+        os.fsync(handle.fileno())
+
+
 def load_record(path):
-    decisions = []
-    if os.path.exists(path):
-        with open(path) as handle:
-            for line in handle:
-                if line.strip():
-                    decisions.append(json.loads(line))
-    return decisions
+    """Every entry on file. A torn final line is set aside; any other bad line is an error."""
+    entries = []
+    if not os.path.exists(path):
+        return entries
+    with open(path) as handle:
+        lines = handle.read().split("\n")
+    for number, line in enumerate(lines):
+        if not line.strip():
+            continue
+        try:
+            entries.append(json.loads(line))
+        except json.JSONDecodeError:
+            if number == len(lines) - 1:
+                print(f"warning: {path}: ignoring an incomplete final line", file=sys.stderr)
+                continue
+            raise
+    return entries
 
 
 def append_record(path, decisions, recorded=None):
     """Append the decisions not already on file. Returns (added, already_present)."""
+    _trim_torn_tail(path)
     on_file = {d["decision_id"] for d in load_record(path)}
     stamp = recorded or datetime.date.today().isoformat()
-    added = present = 0
-    os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
-    with open(path, "a") as handle:
-        for decision in decisions:
-            if decision["decision_id"] in on_file:
-                present += 1
-                continue
-            handle.write(json.dumps(dict(decision, recorded=stamp), ensure_ascii=False) + "\n")
-            on_file.add(decision["decision_id"])
-            added += 1
-    return added, present
+    fresh = []
+    for decision in decisions:
+        if decision["decision_id"] in on_file:
+            continue
+        fresh.append(dict(decision, recorded=stamp))
+        on_file.add(decision["decision_id"])
+    append_lines(path, fresh)
+    return len(fresh), len(decisions) - len(fresh)
 
 
 def _counts(decision, rules_run):
@@ -240,17 +298,32 @@ class UnionFind:
 def build_components(universe, decisions):
     """Apply the `same` and `partition` decisions over `universe`, strongest actor first.
 
-    A union that would put both sides of a `distinct` decision into one person is refused if
-    the distinct decision's actor ranks at least as high as the union's; a stronger actor's
-    union goes through and is reported as an override. Returns (uf, refused, overridden).
+    Separations constrain unions by rank:
+
+      distinct                  hard — refuses a union from an actor of equal or lower rank
+      agent/reviewer not_same   soft — refuses a union only from a strictly lower-ranked actor
+      and partition groups
+
+    An agent's separation is its reading of the sources; a rule ranks below an agent and
+    must not override it. The same separation stays weak against another agent or a
+    reviewer, because an agent's "not the same", or a profile it left on its own, often
+    means only "not shown to be the same" — later agent passes must remain free to join
+    them. A union that goes past a constraint is reported as an override.
+
+    Returns (uf, refused, overridden).
     """
     uf = UnionFind(universe)
-    sides = defaultdict(dict)          # root -> {distinct decision id: set of sides present}
-    distinct_rank = {}
+    sides = defaultdict(dict)          # root -> {constraint id: set of sides present}
+    constraints = {}                   # constraint id -> (rank, hard, kind)
     for d in decisions:
-        if d["kind"] != "distinct":
+        rank = ACTOR_RANK[d["actor"]]
+        if d["kind"] == "distinct":
+            hard = True
+        elif d["kind"] in ("not_same", "partition") and rank >= ACTOR_RANK["agent"]:
+            hard = False
+        else:
             continue
-        distinct_rank[d["decision_id"]] = ACTOR_RANK[d["actor"]]
+        constraints[d["decision_id"]] = (rank, hard, d["kind"])
         for i, group in enumerate(d["groups"]):
             for key in group:
                 if key in universe:
@@ -271,13 +344,19 @@ def build_components(universe, decisions):
                 clash = [cid for cid in sides[a].keys() & sides[b].keys()
                          if len(sides[a][cid]) == 1 and len(sides[b][cid]) == 1
                          and sides[a][cid] != sides[b][cid]]
-                blocking = [cid for cid in clash if distinct_rank[cid] >= rank]
+                blocking = [cid for cid in clash
+                            if (constraints[cid][0] >= rank if constraints[cid][1]
+                                else constraints[cid][0] > rank)]
                 if blocking:
-                    refused.append({"decision_id": d["decision_id"], "blocked_by": blocking,
-                                    "between": [keys[0], key]})
+                    refused.append({"decision_id": d["decision_id"], "method": d["method"],
+                                    "between": [keys[0], key],
+                                    "blocked_by": [{"decision_id": c, "kind": constraints[c][2]}
+                                                   for c in blocking]})
                     continue
                 if clash:
-                    overridden.append({"decision_id": d["decision_id"], "overrides": clash})
+                    overridden.append({"decision_id": d["decision_id"], "method": d["method"],
+                                       "overrides": [{"decision_id": c, "kind": constraints[c][2]}
+                                                     for c in clash]})
                 root = uf.union(a, b)
                 other = b if root == a else a
                 for cid, present in sides.pop(other, {}).items():

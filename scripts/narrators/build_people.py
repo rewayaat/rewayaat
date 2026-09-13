@@ -31,7 +31,7 @@ from collections import Counter
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from identity import (  # noqa: E402
-    append_record, assign_ids, build_components, components, considered, fragment_members,
+    append_lines, append_record, assign_ids, write_json_atomic, build_components, components, considered, fragment_members,
     in_force, load_record, load_registry, registry_state, source_key,
 )
 from l3_prepare import merge_fingerprint  # noqa: E402
@@ -136,9 +136,7 @@ def main():
     today = datetime.date.today().isoformat()
     ids, new_events = assign_ids(comps, events, previous, today)
     if new_events:
-        with open(registry_path, "a") as handle:
-            for event in new_events:
-                handle.write(json.dumps(event, ensure_ascii=False) + "\n")
+        append_lines(registry_path, new_events)
     state = registry_state(events + new_events)
 
     print(f"assembling {len(comps)} people...")
@@ -170,8 +168,10 @@ def main():
         "people": len(comps),
         "people_on_more_than_one_book": sum(
             1 for comp in comps if len({k.split(':')[0] for k in comp}) > 1),
-        "refused_by_distinct": len(refused),
-        "overrode_distinct": len(overridden),
+        "refused_unions": dict(Counter(f"{r['method']} blocked by {b['kind']}"
+                                       for r in refused for b in r["blocked_by"][:1])),
+        "overridden_constraints": dict(Counter(f"{o['method']} over {c['kind']}"
+                                               for o in overridden for c in o["overrides"][:1])),
         "review_signals": len(review),
         "registry": {"minted": event_counts.get("mint", 0),
                      "redirected": event_counts.get("redirect", 0),
@@ -184,11 +184,11 @@ def main():
     os.makedirs(args.identity_dir, exist_ok=True)
     for name, payload in (("people", people), ("membership", membership),
                           ("review_signals", review), ("build_stats", stats)):
-        with open(os.path.join(args.identity_dir, f"{name}.json"), "w") as handle:
-            json.dump(payload, handle, ensure_ascii=False, indent=None if name != "build_stats" else 1)
+        write_json_atomic(os.path.join(args.identity_dir, f"{name}.json"), payload,
+                          indent=1 if name == "build_stats" else None)
     if refused or overridden:
-        with open(os.path.join(args.identity_dir, "distinct_conflicts.json"), "w") as handle:
-            json.dump({"refused": refused, "overridden": overridden}, handle, ensure_ascii=False)
+        write_json_atomic(os.path.join(args.identity_dir, "distinct_conflicts.json"),
+                          {"refused": refused, "overridden": overridden})
 
     print(json.dumps(stats, ensure_ascii=False, indent=1))
 
