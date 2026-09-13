@@ -1,9 +1,9 @@
 # Narrator System
 
 > **Where things stand (2026-09-13).** 42,076 narrator entries have been extracted from eight
-> Rijal books and resolved into 24,239 people. None of it is published yet: known identity
-> defects remain, and identity decisions are not yet kept in a form that can be corrected
-> cheaply. Nothing here serves traffic. Tracked in
+> Rijal books and resolved into 24,239 people, each with a permanent identifier derived from a
+> record of identity decisions. None of it is published yet: known identity defects remain,
+> and Part III's stages 2–5 must clear them first. Nothing here serves traffic. Tracked in
 > [#88](https://github.com/rewayaat/rewayaat/issues/88); the code is on the
 > `feature/narrators` branch.
 
@@ -93,6 +93,7 @@ Every stage is held to these. Part II shows what happened when they were not in 
 | 2026-09-07 | **Rebuild.** Output contract enforced, merge rewritten with guards, the LLM layer redesigned and moved to sub-agents with versioned, immutable runs. The agents surface further defects; each is checked against the data and fixed. |
 | 2026-09-13 | **Layer 3 complete.** 73 batches of agent decisions, zero validation errors: 24,239 people. |
 | 2026-09-13 | Checking the most-cited narrators shows one man still spread across several profiles, fusions the pipeline cannot undo, and identities that cannot be corrected without redoing agent work. This shapes Part III. |
+| 2026-09-13 | **Stage 1: permanent identity.** Every decision so far — 16,494 of them, including all 73 batches of agent answers — recorded against permanent source keys. People rebuilt from the record reproduce the 24,239 exactly, and each has a permanent identifier. |
 
 ### What went wrong in June
 
@@ -180,10 +181,10 @@ the last two are always recomputed.
 This is what makes a correction cheap: record the decision, recompute the people it touches,
 and re-index the hadith whose chains mention them — a lookup, not a rerun.
 
-The current pipeline is closer to this than it looks. Every name form already carries its book
-and page, and every merge already records its layer, matching key and score. What is missing
-is the permanent key on sources, the decision record as a store in its own right, and
-permanent person identifiers.
+Stage 1 built layers 1–3: source keys, the decision record, and people with permanent
+identifiers derived from it — see [the decision record](#the-decision-record-and-permanent-identifiers)
+in Appendix B. Every decision made so far now lives in it, including all 73 batches of agent
+answers, and rebuilding from the record reproduces today's people exactly.
 
 ### Names as a subsystem
 
@@ -238,7 +239,7 @@ measured.
 | Stage | What | Done when |
 |---|---|---|
 | ✓ | Output contract, merge rebuild, Layer 3 through sub-agents | 24,239 people; every agent decision validated (2026-09-13) |
-| 1 | **Permanent identity and the decision record.** Key every source entry; record every existing decision against those keys — the rule merges, the 73 batches of agent answers, the automatic separations; derive people from the record; issue permanent person identifiers with redirects. | Rebuilding from the record reproduces today's 24,239 people, and a merge re-run no longer discards agent answers. |
+| ✓ 1 | **Permanent identity and the decision record.** Key every source entry; record every existing decision against those keys — the rule merges, the 73 batches of agent answers, the automatic separations; derive people from the record; issue permanent person identifiers with redirects. | Done 2026-09-13. Rebuilding from the record reproduces all 24,239 people exactly; recording twice adds nothing; rebuilding twice changes no identifier. Agent answers now outlive the merge — stage 2's re-run is the first to rely on it. |
 | 2 | **Fix the name-form defects** in one re-run: case-folded kunyahs, patronymic aliases, nisbahs belonging to other people. | Conflict counts and invariants re-measured; no regression on the famous-narrator check. |
 | 3 | **Reconcile name forms across profiles.** Propose pairs of whole profiles where one's aliases are the other's name and a kunyah or nisbah agrees; agents confirm against the quotations. | Each of the twelve most-cited narrators is one person; the corpus-wide split estimate re-measured. |
 | 4 | **Split pass.** Agents review profiles that may fuse several men — the 17 strongest candidates, then those with conflicting verdicts or impossible dates. | All 17 resolved; the rest reviewed or queued. |
@@ -260,9 +261,11 @@ published.
 | Stage | Output |
 |---|---|
 | Extracted, Phase 1 | 42,076 entries from eight books |
-| Contract-normalized | 42,046 (30 Infallibles removed) |
+| Contract-normalized | 42,045 (31 Infallibles removed) |
 | Merged, rule layers 0–2 | 28,687 profiles |
-| After Layer 3 | **24,239 people** |
+| After Layer 3 | **24,239 people**, each with a permanent identifier |
+| Identity decisions on record | 16,494, of which 16,321 in force |
+| Review signals | 25 `not_same` judgments that other decisions have joined |
 | Drawing on more than one book | 21.2% |
 | Held for human review | 173 low-confidence decisions |
 | Most-cited narrators still split | 10 of 12 checked |
@@ -280,10 +283,15 @@ Under `tmp/`, which is symlinked to `/mnt/share/rewayaat-backup/tmp/`:
 | `narrators_merge/{name_group_tasks,deferred,quarantine,violations}.json` | Layer 3 inputs and invariant checks |
 | `narrators_l3/runs/28687-a993d061519aaa64/batches/` | 73 Layer 3 batches — 32 group, 41 pair |
 | `narrators_l3/runs/28687-a993d061519aaa64/outputs/` | the agents' decisions, one file per batch |
-| `narrators_l3/runs/28687-a993d061519aaa64/merged_final.json` | **current** — 24,239 people |
+| `narrators_l3/runs/28687-a993d061519aaa64/merged_final.json` | Layer 3 output as applied — the reference `build_people.py` reproduces |
 | `narrators_l3/runs/28687-a993d061519aaa64/review_queue.json` | 173 low-confidence decisions |
 | `narrators_l3/runs/28687-a993d061519aaa64/auto_separate.json` | 432 deferrals kept separate without an agent |
 | `narrators_l3/archive/` | agent answers to earlier, superseded merges |
+| `narrators_l3/runs/<fingerprint>/id_map.json` | each run's merged ids translated to source keys |
+| `narrators_identity/decisions.jsonl` | **the decision record** — 16,494 decisions on source keys |
+| `narrators_identity/person_ids.jsonl` | the permanent-identifier registry — 24,239 active |
+| `narrators_identity/people.json` | **current** — 24,239 people, derived from the record |
+| `narrators_identity/review_signals.json` | 25 judgments now inside one person, for review |
 | `narrators_merged.json` | **superseded** — the June merge; do not use |
 
 ### Code
@@ -299,14 +307,19 @@ On `feature/narrators`:
 | `scripts/narrators/l3_agent_prompt.md` | the sub-agent brief |
 | `scripts/narrators/l3_dispatch.py` | progress, and prompts for unanswered batches |
 | `scripts/narrators/l3_apply.py` | validates and applies decisions |
+| `scripts/narrators/identity.py` | source keys, the decision record, people, permanent identifiers |
+| `scripts/narrators/record_decisions.py` | records a merge's and a Layer 3 run's decisions on source keys |
+| `scripts/narrators/build_people.py` | derives people and identifiers from the record |
 | `scripts/narrators/audit_narrator_quality.py` | per-book completeness audit |
 
 ```bash
 python3 scripts/narrators/normalize_extraction.py --strict
 python3 scripts/narrators/merge_narrator_profiles.py       # about 4 minutes
-python3 scripts/narrators/l3_prepare.py
+python3 scripts/narrators/l3_prepare.py                    # also writes the run's id_map.json
 python3 scripts/narrators/l3_dispatch.py --next 8          # prompts to hand to sub-agents
-python3 scripts/narrators/l3_apply.py --dry-run            # then without --dry-run
+python3 scripts/narrators/l3_apply.py --dry-run            # validates every answer
+python3 scripts/narrators/record_decisions.py              # decisions into the record, on source keys
+python3 scripts/narrators/build_people.py                  # people and permanent identifiers
 ```
 
 Sub-agents run at most 20 at a time. An agent stopped before it writes leaves no file, and
@@ -493,9 +506,10 @@ applied — a partition must cover its task exactly once, and a merge target mus
 task offered.
 
 Batches are versioned by a fingerprint of the merge that produced them, and each merge gets its
-own immutable run directory; answers are never mixed across merges. The current limitation —
-answers are keyed on merge-relative identifiers, so a new merge discards them — is what stage
-1 removes.
+own immutable run directory; answers are never mixed across merges. Answers name merged ids,
+so each run also stores `id_map.json`, translating them to source keys, and
+`record_decisions.py` writes them into the decision record, where a later merge cannot discard
+them.
 
 The pair format has a known limit: when a task's candidates include two duplicates of the same
 man, the agent can name only one.
@@ -519,6 +533,43 @@ meet, and splitting profiles that fuse several men.
 **Why aliases carry weight.** The narrator service builds its hadith search from every name
 variant on a profile, so each alias is a search term fired at the corpus. A foreign name in the
 alias list returns another man's narrations under the wrong biography.
+
+### The decision record and permanent identifiers
+
+Built in stage 1 (`scripts/narrators/identity.py`). Every identity decision — by rule, agent or
+reviewer — is a line in `tmp/narrators_identity/decisions.jsonl`, keyed on source keys
+(`book:index`, an entry's position in its Phase 1 extraction file, which is never rewritten)
+and identified by a hash of its content, so recording it twice adds nothing.
+
+| Kind | Meaning | Effect on people |
+|---|---|---|
+| `same` | these sources are one person | joins them |
+| `partition` | a Layer 3 group task: each group is one person | joins within groups; asserts nothing across them |
+| `not_same` | judged not shown to be the same | none — reported if other decisions join them |
+| `distinct` | positively different people | refuses a `same` from an actor of equal or lower rank |
+| `exclude` | not a narrator | removes the sources |
+
+`not_same` is deliberately weak. The agent brief says to default to separate, so an agent's
+"not the same" often means "not shown to be the same", and a profile left on its own in a
+partition may be one the agent could not place. Enforcing either would block legitimate merges
+later. Only `distinct` is enforced, and it is reserved for reviewers and the split pass. Actors
+rank reviewer over agent over rule.
+
+Rule decisions belong to one merge run and are replaced wholesale when the merge is re-run;
+agent and reviewer decisions are judgments about sources and stand across runs. People are the
+connected components of the decisions in force. `build_people.py` computes them, assembles each
+person's profile from his source entries, and lists any `not_same` judgment that now falls
+inside one person as a review signal.
+
+Every person has a permanent identifier (`n000001` onward) in `person_ids.jsonl`, an
+append-only registry. Each identifier is anchored on one source — an entry heading from a book
+extracted one profile per entry, Najāshī first — because if a person is split, the part holding
+the anchor keeps the identifier, and a heading is the source least likely to be split away.
+When people merge, the younger identifiers redirect to the oldest; when a person splits, the
+rest is minted anew with a note of where it came from. No identifier is reused or dropped.
+
+Answers to the two merges superseded on 2026-09-07 predate `id_map.json`; their batches were
+overwritten before the run layout existed, so they could not be translated.
 
 ### Pipeline phases
 

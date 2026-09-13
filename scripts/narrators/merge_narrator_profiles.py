@@ -96,6 +96,7 @@ def layer0_consolidate(profiles):
             continue
         fragment = dict(profile)
         fragment["_last_index"] = profile["source_index"]
+        fragment["fragment_indices"] = [profile["source_index"]]
         out.append(fragment)
     return out, merged_count
 
@@ -108,6 +109,7 @@ def _pages_contiguous(left, right):
 
 def _absorb_fragment(target, other):
     target["_last_index"] = other["source_index"]
+    target["fragment_indices"].append(other["source_index"])
     target["source_pages"] = sorted(set(target["source_pages"]) | set(other["source_pages"]))
     for key in ("arabic_aliases", "english_aliases", "titles", "narrated_from",
                 "narrated_to", "city_or_tribe", "sect_flags"):
@@ -177,9 +179,12 @@ class MergeState:
 
     def _absorb(self, merged, profile, book, layer, key, score):
         pages = profile["source_pages"]
+        # Every source key this profile covers, Layer 0 fragments included, so the merge
+        # describes itself in permanent source keys (identity.py) without a replay.
         merged["contributing_sources"].append({
             "book": book,
             "source_index": profile["source_index"],
+            "fragment_indices": profile.get("fragment_indices", [profile["source_index"]]),
             "pages": pages,
         })
         merged["merge_log"].append({
