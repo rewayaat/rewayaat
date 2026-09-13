@@ -22,12 +22,19 @@ The decision record
       not_same   `groups` were judged not shown to be the same   review signal only
       distinct   `groups` are positively different people        enforced against `same`
       exclude    `sources` are not narrators                     removed
+      retract    `targets` (decision ids) are withdrawn          they no longer count
 
     `not_same` is deliberately weak. The agent brief says to default to separate, so an
     agent's "not the same" often means "not shown to be the same", and a profile an agent
     left on its own may be one it could not place. Enforcing either would block legitimate
     merges later. Only `distinct` — from reviewers and the split pass, with evidence of
     difference — can stop a `same`, and only one made by an actor of lower or equal rank.
+
+    Agent decisions bind each profile's *seed* source — the source the profile was built
+    from, whose quotation the agent was always shown — not every source in it. An agent
+    judged a merged profile as a whole; which sources the rules had merged into it was the
+    rules' claim, not the agent's. Binding only the seed leaves those internal merges to the
+    rule decisions of whichever merge run is in force, so a later run can undo a bad one.
 
 People
     The connected components of the `same` and `partition` decisions in force, each with a
@@ -43,7 +50,7 @@ import os
 from collections import defaultdict
 
 ACTOR_RANK = {"reviewer": 3, "agent": 2, "rule": 1}
-KINDS = {"same", "partition", "not_same", "distinct", "exclude"}
+KINDS = {"same", "partition", "not_same", "distinct", "exclude", "retract"}
 
 # Books extracted one profile per headed entry come first, so an anchor is an entry heading
 # wherever the person has one — the source least likely ever to be split away from him.
@@ -121,6 +128,13 @@ def merged_id_map(merged, normalized_dir):
     return mapping, ("layer0_replay" if replay else "contributing_sources")
 
 
+def merged_seeds(merged):
+    """merged_id -> the source the merged profile was built from (its first contributor)."""
+    return {p["merged_id"]: source_key(p["contributing_sources"][0]["book"],
+                                       p["contributing_sources"][0]["source_index"])
+            for p in merged}
+
+
 # --- The decision record ---
 
 def decision_id(decision):
@@ -130,8 +144,8 @@ def decision_id(decision):
     return "d-" + hashlib.sha256(blob.encode("utf-8")).hexdigest()[:16]
 
 
-def make_decision(kind, *, method, actor, sources=None, groups=None, confidence=None,
-                  status="applied", evidence=None, origin=None):
+def make_decision(kind, *, method, actor, sources=None, groups=None, targets=None,
+                  confidence=None, status="applied", evidence=None, origin=None):
     if kind not in KINDS:
         raise ValueError(f"unknown decision kind {kind!r}")
     if actor not in ACTOR_RANK:
@@ -143,6 +157,8 @@ def make_decision(kind, *, method, actor, sources=None, groups=None, confidence=
     if groups is not None:
         cleaned = [sorted(set(g), key=anchor_rank) for g in groups if g]
         decision["groups"] = sorted(cleaned, key=lambda g: anchor_rank(g[0]))
+    if targets is not None:
+        decision["targets"] = sorted(set(targets))
     decision["decision_id"] = decision_id(decision)
     return decision
 
@@ -178,18 +194,24 @@ def _counts(decision, rules_run):
     return decision["actor"] != "rule" or decision.get("origin", {}).get("run") == rules_run
 
 
+def live(record):
+    """Every decision not withdrawn by a `retract`, excluding the retractions themselves."""
+    withdrawn = {t for d in record if d["kind"] == "retract" for t in d.get("targets", [])}
+    return [d for d in record if d["kind"] != "retract" and d["decision_id"] not in withdrawn]
+
+
 def in_force(record, rules_run):
     """Decisions that shape people: applied, and — for rules — from the chosen merge run.
 
     Rule decisions are artefacts of one merge run and are replaced wholesale when the merge
     is re-run. Agent and reviewer decisions are judgments about sources and stand across runs.
     """
-    return [d for d in record if d.get("status") == "applied" and _counts(d, rules_run)]
+    return [d for d in live(record) if d.get("status") == "applied" and _counts(d, rules_run)]
 
 
 def considered(record, rules_run):
     """As in_force, but regardless of status — for review signals, a low-confidence call counts."""
-    return [d for d in record if _counts(d, rules_run)]
+    return [d for d in live(record) if _counts(d, rules_run)]
 
 
 # --- People ---
