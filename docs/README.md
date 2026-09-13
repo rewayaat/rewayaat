@@ -29,7 +29,7 @@ Designs that are not built. Kept because the thinking is worth more than the cod
 
 | Proposal | State |
 |----------|-------|
-| [proposals/narrator-system.md](proposals/narrator-system.md) | Phases 1-2 rebuilt and Layer 3 drained 2026-09-13 (24,239 profiles); split pass and phases 3-5 outstanding — [#88](https://github.com/rewayaat/rewayaat/issues/88) |
+| [proposals/narrator-system.md](proposals/narrator-system.md) | Strategy, history and roadmap. 24,239 people resolved from eight Rijal books (2026-09-13); permanent identity, name-form reconciliation and publication outstanding — [#88](https://github.com/rewayaat/rewayaat/issues/88) |
 
 ## Conventions
 

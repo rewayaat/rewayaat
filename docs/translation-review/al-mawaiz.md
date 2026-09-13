@@ -1,6 +1,7 @@
 # كتاب المواعظ — al-Mawāʿiẓ (The Exhortations)
 
 **Compiler:** al-Shaykh al-Ṣadūq, Abū Jaʿfar Muḥammad ibn ʿAlī ibn Bābawayh al-Qummī (d. 381 AH)
+
 **Purpose:** feasibility review of AI-translated hadith books — this is a machine draft, not a publishable translation.
 
 **Size:** 429 segments, ~12,573 Arabic words → ~22,075 English words. 333 rows carry translator notes.

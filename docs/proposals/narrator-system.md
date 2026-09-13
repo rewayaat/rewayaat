@@ -1,531 +1,566 @@
-# Narrator Biography System — Proposal
+# Narrator System
 
-> **Status: Phase 1 ran, Phase 2 rebuilt and Layer 3 drained (24,239 profiles), Phases 3-5 were written and deleted.**
-> Audited and rebuilt 2026-09-07; Layer 3 completed 2026-09-13. Nothing here is serving traffic yet. The section
-> [Current State](#current-state-2026-09-07) records exactly what exists and what its quality
-> is; tracked in [#88](https://github.com/rewayaat/rewayaat/issues/88).
+> **Where things stand (2026-09-13).** 42,076 narrator entries have been extracted from eight
+> Rijal books and resolved into 24,239 people. None of it is published yet: known identity
+> defects remain, and identity decisions are not yet kept in a form that can be corrected
+> cheaply. Nothing here serves traffic. Tracked in
+> [#88](https://github.com/rewayaat/rewayaat/issues/88); the code is on the
+> `feature/narrators` branch.
 
-## Goal
-
-Build a narrator biography system for the Rewayaat Shia hadith database that:
-
-1. **Builds narrator profiles from Rijal books first** — Rijal works are biographical dictionaries organized by narrator, with assessments already structured per-person. Starting here is far more reliable than trying to parse narrators from messy isnad chains.
-2. **Stores** narrators in a dedicated Elasticsearch index (`rewayaat_narrators`) with aliases, kunyahs, titles, per-source assessments with direct quotations
-3. **Skips** the 14 Infallibles (Imams and Prophets) - no biography pages for them
-4. **Matches** built profiles against hadith chains later — once the narrator database exists, linking narrators to hadith is a straightforward matching step
-5. **Provides** a dedicated narrator detail page (`/narrator/{id}`) where users can click narrator names
-6. **Enables** searching hadiths by narrator across all name variants/aliases
-
-### Key Design Decisions
-- **No external LLM APIs** - Claude sub-agents should be used for biography enrichment work
-- **No subjective judgments** - only aggregate and synthesize what Rijal sources actually state
-- **Per-source assessments** - each narrator has individual assessments from each Rijal work that mentions them, including the direct quotation (Arabic) and a summary (English)
-- **Rijal-first approach** — Build a strong narrator collection from biographical dictionaries, then match against hadith. This avoids the fragile, lossy process of parsing isnads to discover narrators.
-- **Precision over coverage.** A merged profile that fuses two narrators is worse than two unmerged profiles, and far worse than a missing one. The system publishes reliability gradings attributed by name to named scholars; a wrong merge puts a fabricated attribution on a public page. Every stage below is specified to fail toward *separate* and *absent*, never toward *merged* and *asserted*.
-
-### Rijal Sources (in priority order)
-
-**In corpus (already in ES, can be processed programmatically):**
-- Kitab al-Du'afa (Ibn al-Ghada'iri) — 226 entries, already structured as narrator biographies with assessments
-
-**External — downloaded from actual source texts:**
-
-All 7 external books are available as digitized Arabic text online. We download the real source pages and use Claude to parse entries — no reliance on Claude's memory for content.
-
-| Book | Source | Pages | URL |
-|------|--------|-------|-----|
-| Mu'jam Rijal al-Hadith (Khoei) | usul.ai | 10,924 | `usul.ai/ar/t/mucjam-rijal` |
-| Tanqih al-Maqal (Mamaqani) | eshia.ir | 34 vols | `ar.lib.eshia.ir/10510` |
-| Rijal al-Kashshi | usul.ai | 94+ | `usul.ai/ar/t/rijal-al-kashshi-maa-taliqat-al-mirdamad` |
-| Rijal al-Najashi | usul.ai | 461 | `usul.ai/ar/t/rijal-2` |
-| Rijal al-Tusi | usul.ai | 417 | `usul.ai/ar/t/rijal-3` |
-| Fihrist al-Tusi | usul.ai | 253 | `usul.ai/ar/t/fihrist-2` |
-| Jami' al-Ruwat (Ardabili) | usul.ai | 1,210 | `usul.ai/ar/t/jami-al-ruwat-li-muhammad-ali-al-urdubili` |
-
-**Approach**: Download pages in batches (5 pages per call), Claude parses the real Arabic text into structured profiles with verbatim Arabic quotations. Each profile's `assessment_ar` is a verbatim quote from the source, not a paraphrase.
+This document has three parts. [Part I](#part-i--what-and-why) says what we are building and
+the principles it answers to. [Part II](#part-ii--how-we-got-here) tells the story so far —
+what was tried, what went wrong, and what it taught us. [Part III](#part-iii--where-we-are-going)
+sets out the strategy that follows and the staged plan. The appendices hold the current
+state, the design reference, the measured findings and the extraction record.
 
 ---
 
-## Data Design: Names, Aliases & Cross-Language Matching
+## Part I — What and why
 
-This section addresses how narrator names are stored, normalized, and matched — especially the Arabic↔English bridging problem that affects both data compilation and the UI.
+### What we are building
 
-### The Problem
+Every hadith in Rewayaat opens with its isnad — the chain naming who heard it from whom,
+back to an Imam or the Prophet. Classical scholarship judges a narration largely by that
+chain, and judges the chain by what the Rijal books say about each person in it. The
+narrator system brings that material to where readers and researchers need it:
 
-In hadith text, the same narrator appears in many forms:
-- **Arabic**: `محمد بن علي بن الحسين بن موسى ابن بابويه القمي`
-- **English transliteration (in corpus)**: `` Abu Ja`far Muhammad b. `Ali b. al-Husayn b. Musa b. Babuwayh al-Qummi ``
-- **Rijal book Arabic**: may use different ordering, include/exclude lineage depth, add titles
-- **Rijal book English**: may use different transliteration schemes (e.g. `ibn` vs `b.`, `al-Baghdadi` vs `al-Baghdādī`)
+1. **A person for every narrator.** Each narrator resolved to one identity, carrying every
+   form of name he goes by, drawn from the eight major Rijal works.
+2. **Every scholar's verdict, attributed.** What Najashi, Tusi, Kashshi, Ibn al-Ghadaʾiri,
+   Khoei and the others say about him — quoted verbatim, attributed by name, disagreements
+   left visible rather than settled by us.
+3. **Every chain linked.** Every name in every chain linked to the person it refers to, so a
+   reader can click through to a narrator and a researcher can follow a chain.
+4. **A transmission network open to analysis.** The linked chains exported as a graph, so a
+   researcher can ask with ordinary tools how many time-ordered paths connect two people.
 
-When a user clicks a narrator name in the English hadith view, we must reliably resolve it to the correct narrator profile (which may have been built primarily from Arabic Rijal sources).
+It serves three audiences: readers of the website (narrator pages, clickable names); the MCP
+connector, whose evaluation in #66 named `lookup_narrator` the strongest case no webpage can
+answer; and researchers, through the graph.
 
-### Name Storage Model
+### Principles
 
-Each `NarratorDocument` must capture **every name variant** the narrator is known by:
+Every stage is held to these. Part II shows what happened when they were not in place.
+
+1. **Precision over coverage.** A profile that fuses two men publishes one man's verdict under
+   the other's name, attributed to a named scholar — a fabricated attribution. A missed merge
+   only leaves two thin profiles. The costs are not symmetric, so every stage fails toward
+   *separate* and *absent*, never toward *merged* and *asserted*.
+2. **Only what the sources say.** Verdicts are quoted, not paraphrased or graded by us, and
+   each stays attached to the scholar who gave it.
+3. **Everything traceable.** Every name form, verdict and quotation carries the book and page
+   it came from; every identity decision carries its evidence and what made it.
+4. **Identity is correctable.** Identity decisions are durable records, not a side effect of a
+   pipeline run. Correcting one must never mean starting over, and must reach every hadith
+   that depends on it.
+5. **Built for analysis.** The end product is a graph researchers can query with standard
+   tools, not only pages a website can render.
+6. **Measured, not declared.** A stage is done when its output has been measured against a
+   stated standard, not when its run completes.
+7. **No external LLM APIs.** Language-model work runs through Claude sub-agents.
+
+### Terms
+
+| Term | Meaning |
+|---|---|
+| isnad | the chain of narrators before a hadith's text |
+| matn | the text itself |
+| Rijal | the discipline of evaluating narrators; its books are biographical dictionaries |
+| kunyah | a name of the form *Abū X* (أبو سعيد) — shared by many men |
+| nisbah | an attribution to a place, tribe or trade (الكوفي، الأزدي، الصفار) |
+| laqab | an epithet |
+| *thiqa* / *ḍaʿīf* | reliable / weak — the core verdicts |
+| *mukhtalaf fīh* | disputed — the scholars disagree about him |
+| ṭabaqa | generation — who could have heard from whom |
+
+---
+
+## Part II — How we got here
+
+### Timeline
+
+| When | What happened |
+|---|---|
+| 2026-03 → 06 | The first attempts discovered narrators by parsing chains directly (`chain-audit.sh`, `sample_chain_extraction.rb`, `extract_chains_for_narrators.py`). Removed on 2026-06-03 in favour of a **Rijal-first** approach: build people from the biographical dictionaries, then match chains against them. |
+| 2026-06-02 | Narrator code lands with the v2.0 application: an Elasticsearch index manager, a service and API, name matching, an Infallible registry. |
+| 2026-06 | **Phase 1, extraction.** Claude reads downloaded pages of eight Rijal works and writes structured profiles — 42,076 in all. |
+| 2026-06-09 | The narrator Java is deleted as unused — before the data it was built to serve existed. |
+| 2026-06-10 | **Phase 2, rule layers.** 42,076 profiles merge to 30,807; 11,149 cases deferred as ambiguous. |
+| 2026-06-14 | **Phase 2, LLM layer**, run through the Anthropic API. 3,976 of the 11,149 deferrals judged; 29,305 profiles. Recorded as "Phase 2 done". It was not. |
+| 2026-09-04 | Repository tidy. The design moves to `docs/proposals/`, marked not implemented; the pipeline scripts are no longer in the tree. The data survives in `tmp/`. |
+| 2026-09-07 | The MCP connector ships (#86) without `lookup_narrator` — deliberately, because the narrator data was not fit to serve. |
+| 2026-09-07 | **Audit.** The June merge is found to over-cluster badly, its LLM layer a third finished, its data unvalidated, two books truncated. The merged file is declared unfit to publish and #88 opened. |
+| 2026-09-07 | **Rebuild.** Output contract enforced, merge rewritten with guards, the LLM layer redesigned and moved to sub-agents with versioned, immutable runs. The agents surface further defects; each is checked against the data and fixed. |
+| 2026-09-13 | **Layer 3 complete.** 73 batches of agent decisions, zero validation errors: 24,239 people. |
+| 2026-09-13 | Checking the most-cited narrators shows one man still spread across several profiles, fusions the pipeline cannot undo, and identities that cannot be corrected without redoing agent work. This shapes Part III. |
+
+### What went wrong in June
+
+The June pipeline completed and its output looked plausible. Measured, it was not.
+
+- **Identity was treated as string matching.** The merge indexed nisbahs and kunyahs as if
+  they were names, and merged any profile that had a single candidate, unchecked. Unrelated
+  men chained together: one profile, محمد بن سنان, absorbed 195 source entries under 129
+  aliases, ten of them the names of *other* narrators in Ibn al-Ghadaʾiri's book. At the same
+  time the merge failed to connect the same man across books: only 11.7% of profiles drew on
+  more than one.
+- **Model output was trusted as data.** Extraction output was written without validation:
+  289 invented field names; 88 free-text spellings of a verdict, including `assessed` — a
+  quarter of all verdicts, which says nothing; and matching keys produced by the model rather
+  than computed.
+- **Completion was mistaken for success.** Two books were silently truncated — Rijal al-Tusi
+  yielded 123 of roughly 8,000 entries — because page counts were checked, not entry counts.
+  The LLM layer judged 36% of its queue, the rest shipped unresolved, and the stage was
+  recorded as done.
+- **The serving code was deleted before the data existed**, so nothing exposed the data's
+  problems in use.
+
+Each is the inverse of a principle in Part I.
+
+### What the September work taught us
+
+The rebuild fixed the June failures: the largest profile went from 195 unrelated entries to
+56 entries for one man under one name, cross-book linkage rose from 11.7% to 21.2%, and every
+agent decision passed validation. It also taught six things that change the strategy.
+
+1. **Rules can propose, but only the sources can decide.** Large same-name groups — 96
+   profiles named أحمد بن محمد, most stating no kunyah, city or death year — cannot be
+   separated by rule. Sub-agents reading the Arabic quotations could, and cited the sources
+   when they did. Judgment has to rest on the texts.
+2. **Nearly every defect was a confusion between kinds of name.** Nisbahs indexed as names;
+   kunyahs leaking back in through alias lists; English kunyahs passing a word-count test;
+   kunyahs in accusative case (أبا) not recognised as the same kunyah; a son's alias list
+   carrying his father's name; the nisbah of an accuser named in a man's entry attaching to
+   the man. Name forms need to be a subsystem in their own right, not a list of fields.
+3. **A pipeline that can only merge cannot recover.** Layer 3 reunites; it cannot pull apart.
+   Profiles fused early — Najashi's reliable ʿAmr b. Ḥurayth joined to a Companion of the same
+   name, a father joined to his son — stay fused.
+4. **A man's name forms must be reconciled as a whole.** Grouping by identical name left Sahl
+   b. Ziyād in at least three profiles, with Najashi's decisive verdict on a different one from
+   the bulk of him. Ten of the twelve most-cited narrators checked are split the same way.
+5. **Unstable identifiers make every correction expensive.** Profile numbers are reassigned on
+   every merge run, so each fix to the merge discarded agent answers already in hand. The
+   next fix would discard all 73 batches.
+6. **Checks inside a profile cannot see problems across profiles.** Every quality check run
+   looked inside profiles; none could see one man spread across several. Person-level checks
+   and a random-sample accuracy audit are needed alongside them.
+
+---
+
+## Part III — Where we are going
+
+### The shift in strategy
+
+June's strategy was to *produce a merged file*. The strategy from here is to *keep a record of
+identity decisions over sources that never change*, and to derive every product — the
+website's index, the hadith links, the research graph — from that record. A correction is an
+addition to the record, and everything downstream follows from it.
+
+### Target architecture
+
+Four layers. Only the first two are ever written, by extraction, rules, agents or reviewers;
+the last two are always recomputed.
+
+1. **Sources — immutable.** Each Rijal entry is keyed by book and position (`najashi:512`),
+   each chain by its hadith. Sources are never edited; re-extracting a book adds a new
+   version rather than rewriting the old one.
+2. **Decisions — append-only.** Every identity judgment, whether by rule, agent or reviewer, is
+   a record: which source entries, same person or not, the method, the evidence quoted, the
+   confidence, the date. Resolving a name in a chain is a record of the same kind: hadith,
+   position in the chain, the text as written, the person it resolves to, method, confidence.
+   Nothing is overwritten. A correction is a new decision that supersedes an earlier one, and
+   the earlier one stays on file.
+3. **People — derived, with permanent identifiers.** Computed from sources and decisions. A
+   person identifier, once published, never disappears: when two people turn out to be one,
+   the absorbed identifier redirects; when one turns out to be two, a new identifier is minted
+   and the record says where each part went.
+4. **Products — derived, regenerable.** The Elasticsearch narrator index (website and MCP), the
+   narrator links on each hadith, and the research graph. None is edited by hand.
+
+This is what makes a correction cheap: record the decision, recompute the people it touches,
+and re-index the hadith whose chains mention them — a lookup, not a rerun.
+
+The current pipeline is closer to this than it looks. Every name form already carries its book
+and page, and every merge already records its layer, matching key and score. What is missing
+is the permanent key on sources, the decision record as a store in its own right, and
+permanent person identifiers.
+
+### Names as a subsystem
+
+A person carries every form of his name, each typed and provenanced:
+
+| Form | Example | Role in identity |
+|---|---|---|
+| Full lineage | سهل بن زياد الآدمي الرازي | identifies |
+| Short name | سهل بن زياد | identifies weakly — shared with others |
+| *Ibn X* form | ابن أبي عمير | identifies, for some narrators |
+| Kunyah | أبو سعيد | narrows, never identifies |
+| Nisbah or laqab | الآدمي، الرازي | narrows, never identifies |
+| Chain forms | سهل، عنه، عن أبيه | resolved only in context |
+
+The rules. Identity is decided over a person's whole set of forms, never one string at a time.
+Kunyahs, nisbahs, editorial placeholders and patronymics never become identifiers, whatever
+field they arrive in. Kunyahs are compared case-folded — أبا and أبي are أبو, except in أبي بن
+كعب, which is the name Ubayy. A nisbah attaches to a man only where the text applies it to him,
+not to someone else named in his entry.
+
+### Resolving names in chains
+
+This is the harder half. Chains abbreviate: a short name, a kunyah alone, a pronoun (عنه، عن
+أبيه). Books have conventions of their own — al-Kulaynī's «عدة من أصحابنا» stands for a fixed
+group he names himself; al-Ṣadūq abbreviates chains in al-Faqīh and expands them in his
+Mashyakha. And the same man is written differently from one book to the next.
+
+So a mention is resolved in context: its text, the narrators on either side of it, and the
+book's conventions, checked against the teachers and students each person is known to have.
+A mention that cannot be resolved with confidence stays unresolved rather than being guessed.
+Every resolution is recorded, and the chain's text is never altered.
+
+### The research graph
+
+- **Nodes** are people, with death year or generation where the sources give one.
+- **Edges** are "A narrated from B" — one for each adjacent pair in a resolved chain, carrying
+  the hadith, the book and the confidence — plus the teacher–student links the Rijal books
+  state, with their source.
+- **Export** as plain node and edge files alongside Elasticsearch, loadable into NetworkX,
+  igraph, Neo4j or Gephi. Counting the time-ordered paths between two people, or finding who
+  sits at the centre of transmission, becomes a standard query that can be restricted to
+  high-confidence edges.
+- **The graph checks identity too.** An edge where a student predates his teacher, or a chain
+  that jumps a century, points to a wrong resolution.
+
+### Roadmap
+
+The order follows from the architecture: permanent identity first, because every later stage
+produces decisions that must survive the stages after it; publication only once accuracy is
+measured.
+
+| Stage | What | Done when |
+|---|---|---|
+| ✓ | Output contract, merge rebuild, Layer 3 through sub-agents | 24,239 people; every agent decision validated (2026-09-13) |
+| 1 | **Permanent identity and the decision record.** Key every source entry; record every existing decision against those keys — the rule merges, the 73 batches of agent answers, the automatic separations; derive people from the record; issue permanent person identifiers with redirects. | Rebuilding from the record reproduces today's 24,239 people, and a merge re-run no longer discards agent answers. |
+| 2 | **Fix the name-form defects** in one re-run: case-folded kunyahs, patronymic aliases, nisbahs belonging to other people. | Conflict counts and invariants re-measured; no regression on the famous-narrator check. |
+| 3 | **Reconcile name forms across profiles.** Propose pairs of whole profiles where one's aliases are the other's name and a kunyah or nisbah agrees; agents confirm against the quotations. | Each of the twelve most-cited narrators is one person; the corpus-wide split estimate re-measured. |
+| 4 | **Split pass.** Agents review profiles that may fuse several men — the 17 strongest candidates, then those with conflicting verdicts or impossible dates. | All 17 resolved; the rest reviewed or queued. |
+| 5 | **Accuracy audit.** A random sample of applied merges, each checked against the sources, gives a measured accuracy with its margin. | The figure meets a publication threshold agreed beforehand — proposed at 95%. |
+| 6 | **Complete the sources.** Re-extract Rijal al-Ṭūsī and Jāmiʿ al-Ruwāt, which were truncated. | Each book's yield matches its known entry count. |
+| 7 | **Publish.** Restore the narrator index, service and API deleted in `9b6adb6`; write the narrator page; add `lookup_narrator` to the MCP connector. | Narrator pages live, on permanent identifiers. |
+| 8 | **Resolve every chain.** Per-mention records linking each name in each chain to a person, following each book's conventions. | Coverage and confidence measured per book. |
+| 9 | **Publish the research graph.** Node and edge files, documented, with a worked path query. | A researcher can count time-ordered paths between two people from the export alone. |
+
+If the accuracy audit falls short, the plan returns through stages 2–4 before anything is
+published.
+
+---
+
+## Appendix A — Current state
+
+### Numbers
+
+| Stage | Output |
+|---|---|
+| Extracted, Phase 1 | 42,076 entries from eight books |
+| Contract-normalized | 42,046 (30 Infallibles removed) |
+| Merged, rule layers 0–2 | 28,687 profiles |
+| After Layer 3 | **24,239 people** |
+| Drawing on more than one book | 21.2% |
+| Held for human review | 173 low-confidence decisions |
+| Most-cited narrators still split | 10 of 12 checked |
+| Strongest fusion candidates | 17 |
+
+### Data
+
+Under `tmp/`, which is symlinked to `/mnt/share/rewayaat-backup/tmp/`:
+
+| Path | Contents |
+|---|---|
+| `narrators_book_{slug}.json` | Phase 1 extraction as produced — 42,076 entries |
+| `narrators_normalized/{slug}.json` | contract-normalized — 42,046 |
+| `narrators_merge/merged.json` | rule-layer merge — 28,687 profiles, fingerprint `28687:a993d061519aaa64` |
+| `narrators_merge/{name_group_tasks,deferred,quarantine,violations}.json` | Layer 3 inputs and invariant checks |
+| `narrators_l3/runs/28687-a993d061519aaa64/batches/` | 73 Layer 3 batches — 32 group, 41 pair |
+| `narrators_l3/runs/28687-a993d061519aaa64/outputs/` | the agents' decisions, one file per batch |
+| `narrators_l3/runs/28687-a993d061519aaa64/merged_final.json` | **current** — 24,239 people |
+| `narrators_l3/runs/28687-a993d061519aaa64/review_queue.json` | 173 low-confidence decisions |
+| `narrators_l3/runs/28687-a993d061519aaa64/auto_separate.json` | 432 deferrals kept separate without an agent |
+| `narrators_l3/archive/` | agent answers to earlier, superseded merges |
+| `narrators_merged.json` | **superseded** — the June merge; do not use |
+
+### Code
+
+On `feature/narrators`:
+
+| Script | Does |
+|---|---|
+| `scripts/narrators/narrator_schema.py` | normalizers, the reliability vocabulary, the Infallible registry |
+| `scripts/narrators/normalize_extraction.py` | the output contract, applied retroactively |
+| `scripts/narrators/merge_narrator_profiles.py` | Layers 0–2, invariants, Layer 3 task generation |
+| `scripts/narrators/l3_prepare.py` | Layer 3 batches, carrying the source quotations as evidence |
+| `scripts/narrators/l3_agent_prompt.md` | the sub-agent brief |
+| `scripts/narrators/l3_dispatch.py` | progress, and prompts for unanswered batches |
+| `scripts/narrators/l3_apply.py` | validates and applies decisions |
+| `scripts/narrators/audit_narrator_quality.py` | per-book completeness audit |
+
+```bash
+python3 scripts/narrators/normalize_extraction.py --strict
+python3 scripts/narrators/merge_narrator_profiles.py       # about 4 minutes
+python3 scripts/narrators/l3_prepare.py
+python3 scripts/narrators/l3_dispatch.py --next 8          # prompts to hand to sub-agents
+python3 scripts/narrators/l3_apply.py --dry-run            # then without --dry-run
+```
+
+Sub-agents run at most 20 at a time. An agent stopped before it writes leaves no file, and
+one stopped after leaves a complete file, so an interrupted run resumes cleanly.
+
+Recoverable from git:
+
+| Component | Commit | Status |
+|---|---|---|
+| Narrator Java — `NarratorIndexManager`, `NarratorService`, `NarratorController`, `NarratorDocument`, `SourceAssessment`, `NarratorNameMatcher`, `ImamProphetRegistry` | `9b6adb6^` | to restore in stage 7 |
+| June pipeline — `parse_duafa_narrators.py`, `parse_external_rijal.py`, `merge_narrator_profiles.py`, `merge_narrator_layer3.py` | `681d7f3` | extraction needed again for stage 6; the merge is superseded |
+| `extract_chains_for_narrators.py` | `0f5a853` | superseded by `semantic_matn_source` |
+
+`narrator.html` was never written. There is no `rewayaat_narrators` index, and nothing is wired
+into the running application.
+
+Chain resolution has a head start: `semantic_matn_source` holds chain-stripped Arabic on 32,516
+of 32,519 hadith, and `HadithDisplaySegmenter` already separates chain from text.
+
+---
+
+## Appendix B — Design reference
+
+### Rijal sources
+
+**In the corpus:** Kitāb al-Ḍuʿafāʾ of Ibn al-Ghaḍāʾirī — 226 entries, already structured as
+narrator biographies with verdicts, with both Arabic and English text.
+
+**Downloaded from the source texts.** The other seven books exist as digitized Arabic text
+online. The pages are downloaded and Claude parses the real text; nothing relies on the
+model's memory for content.
+
+| Book | Source | Pages | URL |
+|------|--------|-------|-----|
+| Muʿjam Rijāl al-Ḥadīth (Khoei) | usul.ai | 10,924 | `usul.ai/ar/t/mucjam-rijal` |
+| Tanqīḥ al-Maqāl (Mamaqani) | eshia.ir | 34 vols | `ar.lib.eshia.ir/10510` |
+| Rijāl al-Kashshī | usul.ai | 94+ | `usul.ai/ar/t/rijal-al-kashshi-maa-taliqat-al-mirdamad` |
+| Rijāl al-Najāshī | usul.ai | 461 | `usul.ai/ar/t/rijal-2` |
+| Rijāl al-Ṭūsī | usul.ai | 417 | `usul.ai/ar/t/rijal-3` |
+| Fihrist al-Ṭūsī | usul.ai | 253 | `usul.ai/ar/t/fihrist-2` |
+| Jāmiʿ al-Ruwāt (Ardabili) | usul.ai | 1,210 | `usul.ai/ar/t/jami-al-ruwat-li-muhammad-ali-al-urdubili` |
+
+Pages are sent in batches, and each profile's `assessment_ar` is a verbatim quotation from the
+page, not a paraphrase.
+
+### Name storage
+
+In hadith text the same narrator appears in many forms — `محمد بن علي بن الحسين بن موسى ابن
+بابويه القمي` in Arabic, `` Abu Ja`far Muhammad b. `Ali b. al-Husayn b. Musa b. Babuwayh
+al-Qummi `` in the corpus English — and the Rijal books vary the order, the depth of lineage,
+the titles and the transliteration. A narrator record captures every variant:
 
 ```
-primary_arabic_name    → Full name as it appears in the most authoritative source
-primary_english_name   → Standard transliteration (pick one convention, apply consistently)
-arabic_aliases[]       → Every variant found: shortened names, alternative spellings,
-                          name with different lineage depth, laqab, nisbah variants
-english_aliases[]      → Every English variant: different transliteration styles,
-                          shortened forms (e.g. "al-Barqi" vs "al-Barqī"),
-                          with/without kunyah, ibn/b. variants
-kunyah_arabic          → e.g. أبو جعفر
-kunyah_english         → e.g. Abu Jaʿfar (or Abu Ja`far — see transliteration note below)
-titles[]               → e.g. القمي, الرازي (nisbahs/laqabs)
-normalized_arabic      → Stripped diacritics, normalized alef/ya/ta marbuta (for matching)
-normalized_english     → Stripped diacritics, lowercased, ayin/hamza removed (for matching)
+primary_arabic_name    → full name as the most authoritative source gives it
+primary_english_name   → one transliteration convention, applied consistently
+arabic_aliases[]       → every variant: short forms, spellings, depths of lineage
+english_aliases[]      → every English variant and transliteration scheme
+kunyah_arabic/english  → e.g. أبو جعفر / Abu Ja`far
+titles[]               → nisbahs and laqabs, e.g. القمي، الرازي
+normalized_arabic      → matching key: diacritics stripped, alef/ya/ta marbuta folded
+normalized_english     → matching key: diacritics and ʿayn/hamza stripped, lowercased
 ```
 
-**`normalized_arabic` and `normalized_english` are computed, never extracted.** They are
-deterministic functions of the display names and must be produced by the pipeline's own
-normalizer (`NarratorNameMatcher.normalizeArabic` / `normalizeEnglish`), so that the same
-name always yields the same key. Asking the extractor to emit them makes the primary
-matching key a model output, which is not reproducible and cannot be re-derived after the
-fact.
+The normalized keys are **computed, never extracted** — by `narrator_schema.py`, ported from
+the deleted `NarratorNameMatcher` — so the same name always yields the same key.
 
-### Name Classes Are Not Interchangeable
+Aliases are **provenanced**: each carries the book and page it came from, so a bad alias can be
+traced to its source and a merge undone.
 
-Three distinct classes of string are stored, and they must never be pooled:
+**Diacritics.** Display forms keep diacritics as each source gives them. The Arabic key strips
+tashkeel (U+064B–U+065F, U+0670, U+06D6–U+06ED) and folds أ إ آ → ا, ى → ي, ة → ه. The English
+display form follows the corpus convention (backtick for ʿayn) and keeps IJMES, EI2 and DMG
+variants as aliases; its key is NFKD-decomposed, stripped of combining marks and ʿ ʾ ʻ ',
+and lowercased.
+
+**Arabic–English bridging.** A reader clicking `` `Ali b. Ahmad al-Daqqaq `` in the English view
+must reach a profile built from Arabic sources. Every profile therefore carries English forms:
+Kitāb al-Ḍuʿafāʾ pairs its own Arabic and English; sub-agents transliterate the Arabic-only
+books; chain resolution adds the English forms the corpus actually uses. At click time the
+text is normalized and looked up across English names and aliases, with a Jaro–Winkler
+fallback at 0.85.
+
+### Name classes are not interchangeable
 
 | Class | Examples | Identifies a person? |
 |---|---|---|
-| **Names** — `primary_arabic_name`, `arabic_aliases[]` | `محمد بن سنان`, `محمد بن أورمة` | Yes, weakly for short forms |
-| **Kunyahs** — `kunyah_arabic` | `أبو جعفر`, `أبو عبد الله` | No — hundreds of narrators share each |
-| **Titles/nisbahs** — `titles[]` | `القمي`, `الكوفي`, `البجلي`, `الصفار` | No — these are places, tribes and trades |
+| Names — `primary_arabic_name`, `arabic_aliases[]` | `محمد بن سنان`, `محمد بن أورمة` | yes, weakly for short forms |
+| Kunyahs — `kunyah_arabic` | `أبو جعفر`, `أبو عبد الله` | no — hundreds share each |
+| Titles and nisbahs — `titles[]` | `القمي`, `الكوفي`, `البجلي`, `الصفار` | no — places, tribes, trades |
 
-Kunyahs and nisbahs are **disambiguators, not identifiers**. They belong in the context
-score (below), never in the name index used to generate merge candidates. Indexing them as
-names makes `أبو جعفر` a join key across the whole corpus.
+Kunyahs and nisbahs are **disambiguators, not identifiers**. They inform the context score and
+never enter the name index that proposes merges.
 
-**The rule is about string shape, not about which field a string arrived in.** Extractors
-record kunyahs and bare nisbahs inside `arabic_aliases` as well as in their own fields, so
-excluding the `titles` and `kunyah_arabic` fields alone leaves the exclusion laundered
-through the alias list — `الكوفي` and `أبو العباس` go on generating candidates. An alias
-qualifies as an identifier only with **two or more identifying tokens**, counted after
-discarding the connectors (بن، ابن، أبو، أم، عبد، مولى). Bare kunyahs, single nisbahs and
-editorial placeholders score below that. They are still stored and displayed; they simply
-cannot be the reason two profiles merge.
+**The rule is about string shape, not the field a string arrived in.** Extractors put kunyahs
+and bare nisbahs inside `arabic_aliases` as well, so excluding the fields alone lets them back
+in through the alias list. An alias counts as an identifier only with **two or more identifying
+tokens** after the connectors are discarded (بن، ابن، أبو، أم، عبد، مولى). A phrase built on a
+generic kunyah — one of the Imams' kunyahs or the everyday ones — needs two identifying tokens
+*after* the kunyah: `أبو الحسن القزويني` is not an identifier, while `أبو ذر الغفاري` and
+`أبو هاشم الجعفري`, whose kunyahs each name one man, are. English has its own connector list:
+`abu muhammad` is two words and no more identifying than `أبو محمد`.
 
-English needs its own connector list rather than a word count: `abu muhammad` is two words
-and no more identifying than `أبو محمد`.
+Such forms are still stored and displayed; they simply cannot be the reason two profiles merge.
 
-**Editorial shorthand is not a name.** Mamaqani writes المترجم ("the biographee"), المعنون,
-صاحب الترجمة, الرجل to refer to whoever the entry is about. Extracted as aliases these
-become join keys of enormous reach. They carry nothing recoverable and are dropped at the
-contract stage.
+**Editorial shorthand is not a name.** Mamaqani refers to the person under discussion as المترجم,
+المعنون, صاحب الترجمة, الرجل. These are dropped at the contract stage.
 
-### Diacritics Standardization
+**Open defects in this area** — stage 2: kunyahs are not yet case-folded; a son's alias list can
+carry his father's name; nisbahs of other people named in an entry can attach to its subject.
 
-Arabic and English name fields each need two forms:
+### Extraction output contract
 
-**Arabic:**
-- **Display form** (`primary_arabic_name`, `arabic_aliases[]`): Preserve diacritics as found in the source. Different Rijal sources may or may not include tashkeel — store as-is from each source.
-- **Normalized form** (`normalized_arabic`): Strip all tashkeel (U+064B–U+065F, U+0670, U+06D6–U+06ED), normalize alef variants (أ→ا, إ→ا, آ→ا), normalize ya/alif maqsura (ى→ي), ta marbuta (ة→ه). This is used for matching.
+The extractor is a language model, so its output is validated, not trusted:
 
-**English:**
-- **Display form** (`primary_english_name`, `english_aliases[]`): Use a consistent transliteration convention. The existing corpus uses backtick notation (`` `Ali ``) for ʿayn — keep this as the display standard. Also accept and store IJMES, EI2, and DMG variants as aliases since external Rijal sources use different schemes.
-- **Normalized form** (`normalized_english`): NFKD decomposition, strip combining marks, remove ʿ/ʾ/ʻ/apostrophes, lowercase. Used for matching.
+- **Closed key set.** Unknown keys fail the batch. Near-miss keys (`is_doubtual`, `kunyah_ar`,
+  `city_or_ribe`) are the signature of an unvalidated pipeline.
+- **Reliability is a controlled vocabulary on its own axis.**
 
-### Alias Collection Strategy
-
-Every name variant discovered at **any stage** must be added to the aliases:
-
-**From Rijal sources (Phases 1–2):**
-- The narrator's entry heading (usually full name)
-- How they're referred to in other narrators' entries (often shortened)
-- Kunyah alone (some sources list by kunyah)
-- Laqab/nisbah alone (e.g. "البرقي" / "al-Barqī")
-- Any alternative names explicitly mentioned in the biographical text
-
-**From hadith chains (Phase 5):**
-- How the name appears in isnads across different books (different books use different conventions)
-- Shortened forms common in chains (e.g. "عن أبيه" = "from his father" when the father is known)
-
-Aliases are **provenanced**: every alias carries the book and page it came from, so a bad
-alias can be traced to its source and a merge can be undone.
-
-### Arabic↔English Bridging
-
-The key challenge: a user reading an English hadith clicks `` `Ali b. Ahmad al-Daqqaq `` — how do we find the narrator profile built from Arabic sources?
-
-**Solution: Paired name collection during compilation.**
-
-Every `NarratorDocument` must have a `primary_english_name` and `english_aliases[]` populated. During compilation:
-1. Kitab al-Du'afa entries have **both** Arabic and English text — extract names from both sides and pair them
-2. External Rijal sources (Arabic-only) — Claude sub-agents must generate the English transliteration when creating the profile
-3. Hadith matching (Phase 5) will discover additional English variants — these get added to `english_aliases[]`
-
-**At UI click time:**
-1. User clicks an English narrator name in hadith text
-2. Backend normalizes the clicked text using `NarratorNameMatcher.normalizeEnglish()`
-3. Searches `rewayaat_narrators` across `normalized_english` and all `english_aliases` (normalized)
-4. Falls back to fuzzy Jaro-Winkler match (0.85 threshold) if no exact match
-5. Returns the narrator profile (which includes Arabic names, assessments, etc.)
-
-This works because the compilation phase ensured every Arabic-named profile also has English name variants recorded. The reverse also works for Arabic hadith view.
-
-### What This Means for the Compilation Pipeline
-
-When processing any Rijal source (Phase 1 or 2), each narrator entry MUST capture:
-1. **Arabic name** (as-is from source) + all Arabic variants
-2. **English name** (transliterated from source, or taken from corpus English text if available) + all English variants
-3. **Kunyah** in both Arabic and English (if mentioned)
-4. **Nisbah/laqab** in both Arabic and English (if mentioned) — add to `titles[]` AND to aliases
-5. **Cross-check**: the Arabic and English names must refer to the same person. If processing a bilingual source (like our corpus), verify the names align.
-
-### Extraction Output Contract
-
-The extractor is an LLM, so its output is validated, not trusted. Every profile is checked
-against a schema before it is written to the per-book file:
-
-- **Closed key set.** Unknown keys are a hard error on the batch, not a silently dropped
-  field. Near-miss keys (`is_doubtual`, `kunyah_ar`, `city_or_ribe`) are the signature of an
-  unvalidated pipeline and cost real data.
-- **`reliability_grade` is a controlled vocabulary**, not free text. One token per grade,
-  with the Arabic term as the canonical value and the English gloss rendered at display
-  time:
-
-  | Value | Arabic | Notes |
+  | Grade | Arabic | Meaning |
   |---|---|---|
   | `thiqa` | ثقة | reliable |
   | `saduq` | صدوق | truthful |
   | `hasan` | حسن | good |
-  | `majhul` | مجهول | unknown — the source has an entry but no assessment |
+  | `qawi` | قوي | strong |
+  | `mukhtalaf_fih` | مختلف فيه | the source records disagreement |
+  | `majhul` | مجهول | the source says he is unknown |
+  | `muhmal` | مهمل | named without comment |
   | `daif` | ضعيف | weak |
-  | `very_weak` | — | explicit intensifiers (جدا, جداً) |
-  | `kadhdhab` | كذاب | liar/fabricator |
-  | `ghali` | غالي | extremist |
-  | `waqifi` / `fatahi` / `zaydi` | — | sectarian affiliation, not a reliability verdict |
-  | `mukhtalaf_fih` | مختلف فيه | sources disagree |
-  | `not_assessed` | — | the source mentions the person but issues no verdict |
+  | `very_weak` | ضعيف جدا | weak, with an intensifier |
+  | `kadhdhab` | كذاب | liar, fabricator |
+  | `not_assessed` | — | mentioned, no verdict given |
+  | `non_existent` | — | the source denies he existed |
 
-  `not_assessed` and `majhul` are different facts and must not collapse. A grade meaning
-  "an assessment exists" carries no information and is not a permitted value.
-- **Latin characters in an Arabic field, or Arabic characters in a key name, fail the batch.**
-  These indicate a corrupted generation, and the batch is re-run rather than repaired.
-- **Disambiguation pages are not narrators.** Both Khoei and Mamaqani head a page listing
-  everyone called حفص; extracted naively it becomes one profile whose 89 "aliases" are 89
-  people. A one-token name carrying eight or more aliases is quarantined, never merged.
-- **Verbatim quotation check.** `assessment_ar` must be a substring of the downloaded page
-  text after whitespace normalization. This is the only defence against a paraphrase being
-  published as a quotation attributed to a named scholar.
+  Doctrinal charges sit on a separate axis, because sources state one without the other:
+  `ghali`, `waqifi`, `fathi`, `zaydi`, `nasibi`, `batri`, `mulhid`, `fasid_al_madhhab`.
+  `not_assessed` and `majhul` are different facts. A grade meaning only "an assessment exists"
+  is not permitted.
+- **Latin in an Arabic field, or Arabic in a key name, fails the batch.**
+- **Disambiguation pages are not narrators.** Khoei and Mamaqani each head a page listing
+  everyone called حفص; parsed naively it becomes one profile whose 89 "aliases" are 89 people.
+  A one-token name with eight or more aliases is quarantined.
+- **Verbatim quotation check.** `assessment_ar` must appear in the downloaded page text. Required,
+  not yet enforced: it needs the page text kept alongside each profile.
 
-### Identity Resolution: Reconciling Names Across Books
+### Identity resolution
 
-Different Rijal sources (and hadith chains) refer to the same narrator in different ways. This is the hardest problem in the system. Examples:
+Different books, and chains, refer to one narrator in different ways — by depth of lineage
+(`الحسن بن علي بن أبي حمزة` against `الحسن بن علي`), by nisbah instead of name (`البرقي`
+against `أحمد بن محمد بن خالد`), by kunyah alone, by transliteration — while genuinely different
+men share names. Resolution is layered, and each layer fails toward *separate*.
 
-- **Depth variation**: `الحسن بن علي بن أبي حمزة` vs `الحسن بن علي` vs `أبو محمد` (same person, shorter references)
-- **Attribute vs lineage**: `البرقي` vs `أحمد بن محمد بن خالد` (nisbah vs full name)
-- **Kunyah only**: `أبو جعفر` — dozens of narrators share this kunyah
-- **Transliteration variation**: `al-Barqī` vs `al-Barqi` vs `al-Barki`
-- **Genuinely different people**: multiple `محمد بن علي` who are NOT the same person
+**Layer 0 — intra-book fragments.** A long entry spans several page batches, and extraction
+emits one profile per batch. Fragments are adjacent in the file and contiguous in pages;
+only those are collapsed. Khoei and Mamaqani were extracted per *mention* — a prolific
+narrator named inside another man's entry got a profile of his own — so a repeated name
+within a book is not assumed to be a fragment.
 
-**Resolution strategy — layered matching, not pure string comparison:**
+**Layer 1 — exact names.** Candidates come from the name index only (see the rule above). A
+single candidate is not enough to merge. An exact match on the primary name merges only when
+few profiles corpus-wide share that name — six or fewer — and nothing conflicts; larger
+same-name groups go to Layer 3 whole. A match through an alias needs a name at least three
+identifying tokens deep, or supporting context. Every absorbed alias is indexed, so a merge
+without these guards would chain: A absorbs B's aliases, C matches one of them, C joins A,
+and the cluster grows without any two members having been compared.
 
-**Layer 0: Intra-book consolidation** (automatic, runs before any cross-book work)
+**Layer 2 — context.** Where a name is ambiguous, kunyah, nisbah, city, generation, death year
+and shared teachers or students are scored. Death years more than a generation apart
+disqualify outright. A clear winner must lead the runner-up by a margin; otherwise the case is
+deferred.
 
-A single narrator's entry in a large Rijal work spans many pages, and page-batched
-extraction emits one profile per batch. Those fragments are the same entry, and they are
-recognisable because they are adjacent *in the file* and contiguous *in pages*. Collapse
-them before the book meets any other book.
+**Layer 3 — sub-agents reading the sources.** Two kinds of task, each carrying the source
+quotations as evidence:
 
-Layer 0 must not go further than that. Not every repeat of a name inside one book is a
-fragment: Khoei and Mamaqani were extracted per **mention**, so a prolific narrator named
-inside someone else's entry got his own profile. سهل بن زياد appears at page spans 381,
-671, 3961 and 7011 of a book that heads him once. Those are the same person, but that is a
-conclusion for the name-matching layers to reach on the evidence, not something Layer 0 may
-assume from a shared name.
+- *Group* — one name held by many profiles: partition them into people. Kunyah is absent on
+  82–92% of same-name profiles, so pairwise questions would carry no evidence; the group as a
+  whole usually does. 515 group tasks replaced over 11,000 pairwise ones.
+- *Pair* — a profile matched a candidate through an alias or partial name and context was
+  inconclusive: the same person, or nobody?
 
-The distinction matters for the invariants too: per-book uniqueness of a primary name only
-holds for books extracted one-profile-per-headed-entry.
+Deferrals where no candidate carries any positive evidence are kept separate without an agent;
+asking for a judgment on absent evidence invites a confident wrong merge. Low-confidence
+answers go to review rather than being applied. Every answer is validated before it is
+applied — a partition must cover its task exactly once, and a merge target must be one the
+task offered.
 
-**Layer 1: Exact normalized match** (automatic, high confidence)
-- Normalize both names (strip diacritics, normalize alef/ya/ta marbuta)
-- Candidates are generated from the **name index only** — primary names and aliases.
-  Kunyahs and titles are never index keys (see [Name Classes](#name-classes-are-not-interchangeable)).
-- A unique candidate is **not** sufficient to merge. Uniqueness means "one profile happens
-  to hold this string", not "this is the same person". A merge additionally requires either
-  a full-name match (both sides at least three name tokens deep) or a Layer 2 context score
-  above the floor. A short-form-only match (`أحمد بن محمد`) never merges on its own.
-- **The index is append-only for names the merged profile actually owns.** Aliases absorbed
-  from a merge are indexed, which is correct — but combined with an unguarded unique-candidate
-  merge it produces single-linkage chaining: A absorbs B's aliases, C matches one of those
-  aliases, C merges into A, and the cluster grows without any two members ever having been
-  compared. The guards below exist specifically to break that chain.
+Batches are versioned by a fingerprint of the merge that produced them, and each merge gets its
+own immutable run directory; answers are never mixed across merges. The current limitation —
+answers are keyed on merge-relative identifiers, so a new merge discards them — is what stage
+1 removes.
 
-**Layer 2: Context-augmented matching** (semi-automatic, medium confidence)
-- When a name alone is ambiguous (e.g. `محمد بن علي`), use additional context to disambiguate:
-  - **Kunyah**: `أبو جعفر محمد بن علي` is different from `أبو القاسم محمد بن علي`
-  - **Nisbah/laqab**: `البرقي` vs `القمي` vs `الكوفي`
-  - **Teacher/student**: who they narrate from/to narrows identity
-  - **Generation/death year**: if known from the profile
-  - **Tribe/city**: additional disambiguator
-- If name + context aligns with an existing profile → merge (add new aliases)
-- If name matches but context conflicts → flag as ambiguous, keep separate
-- **Conflicting death years are disqualifying**, not merely low-scoring. Two profiles with
-  death years more than one generation apart are different people regardless of name match.
+The pair format has a known limit: when a task's candidates include two duplicates of the same
+man, the agent can name only one.
 
-**Layer 3: LLM-assisted judgment** (for ambiguous cases)
-- When layers 1-2 are inconclusive, use Claude to judge: "Are these two names the same person given these contexts?"
-- Input: both name variants + surrounding biographical text from each source
-- Output: same/different + reasoning
-- Run via Claude sub-agents, consistent with the no-external-API decision above.
-- **Layer 3 is not optional.** Deferred cases that are never judged do not stay neutral —
-  they were provisionally added as new profiles, so an unjudged backlog silently ships as
-  duplicate narrators. A run is not complete until the queue is empty.
-- **Large same-name groups are one task, not many pairs.** Where a name is held by more
-  than a handful of profiles, pairwise questions are the wrong shape: kunyah is absent on
-  82-92% of same-name profiles, so most pairs carry no evidence either way and the ranking
-  between candidates is ranking noise. أحمد بن محمد spans 96 profiles with five kunyahs and
-  six nisbahs (several people); محمد بن سنان spans 64 with one kunyah (one person). Neither
-  is separable by rule, and both are answerable as a single question: *partition these
-  profiles into people*. That is 519 tasks rather than 11,149 pairwise judgments.
+**Layer 4 — human review.** Low-confidence Layer 3 answers, and cases the agents flag.
 
-**Layer 4: Manual review queue** (edge cases)
-- Cases where even LLM judgment is uncertain get flagged for human review
-- Low-confidence Layer 3 answers land here rather than being applied
-- Should be rare if layers 1-3 work well
+**Not yet built** — stages 3 and 4: comparing whole profiles so a man's different name forms
+meet, and splitting profiles that fuse several men.
 
-*Known limitation of the pair format.* A pair task offers up to three candidates and
-accepts one answer, but the candidate set sometimes contains two profiles that are each
-other's duplicates — Layer 1-2 left both unmerged and the subject matches both. The agent
-can only name one. Union-find in `l3_apply` recovers most of these, because a later task
-linking the two composes with the first, but it is not guaranteed. Candidate sets with
-internal duplicates are worth surfacing to Layer 4 explicitly.
+**Invariants**, checked after every merge:
 
-**Not every deferral is a Layer 3 question.** Where no candidate carries any positive
-context, there is nothing for an agent to read: the names collided and the sources say
-nothing bearing on identity. Those resolve as *separate* by the standing default, and are
-recorded with their basis rather than sent out — asking for a judgment on absent evidence
-invites exactly the confident wrong merge the guards above exist to prevent.
+- Within a book extracted one profile per headed entry (Ḍuʿafāʾ, Kashshī, Ṭūsī, Fihrist,
+  Najāshī, Ardabīlī), two headed entries are two people: a merged profile's aliases must not
+  include the primary name of a different profile from the same book. Khoei and Mamaqani were
+  extracted per mention, so the check does not apply to them, and a prolific narrator
+  legitimately draws dozens of entries from them.
+- Growth is capped on distinct primary-name forms, not on sources: a profile that would take
+  more than eight distinct forms diverts the newcomer to review.
+- Every merge records its layer, matched key and context score.
 
-**Layer 3 batches are versioned against the merge that produced them.** Task ids are
-merge-relative, so a decision file is only meaningful against its own merge. Batches carry
-a fingerprint of the merge; applying decisions across merges is refused rather than
-silently mixed. This is what lets the merge keep improving while answers are outstanding.
+**Why aliases carry weight.** The narrator service builds its hadith search from every name
+variant on a profile, so each alias is a search term fired at the corpus. A foreign name in the
+alias list returns another man's narrations under the wrong biography.
 
-**Each merge gets its own immutable run directory**, `tmp/narrators_l3/runs/<fingerprint>/`.
-Batch files are never rewritten in place. Sub-agents read a batch over several minutes, and
-re-running the merge underneath them silently changed both the task ids and the profile
-ids they were reasoning about — three agents in one wave detected it themselves and redid
-their work, which is not a property to rely on. A new merge writes a new directory, answers
-to an older merge stay where they were, and nothing needs archiving by hand.
+### Pipeline phases
 
-Even so, **do not re-run the merge while agents are in flight.** The layout makes the race
-harmless rather than absent.
+**Phase 1 — extraction, per book.** Each book is extracted on its own, with no cross-book
+matching. Kitāb al-Ḍuʿafāʾ is parsed from the corpus; the other books from downloaded pages,
+validated against the contract. Batch size is set per book: dense pages of bare names overflow
+the model's output and it truncates silently, so a yield far below a book's known entry count
+means the book must be re-run smaller.
 
-**Merge invariants.** These are checked after every merge and after the run as a whole; a
-violation stops the pipeline rather than being recorded as a statistic:
+**Phase 2 — merge.** Normalize; Layer 0; Layers 1–2; Layer 3 through sub-agents; apply; check
+the invariants. The rule merge writes `tmp/narrators_merge/merged.json`; Layer 3 writes
+`merged_final.json` in its run directory.
 
-- A merged profile holds at most **one entry per source book per page range**. Absorbing 88
-  profiles from one book means Layer 0 did not run.
-- A merged profile's aliases must not contain the primary name of a *different* merged
-  profile from the same book. Within one book, two headed entries are two people.
-- Cluster size is capped. A profile that would exceed the cap diverts the incoming profile
-  to Layer 4 instead of growing. Genuinely famous narrators appear in 8 books, not 50.
-- Every merge records the layer, the matched key and the context score, so the decision can
-  be audited and reversed without re-running the pipeline.
+**Phase 3 — Elasticsearch.** `NarratorIndexManager` creates `rewayaat_narrators` (index name
+overridable through `NARRATOR_INDEX`) and bulk-indexes the people.
 
-**Practical implication for compilation:**
-- Phase 1 produces standalone per-book profiles — no cross-book matching, no alias sharing
-- Phase 2 applies the resolution strategy above when merging all per-book files
-- Each successful merge adds aliases from both sides to the unified profile
-- The merged alias list is what gets used for Phase 5 (hadith matching)
+**Phase 4 — narrator page.** `narrator.html`, served by `NarratorController` at `/narrator/{id}`,
+loading `/v1/narrators/{id}` and listing narrations from `/v1/narrators/{id}/narrations`, with
+per-source verdicts shown as quotation and summary.
 
-**Why the merged alias list is load-bearing.** `NarratorService.searchHadithsByNarrator`
-builds its query from every name variant on the profile. Aliases are therefore not
-decoration — each one is a search term fired at the hadith corpus. A profile carrying a
-foreign narrator's name as an alias will return that narrator's narrations under the wrong
-biography. Merge precision is a correctness property of the narrations feature, not just of
-the biography page.
+**Phase 5 — chains.** First, name-variant search: `NarratorService.searchHadithsByNarrator`
+queries the corpus with a person's name forms, needing no backfill and exactly as precise as the
+alias list. Then per-mention resolution as described in Part III, writing narrator links onto
+hadith and making names clickable.
 
 ---
 
-## Pipeline
+## Appendix C — Findings, as measured
 
-### Phase 1: Per-Book Extraction (independent, parallel)
+### The June merge, audited (2026-09-07)
 
-Process each Rijal book independently into its own narrator profile file. No cross-book matching at this stage — each book produces a standalone set of profiles. This keeps extraction simple and lets us run books in parallel.
+The per-book extraction was broadly sound; the merge was not.
 
-**1A: Kitab al-Du'afa (Ibn al-Ghada'iri) — In corpus**
+**The LLM layer never finished.** 11,149 cases were deferred and 3,976 judged (36%). The rest
+were added as new profiles and left, so the merged file carried thousands of unresolved
+duplicates. That layer also ran through the Anthropic API, against the no-external-API
+principle.
 
-226 entries in the Rewayaat ES index. Each entry is one narrator biography with name, lineage, kunyah, and assessment. The `chapter` field is the narrator's name. Both Arabic and English text available.
+**It over-clustered through title and kunyah keys.** Titles and nisbahs went into the name
+index, candidates were probed by kunyah, and a single candidate merged unchecked:
 
-Steps:
-1. Extract all 226 entries from batch files for book `Kitāb al-Ḍuʿafāʾ`
-2. Parse each entry into a narrator profile:
-   - Narrator name (Arabic + English from paired text)
-   - Kunyah, titles, nisbahs
-   - All aliases mentioned in the entry (~19% of entries have explicit aliases: "known as", "called", laqabs, nicknames)
-   - Direct Arabic quotation + English summary as a `SourceAssessment`
-   - Reliability grade from explicit keywords (ضعيف/weak, كذاب/liar, غاليا/ghali, واقف/waqifi, etc.)
-   - Doubtful flag + reason
-3. Skip Imams/Prophets (14 Infallibles)
-4. Skip introduction/preamble entries (entry 1 is not a narrator)
-5. Write output to `tmp/narrators_book_duafa.json`
-
-**Expected output**: ~220 narrator profiles
-
-**1B-G: External Rijal Books — Download & Parse**
-
-Each book is processed the same way:
-1. Download actual Arabic text page-by-page from usul.ai (or eshia.ir for Mamaqani)
-2. Batch pages (5 per call) and send to Claude for structured extraction
-3. Claude parses the real source text into narrator profiles with verbatim Arabic quotations
-4. No reliance on Claude's memory for content — all data comes from the actual book text
-5. Validate every profile against the [output contract](#extraction-output-contract) before writing
-
-**Outputs:** `tmp/narrators_book_{slug}.json` for each book
-
-**Batch sizing is per-book, not global.** Dense pages of bare names (Rijal al-Tusi, Jami'
-al-Ruwat) overflow the output budget at five pages per call and the model truncates the
-list rather than erroring. A book whose yield is implausibly low for its page count has
-silently truncated and must be re-run at a smaller batch size — page-count coverage alone
-does not prove extraction succeeded.
-
-### Phase 2: Cross-Book Aggregation & Deduplication
-
-Merge all per-book profile files into a single unified narrator database. This is where the identity resolution strategy (see above) is applied.
-
-Steps:
-1. **Load all** `tmp/narrators_book_*.json` files
-2. **Pass 0 — Intra-book consolidation**: collapse page-batch fragments of the same entry
-3. **Pass 1 — Exact normalized matching**: name index only, with the full-name-or-context guard
-4. **Pass 2 — Context-augmented matching**: kunyah + nisbah + teacher/student + death year
-5. **Pass 3 — Claude sub-agent batch**: resolve every deferred pair; the queue must drain
-6. **Flag uncertain cases** for manual review
-7. **Assert the merge invariants**; a violation fails the run
-8. **Write output** to `tmp/narrators_merged.json`
-
-### Phase 3: Import to Elasticsearch
-
-1. `NarratorIndexManager.createIndexIfNotExists()` builds `rewayaat_narrators` (index name
-   overridable via `NARRATOR_INDEX`)
-2. Bulk index all merged narrator documents via `indexDocuments` / `indexDocumentsWithOverwrite`
-3. Verify index health and document counts
-
-### Phase 4: Frontend - Narrator Detail Page
-
-**`src/main/resources/templates/narrator.html`**
-
-Thymeleaf + Vue.js page that:
-- Loads narrator data via `/v1/narrators/{id}` API
-- Displays narrator biography, names, aliases, kunyah, titles
-- Shows per-source Rijal assessments in a structured format (source name, direct Arabic quote, English summary)
-- Lists hadiths narrated by this person via `/v1/narrators/{id}/narrations`
-- Uses the same search result UI as the main page (Bootstrap 5 + Bootswatch Materia)
-- Follows existing patterns from `index.html` and `edit.html`
-
-Served by `NarratorController`, which exposes the `/narrator/{id}` page route alongside the
-two JSON endpoints.
-
-### Phase 5: Match Narrators to Hadith
-
-Once the narrator database is built, link narrators to hadith. This is cheaper than it
-looks, because the corpus already separates chain from matn:
-
-- `semantic_matn_source` holds the Arabic with the isnad stripped, on 32,516 of 32,519
-  hadith. The chain is the difference between `arabic` and the matn — no new isnad parser
-  is needed to obtain chain text.
-- `HadithDisplaySegmenter` already splits chain from content in Java for display.
-
-Two levels, in order:
-
-**5A — Name-variant search (no new data).** `NarratorService.searchHadithsByNarrator` runs a
-query string built from the profile's name variants against the hadith index. This ships
-with Phase 4 and requires no backfill. Its precision is exactly the precision of the merged
-alias list.
-
-**5B — Materialized links (later).** Match narrator names against chain text, write a
-`narrator_ids` field onto hadith documents, make narrator names clickable in search results
-via a Vue directive, and style the links in `manuscript.css`. This buys exhaustiveness and
-speed over 5A, and is only worth doing once merge precision is established.
-
----
-
-## Current State (2026-09-07)
-
-### What exists
-
-**Data** — under `tmp/` (symlinked to `/mnt/share/rewayaat-backup/tmp/`):
-
-| File | Contents |
-|------|----------|
-| `tmp/narrators_book_{slug}.json` | Phase 1 extraction, as produced — 42,076 profiles |
-| `tmp/narrators_normalized/{slug}.json` | Contract-normalized — 42,046 profiles |
-| `tmp/narrators_merge/merged.json` | Pre-Layer-3 merge — 28,687 profiles, fingerprint `28687:a993d061519aaa64` |
-| `tmp/narrators_merge/name_group_tasks.json` | 519 partition tasks covering 6,417 profiles |
-| `tmp/narrators_merge/deferred.json` | 3,095 pairwise deferrals |
-| `tmp/narrators_merge/quarantine.json` | 7 disambiguation pages held out |
-| `tmp/narrators_merge/violations.json` | 66 invariant violations |
-| `tmp/narrators_l3/batches/` | 112 Layer 3 batches — 32 group, 80 pair |
-| `tmp/narrators_l3/outputs/` | sub-agent decisions, one file per answered batch |
-| `tmp/narrators_l3/auto_separate.json` | 652 deferrals resolved without an agent |
-| `tmp/narrators_l3/runs/28687-a993d061519aaa64/merged_final.json` | **Current** — 24,239 profiles after Layer 3 |
-| `tmp/narrators_l3/runs/28687-a993d061519aaa64/review_queue.json` | 173 low-confidence answers, for Layer 4 |
-| `tmp/narrators_merged.json` | **Superseded** — the 2026-06 merge, 29,305 profiles; do not index |
-
-**Code** — the Phase 1-2 pipeline is rebuilt in the tree:
-
-| Script | Does |
-|---|---|
-| `scripts/narrators/narrator_schema.py` | normalizers, reliability vocabulary, Infallible registry |
-| `scripts/narrators/normalize_extraction.py` | the output contract, applied retroactively |
-| `scripts/narrators/merge_narrator_profiles.py` | Layers 0-2, invariants, Layer 3 task generation |
-| `scripts/narrators/l3_prepare.py` | Layer 3 batches, with the source quotations as evidence |
-| `scripts/narrators/l3_agent_prompt.md` | the sub-agent brief |
-| `scripts/narrators/l3_dispatch.py` | progress, and prompts for unanswered batches |
-| `scripts/narrators/l3_apply.py` | validate and apply decisions, union-find |
-| `scripts/narrators/audit_narrator_quality.py` | per-book completeness audit |
-
-Run order:
-
-```bash
-python3 scripts/narrators/normalize_extraction.py --strict
-python3 scripts/narrators/merge_narrator_profiles.py       # ~4 min
-python3 scripts/narrators/l3_prepare.py
-python3 scripts/narrators/l3_dispatch.py --next 8          # prompts to hand to sub-agents
-python3 scripts/narrators/l3_apply.py --dry-run
-```
-
-Phases 3-5 remain deleted, all recoverable from git:
-
-| Component | Commit | Notes |
-|---|---|---|
-| `parse_duafa_narrators.py`, `parse_external_rijal.py` | `681d7f3` | Phase 1 |
-| `merge_narrator_profiles.py`, `merge_narrator_layer3.py` | `681d7f3` | Phase 2 |
-| `NarratorIndexManager`, `NarratorService`, `NarratorController` | `9b6adb6^` | Phases 3-5A |
-| `NarratorDocument`, `SourceAssessment`, `NarratorNameMatcher`, `ImamProphetRegistry` | `9b6adb6^` | model + matching |
-| `extract_chains_for_narrators.py` | `0f5a853` | superseded by `semantic_matn_source` |
-
-`scripts/narrators/audit_narrator_quality.py` is the only piece still in the tree, and it
-still runs against the per-book data.
-
-`narrator.html` was never written. There is no `rewayaat_narrators` index. Nothing is
-wired into the running app.
-
-The Java was deleted on 2026-06-09 — a day before the merge finished and five days before
-Layer 3 ran. Phases 3, 4 and 5A are therefore closer to done than the phase numbering
-suggests: the backend is a revert, and the gap is one Thymeleaf template.
-
-### Quality audit
-
-The per-book extraction is broadly sound. **The merge is not, and the merged file must not
-be indexed as it stands.**
-
-**Layer 3 never finished.** 11,149 pairs were deferred; 3,976 were judged (36%). The other
-7,173 were provisionally added as new profiles and left there, so the merged file carries
-several thousand unresolved duplicates.
-
-**The merge over-clusters through title and kunyah keys.** `_index_names` indexed titles and
-nisbahs into the same inverted index as names, `find_candidates` also probed by kunyah, and
-a single candidate merged unconditionally with no similarity or context check. The result is
-textbook single-linkage chaining:
-
-| Cluster size | Merged profiles | Source profiles absorbed |
+| Cluster size | Merged profiles | Source entries absorbed |
 |---|---|---|
 | ≥2 sources | 5,505 | 18,274 (43.4%) |
 | ≥5 sources | 683 | 6,675 (**15.9%**) |
@@ -533,147 +568,98 @@ textbook single-linkage chaining:
 | ≥20 sources | 43 | 1,847 (4.4%) |
 | largest | 1 | 195 |
 
-The largest, `محمد بن سنان`, carries 129 aliases including `محمد بن أورمة`,
-`أحمد بن هلال العبرتائي`, `مؤمن الطاق` and `محمد بن الحسن بن شمون` — ten of its aliases are
-the primary names of *other* Du'afa entries. Another fuses `أحمد بن محمد بن عيسى الأشعري`,
-`محمد بن يحيى العطار` and `الصفار` into one person. Sampled clusters of 5-9 sources are
-mostly legitimate spelling variants; the damage concentrates in the ~180 largest.
+The largest, `محمد بن سنان`, carried 129 aliases including `محمد بن أورمة`, `أحمد بن هلال
+العبرتائي`, `مؤمن الطاق` and `محمد بن الحسن بن شمون` — ten of them the primary names of *other*
+Ḍuʿafāʾ entries. Another fused `أحمد بن محمد بن عيسى الأشعري`, `محمد بن يحيى العطار` and
+`الصفار`. The small bilingual books suffered most, because they were processed first and seeded
+the index: 57.7% of Ḍuʿafāʾ and 43.5% of Kashshī entries landed in a cluster of five or more.
 
-Small bilingual sources were hit hardest, because they were processed first and seeded the
-index: 57.7% of Du'afa and 43.5% of Kashshi profiles landed in a ≥5-source cluster, against
-18.4% for Khoei and 8.4% for Mamaqani.
+**It was also too conservative across books.** Only 11.7% of profiles drew on more than one
+book, although Khoei alone should cover nearly every narrator in Najashi, Tusi and Kashshi.
 
-**The merge was simultaneously too conservative across books.** Only 3,438 of 29,305
-profiles (11.7%) drew on more than one book, and 23,800 had exactly one assessment. Khoei's
-Mu'jam alone should cover nearly every narrator in Najashi, Tusi and Kashshi. Aggressive
-chaining on nisbahs coexisted with near-absent genuine cross-book linkage.
+**Khoei and Mamaqani were extracted per mention.** 21,938 Khoei profiles across 14,795 distinct
+names; سهل بن زياد appears at page spans 381, 671, 3961 and 7011 of a book that gives him one
+entry. Only 780 Khoei and 293 Mamaqani profiles are true batch fragments.
 
-**Khoei and Mamaqani were extracted per mention, not per entry.** 21,938 Khoei profiles
-across 14,795 distinct normalized names. The original reading — that these were page-batch
-fragments — is wrong: سهل بن زياد appears at page spans 381, 671, 3961 and 7011 of a book
-that heads him once, so most repeats are mentions inside other narrators' entries. Only 780
-Khoei profiles and 293 Mamaqani profiles are true batch fragments. The rest are real
-same-person mentions that the name-matching layers must resolve on evidence, and they are
-what fed the deferred queue.
+**Two books are effectively missing.** Rijal al-Tusi yielded 123 profiles from 417 pages against
+roughly 8,000 entries; Jāmiʿ al-Ruwāt 1,796 from 1,210 pages. Both are output truncation.
 
-**Two books are effectively missing.** Rijal al-Tusi yielded 123 profiles from 417 pages
-against roughly 8,000 entries (92 batch errors, documented at the time as needing a re-run
-at `--batch-size 2`, never re-run). Jami' al-Ruwat yielded 1,796 from 1,210 pages, an order
-of magnitude short, from the same truncation failure.
+**The contract was not enforced.** 289 invented keys across 42,076 profiles (0.7%) —
+`is_doubtual`, `is_doubtous`, `kunyah_ar`, `kunyah_English`, `city_or_ribe`, and `death_year_hijري`,
+an identifier with Arabic letters in it. Each was invisible to the merge. Verdicts took 88
+free-text spellings, with `assessed` — 10,190 of them — asserting only that an assessment exists.
 
-**The output contract was not enforced.** 289 invented keys across 42,076 profiles (0.7%):
-`is_doubtual`, `is_doubtous`, `is_doubtious`, `is_doubtualble`, `doubtual_reason`,
-`doubtous_reason`, `kunyah_ar`, `kunyah_English`, `city_or_ribe`, `assessment_arabic`,
-`assessment_english`, `narrated_from_extra`, and `death_year_hijري` — an identifier with
-Arabic letters spliced into it. Small in count, but every one was invisible to the merge, so
-that data was dropped. Seven Arabic names contain Latin fragments (`محمد بن يحيى العطARN`).
+**The strongest disambiguator is rare.** `death_year_hijri` is filled on 2.8% of Khoei and 9.6%
+of Mamaqani profiles.
 
-**`reliability_grade` was free text: 88 distinct values.** `unknown (majhul)` (17,107) beside
-bare `unknown` (1,349); `reliable (thiqa)` beside `reliable`; `ghali` beside `ghālī`. And
-`assessed` — 10,190 occurrences, roughly a quarter of all grades — which asserts only that
-an assessment exists. Now 12 canonical grades on one axis and 8 doctrinal flags on another.
+### The rebuild (2026-09-07)
 
-**The best disambiguator is missing.** `death_year_hijri` is filled on 2.8% of Khoei profiles
-and 9.6% of Mamaqani, and kunyah is absent on 82-92% of same-name profiles. Layer 2 was
-running on almost nothing, which is why the large name groups are a Layer 3 problem rather
-than a scoring problem.
+From the same extraction, nothing re-downloaded:
 
-**Layer 4 never ran.** 35 entries in the old review queue.
-
-**The alias list re-opened the same hole (found 2026-09-07 by the Layer 3 agents).** The
-rebuilt merge stopped indexing `titles` and `kunyah_arabic`, but kunyahs and nisbahs also
-live inside `arabic_aliases`, so they kept generating candidates. `الكوفي` linked nine
-unrelated narrators into one profile; `أبو العباس` pulled Ibn Uqda into a profile seeded by
-Ibn al-Ghadaʾiri's entry for أحمد بن علي أبو العباس الرازي. An agent reported this as an
-upstream extraction defect — "header name and biographical body come from different
-entries" — which was worth checking and turned out to be wrong: the per-book files are
-clean, and the merge had put them together. Worth recording as a caution in both
-directions.
-
-**Layer 3 used the Anthropic API directly**, against the no-external-LLM-APIs decision.
-
-### Result of the rebuild
-
-Steps 1-3 below are done. Rebuilt from the same per-book extraction, nothing re-downloaded:
-
-| | 2026-06 merge | Rebuilt |
+| | June merge | Rebuilt |
 |---|---|---|
-| Merged profiles | 29,305 | 28,463 |
-| Largest cluster | 195 source profiles | 18 |
+| Profiles | 29,305 | 28,687 |
+| Largest cluster | 195 source entries | 15 |
 | Clusters of 20+ | 43 | 0 |
-| Absorbed into clusters of 5+ | 15.9% | 11.3% |
-| Most aliases on one profile | 129 | 34 |
-| Profiles drawing on >1 book | 11.7% | 16.5% |
-| Unresolved, for Layer 3 | 11,149 pairwise (36% judged) | 519 partition tasks + 3,095 pairs |
-| Invariant violations | not checked | 66 |
+| Absorbed into clusters of 5+ | 15.9% | 10.5% |
+| Drawing on more than one book | 11.7% | 16.6% |
+| Unresolved, for Layer 3 | 11,149 pairwise, 36% judged | 515 group tasks + 1,441 pair tasks |
 
-Less over-merging and more genuine cross-book merging at the same time, which is the
-combination that matters: the old merge was chaining on nisbahs while failing to connect
-the same narrator across sources.
+Less over-merging and more genuine cross-book merging at the same time.
 
-The 66 remaining violations are all `alias_is_foreign_primary_name` on headed-entry books —
-real signal, and small enough to inspect individually. They are the natural input to
-Layer 4.
+The agents surfaced further defects, each checked against the data before it was fixed. Kunyahs
+and nisbahs still reached the index through alias lists — `الكوفي` had linked nine unrelated
+narrators, `أبو العباس` pulled Ibn ʿUqda into another man's profile; English kunyahs passed a
+word count; a generic kunyah plus one nisbah passed the token rule; and an Imam, al-Ḥasan
+al-ʿAskarī, reached the data because the honorific pattern lacked `صلوات الله علي`. One agent
+diagnosed a merge fault as an extraction fault; the per-book files were clean. The agents find
+real problems, and where they locate them still needs checking.
 
-### Layer 3 results (2026-09-13)
+### Layer 3 (2026-09-13)
 
-All 73 batches answered by sub-agents, run `28687-a993d061519aaa64`. Every decision file
-validated with zero errors; zero tasks unanswered.
+73 batches answered by sub-agents, run `28687-a993d061519aaa64`; zero validation errors, zero
+tasks unanswered.
 
-| | Before Layer 3 | After Layer 3 |
+| | Before Layer 3 | After |
 |---|---|---|
 | Profiles | 28,687 | 24,239 |
 | Drawing on more than one book | 16.6% | 21.2% |
-| Largest cluster | 15 | 56, a single name form (محمد بن سنان) |
+| Largest cluster | 15 | 56, one name form (محمد بن سنان) |
 | Group merges applied | — | 3,533 across 2,922 clusters |
 | Pair merges applied | — | 915, with 353 kept separate |
-| Low confidence, routed to Layer 4 | — | 173 |
-| Resolved separate without an agent | — | 432 |
+| Low confidence, for review | — | 173 |
+| Kept separate without an agent | — | 432 |
 
-The largest clusters reunite prolific narrators whose Khoei and Mamaqani *mentions* were
-extracted one profile each — Ibrāhīm b. Hāshim, al-Ḥusayn b. Saʿīd, Ibn Abī ʿUmayr — under
-one name form, with verdicts that match the scholarship.
+The largest clusters reunite prolific narrators whose Khoei and Mamaqani mentions were
+extracted one profile each — Ibrāhīm b. Hāshim, al-Ḥusayn b. Saʿīd, Ibn Abī ʿUmayr — under one
+name form, with verdicts matching the scholarship.
 
-**Grade clashes rose from 98 to 143, and that is mostly correct.** Of the 68 clashes that
-involve a Layer 3 merge, 60 take their conflicting verdicts from different books: Layer 3
-reunited the scattered entries of narrators the Rijal scholars genuinely dispute —
-al-Nahdī and Ḥamdān al-Qalānisī, whom Kashshī identifies outright; Jaʿfar b. Muhammad b.
-Mālik al-Fazārī; Ibrāhīm b. Isḥāq al-Aḥmarī al-Nahāwandī. Per-source attribution is what
-makes that safe to publish. A handful are contested identity (ʿAbbād al-Rawājinī; Hishām
-b. Ibrāhīm) and belong in review.
+**Verdict clashes rose from 98 to 143, mostly correctly.** Of the 68 involving a Layer 3 merge,
+60 take their conflicting verdicts from different books: narrators the scholars genuinely
+dispute, now reunited — al-Nahdī and Ḥamdān al-Qalānisī, whom Kashshī identifies outright;
+Jaʿfar b. Muhammad b. Mālik al-Fazārī; Ibrāhīm b. Isḥāq al-Aḥmarī. Per-source attribution is
+what makes that safe to publish. A few are contested identity and belong in review.
 
-**Layer 3 can merge but cannot split.** Agents repeatedly flagged candidates that already
-mix two people. On the pre-Layer-3 merge, of 6,705 multi-source profiles, 98 carry both a
-positive and a negative verdict, 260 carry two or more distinct kunyahs (inflated by the
-case defect below), and 17 carry both. 328 of the 379 merge steps behind the grade-clash
-set were Layer 1 exact or full-name matches on thin profiles, where "nothing conflicts"
-meant nothing was stated. The worst: merged_id 1008 fuses Najashi's thiqa ʿAmr b. Ḥurayth
-al-Ṣayrafī with the Companion of the same name; 1405 fuses a father and son because the
-son's aliases carry the father's name. The grade-clash count is a lower bound — 1008 is a
-generation conflict, not a grade conflict. Layer 3 added nothing to either, because the
-agents routed them to review, but nothing in the pipeline undoes them.
+**Layer 3 cannot split.** On the rule merge, of 6,705 multi-source profiles, 98 carry both a
+positive and a negative verdict and 17 of those also carry conflicting kunyahs; 328 of the 379
+merge steps behind them were Layer 1 exact or full-name matches on thin profiles. The worst:
+merged_id 1008 joins Najashi's reliable ʿAmr b. Ḥurayth al-Ṣayrafī to the Companion of the
+same name; 1405 joins a father and son through the son's alias list. The verdict-clash count is
+a lower bound — 1008 is a conflict of generation, not verdict. Layer 3 added nothing to either;
+nothing undoes them.
 
-**Two normalizer defects, both measured.**
+**Kunyahs are not case-folded.** 323 of 10,009 kunyah values are accusative or genitive (أبا،
+أبي) and 119 are truncated junk. That inflates kunyah clashes by about a quarter (390 → 288
+folded), produced 46 false conflict penalties among 203 in Layer 2 — erring toward keeping
+profiles apart — and let 48 accusative aliases past the generic-kunyah rule, through which two
+merges ran.
 
-- Kunyahs are not case-folded. 323 of 10,009 kunyah values are accusative or genitive
-  (أبا / أبي) and 119 are truncated junk (`ا`, a bare `ابو`). That inflates kunyah clashes
-  by about a quarter (390 → 288 once folded) and produced 46 spurious `kunyah_conflict`
-  penalties among 203 in Layer 2 — the safe direction, keeping profiles apart. The same gap
-  lets 48 accusative aliases (`ابا علي الرازي`, `ابي بكر الحضرمي`) past the generic-kunyah
-  guard; two merges ran through them. The fold must skip أبي before بن: أبي بن كعب is the
-  name Ubayy.
-- Patronymic aliases. An entry that opens with the narrator's lineage leaves the father's
-  name in the son's alias list, and the alias index then treats the father as the son.
-
-**One man is still spread across several profiles, because his name forms never met.**
-Layer 3 partitions profiles that share an *identical* normalized name, so the forms one
-narrator goes by — the full lineage Najashi heads him with, the short form Khoei's chain
-mentions use, an "Ibn X" form, a kunyah form — land in different groups and are never
-compared. Sahl b. Ziyād al-Ādamī al-Rāzī is the clearest case: profile 62 holds 41 sources
-under `سهل بن زياد`, while Najashi's own entry — the decisive «ضعيفا في الحديث غير معتمد
-عليه» — sits in a separate profile under `سهل بن زياد الآدمي`, and Tusi's Fihrist in a
-third under `سهل بن زياد الادمي الرازي`. Checked against each narrator's defining nisbah or
-kunyah, 10 of 12 of the most-cited narrators are split the same way:
+**One man across several profiles.** Layer 3 compares profiles with an identical normalized
+name, so a man's different name forms never meet. Sahl b. Ziyād al-Ādamī al-Rāzī: 41 sources
+under `سهل بن زياد`; Najashi's own entry, with its decisive «ضعيفا في الحديث غير معتمد عليه»,
+under `سهل بن زياد الآدمي`; Tusi's Fihrist under `سهل بن زياد الادمي الرازي`. His profile also
+carries الأشعري, the nisbah of his accuser named in his entry, and الآملي, which belongs to a
+different man. Anchored on each narrator's own nisbah or kunyah:
 
 | Narrator | Profiles that are him | Sources per profile |
 |---|---|---|
@@ -688,64 +674,32 @@ kunyah, 10 of 12 of the most-cited narrators are split the same way:
 | Zurāra b. Aʿyan | 2 | 45, 2 |
 | Ṣafwān b. Yaḥyā; Jamīl b. Darrāj | 1 | unified |
 
-Thin, context-free chain mentions also sit beside these — 37 beside Aḥmad b. Muhammad b.
-ʿĪsā — correctly held apart until something identifies them. A corpus-wide count is not
-yet reliable: a name-extension test chains through ambiguous short forms (`الحسن بن علي`
-links Ibn Faḍḍāl to al-Washshāʾ), which is the original merge's failure in a new place, and
-gives only an upper bound of about 1,400. The remedy is a cross-form pass that compares
-whole clusters, now that each carries its accumulated aliases — profile 62 already lists
-`سهل بن زياد الآدمي` among its own aliases, which is exactly the link that was never tried.
-Its profile also shows nisbah bleed: الأشعري, which belongs to his accuser named in his
-entry, and الآملي, which belongs to a different man.
+A corpus-wide count is not reliable yet: a name-extension test chains through ambiguous short
+forms — `الحسن بن علي` links Ibn Faḍḍāl to al-Washshāʾ — and gives only an upper bound of about
+1,400. Stage 3 compares whole profiles instead; profile 62 already lists `سهل بن زياد الآدمي`
+among its own aliases, the link that was never tried.
 
-**Every merge re-run currently discards all Layer 3 answers**, because they are keyed on
-merge-relative ids that are renumbered each run. Fixing the defects above requires a
-re-run, so the answers need re-keying onto source-profile keys (`book:source_index`, which
-never change) before it happens.
+---
 
-### Remediation order
-
-Nothing here requires re-downloading a page except step 5.
-
-1. ~~**Enforce the output contract retroactively.**~~ Done — `normalize_extraction.py`,
-   runs clean under `--strict`.
-2. ~~**Implement Layer 0.**~~ Done — 1,086 batch fragments collapsed. Smaller than expected,
-   because most Khoei and Mamaqani repeats are mentions rather than fragments.
-3. ~~**Rewrite the merge.**~~ Done — see the table above.
-4. ~~**Drain Layer 3.**~~ Done 2026-09-13 — all 73 batches, zero validation errors. See
-   [Layer 3 results](#layer-3-results-2026-09-13). It surfaced three defects the next merge
-   re-run must carry — kunyah case folding, patronymic aliases, and the missing split
-   operation — and a re-run currently discards every Layer 3 answer.
-5. **Re-run Tusi and Ardabili extraction** at a smaller batch size. Rijal al-Tusi at 123
-   profiles is a hole the system cannot ship around.
-6. **Phase 3** — restore `NarratorIndexManager` and import.
-7. **Phase 4** — restore `NarratorController` / `NarratorService`, write `narrator.html`.
-8. **Phase 5A** ships with Phase 4. **Phase 5B** after precision is established.
-
-An alternative shortest path to something demonstrable: build Phases 3-5A against
-**Najashi + Fihrist + Du'afa + Kashshi only** — 2,472 profiles, the cleanest extraction and
-the most-cited narrators — and fold Khoei, Mamaqani, Tusi and Ardabili in once the merge is
-fixed.
-
-### Phase 1 extraction record
+## Appendix D — Phase 1 extraction record
 
 | Book | Slug | Scope | Profiles | Pages | Assessment |
 |------|------|-------|----------|-------|------------|
-| Kitab al-Du'afa | `duafa` | 224 entries | 222 | 224/224 | clean; 2 entries errored |
-| Rijal al-Kashshi | `kashshi` | 94 pages | 209 | 94/94 | clean; 1 error |
-| Fihrist al-Tusi | `fihrist` | 253 pages | 731 | 253/253 | clean; 5 errors |
-| Rijal al-Najashi | `najashi` | 461 pages | 1,310 | 461/461 | clean |
-| Rijal al-Tusi | `tusi` | 417 pages | 123 | 412/417 | **truncated** — 92 errors, needs re-run at `--batch-size 2` |
-| Jami' al-Ruwat | `ardabili` | 1,210 pages | 1,796 | 1,210/1,210 | **truncated** — yield an order of magnitude short |
-| Mu'jam Rijal al-Hadith | `khoei` | 10,924 pages | 21,938 | 10,924/10,924 | per-**mention**, not per-entry; ~15,700 real entries |
-| Tanqih al-Maqal | `mamaqani` | 34 vols | 15,747 | 15,873 batches | per-**mention**; volume coverage unverified |
+| Kitāb al-Ḍuʿafāʾ | `duafa` | 224 entries | 222 | 224/224 | clean; 2 entries errored |
+| Rijāl al-Kashshī | `kashshi` | 94 pages | 209 | 94/94 | clean; 1 error |
+| Fihrist al-Ṭūsī | `fihrist` | 253 pages | 731 | 253/253 | clean; 5 errors |
+| Rijāl al-Najāshī | `najashi` | 461 pages | 1,310 | 461/461 | clean |
+| Rijāl al-Ṭūsī | `tusi` | 417 pages | 123 | 412/417 | **truncated** — 92 errors; re-run at a smaller batch size |
+| Jāmiʿ al-Ruwāt | `ardabili` | 1,210 pages | 1,796 | 1,210/1,210 | **truncated** — yield an order of magnitude short |
+| Muʿjam Rijāl al-Ḥadīth | `khoei` | 10,924 pages | 21,938 | 10,924/10,924 | per mention, not per entry; about 15,700 real entries |
+| Tanqīḥ al-Maqāl | `mamaqani` | 34 vols | 15,747 | 15,873 batches | per mention; volume coverage unverified |
 
 Total before merging: 42,076.
 
-Operational lessons worth keeping:
+Operational lessons:
 
 - Process one book at a time; parallel runs corrupted shared checkpoints.
-- Checkpoint every batch — page downloads fail intermittently and the run must survive it.
-- Dense pages of bare names truncate on output; drop the batch size rather than the page.
-- Page-count coverage is not extraction coverage. Compare yield against the book's known
-  entry count before declaring a book done.
+- Checkpoint every batch — downloads fail intermittently and a run must survive it.
+- Dense pages of bare names truncate on output; shrink the batch, don't drop the page.
+- Page coverage is not extraction coverage. Compare yield with the book's known entry count
+  before calling a book done.
