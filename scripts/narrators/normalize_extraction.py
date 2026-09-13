@@ -23,9 +23,11 @@ import sys
 from collections import Counter, defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from identity import write_json_atomic  # noqa: E402
 from narrator_schema import (  # noqa: E402
     EDITORIAL_PLACEHOLDERS, GRADE_KEYWORDS_AR, RELIABILITY_GRADES, SECT_FLAGS,
-    is_infallible, name_tokens, normalize_arabic, normalize_english, parse_grade,
+    SEPARATORS_EN, english_name_tokens, fold_kunyah, is_infallible, lineage_relation,
+    name_tokens, normalize_arabic, normalize_english, parse_grade,
 )
 
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
@@ -213,6 +215,37 @@ def normalize_profile(raw, book_slug, index, stats, errors):
     if dropped:
         aliases_ar = [a for a in aliases_ar if a not in dropped]
         stats["dropped_editorial_aliases"] += len(dropped)
+
+    # An entry opens with its subject's lineage and names his sons, brothers and
+    # transmitters, so an alias list mixes the man's own names with his relatives'. Indexed
+    # as aliases, a relative's name merges the relative into him. Relatives are kept, in
+    # `relative_names`, and never indexed (narrator_schema.lineage_relation).
+    relatives_ar = {"ancestor": [], "descendant": []}
+    kept_ar = []
+    for alias in aliases_ar:
+        relation = lineage_relation(norm_ar, normalize_arabic(alias))
+        if relation:
+            relatives_ar[relation].append(alias)
+            stats["moved_relatives"][relation] += 1
+        else:
+            kept_ar.append(alias)
+    aliases_ar = kept_ar
+    relatives_en = {"ancestor": [], "descendant": []}
+    aliases_en = []
+    for alias in sorted({a for a in map(as_text, as_list(cleaned.get("english_aliases"))) if a}):
+        relation = lineage_relation(norm_en, normalize_english(alias),
+                                    SEPARATORS_EN, english_name_tokens)
+        if relation:
+            relatives_en[relation].append(alias)
+            stats["moved_relatives"][f"{relation}_en"] += 1
+        else:
+            aliases_en.append(alias)
+
+    # A truncated kunyah (a lone ا, a bare أبو) identifies nothing and reads as a conflict.
+    kunyah_ar = as_text(cleaned.get("kunyah_arabic"))
+    if kunyah_ar and fold_kunyah(kunyah_ar) is None:
+        stats["dropped_junk_kunyahs"] += 1
+        kunyah_ar = None
     if len(name_tokens(norm_ar)) <= 1 and len(aliases_ar) >= INDEX_PAGE_ALIASES:
         # A one-token name carrying dozens of aliases is a disambiguation page, not a
         # person: Khoei and Mamaqani both head a page listing everyone called حفص, and the
@@ -239,8 +272,10 @@ def normalize_profile(raw, book_slug, index, stats, errors):
         "primary_arabic_name": arabic_name,
         "primary_english_name": english_name,
         "arabic_aliases": aliases_ar,
-        "english_aliases": sorted({a for a in map(as_text, as_list(cleaned.get("english_aliases"))) if a}),
-        "kunyah_arabic": as_text(cleaned.get("kunyah_arabic")),
+        "english_aliases": aliases_en,
+        "relative_names": relatives_ar,
+        "relative_names_en": relatives_en,
+        "kunyah_arabic": kunyah_ar,
         "kunyah_english": as_text(cleaned.get("kunyah_english")),
         "titles": sorted({t for t in map(as_text, as_list(cleaned.get("titles"))) if t}),
         "reliability_grade": grade,
@@ -288,6 +323,8 @@ def normalize_book(book_slug, tmp_dir, out_dir, strict, verbose):
         "flag_grade_recoverable": 0,
         "flag_index_page_suspect": 0,
         "dropped_editorial_aliases": 0,
+        "moved_relatives": Counter(),
+        "dropped_junk_kunyahs": 0,
     }
     errors = []
     out = []
@@ -310,8 +347,7 @@ def normalize_book(book_slug, tmp_dir, out_dir, strict, verbose):
         )
 
     os.makedirs(out_dir, exist_ok=True)
-    with open(os.path.join(out_dir, f"{book_slug}.json"), "w") as handle:
-        json.dump(out, handle, ensure_ascii=False)
+    write_json_atomic(os.path.join(out_dir, f"{book_slug}.json"), out)
 
     print(f"  {book_slug:9s} {stats['input']:6d} -> {stats['output']:6d}"
           f"  (infallible {stats['dropped_infallible']}, no-name {stats['dropped_no_name']})"
@@ -332,6 +368,7 @@ def normalize_book(book_slug, tmp_dir, out_dir, strict, verbose):
     stats["rescued_keys"] = dict(stats["rescued_keys"])
     stats["unparsed_grades"] = dict(stats["unparsed_grades"])
     stats["grades"] = dict(stats["grades"])
+    stats["moved_relatives"] = dict(stats["moved_relatives"])
     return stats
 
 
@@ -368,8 +405,7 @@ def main():
     print("Canonical grades: " + ", ".join(f"{g}={n}" for g, n in grades.most_common()))
 
     os.makedirs(args.out_dir, exist_ok=True)
-    with open(os.path.join(args.out_dir, "report.json"), "w") as handle:
-        json.dump(report, handle, ensure_ascii=False, indent=2)
+    write_json_atomic(os.path.join(args.out_dir, "report.json"), report, indent=2)
     print(f"Report: {os.path.join(args.out_dir, 'report.json')}")
 
 

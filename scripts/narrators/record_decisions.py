@@ -46,7 +46,7 @@ from collections import Counter
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from identity import (  # noqa: E402
     append_record, fragment_members, live, load_record, make_decision, merged_id_map,
-    merged_seeds, source_key,
+    merged_seeds, source_key, write_json_atomic,
 )
 from l3_prepare import merge_fingerprint, run_directory  # noqa: E402
 
@@ -106,10 +106,9 @@ def run_translation(run_dir, merged, fingerprint, normalized_dir):
     seeds = merged_seeds(merged)
     if stored is not None and stored["map"] != {str(k): v for k, v in mapping.items()}:
         raise SystemExit(f"{path} disagrees with the current translation")
-    with open(path, "w") as handle:
-        json.dump({"merge_fingerprint": run_fingerprint, "method": method,
-                   "map": {str(k): v for k, v in mapping.items()},
-                   "seeds": {str(k): v for k, v in seeds.items()}}, handle, ensure_ascii=False)
+    write_json_atomic(path, {"merge_fingerprint": run_fingerprint, "method": method,
+                             "map": {str(k): v for k, v in mapping.items()},
+                             "seeds": {str(k): v for k, v in seeds.items()}})
     print(f"  wrote {path} (with seeds)")
     return mapping, seeds
 

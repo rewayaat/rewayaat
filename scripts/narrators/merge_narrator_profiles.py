@@ -25,9 +25,10 @@ from collections import Counter, defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from narrator_schema import (  # noqa: E402
-    is_identifying_alias, is_identifying_english_alias,
+    fold_kunyah, is_identifying_alias, is_identifying_english_alias,
     normalize_arabic, normalize_english,
 )
+from identity import write_json_atomic  # noqa: E402
 
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 TMP = os.path.join(REPO, "tmp")
@@ -114,6 +115,10 @@ def _absorb_fragment(target, other):
     for key in ("arabic_aliases", "english_aliases", "titles", "narrated_from",
                 "narrated_to", "city_or_tribe", "sect_flags"):
         target[key] = sorted(set(target[key]) | set(other[key]))
+    for key in ("relative_names", "relative_names_en"):
+        mine, theirs = target.get(key) or {}, other.get(key) or {}
+        target[key] = {relation: sorted(set(mine.get(relation, [])) | set(theirs.get(relation, [])))
+                       for relation in set(mine) | set(theirs)}
     target["source_assessments"] = target["source_assessments"] + other["source_assessments"]
     for key in ("kunyah_arabic", "kunyah_english", "generation", "death_year_hijri",
                 "doubtful_reason", "notes"):
@@ -151,6 +156,7 @@ class MergeState:
             "primary_names": [],
             "arabic_aliases": [],
             "english_aliases": [],
+            "relative_names": [],
             "titles": [],
             "kunyah_arabic": profile["kunyah_arabic"],
             "kunyah_english": profile["kunyah_english"],
@@ -197,6 +203,15 @@ class MergeState:
             _add_provenanced(merged["arabic_aliases"], alias, book, pages)
         for alias in profile["english_aliases"]:
             _add_provenanced(merged["english_aliases"], alias, book, pages)
+        # Ancestors, descendants and siblings: kept for lineage and display, never indexed,
+        # because they name other men.
+        for field in ("relative_names", "relative_names_en"):
+            for relation, names in (profile.get(field) or {}).items():
+                for name in names:
+                    if not any(e["value"] == name for e in merged["relative_names"]):
+                        merged["relative_names"].append({"value": name, "relation": relation,
+                                                         "source_book": book,
+                                                         "source_pages": pages})
         for title in profile["titles"]:
             _add_provenanced(merged["titles"], title, book, pages)
         for city in profile["city_or_tribe"]:
@@ -320,9 +335,10 @@ def context_score(profile, merged):
         score += 4 if closest <= 5 else 2
         reasons.append("death_year")
 
-    if profile["kunyah_arabic"]:
-        kunyahs = {normalize_arabic(k) for k in _values(merged["kunyahs_arabic"])}
-        mine = normalize_arabic(profile["kunyah_arabic"])
+    # Compared case-folded: أبا جعفر and أبي جعفر are أبو جعفر, not a conflict with it.
+    mine = fold_kunyah(profile["kunyah_arabic"])
+    if mine:
+        kunyahs = {fold_kunyah(k) for k in _values(merged["kunyahs_arabic"])} - {None}
         if kunyahs and mine in kunyahs:
             score += 2
             reasons.append("kunyah")
@@ -422,7 +438,12 @@ def process_book(state, book, profiles, deferred, quarantine, stats, group_sizes
             and state.profiles[entry[2]]["normalized_arabic"] == own_key
         ]
         if exact_matches:
-            if group_sizes.get(own_key, 0) > AUTO_MERGE_GROUP:
+            # A primary name that is only a kunyah — أبي بصير, أبي عبيدة — names several men
+            # as surely as a large name group does, and goes to Layer 3 the same way. The
+            # name-class rule (narrator_schema.is_identifying_alias) applies to primary names
+            # as much as to aliases.
+            if (group_sizes.get(own_key, 0) > AUTO_MERGE_GROUP
+                    or not is_identifying_alias(profile["primary_arabic_name"])):
                 counts["deferred_name_group"] += 1
                 state.add(profile, book)
                 continue
@@ -640,8 +661,7 @@ def main():
                           ("quarantine", quarantine),
                           ("stats", stats),
                           ("violations", violations)):
-        with open(os.path.join(args.out_dir, f"{name}.json"), "w") as handle:
-            json.dump(payload, handle, ensure_ascii=False)
+        write_json_atomic(os.path.join(args.out_dir, f"{name}.json"), payload)
 
     totals = Counter()
     for counts in stats["per_book"].values():
