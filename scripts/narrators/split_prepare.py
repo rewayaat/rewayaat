@@ -42,6 +42,13 @@ al-Sayrafi, but it sat inside the four-page entry the split kept apart from him.
 split whose entries entry repair divided is asked again with those entries as their page
 groups, and an applied answer supersedes the earlier split (record_decisions.py retracts it).
 
+`--shared-title` asks every person holding an entry whose own text says its title is shared by
+several men: Khoei's «هو مشترك بين جماعة، والتمييز إنما هو بالراوي والمروي عنه», heading a name
+as it occurs in chains, or «مشترك بين الثقة وغيره». Such an entry describes no one man, and its
+teachers, students and verdicts belong to several; the source sometimes goes on to say which man
+it means. The stage 5a re-audit found people anchored on such entries. Earlier splits do not
+exempt a person here, since no earlier asker was told what the words mean.
+
 Output is a Layer 3 run of `kind: "split"` tasks. Ids are entry numbers (or page numbers, with
 `--pages`); id_map.json maps each to every source key it covers, because a split binds whole
 units (record_decisions.py).
@@ -99,6 +106,8 @@ ERAS = [
 ]
 # Long-lived narrators span four or five Imams from al-Sadiq to al-'Askari, and the extracted
 # text adds guesses ("implied by era"); more than five apart is a different man, not a long life.
+# the source's own statement that a title is shared by several men (--shared-title)
+SHARED = re.compile(r"مشترك[ةه]? بين")
 MAX_ERA_SPAN = 5
 MAX_DEATH_SPREAD = 60
 
@@ -296,6 +305,8 @@ def main():
     parser.add_argument("--since", default=None,
                         help="with --resplit: an archived build from before the entry repair, "
                              "whose people holding a since-divided entry are asked too")
+    parser.add_argument("--shared-title", action="store_true",
+                        help="ask every person holding an entry the source calls a shared title")
     parser.add_argument("--dry-run", action="store_true", help="count tasks, write nothing")
     args = parser.parse_args()
 
@@ -380,7 +391,16 @@ def main():
             counts["resplit, superseding" if supersedes else "resplit, first split"] += 1
         signals = {}
 
-    placed = already_split(record_path, "split_partition")
+    shared, placed = set(), already_split(record_path, "split_partition")
+    if args.shared_title:
+        shared = {k for k, (_, profile) in profiles.items()
+                  if SHARED.search(json.dumps(profile, ensure_ascii=False))}
+        signals = defaultdict(set)
+        for key in shared:
+            if key in membership:
+                signals[membership[key]].add("shared title")
+        counts["entries calling their title shared"] = len(shared)
+        placed = set()
     for person_id in sorted(signals, key=lambda p: int(p[1:])):
         person = by_id[person_id]
         why = sorted(signals[person_id])
@@ -405,6 +425,8 @@ def main():
             keys = sorted(entries[head], key=anchor_rank)
             profile = evidence(dict(assemble(keys, profiles), merged_id=next_id))
             profile["source_keys"] = keys
+            if shared & set(keys):
+                profile["source_calls_title_shared"] = True
             shown.append(profile)
             id_map[str(next_id)], seeds[str(next_id)] = keys, head
             next_id += 1
@@ -418,7 +440,9 @@ def main():
 
     sizes = Counter(min(len(t["profiles"]) // 10 * 10, 50) for t in tasks)
     print(f"people fingerprint: {fingerprint}")
-    print(f"{len(signals) or len(tasks)} signalled -> {len(tasks)} {'entry' if args.pages else 'resplit' if args.resplit else 'split'} tasks, "
+    prefix = ("entry" if args.pages else "resplit" if args.resplit
+              else "shared" if args.shared_title else "split")
+    print(f"{len(signals) or len(tasks)} signalled -> {len(tasks)} {prefix} tasks, "
           f"{sum(len(t['profiles']) for t in tasks)} units; units per task (by tens) "
           f"{sorted(sizes.items())}")
     print("  " + ", ".join(f"{k} {v}" for k, v in sorted(counts.items())))
@@ -427,7 +451,6 @@ def main():
     if args.dry_run:
         return
 
-    prefix = "entry" if args.pages else "resplit" if args.resplit else "split"
     run_dir = os.path.join(args.out_dir, "runs", f"{prefix}-" + fingerprint.replace(":", "-"))
     batch_dir = os.path.join(run_dir, "batches")
     if os.path.isdir(batch_dir) and os.listdir(batch_dir):
