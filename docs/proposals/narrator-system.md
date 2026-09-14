@@ -95,6 +95,7 @@ Every stage is held to these. Part II shows what happened when they were not in 
 | 2026-09-13 | Checking the most-cited narrators shows one man still spread across several profiles, fusions the pipeline cannot undo, and identities that cannot be corrected without redoing agent work. This shapes Part III. |
 | 2026-09-13 | **Stage 1: permanent identity.** Every decision so far — 16,494 of them, including all 73 batches of agent answers — recorded against permanent source keys. People rebuilt from the record reproduce the 24,239 exactly, and each has a permanent identifier. |
 | 2026-09-14 | **Stage 2: name forms and agent precedence.** Kunyahs compared case-folded; a man's relatives kept out of his aliases, which separates the father and son 1405 had fused; an agent's separation now binds the rules; names that are only a kunyah go to the agents. Every file written durably after a run was killed for memory mid-merge. |
+| 2026-09-14 | **Stage 3 begins.** The top-up Layer 3 run answers the 34 batches stage 2 created: 24,660 people. Asking why the famous narrators stayed split finds each man's own entries in the main Rijal works sitting in different people that no agent had ever compared, which shapes the cross-form pass. |
 
 ### What went wrong in June
 
@@ -206,6 +207,16 @@ field they arrive in. Kunyahs are compared case-folded — أبا and أبي are
 كعب, which is the name Ubayy. A nisbah attaches to a man only where the text applies it to him,
 not to someone else named in his entry.
 
+One man's forms have to meet. Al-Najāshī heads al-Ḥusayn b. Saʿīd as `الحسين بن سعيد`,
+al-Fihrist as `الحسين بن سعيد بن حماد بن سعيد بن مهران الاهوازي`, Jāmiʿ al-Ruwāt as
+`الحسين بن سعيد بن حماد`, and a pass that compares identical names never puts the three side by
+side. The cross-form pass does. Its unit is a person holding an entry in one of the main Rijal
+works, which give one entry per man. Each task is one name form plus everyone carrying it, either
+whole or as the opening of a longer lineage or a name with a nisbah added, and agents partition
+it against the quotations. Tasks are built per form, not per connected component. Joined
+transitively, one contaminated alias chains unrelated men into tangles of forty. A single form
+stays a question a reader can answer.
+
 ### Resolving names in chains
 
 This is the harder half. Chains abbreviate: a short name, a kunyah alone, a pronoun (عنه، عن
@@ -242,7 +253,7 @@ measured.
 | ✓ | Output contract, merge rebuild, Layer 3 through sub-agents | 24,239 people; every agent decision validated (2026-09-13) |
 | ✓ 1 | **Permanent identity and the decision record.** Key every source entry; record every existing decision against those keys — the rule merges, the 73 batches of agent answers, the automatic separations; derive people from the record; issue permanent person identifiers with redirects. | Done 2026-09-13. Rebuilding from the record reproduces all 24,239 people exactly; recording twice adds nothing; rebuilding twice changes no identifier. Agent answers now outlive the merge — stage 2's re-run is the first to rely on it. |
 | ✓ 2 | **Fix the name-form defects** in one re-run: case-folded kunyahs, patronymic aliases, nisbahs belonging to other people. | Done 2026-09-14. Verdict clashes 155 → 151, kunyah clashes 317 → 312, invariant violations 69 → 66, no regression on the famous-narrator check; 1405's father and son are two people. Nisbah bleed was measured and left to the agent passes. |
-| 3 | **Top up Layer 3, then reconcile name forms across profiles.** First the agent work stage 2 created: 486 name-group tasks covering 1,330 profiles, 484 of them names that are only a kunyah, and 369 pair deferrals no agent has judged. Then Propose pairs of whole profiles where one's aliases are the other's name and a kunyah or nisbah agrees; agents confirm against the quotations. | Each of the twelve most-cited narrators is one person; the corpus-wide split estimate re-measured. |
+| 3 | **Top up Layer 3, then reconcile name forms across people.** First the agent work stage 2 created: 486 name-group tasks covering 1,330 profiles, 484 of them names that are only a kunyah, and 369 pair deferrals no agent has judged. Then the [cross-form pass](#names-as-a-subsystem): every person holding a main-book entry, one task per name form they share, agents partitioning against the quotations. | Each of the twelve most-cited narrators is one person; the corpus-wide split estimate re-measured. Top-up done 2026-09-14: 24,660 people, cross-book linkage 20.4%, the famous narrators untouched. Cross-form: 709 tasks in 24 batches, under way. |
 | 4 | **Split pass.** Agents review profiles that may fuse several men — the 17 strongest candidates, then those with conflicting verdicts or impossible dates. | All 17 resolved; the rest reviewed or queued. |
 | 5 | **Accuracy audit.** A random sample of applied merges, each checked against the sources, gives a measured accuracy with its margin — per rule layer, so the rules' acceptance thresholds are set from data. Stage 2 showed an alias match three names deep accepted at a context score of 0. | The figure meets a publication threshold agreed beforehand — proposed at 95%. |
 | 6 | **Complete the sources.** Re-extract Rijal al-Ṭūsī and Jāmiʿ al-Ruwāt, which were truncated. | Each book's yield matches its known entry count. |
@@ -264,12 +275,12 @@ published.
 | Extracted, Phase 1 | 42,076 entries from eight books |
 | Contract-normalized | 42,045 (31 Infallibles removed) |
 | Merged, rule layers 0–2 | 29,514 profiles (merge `29514:d382409476873fe5`) |
-| People, after stage 2 | **25,099**, each with a permanent identifier — 24,239 before stage 2 held kunyah-only names back for a top-up Layer 3 run |
-| Identity decisions on record | 57,487 on file across three merge runs, of which 14,494 in force |
-| Review signals | 0 — no agent separation falls inside one person |
-| Drawing on more than one book | 19.5% (21.2% before stage 2; recovers as the top-up run lands) |
-| Held for human review | 173 low-confidence decisions |
-| Most-cited narrators still split | 10 of 12 checked |
+| People, after the stage 3 top-up | **24,660**, each with a permanent identifier — 25,099 after stage 2, whose kunyah-only names the top-up partitioned |
+| Identity decisions on record | 59,860 on file across three merge runs, of which 16,751 in force |
+| Review signals | 31, among them 17 agent answers that override another agent's |
+| Drawing on more than one book | 20.4% (19.5% after stage 2, 21.2% before it) |
+| Held for human review | 289 low-confidence decisions |
+| Most-cited narrators still split | 10 of 12 checked — the cross-form pass's target |
 | Strongest fusion candidates | 17 |
 
 ### Data
@@ -287,13 +298,17 @@ Under `tmp/`, which is symlinked to `/mnt/share/rewayaat-backup/tmp/`:
 | `narrators_l3/runs/28687-a993d061519aaa64/merged_final.json` | Layer 3 output as applied — the reference `build_people.py` reproduces |
 | `narrators_l3/runs/28687-a993d061519aaa64/review_queue.json` | 173 low-confidence decisions |
 | `narrators_l3/runs/28687-a993d061519aaa64/auto_separate.json` | 432 deferrals kept separate without an agent |
+| `narrators_l3/runs/29514-d382409476873fe5/` | the stage 3 top-up — 34 batches (7 group, 27 pair), the answers, and `record.log`, `build.log`, `measure.log` |
+| `narrators_l3/runs/xform-24660-b23786d9461fb808/` | the cross-form pass — 24 batches over people, with `candidates.json` |
 | `narrators_l3/archive/` | agent answers to earlier, superseded merges |
 | `narrators_l3/runs/<fingerprint>/id_map.json` | each run's merged ids translated to source keys |
-| `narrators_identity/decisions.jsonl` | **the decision record** — 57,487 decisions on source keys |
-| `narrators_identity/person_ids.jsonl` | the permanent-identifier registry — 25,099 active |
-| `narrators_identity/people.json` | **current** — 25,099 people, derived from the record |
-| `narrators_identity/review_signals.json` | agent judgments now inside one person — none at present |
+| `narrators_identity/decisions.jsonl` | **the decision record** — 59,860 decisions on source keys |
+| `narrators_identity/person_ids.jsonl` | the permanent-identifier registry — 24,660 active |
+| `narrators_identity/people.json` | **current** — 24,660 people, derived from the record |
+| `narrators_identity/review_signals.json` | agent judgments now inside one person — 31 |
+| `narrators_identity/distinct_conflicts.json` | unions refused, and agent answers that overrode another agent's |
 | `narrators_archive/2026-09-14-pre-stage2/` | the merge, normalized files and people before stage 2 — its measurement baseline |
+| `narrators_archive/2026-09-14-post-stage2/` | people, membership, decision record and registry before the top-up — its baseline |
 | `narrators_merged.json` | **superseded** — the June merge; do not use |
 
 ### Code
@@ -312,6 +327,7 @@ On `feature/narrators`:
 | `scripts/narrators/identity.py` | source keys, the decision record, people, permanent identifiers |
 | `scripts/narrators/record_decisions.py` | records a merge's and a Layer 3 run's decisions on source keys |
 | `scripts/narrators/build_people.py` | derives people and identifiers from the record |
+| `scripts/narrators/crossform_prepare.py` | cross-form batches: people holding main-book entries, one task per shared name form |
 | `scripts/narrators/audit_narrator_quality.py` | per-book completeness audit |
 
 ```bash
@@ -322,6 +338,9 @@ python3 scripts/narrators/l3_dispatch.py --next 8          # prompts to hand to 
 python3 scripts/narrators/l3_apply.py --dry-run            # validates every answer
 python3 scripts/narrators/record_decisions.py              # decisions into the record, on source keys
 python3 scripts/narrators/build_people.py                  # people and permanent identifiers
+python3 scripts/narrators/crossform_prepare.py             # cross-form batches, over those people
+python3 scripts/narrators/record_decisions.py --no-rules --l3-run tmp/narrators_l3/runs/xform-<fp>
+python3 scripts/narrators/build_people.py
 ```
 
 Sub-agents run at most 20 at a time. An agent stopped before it writes leaves no file, and
@@ -540,6 +559,12 @@ quotations as evidence:
   whole usually does. 515 group tasks replaced over 11,000 pairwise ones.
 - *Pair* — a profile matched a candidate through an alias or partial name and context was
   inconclusive: the same person, or nobody?
+- *Cross-form* — people who each hold an entry in a main Rijal work and share a name form,
+  whole or as the opening of a longer one: partition them. Built over people rather than
+  merged profiles (`crossform_prepare.py`), because one man headed differently by different
+  books lands in different name groups and no group task ever compares him with himself. A form
+  held by more than twelve such people is too common to be a question; people agents have
+  already judged together are not asked again.
 
 Deferrals where no candidate carries any positive evidence are kept separate without an agent;
 asking for a judgment on absent evidence invites a confident wrong merge. Low-confidence
@@ -558,8 +583,7 @@ man, the agent can name only one.
 
 **Layer 4 — human review.** Low-confidence Layer 3 answers, and cases the agents flag.
 
-**Not yet built** — stages 3 and 4: comparing whole profiles so a man's different name forms
-meet, and splitting profiles that fuse several men.
+**Not yet built** — stage 4: splitting profiles that fuse several men.
 
 **Invariants**, checked after every merge:
 
@@ -816,6 +840,61 @@ fused; that is the split pass's.
 
 **A run was killed for memory mid-merge.** Nothing was lost only because the kill landed before
 the write; every file is now written durably.
+
+### Stage 3 top-up (2026-09-14)
+
+Sub-agents answered the 34 batches stage 2 created (run `29514-d382409476873fe5`) with zero
+validation errors. The results below are measured against the post-stage-2 build.
+
+| | After stage 2 | After the top-up |
+|---|---|---|
+| People | 25,099 | 24,660 |
+| Drawing on more than one book | 19.5% | 20.4% |
+| Verdict clashes | 151 | 154 |
+| Kunyah clashes, case-folded | 312 | 318 |
+| Group tasks with a merge | — | 280 of 488 |
+| Pair merges applied | — | 546, with 96 kept separate |
+| Low confidence, for review | — | 116 |
+| Kept separate without an agent | — | 952 |
+
+The kunyah-only groups mostly stayed apart, as the brief asks. Agents joined their members
+only on a shared teacher, a quotation or a full name the source gives. Cross-book linkage
+recovered less than the 1.7 points stage 2 gave up, because the profiles it held back were names
+that are only a kunyah, and most of those are rightly separate.
+
+**The new verdict clashes are mostly disputed men.** Sahl b. Ziyād, Saʿd b. Ṭarīf, Abū
+al-Jārūd and al-Ḥārith al-Aʿwar lead the 14. The scholars genuinely dispute these narrators,
+so a thiqa beside a ḍaʿīf is the record, not a fusion.
+
+**17 agent answers override another agent's.** An agent's separation binds only rule unions, so
+where two agents disagree the merge stands and the build reports it. Most of the overriding
+answers rest on a source naming the man outright, such as Khoei's «هو إبراهيم بن عيسى أبو أيوب»
+and «هو أحمد بن محمد بن أبي نصر المتقدم». A few are genuine disagreements (Ismāʿīl al-Juʿfī,
+Zakkār). All of them go to review.
+
+**It did not touch the famous narrators, and could not.** All twelve checked stand exactly as
+before, and Sahl shows why. Agents had seen 17 of his 19 people, but his own entries —
+al-Najāshī 519, al-Fihrist 388, al-Ḍuʿafāʾ 62 — sat in three people that no agent had put side
+by side. Each book heads him in a different form, and Layer 3 groups by exact name. Others
+follow the same pattern:
+
+- al-Ḥusayn b. Saʿīd: al-Najāshī, al-Fihrist and Jāmiʿ al-Ruwāt, in three people.
+- Ibn Abī ʿUmayr: three people.
+- Zurāra: Jāmiʿ al-Ruwāt's entry, headed with his full lineage, stood apart from the other
+  three books.
+
+A first cross-form candidate list missed all of these, for two reasons:
+
+1. It skipped pairs whose primary names overlapped, on the assumption that Layer 3 had
+   compared them.
+2. It dropped name forms held by more than four people, which covers every form of a prolific
+   narrator.
+
+The cross-form pass is built on that diagnosis, and every famous case falls whole inside one of
+its tasks.
+
+Sahl's 15 single-mention Khoei profiles are a separate and lesser problem. Most carry a name
+and at most one teacher, so there is nothing an agent can decide on.
 
 ---
 
