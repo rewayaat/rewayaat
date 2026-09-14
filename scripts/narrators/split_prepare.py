@@ -42,12 +42,13 @@ al-Sayrafi, but it sat inside the four-page entry the split kept apart from him.
 split whose entries entry repair divided is asked again with those entries as their page
 groups, and an applied answer supersedes the earlier split (record_decisions.py retracts it).
 
-`--shared-title` asks every person holding an entry whose own text says its title is shared by
-several men: Khoei's «هو مشترك بين جماعة، والتمييز إنما هو بالراوي والمروي عنه», heading a name
+`--shared-title` adds to the candidates every person holding an entry whose own text says its
+title is shared by several men: Khoei's «هو مشترك بين جماعة، والتمييز إنما هو بالراوي والمروي عنه», heading a name
 as it occurs in chains, or «مشترك بين الثقة وغيره». Such an entry describes no one man, and its
 teachers, students and verdicts belong to several; the source sometimes goes on to say which man
 it means. The stage 5a re-audit found people anchored on such entries. Earlier splits do not
-exempt a person here, since no earlier asker was told what the words mean.
+exempt a person here, since no earlier asker was told what the words mean. `--people` adds
+persons named by id, found by hand, and they too are asked whether or not they were split before.
 
 Output is a Layer 3 run of `kind: "split"` tasks. Ids are entry numbers (or page numbers, with
 `--pages`); id_map.json maps each to every source key it covers, because a split binds whole
@@ -306,7 +307,9 @@ def main():
                         help="with --resplit: an archived build from before the entry repair, "
                              "whose people holding a since-divided entry are asked too")
     parser.add_argument("--shared-title", action="store_true",
-                        help="ask every person holding an entry the source calls a shared title")
+                        help="also ask every person holding an entry the source calls a shared title")
+    parser.add_argument("--people", default="",
+                        help="also ask these persons (comma list of ids), found by hand")
     parser.add_argument("--dry-run", action="store_true", help="count tasks, write nothing")
     args = parser.parse_args()
 
@@ -395,12 +398,16 @@ def main():
     if args.shared_title:
         shared = {k for k, (_, profile) in profiles.items()
                   if SHARED.search(json.dumps(profile, ensure_ascii=False))}
-        signals = defaultdict(set)
         for key in shared:
             if key in membership:
                 signals[membership[key]].add("shared title")
         counts["entries calling their title shared"] = len(shared)
-        placed = set()
+    for person_id in (p.strip() for p in args.people.split(",") if p.strip()):
+        if person_id not in by_id:
+            raise SystemExit(f"--people: no person {person_id} in this build")
+        signals[person_id].add("named for review")
+    # an earlier split exempts a person only from the signals it was asked about
+    exempt = {"shared title", "named for review"}
     for person_id in sorted(signals, key=lambda p: int(p[1:])):
         person = by_id[person_id]
         why = sorted(signals[person_id])
@@ -411,7 +418,7 @@ def main():
                            "signals": why, "source_keys": person["source_keys"]})
             counts["single_source"] += 1
             continue
-        if all(k in placed for k in person["source_keys"]):
+        if all(k in placed for k in person["source_keys"]) and not exempt & set(why):
             counts["already_split"] += 1
             continue
         entries = defaultdict(list)
@@ -440,8 +447,7 @@ def main():
 
     sizes = Counter(min(len(t["profiles"]) // 10 * 10, 50) for t in tasks)
     print(f"people fingerprint: {fingerprint}")
-    prefix = ("entry" if args.pages else "resplit" if args.resplit
-              else "shared" if args.shared_title else "split")
+    prefix = "entry" if args.pages else "resplit" if args.resplit else "split"
     print(f"{len(signals) or len(tasks)} signalled -> {len(tasks)} {prefix} tasks, "
           f"{sum(len(t['profiles']) for t in tasks)} units; units per task (by tens) "
           f"{sorted(sizes.items())}")
