@@ -58,6 +58,7 @@
         .update-entry__cta a i { color: #d5aa4d; }
         .update-entry__why { margin: 1.1rem 0 1.2rem; }
         .why__title { font-family: 'Source Serif 4', serif; font-size: 1.1rem; font-weight: 600; color: #0b1728; margin: 0 0 0.65rem; }
+        .why__intro { font-size: 0.92rem; color: #3a4a5c; line-height: 1.6; margin: 0 0 0.9rem; }
         .why__image { display: block; width: 100%; height: auto; border-radius: 10px; box-shadow: 0 2px 12px rgba(11,23,40,0.14); margin-bottom: 0.9rem; }
         .why__points { padding-left: 1.1rem; margin: 0; }
         .why__points li { font-size: 0.9rem; color: #3a4a5c; line-height: 1.55; padding: 0.25rem 0; }
@@ -166,7 +167,7 @@ fetch('/recent_updates.json')
                 guidesHtml(u) +
                 video;
             container.appendChild(entry);
-            entry.querySelectorAll('.guide__video').forEach(playWhileVisible);
+            entry.querySelectorAll('.guide__video, .why__video').forEach(playWhileVisible);
             if (u.video) {
                 loopWhileIgnored(entry.querySelector('.update-entry__video iframe'), src,
                     u.videoSeconds);
@@ -211,7 +212,15 @@ function whyHtml(u) {
     }
     return '<div class="update-entry__why">' +
         (w.title ? '<h2 class="why__title">' + w.title + '</h2>' : '') +
-        (w.image
+        (w.intro ? '<p class="why__intro">' + w.intro + '</p>' : '') +
+        (w.video
+            // Same treatment as the setup walkthroughs: a looping file from the CDN that plays
+            // only while on screen, with a poster chosen to make the point on its own.
+            ? '<video class="why__image why__video" src="' + w.video + '"' +
+              (w.poster ? ' poster="' + w.poster + '"' : '') +
+              (w.videoAspect ? ' style="aspect-ratio: ' + w.videoAspect + '"' : '') +
+              ' muted loop playsinline preload="none" aria-label="' + (w.videoAlt || '') + '"></video>'
+            : w.image
             ? '<img class="why__image" src="' + w.image + '" alt="' + (w.imageAlt || '') + '"' +
               (w.imageAspect ? ' style="aspect-ratio: ' + w.imageAspect + '"' : '') +
               ' loading="lazy">'

@@ -37,8 +37,9 @@ made no confident false citation — what it could not do was the research: aske
 chapter on the rights of the neighbour it said "around 15 … I can't reliably reproduce all of
 them", and two of the narrations it offered are not in the chapter. With web search it found
 the chapter on one site, in paraphrase, and could not confirm the count. `get_chapter` returns
-all 16, complete, with al-Majlisī's gradings. The measurements and the rule for changing them
-are in the header of `scripts/connector-guides/comparison.html`.
+all 16, complete, with al-Majlisī's gradings. The page shows this as a looping side-by-side,
+`scripts/connector-guides/compare.html` rendered by `render-compare.cjs` and served from the
+CDN as `compare-v1.mp4`; its header records every measurement and the rule for changing them.
 
 ## Endpoints
 
