@@ -74,6 +74,10 @@ batch does not contain.
 
 Write a JSON file to the exact path you are given. No prose outside the JSON.
 
+Other agents run beside you on other batches and may share your scratch directory. Name any
+helper file after your batch (`show_group_0015.py`, not `show.py`), and check that what you read
+carries your batch's name before deciding on it.
+
 ```json
 {
   "batch": "<the batch filename from the input>",
