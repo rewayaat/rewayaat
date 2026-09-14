@@ -124,8 +124,13 @@ def judged_together(record_path):
     return seen
 
 
-def build_tasks(people, record_path, counts):
-    main = [p for p in people if any(k.split(":")[0] in MAIN_BOOKS for k in p["source_keys"])]
+def build_tasks(people, record_path, counts, non_main=False):
+    if non_main:
+        # Khoei and Mamaqani profiles holding no main entry, compared with each other: the
+        # stage 5 audit found doubles among them that no pass had put side by side.
+        main = [p for p in people if not holds_main_entry(p) and not thin(p)]
+    else:
+        main = [p for p in people if holds_main_entry(p)]
     by_id = {p["person_id"]: p for p in main}
     forms = {p["person_id"]: name_forms(p) for p in main}
     owners = defaultdict(set)
@@ -214,7 +219,15 @@ def orphan_people(record_path, membership):
     return orphans
 
 
-def build_attach_tasks(people, record_path, counts, subjects=None, rejudge=False):
+def thin(person):
+    """A single source with no verdict, kunyah or nisbah: nothing for an agent to decide on."""
+    kunyahs, titles = marks(person)
+    return (len(person["source_keys"]) == 1 and not person["reliability_grades"]
+            and not kunyahs and not titles)
+
+
+def build_attach_tasks(people, record_path, counts, subjects=None, rejudge=False,
+                       any_namesake=False):
     by_id = {p["person_id"]: p for p in people}
     main = [p for p in people if holds_main_entry(p)]
     owners = defaultdict(set)
@@ -235,8 +248,7 @@ def build_attach_tasks(people, record_path, counts, subjects=None, rejudge=False
         if subjects is not None and person["person_id"] not in subjects:
             continue
         kunyahs, titles = marks(person)
-        if (len(person["source_keys"]) == 1 and not person["reliability_grades"]
-                and not kunyahs and not titles):
+        if thin(person):
             counts["thin_not_asked"] += 1
             continue
         scored = {}
@@ -250,8 +262,8 @@ def build_attach_tasks(people, record_path, counts, subjects=None, rejudge=False
                 if kunyahs and their_kunyahs and not kunyahs & their_kunyahs:
                     continue
                 agree = 2 * len(kunyahs & their_kunyahs) + len(titles & their_titles)
-                if agree:
-                    scored[mid] = max(scored.get(mid, 0), agree)
+                if agree or any_namesake:
+                    scored[mid] = max(scored.get(mid, 0), agree + (1 if any_namesake else 0))
         if not scored:
             continue
         fresh = {mid: s for mid, s in scored.items()
@@ -289,6 +301,10 @@ def main():
     parser.add_argument("--budget", type=int, default=DEFAULT_BUDGET)
     parser.add_argument("--attach", action="store_true",
                         help="pair people holding no main entry with main-entry people they may be")
+    parser.add_argument("--any-namesake", action="store_true",
+                        help="with --attach: offer namesakes without an agreeing kunyah or nisbah")
+    parser.add_argument("--non-main", action="store_true",
+                        help="per-form groups over people who hold no main entry")
     parser.add_argument("--orphans", action="store_true",
                         help="attach pages entry repair split off, asking again what the fused "
                              "entry was judged on")
@@ -300,8 +316,9 @@ def main():
     fingerprint = people_fingerprint(people)
     counts = Counter()
     record_path = os.path.join(args.identity_dir, "decisions.jsonl")
-    kind, prefix = (("pair", "orphan" if args.orphans else "attach") if args.attach or args.orphans
-                    else ("group", "xform"))
+    kind, prefix = (("pair", "orphan" if args.orphans else "attach2" if args.any_namesake
+                     else "attach") if args.attach or args.orphans
+                    else ("group", "xform2" if args.non_main else "xform"))
     if args.attach or args.orphans:
         subjects = None
         if args.orphans:
@@ -309,12 +326,12 @@ def main():
                 subjects = orphan_people(record_path, json.load(handle))
             counts["orphan_people"] = len(subjects)
         tasks, by_id = build_attach_tasks(people, record_path, counts, subjects,
-                                          rejudge=args.orphans)
+                                          rejudge=args.orphans, any_namesake=args.any_namesake)
         members_of = lambda t: [t["subject"]] + t["candidates"]
         sizes = Counter(len(t["candidates"]) for t in tasks)
         shape = "candidates per subject"
     else:
-        tasks, by_id = build_tasks(people, record_path, counts)
+        tasks, by_id = build_tasks(people, record_path, counts, non_main=args.non_main)
         members_of = lambda t: t["profiles"]
         sizes = Counter(len(t["profiles"]) for t in tasks)
         shape = "sizes"

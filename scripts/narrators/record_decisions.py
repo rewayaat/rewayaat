@@ -136,6 +136,32 @@ def l3_decisions(run_dir, seeds, merge_run, counts, mapping=None):
                 continue
             origin = {"run": f"l3:{run_name}", "merge": merge_run,
                       "batch": batch_of[task["task_id"]], "task_id": task["task_id"]}
+            if task["kind"] == "verify":
+                # A rule join put to an agent (verify_prepare.py). `different` breaks it with a
+                # not_same over both whole entries, which outranks any rule; `same` confirms it
+                # at agent rank; `cannot_tell` leaves the rule's join as it was.
+                a_id, b_id = (e["merged_id"] for e in task["entries"])
+                verdict, confidence = answer.get("verdict"), answer.get("confidence")
+                if verdict not in ("same", "different", "cannot_tell"):
+                    counts["skipped_invalid_verify"] += 1
+                    continue
+                if verdict == "cannot_tell":
+                    counts["verify_cannot_tell"] += 1
+                    continue
+                status = "applied" if confidence in ("high", "medium") else "review"
+                evidence = {"reason": answer.get("reason", "")}
+                if verdict == "same":
+                    decisions.append(make_decision(
+                        "same", sources=[seeds[a_id], seeds[b_id]],
+                        method=task.get("method", "verify_pair"), actor="agent",
+                        confidence=confidence, status=status, evidence=evidence, origin=origin))
+                else:
+                    decisions.append(make_decision(
+                        "not_same", groups=[sorted(mapping[a_id]), sorted(mapping[b_id])],
+                        method=task.get("method", "verify_pair"), actor="agent",
+                        confidence=confidence, status=status, evidence=evidence, origin=origin))
+                continue
+
             if task["kind"] == "split":
                 # A split binds every source key of each entry, not a seed. Its units are whole
                 # entries (Layer 0 fragment groups); with a seed alone, a rule union could pull
