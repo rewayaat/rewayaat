@@ -12,8 +12,10 @@ What gets recorded:
           and score); quarantined disambiguation pages (exclude); deferrals kept apart for
           lack of any positive evidence (not_same).
   agent   each group task's partition; each pair answer — same when the agent merged,
-          not_same against every offered candidate when it did not. Low-confidence merges are
-          recorded with status `review` and do not shape people until confirmed.
+          not_same against every offered candidate when it did not; each split answer — a
+          partition of the person's entries and, if it has several clusters, a distinct
+          between them. Low-confidence merges and splits are recorded with status `review` and
+          do not shape people until confirmed.
 
 Agent decisions bind each profile's *seed* source, not every source in it (see identity.py):
 an agent judged a merged profile as a whole, and which sources the rules had merged into it
@@ -113,7 +115,7 @@ def run_translation(run_dir, merged, fingerprint, normalized_dir):
     return mapping, seeds
 
 
-def l3_decisions(run_dir, seeds, merge_run, counts):
+def l3_decisions(run_dir, seeds, merge_run, counts, mapping=None):
     run_name = os.path.basename(os.path.normpath(run_dir))
     tasks, batch_of = {}, {}
     for path in sorted(glob.glob(os.path.join(run_dir, "batches", "*.json"))):
@@ -134,6 +136,30 @@ def l3_decisions(run_dir, seeds, merge_run, counts):
                 continue
             origin = {"run": f"l3:{run_name}", "merge": merge_run,
                       "batch": batch_of[task["task_id"]], "task_id": task["task_id"]}
+            if task["kind"] == "split":
+                # A split binds every source key of each entry, not a seed. Its units are whole
+                # entries (Layer 0 fragment groups); with a seed alone, a rule union could pull
+                # an entry's other pages to the wrong side before its own fragment union ran.
+                # The partition keeps each cluster together; the distinct keeps clusters apart
+                # against agent unions too, which is what undoing an agent-made fusion needs.
+                offered = {p["merged_id"] for p in task["profiles"]}
+                clusters = answer.get("clusters", [])
+                if sorted(m for c in clusters for m in c) != sorted(offered):
+                    counts["skipped_invalid_partition"] += 1
+                    continue
+                groups = [sorted(k for m in c for k in mapping[m]) for c in clusters]
+                confidence = answer.get("confidence")
+                status = "applied" if confidence in ("high", "medium") else "review"
+                evidence = {"notes": answer.get("notes", ""),
+                            "mixed": sorted(k for m in answer.get("mixed", []) if m in offered
+                                            for k in mapping[m])}
+                for kind in ("partition", "distinct") if len(groups) > 1 else ("partition",):
+                    decisions.append(make_decision(
+                        kind, groups=groups, method=task.get("method", "split_partition"),
+                        actor="agent", confidence=confidence, status=status,
+                        evidence=evidence, origin=origin))
+                continue
+
             if task["kind"] == "group":
                 offered = {p["merged_id"] for p in task["profiles"]}
                 placed = [m for cluster in answer.get("clusters", []) for m in cluster]
@@ -238,8 +264,8 @@ def main():
         run_dir = args.l3_run or run_directory(args.l3_dir, fingerprint)
         with open(os.path.join(run_dir, "manifest.json")) as handle:
             run_fingerprint = json.load(handle)["merge_fingerprint"]
-        _, seeds = run_translation(run_dir, merged, fingerprint, args.normalized_dir)
-        fresh = l3_decisions(run_dir, seeds, f"merge:{run_fingerprint}", counts)
+        mapping, seeds = run_translation(run_dir, merged, fingerprint, args.normalized_dir)
+        fresh = l3_decisions(run_dir, seeds, f"merge:{run_fingerprint}", counts, mapping)
         decisions += fresh + retractions(args.record, os.path.basename(os.path.normpath(run_dir)),
                                          fresh)
 
