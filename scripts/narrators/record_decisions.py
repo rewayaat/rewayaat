@@ -158,6 +158,14 @@ def l3_decisions(run_dir, seeds, merge_run, counts, mapping=None):
                         kind, groups=groups, method=task.get("method", "split_partition"),
                         actor="agent", confidence=confidence, status=status,
                         evidence=evidence, origin=origin))
+                # A re-split (split_prepare.py --resplit) asks an earlier split again at a finer
+                # grain; once applied, it replaces that split. A low answer replaces nothing.
+                if task.get("supersedes") and status == "applied":
+                    decisions.append(make_decision(
+                        "retract", targets=task["supersedes"], method="superseded_by_resplit",
+                        actor="agent", confidence=confidence,
+                        evidence={"reason": "the same person split again with repaired entries "
+                                            "shown page by page"}, origin=origin))
                 continue
 
             if task["kind"] == "group":

@@ -32,6 +32,13 @@ one entry. An entry task shows one such entry page by page — an entry whose pa
 era, kunyah or verdict, or one a split answer listed as `mixed` — and asks which pages are which
 man. An agent's split outranks the rule that joined the pages.
 
+`--resplit` finishes what the two leave between them. A person split sets a mixed entry apart
+whole, with a `distinct` against the rest of the person; entry repair then finds which of its
+pages are which man, and one of them is often the person's own — Khoei 12466 is al-Najashi's
+al-Sayrafi, but it sat inside the four-page entry the split kept apart from him. Each person
+split whose entries entry repair divided is asked again with those entries as their page
+groups, and an applied answer supersedes the earlier split (record_decisions.py retracts it).
+
 Output is a Layer 3 run of `kind: "split"` tasks. Ids are entry numbers (or page numbers, with
 `--pages`); id_map.json maps each to every source key it covers, because a split binds whole
 units (record_decisions.py).
@@ -45,6 +52,7 @@ Usage:
     python3 scripts/narrators/split_prepare.py --dry-run
     python3 scripts/narrators/split_prepare.py
     python3 scripts/narrators/split_prepare.py --pages
+    python3 scripts/narrators/split_prepare.py --resplit
 """
 
 import argparse
@@ -153,13 +161,48 @@ def mixed_entries(runs_dir):
     return keys
 
 
+def resplit_units(runs_dir, record):
+    """(earlier split task, its units with repaired entries as page groups, decisions to supersede).
+
+    A unit is repaired when an applied entry split covers exactly its pages.
+    """
+    repaired = {}
+    superseded = defaultdict(list)
+    for d in live(record):
+        if d["actor"] != "agent":
+            continue
+        if (d["method"] == "entry_split" and d["kind"] == "partition"
+                and d.get("status") == "applied" and len(d["groups"]) > 1):
+            repaired[frozenset(k for g in d["groups"] for k in g)] = [sorted(g) for g in d["groups"]]
+        if d["method"] == "split_partition":
+            superseded[d["origin"].get("task_id")].append(d["decision_id"])
+    for run in sorted(glob.glob(os.path.join(runs_dir, "split-*"))):
+        with open(os.path.join(run, "id_map.json")) as handle:
+            mapping = json.load(handle)["map"]
+        for path in sorted(glob.glob(os.path.join(run, "batches", "*.json"))):
+            with open(path) as handle:
+                batch_tasks = json.load(handle)["tasks"]
+            for task in batch_tasks:
+                units, touched = [], False
+                for profile in task["profiles"]:
+                    keys = mapping[str(profile["merged_id"])]
+                    groups = repaired.get(frozenset(keys))
+                    if groups:
+                        units.extend(groups)
+                        touched = True
+                    else:
+                        units.append(sorted(keys, key=anchor_rank))
+                if touched and superseded.get(task["task_id"]):
+                    yield task, units, superseded[task["task_id"]]
+
+
 def agent_flags(runs_dir, membership):
     """Person id -> runs whose agents said a profile of his mixes men."""
     flagged = defaultdict(set)
     for run in sorted(glob.glob(os.path.join(runs_dir, "*"))):
         name = os.path.basename(run)
         id_map_path = os.path.join(run, "id_map.json")
-        if name.startswith(("split-", "entry-")) or not os.path.exists(id_map_path):
+        if name.startswith(("split-", "entry-", "resplit-")) or not os.path.exists(id_map_path):
             continue
         with open(id_map_path) as handle:
             seeds = json.load(handle).get("seeds", {})
@@ -209,6 +252,8 @@ def main():
     parser.add_argument("--budget", type=int, default=DEFAULT_BUDGET)
     parser.add_argument("--pages", action="store_true",
                         help="repair Layer 0: split entries whose pages describe different men")
+    parser.add_argument("--resplit", action="store_true",
+                        help="ask person splits again where entry repair divided their entries")
     parser.add_argument("--dry-run", action="store_true", help="count tasks, write nothing")
     args = parser.parse_args()
 
@@ -269,6 +314,25 @@ def main():
                                "pages": len(keys)})
         signals = {}
 
+    if args.resplit:
+        for task, units, supersedes in resplit_units(os.path.join(args.out_dir, "runs"),
+                                                     load_record(record_path)):
+            shown = []
+            for keys in units:
+                profile = evidence(dict(assemble(keys, profiles), merged_id=next_id))
+                profile["source_keys"] = keys
+                shown.append(profile)
+                id_map[str(next_id)], seeds[str(next_id)] = keys, keys[0]
+                next_id += 1
+            tasks.append({"kind": "split", "method": "split_partition",
+                          "task_id": "re" + task["task_id"], "person_id": task["person_id"],
+                          "name_ar": task["name_ar"], "signals": task["signals"] + ["entry repaired"],
+                          "supersedes": supersedes, "profiles": shown})
+            candidates.append({"person_id": task["person_id"], "supersedes": supersedes,
+                               "units": len(shown)})
+            counts["resplit"] += 1
+        signals = {}
+
     placed = already_split(record_path, "split_partition")
     for person_id in sorted(signals, key=lambda p: int(p[1:])):
         person = by_id[person_id]
@@ -307,7 +371,7 @@ def main():
 
     sizes = Counter(min(len(t["profiles"]) // 10 * 10, 50) for t in tasks)
     print(f"people fingerprint: {fingerprint}")
-    print(f"{len(signals) or len(tasks)} signalled -> {len(tasks)} {'entry' if args.pages else 'split'} tasks, "
+    print(f"{len(signals) or len(tasks)} signalled -> {len(tasks)} {'entry' if args.pages else 'resplit' if args.resplit else 'split'} tasks, "
           f"{sum(len(t['profiles']) for t in tasks)} units; units per task (by tens) "
           f"{sorted(sizes.items())}")
     print("  " + ", ".join(f"{k} {v}" for k, v in sorted(counts.items())))
@@ -316,7 +380,7 @@ def main():
     if args.dry_run:
         return
 
-    prefix = "entry" if args.pages else "split"
+    prefix = "entry" if args.pages else "resplit" if args.resplit else "split"
     run_dir = os.path.join(args.out_dir, "runs", f"{prefix}-" + fingerprint.replace(":", "-"))
     batch_dir = os.path.join(run_dir, "batches")
     if os.path.isdir(batch_dir) and os.listdir(batch_dir):
