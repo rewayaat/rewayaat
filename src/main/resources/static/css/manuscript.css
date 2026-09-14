@@ -221,10 +221,14 @@ a:hover {
     align-items: center;
     justify-content: center;
     gap: 0.75rem;
-    padding: 0.5rem 2.75rem 0.5rem 1rem;
-    background: linear-gradient(90deg, #12294d, #1a3a6b 45%, #12294d);
-    color: #fff;
-    font-size: 0.83rem;
+    padding: 0.55rem 2.75rem 0.55rem 1rem;
+    /* Gold rather than navy: it sits directly on top of the navy nav, and a second navy
+       strip reads as part of the menu instead of as news. Navy text keeps it well past
+       WCAG AA contrast on the lightest part of the gradient. */
+    background: linear-gradient(90deg, #e8b642, #f4cf6a 50%, #e8b642);
+    border-bottom: 1px solid #b8891f;
+    color: #0b1728;
+    font-size: 0.88rem;
     letter-spacing: 0.01em;
     text-align: center;
 }
@@ -235,17 +239,18 @@ a:hover {
     flex-wrap: wrap;
     gap: 0.4rem 0.75rem;
 }
-.site-announcement__icon { color: #d5aa4d; }
-.site-announcement__text { font-weight: 500; }
+.site-announcement__icon { color: #0b1728; }
+.site-announcement__text { font-weight: 600; }
 .site-announcement__link {
-    color: #f0d69a;
-    font-weight: 600;
+    color: #0b1728;
+    font-weight: 800;
     text-decoration: underline;
-    text-underline-offset: 2px;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
     white-space: nowrap;
 }
 .site-announcement__link:hover,
-.site-announcement__link:focus { color: #fff; }
+.site-announcement__link:focus { color: #1a3a6b; }
 .site-announcement__close {
     position: absolute;
     right: 0.5rem;
@@ -253,14 +258,14 @@ a:hover {
     transform: translateY(-50%);
     background: none;
     border: none;
-    color: rgba(255, 255, 255, 0.65);
+    color: rgba(11, 23, 40, 0.65);
     font-size: 1.35rem;
     line-height: 1;
     padding: 0 0.4rem;
     cursor: pointer;
 }
 .site-announcement__close:hover,
-.site-announcement__close:focus { color: #fff; }
+.site-announcement__close:focus { color: #0b1728; }
 
 @media (max-width: 575.98px) {
     .site-announcement {

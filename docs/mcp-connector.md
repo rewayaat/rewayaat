@@ -28,7 +28,17 @@ so they are not reused. "The sky wept only for Yaḥyā and al-Ḥusayn" was cal
 corpus and is Kāmil al-Ziyārāt #226 (corrected in the issue). And the ʿaql narration `ما عبد
 به الرحمن واكتسب به الجنان`, said to have been misattributed to al-Kāfi, is in al-Kāfi — vol. 1
 #4 — as well as Maʿānī al-ʾAkhbār #423; a precise search returns both. The recall was right
-both times. The public comparison on the updates page uses only the claims that held.
+both times.
+
+The public comparison on the updates page does not rest on that evaluation. It was re-run on
+14 September 2026: two fresh Claude runs given the same questions, one with no tools and one
+with web search only, against the connector's answers. Without tools Claude hedged honestly and
+made no confident false citation — what it could not do was the research: asked for al-Kāfi's
+chapter on the rights of the neighbour it said "around 15 … I can't reliably reproduce all of
+them", and two of the narrations it offered are not in the chapter. With web search it found
+the chapter on one site, in paraphrase, and could not confirm the count. `get_chapter` returns
+all 16, complete, with al-Majlisī's gradings. The measurements and the rule for changing them
+are in the header of `scripts/connector-guides/comparison.html`.
 
 ## Endpoints
 

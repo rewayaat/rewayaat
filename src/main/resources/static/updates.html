@@ -51,6 +51,11 @@
            fill this column becomes taller than the screen on a phone. */
         .update-entry__video { margin-top: 1rem; max-width: 520px; width: 100%; border-radius: 10px; overflow: hidden; border: 1px solid rgba(26,58,107,0.16); background: #0b1728; box-shadow: 0 2px 10px rgba(11,23,40,0.10); }
         .update-entry__video iframe { display: block; width: 100%; height: 100%; border: 0; }
+        @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+        .update-entry__cta { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0.9rem 0 0.2rem; }
+        .update-entry__cta a { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.55rem 1.05rem; border-radius: 999px; font-size: 0.9rem; font-weight: 600; text-decoration: none; background: #0b1728; color: #fff; border: 1px solid #0b1728; box-shadow: 0 2px 8px rgba(11,23,40,0.14); }
+        .update-entry__cta a:hover { background: #1a3a6b; border-color: #1a3a6b; color: #fff; }
+        .update-entry__cta a i { color: #d5aa4d; }
         .update-entry__why { margin: 1.1rem 0 1.2rem; }
         .why__title { font-family: 'Source Serif 4', serif; font-size: 1.1rem; font-weight: 600; color: #0b1728; margin: 0 0 0.65rem; }
         .why__image { display: block; width: 100%; height: auto; border-radius: 10px; box-shadow: 0 2px 12px rgba(11,23,40,0.14); margin-bottom: 0.9rem; }
@@ -155,6 +160,7 @@ fetch('/recent_updates.json')
                 '<div class="update-entry__date">' + dateStr + '</div>' +
                 '<div class="update-entry__title">' + u.title + '</div>' +
                 '<div class="update-entry__summary">' + u.summary + '</div>' +
+                ctaHtml(u) +
                 whyHtml(u) +
                 highlights +
                 guidesHtml(u) +
@@ -175,6 +181,22 @@ fetch('/recent_updates.json')
             }
         }
     });
+
+/*
+ * One button per setup guide, straight under the summary: someone who has already decided
+ * should not have to scroll past the argument to reach the instructions. Built from the
+ * guides themselves, so a third client is a JSON edit, not a markup change.
+ */
+function ctaHtml(u) {
+    var linked = (u.guides || []).filter(function (g) { return g.id; });
+    if (!linked.length) {
+        return '';
+    }
+    return '<div class="update-entry__cta">' + linked.map(function (g) {
+        return '<a href="#' + g.id + '"><i class="fa fa-plug" aria-hidden="true"></i>' +
+            g.name + '</a>';
+    }).join('') + '</div>';
+}
 
 /*
  * The case for what an entry ships, made with measurements rather than adjectives: a
