@@ -48,7 +48,10 @@ as it occurs in chains, or «مشترك بين الثقة وغيره». Such an 
 teachers, students and verdicts belong to several; the source sometimes goes on to say which man
 it means. The stage 5a re-audit found people anchored on such entries. Earlier splits do not
 exempt a person here, since no earlier asker was told what the words mean. `--people` adds
-persons named by id, found by hand, and they too are asked whether or not they were split before.
+persons named by id, found by hand, and they too are asked whether or not they were split before;
+with `--only`, no one else is. That is how a join a split unblocks is put back to an agent: a
+split that moves an entry out can lift the separation that entry held, and an earlier join then
+goes through (measure the build against the snapshot before it to find them).
 
 Output is a Layer 3 run of `kind: "split"` tasks. Ids are entry numbers (or page numbers, with
 `--pages`); id_map.json maps each to every source key it covers, because a split binds whole
@@ -310,6 +313,8 @@ def main():
                         help="also ask every person holding an entry the source calls a shared title")
     parser.add_argument("--people", default="",
                         help="also ask these persons (comma list of ids), found by hand")
+    parser.add_argument("--only", action="store_true",
+                        help="with --people: ask those persons and no one else")
     parser.add_argument("--dry-run", action="store_true", help="count tasks, write nothing")
     args = parser.parse_args()
 
@@ -402,7 +407,10 @@ def main():
             if key in membership:
                 signals[membership[key]].add("shared title")
         counts["entries calling their title shared"] = len(shared)
-    for person_id in (p.strip() for p in args.people.split(",") if p.strip()):
+    named = [p.strip() for p in args.people.split(",") if p.strip()]
+    if args.only:
+        signals = defaultdict(set)
+    for person_id in named:
         if person_id not in by_id:
             raise SystemExit(f"--people: no person {person_id} in this build")
         signals[person_id].add("named for review")
