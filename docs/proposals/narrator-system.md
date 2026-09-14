@@ -259,7 +259,7 @@ measured.
 | 4 | **Split pass.** Agents review profiles that may fuse several men: the 17 strongest candidates, the people the stage 3 agents flagged as carrying another man's entry, then those with conflicting verdicts or impossible dates. | All 17 and every flagged person resolved; the rest reviewed or queued. |
 | 5 | **Accuracy audit.** A random sample of applied merges, each checked against the sources, gives a measured accuracy with its margin — per rule layer, so the rules' acceptance thresholds are set from data. A random sample of people, each checked for other people who are the same man, measures how much splitting remains. Stage 2 showed an alias match three names deep accepted at a context score of 0. | The figure meets a publication threshold agreed beforehand — proposed at 95%. |
 | 6 | **Complete the sources.** Re-extract Rijal al-Ṭūsī and Jāmiʿ al-Ruwāt, which were truncated. | Each book's yield matches its known entry count. |
-| 7 | **Publish.** Restore the narrator index, service and API deleted in `9b6adb6`; write the narrator page; add `lookup_narrator` to the MCP connector. A person's display name is his anchor entry's own heading; the merge's longest-form rule gave Ibn Abī ʿUmayr the garbled «أبو أحمد بن محمد بن زياد الأزدي». | Narrator pages live, on permanent identifiers. |
+| 7 | **Publish.** Restore the narrator index, service and API deleted in `9b6adb6`; write the narrator page; add `lookup_narrator` to the MCP connector. A person's display name is his anchor entry's own heading; the merge's longest-form rule gave Ibn Abī ʿUmayr the garbled «أبو أحمد بن محمد بن زياد الأزدي». Before any verdict is shown under a scholar's name, it is checked against the entry it came from. The split pass found 200 entries carrying another man's data, and one Khoei page credits al-Najāshī with praise of Sahl b. Ziyād that al-Najāshī's own entry contradicts. | Narrator pages live, on permanent identifiers; every published verdict traced to its entry. |
 | 8 | **Resolve every chain.** Per-mention records linking each name in each chain to a person, following each book's conventions. | Coverage and confidence measured per book. |
 | 9 | **Publish the research graph.** Node and edge files, documented, with a worked path query. | A researcher can count time-ordered paths between two people from the export alone. |
 
@@ -303,6 +303,8 @@ Under `tmp/`, which is symlinked to `/mnt/share/rewayaat-backup/tmp/`:
 | `narrators_l3/runs/29514-d382409476873fe5/` | the stage 3 top-up — 34 batches (7 group, 27 pair), the answers, and `record.log`, `build.log`, `measure.log` |
 | `narrators_l3/runs/xform-24660-b23786d9461fb808/` | the cross-form pass — 24 batches over people, the answers, `candidates.json`, `split_candidates.json` (people the agents flagged as fused) and the run's logs |
 | `narrators_l3/runs/attach-24079-68eb0515f81bbec5/` | the attach pass — 30 pair batches, the answers, `agent_flags.json` (fused subjects, right man not offered), `uncapped_tasks.json` (tasks made before the owners cap) and the run's logs |
+| `narrators_l3/runs/split-23425-0f610e2eebc74002/` | the split pass — 23 batches of people as their entries, the answers, `candidates.json` (signals per person), `single_source_flags.json` (one-entry people carrying another man's data), `attribution_flags.json` and the run's logs |
+| `narrators_l3/runs/entry-23824-5c84594d55ac0c60/` | entry repair — 3 batches of Layer 0 entries shown page by page, the answers and the run's logs |
 | `narrators_l3/archive/` | agent answers to earlier, superseded merges |
 | `narrators_l3/runs/<fingerprint>/id_map.json` | each run's merged ids translated to source keys |
 | `narrators_identity/decisions.jsonl` | **the decision record** — 61,806 decisions on source keys |
@@ -314,6 +316,8 @@ Under `tmp/`, which is symlinked to `/mnt/share/rewayaat-backup/tmp/`:
 | `narrators_archive/2026-09-14-post-stage2/` | people, membership, decision record and registry before the top-up — its baseline |
 | `narrators_archive/2026-09-14-post-topup/` | the same, before the cross-form pass — its baseline |
 | `narrators_archive/2026-09-14-post-xform/` | the same, before the attach pass — its baseline |
+| `narrators_archive/2026-09-14-post-attach/` | the same, before the split pass — its baseline |
+| `narrators_archive/2026-09-14-post-split/` | the same, before entry repair — its baseline |
 | `narrators_merged.json` | **superseded** — the June merge; do not use |
 
 ### Code
@@ -333,6 +337,7 @@ On `feature/narrators`:
 | `scripts/narrators/record_decisions.py` | records a merge's and a Layer 3 run's decisions on source keys |
 | `scripts/narrators/build_people.py` | derives people and identifiers from the record |
 | `scripts/narrators/crossform_prepare.py` | cross-form batches: people holding main-book entries, one task per shared name form; `--attach`, people without one paired with those they may be |
+| `scripts/narrators/split_prepare.py` | split batches: signalled people as their entries; `--pages`, Layer 0 entries as their pages |
 | `scripts/narrators/audit_narrator_quality.py` | per-book completeness audit |
 
 ```bash
@@ -347,6 +352,8 @@ python3 scripts/narrators/crossform_prepare.py             # cross-form batches,
 python3 scripts/narrators/record_decisions.py --no-rules --l3-run tmp/narrators_l3/runs/xform-<fp>
 python3 scripts/narrators/build_people.py
 python3 scripts/narrators/crossform_prepare.py --attach    # then record and build the same way
+python3 scripts/narrators/split_prepare.py                 # the split pass, recorded the same way
+python3 scripts/narrators/split_prepare.py --pages         # then Layer 0 entries, page by page
 ```
 
 Sub-agents run at most 20 at a time. An agent stopped before it writes leaves no file, and
@@ -595,7 +602,26 @@ man, the agent can name only one.
 
 **Layer 4 — human review.** Low-confidence Layer 3 answers, and cases the agents flag.
 
-**Not yet built** — stage 4: splitting profiles that fuse several men.
+**Splitting — agents taking people apart.** Every layer above can join, and this one takes
+apart. A person of two or more entries goes to an agent when any of these signals points at him:
+
+- an agent in an earlier run said one of his profiles mixes men
+- an agent's separation now lies inside him
+- he carries a positive and a negative verdict together with two kunyahs
+- the Imams he is said to be a companion of lie more than five apart
+
+The agent sees him as whole entries and partitions them, moving an entry out only on positive
+evidence of a different man. An entry that itself mixes two men is set apart on its own.
+
+The answer is recorded as two decisions: a partition, which keeps each cluster together, and a
+`distinct` between clusters. `distinct` is the only separation that holds against an agent's
+union, which matters because some fusions were agents' own. Both decisions bind every source key
+of each entry, so no entry is cut in half. Only high- and medium-confidence answers apply.
+
+A second pass repairs Layer 0 itself. Khoei and Mamaqani head consecutive entries for men of one
+name, and Layer 0, which joins adjacent pages as one entry, joined some of those entries. Such
+an entry goes to an agent page by page (`split_prepare.py --pages`), and the agent's split
+outranks the rule that joined the pages.
 
 **Invariants**, checked after every merge:
 
