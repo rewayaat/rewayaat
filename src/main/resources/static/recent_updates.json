@@ -2,20 +2,16 @@
   {
     "id": "connector",
     "date": "2026-09-13",
-    "title": "Answers You Can Check: Rewayaat Inside Claude and ChatGPT",
-    "summary": "For students and researchers who need to know where a narration comes from. Connect Rewayaat and Claude or ChatGPT stops relying on memory and the open web: it searches all 32,519 narrations in 18 books, in Arabic or English, tells you how many it found, and links every narration it quotes to its full text on this site.",
+    "title": "Answers You Can Check: The Hadith Database Inside Claude and ChatGPT",
+    "summary": "For students and researchers who need to know where a narration comes from. Connect The Hadith Database and Claude or ChatGPT stops relying on memory and the open web: it searches all 32,519 narrations in 18 books, in Arabic or English, tells you how many it found, and links every narration it quotes to its full text on this site.",
     "why": {
       "title": "Why not just ask Claude or ChatGPT?",
-      "image": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/comparison-v2.png",
-      "imageAspect": "1600 / 1310",
-      "imageAlt": "Asked what al-Kāfi says about the rights of the neighbour, Claude without tools said it believed the chapter has around 15 narrations but could not reliably reproduce them, and two of the narrations it offered are not in the chapter; with web search it found the chapter on one website, in paraphrase, without confirming the count. With the Hadith connector it returned all 16, reported as complete, each with al-Majlisī's grading. Asked about Āyat al-Kursī, the connector returned the 8 narrations that bear on it, in al-Kāfi and al-Tawḥīd.",
-      "points": [
-        "<strong>On its own, it can't give you the chapter.</strong> Asked what al-Kāfi says about the rights of the neighbour, Claude without tools answered <em>“around 15 narrations … I can't reliably reproduce all of them with correct numbers”</em> — and two of the narrations it did offer are not in that chapter. The connector returns all 16, each with the Arabic, the translation and al-Majlisī's grading, and says the list is complete.",
-        "<strong>With web search, it works from other people's pages.</strong> It found the chapter on one website, in paraphrase, and could not confirm the count. For well-known sayings it leaned on encyclopedia and fatwa pages whose page numbers differ from edition to edition. The connector reads the books themselves: all 32,519 narrations, searchable by their Arabic wording as well as by translation.",
-        "<strong>It connects narrations to the Qur'an.</strong> Ask about a verse and you get the narrations that bear on it. For Āyat al-Kursī that is eight — three in al-Kāfi, five in al-Tawḥīd — including <em>“The Kursi encompasses everything”</em>, graded ṣaḥīḥ.",
-        "<strong>“Not found” becomes an answer.</strong> Against a defined collection, absence means something: <em>“Seek knowledge even as far as China”</em> is in none of these 18 books. That is never proof a saying exists nowhere else — only that these books do not contain it."
-      ],
-      "source": "Tested on 14 September 2026 with Claude, once without tools and once with web search only. What an assistant finds on its own changes with the model; the size of a chapter does not."
+      "intro": "On its own, an assistant has never read these books as books. It answers from memory — an impression of whatever it absorbed in training — or from web search, which finds pages written <em>about</em> the books: encyclopedia entries, fatwa sites, forums, quote collections. Famous narrations are written up many times over; most of the 32,519 are written up thinly or not at all. It sees fragments, so it cannot tell you what it missed, and how good an answer you get depends on what happens to be online. With the connector it reads the books themselves: a complete collection it can search, count and quote.",
+      "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/compare-v2.mp4",
+      "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/compare-v2.jpg",
+      "videoAspect": "1600 / 1080",
+      "videoAlt": "Side by side, the same question is asked of Claude on its own and of Claude with The Hadith Database: how many narrations are in al-Kāfi's chapter on the rights of the neighbour, listed with their numbers. On its own it says it cannot give a reliable numbered list, thinks there are about 15, labels one narration No. 1 when it is the chapter's second, and doubts that another is in the chapter when it is. With the connector it returns all 16, numbered #2298 to #2313, complete, each graded and linked.",
+      "source": "The question was put to the model behind Claude, with no tools, three separate times on 14 September 2026; the video quotes the first answer. Every run said “about 15”, none could number the chapter, and each misplaced at least one narration. What an assistant recalls on its own changes with the model and from one asking to the next; the size of a chapter does not."
     },
     "highlights": [
       "Search the full corpus by field, in Arabic or English, with the true number of matches reported so an answer can be complete rather than partial",
