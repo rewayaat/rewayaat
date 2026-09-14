@@ -34,6 +34,7 @@ Usage:
 
 import argparse
 import glob
+from collections import Counter, defaultdict
 import hashlib
 import json
 import os
@@ -117,12 +118,49 @@ def evidence(merged):
     return out
 
 
-def build_group_tasks(merged_by_id, groups):
+def decided_questions(record_path, seeds):
+    """What agents have already answered, as tests over merged ids.
+
+    Returns (group_decided, pair_decided). A group task is decided when one earlier agent
+    partition covered every profile in it; a pair task when an earlier agent decision
+    already set the subject beside each candidate. Anything short of that — a group with new
+    members, a subject meeting a new candidate — is asked again in full. Decisions are on
+    source keys (identity.py), so answers to earlier merges still count.
+    """
+    from identity import live, load_record
+    partitions, judged_with = defaultdict(list), defaultdict(set)
+    for d in live(load_record(record_path)):
+        if d["actor"] != "agent":
+            continue
+        keys = {k for g in (d.get("groups") or [d.get("sources", [])]) for k in g}
+        if d["kind"] == "partition":
+            for k in keys:
+                partitions[k].append(keys)
+        if d["kind"] in ("partition", "same", "not_same"):
+            for k in keys:
+                judged_with[k] |= keys
+
+    def group_decided(merged_ids):
+        wanted = {seeds[m] for m in merged_ids}
+        first = next(iter(wanted))
+        return any(wanted <= covered for covered in partitions.get(first, ()))
+
+    def pair_decided(subject, candidates):
+        seen = judged_with.get(seeds[subject], set())
+        return all(seeds[c] in seen for c in candidates)
+
+    return group_decided, pair_decided
+
+
+def build_group_tasks(merged_by_id, groups, decided=None, counts=None):
     tasks = []
     for group in groups:
         profiles = [merged_by_id[p["merged_id"]] for p in group["profiles"]
                     if p["merged_id"] in merged_by_id]
         if len(profiles) < 2:
+            continue
+        if decided and decided([p["merged_id"] for p in profiles]):
+            counts["group_already_decided"] += 1
             continue
         tasks.append({
             "kind": "group",
@@ -133,7 +171,7 @@ def build_group_tasks(merged_by_id, groups):
     return tasks
 
 
-def build_pair_tasks(merged_by_id, deferred, source_to_merged):
+def build_pair_tasks(merged_by_id, deferred, source_to_merged, decided=None, counts=None):
     """Pairwise tasks, minus the ones an agent cannot help with.
 
     Where no candidate scores any positive context, there is nothing to read: the names
@@ -159,6 +197,9 @@ def build_pair_tasks(merged_by_id, deferred, source_to_merged):
         candidates = [merged_by_id[c["merged_id"]] for c in item["candidates"]
                       if c["merged_id"] in merged_by_id and c["merged_id"] != mid]
         if not candidates:
+            continue
+        if decided and decided(mid, [c["merged_id"] for c in candidates]):
+            counts["pair_already_decided"] += 1
             continue
         tasks.append({
             "kind": "pair",
@@ -200,6 +241,9 @@ def main():
     parser.add_argument("--out-dir", default=os.path.join(TMP, "narrators_l3"))
     parser.add_argument("--kinds", default="group,pair")
     parser.add_argument("--budget", type=int, default=DEFAULT_BUDGET)
+    parser.add_argument("--only-undecided", action="store_true",
+                        help="skip questions agents have already answered (see the decision record)")
+    parser.add_argument("--record", default=os.path.join(TMP, "narrators_identity", "decisions.jsonl"))
     parser.add_argument("--normalized-dir", default=os.path.join(TMP, "narrators_normalized"),
                         help="for translating merged ids to source keys (id_map.json)")
     args = parser.parse_args()
@@ -220,6 +264,11 @@ def main():
 
     fingerprint = merge_fingerprint(merged)
     print(f"merge fingerprint: {fingerprint}")
+    skipped = Counter()
+    group_decided = pair_decided = None
+    if args.only_undecided:
+        from identity import merged_seeds
+        group_decided, pair_decided = decided_questions(args.record, merged_seeds(merged))
     print(f"run directory:     {run_dir}\n")
 
     # Preserve entries for kinds this run is not regenerating. Running with --kinds group
@@ -242,11 +291,12 @@ def main():
     for kind in kinds:
         if kind == "group":
             with open(os.path.join(args.merge_dir, "name_group_tasks.json")) as handle:
-                tasks = build_group_tasks(merged_by_id, json.load(handle))
+                tasks = build_group_tasks(merged_by_id, json.load(handle),
+                                          group_decided, skipped)
         elif kind == "pair":
             with open(os.path.join(args.merge_dir, "deferred.json")) as handle:
                 tasks, auto_separate = build_pair_tasks(
-                    merged_by_id, json.load(handle), source_to_merged)
+                    merged_by_id, json.load(handle), source_to_merged, pair_decided, skipped)
             with open(os.path.join(run_dir, "auto_separate.json"), "w") as handle:
                 json.dump(auto_separate, handle, ensure_ascii=False, indent=1)
             print(f"pair: {len(auto_separate)} resolved as keep-separate without an agent "
@@ -300,6 +350,8 @@ def main():
     manifest["batches"].sort(key=lambda b: (b["kind"], b["batch"]))
     with open(manifest_path, "w") as handle:
         json.dump(manifest, handle, ensure_ascii=False, indent=1)
+    if skipped:
+        print("skipped as already answered by agents: " + ", ".join(f"{k} {v}" for k, v in skipped.items()))
     total = sum(b["chars"] for b in manifest["batches"])
     print(f"\n{len(manifest['batches'])} batches, {total // 1000}K chars -> {batch_dir}")
 
