@@ -30,7 +30,10 @@ the same name, that sometimes joins two men: Khoei 12465-12468 are the Companion
 Hurayth, «عدو الله، ملعون», and al-Najashi's thiqa al-Sayrafi, «ثقة، روى عن أبي عبد الله», as
 one entry. An entry task shows one such entry page by page — an entry whose pages disagree on
 era, kunyah or verdict, or one a split answer listed as `mixed` — and asks which pages are which
-man. An agent's split outranks the rule that joined the pages.
+man. An agent's split outranks the rule that joined the pages. The stage 5 audit found that
+disagreement catches too few: 23 of 68 audited Khoei page joins were different men, most of
+them pages that agree on everything the fields record. `--all-pages khoei,mamaqani` puts every
+multi-page entry of those books to agents.
 
 `--resplit` finishes what the two leave between them. A person split sets a mixed entry apart
 whole, with a `distinct` against the rest of the person; entry repair then finds which of its
@@ -252,6 +255,9 @@ def main():
     parser.add_argument("--budget", type=int, default=DEFAULT_BUDGET)
     parser.add_argument("--pages", action="store_true",
                         help="repair Layer 0: split entries whose pages describe different men")
+    parser.add_argument("--all-pages", default="",
+                        help="with --pages: every multi-page entry of these books (comma list), "
+                             "whether or not its pages disagree")
     parser.add_argument("--resplit", action="store_true",
                         help="ask person splits again where entry repair divided their entries")
     parser.add_argument("--dry-run", action="store_true", help="count tasks, write nothing")
@@ -283,6 +289,7 @@ def main():
 
     counts, tasks, id_map, seeds, candidates, single = Counter(), [], {}, {}, [], []
     next_id = 1
+    all_books = {b.strip() for b in args.all_pages.split(",") if b.strip()}
     if args.pages:
         placed = already_split(record_path, "entry_split")
         mixed = mixed_entries(os.path.join(args.out_dir, "runs"))
@@ -292,6 +299,8 @@ def main():
                 continue
             pages = [assemble([k], profiles) for k in keys]
             why = page_disagreement(pages) + (["split answer: mixed"] if set(keys) & mixed else [])
+            if not why and head.split(":")[0] in all_books:
+                why = ["multi-page entry of a per-mention book"]
             if not why:
                 continue
             for signal in why:
