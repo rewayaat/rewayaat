@@ -135,7 +135,8 @@ def main():
         decided = c["same"] + c["different"]
         report["join_precision"][stratum] = {
             "counts": dict(c), "strict": share(c["same"], n), "lenient": share(c["same"], decided)}
-    passed = True
+    # an audit that carried no controls has not shown its auditors can be trusted
+    passed = {"positive", "negative"} <= set(controls)
     for kind, c in controls.items():
         n = sum(c.values())
         right = c["same"] if kind == "positive" else c["different"]
