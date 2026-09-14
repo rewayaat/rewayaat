@@ -24,17 +24,27 @@ single page, so a split cannot cut an entry in half — each with its own name, 
 teachers, students, verdict and quotation, and asks an agent to partition them into the men
 they describe. A person whose every entry an earlier split already placed is not asked again.
 
-Output is a Layer 3 run of `kind: "split"` tasks. Ids are entry numbers; id_map.json maps each
-to every source key of its entry, because a split binds whole entries (record_decisions.py).
+`--pages` repairs Layer 0 instead. Layer 0 joins adjacent, contiguous pages of one book as
+fragments of one entry, and in Khoei and Mamaqani, which head consecutive entries for men of
+the same name, that sometimes joins two men: Khoei 12465-12468 are the Companion 'Amr b.
+Hurayth, «عدو الله، ملعون», and al-Najashi's thiqa al-Sayrafi, «ثقة، روى عن أبي عبد الله», as
+one entry. An entry task shows one such entry page by page — an entry whose pages disagree on
+era, kunyah or verdict, or one a split answer listed as `mixed` — and asks which pages are which
+man. An agent's split outranks the rule that joined the pages.
+
+Output is a Layer 3 run of `kind: "split"` tasks. Ids are entry numbers (or page numbers, with
+`--pages`); id_map.json maps each to every source key it covers, because a split binds whole
+units (record_decisions.py).
 
 Reads  tmp/narrators_identity/{people,membership,review_signals}.json, decisions.jsonl,
        tmp/narrators_normalized/*.json, tmp/narrators_l3/runs/*/{batches,outputs,id_map.json}
-Writes tmp/narrators_l3/runs/split-<count>-<sha16>/{batches,outputs,manifest.json,
+Writes tmp/narrators_l3/runs/{split,entry}-<count>-<sha16>/{batches,outputs,manifest.json,
        id_map.json,candidates.json,single_source_flags.json}
 
 Usage:
     python3 scripts/narrators/split_prepare.py --dry-run
     python3 scripts/narrators/split_prepare.py
+    python3 scripts/narrators/split_prepare.py --pages
 """
 
 import argparse
@@ -114,13 +124,42 @@ def intrinsic_signals(person):
     return signals
 
 
+def page_disagreement(pages):
+    """Why the pages of one Layer 0 entry look like more than one man, if they do."""
+    found = set().union(*(eras(p) for p in pages))
+    kunyahs = {fold_kunyah(e["value"]) for p in pages for e in p["kunyahs_arabic"]} - {None, ""}
+    grades = {g["grade"] for p in pages for g in p["reliability_grades"]}
+    why = []
+    if found and max(found) - min(found) > MAX_ERA_SPAN:
+        why.append("generation clash")
+    if len(kunyahs) >= 2:
+        why.append("two kunyahs")
+    if grades & POSITIVE and grades & NEGATIVE:
+        why.append("verdict clash")
+    return why
+
+
+def mixed_entries(runs_dir):
+    """Source keys of entries a split answer listed as mixing two men."""
+    keys = set()
+    for run in sorted(glob.glob(os.path.join(runs_dir, "split-*"))):
+        with open(os.path.join(run, "id_map.json")) as handle:
+            mapping = json.load(handle)["map"]
+        for path in glob.glob(os.path.join(run, "outputs", "*.json")):
+            with open(path) as handle:
+                for answer in json.load(handle).get("decisions", []):
+                    for unit in answer.get("mixed", []):
+                        keys |= set(mapping.get(str(unit), []))
+    return keys
+
+
 def agent_flags(runs_dir, membership):
     """Person id -> runs whose agents said a profile of his mixes men."""
     flagged = defaultdict(set)
     for run in sorted(glob.glob(os.path.join(runs_dir, "*"))):
         name = os.path.basename(run)
         id_map_path = os.path.join(run, "id_map.json")
-        if name.startswith("split-") or not os.path.exists(id_map_path):
+        if name.startswith(("split-", "entry-")) or not os.path.exists(id_map_path):
             continue
         with open(id_map_path) as handle:
             seeds = json.load(handle).get("seeds", {})
@@ -152,11 +191,11 @@ def agent_flags(runs_dir, membership):
     return flagged
 
 
-def already_split(record_path):
-    """Source keys an earlier split has placed."""
+def already_split(record_path, method):
+    """Source keys an earlier split of this kind has placed."""
     placed = set()
     for d in live(load_record(record_path)):
-        if d["actor"] == "agent" and d["method"] == "split_partition":
+        if d["actor"] == "agent" and d["method"] == method:
             placed |= {k for g in d["groups"] for k in g}
     return placed
 
@@ -168,6 +207,8 @@ def main():
     parser.add_argument("--normalized-dir", default=os.path.join(TMP, "narrators_normalized"))
     parser.add_argument("--out-dir", default=os.path.join(TMP, "narrators_l3"))
     parser.add_argument("--budget", type=int, default=DEFAULT_BUDGET)
+    parser.add_argument("--pages", action="store_true",
+                        help="repair Layer 0: split entries whose pages describe different men")
     parser.add_argument("--dry-run", action="store_true", help="count tasks, write nothing")
     args = parser.parse_args()
 
@@ -190,13 +231,45 @@ def main():
         if person_id in by_id:
             signals[person_id].add("agent flag")
 
-    placed = already_split(os.path.join(args.identity_dir, "decisions.jsonl"))
+    record_path = os.path.join(args.identity_dir, "decisions.jsonl")
     members = fragment_members(args.normalized_dir)
     head_of = {k: head for head, keys in members.items() for k in keys}
     profiles = load_sources(args.normalized_dir)
 
     counts, tasks, id_map, seeds, candidates, single = Counter(), [], {}, {}, [], []
     next_id = 1
+    if args.pages:
+        placed = already_split(record_path, "entry_split")
+        mixed = mixed_entries(os.path.join(args.out_dir, "runs"))
+        for head in sorted(members, key=anchor_rank):
+            keys = sorted(members[head], key=anchor_rank)
+            if len(keys) < 2:
+                continue
+            pages = [assemble([k], profiles) for k in keys]
+            why = page_disagreement(pages) + (["split answer: mixed"] if set(keys) & mixed else [])
+            if not why:
+                continue
+            for signal in why:
+                counts[signal] += 1
+            if all(k in placed for k in keys):
+                counts["already_split"] += 1
+                continue
+            shown = []
+            for key, page in zip(keys, pages):
+                profile = evidence(dict(page, merged_id=next_id))
+                profile["source_keys"] = [key]
+                shown.append(profile)
+                id_map[str(next_id)], seeds[str(next_id)] = [key], key
+                next_id += 1
+            person_id = membership.get(head)
+            tasks.append({"kind": "split", "method": "entry_split", "task_id": f"entry:{head}",
+                          "person_id": person_id, "name_ar": pages[0]["primary_arabic_name"],
+                          "signals": why, "profiles": shown})
+            candidates.append({"entry": head, "person_id": person_id, "signals": why,
+                               "pages": len(keys)})
+        signals = {}
+
+    placed = already_split(record_path, "split_partition")
     for person_id in sorted(signals, key=lambda p: int(p[1:])):
         person = by_id[person_id]
         why = sorted(signals[person_id])
@@ -234,8 +307,8 @@ def main():
 
     sizes = Counter(min(len(t["profiles"]) // 10 * 10, 50) for t in tasks)
     print(f"people fingerprint: {fingerprint}")
-    print(f"{len(signals)} people signalled -> {len(tasks)} split tasks, "
-          f"{sum(len(t['profiles']) for t in tasks)} entries; entries per task (by tens) "
+    print(f"{len(signals) or len(tasks)} signalled -> {len(tasks)} {'entry' if args.pages else 'split'} tasks, "
+          f"{sum(len(t['profiles']) for t in tasks)} units; units per task (by tens) "
           f"{sorted(sizes.items())}")
     print("  " + ", ".join(f"{k} {v}" for k, v in sorted(counts.items())))
     batches = pack(tasks, args.budget)
@@ -243,7 +316,8 @@ def main():
     if args.dry_run:
         return
 
-    run_dir = os.path.join(args.out_dir, "runs", "split-" + fingerprint.replace(":", "-"))
+    prefix = "entry" if args.pages else "split"
+    run_dir = os.path.join(args.out_dir, "runs", f"{prefix}-" + fingerprint.replace(":", "-"))
     batch_dir = os.path.join(run_dir, "batches")
     if os.path.isdir(batch_dir) and os.listdir(batch_dir):
         raise SystemExit(f"{batch_dir} already holds batches — runs are immutable")
@@ -252,7 +326,7 @@ def main():
     manifest = {"budget": args.budget, "merge_fingerprint": f"people:{fingerprint}",
                 "kind": "split", "batches": []}
     for number, batch in enumerate(batches):
-        name = f"split_{number:04d}.json"
+        name = f"{prefix}_{number:04d}.json"
         path = os.path.join(batch_dir, name)
         write_json_atomic(path, {"kind": "split", "batch": name,
                                  "merge_fingerprint": f"people:{fingerprint}", "tasks": batch})
@@ -261,7 +335,7 @@ def main():
                                     "chars": os.path.getsize(path)})
     write_json_atomic(os.path.join(run_dir, "manifest.json"), manifest)
     write_json_atomic(os.path.join(run_dir, "id_map.json"), {
-        "merge_fingerprint": f"people:{fingerprint}", "method": "entries",
+        "merge_fingerprint": f"people:{fingerprint}", "method": prefix + "_units",
         "map": id_map, "seeds": seeds})
     write_json_atomic(os.path.join(run_dir, "candidates.json"), candidates)
     write_json_atomic(os.path.join(run_dir, "single_source_flags.json"), single)
