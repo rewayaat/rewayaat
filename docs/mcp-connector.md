@@ -30,16 +30,24 @@ corpus and is Kāmil al-Ziyārāt #226 (corrected in the issue). And the ʿaql n
 #4 — as well as Maʿānī al-ʾAkhbār #423; a precise search returns both. The recall was right
 both times.
 
-The public comparison on the updates page does not rest on that evaluation. It was re-run on
-14 September 2026: two fresh Claude runs given the same questions, one with no tools and one
-with web search only, against the connector's answers. Without tools Claude hedged honestly and
-made no confident false citation — what it could not do was the research: asked for al-Kāfi's
-chapter on the rights of the neighbour it said "around 15 … I can't reliably reproduce all of
-them", and two of the narrations it offered are not in the chapter. With web search it found
-the chapter on one site, in paraphrase, and could not confirm the count. `get_chapter` returns
-all 16, complete, with al-Majlisī's gradings. The page shows this as a looping side-by-side,
-`scripts/connector-guides/compare.html` rendered by `render-compare.cjs` and served from the
-CDN as `compare-v1.mp4`; its header records every measurement and the rule for changing them.
+The public comparison on the updates page does not rest on that evaluation. On 14 September
+2026 the model behind Claude (through the API, not the claude.ai app) was asked "How many
+narrations are in the chapter on the rights of the neighbour in al-Kāfi? List them all with
+their numbers." with no tools, three separate times, with nothing but an instruction to answer
+as in a normal chat. Every run hedged honestly and every run said "about 15"; `get_chapter`
+returns 16, complete, with al-Majlisī's gradings. None could number the chapter — the one
+number offered, "No. 1", is its second narration — and each misplaced at least one narration,
+listing one that is not in the chapter or doubting one that is. An earlier run, framed as a
+test with five other questions, answered the same way, and one with web search found the
+chapter on one site, in paraphrase, without confirming the count.
+
+Two things about the method are recorded so they are not overlooked. The runs could see that
+the connector exists in the test environment, and each ended by suggesting it; that sentence is
+left out of anything public. And one set of runs of one model is a sample, not a benchmark.
+
+The page shows this as a looping side-by-side, `scripts/connector-guides/compare.html` rendered
+by `render-compare.cjs` and served from the CDN as `compare-v2.mp4`; its header records every
+measurement and the rule for changing them.
 
 ## Endpoints
 

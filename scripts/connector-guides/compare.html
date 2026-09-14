@@ -4,16 +4,25 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=block" rel="stylesheet">
 <!--
-  The same question asked twice, side by side: Claude on its own, and Claude with The Hadith
-  Database. Measured on 14 September 2026; re-measure before changing any of it.
+  The same question asked twice, side by side: the model behind Claude on its own, and with
+  The Hadith Database. Measured on 14 September 2026; re-measure before changing any of it.
 
-  Left pane: a fresh Claude run with no tools, asked "How many narrations are in the chapter on
-  the rights of the neighbour in al-Kāfi? List them all with their numbers." Its words are
-  quoted verbatim, except that an Arabic parenthetical after the first quotation is omitted.
-    - "around 15": get_chapter reports 16.
-    - "I believe this is hadith 1": that narration (ليس منا من لم يحسن مجاورة من جاوره) is #2308,
-      the chapter's eleventh.
-    - The Jibra'il narration it lists as "reasonably sure" is not among the chapter's 16.
+  The question, verbatim in both panes: "How many narrations are in the chapter on the rights
+  of the neighbour in al-Kāfi? List them all with their numbers."
+
+  Left pane: the model behind Claude (Opus 5, through the API, not the claude.ai app), with no
+  tools, given only that question and the instruction to answer as in a normal chat without
+  tools. It was asked three separate times; the pane quotes the first run verbatim, with its
+  cuts marked by ellipses. Its closing suggestion to use "your Hadith connector" is left out:
+  the runs could see that the connector exists in the test environment, which a normal user's
+  assistant would not.
+    - All three runs said "about 15"; get_chapter reports 16.
+    - None could number the chapter; the one number offered here, "No. 1" for the Prophet's
+      written pact, is the chapter's second narration, #2299.
+    - This run put "whoever sleeps full while his neighbour is hungry" among narrations that
+      "may be in other chapters"; it is in this chapter, #2311.
+    - The other two runs each listed narrations that are not in the chapter (the Jibraʾīl
+      "made him an heir" narration in both).
   Right pane: get_chapter("Al-Kāfi", "Rights of Neighbors", volume 2) -> chapter_size 16,
   complete, #2298-#2313. The prose summarises that output; every quotation is verbatim from
   the returned translations and every grading is al-Majlisī's as returned.
@@ -46,6 +55,7 @@ svg.i{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke
 .who i{display:block;width:12px;height:12px;border-radius:50%;background:#c96442}
 .dotsx{display:flex;gap:4px;margin:4px 0}.dotsx i{display:block;width:6px;height:6px;border-radius:50%;background:#b9b3a6}
 .reply p{margin:0 0 7px;font-family:"Source Serif 4",serif;font-size:14px;line-height:1.43;color:#2b2a26}
+.reply p.sub{font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;color:#3b3a35;margin:9px 0 4px}
 .reply ul{margin:0;padding-left:16px}
 .reply li{font-family:"Source Serif 4",serif;font-size:13.5px;line-height:1.42;margin-bottom:6px;color:#2b2a26}
 .tool{display:inline-flex;align-items:center;gap:7px;margin-top:10px;font-size:12px;color:#55524b;background:#fff;border:1px solid #e3dfd4;border-radius:9px;padding:5px 10px}
@@ -96,16 +106,20 @@ svg.i{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke
         <div class="who" id="a-who"><i></i>Claude</div>
         <div class="dotsx" id="a-think"><i></i><i></i><i></i></div>
         <div class="reply" id="a-reply">
-          <p class="stream" id="a-p1">I believe it has <span class="hl bad" id="a-hl1">around 15 narrations</span>, but I'm not certain of the count. I can't reliably reproduce all of them with correct numbers.</p>
-          <p class="stream" id="a-p2">These are ones I'm reasonably sure are in the chapter, though I'm unsure of the order:</p>
+          <p class="stream" id="a-p1">I can't give you a reliable numbered list from memory.</p>
+          <p class="stream" id="a-p2">… I think it has <span class="hl bad" id="a-hl1">about 15 narrations</span>, but I'm not sure of that count.</p>
+          <p class="stream sub" id="a-p3">Narrations I'm fairly confident are in it:</p>
           <ul>
-            <li class="stream" id="a-li1">Imam al-Sadiq, speaking in a crowded house: “Know that whoever does not live well with his neighbour is not one of us.” <span class="hl bad" id="a-hl2">I believe this is hadith 1.</span></li>
-            <li class="stream hl bad" id="a-li2">Jibra'il kept urging the Prophet about the neighbour until he thought the neighbour would be made an heir.</li>
+            <li class="stream" id="a-li1"><span class="hl bad" id="a-hl2">No. 1:</span> Imam al-Ṣādiq (ع) said he read in the Book of ʿAlī that the Prophet (ص) wrote a document between the Muhājirūn, the Anṣār and the people of Yathrib … the neighbour is like one's own self …</li>
+          </ul>
+          <p class="stream sub" id="a-p4">Narrations that are related but may be in other chapters:</p>
+          <ul>
+            <li class="stream hl bad" id="a-li2">The Prophet's saying that whoever sleeps full while his neighbour is hungry has not believed in him.</li>
           </ul>
         </div>
         <div class="call bad" id="a-c1">The chapter has 16</div>
-        <div class="call bad" id="a-c2">It's narration 11 · #2308</div>
-        <div class="call bad" id="a-c3">Not in this chapter</div>
+        <div class="call bad" id="a-c2">It's narration 2 · #2299</div>
+        <div class="call bad" id="a-c3">It is in this chapter · #2311</div>
       </div></div>
       <div class="comp" id="a-comp"><span class="txt" id="a-q"><span class="val"></span><i class="caret"></i><span class="ph">Reply to Claude…</span></span><span class="send"><svg class="i" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg></span></div>
     </div>
@@ -123,14 +137,14 @@ svg.i{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke
         <div class="who" id="b-who"><i></i>Claude</div>
         <div class="reply" id="b-reply">
           <p class="stream" id="b-p1">The chapter holds <span class="hl good" id="b-hl1">16 narrations, #2298–#2313, and this list is complete.</span> Among them:</p>
-          <div class="rowx hl good" id="b-r1"><div class="h"><span class="num">#2308</span><b>majhūl</b> · al-Majlisī<span class="src">source</span></div><p>“…those who fail to maintain good relations with their neighbors are not of our people and followers.”</p></div>
+          <div class="rowx hl good" id="b-r1"><div class="h"><span class="num">#2299</span><b>ḍaʿīf ʿalā al-mashhūr</b> · al-Majlisī<span class="src">source</span></div><p>“The neighbor is like one's soul that cannot be harmed or made to sin. The respect for the neighbor is like the respect for one's mother.”</p></div>
           <div class="rowx" id="b-r2"><div class="h"><span class="num">#2307</span><b>ṣaḥīḥ</b> · al-Majlisī<span class="src">source</span></div><p>“Maintaining good neighborly relations develops the country and extends one's lifespan.”</p></div>
-          <div class="rowx" id="b-r3"><div class="h"><span class="num">#2311</span><b>majhūl</b> · al-Majlisī<span class="src">source</span></div><p>“One who spends the night with his stomach full while his neighbor is hungry does not believe in me.”</p></div>
-          <div class="more hl good" id="b-more">+ 13 more, every one in the chapter, each graded and linked</div>
+          <div class="rowx hl good" id="b-r3"><div class="h"><span class="num">#2311</span><b>majhūl</b> · al-Majlisī<span class="src">source</span></div><p>“One who spends the night with his stomach full while his neighbor is hungry does not believe in me.”</p></div>
+          <div class="more" id="b-more">+ 13 more, every one in the chapter, each graded and linked</div>
         </div>
         <div class="call good" id="b-c1">Counted from the book</div>
-        <div class="call good" id="b-c2">Narration 11 · graded · linked</div>
-        <div class="call good" id="b-c3">Nothing missing, nothing extra</div>
+        <div class="call good" id="b-c2">The second narration · #2299</div>
+        <div class="call good" id="b-c3">In this chapter · #2311</div>
       </div></div>
       <div class="comp" id="b-comp"><span class="chip"><span class="emb"><img src="logo-emblem.png" alt=""></span>Hadith</span><span class="txt" id="b-q"><span class="val"></span><i class="caret"></i><span class="ph">Reply to Claude…</span></span><span class="send"><svg class="i" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg></span></div>
     </div>
@@ -142,10 +156,10 @@ svg.i{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke
     <div class="caps">
       <div class="cap" id="c0"><small>Same question, asked twice</small><b>Left: Claude on its own · Right: with The Hadith Database</b></div>
       <div class="cap" id="c1"><small>Answering</small><b>One answers from memory, the other reads the book</b></div>
-      <div class="cap bad" id="cA"><small>1 · The count</small><b>“Around 15”: the chapter has 16</b></div>
-      <div class="cap bad" id="cB"><small>2 · The numbering</small><b>“Hadith 1” is narration 11, #2308</b></div>
-      <div class="cap bad" id="cC"><small>3 · The contents</small><b>It lists a narration that isn't in the chapter</b></div>
-      <div class="cap" id="cD"><small>Tested 14 September 2026</small><b>Only one of these answers can be checked</b></div>
+      <div class="cap bad" id="cA"><small>1 · The count</small><b>“About 15”: the chapter has 16</b></div>
+      <div class="cap bad" id="cB"><small>2 · The numbering</small><b>Its “No. 1” is the chapter's second, #2299</b></div>
+      <div class="cap bad" id="cC"><small>3 · The contents</small><b>It doubted one that is in the chapter, #2311</b></div>
+      <div class="cap" id="cD"><small>Asked three times, 14 September 2026</small><b>Every run said “about 15”; none could number them</b></div>
     </div>
     <code>hadith.academyofislam.com/mcp</code>
   </div>
@@ -171,7 +185,7 @@ const SHOW = [
   ['#a-user', 2.6, INF, 'up'], ['#b-user', 2.6, INF, 'up'],
   ['#a-who', 2.9, INF], ['#a-think', 2.9, 3.5, 'fade', .15],
   // list items too, not just their words: a bullet marker would otherwise sit in an empty chat
-  ['#a-li1', 5.85, INF, 'fade', .1], ['#a-li2', 6.75, INF, 'fade', .1],
+  ['#a-li1', 5.15, INF, 'fade', .1], ['#a-li2', 6.55, INF, 'fade', .1],
   ['#b-tool', 2.9, INF, 'up'], ['#b-spin', 2.9, 3.9, 'fade', .1], ['#b-ok', 3.95, INF, 'fade', .15],
   ['#b-who', 4.0, INF],
   ['#b-r1', 5.5, INF, 'up'], ['#b-r2', 5.8, INF, 'up'], ['#b-r3', 6.1, INF, 'up'], ['#b-more', 6.4, INF, 'up'],
@@ -180,28 +194,29 @@ const SHOW = [
 ];
 // streamed text: [selector, start, end] — words appear in order, layout never moves
 const STREAM = [
-  ['#a-p1', 3.5, 5.1], ['#a-p2', 5.1, 5.9], ['#a-li1', 5.9, 6.8], ['#a-li2', 6.8, 7.5],
+  ['#a-p1', 3.5, 4.1], ['#a-p2', 4.1, 4.9], ['#a-p3', 4.9, 5.2], ['#a-li1', 5.2, 6.2],
+  ['#a-p4', 6.2, 6.6], ['#a-li2', 6.6, 7.4],
   ['#b-p1', 4.1, 5.3],
 ];
 // the three beats: [start, end, left highlight, left callout, right highlight, right callout]
 const BEATS = [
   [7.8, 10.8, '#a-hl1', '#a-c1', '#b-hl1', '#b-c1'],
   [10.8, 13.8, '#a-hl2', '#a-c2', '#b-r1', '#b-c2'],
-  [13.8, 16.8, '#a-li2', '#a-c3', '#b-more', '#b-c3'],
+  [13.8, 16.8, '#a-li2', '#a-c3', '#b-r3', '#b-c3'],
 ];
 const TYPE_AT = [0.5, 2.3], SEND_AT = 2.5;
 
 // Each chat scrolls the way a real one does: it follows the answer as it streams, centres
 // whatever a beat is pointing at, rests at the bottom for the hold, and jumps back to the
-// top only once the chat has faded out. Targets are measured once, at zoom 1.
+// top only once the chat has faded out. Targets are measured once, after the fonts load.
 //   [time, target]  target = 0 | 'bottom:<sel>' | 'center:<sel>'
 const SCROLL = {
-  a: [[0, 0], [5.0, 0], [6.0, 'bottom:#a-p2'], [7.5, 'bottom:#a-li2'],
+  a: [[0, 0], [4.6, 0], [5.6, 'bottom:#a-li1'], [7.4, 'bottom:#a-li2'],
       [8.2, 'center:#a-hl1'], [10.8, 'center:#a-hl1'], [11.2, 'center:#a-li1'], [13.8, 'center:#a-li1'],
       [14.2, 'center:#a-li2'], [16.8, 'center:#a-li2'], [17.4, 'bottom:#a-li2'], [21.95, 'bottom:#a-li2'], [22.0, 0]],
   b: [[0, 0], [5.4, 0], [6.5, 'bottom:#b-more'],
       [8.2, 'center:#b-hl1'], [10.8, 'center:#b-hl1'], [11.2, 'center:#b-r1'], [13.8, 'center:#b-r1'],
-      [14.2, 'center:#b-more'], [16.8, 'center:#b-more'], [17.4, 'bottom:#b-more'], [21.95, 'bottom:#b-more'], [22.0, 0]],
+      [14.2, 'center:#b-r3'], [16.8, 'center:#b-r3'], [17.4, 'bottom:#b-more'], [21.95, 'bottom:#b-more'], [22.0, 0]],
 };
 
 const els = new Map();
@@ -233,27 +248,27 @@ const streamWords = STREAM.map(([sel]) => wordify(el(sel)));
 
 // The blocks that dim while a beat spotlights one of them.
 const BLOCKS = {
-  a: ['#a-p1', '#a-p2', '#a-li1', '#a-li2', '#a-user'],
+  a: ['#a-p1', '#a-p2', '#a-p3', '#a-li1', '#a-p4', '#a-li2', '#a-user'],
   b: ['#b-p1', '#b-r1', '#b-r2', '#b-r3', '#b-more', '#b-user', '#b-tool'],
 };
-const blockOf = sel => ({ '#a-hl1': '#a-p1', '#a-hl2': '#a-li1', '#b-hl1': '#b-p1' }[sel] || sel);
+const blockOf = sel => ({ '#a-hl1': '#a-p2', '#a-hl2': '#a-li1', '#b-hl1': '#b-p1' }[sel] || sel);
 
 // Resolve scroll targets to pixels. Offsets are relative to the scroller, which is the
 // offsetParent of everything in a chat (inline highlight spans included).
 const scrollKeys = {};
 function measureScroll() {
- for (const side of ['a', 'b']) {
-  const scroller = el(`#${side}-scroll`), view = scroller.parentElement.clientHeight;
-  const max = Math.max(0, scroller.scrollHeight - view);
-  const clampPx = v => Math.max(0, Math.min(max, v));
-  scrollKeys[side] = SCROLL[side].map(([t, spec]) => {
-    if (spec === 0) return [t, 0];
-    const [how, sel] = spec.split(':');
-    const e = el(sel), top = e.offsetTop, h = e.offsetHeight;
-    // 'center' leaves room below for the callout pinned under the highlight
-    return [t, clampPx(how === 'bottom' ? top + h + 12 - view : top + h / 2 - view * 0.38)];
-  });
- }
+  for (const side of ['a', 'b']) {
+    const scroller = el(`#${side}-scroll`), view = scroller.parentElement.clientHeight;
+    const max = Math.max(0, scroller.scrollHeight - view);
+    const clampPx = v => Math.max(0, Math.min(max, v));
+    scrollKeys[side] = SCROLL[side].map(([t, spec]) => {
+      if (spec === 0) return [t, 0];
+      const [how, sel] = spec.split(':');
+      const e = el(sel), top = e.offsetTop, h = e.offsetHeight;
+      // 'center' leaves room below for the callout pinned under the highlight
+      return [t, clampPx(how === 'bottom' ? top + h + 12 - view : top + h / 2 - view * 0.38)];
+    });
+  }
 }
 function scrollAt(keys, t) {
   let k = keys.length - 1;
@@ -315,7 +330,12 @@ function render(t) {
       el(hl).style.setProperty('--p', p.toFixed(3));
       const c = el(call), h = el(hl);
       c.style.opacity = p.toFixed(3);
-      c.style.top = (h.offsetTop + h.offsetHeight + 5) + 'px';
+      // From rects, not offsetTop: a dimmed block carries a filter, and a filtered element
+      // becomes the offsetParent of what is inside it, so on the first frame of a beat a
+      // highlight inside a block still dimmed from the last beat would measure from the
+      // wrong box. Rects measure from the scroller whatever the filters are.
+      const scroller = el(`#${side}-scroll`), k = stage.getBoundingClientRect().width / 800;
+      c.style.top = ((h.getBoundingClientRect().bottom - scroller.getBoundingClientRect().top) / k + 5) + 'px';
       c.style.transform = `translateY(${6 * (1 - p)}px)`;
     }
   }
