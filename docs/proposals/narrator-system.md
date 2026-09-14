@@ -258,7 +258,7 @@ measured.
 | ✓ 2 | **Fix the name-form defects** in one re-run: case-folded kunyahs, patronymic aliases, nisbahs belonging to other people. | Done 2026-09-14. Verdict clashes 155 → 151, kunyah clashes 317 → 312, invariant violations 69 → 66, no regression on the famous-narrator check; 1405's father and son are two people. Nisbah bleed was measured and left to the agent passes. |
 | ✓ 3 | **Top up Layer 3, then reconcile name forms across people.** First the agent work stage 2 created: 486 name-group tasks covering 1,330 profiles, 484 of them names that are only a kunyah, and 369 pair deferrals no agent has judged. Then the [cross-form pass](#names-as-a-subsystem): every person holding a main-book entry, one task per name form they share, agents partitioning against the quotations. Last, the attach question: Khoei and Mamaqani profiles that hold no main entry, each paired with the main-entry people it may be. | Each of the twelve most-cited narrators is one person. Done 2026-09-14: 25,099 → 23,425 people, and every main-book entry of each of the twelve sits in one person. Ten profiles still bear one of their names: two are different men, five are fused profiles for stage 4, one is a confused heading, and two are places where agents disagree, which go to review. The corpus-wide split estimate moves to the stage 5 audit. Counting name extensions chains through short forms, whereas a sample of people measures the split directly. |
 | ✓ 4 | **Split pass.** Agents review profiles that may fuse several men: the 17 strongest candidates, the people the stage 3 agents flagged as carrying another man's entry, and those with conflicting verdicts or impossible dates. Then come the entries Layer 0 joined across consecutive homonyms, split page by page. | All 17 and every flagged person resolved; the rest reviewed or queued. Done 2026-09-14: 371 people put to agents and 229 split; 127 Layer 0 entries repaired page by page, and the 68 people they belonged to asked again. Result: 23,879 people, verdict clashes 159 → 139, kunyah clashes 308 → 270. Queued: 14 low-confidence splits for review, and 87 single entries that each describe two men, which is an extraction defect for stage 6. |
-| 5 | **Accuracy audit.** A random sample of applied merges, each checked against the sources, gives a measured accuracy with its margin — per rule layer, so the rules' acceptance thresholds are set from data. A random sample of people, each checked for other people who are the same man, measures how much splitting remains. Stage 2 showed an alias match three names deep accepted at a context score of 0. | The figure meets a publication threshold agreed beforehand — proposed at 95%. |
+| 5 | **Accuracy audit.** A random sample of applied merges, each checked against the sources, gives a measured accuracy with its margin — per rule layer, so the rules' acceptance thresholds are set from data. A random sample of people, each checked for other people who are the same man, measures how much splitting remains. Stage 2 showed an alias match three names deep accepted at a context score of 0. | The gate, fixed before the audit ran: people precision of 95% or better, and the auditors reading at least 90% of each kind of hidden control correctly. People precision is the population-weighted share of sampled people whose every entry is one man. See [the accuracy audit](#the-accuracy-audit). |
 | 6 | **Complete the sources.** Re-extract Rijal al-Ṭūsī and Jāmiʿ al-Ruwāt, which were truncated. Re-extract, one man at a time, the entries the split pass found describing two men in one: 87 single entries, and the entries and pages marked mixed. An identity decision cannot divide a single extracted profile. | Each book's yield matches its known entry count; no entry is left marked mixed. |
 | 7 | **Publish.** Restore the narrator index, service and API deleted in `9b6adb6`; write the narrator page; add `lookup_narrator` to the MCP connector. A person's display name is his anchor entry's own heading; the merge's longest-form rule gave Ibn Abī ʿUmayr the garbled «أبو أحمد بن محمد بن زياد الأزدي». Before any verdict is shown under a scholar's name, it is checked against the entry it came from. The split pass found 200 entries carrying another man's data, and one Khoei page credits al-Najāshī with praise of Sahl b. Ziyād that al-Najāshī's own entry contradicts. | Narrator pages live, on permanent identifiers; every published verdict traced to its entry. |
 | 8 | **Resolve every chain.** Per-mention records linking each name in each chain to a person, following each book's conventions. | Coverage and confidence measured per book. |
@@ -684,6 +684,36 @@ rest is minted anew with a note of where it came from. No identifier is reused o
 
 Answers to the two merges superseded on 2026-09-07 predate `id_map.json`; their batches were
 overwritten before the run layout existed, so they could not be translated.
+
+### The accuracy audit
+
+What stage 5 measures, fixed before any result came in (`audit_sample.py`, `audit_score.py`).
+
+- **People precision** is the figure publication waits on. People of two or more entries are
+  drawn at random within three size bands (2–3 entries, 4–10, 11 or more), 40 per band. For each,
+  up to ten of his entries, always including his anchor, go to an auditor, who names any entry
+  describing a different man. The figure is the share of sampled people with no such entry,
+  weighted by each band's share of the population.
+- **Join precision per layer.** 100 joins are drawn at random from each method that makes them
+  (Layer 0 fragments, Layer 1 exact and full-name, Layer 2 context, Layer 3 groups and pairs,
+  cross-form, attach), among joins still inside one person. The two entries go to an auditor as
+  a pair. This is what sets each rule's acceptance threshold from data.
+- **Remaining splits.** 60 people who hold a main-book entry and 60 others, each shown beside
+  up to six people who share a name form: is any of them the same man?
+
+Auditors are fresh sub-agents with their own brief (`audit_agent_prompt.md`), working from the
+entries alone. They are not told which method made a join or what any agent said of it. Hidden
+among the pairs are controls: one man's entries in two main books, which must read as the same,
+and same-named men whose eras lie six Imams apart, which must read as different. If the auditors
+read less than 90% of either kind correctly, they are not trusted, whatever the figures say.
+
+An answer may be `cannot_tell`. Join precision is reported both counting those as unverified and
+leaving them out. The answer key lies outside the run directory, the sample is drawn with a fixed
+seed from a fixed build, and the audit changes no identity. Errors it finds go to review. If the
+figure falls short, the plan returns through stages 2–4.
+
+**Gate:** people precision of at least 95%, with both kinds of control passed. The point estimate
+is what is gated, and its 95% interval is reported beside it.
 
 ### Pipeline phases
 
