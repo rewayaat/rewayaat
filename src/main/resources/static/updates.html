@@ -207,7 +207,7 @@ function ctaHtml(u) {
  */
 function whyHtml(u) {
     var w = u.why;
-    if (!w || !w.points || !w.points.length) {
+    if (!w) {
         return '';
     }
     return '<div class="update-entry__why">' +
@@ -225,9 +225,11 @@ function whyHtml(u) {
               (w.imageAspect ? ' style="aspect-ratio: ' + w.imageAspect + '"' : '') +
               ' loading="lazy">'
             : '') +
-        '<ul class="why__points">' +
-        w.points.map(function (p) { return '<li>' + p + '</li>'; }).join('') +
-        '</ul>' +
+        (w.points && w.points.length
+            ? '<ul class="why__points">' +
+              w.points.map(function (p) { return '<li>' + p + '</li>'; }).join('') +
+              '</ul>'
+            : '') +
         (w.source ? '<p class="why__source">' + w.source + '</p>' : '') +
         '</div>';
 }
