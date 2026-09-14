@@ -40,6 +40,37 @@ that, and so do two men of one family and city a generation apart. Decide on the
 students, generation and the source's own words. When the subject describes itself as someone's
 brother or son, or points to a different entry, that settles it.
 
+## `kind: "split"`
+
+One person as the pipeline assembled him. `profiles` lists his source **entries**, one per
+entry in a Rijal work, each with its own `source_keys`, name, teachers, students, verdict and
+quotation. Earlier rules and agents joined them, and some may describe a different man.
+**Partition the entries into the men they describe.** Return clusters as in a group task, and
+place every `merged_id` in exactly one cluster.
+
+The default here runs the other way from a group task, because these entries were joined once
+on some evidence. Move an entry out only when there is positive evidence that it is a different
+man:
+
+- a contradicting father or lineage, kunyah, generation or death date
+- a verdict or quotation that plainly concerns someone else
+- the source's own statement that this is another man (`وليس بـ`, `غير`, `مشترك بين`)
+
+An entry that says too little to tell stays where it is. Splitting it off on no evidence
+creates a new, false person.
+
+An entry that itself mixes two men, with a heading for one and a quotation about another, goes
+in a cluster of its own and is listed in `mixed`.
+
+Give each split a `confidence` of `high`, `medium` or `low`. Only high and medium are applied,
+and a low answer goes to human review.
+
+```json
+{"task_id": "split:n000802", "clusters": [[4101, 4102, 4105], [4103, 4104]], "mixed": [],
+ "confidence": "high",
+ "notes": "4103/4104 are the Companion (companion of the Prophet, cursed by 'Ali); 4101/4102/4105 al-Najashi's thiqa al-Sayrafi, companion of al-Sadiq."}
+```
+
 ## How to judge
 
 Evidence, strongest first:
