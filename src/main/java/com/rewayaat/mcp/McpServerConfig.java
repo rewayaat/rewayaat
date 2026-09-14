@@ -9,12 +9,14 @@ import io.modelcontextprotocol.server.transport.HttpServletSseServerTransportPro
 import io.modelcontextprotocol.server.transport.HttpServletStreamableServerTransportProvider;
 import io.modelcontextprotocol.server.transport.ServerTransportSecurityValidator;
 import io.modelcontextprotocol.spec.McpSchema;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.Duration;
+import java.util.List;
 
 /**
  * Mounts the MCP server inside the existing application.
@@ -78,6 +80,12 @@ public class McpServerConfig {
      * frame every 30s is cheap and keeps the path open.
      */
     private static final Duration KEEP_ALIVE = Duration.ofSeconds(30);
+
+    private final String baseUrl;
+
+    public McpServerConfig(@Value("${rewayaat.canonical-url:https://hadith.academyofislam.com}") String baseUrl) {
+        this.baseUrl = baseUrl;
+    }
 
     @Bean
     public McpJsonMapper mcpJsonMapper(ObjectMapper objectMapper) {
@@ -161,11 +169,38 @@ public class McpServerConfig {
                                 McpToolCatalog catalog,
                                 McpJsonMapper jsonMapper) {
         return spec
-                .serverInfo(new McpSchema.Implementation(SERVER_NAME, SERVER_VERSION))
+                .serverInfo(serverInfo())
                 .jsonMapper(jsonMapper)
                 .instructions(INSTRUCTIONS)
                 .capabilities(McpSchema.ServerCapabilities.builder().tools(true).build())
                 .tools(catalog.specifications())
+                .build();
+    }
+
+    /**
+     * How a client may present this server. The name stays {@code rewayaat} - an identifier
+     * a client may key on - while the title, description and icons are the parts meant for
+     * people: a client that displays server icons has the emblem to show instead of a
+     * generic mark. The icons are ordinary static files served by the website at the
+     * canonical URL; the MCP ingress claims only {@code /mcp}, so {@code /img} reaches the
+     * site as it always has.
+     */
+    McpSchema.Implementation serverInfo() {
+        return McpSchema.Implementation.builder(SERVER_NAME, SERVER_VERSION)
+                .title("The Hadith Database")
+                .description("Search and read 32,519 Shia narrations from 18 books, in Arabic "
+                        + "and English, with every narration linked to its source.")
+                .websiteUrl(baseUrl)
+                .icons(List.of(
+                        icon("/img/connector-icon-64.png", "64x64"),
+                        icon("/img/connector-icon-512.png", "512x512")))
+                .build();
+    }
+
+    private McpSchema.Icon icon(String path, String size) {
+        return McpSchema.Icon.builder(baseUrl + path)
+                .mimeType("image/png")
+                .sizes(List.of(size))
                 .build();
     }
 }

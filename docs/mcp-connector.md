@@ -61,6 +61,13 @@ and every tool is read-only, so there is no identity to establish and nothing to
 Claude's connector guidance is explicit that such a server may skip OAuth, and skipping it
 removes the most common reason an install fails. Abuse control is at the ingress.
 
+The handshake's `serverInfo` keeps the name `rewayaat`, which clients may key on, and adds
+what is meant for people: the title "The Hadith Database", a one-line description, the site as
+`websiteUrl`, and the emblem as `icons` at 64 and 512 px (`/img/connector-icon-*.png`, ordinary
+static files the website serves). A client that displays server icons shows the emblem instead
+of a generic mark. ChatGPT also keeps its own logo per app, set by the owner under Settings →
+Apps → the app's Manage menu; the 64 px icon is under the 5 KB the app directory asks for.
+
 ## Tools
 
 `search` and `fetch` are not our design. ChatGPT's deep-research and company-knowledge paths

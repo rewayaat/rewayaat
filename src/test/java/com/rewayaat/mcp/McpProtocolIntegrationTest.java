@@ -631,6 +631,27 @@ class McpProtocolIntegrationTest {
         assertTrue(instructions.contains("Cite narrations by the url"));
     }
 
+    @Test
+    void serverAdvertisesItsTitleAndTheEmblemAsIcons() throws Exception {
+        Map<String, Object> serverInfo = asMap(initialize().get("serverInfo"));
+        assertEquals("rewayaat", serverInfo.get("name"),
+                "The identifier a client may key on stays put.");
+        assertEquals("The Hadith Database", serverInfo.get("title"));
+
+        List<?> icons = (List<?>) serverInfo.get("icons");
+        assertFalse(icons == null || icons.isEmpty(),
+                "Without an icon, a client that shows one falls back to a generic mark.");
+        for (Object item : icons) {
+            Map<?, ?> icon = (Map<?, ?>) item;
+            String src = String.valueOf(icon.get("src"));
+            assertTrue(src.startsWith("http"), src);
+            assertEquals("image/png", icon.get("mimeType"));
+            // The advertised file has to ship with the site, or the client gets a 404 instead.
+            String path = java.net.URI.create(src).getPath();
+            assertNotNull(getClass().getResource("/static" + path), "missing " + path);
+        }
+    }
+
     // ---- protocol plumbing ----
 
     private Map<String, Object> initialize() throws Exception {
