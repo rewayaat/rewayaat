@@ -319,6 +319,8 @@ Under `tmp/`, which is symlinked to `/mnt/share/rewayaat-backup/tmp/`:
 | `narrators_l3/runs/orphan-24286-d1006c2510ea32ba/` | the pages that repair left standing alone |
 | `narrators_l3/runs/verify-24235-9a0bc7a468ae1747/` | the verify pass — 50 batches of rule joins, one pair each |
 | `narrators_l3/runs/{attach2,xform2,verify2}-24633-190426d0a3032c31/` | phase B — the attach question widened to namesakes (70 batches), Khoei and Mamaqani profiles compared with each other (68), the second verify pass (36) |
+| `narrators_l3/runs/split-22013-c5ab24e0d7504fa0/` | the split pass after phase B — 22 batches over the 426 people its joins left flagged, shared-title entries included |
+| `narrators_l3/runs/split-22203-d69269faeb7b5ec2/` | two people a split had re-formed through an earlier join, asked again |
 | `narrators_audit/runs/audit-23879-0eb26dc06f26a567/` | the stage 5 audit — 33 batches, the auditors' answers, `report.json`, `errors.json` (131 errors, for review) and `score.log` |
 | `narrators_audit/runs/audit-24633-190426d0a3032c31-s20260915/` | the people-only re-audit after phase A, at a new seed |
 | `narrators_audit/keys/` | the audit's answer keys, kept apart from the runs the auditors read |
@@ -338,6 +340,7 @@ Under `tmp/`, which is symlinked to `/mnt/share/rewayaat-backup/tmp/`:
 | `narrators_archive/2026-09-14-post-entry/` | the same, before the re-split — its baseline |
 | `narrators_archive/2026-09-14-post-resplit/` | the same, before the orphan pages were attached — its baseline |
 | `narrators_archive/2026-09-14-{pre-5a,5a-post-entry,5a-post-resplit,5a-post-orphan,5a-phaseA}/` | the same through stage 5a phase A, each the baseline of the run after it; `5a-phaseA` is phase B's |
+| `narrators_archive/2026-09-14-{5b-post-verify2,5b-post-xform2,5b-post-attach2,5b-post-split}/` | the same through phase B and its split pass, each the baseline of the run after it |
 | `narrators_merged.json` | **superseded** — the June merge; do not use |
 
 ### Code
