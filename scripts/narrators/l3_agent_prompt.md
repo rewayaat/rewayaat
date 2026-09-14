@@ -78,6 +78,22 @@ and a low answer goes to human review.
  "notes": "4103/4104 are the Companion (companion of the Prophet, cursed by 'Ali); 4101/4102/4105 al-Najashi's thiqa al-Sayrafi, companion of al-Sadiq."}
 ```
 
+## `kind: "verify"`
+
+Two entries, `A` and `B`, that a rule joined on a matching name and little else. An audit found
+about one such join in ten to be wrong. **Are they the same man?**
+
+- `verdict`: `"same"`, `"different"` or `"cannot_tell"`, with `confidence` and `reason`
+- `different` separates them, so give it only on positive evidence of two men
+- `same` confirms the join, so give it only on positive evidence of one man
+- `cannot_tell` leaves the join as the rule made it, and is the right answer when the entries
+  share a name and say nothing else
+
+```json
+{"task_id": "verify:d-…", "verdict": "different", "confidence": "high",
+ "reason": "A is al-Juhanī, a mawlā of Juhayna (Rijāl al-Shaykh 160); B is al-Hilālī (161)."}
+```
+
 ## How to judge
 
 Evidence, strongest first:

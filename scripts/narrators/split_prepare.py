@@ -164,39 +164,72 @@ def mixed_entries(runs_dir):
     return keys
 
 
-def resplit_units(runs_dir, record):
-    """(earlier split task, its units with repaired entries as page groups, decisions to supersede).
+def resplit_units(runs_dir, record, snapshot=None, members=None):
+    """Yield (person id, name, signals, units, decisions to supersede) for people to ask again.
 
+    Two routes. An earlier split or re-split task one of whose entries an applied entry split
+    has since divided is asked again at the finer grain, superseding that task's live
+    decisions — keyed by run and task, so an older round already superseded is not revived.
+    And with `snapshot`, the build before the repair: a person there of two or more entries,
+    one of them since divided, whom no split task covered, is asked for the first time.
     A unit is repaired when an applied entry split covers exactly its pages.
     """
-    repaired = {}
-    superseded = defaultdict(list)
+    repaired, by_task = {}, defaultdict(list)
     for d in live(record):
         if d["actor"] != "agent":
             continue
         if (d["method"] == "entry_split" and d["kind"] == "partition"
                 and d.get("status") == "applied" and len(d["groups"]) > 1):
-            repaired[frozenset(k for g in d["groups"] for k in g)] = [sorted(g) for g in d["groups"]]
+            repaired[frozenset(k for g in d["groups"] for k in g)] = [
+                sorted(g, key=anchor_rank) for g in d["groups"]]
         if d["method"] == "split_partition":
-            superseded[d["origin"].get("task_id")].append(d["decision_id"])
-    for run in sorted(glob.glob(os.path.join(runs_dir, "split-*"))):
-        with open(os.path.join(run, "id_map.json")) as handle:
-            mapping = json.load(handle)["map"]
-        for path in sorted(glob.glob(os.path.join(run, "batches", "*.json"))):
-            with open(path) as handle:
-                batch_tasks = json.load(handle)["tasks"]
-            for task in batch_tasks:
-                units, touched = [], False
-                for profile in task["profiles"]:
-                    keys = mapping[str(profile["merged_id"])]
-                    groups = repaired.get(frozenset(keys))
-                    if groups:
-                        units.extend(groups)
-                        touched = True
-                    else:
-                        units.append(sorted(keys, key=anchor_rank))
-                if touched and superseded.get(task["task_id"]):
-                    yield task, units, superseded[task["task_id"]]
+            origin = d.get("origin", {})
+            by_task[(origin.get("run"), origin.get("task_id"))].append(d["decision_id"])
+
+    def expand(unit_keys):
+        units, touched = [], False
+        for keys in unit_keys:
+            groups = repaired.get(frozenset(keys))
+            if groups:
+                units.extend(groups)
+                touched = True
+            else:
+                units.append(sorted(keys, key=anchor_rank))
+        return units, touched
+
+    covered = set()
+    for prefix in ("split-", "resplit-"):
+        for run in sorted(glob.glob(os.path.join(runs_dir, prefix + "*"))):
+            name = os.path.basename(run)
+            with open(os.path.join(run, "id_map.json")) as handle:
+                mapping = json.load(handle)["map"]
+            for path in sorted(glob.glob(os.path.join(run, "batches", "*.json"))):
+                with open(path) as handle:
+                    batch_tasks = json.load(handle)["tasks"]
+                for task in batch_tasks:
+                    supersedes = by_task.get((f"l3:{name}", task["task_id"]))
+                    if not supersedes:
+                        continue
+                    units, touched = expand(mapping[str(p["merged_id"])] for p in task["profiles"])
+                    if touched:
+                        covered |= {k for u in units for k in u}
+                        yield (task["person_id"], task["name_ar"], task["signals"], units,
+                               supersedes)
+    if snapshot:
+        head_of = {k: h for h, keys in members.items() for k in keys}
+        with open(os.path.join(snapshot, "people.json")) as handle:
+            earlier = json.load(handle)
+        for person in earlier:
+            if set(person["source_keys"]) & covered:
+                continue
+            entries = defaultdict(list)
+            for k in person["source_keys"]:
+                entries[head_of.get(k, k)].append(k)
+            if len(entries) < 2:
+                continue
+            units, touched = expand(entries[h] for h in sorted(entries, key=anchor_rank))
+            if touched:
+                yield person["person_id"], person["primary_arabic_name"], [], units, []
 
 
 def agent_flags(runs_dir, membership):
@@ -260,6 +293,9 @@ def main():
                              "whether or not its pages disagree")
     parser.add_argument("--resplit", action="store_true",
                         help="ask person splits again where entry repair divided their entries")
+    parser.add_argument("--since", default=None,
+                        help="with --resplit: an archived build from before the entry repair, "
+                             "whose people holding a since-divided entry are asked too")
     parser.add_argument("--dry-run", action="store_true", help="count tasks, write nothing")
     args = parser.parse_args()
 
@@ -324,8 +360,9 @@ def main():
         signals = {}
 
     if args.resplit:
-        for task, units, supersedes in resplit_units(os.path.join(args.out_dir, "runs"),
-                                                     load_record(record_path)):
+        runs = os.path.join(args.out_dir, "runs")
+        for person_id, name, earlier_signals, units, supersedes in resplit_units(
+                runs, load_record(record_path), args.since, members):
             shown = []
             for keys in units:
                 profile = evidence(dict(assemble(keys, profiles), merged_id=next_id))
@@ -333,13 +370,14 @@ def main():
                 shown.append(profile)
                 id_map[str(next_id)], seeds[str(next_id)] = keys, keys[0]
                 next_id += 1
+            why = sorted(set(earlier_signals) | {"entry repaired"})
             tasks.append({"kind": "split", "method": "split_partition",
-                          "task_id": "re" + task["task_id"], "person_id": task["person_id"],
-                          "name_ar": task["name_ar"], "signals": task["signals"] + ["entry repaired"],
-                          "supersedes": supersedes, "profiles": shown})
-            candidates.append({"person_id": task["person_id"], "supersedes": supersedes,
+                          "task_id": f"resplit:{person_id}", "person_id": person_id,
+                          "name_ar": name, "signals": why, "supersedes": supersedes,
+                          "profiles": shown})
+            candidates.append({"person_id": person_id, "supersedes": supersedes,
                                "units": len(shown)})
-            counts["resplit"] += 1
+            counts["resplit, superseding" if supersedes else "resplit, first split"] += 1
         signals = {}
 
     placed = already_split(record_path, "split_partition")

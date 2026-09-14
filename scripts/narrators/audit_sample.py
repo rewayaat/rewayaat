@@ -81,8 +81,13 @@ def main():
     parser.add_argument("--normalized-dir", default=os.path.join(TMP, "narrators_normalized"))
     parser.add_argument("--out-dir", default=os.path.join(TMP, "narrators_audit"))
     parser.add_argument("--budget", type=int, default=DEFAULT_BUDGET)
+    parser.add_argument("--seed", type=int, default=SEED,
+                        help="a fresh draw for a re-audit (the first audit used the default)")
+    parser.add_argument("--kinds", default="pair,person,recall",
+                        help="which questions to draw: pair, person, recall")
     parser.add_argument("--dry-run", action="store_true", help="count items, write nothing")
     args = parser.parse_args()
+    kinds = {k.strip() for k in args.kinds.split(",") if k.strip()}
 
     def load(name):
         with open(os.path.join(args.identity_dir, name)) as handle:
@@ -91,7 +96,7 @@ def main():
     people, membership, stats = load("people.json"), load("membership.json"), load("build_stats.json")
     by_id = {p["person_id"]: p for p in people}
     fingerprint = people_fingerprint(people)
-    rng = random.Random(SEED)
+    rng = random.Random(args.seed)
     profiles = load_sources(args.normalized_dir)
     members = fragment_members(args.normalized_dir)
     head_of = {k: h for h, keys in members.items() for k in keys}
@@ -136,7 +141,7 @@ def main():
             pool[d["method"]].append((d["decision_id"], candidates))
 
     pairs = []
-    for stratum in STRATA:
+    for stratum in (STRATA if "pair" in kinds else []):
         drawn = 0
         for decision_id, candidates in rng.sample(pool[stratum], len(pool[stratum])):
             a, b = rng.choice(candidates)
@@ -164,6 +169,8 @@ def main():
             for j in range(i + 1, len(main_units)):
                 if main_units[i][0].split(":")[0] != main_units[j][0].split(":")[0]:
                     positive.append((pid, main_units[i], main_units[j]))
+    if "pair" not in kinds:
+        positive = []
     for pid, ua, ub in rng.sample(positive, min(CONTROLS["positive"], len(positive))):
         pairs.append(({"control": "positive", "person_id": pid}, ua, ub))
     counts["control positive"] = min(CONTROLS["positive"], len(positive))
@@ -181,6 +188,8 @@ def main():
                 (p, lo_p, hi_p), (q, lo_q, hi_q) = group[i], group[j]
                 if hi_p + 6 <= lo_q or hi_q + 6 <= lo_p:
                     negative.append((p, q))
+    if "pair" not in kinds:
+        negative = []
     for p, q in rng.sample(negative, min(CONTROLS["negative"], len(negative))):
         pairs.append(({"control": "negative", "person_ids": [p["person_id"], q["person_id"]]},
                       units(p)[0], units(q)[0]))
@@ -202,7 +211,7 @@ def main():
                 banded[band].append(person)
     population = {band: len(ps) for band, ps in banded.items()}
     person_items = []
-    for band in PERSON_BANDS:
+    for band in (PERSON_BANDS if "person" in kinds else []):
         for person in rng.sample(banded[band], min(PER_BAND, len(banded[band]))):
             all_units = units(person)
             chosen = [all_units[0]] + rng.sample(all_units[1:], min(MAX_UNITS - 1,
@@ -237,7 +246,7 @@ def main():
               "other": [p for p in people if not any(k.split(":")[0] in MAIN_BOOKS
                                                      for k in p["source_keys"]) and not thin(p)]}
     recall_items = []
-    for group, n in RECALL_GROUPS.items():
+    for group, n in (RECALL_GROUPS.items() if "recall" in kinds else []):
         for person in rng.sample(groups[group], n):
             kunyahs, titles = marks(person)
             scored = Counter()
@@ -278,7 +287,7 @@ def main():
     if args.dry_run:
         return
 
-    name = "audit-" + fingerprint.replace(":", "-")
+    name = "audit-" + fingerprint.replace(":", "-") + ("" if args.seed == SEED else f"-s{args.seed}")
     run_dir = os.path.join(args.out_dir, "runs", name)
     batch_dir = os.path.join(run_dir, "batches")
     if os.path.isdir(batch_dir) and os.listdir(batch_dir):
@@ -286,7 +295,7 @@ def main():
     os.makedirs(batch_dir)
     os.makedirs(os.path.join(run_dir, "outputs"), exist_ok=True)
     os.makedirs(os.path.join(args.out_dir, "keys"), exist_ok=True)
-    manifest = {"people_fingerprint": fingerprint, "seed": SEED, "rules_run": stats["rules_run"],
+    manifest = {"people_fingerprint": fingerprint, "seed": args.seed, "kinds": sorted(kinds), "rules_run": stats["rules_run"],
                 "person_band_population": population, "batches": []}
     numbering = Counter()
     for kind, batch in batches:
@@ -298,7 +307,7 @@ def main():
                                     "chars": os.path.getsize(path)})
     write_json_atomic(os.path.join(run_dir, "manifest.json"), manifest)
     write_json_atomic(os.path.join(args.out_dir, "keys", f"{name}.json"),
-                      {"people_fingerprint": fingerprint, "seed": SEED,
+                      {"people_fingerprint": fingerprint, "seed": args.seed, "kinds": sorted(kinds),
                        "person_band_population": population, "items": key})
     print(f"\nwrote {len(batches)} batches -> {batch_dir}")
 
