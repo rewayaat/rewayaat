@@ -14,6 +14,18 @@ distinct people.**
 Return one cluster per person. Every `merged_id` in the task must appear in exactly one
 cluster — a profile you cannot place goes in a cluster of its own.
 
+A group with `"method": "crossform_group"` is a cross-form reconciliation task. Its members
+are **people**, each already assembled from one or more sources, and each holding its own
+entry in one of the main Rijal works (al-Najashi, al-Fihrist, al-Kashshi, Rijal al-Tusi,
+al-Du'afa', Jami' al-Ruwat). They meet here because they carry the same name form
+(`shared_forms`) — sometimes whole, sometimes as the opening of a longer lineage or a name with
+a nisbah added. Different books head the same man differently: al-Najashi's `الحسين بن سعيد`
+and al-Fihrist's `الحسين بن سعيد بن حماد بن سعيد بن مهران الاهوازي` are one man. So are two men
+who happen to share a grandfather's name, until the evidence says otherwise. The rules are the
+ones below, unchanged: a longer lineage, a nisbah or a kunyah that the other entry lacks is not
+a conflict, but one that contradicts it is. Two entries agreeing on the teachers, students,
+books, generation or the verdict the source quotes are the evidence to merge on.
+
 ## `kind: "pair"`
 
 One `subject` profile matched one or more `candidates` on an alias or a partial name, and
