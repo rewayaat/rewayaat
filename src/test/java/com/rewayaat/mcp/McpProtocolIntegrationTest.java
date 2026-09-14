@@ -304,7 +304,12 @@ class McpProtocolIntegrationTest {
 
         assertEquals("Test-Book:1", out.get("id"));
         assertEquals("Test Book #1", out.get("title"));
-        assertTrue(String.valueOf(out.get("url")).endsWith("/hadith/Test-Book:1"));
+        // Tagged on the way out, so a visit the link starts is attributed in GA4. This
+        // handshake's client is "test" - neither Claude nor ChatGPT - hence "other".
+        assertTrue(String.valueOf(out.get("url")).endsWith("/hadith/Test-Book:1"
+                        + "?utm_source=other&utm_medium=ai-connector&utm_campaign=hadith-connector"
+                        + "&utm_content=fetch"),
+                String.valueOf(out.get("url")));
 
         String text = String.valueOf(out.get("text"));
         assertTrue(text.contains("بكت السماء"), "The Arabic matn is the primary text.");

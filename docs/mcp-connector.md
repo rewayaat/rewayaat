@@ -122,12 +122,42 @@ This is not tidiness. **Claude caps a tool result near 150,000 characters** and 
 fifty chapter narrations measured 94,594 characters. Page maxima are set against those
 ceilings, and `total_matches` / `chapter_size` mean a short page is not a lossy one.
 
+## Links carry UTM tags
+
+Every link to this site in an MCP result is tagged on the way out by `ConnectorLinks`, so a
+visit that starts from a connector answer is attributed in GA4 with no GA4 configuration: the
+site's tag already runs on every narration page and reads UTM parameters by itself.
+
+```
+https://hadith.academyofislam.com/hadith/Al-Kafi-Volume-2-Kulayni:245
+  ?utm_source=claude&utm_medium=ai-connector&utm_campaign=hadith-connector&utm_content=search_hadith
+```
+
+- `utm_source` is the client named in the MCP handshake, reduced to `claude`, `chatgpt` or
+  `other` so it stays stable across that client's versions.
+- `utm_content` is the tool whose result carried the link, so the reports show which tools'
+  links people actually follow.
+- Only this site's links are tagged. A tafsīr `source_url` is someone else's page.
+- The site's own chatbot calls `McpToolCatalog.invoke` and is not tagged: it is not
+  connector traffic.
+- A narration page's canonical URL carries no query string, so a tagged link is never indexed
+  as a second page.
+
+In GA4 these land under Reports → Acquisition → Traffic acquisition: filter *Session campaign*
+to `hadith-connector`, then break down by *Session source* and *Session manual ad content*.
+`ai-connector` is not a medium GA4's default channel group recognises, so there the sessions
+count as *Unassigned* unless a custom channel group names it.
+
+The counts are a floor, not a total. A client can shorten or strip a query string when it
+cites a link, and a visit through a link with its tags removed arrives looking like any other.
+
 ## Code
 
 | File | Role |
 |---|---|
 | `mcp/McpServerConfig.java` | Both transports, server instructions, keepalive |
 | `mcp/McpToolCatalog.java` | Adapts tools to MCP; also the entry point for the site's own chatbot |
+| `mcp/ConnectorLinks.java` | Tags this site's links in MCP results with UTM parameters |
 | `mcp/McpTool.java` | What a tool implements |
 | `mcp/NarrationRepository.java` | Elasticsearch reads; search delegates to `QueryStringQueryResult` |
 | `mcp/NarrationView.java` | The shaping contract |
