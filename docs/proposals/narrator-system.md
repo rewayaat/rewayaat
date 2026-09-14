@@ -282,11 +282,11 @@ published.
 | Extracted, Phase 1 | 42,076 entries from eight books |
 | Contract-normalized | 42,045 (31 Infallibles removed) |
 | Merged, rule layers 0–2 | 29,514 profiles (merge `29514:d382409476873fe5`) |
-| People, after stage 5a phase A | **24,633**, each with a permanent identifier — 23,879 after stage 4, 23,425 after stage 3, 25,099 after stage 2 |
-| Identity decisions on record | 67,203 on file across three merge runs, of which 23,540 in force |
-| Review signals | 93, among them 30 agent answers that override another agent's |
-| Drawing on more than one book | 19.2% — it falls when two people who each draw on several books become one, and when a join across books is broken |
-| Held for human review | 613 low-confidence decisions |
+| People, after stage 5a | **22,203**, each with a permanent identifier — 24,633 after phase A, 23,879 after stage 4, 23,425 after stage 3, 25,099 after stage 2 |
+| Identity decisions on record | 76,401 on file across three merge runs, of which 32,359 in force |
+| Review signals | 328, among them 143 agent answers that override another agent's |
+| Drawing on more than one book | 24.3%. It falls when two people who each draw on several books become one, or when a join across books is broken, and it rises when Khoei and Mamaqani profiles attach to main-book people |
+| Held for human review | 992 low-confidence decisions |
 | Most-cited narrators still split | 0 of 12 — each one's main-book entries sit in one person, and the split pass left them so |
 | Fusions left | 87 single entries that each describe two men, for re-extraction (stage 6), and 14 low-confidence splits for review |
 | Accuracy, stage 5 audit | People precision 88.6% against a 95% gate, **not met**. Agent joins are 98–99% precise, rule joins 89–98%, Layer 0 page joins 65% |
@@ -326,10 +326,10 @@ Under `tmp/`, which is symlinked to `/mnt/share/rewayaat-backup/tmp/`:
 | `narrators_audit/keys/` | the audit's answer keys, kept apart from the runs the auditors read |
 | `narrators_l3/archive/` | agent answers to earlier, superseded merges |
 | `narrators_l3/runs/<fingerprint>/id_map.json` | each run's merged ids translated to source keys |
-| `narrators_identity/decisions.jsonl` | **the decision record** — 67,203 decisions on source keys |
-| `narrators_identity/person_ids.jsonl` | the permanent-identifier registry — 24,633 active |
-| `narrators_identity/people.json` | **current** — 24,633 people, derived from the record |
-| `narrators_identity/review_signals.json` | agent judgments now inside one person — 93 |
+| `narrators_identity/decisions.jsonl` | **the decision record** — 76,401 decisions on source keys |
+| `narrators_identity/person_ids.jsonl` | the permanent-identifier registry — 22,203 active |
+| `narrators_identity/people.json` | **current** — 22,203 people, derived from the record |
+| `narrators_identity/review_signals.json` | agent judgments now inside one person — 328 |
 | `narrators_identity/distinct_conflicts.json` | unions refused, and agent answers that overrode another agent's |
 | `narrators_archive/2026-09-14-pre-stage2/` | the merge, normalized files and people before stage 2 — its measurement baseline |
 | `narrators_archive/2026-09-14-post-stage2/` | people, membership, decision record and registry before the top-up — its baseline |
@@ -351,6 +351,8 @@ On `feature/narrators`:
 |---|---|
 | `scripts/narrators/narrator_schema.py` | normalizers, the reliability vocabulary, the Infallible registry |
 | `scripts/narrators/normalize_extraction.py` | the output contract, applied retroactively |
+| `scripts/narrators/validate_run.py` | checks a Layer 3 run's answers before recording: every task answered once, partitions exact, merges to offered ids |
+| `scripts/narrators/measure_build.py` | measures a build against the snapshot before it: clashes, the twelve most-cited narrators, and whether every person it joined is explained by an agent's answer, by this run's or an earlier one's |
 | `scripts/narrators/merge_narrator_profiles.py` | Layers 0–2, invariants, Layer 3 task generation |
 | `scripts/narrators/l3_prepare.py` | Layer 3 batches, carrying the source quotations as evidence |
 | `scripts/narrators/l3_agent_prompt.md` | the sub-agent brief |
@@ -1331,7 +1333,15 @@ joined that way:
 - A father's Mamaqani entry joined his son's. This is wrong.
 - One join is disputed.
 
-The last two went back to an agent (`split-22203-d69269faeb7b5ec2`).
+The last two went back to an agent (`split-22203-d69269faeb7b5ec2`). It kept the father–son person
+whole, because all three of its entries quote one biography from Rijāl al-Shaykh (Abū Ismāʿīl,
+d. 192). The heading «سالم بن شريح» had misled the reading that called it a father. From the
+disputed person it split off one entry whose only quotation concerns another man. That split in
+turn let two earlier agent joins through. They sort Ismāʿīl b. Abī Ziyād al-Sulamī, now with
+al-Najāshī's entry, apart from al-Sakūnī al-Shaʿīrī, now with al-Fihrist's. Both are right.
+Across both split runs no join is a rule's alone: every person the splits re-formed is explained
+by an applied agent answer. That left 22,203 people (`narrators_archive/2026-09-14-5b-final`), the
+build the fresh audit samples.
 
 ---
 
