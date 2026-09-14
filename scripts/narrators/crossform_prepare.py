@@ -36,6 +36,12 @@ nisbah, ranked by how many agree. Pairs rather than groups, because the answer i
 these, or none", and a pair carries a confidence, which thin evidence needs. A profile of a
 single source with no verdict, kunyah or nisbah has nothing to decide on and is not asked.
 
+`--orphans` puts the same question to pages that entry repair (split_prepare.py --pages) split
+off an entry and no later split placed. The entry's other unions bound its first page, so the
+rest stand alone after repair, though some are plainly men who hold main entries — Khoei's
+«عمرو بن حريث» pages include al-Najashi's al-Sayrafi. Earlier judgments of such a page were
+judgments of the fused entry, so they do not stop it being asked again.
+
 Output is a Layer 3 run in the usual shape — `kind: "group"` tasks with
 `"method": "crossform_group"`, or `kind: "pair"` tasks with `"method": "attach_pair"`, and an
 id_map.json of ids to source keys and seeds — so the same brief (l3_agent_prompt.md), dispatch
@@ -50,6 +56,7 @@ Usage:
     python3 scripts/narrators/crossform_prepare.py
     python3 scripts/narrators/crossform_prepare.py --attach
     python3 scripts/narrators/crossform_prepare.py --attach --dry-run
+    python3 scripts/narrators/crossform_prepare.py --orphans
 """
 
 import argparse
@@ -60,7 +67,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from identity import live, load_record, write_json_atomic  # noqa: E402
+from identity import anchor_rank, live, load_record, write_json_atomic  # noqa: E402
 from l3_prepare import DEFAULT_BUDGET, evidence, pack  # noqa: E402
 from narrator_schema import fold_kunyah, is_identifying_alias, normalize_arabic  # noqa: E402
 
@@ -190,7 +197,24 @@ def marks(person):
     return kunyahs, titles
 
 
-def build_attach_tasks(people, record_path, counts):
+def orphan_people(record_path, membership):
+    """People holding pages an entry repair split off their entry and no re-split placed."""
+    record = live(load_record(record_path))
+    resplit = {k for d in record if d["actor"] == "agent" and d["method"] == "split_partition"
+               and str(d.get("origin", {}).get("task_id", "")).startswith("resplit:")
+               for g in d["groups"] for k in g}
+    orphans = set()
+    for d in record:
+        if (d["actor"] == "agent" and d["method"] == "entry_split" and d["kind"] == "partition"
+                and d.get("status") == "applied" and len(d["groups"]) > 1):
+            first = min((k for g in d["groups"] for k in g), key=anchor_rank)
+            for group in d["groups"]:
+                if first not in group and not set(group) & resplit:
+                    orphans |= {membership[k] for k in group if k in membership}
+    return orphans
+
+
+def build_attach_tasks(people, record_path, counts, subjects=None, rejudge=False):
     by_id = {p["person_id"]: p for p in people}
     main = [p for p in people if holds_main_entry(p)]
     owners = defaultdict(set)
@@ -207,6 +231,8 @@ def build_attach_tasks(people, record_path, counts):
     tasks = []
     for person in people:
         if holds_main_entry(person):
+            continue
+        if subjects is not None and person["person_id"] not in subjects:
             continue
         kunyahs, titles = marks(person)
         if (len(person["source_keys"]) == 1 and not person["reliability_grades"]
@@ -228,7 +254,8 @@ def build_attach_tasks(people, record_path, counts):
                     scored[mid] = max(scored.get(mid, 0), agree)
         if not scored:
             continue
-        fresh = {mid: s for mid, s in scored.items() if not judged(person["person_id"], mid)}
+        fresh = {mid: s for mid, s in scored.items()
+                 if rejudge or not judged(person["person_id"], mid)}
         if not fresh:
             counts["already_judged"] += 1
             continue
@@ -262,6 +289,9 @@ def main():
     parser.add_argument("--budget", type=int, default=DEFAULT_BUDGET)
     parser.add_argument("--attach", action="store_true",
                         help="pair people holding no main entry with main-entry people they may be")
+    parser.add_argument("--orphans", action="store_true",
+                        help="attach pages entry repair split off, asking again what the fused "
+                             "entry was judged on")
     parser.add_argument("--dry-run", action="store_true", help="count tasks, write nothing")
     args = parser.parse_args()
 
@@ -270,9 +300,16 @@ def main():
     fingerprint = people_fingerprint(people)
     counts = Counter()
     record_path = os.path.join(args.identity_dir, "decisions.jsonl")
-    kind, prefix = ("pair", "attach") if args.attach else ("group", "xform")
-    if args.attach:
-        tasks, by_id = build_attach_tasks(people, record_path, counts)
+    kind, prefix = (("pair", "orphan" if args.orphans else "attach") if args.attach or args.orphans
+                    else ("group", "xform"))
+    if args.attach or args.orphans:
+        subjects = None
+        if args.orphans:
+            with open(os.path.join(args.identity_dir, "membership.json")) as handle:
+                subjects = orphan_people(record_path, json.load(handle))
+            counts["orphan_people"] = len(subjects)
+        tasks, by_id = build_attach_tasks(people, record_path, counts, subjects,
+                                          rejudge=args.orphans)
         members_of = lambda t: [t["subject"]] + t["candidates"]
         sizes = Counter(len(t["candidates"]) for t in tasks)
         shape = "candidates per subject"
