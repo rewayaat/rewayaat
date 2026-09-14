@@ -62,6 +62,13 @@ creates a new, false person.
 An entry that itself mixes two men, with a heading for one and a quotation about another, goes
 in a cluster of its own and is listed in `mixed`.
 
+An entry marked `source_calls_title_shared` is one whose source says the name is shared by
+several men: Khoei's «هو مشترك بين جماعة، والتمييز إنما هو بالراوي والمروي عنه», or «مشترك بين
+الثقة وغيره». Such an entry heads the name as it occurs in chains, and its teachers, students and
+verdicts belong to several men. It goes in a cluster of its own. The exception is when the
+source goes on to say which man the name means here, and that man is the rest of the person.
+Such an entry is not `mixed`; re-extracting it would not divide it.
+
 A split with `"method": "entry_split"` shows a single entry page by page. The pipeline joined
 adjacent pages of one book as one entry. Khoei and Mamaqani head consecutive entries for men of
 the same name, so a run of «الحارث بن عمرو» pages may be several men. Partition the pages the
