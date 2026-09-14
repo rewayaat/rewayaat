@@ -140,10 +140,12 @@ def l3_decisions(run_dir, seeds, merge_run, counts):
                 if sorted(placed) != sorted(offered):
                     counts["skipped_invalid_partition"] += 1
                     continue
+                # Cross-form tasks (crossform_prepare.py) are group tasks over people rather
+                # than merged profiles, and say so in their own method.
                 decisions.append(make_decision(
                     "partition", groups=[[seeds[m] for m in cluster]
                                          for cluster in answer["clusters"]],
-                    method="layer3_group", actor="agent",
+                    method=task.get("method", "layer3_group"), actor="agent",
                     evidence={"notes": answer.get("notes", "")}, origin=origin))
                 continue
 
