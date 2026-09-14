@@ -26,19 +26,30 @@ answer. A form carried by more than MAX_OWNERS main-entry people is too common t
 (`احمد بن محمد`), people whom agents have already judged together are not asked again, and a
 task whose members are all inside a larger task is dropped as asked.
 
-Output is a Layer 3 run in the usual shape — batches of `kind: "group"` tasks with
-`"method": "crossform_group"`, an id_map.json of ids to source keys and seeds — so the same
-brief (l3_agent_prompt.md), dispatch (l3_dispatch.py --run) and recording
-(record_decisions.py --no-rules --l3-run) serve it. Ids are the person id's number
-(n000515 -> 515); each person's seed is its anchor source.
+`--attach` asks the second question, once main entries have met. Khoei and Mamaqani describe
+many men well — kunyah, nisbah, teachers, students — in profiles that hold no main entry of
+their own, so the per-form pass never sees them: `إبراهيم بن هاشم أبو إسحاق القمي`, whose student
+is his son 'Ali, stood apart from the man whose al-Najashi and al-Fihrist entries it describes.
+Each attach task is a pair: one such person, and up to MAX_ATTACH_CANDIDATES main-entry people
+who carry the same name form with no contradicting kunyah and at least one agreeing kunyah or
+nisbah, ranked by how many agree. Pairs rather than groups, because the answer is "which of
+these, or none", and a pair carries a confidence, which thin evidence needs. A profile of a
+single source with no verdict, kunyah or nisbah has nothing to decide on and is not asked.
+
+Output is a Layer 3 run in the usual shape — `kind: "group"` tasks with
+`"method": "crossform_group"`, or `kind: "pair"` tasks with `"method": "attach_pair"`, and an
+id_map.json of ids to source keys and seeds — so the same brief (l3_agent_prompt.md), dispatch
+(l3_dispatch.py --run) and recording (record_decisions.py --no-rules --l3-run) serve it. Ids are
+the person id's number (n000515 -> 515); each person's seed is its anchor source.
 
 Reads  tmp/narrators_identity/{people.json,decisions.jsonl}
-Writes tmp/narrators_l3/runs/xform-<count>-<sha16>/{batches,outputs,manifest.json,id_map.json,
-       candidates.json}
+Writes tmp/narrators_l3/runs/{xform,attach}-<count>-<sha16>/{batches,outputs,manifest.json,
+       id_map.json,candidates.json}
 
 Usage:
     python3 scripts/narrators/crossform_prepare.py
-    python3 scripts/narrators/crossform_prepare.py --dry-run
+    python3 scripts/narrators/crossform_prepare.py --attach
+    python3 scripts/narrators/crossform_prepare.py --attach --dry-run
 """
 
 import argparse
@@ -58,6 +69,7 @@ TMP = os.path.join(REPO, "tmp")
 
 MAIN_BOOKS = {"najashi", "fihrist", "kashshi", "tusi", "duafa", "ardabili"}
 MAX_OWNERS = 12
+MAX_ATTACH_CANDIDATES = 3
 MIN_TOKENS = 3
 CONNECTORS = {"بن", "ابن", "بنت"}
 
@@ -167,12 +179,85 @@ def build_tasks(people, record_path, counts):
     return tasks, by_id
 
 
+def holds_main_entry(person):
+    return any(k.split(":")[0] in MAIN_BOOKS for k in person["source_keys"])
+
+
+def marks(person):
+    """(folded kunyahs, normalized nisbahs and titles) — what narrows, never identifies."""
+    kunyahs = {fold_kunyah(e["value"]) for e in person["kunyahs_arabic"]} - {None, ""}
+    titles = {normalize_arabic(e["value"]) for e in person["titles"]} - {None, ""}
+    return kunyahs, titles
+
+
+def build_attach_tasks(people, record_path, counts):
+    by_id = {p["person_id"]: p for p in people}
+    main = [p for p in people if holds_main_entry(p)]
+    owners = defaultdict(set)
+    for person in main:
+        for form in name_forms(person):
+            for key in truncations(form):
+                owners[key].add(person["person_id"])
+    seen = judged_together(record_path)
+
+    def judged(a, b):
+        other = set(by_id[b]["source_keys"])
+        return any(seen.get(k, set()) & other for k in by_id[a]["source_keys"])
+
+    tasks = []
+    for person in people:
+        if holds_main_entry(person):
+            continue
+        kunyahs, titles = marks(person)
+        if (len(person["source_keys"]) == 1 and not person["reliability_grades"]
+                and not kunyahs and not titles):
+            counts["thin_not_asked"] += 1
+            continue
+        scored = {}
+        for form in name_forms(person):
+            for mid in owners.get(form, ()):
+                their_kunyahs, their_titles = marks(by_id[mid])
+                if kunyahs and their_kunyahs and not kunyahs & their_kunyahs:
+                    continue
+                agree = 2 * len(kunyahs & their_kunyahs) + len(titles & their_titles)
+                if agree:
+                    scored[mid] = max(scored.get(mid, 0), agree)
+        if not scored:
+            continue
+        fresh = {mid: s for mid, s in scored.items() if not judged(person["person_id"], mid)}
+        if not fresh:
+            counts["already_judged"] += 1
+            continue
+        if len(fresh) > MAX_ATTACH_CANDIDATES:
+            counts["candidates_trimmed_to_top"] += 1
+        chosen = sorted(fresh, key=lambda m: (-fresh[m], m))[:MAX_ATTACH_CANDIDATES]
+
+        def shown(p):
+            profile = evidence(dict(p, merged_id=int(p["person_id"][1:])))
+            profile["person_id"] = p["person_id"]
+            return profile
+
+        tasks.append({
+            "kind": "pair",
+            "method": "attach_pair",
+            "task_id": f"attach:{person['person_id']}",
+            "reason": "holds no main-book entry; shares a name form and a kunyah or nisbah "
+                      "with people who do",
+            "subject": shown(person),
+            "candidates": [shown(by_id[m]) for m in chosen],
+        })
+    counts["main_entry_people"] = len(main)
+    return tasks, by_id
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--identity-dir", default=os.path.join(TMP, "narrators_identity"))
     parser.add_argument("--out-dir", default=os.path.join(TMP, "narrators_l3"))
     parser.add_argument("--budget", type=int, default=DEFAULT_BUDGET)
+    parser.add_argument("--attach", action="store_true",
+                        help="pair people holding no main entry with main-entry people they may be")
     parser.add_argument("--dry-run", action="store_true", help="count tasks, write nothing")
     args = parser.parse_args()
 
@@ -180,18 +265,28 @@ def main():
         people = json.load(handle)
     fingerprint = people_fingerprint(people)
     counts = Counter()
-    tasks, by_id = build_tasks(people, os.path.join(args.identity_dir, "decisions.jsonl"), counts)
-    sizes = Counter(len(t["profiles"]) for t in tasks)
+    record_path = os.path.join(args.identity_dir, "decisions.jsonl")
+    kind, prefix = ("pair", "attach") if args.attach else ("group", "xform")
+    if args.attach:
+        tasks, by_id = build_attach_tasks(people, record_path, counts)
+        members_of = lambda t: [t["subject"]] + t["candidates"]
+        sizes = Counter(len(t["candidates"]) for t in tasks)
+        shape = "candidates per subject"
+    else:
+        tasks, by_id = build_tasks(people, record_path, counts)
+        members_of = lambda t: t["profiles"]
+        sizes = Counter(len(t["profiles"]) for t in tasks)
+        shape = "sizes"
     print(f"people fingerprint: {fingerprint}")
-    print(f"{counts['main_entry_people']} main-entry people -> {len(tasks)} tasks, "
-          f"{sum(len(t['profiles']) for t in tasks)} person-slots; sizes {sorted(sizes.items())}")
+    print(f"{counts['main_entry_people']} main-entry people -> {len(tasks)} {kind} tasks, "
+          f"{sum(len(members_of(t)) for t in tasks)} person-slots; {shape} {sorted(sizes.items())}")
     print("  " + ", ".join(f"{k} {v}" for k, v in sorted(counts.items()) if k != "main_entry_people"))
     batches = pack(tasks, args.budget)
     print(f"  -> {len(batches)} batches at a budget of {args.budget} chars")
     if args.dry_run:
         return
 
-    run_dir = os.path.join(args.out_dir, "runs", "xform-" + fingerprint.replace(":", "-"))
+    run_dir = os.path.join(args.out_dir, "runs", f"{prefix}-" + fingerprint.replace(":", "-"))
     batch_dir = os.path.join(run_dir, "batches")
     if os.path.isdir(batch_dir) and os.listdir(batch_dir):
         raise SystemExit(f"{batch_dir} already holds batches — runs are immutable")
@@ -199,25 +294,25 @@ def main():
     os.makedirs(os.path.join(run_dir, "outputs"), exist_ok=True)
 
     manifest = {"budget": args.budget, "merge_fingerprint": f"people:{fingerprint}",
-                "kind": "crossform", "batches": []}
+                "kind": prefix, "batches": []}
     for number, batch in enumerate(batches):
-        name = f"group_{number:04d}.json"
+        name = f"{kind}_{number:04d}.json"
         path = os.path.join(batch_dir, name)
-        write_json_atomic(path, {"kind": "group", "batch": name,
+        write_json_atomic(path, {"kind": kind, "batch": name,
                                  "merge_fingerprint": f"people:{fingerprint}", "tasks": batch})
-        manifest["batches"].append({"batch": name, "kind": "group", "tasks": len(batch),
-                                    "profiles": sum(len(t["profiles"]) for t in batch),
+        manifest["batches"].append({"batch": name, "kind": kind, "tasks": len(batch),
+                                    "profiles": sum(len(members_of(t)) for t in batch),
                                     "chars": os.path.getsize(path)})
     write_json_atomic(os.path.join(run_dir, "manifest.json"), manifest)
 
-    members = sorted({p["person_id"] for t in tasks for p in t["profiles"]})
+    members = sorted({p["person_id"] for t in tasks for p in members_of(t)})
     write_json_atomic(os.path.join(run_dir, "id_map.json"), {
         "merge_fingerprint": f"people:{fingerprint}", "method": "person_ids",
         "map": {str(int(pid[1:])): by_id[pid]["source_keys"] for pid in members},
         "seeds": {str(int(pid[1:])): by_id[pid]["anchor"] for pid in members}})
     write_json_atomic(os.path.join(run_dir, "candidates.json"), [
-        {"task_id": t["task_id"], "shared_forms": t["shared_forms"],
-         "people": [p["person_id"] for p in t["profiles"]]} for t in tasks])
+        {"task_id": t["task_id"], "shared_forms": t.get("shared_forms"),
+         "people": [p["person_id"] for p in members_of(t)]} for t in tasks])
     print(f"\nwrote {len(batches)} batches -> {batch_dir}")
 
 

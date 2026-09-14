@@ -32,6 +32,14 @@ One `subject` profile matched one or more `candidates` on an alias or a partial 
 context was inconclusive. Decide whether the subject is the **same person** as one of the
 candidates, or none of them.
 
+A pair with `"method": "attach_pair"` is an attach task. The subject is a person drawn only from
+Khoei's Muʿjam or Mamaqani's Tanqīḥ, which name men inside other men's entries, and holds no
+entry of his own in a main Rijal work. The candidates are people who do hold one, carry the same
+name form, and share a kunyah or nisbah with him. Brothers, fathers and sons often share all of
+that, and so do two men of one family and city a generation apart. Decide on the teachers,
+students, generation and the source's own words. When the subject describes itself as someone's
+brother or son, or points to a different entry, that settles it.
+
 ## How to judge
 
 Evidence, strongest first:

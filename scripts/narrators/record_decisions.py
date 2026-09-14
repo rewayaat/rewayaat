@@ -140,7 +140,7 @@ def l3_decisions(run_dir, seeds, merge_run, counts):
                 if sorted(placed) != sorted(offered):
                     counts["skipped_invalid_partition"] += 1
                     continue
-                # Cross-form tasks (crossform_prepare.py) are group tasks over people rather
+                # Cross-form and attach tasks (crossform_prepare.py) are over people rather
                 # than merged profiles, and say so in their own method.
                 decisions.append(make_decision(
                     "partition", groups=[[seeds[m] for m in cluster]
@@ -160,14 +160,14 @@ def l3_decisions(run_dir, seeds, merge_run, counts):
                     continue
                 status = "applied" if confidence in ("high", "medium") else "review"
                 decisions.append(make_decision(
-                    "same", sources=[subject, seeds[target]], method="layer3_pair",
+                    "same", sources=[subject, seeds[target]], method=task.get("method", "layer3_pair"),
                     actor="agent", confidence=confidence, status=status,
                     evidence=evidence, origin=origin))
             else:
                 for candidate in offered:
                     decisions.append(make_decision(
                         "not_same", groups=[[subject], [seeds[candidate]]],
-                        method="layer3_pair", actor="agent", confidence=confidence,
+                        method=task.get("method", "layer3_pair"), actor="agent", confidence=confidence,
                         evidence=evidence, origin=origin))
 
     auto_path = os.path.join(run_dir, "auto_separate.json")
