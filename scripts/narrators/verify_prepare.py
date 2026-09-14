@@ -10,6 +10,11 @@ mended by a threshold alone:
   layer2_context    89% precise, its errors at the floor: 8 of 42 decided joins at score 4
                     wrong, 2 of 49 from score 6 up (CONTEXT_FLOOR)
 
+`--second-pass` asks the next ring out. The re-audit after the first pass traced its remaining
+stray entries to rule joins the first pass had not asked about: Layer 1 exact matches at context
+score 0 (the first audit: 2 wrong and 14 unverifiable of 41) and Layer 2 joins at score 6 and
+above. A join an earlier verify run already asked about is not asked again.
+
 Every such join still in force and still inside one person, and not already decided by an
 agent, becomes a pair: the two entries it joined, shown as they stand, and the question the
 audit asked — same man, different men, or cannot tell. An agent's `different` is recorded as a
@@ -23,10 +28,12 @@ Writes tmp/narrators_l3/runs/verify-<count>-<sha16>/{batches,outputs,manifest.js
 Usage:
     python3 scripts/narrators/verify_prepare.py --dry-run
     python3 scripts/narrators/verify_prepare.py
+    python3 scripts/narrators/verify_prepare.py --second-pass
 """
 
 import argparse
 from collections import Counter
+import glob
 import json
 import os
 import sys
@@ -44,13 +51,19 @@ CONTEXT_FLOOR = 6
 BUDGET = 100000
 
 
-def untrusted(decision):
+def untrusted(decision, second_pass=False):
     """Whether the audit found this kind of rule join too imprecise to stand unchecked."""
     if decision["actor"] != "rule" or decision["kind"] != "same":
         return None
+    score = decision.get("evidence", {}).get("score")
+    if second_pass:
+        if decision["method"] == "layer1_exact" and score == 0:
+            return "layer1_exact at score 0"
+        if decision["method"] == "layer2_context":
+            return "layer2_context"
+        return None
     if decision["method"] == "layer1_full_name":
         return "layer1_full_name"
-    score = decision.get("evidence", {}).get("score")
     if decision["method"] == "layer2_context" and score is not None and score < CONTEXT_FLOOR:
         return "layer2_context below the floor"
     return None
@@ -63,6 +76,8 @@ def main():
     parser.add_argument("--normalized-dir", default=os.path.join(TMP, "narrators_normalized"))
     parser.add_argument("--out-dir", default=os.path.join(TMP, "narrators_l3"))
     parser.add_argument("--budget", type=int, default=BUDGET)
+    parser.add_argument("--second-pass", action="store_true",
+                        help="Layer 1 exact joins at score 0 and Layer 2 joins at any score")
     parser.add_argument("--dry-run", action="store_true", help="count tasks, write nothing")
     args = parser.parse_args()
 
@@ -85,11 +100,18 @@ def main():
         return sorted((k for k in person["source_keys"]
                        if head_of.get(k, k) == head_of.get(key, key)), key=anchor_rank)
 
+    earlier = set()
+    for path in glob.glob(os.path.join(args.out_dir, "runs", "verify*", "batches", "*.json")):
+        with open(path) as handle:
+            earlier |= {t["task_id"].split(":", 1)[1] for t in json.load(handle)["tasks"]}
     counts, tasks, id_map, seeds, asked = Counter(), [], {}, {}, set()
     next_id = 1
     for decision in force:
-        why = untrusted(decision)
+        why = untrusted(decision, args.second_pass)
         if not why:
+            continue
+        if decision["decision_id"] in earlier:
+            counts["asked in an earlier verify run"] += 1
             continue
         a, b = decision["sources"][:2]
         if not membership.get(a) or membership.get(a) != membership.get(b):
@@ -125,7 +147,8 @@ def main():
     if args.dry_run:
         return
 
-    run_dir = os.path.join(args.out_dir, "runs", "verify-" + fingerprint.replace(":", "-"))
+    prefix = "verify2" if args.second_pass else "verify"
+    run_dir = os.path.join(args.out_dir, "runs", f"{prefix}-" + fingerprint.replace(":", "-"))
     batch_dir = os.path.join(run_dir, "batches")
     if os.path.isdir(batch_dir) and os.listdir(batch_dir):
         raise SystemExit(f"{batch_dir} already holds batches — runs are immutable")
