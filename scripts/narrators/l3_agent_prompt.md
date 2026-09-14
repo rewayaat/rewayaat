@@ -62,6 +62,13 @@ creates a new, false person.
 An entry that itself mixes two men, with a heading for one and a quotation about another, goes
 in a cluster of its own and is listed in `mixed`.
 
+A split with `"method": "entry_split"` shows a single entry page by page. The pipeline joined
+adjacent pages of one book as one entry. Khoei and Mamaqani head consecutive entries for men of
+the same name, so a run of «الحارث بن عمرو» pages may be several men. Partition the pages the
+same way, using the same rule: move a page out only on positive evidence. A page that continues
+the one before it, such as a verdict, a book list or a chain with no heading of its own, stays
+with it.
+
 Give each split a `confidence` of `high`, `medium` or `low`. Only high and medium are applied,
 and a low answer goes to human review.
 
