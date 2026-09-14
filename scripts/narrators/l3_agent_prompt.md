@@ -43,6 +43,13 @@ that merely share a common name — `أحمد بن محمد`, `محمد بن ع�
 nothing else about themselves are *not* to be merged. Absence of conflicting evidence is
 not evidence of sameness.
 
+Names that are **only a kunyah** — `أبي بصير`, `أبي عبيدة`, `أبي يعفور` — are shared by several
+men by construction; that is why they come to you instead of being merged by rule. Treat such a
+group like any other partition: join two of its profiles only on evidence in the quotations —
+a full name the source gives, a teacher or student in common, a matching death year — never on
+the kunyah itself. A thin profile that is only the kunyah and a passing mention belongs in a
+cluster of its own.
+
 This system publishes reliability verdicts attributed to named scholars. A wrong merge puts
 a fabricated attribution on a public page under a real scholar's name. A missed merge only
 leaves two thin profiles. The costs are not symmetric.
