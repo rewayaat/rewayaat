@@ -1303,10 +1303,32 @@ explained by that run's applied answers.
   students extracted with it belong to the entry's subject. No such edge may enter the research
   graph unchecked.
 
-The split pass runs again on the 426 people these joins left flagged
-(`split-22013-c5ab24e0d7504fa0`). They are people an agent said mix men, people where one agent's
-join crosses another's separation, the 41 holding an entry the source calls a shared title,
-verdict and generation clashes, and Suhayl.
+The split pass then ran again on the 426 people these joins left flagged
+(`split-22013-c5ab24e0d7504fa0`):
+
+- people an agent said mix men
+- people where one agent's join crosses another's separation
+- the 41 holding an entry the source calls a shared title
+- verdict and generation clashes
+- Suhayl
+
+158 were split. Most of the rest stay whole: the agents read their flags as extraction noise, or
+as a real scholarly dispute over one man. That left 22,203 people. Verdict clashes fell from 148
+to 147 and kunyah clashes from 298 to 293, and Sahl's Mamaqani entry is a person of its own again.
+The agents set most shared-title entries apart, and kept those whose source names the man. The
+flag's pattern also matched «مشترك» in other senses, such as a shared book or a shared doctrine,
+and the agents caught those.
+
+Splitting has a side effect that the measurement caught. A split that moves an entry out can lift
+the separation that entry held, and an earlier agent join then goes through. Four people were
+joined that way:
+
+- Ibn al-Farazdaq's Khoei mention rejoined his own entry. This is right.
+- Al-Ḥuḍayn b. al-Mukhāriq al-Salūlī rejoined his own entry. This is right.
+- A father's Mamaqani entry joined his son's. This is wrong.
+- One join is disputed.
+
+The last two went back to an agent (`split-22203-d69269faeb7b5ec2`).
 
 ---
 
