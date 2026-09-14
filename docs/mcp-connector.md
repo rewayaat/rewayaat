@@ -19,8 +19,16 @@ access to hadith. What it provides that a web search does not:
 | Negatives | Cannot distinguish absent from unindexed | Authoritative for these 18 books |
 | Similarity, verse links | Not documents, so nothing indexes them | Returned directly |
 
-The evaluation behind #66 measured web search at **1 of 3** on non-famous content, and found
-that closed-book recall gets the matn right while getting the citation wrong.
+The evaluation behind #66 measured web search at **1 of 3** on non-famous content, and
+closed-book recall at **2 of 7** narrations in the Kāmil al-Ziyārāt chapter that web search
+returned 5 of, with nothing to say what was missing.
+
+It also reported two recall errors that did not survive re-checking, and they are recorded here
+so they are not reused. "The sky wept only for Yaḥyā and al-Ḥusayn" was called absent from the
+corpus and is Kāmil al-Ziyārāt #226 (corrected in the issue). And the ʿaql narration `ما عبد
+به الرحمن واكتسب به الجنان`, said to have been misattributed to al-Kāfi, is in al-Kāfi — vol. 1
+#4 — as well as Maʿānī al-ʾAkhbār #423; a precise search returns both. The recall was right
+both times. The public comparison on the updates page uses only the claims that held.
 
 ## Endpoints
 

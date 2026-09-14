@@ -2,7 +2,7 @@
   "id": "mcp-connector-2026-09",
   "active": true,
   "icon": "fa-plug",
-  "text": "New: use the hadith database directly inside Claude and ChatGPT.",
+  "text": "New for researchers: search all 32,519 narrations from inside Claude and ChatGPT, with every source linked.",
   "linkText": "See how",
   "linkUrl": "/updates.html#connector"
 }

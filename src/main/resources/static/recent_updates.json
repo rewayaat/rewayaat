@@ -2,8 +2,21 @@
   {
     "id": "connector",
     "date": "2026-09-13",
-    "title": "Use the Database Inside Claude and ChatGPT",
-    "summary": "Rewayaat is now available as a connector, so you can search and read the collection without leaving your AI assistant. Ask a question in your own words and it queries all 32,519 narrations directly — in Arabic or English — and cites what it finds back to this site.",
+    "title": "Answers You Can Check: Rewayaat Inside Claude and ChatGPT",
+    "summary": "For students and researchers who need to know where a narration comes from. Connect Rewayaat and Claude or ChatGPT stops relying on memory and the open web: it searches all 32,519 narrations in 18 books, in Arabic or English, tells you how many it found, and links every narration it quotes to its full text on this site.",
+    "why": {
+      "title": "Why not just ask Claude or ChatGPT?",
+      "image": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/comparison-v1.png",
+      "imageAspect": "1600 / 972",
+      "imageAlt": "Asked for every narration in a chapter of Kāmil al-Ziyārāt, the assistant on its own recalled 2 of 7 from memory and found 5 of 7 with web search, with nothing to say two were missing. With the Hadith connector it returned all 7, reported as complete. A lesser-known narration, Thawāb al-Aʿmāl #1004, was not found by web search and was found by the connector.",
+      "points": [
+        "<strong>It can't tell you what it missed.</strong> Asked for one chapter of Kāmil al-Ziyārāt, web search found 5 of its 7 narrations, and nothing in the answer said two were missing. The connector returns a chapter's true size and says when you have all of it.",
+        "<strong>It only finds what someone has written about.</strong> Web search looks through web pages, not hadith collections, so famous narrations are well covered and the rest are not: in our tests it found one of three lesser-known narrations. Here all 32,519 are equally reachable, by their Arabic wording as well as by translation.",
+        "<strong>A reference from memory has nothing behind it.</strong> The connector links each narration to its text and shows every book it appears in — the narration defining the intellect as <em>that by which the Merciful is worshipped</em> is in both al-Kāfi and Maʿānī al-Akhbār, and you get both.",
+        "<strong>“I couldn't find it” means nothing on the open web.</strong> Against a defined collection it is an answer: not in these 18 books — though never proof that a narration exists nowhere else."
+      ],
+      "source": "From Rewayaat's evaluation in September 2026. What an assistant finds on its own varies by model and by day; the size of a chapter does not."
+    },
     "highlights": [
       "Search the full corpus by field, in Arabic or English, with the true number of matches reported so an answer can be complete rather than partial",
       "Read a whole chapter in order, with its real size — the difference between \"these appear to be the main narrations\" and all seven of them",

@@ -1,0 +1,94 @@
+<title>Connector Comparison</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&family=Source+Serif+4:opsz,wght@8..60,600&display=block" rel="stylesheet">
+<!--
+  Every number here comes from Rewayaat's September 2026 evaluation (issue #66) and was
+  re-checked against the corpus before use: the chapter holds 7 narrations (#191-#197) and
+  get_chapter reports it complete; Thawab al-A'mal #1004 exists and fetches. Do not add a
+  claim to this image that has not been checked the same way.
+-->
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0a1426}
+#card{width:800px;position:relative;overflow:hidden;font-family:Inter,system-ui,sans-serif;color:#fff;padding:30px 34px 18px;
+  background:radial-gradient(700px 420px at 78% 26%,#1d3a66 0%,#10233f 55%,#0b1a30 100%)}
+.pat{position:absolute;inset:0;opacity:.06;background-image:radial-gradient(circle at 1px 1px,#f3e5b8 1px,transparent 1.4px);background-size:22px 22px}
+.kicker{font-size:11.5px;font-weight:700;letter-spacing:.18em;color:#c8a23d;text-transform:uppercase}
+h1{font-family:"Source Serif 4",serif;font-size:30px;font-weight:600;margin:8px 0 6px;letter-spacing:-.01em}
+.src{font-size:13.5px;color:#a9b8d0}
+.src b{color:#dfe6f2;font-weight:600}
+.cols{position:relative;display:grid;grid-template-columns:46fr 54fr;gap:16px;margin-top:22px}
+section{border-radius:16px;padding:18px 20px 16px}
+.alone{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12)}
+.conn{background:linear-gradient(180deg,rgba(200,162,61,.17),rgba(200,162,61,.05));border:1.5px solid rgba(200,162,61,.7)}
+h2{margin:0 0 14px;font-size:15px;font-weight:700}
+.alone h2{color:#c9d3e3}
+.conn h2{color:#f3e5b8}
+.lbl{font-size:12.5px;color:#a9b8d0;margin-bottom:6px}
+.row{display:flex;align-items:center;gap:12px;margin-bottom:13px}
+.slots{display:flex;gap:6px;flex:1}
+.s{width:22px;height:22px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:11px;font-weight:700}
+.s.f{background:#8fa0ba}
+.s.m{border:1.5px dashed rgba(255,255,255,.3);color:rgba(255,255,255,.35)}
+.n{font-size:20px;font-weight:800;white-space:nowrap;font-variant-numeric:tabular-nums;color:#dfe6f2}
+.verdict{margin:2px 0 0;font-size:13.5px;font-weight:600;color:#ffb4a8}
+.conn .slots{gap:5px}
+.conn .s{width:30px;height:30px;background:#c8a23d;color:#10233f;font-size:10px;font-weight:800}
+.conn .n{font-size:26px;color:#f3e5b8}
+.tool{font-size:12.5px;color:#e8edf6;line-height:1.5;background:rgba(10,20,38,.5);border-radius:10px;padding:9px 11px;border:1px solid rgba(200,162,61,.3)}
+.tool code{font-family:"JetBrains Mono",monospace;color:#f3e5b8;font-size:12px}
+.conn .verdict{color:#9fe0b4;margin-top:11px}
+.strip{position:relative;margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-radius:12px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);font-size:13.5px}
+.strip .muted{color:#a9b8d0}
+.pill{display:inline-flex;padding:5px 11px;border-radius:999px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.pill.x{background:rgba(255,120,100,.14);color:#ffb4a8}
+.pill.ok{background:rgba(120,220,160,.14);color:#9fe0b4;margin-left:6px}
+footer{position:relative;margin-top:16px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;font-size:11px;color:#8595ae;line-height:1.45}
+footer .url{font-family:"JetBrains Mono",monospace;color:#c8a23d;font-size:11.5px;white-space:nowrap}
+</style>
+
+<div id="card">
+  <div class="pat"></div>
+  <div class="kicker">Same question, two answers</div>
+  <h1>Find every narration in one chapter</h1>
+  <div class="src"><b>Kāmil al-Ziyārāt</b> · Crying of the Entire Creation of Allāh on Ḥusain (a.s.)</div>
+
+  <div class="cols">
+    <section class="alone">
+      <h2>The assistant on its own</h2>
+      <div class="lbl">From memory</div>
+      <div class="row">
+        <div class="slots"><i class="s f"></i><i class="s f"></i><i class="s m"></i><i class="s m"></i><i class="s m"></i><i class="s m"></i><i class="s m"></i></div>
+        <div class="n">2 of 7</div>
+      </div>
+      <div class="lbl">With web search</div>
+      <div class="row">
+        <div class="slots"><i class="s f"></i><i class="s f"></i><i class="s f"></i><i class="s f"></i><i class="s f"></i><i class="s m">?</i><i class="s m">?</i></div>
+        <div class="n">5 of 7</div>
+      </div>
+      <p class="verdict">Nothing said two were missing.</p>
+    </section>
+
+    <section class="conn">
+      <h2>With the Hadith connector</h2>
+      <div class="row">
+        <div class="slots"><i class="s">191</i><i class="s">192</i><i class="s">193</i><i class="s">194</i><i class="s">195</i><i class="s">196</i><i class="s">197</i></div>
+        <div class="n">7 of 7</div>
+      </div>
+      <div class="tool"><code>chapter_size: 7</code><br>“Complete: all 7 narrations in this chapter are shown.”</div>
+      <p class="verdict">Each one linked to its full text.</p>
+    </section>
+  </div>
+
+  <div class="strip">
+    <div><b>A lesser-known narration</b> <span class="muted">· Thawāb al-Aʿmāl #1004</span></div>
+    <div><span class="pill x">Web search: not found</span><span class="pill ok">Connector: found</span></div>
+  </div>
+
+  <footer>
+    <span style="max-width:520px">Rewayaat's evaluation, September 2026. What an assistant finds on its own varies by model and by day; the size of the chapter does not.</span>
+    <span class="url">hadith.academyofislam.com</span>
+  </footer>
+</div>
