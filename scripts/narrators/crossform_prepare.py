@@ -215,6 +215,10 @@ def build_attach_tasks(people, record_path, counts):
             continue
         scored = {}
         for form in name_forms(person):
+            # The per-form pass's cap applies here too: `احمد بن محمد` is carried by over a
+            # hundred main-entry people, and a shared kunyah among them is chance.
+            if len(owners.get(form, ())) > MAX_OWNERS:
+                continue
             for mid in owners.get(form, ()):
                 their_kunyahs, their_titles = marks(by_id[mid])
                 if kunyahs and their_kunyahs and not kunyahs & their_kunyahs:
