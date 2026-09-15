@@ -1,3 +1,9 @@
 {
-  "active": false
+  "id": "mcp-connector-2026-09",
+  "active": true,
+  "icon": "fa-plug",
+  "label": "New for researchers:",
+  "text": "search all 32,519 narrations from inside Claude and ChatGPT, with every source linked.",
+  "linkText": "See how",
+  "linkUrl": "/updates.html#connector"
 }

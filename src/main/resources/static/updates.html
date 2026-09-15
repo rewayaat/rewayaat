@@ -51,6 +51,33 @@
            fill this column becomes taller than the screen on a phone. */
         .update-entry__video { margin-top: 1rem; max-width: 520px; width: 100%; border-radius: 10px; overflow: hidden; border: 1px solid rgba(26,58,107,0.16); background: #0b1728; box-shadow: 0 2px 10px rgba(11,23,40,0.10); }
         .update-entry__video iframe { display: block; width: 100%; height: 100%; border: 0; }
+        @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+        .update-entry__cta { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0.9rem 0 0.2rem; }
+        .update-entry__cta a { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.55rem 1.05rem; border-radius: 999px; font-size: 0.9rem; font-weight: 600; text-decoration: none; background: #0b1728; color: #fff; border: 1px solid #0b1728; box-shadow: 0 2px 8px rgba(11,23,40,0.14); }
+        .update-entry__cta a:hover { background: #1a3a6b; border-color: #1a3a6b; color: #fff; }
+        .update-entry__cta a i { color: #d5aa4d; }
+        .update-entry__why { margin: 1.1rem 0 1.2rem; }
+        .why__title { font-family: 'Source Serif 4', serif; font-size: 1.1rem; font-weight: 600; color: #0b1728; margin: 0 0 0.65rem; }
+        .why__intro { font-size: 0.92rem; color: #3a4a5c; line-height: 1.6; margin: 0 0 0.9rem; }
+        .why__image { display: block; width: 100%; height: auto; border-radius: 10px; box-shadow: 0 2px 12px rgba(11,23,40,0.14); margin-bottom: 0.9rem; }
+        .why__points { padding-left: 1.1rem; margin: 0; }
+        .why__points li { font-size: 0.9rem; color: #3a4a5c; line-height: 1.55; padding: 0.25rem 0; }
+        .why__points strong { color: #0b1728; }
+        .why__source { font-size: 0.78rem; color: #6a7a8a; margin: 0.55rem 0 0; font-style: italic; }
+        .update-entry__guides { margin-top: 1.1rem; }
+        /* Clear the sticky nav when arriving on #connector or one of its guides. */
+        .update-entry, .guide { scroll-margin-top: 5rem; }
+        .connector-url { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem 0.75rem; padding: 0.65rem 0.8rem; border: 1px solid rgba(26,58,107,0.16); border-radius: 10px; background: #fff; }
+        .connector-url__label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #5a6a7a; }
+        .connector-url code { flex: 1 1 14rem; font-size: 0.88rem; color: #0b1728; word-break: break-all; }
+        .connector-url__copy { border: 1px solid rgba(26,58,107,0.25); background: #f6f8fc; color: #1a3a6b; font-size: 0.8rem; font-weight: 600; border-radius: 7px; padding: 0.3rem 0.75rem; }
+        .connector-url__copy:hover { background: #eaf0fa; }
+        .guide { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid rgba(26,58,107,0.10); }
+        .guide__title { font-family: 'Source Serif 4', serif; font-size: 1.1rem; font-weight: 600; color: #0b1728; margin: 0 0 0.5rem; }
+        .guide__steps { padding-left: 1.25rem; margin: 0 0 0.5rem; }
+        .guide__steps li { font-size: 0.9rem; color: #3a4a5c; line-height: 1.55; padding: 0.15rem 0; }
+        .guide__note { font-size: 0.82rem; color: #5a6a7a; margin: 0 0 0.85rem; }
+        .guide__video { display: block; width: 100%; height: auto; border-radius: 10px; border: 1px solid rgba(26,58,107,0.16); background: #0b1728; box-shadow: 0 2px 10px rgba(11,23,40,0.10); }
         .updates-back { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; color: #3a5a8a; text-decoration: none; margin-bottom: 2rem; }
         .updates-back:hover { color: #0b1728; text-decoration: underline; }
     </style>
@@ -105,6 +132,9 @@ fetch('/recent_updates.json')
         updates.forEach(function(u) {
             var entry = document.createElement('div');
             entry.className = 'update-entry';
+            if (u.id) {
+                entry.id = u.id;
+            }
             var dateStr = new Date(u.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
             var highlights = '';
             if (u.highlights && u.highlights.length) {
@@ -131,15 +161,166 @@ fetch('/recent_updates.json')
                 '<div class="update-entry__date">' + dateStr + '</div>' +
                 '<div class="update-entry__title">' + u.title + '</div>' +
                 '<div class="update-entry__summary">' + u.summary + '</div>' +
+                ctaHtml(u) +
+                whyHtml(u) +
                 highlights +
+                guidesHtml(u) +
                 video;
             container.appendChild(entry);
+            entry.querySelectorAll('.guide__video, .why__video').forEach(playWhileVisible);
             if (u.video) {
                 loopWhileIgnored(entry.querySelector('.update-entry__video iframe'), src,
                     u.videoSeconds);
             }
         });
+        // The timeline is built after load, so by the time an entry exists the browser has
+        // already given up on the #fragment that pointed at it. Finish the job it started.
+        if (location.hash) {
+            var target = document.getElementById(location.hash.slice(1));
+            if (target) {
+                target.scrollIntoView();
+            }
+        }
     });
+
+/*
+ * One button per setup guide, straight under the summary: someone who has already decided
+ * should not have to scroll past the argument to reach the instructions. Built from the
+ * guides themselves, so a third client is a JSON edit, not a markup change.
+ */
+function ctaHtml(u) {
+    var linked = (u.guides || []).filter(function (g) { return g.id; });
+    if (!linked.length) {
+        return '';
+    }
+    return '<div class="update-entry__cta">' + linked.map(function (g) {
+        return '<a href="#' + g.id + '"><i class="fa fa-plug" aria-hidden="true"></i>' +
+            g.name + '</a>';
+    }).join('') + '</div>';
+}
+
+/*
+ * The case for what an entry ships, made with measurements rather than adjectives: a
+ * comparison image and the points behind it. Each point should be something that was
+ * checked against the corpus, and the source line says when it was measured - a claim
+ * about what an assistant does on its own goes stale as the assistants change.
+ */
+function whyHtml(u) {
+    var w = u.why;
+    if (!w) {
+        return '';
+    }
+    return '<div class="update-entry__why">' +
+        (w.title ? '<h2 class="why__title">' + w.title + '</h2>' : '') +
+        (w.intro ? '<p class="why__intro">' + w.intro + '</p>' : '') +
+        (w.video
+            // Same treatment as the setup walkthroughs: a looping file from the CDN that plays
+            // only while on screen, with a poster chosen to make the point on its own.
+            ? '<video class="why__image why__video" src="' + w.video + '"' +
+              (w.poster ? ' poster="' + w.poster + '"' : '') +
+              (w.videoAspect ? ' style="aspect-ratio: ' + w.videoAspect + '"' : '') +
+              ' muted loop playsinline preload="none" aria-label="' + (w.videoAlt || '') + '"></video>'
+            : w.image
+            ? '<img class="why__image" src="' + w.image + '" alt="' + (w.imageAlt || '') + '"' +
+              (w.imageAspect ? ' style="aspect-ratio: ' + w.imageAspect + '"' : '') +
+              ' loading="lazy">'
+            : '') +
+        (w.points && w.points.length
+            ? '<ul class="why__points">' +
+              w.points.map(function (p) { return '<li>' + p + '</li>'; }).join('') +
+              '</ul>'
+            : '') +
+        (w.source ? '<p class="why__source">' + w.source + '</p>' : '') +
+        '</div>';
+}
+
+/*
+ * Setup guides, for an entry that ships something readers install somewhere else - the
+ * connector, today. Written steps come first and the walkthrough second: the steps are what
+ * someone follows, and the loop is there to show where each control actually is.
+ */
+function guidesHtml(u) {
+    if (!u.guides || !u.guides.length) {
+        return '';
+    }
+    var url = u.connectorUrl
+        ? '<div class="connector-url"><span class="connector-url__label">Connector URL</span>' +
+          '<code>' + u.connectorUrl + '</code>' +
+          '<button type="button" class="connector-url__copy" data-copy="' + u.connectorUrl +
+          '">Copy</button></div>'
+        : '';
+    return '<div class="update-entry__guides">' + url + u.guides.map(function (g) {
+        return '<section class="guide"' + (g.id ? ' id="' + g.id + '"' : '') + '>' +
+            '<h2 class="guide__title">' + g.name + '</h2>' +
+            '<ol class="guide__steps">' +
+            g.steps.map(function (s) { return '<li>' + s + '</li>'; }).join('') +
+            '</ol>' +
+            (g.note ? '<p class="guide__note">' + g.note + '</p>' : '') +
+            (g.video
+                ? '<video class="guide__video" src="' + g.video + '"' +
+                  (g.poster ? ' poster="' + g.poster + '"' : '') +
+                  ' style="aspect-ratio: ' + (g.videoAspect || '16 / 9') + '"' +
+                  ' muted loop playsinline preload="none"' +
+                  ' aria-label="' + (g.videoTitle || g.name) + '"></video>'
+                : '') +
+            '</section>';
+    }).join('') + '</div>';
+}
+
+/*
+ * Plays a walkthrough only while it is on screen.
+ *
+ * These come from the CDN as plain files rather than through a player, so unlike the Loom
+ * embed below they loop natively - the loop attribute does it, no remounting. What is left
+ * to decide is when to spend the bandwidth: preload="none" fetches nothing until a video
+ * scrolls into view, and pausing it off screen stops two loops decoding under a page nobody
+ * is looking at.
+ *
+ * A reader who asked for reduced motion gets the poster and the controls instead, and so
+ * does a browser that refuses to autoplay - iOS in Low Power Mode rejects play() silently.
+ */
+function playWhileVisible(video) {
+    // The property, not just the attribute: autoplay policy reads the muted state, and an
+    // attribute set through innerHTML is not something to stake that on.
+    video.muted = true;
+    var reduceMotion = window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) {
+        video.controls = true;
+        return;
+    }
+    if (!('IntersectionObserver' in window)) {
+        video.autoplay = true;
+        return;
+    }
+    new IntersectionObserver(function (entries) {
+        if (!entries[0].isIntersecting) {
+            video.pause();
+            return;
+        }
+        var playing = video.play();
+        if (playing && playing.catch) {
+            playing.catch(function () {
+                video.controls = true;
+            });
+        }
+    }, { threshold: 0.4 }).observe(video);
+}
+
+document.addEventListener('click', function (e) {
+    var button = e.target.closest && e.target.closest('.connector-url__copy');
+    // Without the clipboard API (an insecure origin, an old browser) the URL is still on
+    // screen to select by hand, which is all the button saves anyone.
+    if (!button || !navigator.clipboard) {
+        return;
+    }
+    navigator.clipboard.writeText(button.getAttribute('data-copy')).then(function () {
+        button.textContent = 'Copied';
+        setTimeout(function () {
+            button.textContent = 'Copy';
+        }, 1600);
+    });
+});
 
 /*
  * Restarts the demo when it finishes, until somebody actually watches it.

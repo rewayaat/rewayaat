@@ -5,6 +5,7 @@ import io.modelcontextprotocol.server.McpServerFeatures;
 import io.modelcontextprotocol.spec.McpSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -30,6 +31,10 @@ import java.util.Map;
  * the JSON string still arrive. It stays because that behaviour is the SDK's to change and
  * the requirement is ours to meet: a silent upstream change here would uninstall us from
  * ChatGPT, with nothing failing to say so.
+ *
+ * <p>Links in an MCP result are tagged for analytics by {@link ConnectorLinks} on the way
+ * out, before either representation is built, so both carry the same URL. {@link #invoke}
+ * does not tag: the site's chatbot is not connector traffic.
  */
 @Component
 public class McpToolCatalog {
@@ -38,9 +43,12 @@ public class McpToolCatalog {
 
     private final Map<String, McpTool> tools = new LinkedHashMap<>();
     private final ObjectMapper mapper;
+    private final String baseUrl;
 
-    public McpToolCatalog(List<McpTool> tools, ObjectMapper mapper) {
+    public McpToolCatalog(List<McpTool> tools, ObjectMapper mapper,
+                          @Value("${rewayaat.canonical-url:https://hadith.academyofislam.com}") String baseUrl) {
         this.mapper = mapper;
+        this.baseUrl = baseUrl;
         for (McpTool tool : tools) {
             this.tools.put(tool.name(), tool);
         }
@@ -98,14 +106,16 @@ public class McpToolCatalog {
             builder.outputSchema(outputSchema);
         }
         return new McpServerFeatures.SyncToolSpecification(builder.build(),
-                (exchange, request) -> execute(tool, request));
+                (exchange, request) -> execute(tool, request, ConnectorLinks.source(
+                        exchange.getClientInfo() == null ? null : exchange.getClientInfo().name())));
     }
 
-    private McpSchema.CallToolResult execute(McpTool tool, McpSchema.CallToolRequest request) {
+    private McpSchema.CallToolResult execute(McpTool tool, McpSchema.CallToolRequest request,
+                                             String source) {
         try {
-            Map<String, Object> result = tool.call(request.arguments() == null
+            Map<String, Object> result = ConnectorLinks.tag(tool.call(request.arguments() == null
                     ? Map.of()
-                    : request.arguments());
+                    : request.arguments()), baseUrl, source, tool.name());
             return McpSchema.CallToolResult.builder()
                     .structuredContent(result)
                     .addTextContent(mapper.writeValueAsString(result))

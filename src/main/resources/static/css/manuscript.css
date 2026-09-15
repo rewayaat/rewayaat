@@ -221,10 +221,16 @@ a:hover {
     align-items: center;
     justify-content: center;
     gap: 0.75rem;
-    padding: 0.5rem 2.75rem 0.5rem 1rem;
-    background: linear-gradient(90deg, #12294d, #1a3a6b 45%, #12294d);
-    color: #fff;
-    font-size: 0.83rem;
+    padding: 0.35rem 2.5rem 0.35rem 1rem;
+    /* Light gold rather than navy: it sits directly on top of the navy nav, and a second
+       navy strip reads as part of the menu instead of as news. Kept pale, with only a
+       faint top-to-bottom gradient, so it announces without shouting; black text is far
+       past WCAG AAA contrast on every part of it. */
+    background: linear-gradient(180deg, #fcefc3, #f8e3a3);
+    border-bottom: 1px solid #dcb94f;
+    color: #000;
+    font-size: 0.82rem;
+    line-height: 1.4;
     letter-spacing: 0.01em;
     text-align: center;
 }
@@ -233,19 +239,21 @@ a:hover {
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 0.4rem 0.75rem;
+    gap: 0.25rem 0.6rem;
 }
-.site-announcement__icon { color: #d5aa4d; }
-.site-announcement__text { font-weight: 500; }
+.site-announcement__icon { color: #000; }
+.site-announcement__text { font-weight: 400; }
+.site-announcement__label { font-weight: 700; }
 .site-announcement__link {
-    color: #f0d69a;
-    font-weight: 600;
+    color: #000;
+    font-weight: 400;
     text-decoration: underline;
+    text-decoration-thickness: 1px;
     text-underline-offset: 2px;
     white-space: nowrap;
 }
 .site-announcement__link:hover,
-.site-announcement__link:focus { color: #fff; }
+.site-announcement__link:focus { color: #5c4400; }
 .site-announcement__close {
     position: absolute;
     right: 0.5rem;
@@ -253,20 +261,25 @@ a:hover {
     transform: translateY(-50%);
     background: none;
     border: none;
-    color: rgba(255, 255, 255, 0.65);
-    font-size: 1.35rem;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 1.2rem;
     line-height: 1;
     padding: 0 0.4rem;
     cursor: pointer;
 }
 .site-announcement__close:hover,
-.site-announcement__close:focus { color: #fff; }
+.site-announcement__close:focus { color: #000; }
 
 @media (max-width: 575.98px) {
     .site-announcement {
-        font-size: 0.78rem;
-        padding: 0.45rem 2.25rem 0.45rem 0.75rem;
+        font-size: 0.74rem;
+        padding: 0.3rem 2rem 0.3rem 0.75rem;
     }
+    /* One flowing sentence on a phone: as separate flex items the icon, the text and the
+       link each took a row of their own, and the bar grew to a sixth of the screen. */
+    .site-announcement__inner { display: block; }
+    .site-announcement__icon { margin-right: 0.3rem; }
+    .site-announcement__link { margin-left: 0.35rem; }
 }
 
 /* ── Eid al-Ghadeer Banner ────────────────────────────────────────────────── */

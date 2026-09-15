@@ -52,7 +52,15 @@
             inner.appendChild(icon);
         }
 
-        inner.appendChild(element('span', 'site-announcement__text', data.text));
+        // The optional label is the only bold part. It shares the text's span so the two
+        // wrap as one sentence on a phone instead of the label sitting on a line of its own.
+        var text = element('span', 'site-announcement__text');
+        if (data.label) {
+            text.appendChild(element('strong', 'site-announcement__label', data.label));
+            text.appendChild(document.createTextNode(' '));
+        }
+        text.appendChild(document.createTextNode(data.text));
+        inner.appendChild(text);
 
         // Both links are optional, and the video one is expected to arrive after the
         // announcement itself: leaving videoUrl empty simply omits it, so publishing the

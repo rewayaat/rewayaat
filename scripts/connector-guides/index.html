@@ -1,0 +1,769 @@
+<title>Connector Walkthrough</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Scheherazade+New:wght@400;700&display=block" rel="stylesheet">
+<style>
+:root{--navy:#10233f;--gold:#c8a23d;--gold-l:#f3e5b8}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#0a1426;overflow:hidden}
+#stage{position:absolute;left:0;top:0;width:1000px;height:680px;transform-origin:0 0;overflow:hidden;background:#0a1426;
+  font-family:Inter,"Segoe UI",system-ui,sans-serif}
+#stage.measure *{transform:none!important}
+svg.i{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- window + caption band ---------- */
+#win{position:absolute;left:0;top:0;width:1000px;height:616px;overflow:hidden;background:#fff}
+#cam{position:absolute;inset:0;transform-origin:0 0}
+.app{position:absolute;inset:0;overflow:hidden;display:none}
+.app.on{display:block}
+.chrome{height:34px;display:flex;align-items:center;gap:7px;padding:0 14px;border-bottom:1px solid rgba(0,0,0,.08)}
+.chrome i{width:11px;height:11px;border-radius:50%;display:block}
+.chrome i:nth-child(1){background:#ff5f57}.chrome i:nth-child(2){background:#febc2e}.chrome i:nth-child(3){background:#28c840}
+.addr{margin-left:18px;width:340px;height:22px;border-radius:6px;background:rgba(255,255,255,.85);font-size:12px;color:#555;display:flex;align-items:center;gap:6px;padding:0 10px}
+.addr svg{width:11px;height:11px}
+.body{position:absolute;top:34px;left:0;right:0;bottom:0;display:flex}
+.main{position:relative;flex:1}
+.screen{position:absolute;inset:0}
+
+#band{position:absolute;left:0;right:0;top:616px;height:64px;background:var(--navy);border-top:1.5px solid rgba(200,162,61,.6);
+  display:flex;align-items:center;gap:14px;padding:0 18px;color:#fff}
+#band .logo{height:40px}
+.caps{position:relative;flex:1;height:42px}
+.capset{display:none}.capset.on{display:block}
+.cap{position:absolute;left:0;top:0;right:0}
+.cap small{display:block;font-size:11px;font-weight:700;letter-spacing:.15em;color:var(--gold);text-transform:uppercase}
+.cap b{display:block;font-size:17.5px;font-weight:600;margin-top:3px;white-space:nowrap}
+.cap.done small{color:#86d6a1}
+#band code{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--gold-l);padding:7px 11px;border:1px solid rgba(200,162,61,.45);border-radius:8px;white-space:nowrap}
+
+/* ---------- shared widgets ---------- */
+.focusable .caret{display:inline-block;width:2px;height:1.15em;background:currentColor;vertical-align:-.2em;margin-left:1px;opacity:0}
+.ph{opacity:.45}
+.badge{font-size:10px;font-weight:700;letter-spacing:.08em;padding:3px 6px;border-radius:5px}
+.tog{display:block;position:relative;flex:none;width:38px;height:22px;border-radius:11px;background:#d4d1c8;--p:0}
+.tog::before{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--on,#2f7d4a);opacity:var(--p)}
+.tog::after{content:"";position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transform:translateX(calc(var(--p) * 16px))}
+.emb{width:28px;height:28px;border-radius:7px;background:var(--navy);display:grid;place-items:center;flex:none}
+.emb img{height:22px}
+.ar{font-family:"Scheherazade New",serif;direction:rtl;text-align:right;font-size:26px;line-height:1.65;padding:4px 16px 4px 0;border-right:3px solid var(--gold);margin:10px 0}
+.menu{position:absolute;background:#fff;border:1px solid var(--line,#e5e5e5);border-radius:12px;box-shadow:0 12px 32px rgba(0,0,0,.12);padding:5px}
+.mi{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:8px;font-size:14px}
+.mi .r{margin-left:auto;color:var(--mut)}
+.mh{font-size:11px;color:var(--mut);font-weight:600;padding:7px 11px 3px;letter-spacing:.05em}
+.sep{height:1px;background:var(--line,#e5e5e5);margin:4px 6px}
+.overlay{position:absolute;inset:0;background:rgba(31,30,27,.36)}
+.dlg-t{display:flex;align-items:center;gap:9px;font-size:20px;font-weight:600}
+.lbl{font-size:13px;font-weight:600;margin:16px 0 6px}
+.field{height:40px;border:1px solid #d6d1c4;border-radius:9px;background:#fff;padding:0 12px;font-size:14.5px;display:flex;align-items:center;white-space:nowrap;overflow:hidden}
+.btns{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}
+.btn{height:38px;padding:0 16px;border-radius:9px;display:grid;place-items:center;font-size:14px;font-weight:600}
+.ghost{border:1px solid #d6d1c4}
+.row{position:absolute;inset:0;border:1px solid var(--line);border-radius:12px;padding:0 18px;display:flex;align-items:center;gap:12px;background:#fff}
+.row .emb{width:36px;height:36px;border-radius:9px}.row .emb img{height:28px}
+.row b{font-size:15px}.row .sub{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--mut);margin-top:3px}
+.pill-ok{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:13px;color:#2f7d4a;font-weight:600}
+.pill-ok i{width:7px;height:7px;border-radius:50%;background:#2f7d4a;display:block}
+.note{position:absolute;width:220px;padding:12px 15px;border-radius:12px;background:var(--navy);color:#fff;font-size:14.5px;line-height:1.4;font-weight:500;
+  border:1.5px solid var(--gold);box-shadow:0 12px 32px rgba(10,20,38,.35)}
+.note b{color:var(--gold-l)}
+.note::before{content:"";position:absolute;left:-8px;top:18px;width:14px;height:14px;background:var(--navy);border-left:1.5px solid var(--gold);border-bottom:1.5px solid var(--gold);transform:rotate(45deg)}
+.av{width:26px;height:26px;border-radius:50%;color:#fff;display:grid;place-items:center;font-weight:600;font-size:12px;flex:none}
+
+/* ---------- Claude-style UI ---------- */
+#claude{--bg:#faf9f5;--side:#f3f1ea;--ink:#23221e;--mut:#75726a;--line:#e3dfd4;--acc:#c96442;background:var(--bg);color:var(--ink)}
+#claude .chrome{background:#ebe9e2}
+.c-side{width:190px;background:var(--side);border-right:1px solid var(--line);padding:14px 10px;display:flex;flex-direction:column;gap:2px}
+.c-logo{font-family:"Source Serif 4",serif;font-size:21px;font-weight:600;padding:2px 10px 14px}
+.nav{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;font-size:14px;color:#3b3a35}
+#claude .nav.hover{background:#e8e4da}#claude .nav.sel{background:#e3ded2;font-weight:600}
+.c-user{margin-top:auto;display:flex;align-items:center;gap:9px;padding:8px 10px;font-size:13px}
+#claude .av{background:#5a6b8c}
+.c-greet{position:absolute;top:150px;left:0;right:0;text-align:center;font-family:"Source Serif 4",serif;font-size:32px;color:#2b2a26}
+.c-comp{position:absolute;left:115px;width:580px;top:212px;height:104px;background:#fff;border:1px solid #dcd8cd;border-radius:18px;box-shadow:0 4px 16px rgba(60,50,30,.07)}
+.c-comp.focus{border-color:#c9c2b2}
+.ctext{position:absolute;left:18px;top:16px;right:18px;font-size:16px;white-space:nowrap}
+.sq{position:absolute;bottom:10px;width:30px;height:30px;border-radius:9px;display:grid;place-items:center}
+#c-cplus{left:10px;border:1px solid #dcd8cd;color:#55524b}
+#c-cplus.hover{background:#f1eee6}
+#c-send{right:10px;background:#d9a590;color:#fff}
+.c-comp.has #c-send{background:var(--acc)}
+#c-tchip{position:absolute;left:48px;bottom:13px;display:flex;align-items:center;gap:6px;font-size:12.5px;color:#55524b;padding:4px 9px;border-radius:7px;background:#f3f0e8}
+#c-tchip .emb{width:18px;height:18px;border-radius:5px}#c-tchip .emb img{height:14px}
+#claude .mi.hover{background:#f1eee6}
+#c-pm{left:115px;top:324px;width:230px}
+#c-sub{left:351px;top:324px;width:260px}
+#c-conv{position:absolute;top:26px;left:85px;width:640px}
+.c-u{margin-left:auto;width:max-content;max-width:460px;background:#efece3;border-radius:14px;padding:10px 16px;font-size:15px}
+.c-tool{display:inline-flex;align-items:center;gap:8px;margin-top:16px;border:1px solid var(--line);border-radius:9px;padding:7px 12px;font-size:13px;color:var(--mut);background:#fff}
+.c-tool .emb{width:18px;height:18px;border-radius:5px}.c-tool .emb img{height:14px}
+.c-tool code{font-family:"JetBrains Mono",monospace;font-size:12px;color:#4a4842}
+.spin{width:13px;height:13px;border-radius:50%;border:2px solid #d8d3c6;border-top-color:var(--acc)}
+.okc{color:#2f7d4a;display:flex}
+.c-ans{font-family:"Source Serif 4",serif;font-size:16.5px;line-height:1.55;color:#2b2a26;margin-top:12px}
+.c-ans p{margin:0 0 5px}
+.cite{display:inline-flex;align-items:center;gap:7px;font-family:Inter,sans-serif;font-size:13px;color:#8a5a2b;border-bottom:1px solid #e0c9a8;padding-bottom:1px;margin-top:6px}
+.cite svg{width:13px;height:13px}
+.cz{padding:26px 32px}
+.cz h3{margin:0 0 18px;font-family:"Source Serif 4",serif;font-size:26px;font-weight:600}
+.cz-grid{display:flex;gap:28px}
+.cz-nav{width:150px;display:flex;flex-direction:column;gap:2px}
+.cz-panel{position:relative;flex:1}
+.cz-pnl{position:absolute;left:0;right:0;top:0}
+.ph-row{position:relative;display:flex;align-items:flex-start;justify-content:space-between}
+.ph-row b{display:block;font-size:18px;font-weight:600}
+.ph-row span{display:block;font-size:13px;color:var(--mut);margin-top:4px}
+#c-plus{width:34px;height:34px;border-radius:9px;border:1px solid #d6d1c4;display:grid;place-items:center;background:#fff}
+#c-plus.hover{background:#f1eee6}
+.list{position:relative;margin-top:20px;height:72px}
+#c-empty{position:absolute;inset:0;border:1.5px dashed #d6d1c4;border-radius:12px;display:grid;place-items:center;color:var(--mut);font-size:14px}
+.skel{height:56px;border-radius:12px;background:#f1eee6;margin-top:12px}
+#c-dd{right:0;top:44px;width:220px;z-index:3}
+#c-dlg{position:absolute;left:250px;top:60px;width:500px;background:#faf9f5;border-radius:16px;padding:24px;box-shadow:0 30px 80px rgba(0,0,0,.3)}
+#c-dlg .dlg-t{font-family:"Source Serif 4",serif}
+#claude .badge{background:#ece6d8;color:#7a6a4a}
+.dlg-d{font-size:13.5px;color:var(--mut);margin-top:5px}
+#claude .field.focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(201,100,66,.15)}
+#c-adv{display:inline-flex;align-items:center;gap:6px;margin-top:16px;font-size:13.5px;color:var(--mut);padding:4px 6px;margin-left:-6px;border-radius:6px}
+#c-adv.hover{background:#efece3;color:var(--ink)}
+.warn{font-size:12px;color:var(--mut);margin-top:12px}
+#c-add{background:#23221e;color:#fff}#c-add.hover{background:#000}
+#c-callout{left:516px;top:236px}
+
+/* ---------- ChatGPT-style UI ---------- */
+#gpt{--line:#e6e6e6;--mut:#6b6b6b;background:#fff;color:#0d0d0d}
+#gpt .chrome{background:#efefef}
+.g-side{width:200px;background:#f9f9f9;border-right:1px solid #ececec;padding:12px 8px;display:flex;flex-direction:column;gap:2px}
+.g-logo{font-size:16px;font-weight:600;padding:4px 10px 12px}
+#gpt .nav{color:#0d0d0d;font-size:13.5px;padding:8px 10px}
+#gpt .nav.hover{background:#f3f3f3}#gpt .nav.sel{background:#ececec;font-weight:500}
+#g-prof{margin-top:auto;display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:10px;font-size:13px}
+#g-prof.hover{background:#ececec}
+#g-prof small{display:block;font-size:11.5px;color:var(--mut)}
+#gpt .av{background:#7a5af5}
+.g-model{position:absolute;left:16px;top:12px;font-size:16px;font-weight:500;display:flex;align-items:center;gap:5px;color:#303030}
+.g-greet{position:absolute;top:170px;left:0;right:0;text-align:center;font-size:28px;font-weight:500;color:#1f1f1f}
+.g-comp{position:absolute;left:100px;width:600px;top:230px;height:56px;border:1px solid #e2e2e2;border-radius:28px;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.06)}
+.circ{position:absolute;top:10px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center}
+#g-cplus{left:11px;color:#333}#g-cplus.hover{background:#f0f0f0}
+#g-send{right:11px;background:#d7d7d7;color:#fff}.g-comp.has #g-send{background:#0d0d0d}
+.gtext{position:absolute;left:54px;right:56px;top:0;bottom:0;display:flex;align-items:center;gap:9px;font-size:15.5px;white-space:nowrap}
+#g-chip{display:none;align-items:center;gap:6px;padding:4px 9px 4px 5px;border-radius:999px;background:#eef3ff;color:#1f4fbf;font-size:13px;font-weight:600}
+#g-chip.shown{display:inline-flex}
+#g-chip .emb{width:20px;height:20px;border-radius:50%}#g-chip .emb img{height:15px}
+#gpt .mi{font-size:13.5px;padding:8px 11px}
+#gpt .mi.hover{background:#f3f3f3}
+#gpt .badge{background:#f1f1f1;color:#555}
+.dev{background:#fff1d6!important;color:#8a5a00!important}
+#g-pop{left:8px;bottom:62px;width:200px}
+#g-sdlg{position:absolute;left:150px;top:50px;width:700px;height:480px;background:#fff;border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,.3);display:flex;overflow:hidden}
+#g-x{position:absolute;left:12px;top:12px;width:28px;height:28px;border-radius:7px;display:grid;place-items:center;color:#444}
+#g-x.hover{background:#f0f0f0}
+.g-snav{width:180px;padding:50px 8px 8px;border-right:1px solid #efefef;display:flex;flex-direction:column;gap:2px}
+#gpt .g-snav .nav{font-size:13px;padding:7px 10px}
+.g-scont{position:relative;flex:1}
+.gp{position:absolute;inset:0;padding:18px 24px}
+.gp h4{margin:0 0 4px;font-size:16.5px;font-weight:600;padding-bottom:12px;border-bottom:1px solid #efefef;display:flex;align-items:center;gap:7px;height:42px}
+.srow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid #f1f1f1;font-size:13.5px}
+.srow .v{color:var(--mut);display:flex;align-items:center;gap:5px}
+.srow small{display:block;font-size:12px;color:var(--mut);margin-top:3px;line-height:1.4}
+#g-adv{border-radius:9px;padding:12px 9px;margin:0 -9px}
+#g-adv.hover{background:#f6f6f6}
+#g-create{position:absolute;right:24px;top:14px;height:32px;padding:0 14px;border-radius:999px;background:#0d0d0d;color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px}
+#g-create.hover{background:#333}
+#g-dev{--on:#0d0d0d}
+.g-yours{margin-top:18px}
+.g-yours .mh{padding:0 0 7px}
+.g-yours .row{position:relative;inset:auto;height:56px;border-radius:11px;padding:0 14px}
+.g-yours .row .emb{width:32px;height:32px}.g-yours .row .emb img{height:25px}
+#g-form .overlay{background:rgba(0,0,0,.22)}
+#g-fdlg{position:absolute;left:260px;top:24px;width:480px;background:#fff;border-radius:16px;padding:22px;box-shadow:0 30px 80px rgba(0,0,0,.3)}
+#gpt .lbl{margin:12px 0 5px;font-weight:500;font-size:12.5px;color:#333}
+#gpt .field{border-color:#dedede;height:38px;font-size:14px}
+#gpt .field.focus{border-color:#0d0d0d;box-shadow:0 0 0 3px rgba(0,0,0,.06)}
+#g-f-auth{justify-content:space-between}
+#g-f-auth.hover{border-color:#999}
+.gwarn{margin-top:12px;padding:9px 12px;border-radius:9px;background:#fff7e6;border:1px solid #f2d69b;font-size:12px;color:#6a4b00;line-height:1.45}
+.chk{display:flex;align-items:center;gap:9px;margin-top:12px;font-size:13.5px}
+#g-f-trust-box{position:relative;width:18px;height:18px;border-radius:5px;border:1.5px solid #9a9a9a;--p:0;overflow:hidden;flex:none}
+#g-f-trust-box::before{content:"";position:absolute;inset:0;background:#0d0d0d;opacity:var(--p)}
+#g-f-trust-box svg{position:absolute;inset:1px;width:13px;height:13px;color:#fff;stroke-width:3.2}
+#g-f-create{background:#0d0d0d;color:#fff;border-radius:999px}
+#g-f-create.hover{background:#333}
+#gpt .ghost{border-color:#dedede;border-radius:999px}
+#g-callout{left:496px;top:282px}
+#g-pm{left:100px;top:294px;width:250px}
+#g-conv{position:absolute;top:50px;left:100px;width:600px}
+.g-u{margin-left:auto;width:max-content;max-width:440px;background:#f3f3f3;border-radius:20px;padding:10px 16px;font-size:15px}
+.g-tool{display:inline-flex;align-items:center;gap:7px;margin-top:16px;font-size:13px;color:var(--mut)}
+.g-tool code{font-family:"JetBrains Mono",monospace;font-size:12px}
+.g-ans{font-size:15.5px;line-height:1.6;margin-top:10px;color:#1a1a1a}
+.g-ans p{margin:0 0 5px}
+.gcite{display:inline-flex;align-items:center;gap:5px;margin-top:6px;padding:3px 10px;border-radius:999px;background:#f1f1f1;font-size:12px;color:#444;font-weight:500}
+.gcite svg{width:12px;height:12px}
+
+/* ---------- cursor ---------- */
+#cursor{position:absolute;left:0;top:0;width:26px;height:26px;z-index:50;filter:drop-shadow(0 2px 4px rgba(0,0,0,.35))}
+#ripple{position:absolute;left:0;top:0;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;border:2.5px solid var(--gold);z-index:49;opacity:0}
+</style>
+
+<div id="stage">
+  <section id="win"><div id="cam">
+
+    <!-- ---------- Claude ---------- -->
+    <div class="app" id="claude">
+      <div class="chrome"><i></i><i></i><i></i><div class="addr"><i data-i="lock"></i>claude.ai</div></div>
+      <div class="body">
+        <div class="c-side">
+          <div class="c-logo">Claude</div>
+          <div class="nav" id="c-nav-new"><i data-i="plus"></i>New chat</div>
+          <div class="nav"><i data-i="chat"></i>Chats</div>
+          <div class="nav"><i data-i="folder"></i>Projects</div>
+          <div class="nav" id="c-nav-customize"><i data-i="sliders"></i>Customize</div>
+          <div class="c-user"><div class="av">A</div>Your account</div>
+        </div>
+        <div class="main">
+          <div class="screen" id="c-home">
+            <div class="c-greet" id="c-greet">How can I help you today?</div>
+            <div id="c-conv">
+              <div class="c-u" id="c-u">What does al-Kāfi say about patience?</div>
+              <div class="c-tool" id="c-tool">
+                <span id="c-tool-spin" class="spin"></span>
+                <span class="emb"><img src="logo-emblem.png" alt=""></span>Hadith<code>search_hadith</code>
+                <span id="c-tool-ok" class="okc"><i data-i="check"></i></span>
+              </div>
+              <div class="c-ans">
+                <p id="c-a1">Al-Kāfi has a chapter devoted to patience. Abu ʿAbdillah (a.s.) said:</p>
+                <div class="ar" id="c-a2">الصَّبْرُ مِنَ الإيمَانِ بِمَنْزِلَةِ الرَّأْسِ مِنَ الْجَسَدِ</div>
+                <p id="c-a3">“Patience holds the same position in faith as the head does in the body. When the head is lost, the body perishes.”</p>
+                <div id="c-a4" class="cite">Al-Kāfi, vol. 2 · Patience · #245 <i data-i="ext"></i></div>
+              </div>
+            </div>
+            <div class="c-comp focusable" id="c-comp">
+              <div class="ctext" id="c-q"><span class="val"></span><i class="caret"></i><span class="ph">Reply to Claude…</span></div>
+              <div class="sq" id="c-cplus"><i data-i="plus"></i></div>
+              <div id="c-tchip"><span class="emb"><img src="logo-emblem.png" alt=""></span>Hadith</div>
+              <div class="sq" id="c-send"><i data-i="up"></i></div>
+            </div>
+            <div class="menu" id="c-pm">
+              <div class="mi"><i data-i="clip"></i>Add files or photos</div>
+              <div class="mi" id="c-pm-conn"><i data-i="plug"></i>Connectors<span class="r"><i data-i="right"></i></span></div>
+              <div class="mi"><i data-i="search"></i>Research</div>
+            </div>
+            <div class="menu" id="c-sub">
+              <div class="mh">CONNECTORS</div>
+              <div class="mi"><i data-i="globe"></i>Web search<span class="r"><span class="tog" id="c-t-web"></span></span></div>
+              <div class="mi"><span class="emb" style="width:20px;height:20px;border-radius:5px"><img src="logo-emblem.png" style="height:15px" alt=""></span>Hadith<span class="r"><span class="tog" id="c-t-had"></span></span></div>
+              <div class="sep"></div>
+              <div class="mi" style="color:#75726a">Manage connectors</div>
+            </div>
+          </div>
+          <div class="screen cz" id="c-cz">
+            <h3>Customize</h3>
+            <div class="cz-grid">
+              <div class="cz-nav">
+                <div class="nav" id="c-cz-skills"><i data-i="spark"></i>Skills</div>
+                <div class="nav" id="c-cz-conn"><i data-i="plug"></i>Connectors</div>
+              </div>
+              <div class="cz-panel">
+                <div class="cz-pnl" id="c-pnl-skills">
+                  <div class="ph-row"><div><b>Skills</b><span>Reusable instructions Claude can load.</span></div></div>
+                  <div class="skel"></div><div class="skel"></div>
+                </div>
+                <div class="cz-pnl" id="c-pnl-conn">
+                  <div class="ph-row">
+                    <div><b>Connectors</b><span>Give Claude access to your tools and data.</span></div>
+                    <div id="c-plus"><i data-i="plus"></i></div>
+                    <div class="menu" id="c-dd">
+                      <div class="mi"><i data-i="grid"></i>Browse connectors</div>
+                      <div class="mi" id="c-dd-add"><i data-i="plus"></i>Add custom connector</div>
+                    </div>
+                  </div>
+                  <div class="list">
+                    <div id="c-empty">No custom connectors yet</div>
+                    <div class="row" id="c-row">
+                      <span class="emb"><img src="logo-emblem.png" alt=""></span>
+                      <div><b>Hadith</b> <span class="badge" style="margin-left:5px">CUSTOM</span><div class="sub">hadith.academyofislam.com/mcp</div></div>
+                      <div class="pill-ok"><i></i>Connected</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="c-modal" style="position:absolute;inset:0">
+          <div class="overlay"></div>
+          <div id="c-dlg">
+            <div class="dlg-t">Add custom connector <span class="badge">BETA</span></div>
+            <div class="dlg-d">Connect Claude to a remote MCP server.</div>
+            <div class="lbl">Name</div>
+            <div class="field focusable" id="c-f-name"><span class="val"></span><i class="caret"></i><span class="ph">Name</span></div>
+            <div class="lbl">Remote MCP server URL</div>
+            <div class="field focusable" id="c-f-url"><span class="val"></span><i class="caret"></i><span class="ph">https://</span></div>
+            <div id="c-adv">Advanced settings <i data-i="down"></i></div>
+            <div class="warn">Only use connectors from developers you trust.</div>
+            <div class="btns"><div class="btn ghost">Cancel</div><div class="btn" id="c-add">Add</div></div>
+            <div class="note" id="c-callout"><b>Leave this empty.</b><br>The server is public, so there's nothing to sign in to.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------- ChatGPT ---------- -->
+    <div class="app" id="gpt">
+      <div class="chrome"><i></i><i></i><i></i><div class="addr"><i data-i="lock"></i>chatgpt.com</div></div>
+      <div class="body">
+        <div class="g-side">
+          <div class="g-logo">ChatGPT</div>
+          <div class="nav"><i data-i="pen"></i>New chat</div>
+          <div class="nav"><i data-i="search"></i>Search chats</div>
+          <div class="nav"><i data-i="book"></i>Library</div>
+          <div class="nav"><i data-i="grid"></i>Apps</div>
+          <div id="g-prof"><div class="av">A</div><div>Your account<small>Plus</small></div></div>
+        </div>
+        <div class="main">
+          <div class="g-model">ChatGPT <i data-i="down"></i></div>
+          <div class="g-greet" id="g-greet">What can I help with?</div>
+          <div id="g-conv">
+            <div class="g-u" id="g-u">Which book has the hadith about patience and the head?</div>
+            <div class="g-tool" id="g-tool"><span class="emb" style="width:18px;height:18px;border-radius:5px"><img src="logo-emblem.png" style="height:14px" alt=""></span>Called Hadith · <code>search_hadith</code><i data-i="right"></i></div>
+            <div class="g-ans">
+              <p id="g-a1">It's in <b>Al-Kāfi</b>, vol. 2, in the chapter on <i>Patience</i> (#245). Abu ʿAbdillah (a.s.) said:</p>
+              <div class="ar" id="g-a2">الصَّبْرُ مِنَ الإيمَانِ بِمَنْزِلَةِ الرَّأْسِ مِنَ الْجَسَدِ</div>
+              <p id="g-a3">“Patience holds the same position in faith as the head does in the body.”</p>
+              <div id="g-a4" class="gcite">hadith.academyofislam.com <i data-i="ext"></i></div>
+            </div>
+          </div>
+          <div class="g-comp focusable" id="g-comp">
+            <div class="circ" id="g-cplus"><i data-i="plus"></i></div>
+            <div class="gtext" id="g-q">
+              <span id="g-chip"><span class="emb"><img src="logo-emblem.png" alt=""></span>Hadith</span>
+              <span><span class="val"></span><i class="caret"></i><span class="ph">Ask anything</span></span>
+            </div>
+            <div class="circ" id="g-send"><i data-i="up"></i></div>
+          </div>
+          <div class="menu" id="g-pm">
+            <div class="mi"><i data-i="clip"></i>Add photos &amp; files</div>
+            <div class="mi"><i data-i="search"></i>Deep research</div>
+            <div class="mi"><i data-i="globe"></i>Web search</div>
+            <div class="sep"></div>
+            <div class="mh">DEVELOPER MODE</div>
+            <div class="mi" id="g-pm-had"><span class="emb" style="width:20px;height:20px;border-radius:5px"><img src="logo-emblem.png" style="height:15px" alt=""></span>Hadith<span class="badge dev" style="margin-left:auto">DEV</span></div>
+          </div>
+        </div>
+        <div class="menu" id="g-pop">
+          <div class="mi"><i data-i="spark"></i>Upgrade plan</div>
+          <div class="mi"><i data-i="sliders"></i>Personalization</div>
+          <div class="mi" id="g-pop-set"><i data-i="gear"></i>Settings</div>
+          <div class="sep"></div>
+          <div class="mi"><i data-i="help"></i>Help</div>
+          <div class="mi"><i data-i="out"></i>Log out</div>
+        </div>
+        <div id="g-set" style="position:absolute;inset:0">
+          <div class="overlay" style="background:rgba(0,0,0,.35)"></div>
+          <div id="g-sdlg">
+            <div id="g-x"><i data-i="x"></i></div>
+            <div class="g-snav">
+              <div class="nav" id="g-nav-gen"><i data-i="gear"></i>General</div>
+              <div class="nav"><i data-i="bell"></i>Notifications</div>
+              <div class="nav"><i data-i="sliders"></i>Personalization</div>
+              <div class="nav" id="g-nav-apps"><i data-i="grid"></i>Apps</div>
+              <div class="nav"><i data-i="db"></i>Data controls</div>
+              <div class="nav"><i data-i="shield"></i>Security</div>
+              <div class="nav"><i data-i="user"></i>Account</div>
+            </div>
+            <div class="g-scont">
+              <div class="gp" id="g-pg">
+                <h4>General</h4>
+                <div class="srow">Theme<span class="v">System <i data-i="down"></i></span></div>
+                <div class="srow">Accent color<span class="v">Default <i data-i="down"></i></span></div>
+                <div class="srow">Language<span class="v">Auto-detect <i data-i="down"></i></span></div>
+              </div>
+              <div class="gp" id="g-pa">
+                <h4>Apps</h4>
+                <div class="srow">Browse apps<span class="v"><i data-i="right"></i></span></div>
+                <div class="srow" id="g-adv">Advanced settings<span class="v"><i data-i="right"></i></span></div>
+              </div>
+              <div class="gp" id="g-pv">
+                <h4><i data-i="left"></i>Advanced settings</h4>
+                <div id="g-create"><i data-i="plus"></i>Create app</div>
+                <div class="srow">
+                  <div><b style="font-weight:600">Developer mode</b> <span class="badge" style="margin-left:5px">BETA</span><small>Add unverified apps over MCP. Use with care.</small></div>
+                  <span class="tog" id="g-dev"></span>
+                </div>
+                <div class="g-yours" id="g-yours">
+                  <div class="mh">YOUR APPS</div>
+                  <div class="row">
+                    <span class="emb"><img src="logo-emblem.png" alt=""></span>
+                    <div><b>Hadith</b> <span class="badge dev" style="margin-left:5px">DEV</span><div class="sub">hadith.academyofislam.com/mcp</div></div>
+                    <div class="pill-ok"><i></i>Connected</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="g-form" style="position:absolute;inset:0">
+          <div class="overlay"></div>
+          <div id="g-fdlg">
+            <div class="dlg-t">New App <span class="badge">BETA</span></div>
+            <div class="lbl">Name</div>
+            <div class="field focusable" id="g-f-name"><span class="val"></span><i class="caret"></i><span class="ph">Name</span></div>
+            <div class="lbl">Description (optional)</div>
+            <div class="field focusable" id="g-f-desc"><span class="val"></span><i class="caret"></i><span class="ph">What does this app do?</span></div>
+            <div class="lbl">MCP Server URL</div>
+            <div class="field focusable" id="g-f-url"><span class="val"></span><i class="caret"></i><span class="ph">https://example.com/mcp</span></div>
+            <div class="lbl">Authentication</div>
+            <div class="field" id="g-f-auth"><span>No Auth</span><i data-i="down"></i></div>
+            <div class="gwarn">Custom apps are not reviewed by OpenAI. Only connect servers you trust.</div>
+            <div class="chk"><span id="g-f-trust-box"><i data-i="check"></i></span>I trust this app</div>
+            <div class="btns" style="margin-top:14px"><div class="btn ghost">Cancel</div><div class="btn" id="g-f-create">Create</div></div>
+            <div class="note" id="g-callout"><b>No Auth</b> is right — the server is public and read-only.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></section>
+
+  <!-- ---------- caption band ---------- -->
+  <div id="band">
+    <img class="logo" src="logo-emblem.png" alt="">
+    <div class="caps">
+      <div class="capset" id="caps-claude">
+        <div class="cap" id="cc1"><small>Step 1 of 4</small><b>Open Customize → Connectors</b></div>
+        <div class="cap" id="cc2"><small>Step 2 of 4</small><b>Click + → Add custom connector</b></div>
+        <div class="cap" id="cc3"><small>Step 3 of 4</small><b>Name it Hadith and paste the URL</b></div>
+        <div class="cap" id="cc4"><small>Step 4 of 4</small><b>In a chat: + → Connectors → switch Hadith on</b></div>
+        <div class="cap done" id="cc5"><small>Connected</small><b>Claude now answers from the Hadith Database</b></div>
+      </div>
+      <div class="capset" id="caps-gpt">
+        <div class="cap" id="gc1"><small>Step 1 of 3</small><b>Settings → Apps → Advanced → Developer mode</b></div>
+        <div class="cap" id="gc2"><small>Step 2 of 3</small><b>Create app, paste the URL, choose No Auth</b></div>
+        <div class="cap" id="gc3"><small>Step 3 of 3</small><b>In a chat: + → Hadith</b></div>
+        <div class="cap done" id="gc4"><small>Connected</small><b>ChatGPT now answers from the Hadith Database</b></div>
+      </div>
+    </div>
+    <code>https://hadith.academyofislam.com/mcp</code>
+  </div>
+
+  <div id="ripple"></div>
+  <svg id="cursor" viewBox="0 0 24 24"><path d="M4 2.5v17.2l4.4-4.1 3.1 6.7 3.1-1.4-3.1-6.6 6.1-.3z" fill="#fff" stroke="#111" stroke-width="1.3" stroke-linejoin="round"/></svg>
+</div>
+
+<script>
+(() => {
+const URL_ = 'https://hadith.academyofislam.com/mcp';
+const ICONS = {
+  plus:'<path d="M12 5v14M5 12h14"/>', chat:'<path d="M4 5h16v11H9l-5 4z"/>', folder:'<path d="M3 7h6l2 2h10v10H3z"/>',
+  sliders:'<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',
+  search:'<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>', book:'<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/>',
+  grid:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+  gear:'<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
+  bell:'<path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4zM10 21h4"/>', user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>', db:'<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/>',
+  up:'<path d="M12 19V5M6 11l6-6 6 6"/>', right:'<path d="M9 6l6 6-6 6"/>', left:'<path d="M15 6l-6 6 6 6"/>', down:'<path d="M6 9l6 6 6-6"/>',
+  x:'<path d="M6 6l12 12M18 6L6 18"/>', clip:'<path d="M20 12l-8 8a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8"/>',
+  globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18c-3-3-3-15 0-18"/>',
+  plug:'<path d="M9 3v5M15 3v5M7 8h10v4a5 5 0 0 1-10 0zM12 17v4"/>', check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  ext:'<path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/>', pen:'<path d="M4 20h4L19 9l-4-4L4 16z"/>',
+  spark:'<path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/>', help:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01"/>',
+  out:'<path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/>', lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'
+};
+document.querySelectorAll('i[data-i]').forEach(el => {
+  el.outerHTML = `<svg class="i" viewBox="0 0 24 24">${ICONS[el.dataset.i]}</svg>`;
+});
+
+const $ = s => document.querySelector(s);
+const stage = $('#stage');
+const clamp01 = x => Math.max(0, Math.min(1, x));
+const ease = x => x < .5 ? 4*x*x*x : 1 - Math.pow(-2*x + 2, 3) / 2;
+const prog = (t, a, b) => clamp01((t - a) / (b - a));
+const lerp = (a, b, p) => a + (b - a) * p;
+const INF = 1e9;
+
+// Both loops share this frame: the browser window above, the caption band below.
+const WIN = { w: 1000, h: 616 };
+const MID = [WIN.w / 2, WIN.h / 2];
+
+/*
+ * Each walkthrough is a pure function of time, so a frame can be rendered at any t and the
+ * last frame of the loop is the first frame again. Whatever is on screen at the end - the
+ * answer, the slid-down composer, the final caption - is animated back to its opening state
+ * before DURATION; anything hidden by then (dialogs, menus, settings) needs no reset.
+ *
+ *   show:  [selector, in, out, kind, fade]      opacity + entrance motion
+ *   cls:   [selector, class, on, off]           hover / selected / focus states
+ *   type:  [selector, text, start, end, clear]  typed into the element's .val
+ *   tog:   [selector, onAt]                     switches and checkboxes
+ *   slide: [selector, at, px, backAt]           composer drops to the bottom once sent
+ *   moves: [arrive, target, click]              cursor; target is a selector, [selector, ax, ay] or {xy}
+ *   cam:   [time, zoom, focusX, focusY]         camera keyframes in window pixels
+ */
+const TIMELINES = {
+  claude: {
+    app: '#claude', caps: '#caps-claude', D: 23.0, home: [760, 440],
+    show: [
+      ['#c-home', -1, 1.3], ['#c-home', 12.0, INF], ['#c-cz', 1.3, 12.0],
+      ['#c-pnl-skills', -1, 2.2, 'fade', .2], ['#c-pnl-conn', 2.25, INF, 'fade', .2],
+      ['#c-dd', 3.55, 4.4, 'drop', .18],
+      ['#c-modal', 4.45, 10.4], ['#c-dlg', 4.45, 10.4, 'scale', .3],
+      ['#c-callout', 8.6, 10.1, 'left'],
+      ['#c-empty', -1, 10.5], ['#c-row', 10.6, INF, 'up'],
+      ['#c-pm', 12.95, 15.1, 'drop', .18], ['#c-sub', 13.6, 15.1, 'drop', .18],
+      ['#c-tchip', 14.5, 21.9],
+      ['#c-greet', -1, 17.0], ['#c-greet', 22.1, INF, 'fade', .4],
+      ['#c-conv', -1, 21.8, 'fade', .35],
+      ['#c-u', 17.2, INF, 'up'], ['#c-tool', 17.5, INF, 'up'],
+      ['#c-tool-spin', 17.5, 17.9, 'fade', .1], ['#c-tool-ok', 17.95, INF, 'fade', .15],
+      ['#c-a1', 18.0, INF, 'up'], ['#c-a2', 18.25, INF, 'up'], ['#c-a3', 18.5, INF, 'up'], ['#c-a4', 18.75, INF, 'up'],
+      ['#cc1', -1, 2.6, 'up'], ['#cc1', 22.2, INF, 'up'], ['#cc2', 2.6, 4.6, 'up'], ['#cc3', 4.6, 11.0, 'up'],
+      ['#cc4', 11.0, 18.0, 'up'], ['#cc5', 18.0, 22.2, 'up'],
+    ],
+    cls: [
+      ['#c-nav-customize', 'hover', 1.1, 1.25], ['#c-nav-customize', 'sel', 1.25, 11.95], ['#c-nav-new', 'hover', 11.7, 12.0],
+      ['#c-cz-skills', 'sel', -1, 2.2], ['#c-cz-conn', 'hover', 2.0, 2.2], ['#c-cz-conn', 'sel', 2.2, INF],
+      ['#c-plus', 'hover', 3.3, 4.4], ['#c-dd-add', 'hover', 4.1, 4.4],
+      ['#c-f-name', 'focus', 5.3, 6.5], ['#c-f-url', 'focus', 6.5, 10.3],
+      ['#c-adv', 'hover', 8.7, 10.0], ['#c-add', 'hover', 10.1, 10.4],
+      ['#c-cplus', 'hover', 12.7, 15.1], ['#c-pm-conn', 'hover', 13.4, 15.1],
+      ['#c-comp', 'focus', 15.1, 17.0], ['#c-send', 'hover', 16.8, 17.1],
+    ],
+    type: [
+      ['#c-f-name', 'Hadith', 5.45, 6.0], ['#c-f-url', URL_, 6.65, 8.4],
+      ['#c-q', 'What does al-Kāfi say about patience?', 15.25, 16.6, 17.05],
+    ],
+    tog: [['#c-t-web', -1], ['#c-t-had', 14.4]],
+    slide: [['#c-comp', 17.0, 248, 21.9]],
+    moves: [
+      [1.2, '#c-nav-customize', 1], [2.1, '#c-cz-conn', 1], [3.4, '#c-plus', 1], [4.2, '#c-dd-add', 1],
+      [5.2, ['#c-f-name', .12], 1], [6.4, ['#c-f-url', .12], 1], [8.8, '#c-adv', 0], [10.2, '#c-add', 1],
+      [11.8, '#c-nav-new', 1], [12.8, '#c-cplus', 1], [13.5, '#c-pm-conn', 0], [14.3, '#c-t-had', 1],
+      [15.0, ['#c-comp', .5, .3], 1], [16.9, '#c-send', 1], [22.6, { xy: [760, 440] }, 0],
+    ],
+    cam: [
+      [0, 1, ...MID], [2.4, 1, ...MID],
+      [3.0, 1.3, 700, 150], [4.3, 1.3, 700, 150],     // connectors panel and its + menu
+      [4.9, 1.25, 615, 283], [10.3, 1.25, 615, 283],  // add-connector dialog
+      [10.9, 1, ...MID], [12.2, 1, ...MID],
+      [12.8, 1.3, 553, 400], [14.9, 1.3, 553, 400],   // + menu, connector switch
+      [15.4, 1.15, 595, 298], [16.9, 1.15, 595, 298], // typing the question
+      [17.5, 1.2, 595, 220], [21.8, 1.2, 595, 220],   // the answer
+      [22.5, 1, ...MID],
+    ],
+  },
+  chatgpt: {
+    app: '#gpt', caps: '#caps-gpt', D: 24.6, home: [820, 420],
+    show: [
+      ['#g-pop', 1.15, 1.9, 'drop', .18],
+      ['#g-set', 1.95, 14.45], ['#g-sdlg', 1.95, 14.45, 'scale', .3],
+      ['#g-pg', -1, 2.85, 'fade', .2], ['#g-pa', 2.85, 3.75, 'fade', .2], ['#g-pv', 3.75, INF, 'fade', .2],
+      ['#g-create', 4.8, INF, 'scale'],
+      ['#g-form', 6.05, 13.1], ['#g-fdlg', 6.05, 13.1, 'scale', .3],
+      ['#g-callout', 11.4, 12.9, 'left'],
+      ['#g-yours', 13.3, INF, 'up'],
+      ['#g-pm', 15.35, 16.15, 'drop', .18],
+      ['#g-chip', 16.2, 23.5, 'fade', .25],
+      ['#g-greet', -1, 18.5], ['#g-greet', 23.7, INF, 'fade', .4],
+      ['#g-conv', -1, 23.4, 'fade', .35],
+      ['#g-u', 18.7, INF, 'up'], ['#g-tool', 19.05, INF, 'up'],
+      ['#g-a1', 19.4, INF, 'up'], ['#g-a2', 19.65, INF, 'up'], ['#g-a3', 19.9, INF, 'up'], ['#g-a4', 20.15, INF, 'up'],
+      ['#gc1', -1, 5.1, 'up'], ['#gc1', 23.8, INF, 'up'], ['#gc2', 5.1, 13.6, 'up'], ['#gc3', 13.6, 19.4, 'up'],
+      ['#gc4', 19.4, 23.8, 'up'],
+    ],
+    cls: [
+      ['#g-prof', 'hover', 0.9, 1.9], ['#g-pop-set', 'hover', 1.6, 1.9],
+      ['#g-nav-gen', 'sel', -1, 2.8], ['#g-nav-apps', 'hover', 2.6, 2.8], ['#g-nav-apps', 'sel', 2.8, INF],
+      ['#g-adv', 'hover', 3.5, 3.75], ['#g-create', 'hover', 5.7, 6.0],
+      ['#g-f-name', 'focus', 6.8, 7.8], ['#g-f-desc', 'focus', 7.8, 9.3], ['#g-f-url', 'focus', 9.3, 11.4],
+      ['#g-f-auth', 'hover', 11.4, 12.1], ['#g-f-create', 'hover', 12.8, 13.1],
+      ['#g-x', 'hover', 14.2, 14.45], ['#g-cplus', 'hover', 15.1, 16.15], ['#g-pm-had', 'hover', 15.9, 16.15],
+      ['#g-comp', 'focus', 16.2, 18.5], ['#g-send', 'hover', 18.3, 18.6],
+      ['#g-chip', 'shown', 16.2, 23.9],
+    ],
+    type: [
+      ['#g-f-name', 'Hadith', 6.9, 7.4], ['#g-f-desc', 'Search 32,519 Shia narrations', 7.9, 8.9],
+      ['#g-f-url', URL_, 9.4, 11.1],
+      ['#g-q', 'Which book has the hadith about patience and the head?', 16.5, 18.0, 18.55],
+    ],
+    tog: [['#g-dev', 4.6], ['#g-f-trust-box', 12.3]],
+    slide: [['#g-comp', 18.5, 278, 23.5]],
+    moves: [
+      [1.0, '#g-prof', 1], [1.7, '#g-pop-set', 1], [2.7, '#g-nav-apps', 1], [3.6, '#g-adv', 1],
+      [4.5, '#g-dev', 1], [5.8, '#g-create', 1], [6.7, ['#g-f-name', .12], 1], [7.7, ['#g-f-desc', .12], 1],
+      [9.2, ['#g-f-url', .12], 1], [11.5, ['#g-f-auth', .8], 0], [12.2, '#g-f-trust-box', 1], [12.9, '#g-f-create', 1],
+      [14.3, '#g-x', 1], [15.2, '#g-cplus', 1], [16.0, '#g-pm-had', 1], [18.4, '#g-send', 1],
+      [24.2, { xy: [820, 420] }, 0],
+    ],
+    cam: [
+      [0, 1, ...MID], [1.8, 1, ...MID],
+      [2.4, 1.2, 500, 324], [5.4, 1.2, 500, 324],     // settings
+      [6.0, 1.15, 618, 308], [13.1, 1.15, 618, 308],  // new app form
+      [13.7, 1.2, 500, 324], [14.3, 1.2, 500, 324],
+      [15.0, 1.3, 470, 400], [16.2, 1.3, 470, 400],   // + menu
+      [16.7, 1.15, 600, 292], [18.4, 1.15, 600, 292], // typing the question
+      [19.0, 1.2, 600, 234], [23.4, 1.2, 600, 234],   // the answer
+      [24.1, 1, ...MID],
+    ],
+  },
+};
+
+const params = new URLSearchParams(location.search);
+const TL = TIMELINES[params.get('app') === 'chatgpt' ? 'chatgpt' : 'claude'];
+$(TL.app).classList.add('on');
+$(TL.caps).classList.add('on');
+const D = TL.D;
+
+const els = new Map();
+const el = s => { if (!els.has(s)) { const e = $(s); if (!e) throw new Error('missing ' + s); els.set(s, e); } return els.get(s); };
+
+// ---------------- camera ----------------
+function camAt(t) {
+  const K = TL.cam;
+  let k = K.length - 1;
+  for (let i = 0; i < K.length - 1; i++) if (t < K[i + 1][0]) { k = i; break; }
+  const a = K[k], b = K[Math.min(k + 1, K.length - 1)];
+  const p = b === a ? 0 : ease(prog(t, a[0], b[0]));
+  const z = lerp(a[1], b[1], p), fx = lerp(a[2], b[2], p), fy = lerp(a[3], b[3], p);
+  const clampTo = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  return { z, tx: clampTo(MID[0] - fx * z, WIN.w - WIN.w * z, 0), ty: clampTo(MID[1] - fy * z, WIN.h - WIN.h * z, 0) };
+}
+// the window sits at the stage origin, so a zoom-1 point maps straight through the camera
+const viaCam = (cam, x, y) => [x * cam.z + cam.tx, y * cam.z + cam.ty];
+
+// ---------------- cursor path, measured once at zoom 1 ----------------
+let path = [];
+function measure() {
+  stage.classList.add('measure');
+  const sr = stage.getBoundingClientRect(), k = sr.width / 1000;
+  let prev = { t: 0, x: TL.home[0], y: TL.home[1] };
+  path = TL.moves.map(([arrive, target, click]) => {
+    let x, y;
+    if (target.xy) [x, y] = target.xy;
+    else {
+      const [sel, ax = .5, ay = .5] = Array.isArray(target) ? target : [target];
+      const r = el(sel).getBoundingClientRect();
+      x = (r.left - sr.left + r.width * ax) / k; y = (r.top - sr.top + r.height * ay) / k;
+    }
+    const start = Math.max(prev.t + .12, arrive - .85);
+    const m = { start, arrive, x, y, click: click ? arrive + .1 : null, fx: prev.x, fy: prev.y };
+    prev = { t: click ? arrive + .15 : arrive, x, y };
+    return m;
+  });
+  stage.classList.remove('measure');
+}
+function cursorAt(t) {
+  let x = TL.home[0], y = TL.home[1];
+  for (const m of path) {
+    if (t < m.start) break;
+    const p = ease(prog(t, m.start, m.arrive));
+    x = lerp(m.fx, m.x, p); y = lerp(m.fy, m.y, p);
+  }
+  return [x, y];
+}
+
+// ---------------- render ----------------
+function render(t) {
+  const vis = new Map();
+  for (const [sel, a, b, kind = 'fade', d = .25] of TL.show) {
+    const pi = ease(prog(t, a, a + d)), po = ease(prog(t, b, b + d));
+    const op = pi * (1 - po);
+    const cur = vis.get(sel);
+    if (!cur || op > cur.op) {
+      const q = 1 - (t < b ? pi : 1 - po);
+      let tf = '';
+      if (kind === 'up') tf = `translateY(${12 * q}px)`;
+      else if (kind === 'drop') tf = `translateY(${-7 * q}px)`;
+      else if (kind === 'scale') tf = `scale(${.96 + .04 * (1 - q)})`;
+      else if (kind === 'left') tf = `translateX(${-14 * q}px)`;
+      vis.set(sel, { op, tf });
+    }
+  }
+  for (const [sel, { op, tf }] of vis) {
+    const e = el(sel);
+    e.style.opacity = op.toFixed(3);
+    e.style.visibility = op < .002 ? 'hidden' : 'visible';
+    e.style.transform = tf;
+  }
+
+  const want = new Map();
+  for (const [sel, cls, a, b] of TL.cls) {
+    const key = sel + '|' + cls;
+    want.set(key, want.get(key) || (t >= a && t < b));
+  }
+  for (const [key, on] of want) { const [sel, cls] = key.split('|'); el(sel).classList.toggle(cls, on); }
+
+  for (const [sel, text, a, b, clear = INF] of TL.type) {
+    const host = el(sel);
+    const n = t >= clear ? 0 : Math.round(text.length * prog(t, a, b));
+    const val = host.querySelector('.val'), ph = host.querySelector('.ph');
+    const s = text.slice(0, n);
+    if (val.textContent !== s) val.textContent = s;
+    const focused = host.closest('.focusable').classList.contains('focus');
+    ph.style.display = n || focused ? 'none' : '';
+    const comp = host.closest('.c-comp, .g-comp');
+    if (comp) comp.classList.toggle('has', n > 0);
+    const typing = t >= a && t <= b + .15;
+    host.querySelector('.caret').style.opacity = focused && (typing || Math.floor(t * 1.8) % 2 === 0) ? 1 : 0;
+  }
+
+  for (const [sel, on] of TL.tog) el(sel).style.setProperty('--p', ease(prog(t, on, on + .22)).toFixed(3));
+  for (const [sel, at, px, back] of TL.slide) {
+    const p = ease(prog(t, at, at + .5)) * (1 - ease(prog(t, back, back + .6)));
+    el(sel).style.transform = `translateY(${px * p}px)`;
+  }
+
+  const cam = camAt(t);
+  el('#cam').style.transform = `translate(${cam.tx}px, ${cam.ty}px) scale(${cam.z})`;
+
+  const [x, y] = viaCam(cam, ...cursorAt(t));
+  let press = 1, rip = null;
+  for (const m of path) {
+    if (m.click == null) continue;
+    const dt = t - m.click;
+    if (dt >= 0 && dt < .14) press = .82;
+    if (dt >= 0 && dt < .5) { const [rx, ry] = viaCam(cam, m.x, m.y); rip = { x: rx, y: ry, p: dt / .5 }; }
+  }
+  const cur = el('#cursor');
+  cur.style.transformOrigin = '4.3px 2.7px';
+  cur.style.transform = `translate(${x - 4.3}px, ${y - 2.7}px) scale(${press})`;
+  const r = el('#ripple');
+  if (rip) {
+    r.style.opacity = ((1 - rip.p) * .9).toFixed(3);
+    r.style.transform = `translate(${rip.x}px, ${rip.y}px) scale(${.2 + .6 * ease(rip.p)})`;
+  } else r.style.opacity = 0;
+}
+
+// ---------------- drive ----------------
+function fit() {
+  const k = Math.min(innerWidth / 1000, innerHeight / 680);
+  stage.style.transform = `translate(${(innerWidth - 1000 * k) / 2}px, ${(innerHeight - 680 * k) / 2}px) scale(${k})`;
+}
+const capture = params.has('capture');
+window.DURATION = D;
+window.seek = t => render(((t % D) + D) % D);
+
+const fonts = ['400 16px Inter', '600 16px Inter', '700 16px Inter', '500 16px "JetBrains Mono"',
+  '400 16px "Source Serif 4"', '600 16px "Source Serif 4"', '400 26px "Scheherazade New"'];
+Promise.all([document.fonts.ready, ...fonts.map(f => document.fonts.load(f, 'aبc'))])
+  .then(() => Promise.all([...document.images].map(i => i.complete ? 0 : new Promise(r => { i.onload = i.onerror = r; }))))
+  .then(() => {
+    if (!capture) { fit(); addEventListener('resize', fit); }
+    measure();
+    if (capture) { render(0); window.__ready = true; return; }
+    const fixed = params.get('t');
+    if (fixed != null) { render(+fixed); return; }
+    let t0 = performance.now(), paused = false, pt = 0;
+    addEventListener('keydown', e => {
+      if (e.code !== 'Space') return;
+      paused = !paused;
+      if (!paused) t0 = performance.now() - pt * 1000;
+    });
+    const loop = now => {
+      if (!paused) { pt = ((now - t0) / 1000) % D; render(pt); }
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+  });
+})();
+</script>
