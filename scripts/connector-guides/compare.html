@@ -1,0 +1,372 @@
+<title>Connector Side by Side</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=block" rel="stylesheet">
+<!--
+  The same question asked twice, side by side: the model behind Claude on its own, and with
+  The Hadith Database. Measured on 14 September 2026; re-measure before changing any of it.
+
+  The question, verbatim in both panes: "How many narrations are in the chapter on the rights
+  of the neighbour in al-Kāfi? List them all with their numbers."
+
+  Left pane: the model behind Claude (Opus 5, through the API, not the claude.ai app), with no
+  tools, given only that question and the instruction to answer as in a normal chat without
+  tools. It was asked three separate times; the pane quotes the first run verbatim, with its
+  cuts marked by ellipses. Its closing suggestion to use "your Hadith connector" is left out:
+  the runs could see that the connector exists in the test environment, which a normal user's
+  assistant would not.
+    - All three runs said "about 15"; get_chapter reports 16.
+    - None could number the chapter; the one number offered here, "No. 1" for the Prophet's
+      written pact, is the chapter's second narration, #2299.
+    - This run put "whoever sleeps full while his neighbour is hungry" among narrations that
+      "may be in other chapters"; it is in this chapter, #2311.
+    - The other two runs each listed narrations that are not in the chapter (the Jibraʾīl
+      "made him an heir" narration in both).
+  Right pane: get_chapter("Al-Kāfi", "Rights of Neighbors", volume 2) -> chapter_size 16,
+  complete, #2298-#2313. The prose summarises that output; every quotation is verbatim from
+  the returned translations and every grading is al-Majlisī's as returned.
+
+  Rendered frame by frame by render-compare.cjs; the state at DURATION equals the state at 0.
+-->
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#e7e1d4;overflow:hidden}
+#stage{position:absolute;left:0;top:0;width:800px;height:540px;transform-origin:0 0;overflow:hidden;background:#e7e1d4;font-family:Inter,system-ui,sans-serif;color:#23221e}
+svg.i{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+.win{position:absolute;top:12px;width:382px;height:466px;border-radius:14px;overflow:hidden;background:#faf9f5;border:1px solid #d9d2c2;
+  box-shadow:0 1px 2px rgba(16,35,63,.06),0 12px 30px rgba(16,35,63,.12)}
+#wa{left:12px}#wb{left:406px}
+.bar{height:30px;display:flex;align-items:center;gap:8px;padding:0 12px;background:#efece4;border-bottom:1px solid #e3ddd0;font-size:12.5px;font-weight:600;color:#3b3a35}
+.dots{display:flex;gap:5px}.dots i{display:block;width:9px;height:9px;border-radius:50%;background:#d6cfbf}
+.pill{margin-left:auto;font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;background:#fff;border:1px solid #e0dacd;color:#6b6860}
+#wb .pill{background:#fcf1d0;border-color:#ebd185;color:#6e5200;display:flex;align-items:center;gap:5px}
+.emb{display:grid;place-items:center;width:16px;height:16px;border-radius:4px;background:#10233f;flex:none}
+.emb img{height:12px}
+
+.chat{position:absolute;top:30px;left:0;right:0;bottom:0}
+.greet{position:absolute;top:150px;left:0;right:0;text-align:center;font-family:"Source Serif 4",serif;font-size:24px;color:#2b2a26}
+.msgs{position:absolute;top:10px;left:14px;right:14px;bottom:62px;overflow:hidden}
+/* the bottom padding is room for a callout pinned under the last block */
+.scroller{position:relative;padding-bottom:48px}
+.user{margin-left:auto;width:max-content;max-width:300px;background:#efece3;border-radius:14px;padding:7px 12px;font-size:13px;line-height:1.35}
+.who{display:flex;align-items:center;gap:6px;margin:11px 0 5px;font-size:11.5px;font-weight:600;color:#75726a}
+.who i{display:block;width:12px;height:12px;border-radius:50%;background:#c96442}
+.dotsx{display:flex;gap:4px;margin:4px 0}.dotsx i{display:block;width:6px;height:6px;border-radius:50%;background:#b9b3a6}
+.reply p{margin:0 0 7px;font-family:"Source Serif 4",serif;font-size:14px;line-height:1.43;color:#2b2a26}
+.reply p.sub{font-family:Inter,sans-serif;font-size:12.5px;font-weight:600;color:#3b3a35;margin:9px 0 4px}
+.reply ul{margin:0;padding-left:16px}
+.reply li{font-family:"Source Serif 4",serif;font-size:13.5px;line-height:1.42;margin-bottom:6px;color:#2b2a26}
+.tool{display:inline-flex;align-items:center;gap:7px;margin-top:10px;font-size:12px;color:#55524b;background:#fff;border:1px solid #e3dfd4;border-radius:9px;padding:5px 10px}
+.tool code{font-family:"JetBrains Mono",monospace;font-size:11px;color:#6e5200}
+.spin{width:11px;height:11px;border-radius:50%;border:2px solid #e3dccb;border-top-color:#c8a23d}
+.okc{display:flex;align-items:center;gap:4px;font-weight:700;color:#2f7a4c}
+.rowx{border:1px solid #efe6cf;background:#fffdf7;border-radius:9px;padding:6px 9px;margin-top:6px}
+.rowx .h{display:flex;align-items:center;gap:7px;font-size:11px;color:#6b7280}
+.num{font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:600;color:#10233f;background:#f3dfa0;border-radius:5px;padding:1px 5px}
+.rowx .h b{color:#3d4556;font-weight:600}
+.rowx .src{margin-left:auto;color:#1a56b0;text-decoration:underline;text-underline-offset:2px}
+.rowx p{margin:3px 0 0;font-family:"Source Serif 4",serif;font-size:13.5px;line-height:1.35}
+.more{margin-top:7px;font-size:12.5px;color:#55524b;font-weight:500}
+
+.comp{position:absolute;left:12px;right:12px;bottom:12px;height:44px;background:#fff;border:1px solid #dcd8cd;border-radius:14px;display:flex;align-items:center;gap:8px;padding:0 8px 0 13px;font-size:13.5px}
+.comp .ph{color:#a29d93}
+.comp .caret{display:inline-block;width:1.5px;height:16px;background:#23221e;vertical-align:-3px;margin-left:1px}
+.comp .send{margin-left:auto;width:28px;height:28px;border-radius:8px;background:#e3c3b4;color:#fff;display:grid;place-items:center;flex:none}
+.comp.has .send{background:#c96442}
+.comp .chip{display:none;align-items:center;gap:5px;font-size:11.5px;color:#6e5200;background:#fcf1d0;border:1px solid #ebd185;border-radius:7px;padding:2px 7px;flex:none}
+#wb .comp .chip{display:inline-flex}
+
+/* highlights: --p is driven per frame so the fade is deterministic */
+.hl{--p:0;border-radius:4px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.hl.bad{box-shadow:0 0 0 2px rgba(206,62,48,var(--p));background:rgba(206,62,48,calc(var(--p) * .13))}
+.hl.good{box-shadow:0 0 0 2px rgba(40,122,70,var(--p));background:rgba(40,122,70,calc(var(--p) * .11))}
+.call{position:absolute;right:0;z-index:5;padding:5px 11px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap;box-shadow:0 5px 14px rgba(0,0,0,.16);opacity:0}
+.call.bad{background:#ce3e30;color:#fff}.call.good{background:#287a46;color:#fff}
+
+#band{position:absolute;left:0;right:0;top:490px;height:50px;background:#10233f;border-top:1.5px solid rgba(200,162,61,.6);display:flex;align-items:center;gap:12px;padding:0 16px;color:#fff}
+#band > img{height:32px}
+.caps{position:relative;flex:1;height:36px}
+.cap{position:absolute;left:0;right:0;top:0}
+.cap small{display:block;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#c8a23d}
+.cap b{display:block;font-size:15px;font-weight:600;margin-top:2px;white-space:nowrap}
+.cap.bad small{color:#ff9d90}
+#band code{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:#f3e5b8;padding:5px 9px;border:1px solid rgba(200,162,61,.45);border-radius:7px;white-space:nowrap}
+</style>
+
+<div id="stage">
+  <!-- ================= left: on its own ================= -->
+  <div class="win" id="wa">
+    <div class="bar"><span class="dots"><i></i><i></i><i></i></span>Claude<span class="pill">On its own</span></div>
+    <div class="chat">
+      <div class="greet" id="a-greet">How can I help you today?</div>
+      <div class="msgs"><div class="scroller" id="a-scroll">
+        <div class="user" id="a-user">How many narrations are in the chapter on the rights of the neighbour in al-Kāfi? List them all with their numbers.</div>
+        <div class="who" id="a-who"><i></i>Claude</div>
+        <div class="dotsx" id="a-think"><i></i><i></i><i></i></div>
+        <div class="reply" id="a-reply">
+          <p class="stream" id="a-p1">I can't give you a reliable numbered list from memory.</p>
+          <p class="stream" id="a-p2">… I think it has <span class="hl bad" id="a-hl1">about 15 narrations</span>, but I'm not sure of that count.</p>
+          <p class="stream sub" id="a-p3">Narrations I'm fairly confident are in it:</p>
+          <ul>
+            <li class="stream" id="a-li1"><span class="hl bad" id="a-hl2">No. 1:</span> Imam al-Ṣādiq (ع) said he read in the Book of ʿAlī that the Prophet (ص) wrote a document between the Muhājirūn, the Anṣār and the people of Yathrib … the neighbour is like one's own self …</li>
+          </ul>
+          <p class="stream sub" id="a-p4">Narrations that are related but may be in other chapters:</p>
+          <ul>
+            <li class="stream hl bad" id="a-li2">The Prophet's saying that whoever sleeps full while his neighbour is hungry has not believed in him.</li>
+          </ul>
+        </div>
+        <div class="call bad" id="a-c1">The chapter has 16</div>
+        <div class="call bad" id="a-c2">It's narration 2 · #2299</div>
+        <div class="call bad" id="a-c3">It is in this chapter · #2311</div>
+      </div></div>
+      <div class="comp" id="a-comp"><span class="txt" id="a-q"><span class="val"></span><i class="caret"></i><span class="ph">Reply to Claude…</span></span><span class="send"><svg class="i" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg></span></div>
+    </div>
+  </div>
+
+  <!-- ================= right: with The Hadith Database ================= -->
+  <div class="win" id="wb">
+    <div class="bar"><span class="dots"><i></i><i></i><i></i></span>Claude<span class="pill"><span class="emb"><img src="logo-emblem.png" alt=""></span>+ The Hadith Database</span></div>
+    <div class="chat">
+      <div class="greet" id="b-greet">How can I help you today?</div>
+      <div class="msgs"><div class="scroller" id="b-scroll">
+        <div class="user" id="b-user">How many narrations are in the chapter on the rights of the neighbour in al-Kāfi? List them all with their numbers.</div>
+        <div class="tool" id="b-tool"><span class="emb"><img src="logo-emblem.png" alt=""></span>Hadith <code>get_chapter</code>
+          <span class="spin" id="b-spin"></span><span class="okc" id="b-ok"><svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>16 of 16</span></div>
+        <div class="who" id="b-who"><i></i>Claude</div>
+        <div class="reply" id="b-reply">
+          <p class="stream" id="b-p1">The chapter holds <span class="hl good" id="b-hl1">16 narrations, #2298–#2313, and this list is complete.</span> Among them:</p>
+          <div class="rowx hl good" id="b-r1"><div class="h"><span class="num">#2299</span><b>ḍaʿīf ʿalā al-mashhūr</b> · al-Majlisī<span class="src">source</span></div><p>“The neighbor is like one's soul that cannot be harmed or made to sin. The respect for the neighbor is like the respect for one's mother.”</p></div>
+          <div class="rowx" id="b-r2"><div class="h"><span class="num">#2307</span><b>ṣaḥīḥ</b> · al-Majlisī<span class="src">source</span></div><p>“Maintaining good neighborly relations develops the country and extends one's lifespan.”</p></div>
+          <div class="rowx hl good" id="b-r3"><div class="h"><span class="num">#2311</span><b>majhūl</b> · al-Majlisī<span class="src">source</span></div><p>“One who spends the night with his stomach full while his neighbor is hungry does not believe in me.”</p></div>
+          <div class="more" id="b-more">+ 13 more, every one in the chapter, each graded and linked</div>
+        </div>
+        <div class="call good" id="b-c1">Counted from the book</div>
+        <div class="call good" id="b-c2">The second narration · #2299</div>
+        <div class="call good" id="b-c3">In this chapter · #2311</div>
+      </div></div>
+      <div class="comp" id="b-comp"><span class="chip"><span class="emb"><img src="logo-emblem.png" alt=""></span>Hadith</span><span class="txt" id="b-q"><span class="val"></span><i class="caret"></i><span class="ph">Reply to Claude…</span></span><span class="send"><svg class="i" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg></span></div>
+    </div>
+  </div>
+
+  <!-- ================= caption band ================= -->
+  <div id="band">
+    <img src="logo-emblem.png" alt="">
+    <div class="caps">
+      <div class="cap" id="c0"><small>Same question, asked twice</small><b>Left: Claude on its own · Right: with The Hadith Database</b></div>
+      <div class="cap" id="c1"><small>Answering</small><b>One answers from memory, the other reads the book</b></div>
+      <div class="cap bad" id="cA"><small>1 · The count</small><b>“About 15”: the chapter has 16</b></div>
+      <div class="cap bad" id="cB"><small>2 · The numbering</small><b>Its “No. 1” is the chapter's second, #2299</b></div>
+      <div class="cap bad" id="cC"><small>3 · The contents</small><b>It doubted one that is in the chapter, #2311</b></div>
+      <div class="cap" id="cD"><small>Asked three times, 14 September 2026</small><b>Every run said “about 15”; none could number them</b></div>
+    </div>
+    <code>hadith.academyofislam.com/mcp</code>
+  </div>
+</div>
+
+<script>
+(() => {
+const $ = s => document.querySelector(s);
+const stage = $('#stage');
+const clamp01 = x => Math.max(0, Math.min(1, x));
+const ease = x => x < .5 ? 4*x*x*x : 1 - Math.pow(-2*x + 2, 3) / 2;
+const prog = (t, a, b) => clamp01((t - a) / (b - a));
+const INF = 1e9;
+const D = 23.0;
+const Q = 'How many narrations are in the chapter on the rights of the neighbour in al-Kāfi? List them all with their numbers.';
+
+// [selector, in, out, kind, fade] — the whole reply winds back out at 21.5 so the loop's
+// last frame is its first: two empty chats with their greetings.
+const SHOW = [
+  ['#a-greet', -1, 2.5], ['#a-greet', 21.9, INF, 'fade', .4],
+  ['#b-greet', -1, 2.5], ['#b-greet', 21.9, INF, 'fade', .4],
+  ['#wa .msgs', -1, 21.5, 'fade', .4], ['#wb .msgs', -1, 21.5, 'fade', .4],
+  ['#a-user', 2.6, INF, 'up'], ['#b-user', 2.6, INF, 'up'],
+  ['#a-who', 2.9, INF], ['#a-think', 2.9, 3.5, 'fade', .15],
+  // list items too, not just their words: a bullet marker would otherwise sit in an empty chat
+  ['#a-li1', 5.15, INF, 'fade', .1], ['#a-li2', 6.55, INF, 'fade', .1],
+  ['#b-tool', 2.9, INF, 'up'], ['#b-spin', 2.9, 3.9, 'fade', .1], ['#b-ok', 3.95, INF, 'fade', .15],
+  ['#b-who', 4.0, INF],
+  ['#b-r1', 5.5, INF, 'up'], ['#b-r2', 5.8, INF, 'up'], ['#b-r3', 6.1, INF, 'up'], ['#b-more', 6.4, INF, 'up'],
+  ['#c0', -1, 2.5, 'up'], ['#c0', 22.2, INF, 'up'],
+  ['#c1', 2.5, 7.8, 'up'], ['#cA', 7.8, 10.8, 'up'], ['#cB', 10.8, 13.8, 'up'], ['#cC', 13.8, 16.8, 'up'], ['#cD', 16.8, 22.2, 'up'],
+];
+// streamed text: [selector, start, end] — words appear in order, layout never moves
+const STREAM = [
+  ['#a-p1', 3.5, 4.1], ['#a-p2', 4.1, 4.9], ['#a-p3', 4.9, 5.2], ['#a-li1', 5.2, 6.2],
+  ['#a-p4', 6.2, 6.6], ['#a-li2', 6.6, 7.4],
+  ['#b-p1', 4.1, 5.3],
+];
+// the three beats: [start, end, left highlight, left callout, right highlight, right callout]
+const BEATS = [
+  [7.8, 10.8, '#a-hl1', '#a-c1', '#b-hl1', '#b-c1'],
+  [10.8, 13.8, '#a-hl2', '#a-c2', '#b-r1', '#b-c2'],
+  [13.8, 16.8, '#a-li2', '#a-c3', '#b-r3', '#b-c3'],
+];
+const TYPE_AT = [0.5, 2.3], SEND_AT = 2.5;
+
+// Each chat scrolls the way a real one does: it follows the answer as it streams, centres
+// whatever a beat is pointing at, rests at the bottom for the hold, and jumps back to the
+// top only once the chat has faded out. Targets are measured once, after the fonts load.
+//   [time, target]  target = 0 | 'bottom:<sel>' | 'center:<sel>'
+const SCROLL = {
+  a: [[0, 0], [4.6, 0], [5.6, 'bottom:#a-li1'], [7.4, 'bottom:#a-li2'],
+      [8.2, 'center:#a-hl1'], [10.8, 'center:#a-hl1'], [11.2, 'center:#a-li1'], [13.8, 'center:#a-li1'],
+      [14.2, 'center:#a-li2'], [16.8, 'center:#a-li2'], [17.4, 'bottom:#a-li2'], [21.95, 'bottom:#a-li2'], [22.0, 0]],
+  b: [[0, 0], [5.4, 0], [6.5, 'bottom:#b-more'],
+      [8.2, 'center:#b-hl1'], [10.8, 'center:#b-hl1'], [11.2, 'center:#b-r1'], [13.8, 'center:#b-r1'],
+      [14.2, 'center:#b-r3'], [16.8, 'center:#b-r3'], [17.4, 'bottom:#b-more'], [21.95, 'bottom:#b-more'], [22.0, 0]],
+};
+
+const els = new Map();
+const el = s => { if (!els.has(s)) { const e = $(s); if (!e) throw new Error('missing ' + s); els.set(s, e); } return els.get(s); };
+
+// Split every streamed element into word spans once, keeping any highlight spans intact.
+function wordify(root) {
+  const words = [];
+  const walk = node => {
+    for (const child of [...node.childNodes]) {
+      if (child.nodeType === 3) {
+        const frag = document.createDocumentFragment();
+        for (const part of child.textContent.split(/(\s+)/)) {
+          if (!part) continue;
+          if (/^\s+$/.test(part)) { frag.appendChild(document.createTextNode(part)); continue; }
+          const w = document.createElement('span');
+          w.textContent = part;
+          words.push(w);
+          frag.appendChild(w);
+        }
+        child.replaceWith(frag);
+      } else if (child.nodeType === 1) walk(child);
+    }
+  };
+  walk(root);
+  return words;
+}
+const streamWords = STREAM.map(([sel]) => wordify(el(sel)));
+
+// The blocks that dim while a beat spotlights one of them.
+const BLOCKS = {
+  a: ['#a-p1', '#a-p2', '#a-p3', '#a-li1', '#a-p4', '#a-li2', '#a-user'],
+  b: ['#b-p1', '#b-r1', '#b-r2', '#b-r3', '#b-more', '#b-user', '#b-tool'],
+};
+const blockOf = sel => ({ '#a-hl1': '#a-p2', '#a-hl2': '#a-li1', '#b-hl1': '#b-p1' }[sel] || sel);
+
+// Resolve scroll targets to pixels. Offsets are relative to the scroller, which is the
+// offsetParent of everything in a chat (inline highlight spans included).
+const scrollKeys = {};
+function measureScroll() {
+  for (const side of ['a', 'b']) {
+    const scroller = el(`#${side}-scroll`), view = scroller.parentElement.clientHeight;
+    const max = Math.max(0, scroller.scrollHeight - view);
+    const clampPx = v => Math.max(0, Math.min(max, v));
+    scrollKeys[side] = SCROLL[side].map(([t, spec]) => {
+      if (spec === 0) return [t, 0];
+      const [how, sel] = spec.split(':');
+      const e = el(sel), top = e.offsetTop, h = e.offsetHeight;
+      // 'center' leaves room below for the callout pinned under the highlight
+      return [t, clampPx(how === 'bottom' ? top + h + 12 - view : top + h / 2 - view * 0.38)];
+    });
+  }
+}
+function scrollAt(keys, t) {
+  let k = keys.length - 1;
+  for (let i = 0; i < keys.length - 1; i++) if (t < keys[i + 1][0]) { k = i; break; }
+  const a = keys[k], b = keys[Math.min(k + 1, keys.length - 1)];
+  return b === a ? a[1] : a[1] + (b[1] - a[1]) * ease(prog(t, a[0], b[0]));
+}
+
+function render(t) {
+  // visibility
+  const vis = new Map();
+  for (const [sel, a, b, kind = 'fade', d = .25] of SHOW) {
+    const pi = ease(prog(t, a, a + d)), po = ease(prog(t, b, b + d));
+    const op = pi * (1 - po);
+    const cur = vis.get(sel);
+    if (!cur || op > cur.op) {
+      const q = 1 - (t < b ? pi : 1 - po);
+      // no transform at rest, so a settled element never becomes its own stacking context
+      vis.set(sel, { op, tf: kind === 'up' && q > .001 ? `translateY(${10 * q}px)` : '' });
+    }
+  }
+  for (const [sel, { op, tf }] of vis) {
+    const e = el(sel);
+    e.style.opacity = op >= .999 ? '' : op.toFixed(3);
+    e.style.visibility = op < .002 ? 'hidden' : 'visible';
+    e.style.transform = tf;
+  }
+
+  // streamed words
+  STREAM.forEach(([, a, b], i) => {
+    const words = streamWords[i], n = Math.round(words.length * prog(t, a, b));
+    words.forEach((w, j) => { w.style.visibility = j < n ? 'visible' : 'hidden'; });
+  });
+
+  // composers: both type the same question, clear on send
+  for (const side of ['a', 'b']) {
+    const host = el(`#${side}-q`), comp = el(`#${side}-comp`);
+    const n = t >= SEND_AT ? 0 : Math.round(Q.length * prog(t, TYPE_AT[0], TYPE_AT[1]));
+    // the composer is one line; show the tail of the question while it is being typed
+    const s = Q.slice(0, n);
+    host.querySelector('.val').textContent = s.length > 34 ? '…' + s.slice(-33) : s;
+    host.querySelector('.ph').style.display = n || (t > TYPE_AT[0] - .2 && t < SEND_AT) ? 'none' : '';
+    host.querySelector('.caret').style.opacity = t > TYPE_AT[0] - .2 && t < SEND_AT ? 1 : 0;
+    comp.classList.toggle('has', n > 0);
+  }
+
+  // beats: spotlight one block per pane, dim the rest, and pin a callout under it
+  const dim = { a: 0, b: 0 }, focus = { a: null, b: null };
+  for (const [sel] of BEATS.flatMap(b => [[b[2]], [b[3]], [b[4]], [b[5]]])) {
+    el(sel).style.setProperty('--p', 0);
+    if (el(sel).classList.contains('call')) el(sel).style.opacity = 0;
+  }
+  for (const [a, b, ahl, acall, bhl, bcall] of BEATS) {
+    const p = ease(prog(t, a, a + .4)) * (1 - ease(prog(t, b - .35, b)));
+    if (p <= 0) continue;
+    for (const [side, hl, call] of [['a', ahl, acall], ['b', bhl, bcall]]) {
+      dim[side] = Math.max(dim[side], p);
+      focus[side] = blockOf(hl);
+      el(hl).style.setProperty('--p', p.toFixed(3));
+      const c = el(call), h = el(hl);
+      c.style.opacity = p.toFixed(3);
+      // From rects, not offsetTop: a dimmed block carries a filter, and a filtered element
+      // becomes the offsetParent of what is inside it, so on the first frame of a beat a
+      // highlight inside a block still dimmed from the last beat would measure from the
+      // wrong box. Rects measure from the scroller whatever the filters are.
+      const scroller = el(`#${side}-scroll`), k = stage.getBoundingClientRect().width / 800;
+      c.style.top = ((h.getBoundingClientRect().bottom - scroller.getBoundingClientRect().top) / k + 5) + 'px';
+      c.style.transform = `translateY(${6 * (1 - p)}px)`;
+    }
+  }
+  for (const side of ['a', 'b']) {
+    el(`#${side}-scroll`).style.transform = `translateY(${-scrollAt(scrollKeys[side], t).toFixed(1)}px)`;
+    for (const sel of BLOCKS[side]) {
+      const faded = sel === focus[side] ? 0 : dim[side];
+      el(sel).style.filter = faded > 0 ? `opacity(${(1 - .72 * faded).toFixed(3)})` : '';
+    }
+  }
+}
+
+function fit() {
+  const k = Math.min(innerWidth / 800, innerHeight / 540);
+  stage.style.transform = `translate(${(innerWidth - 800 * k) / 2}px, ${(innerHeight - 540 * k) / 2}px) scale(${k})`;
+}
+const params = new URLSearchParams(location.search);
+window.DURATION = D;
+window.seek = t => render(((t % D) + D) % D);
+
+Promise.all([document.fonts.ready, ...['400 16px Inter', '600 16px Inter', '400 16px "Source Serif 4"', '500 16px "JetBrains Mono"'].map(f => document.fonts.load(f))])
+  .then(() => Promise.all([...document.images].map(i => i.complete ? 0 : new Promise(r => { i.onload = i.onerror = r; }))))
+  .then(() => {
+    // after the fonts, so the heights the scroll targets are measured from are the final ones
+    measureScroll();
+    if (params.has('capture')) { render(0); window.__ready = true; return; }
+    fit(); addEventListener('resize', fit);
+    if (params.get('t') != null) { render(+params.get('t')); return; }
+    const t0 = performance.now();
+    const loop = now => { render(((now - t0) / 1000) % D); requestAnimationFrame(loop); };
+    requestAnimationFrame(loop);
+  });
+})();
+</script>

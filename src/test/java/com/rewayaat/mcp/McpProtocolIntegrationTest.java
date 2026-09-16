@@ -304,7 +304,12 @@ class McpProtocolIntegrationTest {
 
         assertEquals("Test-Book:1", out.get("id"));
         assertEquals("Test Book #1", out.get("title"));
-        assertTrue(String.valueOf(out.get("url")).endsWith("/hadith/Test-Book:1"));
+        // Tagged on the way out, so a visit the link starts is attributed in GA4. This
+        // handshake's client is "test" - neither Claude nor ChatGPT - hence "other".
+        assertTrue(String.valueOf(out.get("url")).endsWith("/hadith/Test-Book:1"
+                        + "?utm_source=other&utm_medium=ai-connector&utm_campaign=hadith-connector"
+                        + "&utm_content=fetch"),
+                String.valueOf(out.get("url")));
 
         String text = String.valueOf(out.get("text"));
         assertTrue(text.contains("بكت السماء"), "The Arabic matn is the primary text.");
@@ -624,6 +629,27 @@ class McpProtocolIntegrationTest {
         String instructions = String.valueOf(result.get("instructions"));
         assertTrue(instructions.contains("closed corpus"));
         assertTrue(instructions.contains("Cite narrations by the url"));
+    }
+
+    @Test
+    void serverAdvertisesItsTitleAndTheEmblemAsIcons() throws Exception {
+        Map<String, Object> serverInfo = asMap(initialize().get("serverInfo"));
+        assertEquals("rewayaat", serverInfo.get("name"),
+                "The identifier a client may key on stays put.");
+        assertEquals("The Hadith Database", serverInfo.get("title"));
+
+        List<?> icons = (List<?>) serverInfo.get("icons");
+        assertFalse(icons == null || icons.isEmpty(),
+                "Without an icon, a client that shows one falls back to a generic mark.");
+        for (Object item : icons) {
+            Map<?, ?> icon = (Map<?, ?>) item;
+            String src = String.valueOf(icon.get("src"));
+            assertTrue(src.startsWith("http"), src);
+            assertEquals("image/png", icon.get("mimeType"));
+            // The advertised file has to ship with the site, or the client gets a 404 instead.
+            String path = java.net.URI.create(src).getPath();
+            assertNotNull(getClass().getResource("/static" + path), "missing " + path);
+        }
     }
 
     // ---- protocol plumbing ----

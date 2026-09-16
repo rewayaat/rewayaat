@@ -19,8 +19,35 @@ access to hadith. What it provides that a web search does not:
 | Negatives | Cannot distinguish absent from unindexed | Authoritative for these 18 books |
 | Similarity, verse links | Not documents, so nothing indexes them | Returned directly |
 
-The evaluation behind #66 measured web search at **1 of 3** on non-famous content, and found
-that closed-book recall gets the matn right while getting the citation wrong.
+The evaluation behind #66 measured web search at **1 of 3** on non-famous content, and
+closed-book recall at **2 of 7** narrations in the Kāmil al-Ziyārāt chapter that web search
+returned 5 of, with nothing to say what was missing.
+
+It also reported two recall errors that did not survive re-checking, and they are recorded here
+so they are not reused. "The sky wept only for Yaḥyā and al-Ḥusayn" was called absent from the
+corpus and is Kāmil al-Ziyārāt #226 (corrected in the issue). And the ʿaql narration `ما عبد
+به الرحمن واكتسب به الجنان`, said to have been misattributed to al-Kāfi, is in al-Kāfi — vol. 1
+#4 — as well as Maʿānī al-ʾAkhbār #423; a precise search returns both. The recall was right
+both times.
+
+The public comparison on the updates page does not rest on that evaluation. On 14 September
+2026 the model behind Claude (through the API, not the claude.ai app) was asked "How many
+narrations are in the chapter on the rights of the neighbour in al-Kāfi? List them all with
+their numbers." with no tools, three separate times, with nothing but an instruction to answer
+as in a normal chat. Every run hedged honestly and every run said "about 15"; `get_chapter`
+returns 16, complete, with al-Majlisī's gradings. None could number the chapter — the one
+number offered, "No. 1", is its second narration — and each misplaced at least one narration,
+listing one that is not in the chapter or doubting one that is. An earlier run, framed as a
+test with five other questions, answered the same way, and one with web search found the
+chapter on one site, in paraphrase, without confirming the count.
+
+Two things about the method are recorded so they are not overlooked. The runs could see that
+the connector exists in the test environment, and each ended by suggesting it; that sentence is
+left out of anything public. And one set of runs of one model is a sample, not a benchmark.
+
+The page shows this as a looping side-by-side, `scripts/connector-guides/compare.html` rendered
+by `render-compare.cjs` and served from the CDN as `compare-v2.mp4`; its header records every
+measurement and the rule for changing them.
 
 ## Endpoints
 
@@ -33,6 +60,13 @@ Public, `https://hadith.academyofislam.com`, and **unauthenticated** — the cor
 and every tool is read-only, so there is no identity to establish and nothing to authorise.
 Claude's connector guidance is explicit that such a server may skip OAuth, and skipping it
 removes the most common reason an install fails. Abuse control is at the ingress.
+
+The handshake's `serverInfo` keeps the name `rewayaat`, which clients may key on, and adds
+what is meant for people: the title "The Hadith Database", a one-line description, the site as
+`websiteUrl`, and the emblem as `icons` at 64 and 512 px (`/img/connector-icon-*.png`, ordinary
+static files the website serves). A client that displays server icons shows the emblem instead
+of a generic mark. ChatGPT also keeps its own logo per app, set by the owner under Settings →
+Apps → the app's Manage menu; the 64 px icon is under the 5 KB the app directory asks for.
 
 ## Tools
 
@@ -95,12 +129,42 @@ This is not tidiness. **Claude caps a tool result near 150,000 characters** and 
 fifty chapter narrations measured 94,594 characters. Page maxima are set against those
 ceilings, and `total_matches` / `chapter_size` mean a short page is not a lossy one.
 
+## Links carry UTM tags
+
+Every link to this site in an MCP result is tagged on the way out by `ConnectorLinks`, so a
+visit that starts from a connector answer is attributed in GA4 with no GA4 configuration: the
+site's tag already runs on every narration page and reads UTM parameters by itself.
+
+```
+https://hadith.academyofislam.com/hadith/Al-Kafi-Volume-2-Kulayni:245
+  ?utm_source=claude&utm_medium=ai-connector&utm_campaign=hadith-connector&utm_content=search_hadith
+```
+
+- `utm_source` is the client named in the MCP handshake, reduced to `claude`, `chatgpt` or
+  `other` so it stays stable across that client's versions.
+- `utm_content` is the tool whose result carried the link, so the reports show which tools'
+  links people actually follow.
+- Only this site's links are tagged. A tafsīr `source_url` is someone else's page.
+- The site's own chatbot calls `McpToolCatalog.invoke` and is not tagged: it is not
+  connector traffic.
+- A narration page's canonical URL carries no query string, so a tagged link is never indexed
+  as a second page.
+
+In GA4 these land under Reports → Acquisition → Traffic acquisition: filter *Session campaign*
+to `hadith-connector`, then break down by *Session source* and *Session manual ad content*.
+`ai-connector` is not a medium GA4's default channel group recognises, so there the sessions
+count as *Unassigned* unless a custom channel group names it.
+
+The counts are a floor, not a total. A client can shorten or strip a query string when it
+cites a link, and a visit through a link with its tags removed arrives looking like any other.
+
 ## Code
 
 | File | Role |
 |---|---|
 | `mcp/McpServerConfig.java` | Both transports, server instructions, keepalive |
 | `mcp/McpToolCatalog.java` | Adapts tools to MCP; also the entry point for the site's own chatbot |
+| `mcp/ConnectorLinks.java` | Tags this site's links in MCP results with UTM parameters |
 | `mcp/McpTool.java` | What a tool implements |
 | `mcp/NarrationRepository.java` | Elasticsearch reads; search delegates to `QueryStringQueryResult` |
 | `mcp/NarrationView.java` | The shaping contract |
@@ -254,7 +318,9 @@ against memory.
 
 ### Claude
 
-Settings → Connectors → Add custom connector, with the URL `https://hadith.academyofislam.com/mcp`.
+Customize → Connectors → **+** → Add custom connector, with the URL
+`https://hadith.academyofislam.com/mcp`. Claude's help centre moved this out of Settings in
+2026; on Team and Enterprise an owner adds it once under Organization settings → Connectors.
 
 - **Auth is optional.** OAuth client id and secret live under Advanced settings and can be
   left empty, which is what a public read-only server wants.
@@ -286,6 +352,80 @@ Settings → Apps → Advanced settings → Developer mode, then Create app and 
 
 No registration and no JSON-RPC: it calls `McpToolCatalog.invoke(name, arguments)` in-process.
 This is why the tool catalogue is a bean rather than something welded to the transport.
+
+### Setup guides on the updates page
+
+`/updates.html#connector` carries written steps for each client followed by a looping
+walkthrough. The videos are plain MP4s on the `rewayaat-media` Space, served through its CDN
+endpoint (`rewayaat-media.nyc3.cdn.digitaloceanspaces.com`, 7-day edge TTL), not from the pods
+and not through a player. Names carry a version (`claude-v1.mp4`): replacing a video means
+uploading `-v2` and changing the URL in `recent_updates.json`, never overwriting, because the
+edge would keep serving the old bytes for a week.
+
+They are rendered, not recorded: `scripts/connector-guides/` holds the animation page and the
+renderer, so a UI change in either client is a text edit and a re-render rather than a new
+screen capture. The mock-ups follow each client's wording but are not pixel copies.
+
+## Distribution: custom connector or directory listing
+
+A custom connector is what works today, and it is a poor front door for this audience. In
+ChatGPT it needs developer mode — paid plans, web only, behind an "unverified" warning — and in
+Claude it means pasting a URL. Both clients have a directory that removes all of that, and a
+listing is the long-term path; the setup guides stay as the fallback and cover the time a
+review takes.
+
+- **Claude Connectors Directory.** Submitted from the organisation admin portal, so it needs a
+  **Team or Enterprise** organisation — that plan is the price of a listing, not a way to reach
+  users. Requires tool titles and read-only annotations (both already present), a privacy
+  policy URL (`/privacy` exists), documentation, and test instructions; a no-auth server is an
+  accepted authentication mode.
+- **ChatGPT app directory.** Submitted from a verified OpenAI Platform account (individual or
+  organisation), not a ChatGPT workspace. Requires domain verification — served at
+  `/.well-known/openai-apps-challenge` since dc8eec9 — a privacy policy, listing assets and
+  test cases. There is no `/terms` page yet; add one before submitting if the form asks.
+
+Paying for ChatGPT Business or Claude Team to *distribute* the connector does not work:
+workspace connectors reach that workspace's members only.
+
+## Analytics (designed, not built)
+
+The question to answer is whether the connector is used, from which client, for what, and
+whether it finds anything. GA4 is where the website's traffic already lives
+(`G-3HSRTQD7GM`), so connector usage goes to the same property through the **Measurement
+Protocol**: a server-side `POST` to `https://www.google-analytics.com/mp/collect` with the
+measurement id and an API secret created under the web data stream (Admin → Data streams →
+Measurement Protocol API secrets).
+
+| Event | When | Parameters |
+|---|---|---|
+| `mcp_session_start` | `initialize` | `client_name`, `client_version`, `protocol_version` |
+| `mcp_tool_call` | every `tools/call` | `tool`, `client_name`, `outcome`, `result_count`, `total_matches`, `latency_ms`, `book`, `match_mode` |
+
+- **`client_name`** is `exchange.getClientInfo().name()` normalised to `claude`, `chatgpt` or
+  `other`, with the raw value kept in `client_version`'s neighbour only if it proves useful.
+- **`outcome`** is `results`, `empty`, `invalid` (an `IllegalArgumentException`, which the
+  model can retry) or `error`. `empty` is the one worth watching: it is where the corpus boundary
+  or the BM25 wording advice is doing its job, or failing to.
+- **`book` and `match_mode`** are closed vocabularies, so they are safe to send.
+- **No query text.** A free-text query can contain anything a person types, and GA4's terms
+  forbid personal data. If query analysis is wanted later, it belongs in our own logs with a
+  retention limit, not in GA4.
+- **`client_id` is a hash of `exchange.sessionId()`.** The server is unauthenticated and every
+  user of a hosted client arrives from that vendor's egress addresses, so there is no person
+  to identify. GA4 "users" in these reports are MCP sessions, and no `user_id` is ever sent.
+
+The hook is the handler in `McpToolCatalog.specification`, which already receives the
+exchange: time `execute`, classify the result, hand the event to a sender. The site's chatbot
+calls `invoke` and never passes through it, so it stays out of the counts unless it is tagged
+deliberately.
+
+Delivery is off the request path: a bounded queue drained by one background thread, batches
+of up to 25 events (the protocol's limit), a two-second timeout, and events dropped rather
+than retried when GA4 is unreachable. It is disabled unless `GA4_API_SECRET` is set, so the
+build and the tests never talk to Google. On the GA4 side, `tool`, `client_name`, `outcome`,
+`book` and `match_mode` are registered as event-scoped custom dimensions and `latency_ms`,
+`result_count` as custom metrics; the `/debug/mp/collect` endpoint validates payloads before
+anything is switched on.
 
 ## Where this deviates from the spec, deliberately
 

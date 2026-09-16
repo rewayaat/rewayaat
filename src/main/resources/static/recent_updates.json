@@ -1,5 +1,60 @@
 [
   {
+    "id": "connector",
+    "date": "2026-09-13",
+    "title": "Answers You Can Check: The Hadith Database Inside Claude and ChatGPT",
+    "summary": "For students and researchers who need to know where a narration comes from. Connect The Hadith Database and Claude or ChatGPT stops relying on memory and the open web: it searches all 32,519 narrations in 18 books, in Arabic or English, tells you how many it found, and links every narration it quotes to its full text on this site.",
+    "why": {
+      "title": "Why not just ask Claude or ChatGPT?",
+      "intro": "On its own, an assistant has never read these books as books. It answers from memory — an impression of whatever it absorbed in training — or from web search, which finds pages written <em>about</em> the books: encyclopedia entries, fatwa sites, forums, quote collections. Famous narrations are written up many times over; most of the 32,519 are written up thinly or not at all. It sees fragments, so it cannot tell you what it missed, and how good an answer you get depends on what happens to be online. With the connector it reads the books themselves: a complete collection it can search, count and quote.",
+      "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/compare-v2.mp4",
+      "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/compare-v2.jpg",
+      "videoAspect": "1600 / 1080",
+      "videoAlt": "Side by side, the same question is asked of Claude on its own and of Claude with The Hadith Database: how many narrations are in al-Kāfi's chapter on the rights of the neighbour, listed with their numbers. On its own it says it cannot give a reliable numbered list, thinks there are about 15, labels one narration No. 1 when it is the chapter's second, and doubts that another is in the chapter when it is. With the connector it returns all 16, numbered #2298 to #2313, complete, each graded and linked.",
+      "source": "The question was put to the model behind Claude, with no tools, three separate times on 14 September 2026; the video quotes the first answer. Every run said “about 15”, none could number the chapter, and each misplaced at least one narration. What an assistant recalls on its own changes with the model and from one asking to the next; the size of a chapter does not."
+    },
+    "highlights": [
+      "Search the full corpus by field, in Arabic or English, with the true number of matches reported so an answer can be complete rather than partial",
+      "Read a whole chapter in order, with its real size — the difference between \"these appear to be the main narrations\" and all seven of them",
+      "Follow the 47,522 judged similarity links between narrations, each with the reason it was judged similar",
+      "Move in both directions between narrations and the Qur'anic verses connected to them",
+      "Works with Claude and ChatGPT today, and powers the assistant on this site"
+    ],
+    "connectorUrl": "https://hadith.academyofislam.com/mcp",
+    "guides": [
+      {
+        "id": "connector-claude",
+        "name": "Add it to Claude",
+        "steps": [
+          "In claude.ai, open <strong>Customize → Connectors</strong>.",
+          "Click <strong>+</strong>, then <strong>Add custom connector</strong>.",
+          "Name it <strong>Hadith</strong> and paste the connector URL above. Leave <strong>Advanced settings</strong> empty — there is nothing to sign in to.",
+          "In a chat, open <strong>+ → Connectors</strong> and switch <strong>Hadith</strong> on, then ask your question."
+        ],
+        "note": "Works on every Claude plan; the free plan allows one custom connector. On Team and Enterprise, an owner adds it once under Organization settings → Connectors.",
+        "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v1.mp4",
+        "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v1.jpg",
+        "videoTitle": "Adding the Hadith connector in Claude",
+        "videoAspect": "1600 / 1088"
+      },
+      {
+        "id": "connector-chatgpt",
+        "name": "Add it to ChatGPT",
+        "steps": [
+          "In chatgpt.com, open <strong>Settings → Apps → Advanced settings</strong> and turn on <strong>Developer mode</strong>.",
+          "Click <strong>Create app</strong>. Name it <strong>Hadith</strong>, paste the connector URL above, and set <strong>Authentication</strong> to <strong>No Auth</strong>.",
+          "Confirm that you trust the app, then click <strong>Create</strong>.",
+          "In a chat, open <strong>+</strong> and choose <strong>Hadith</strong>, then ask your question."
+        ],
+        "note": "Developer mode is available on the web for Plus, Pro, Business, Enterprise and Edu plans.",
+        "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/chatgpt-v1.mp4",
+        "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/chatgpt-v1.jpg",
+        "videoTitle": "Adding the Hadith connector in ChatGPT",
+        "videoAspect": "1600 / 1088"
+      }
+    ]
+  },
+  {
     "date": "2026-09-09",
     "title": "Share a narration as an image",
     "summary": "Every narration can now be turned into a card you can post or send — Arabic and English together, with the book, chapter and number on it so the source travels with the text.",

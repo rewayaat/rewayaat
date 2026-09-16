@@ -1,0 +1,122 @@
+<title>Connector Comparison</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=block" rel="stylesheet">
+<!--
+  An illustration of two measured runs, drawn as two ordinary chat windows so a reader sees
+  the difference the way they would meet it: same question, one reply from memory, one from
+  the source. It deliberately makes no claim that the unaided model was wrong - it hedged
+  honestly - only that it could not do the research.
+
+  Every claim here was measured on 14 September 2026, and must be re-measured before it is
+  changed:
+    - "On its own" is a fresh Claude run with no tools, given the question verbatim. Its
+      words are quoted verbatim; the rest of its reply (a few narrations from memory) is
+      shown as placeholder lines, not paraphrased.
+    - "With The Hadith Database" is get_chapter("Al-Kāfi", "Rights of Neighbors", volume 2)
+      -> chapter_size 16, complete, #2298-#2313. The three quotations are verbatim from the
+      returned translations; the gradings are Allamah Majlisi's as returned.
+  The earlier version also showed a web-search run and the Āyat al-Kursī links; both were
+  dropped to keep the image to one point.
+-->
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#efe9dc}
+#card{width:800px;position:relative;font-family:Inter,system-ui,sans-serif;color:#1d2330;padding:26px 28px 18px;background:#f4efe4}
+.kicker{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#9a7a1f}
+h1{font-family:"Source Serif 4",serif;font-size:24px;font-weight:600;line-height:1.25;margin:6px 0 0;color:#10233f;letter-spacing:-.01em}
+
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px;align-items:stretch}
+.win{background:#fff;border:1px solid #e3dccd;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;
+  box-shadow:0 1px 2px rgba(16,35,63,.05),0 10px 26px rgba(16,35,63,.08)}
+.bar{display:flex;align-items:center;gap:9px;padding:9px 12px;border-bottom:1px solid #eee8dc;background:#faf8f3;font-size:12px;font-weight:600;color:#3d4556}
+.dots{display:flex;gap:5px}.dots i{display:block;width:9px;height:9px;border-radius:50%;background:#ddd6c7}
+.tag{margin-left:auto;font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:999px;background:#f1eee7;color:#6b7280;border:1px solid #e6e1d6}
+.conn .tag{background:#fcf1d0;color:#6e5200;border-color:#ebd185}
+
+.chat{padding:14px;display:flex;flex-direction:column;gap:11px;flex:1}
+.user{align-self:flex-end;max-width:88%;background:#f0ede6;border-radius:14px 14px 4px 14px;padding:8px 12px;font-size:12.5px;line-height:1.4}
+.who{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:#7c828d;margin-bottom:4px}
+.who i{display:block;width:14px;height:14px;border-radius:50%;background:#e9e3d6}
+.ai{font-size:12.5px;line-height:1.5}
+.ai p{margin:0 0 8px}
+
+.skel{height:7px;border-radius:4px;background:#eeeae1;margin:7px 0}
+.aside{margin-top:10px;font-size:11px;line-height:1.4;color:#7c828d;border-left:2px dashed #d8d1c2;padding:1px 0 1px 8px}
+
+.tool{display:flex;align-items:center;gap:7px;font-size:11px;color:#3d4556;background:#f8f6f1;border:1px solid #e8e2d4;border-radius:9px;padding:6px 9px}
+.tool code{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:#6e5200}
+.tool .ok{margin-left:auto;font-weight:700;color:#2f7a4c;white-space:nowrap}
+
+.nar{border:1px solid #efe6cf;background:#fffdf7;border-radius:9px;padding:7px 9px;margin-top:6px}
+.nar .h{display:flex;align-items:center;gap:7px;font-size:10.5px;color:#6b7280;margin-bottom:3px}
+.num{font-family:"JetBrains Mono",monospace;font-size:10.5px;font-weight:600;color:#10233f;background:#f3dfa0;border-radius:5px;padding:1px 5px}
+.nar .h b{color:#3d4556;font-weight:600}
+.nar .src{margin-left:auto;color:#1a56b0;text-decoration:underline;text-underline-offset:2px}
+.nar p{margin:0;font-family:"Source Serif 4",serif;font-size:13px;line-height:1.38;color:#1d2330}
+.more{margin-top:8px;font-size:11.5px;color:#6b7280}
+
+.diff{margin-top:16px;background:#fff;border:1px solid #e3dccd;border-radius:12px;overflow:hidden;font-size:12px}
+.diff .row{display:grid;grid-template-columns:150px 1fr 1fr}
+.diff .row + .row{border-top:1px solid #efe9dd}
+.diff .row > div{padding:8px 12px;line-height:1.35}
+.diff .head > div{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7c828d;background:#faf8f3}
+.diff .k{font-weight:600;color:#3d4556}
+.diff .a{color:#5b6270}
+.diff .b{color:#10233f;font-weight:600;background:#fffaeb}
+.diff .head .b{background:#fcf1d0;color:#6e5200}
+
+footer{margin-top:13px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;font-size:10.5px;color:#7c828d;line-height:1.45}
+footer span:first-child{max-width:560px}
+footer .url{font-family:"JetBrains Mono",monospace;color:#9a7a1f;font-size:11px;white-space:nowrap}
+</style>
+
+<div id="card">
+  <div class="kicker">Same question, two answers</div>
+  <h1>What does al-Kāfi say about the rights of the neighbour?</h1>
+
+  <div class="cols">
+    <div class="win">
+      <div class="bar"><span class="dots"><i></i><i></i><i></i></span>Claude<span class="tag">On its own</span></div>
+      <div class="chat">
+        <div class="user">What does al-Kāfi say about the rights of the neighbour?</div>
+        <div class="ai">
+          <div class="who"><i></i>Claude</div>
+          <p>I believe it has around 15 narrations, but I'm not certain of the count. I can't reliably reproduce all of them with correct numbers.</p>
+          <div class="skel" style="width:96%"></div>
+          <div class="skel" style="width:88%"></div>
+          <div class="skel" style="width:92%"></div>
+          <div class="skel" style="width:61%"></div>
+          <div class="aside">It goes on to recall a few narrations from memory, without numbers or a way to check them.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="win conn">
+      <div class="bar"><span class="dots"><i></i><i></i><i></i></span>Claude<span class="tag">+ The Hadith Database</span></div>
+      <div class="chat">
+        <div class="user">What does al-Kāfi say about the rights of the neighbour?</div>
+        <div class="tool"><code>get_chapter</code> al-Kāfi · Rights of Neighbors<span class="ok">16 of 16</span></div>
+        <div class="ai">
+          <div class="who"><i></i>Claude</div>
+          <p>The chapter has <b>16 narrations</b> (#2298–#2313). Among them:</p>
+          <div class="nar"><div class="h"><span class="num">#2307</span><b>ṣaḥīḥ</b> · al-Majlisī<span class="src">source</span></div><p>“Maintaining good neighborly relations develops the country and extends one's lifespan.”</p></div>
+          <div class="nar"><div class="h"><span class="num">#2311</span><b>majhūl</b> · al-Majlisī<span class="src">source</span></div><p>“One who spends the night with his stomach full while his neighbor is hungry does not believe in me.”</p></div>
+          <div class="more">+ 14 more, each with Arabic, translation, grading and link.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="diff">
+    <div class="row head"><div></div><div>On its own</div><div class="b">With The Hadith Database</div></div>
+    <div class="row"><div class="k">How many</div><div class="a">“Around 15”, not sure</div><div class="b">16 of 16, confirmed complete</div></div>
+    <div class="row"><div class="k">Which narrations</div><div class="a">A few, recalled from memory</div><div class="b">Every one, quoted from the text</div></div>
+    <div class="row"><div class="k">How to check</div><div class="a">No references to follow</div><div class="b">Number, grading and a link for each</div></div>
+  </div>
+
+  <footer>
+    <span>Drawn from two test runs on 14 September 2026 with the same question. Claude's words and the narrations are quoted verbatim; the rest of each reply is abbreviated.</span>
+    <span class="url">hadith.academyofislam.com</span>
+  </footer>
+</div>
