@@ -4,6 +4,10 @@
     "date": "2026-09-13",
     "title": "Answers You Can Check: The Hadith Database Inside Claude and ChatGPT",
     "summary": "For students and researchers who need to know where a narration comes from. Connect The Hadith Database and Claude or ChatGPT stops relying on memory and the open web: it searches all 32,519 narrations in 18 books, in Arabic or English, tells you how many it found, and links every narration it quotes to its full text on this site.",
+    "previewVideo": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v1.mp4",
+    "previewPoster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v1.jpg",
+    "previewAspect": "1600 / 1088",
+    "videoTitle": "Adding The Hadith Database connector in Claude",
     "why": {
       "title": "Why not just ask Claude or ChatGPT?",
       "intro": "On its own, an assistant has never read these books as books. It answers from memory — an impression of whatever it absorbed in training — or from web search, which finds pages written <em>about</em> the books: encyclopedia entries, fatwa sites, forums, quote collections. Famous narrations are written up many times over; most of the 32,519 are written up thinly or not at all. It sees fragments, so it cannot tell you what it missed, and how good an answer you get depends on what happens to be online. With the connector it reads the books themselves: a complete collection it can search, count and quote.",

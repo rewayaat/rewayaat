@@ -3332,10 +3332,37 @@ function loadRecentUpdates() {
                     link.appendChild(list);
                 }
                 card.appendChild(link);
-                if (update.video) {
-                    // Not autoplayed here. On the updates page the video is the point of
-                    // the visit; on the home page it is one card among a column, and two
-                    // of them starting by themselves would be noise.
+                if (update.previewVideo) {
+                    // A silent loop that runs only while the card is on screen: a preview of
+                    // what the update ships, not a player to operate. The iframe path below
+                    // cannot do this - a cross-origin player will not loop or stay quiet on
+                    // our say-so - which is why a file of our own is what a new entry names.
+                    var preview = document.createElement('div');
+                    // The modifier drops the height cap that exists for the 4:3 recording
+                    // in the older entry; this one is wider than it is tall and would sit
+                    // letterboxed inside it.
+                    preview.className = 'recent-update-video recent-update-video--file';
+                    preview.style.aspectRatio = update.previewAspect || '16 / 9';
+                    var video = document.createElement('video');
+                    video.className = 'recent-update-video__file';
+                    video.src = update.previewVideo;
+                    if (update.previewPoster) {
+                        video.poster = update.previewPoster;
+                    }
+                    // The properties, not just the attributes: autoplay policy reads the
+                    // muted state, and nothing is fetched until the card is scrolled to.
+                    video.muted = true;
+                    video.loop = true;
+                    video.playsInline = true;
+                    video.preload = 'none';
+                    video.setAttribute('aria-label',
+                        update.videoTitle || update.title || 'Preview');
+                    preview.appendChild(video);
+                    card.appendChild(preview);
+                    playPreviewWhileVisible(video);
+                } else if (update.video) {
+                    // The older entries carry a cross-origin player, which cannot be trusted
+                    // to stay silent, so it waits to be pressed.
                     var frame = document.createElement('div');
                     frame.className = 'recent-update-video';
                     frame.style.aspectRatio = update.videoAspect || '16 / 9';
@@ -3354,6 +3381,36 @@ function loadRecentUpdates() {
         .catch(function() {
             container.innerHTML = '<div class="text-muted">Unable to load updates right now.</div>';
         });
+}
+
+/*
+ * Plays a card's preview only while it is on screen, and never for a reader who asked for
+ * reduced motion - they get the poster and the controls instead. So does anyone whose
+ * browser refuses to autoplay: iOS in Low Power Mode rejects play() without a word.
+ */
+function playPreviewWhileVisible(video) {
+    var reduceMotion = window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) {
+        video.controls = true;
+        return;
+    }
+    if (!('IntersectionObserver' in window)) {
+        video.autoplay = true;
+        return;
+    }
+    new IntersectionObserver(function(entries) {
+        if (!entries[0].isIntersecting) {
+            video.pause();
+            return;
+        }
+        var playing = video.play();
+        if (playing && playing.catch) {
+            playing.catch(function() {
+                video.controls = true;
+            });
+        }
+    }, { threshold: 0.4 }).observe(video);
 }
 
 function escapeHtml(value) {
