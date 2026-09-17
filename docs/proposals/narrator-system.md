@@ -102,6 +102,7 @@ Every stage is held to these. Part II shows what happened when they were not in 
 | 2026-09-14 | **Stage 5: the accuracy audit.** Its protocol and gate were committed before any auditor answered. 1,022 items went to blind auditors, whose hidden controls show they can be trusted. People precision is 88.6% against a 95% gate, so the gate is not met. The agents' joins are 98–99% precise, the rules' 89–98%, and Layer 0's page joins 65%. Much splitting remains. The plan returns through stages 2–4. |
 | 2026-09-14 | **Stage 5a, phase A: repair.** All 782 unexamined Khoei and Mamaqani multi-page entries went to agents page by page, and 309 were split. The people holding them were asked again, and 3,301 Layer 1 full-name and low-score Layer 2 joins were put to agents one pair at a time. Of those joins, 396 were broken and 2,376 confirmed. 24,633 people. A fresh sample of people scores 93.4%, so the gate is still not met. The remaining stray entries trace to rule joins the pass had not asked about. |
 | 2026-09-14 | **Stage 5a, phase B: widening.** A second verify pass over the rule joins the re-audit traced broke 133 more. Khoei and Mamaqani profiles were compared with each other, and 2,090 were joined. The attach question was widened to namesakes, and 737 were attached. 22,013 people. The joins brought new verdict and kunyah clashes and 239 places where one agent's join overrides another's separation, so the split pass runs again before the audit. |
+| 2026-09-16 | **Stage 5a ends; the gate is met.** The split pass ran again over the 426 people phase B left flagged and split 158 of them, leaving 22,203 people. A fresh audit at a new seed put 1,009 items to blind auditors, whose hidden controls they again passed. People precision is 98.7% against the 95% gate, and Layer 0's page joins, at 65% in the first audit, now stand at 94%. What the audit now calls worst is the other side of the ledger: 23% of sampled main-entry people still have a double no pass has joined. |
 
 ### What went wrong in June
 
@@ -261,9 +262,9 @@ measured.
 | ✓ 2 | **Fix the name-form defects** in one re-run: case-folded kunyahs, patronymic aliases, nisbahs belonging to other people. | Done 2026-09-14. Verdict clashes 155 → 151, kunyah clashes 317 → 312, invariant violations 69 → 66, no regression on the famous-narrator check; 1405's father and son are two people. Nisbah bleed was measured and left to the agent passes. |
 | ✓ 3 | **Top up Layer 3, then reconcile name forms across people.** First the agent work stage 2 created: 486 name-group tasks covering 1,330 profiles, 484 of them names that are only a kunyah, and 369 pair deferrals no agent has judged. Then the [cross-form pass](#names-as-a-subsystem): every person holding a main-book entry, one task per name form they share, agents partitioning against the quotations. Last, the attach question: Khoei and Mamaqani profiles that hold no main entry, each paired with the main-entry people it may be. | Each of the twelve most-cited narrators is one person. Done 2026-09-14: 25,099 → 23,425 people, and every main-book entry of each of the twelve sits in one person. Ten profiles still bear one of their names: two are different men, five are fused profiles for stage 4, one is a confused heading, and two are places where agents disagree, which go to review. The corpus-wide split estimate moves to the stage 5 audit. Counting name extensions chains through short forms, whereas a sample of people measures the split directly. |
 | ✓ 4 | **Split pass.** Agents review profiles that may fuse several men: the 17 strongest candidates, the people the stage 3 agents flagged as carrying another man's entry, and those with conflicting verdicts or impossible dates. Then come the entries Layer 0 joined across consecutive homonyms, split page by page. | All 17 and every flagged person resolved; the rest reviewed or queued. Done 2026-09-14: 371 people put to agents and 229 split; 127 Layer 0 entries repaired page by page, and the 68 people they belonged to asked again. Result: 23,879 people, verdict clashes 159 → 139, kunyah clashes 308 → 270. Queued: 14 low-confidence splits for review, and 87 single entries that each describe two men, which is an extraction defect for stage 6. |
-| 5 | **Accuracy audit.** A random sample of applied merges, each checked against the sources, gives a measured accuracy with its margin — per rule layer, so the rules' acceptance thresholds are set from data. A random sample of people, each checked for other people who are the same man, measures how much splitting remains. Stage 2 showed an alias match three names deep accepted at a context score of 0. | The gate, fixed before the audit ran: people precision of 95% or better, and the auditors reading at least 90% of each kind of hidden control correctly. People precision is the population-weighted share of sampled people whose every entry is one man. See [the accuracy audit](#the-accuracy-audit). First audit, 2026-09-14: **not met**, at 88.6% with the controls passed. The plan returns through stages 2–4 (below), then a fresh audit. |
-| 5a | **Return through stages 2–4, on the audit's findings.** Repair every remaining Khoei and Mamaqani Layer 0 entry page by page. Put Layer 1 full-name joins, and Layer 2 joins below context score 6, to agents. Widen the attach question to namesakes without an agreeing kunyah or nisbah. Compare Khoei and Mamaqani profiles with each other. Put the rule joins a re-audit traces its errors to through a second verify pass. | A fresh audit meets the gate. Phase A (repair) done 2026-09-14: 782 entries shown page by page and 309 split, 190 people asked again, 3,301 rule joins verified and 396 broken. That left 24,633 people. A people-only re-audit scored 93.4%, still short of the gate; its errors traced to Layer 1 exact joins at score 0 and to Layer 2 joins at any score. Phase B (widening) done 2026-09-14. The second verify pass broke 133 rule joins, Khoei against Mamaqani joined 2,090 profiles, and the wider attach question attached 737. That left 22,013 people. The split pass then runs again on the 426 people phase B's agents flagged or disagreed over, and a fresh full audit follows. |
-| 6 | **Complete the sources.** Re-extract Rijal al-Ṭūsī and Jāmiʿ al-Ruwāt, which were truncated. Re-extract, one man at a time, the entries the split pass found describing two men in one: 87 single entries, and the entries and pages marked mixed. An identity decision cannot divide a single extracted profile. | Each book's yield matches its known entry count; no entry is left marked mixed. |
+| ✓ 5 | **Accuracy audit.** A random sample of applied merges, each checked against the sources, gives a measured accuracy with its margin — per rule layer, so the rules' acceptance thresholds are set from data. A random sample of people, each checked for other people who are the same man, measures how much splitting remains. Stage 2 showed an alias match three names deep accepted at a context score of 0. | The gate, fixed before the audit ran: people precision of 95% or better, and the auditors reading at least 90% of each kind of hidden control correctly. People precision is the population-weighted share of sampled people whose every entry is one man. See [the accuracy audit](#the-accuracy-audit). First audit, 2026-09-14: **not met**, at 88.6% with the controls passed. The plan returned through stages 2–4 (stage 5a below), and the fresh audit of 2026-09-16 **met the gate**: people precision 98.7%, both controls passed. |
+| ✓ 5a | **Return through stages 2–4, on the audit's findings.** Repair every remaining Khoei and Mamaqani Layer 0 entry page by page. Put Layer 1 full-name joins, and Layer 2 joins below context score 6, to agents. Widen the attach question to namesakes without an agreeing kunyah or nisbah. Compare Khoei and Mamaqani profiles with each other. Put the rule joins a re-audit traces its errors to through a second verify pass. | A fresh audit meets the gate. Phase A (repair) done 2026-09-14: 782 entries shown page by page and 309 split, 190 people asked again, 3,301 rule joins verified and 396 broken. That left 24,633 people. A people-only re-audit scored 93.4%, still short of the gate; its errors traced to Layer 1 exact joins at score 0 and to Layer 2 joins at any score. Phase B (widening) done 2026-09-14. The second verify pass broke 133 rule joins, Khoei against Mamaqani joined 2,090 profiles, and the wider attach question attached 737. That left 22,013 people. The split pass then ran again on the 426 people phase B's agents flagged or disagreed over and split 158 of them, leaving 22,203 people. Done 2026-09-16: the fresh full audit **met the gate** at 98.7%, with both controls passed and every rule layer at 94% or better. What it leaves is the other side of the ledger, where 23% of sampled main-entry people still have a double. |
+| 6 | **Complete the sources.** Re-extract Rijal al-Ṭūsī and Jāmiʿ al-Ruwāt, which were truncated. Re-extract, one man at a time, the 325 entries agents marked as describing two men, 282 of them from Khoei and Mamaqani. An identity decision cannot divide a single extracted profile. Mend what the passes found in the extraction itself: collective phrases headed as men («عدة من أصحابنا»), headings that say only «أحمد ابنه», an entry for the Prophet Moses, aliases and titles belonging to a neighbouring entry, and verdicts quoted from one. Fold the defective spellings the rules cannot match — «عبد الرحمان» against «عبد الرحمن» in 403 headings, «الحرث» against «الحارث» in 43 — and re-merge, then verify the joins that fold newly allows. | Each book's yield matches its known entry count; no entry is left marked mixed; the folded spellings match across books. |
 | 7 | **Publish.** Restore the narrator index, service and API deleted in `9b6adb6`; write the narrator page; add `lookup_narrator` to the MCP connector. A person's display name is his anchor entry's own heading; the merge's longest-form rule gave Ibn Abī ʿUmayr the garbled «أبو أحمد بن محمد بن زياد الأزدي». Before any verdict is shown under a scholar's name, it is checked against the entry it came from. The split pass found 200 entries carrying another man's data, and one Khoei page credits al-Najāshī with praise of Sahl b. Ziyād that al-Najāshī's own entry contradicts. | Narrator pages live, on permanent identifiers; every published verdict traced to its entry. |
 | 8 | **Resolve every chain.** Per-mention records linking each name in each chain to a person, following each book's conventions. | Coverage and confidence measured per book. |
 | 9 | **Publish the research graph.** Node and edge files, documented, with a worked path query. | A researcher can count time-ordered paths between two people from the export alone. |
@@ -287,10 +288,11 @@ published.
 | Review signals | 328, among them 143 agent answers that override another agent's |
 | Drawing on more than one book | 24.3%. It falls when two people who each draw on several books become one, or when a join across books is broken, and it rises when Khoei and Mamaqani profiles attach to main-book people |
 | Held for human review | 992 low-confidence decisions |
-| Most-cited narrators still split | 0 of 12 — each one's main-book entries sit in one person, and the split pass left them so |
-| Fusions left | 87 single entries that each describe two men, for re-extraction (stage 6), and 14 low-confidence splits for review |
+| Most-cited narrators still split | 0 of 12 by main-book entries — each one's sit in one person. Two of the twelve, Yūnus b. ʿAbd al-Raḥmān and Aḥmad b. Muḥammad b. ʿĪsā, have a further person carrying their name and one of their marks; both look like missed merges and are in review |
+| Fusions left | 325 entries an agent marked as describing two men, 282 of them from Khoei and Mamaqani, for re-extraction (stage 6); 93 low-confidence split answers wait for review |
 | Accuracy, stage 5 audit | People precision 88.6% against a 95% gate, **not met**. Agent joins are 98–99% precise, rule joins 89–98%, Layer 0 page joins 65% |
 | Accuracy, after phase A | People precision 93.4% on a fresh sample of people, without controls — still short of the gate. Its stray entries trace to rule joins not yet verified |
+| Accuracy, stage 5a audit | People precision **98.7%** against the 95% gate — **met**, with both controls passed. Join precision 94–100% by layer, Layer 0's page joins 65% → 94%. Splitting is the weak side: 23% of sampled main-entry people have a double |
 
 ### Data
 
@@ -323,6 +325,7 @@ Under `tmp/`, which is symlinked to `/mnt/share/rewayaat-backup/tmp/`:
 | `narrators_l3/runs/split-22203-d69269faeb7b5ec2/` | two people a split had re-formed through an earlier join, asked again |
 | `narrators_audit/runs/audit-23879-0eb26dc06f26a567/` | the stage 5 audit — 33 batches, the auditors' answers, `report.json`, `errors.json` (131 errors, for review) and `score.log` |
 | `narrators_audit/runs/audit-24633-190426d0a3032c31-s20260915/` | the people-only re-audit after phase A, at a new seed |
+| `narrators_audit/runs/audit-22203-0da4736a8c7df5f2-s20260916/` | the fresh full audit that met the gate — 17 batches, the auditors' answers, `report.json`, `errors.json` (43 errors, for review) and `score.log` |
 | `narrators_audit/keys/` | the audit's answer keys, kept apart from the runs the auditors read |
 | `narrators_l3/archive/` | agent answers to earlier, superseded merges |
 | `narrators_l3/runs/<fingerprint>/id_map.json` | each run's merged ids translated to source keys |
@@ -1342,6 +1345,59 @@ al-Najāshī's entry, apart from al-Sakūnī al-Shaʿīrī, now with al-Fihrist'
 Across both split runs no join is a rule's alone: every person the splits re-formed is explained
 by an applied agent answer. That left 22,203 people (`narrators_archive/2026-09-14-5b-final`), the
 build the fresh audit samples.
+
+### Stage 5a, the fresh audit (2026-09-16)
+
+Run `audit-22203-0da4736a8c7df5f2-s20260916` was drawn at a new seed from that build and scored
+against the gate fixed before the first audit ran: 1,009 items in 17 batches, every one answered
+by auditors who saw only the entries.
+
+**The auditors can be trusted.** They read 29 of the 30 positive controls as one man and 23 of the
+24 negative controls as different men, answering `cannot_tell` on the remaining one of each.
+
+**The gate is met.**
+
+| People precision | Clean / audited | 95% interval | Population |
+|---|---|---|---|
+| 2–3 entries | 40 / 40 = 100% | 91–100% | 5,147 |
+| 4–10 entries | 38 / 40 = 95% | 84–99% | 1,569 |
+| 11 or more | 38 / 40 = 95% | 84–99% | 320 |
+| **Weighted** | **98.7%** | | gate 95% |
+
+Join precision, counting only the joins an auditor could decide, rose in every layer the first
+audit faulted, and the worst of them is mended:
+
+| Joins by | First audit | Now |
+|---|---|---|
+| Layer 3 pairs | 98.9% | 100% |
+| Layer 1 exact | 97.7% | 100% |
+| Layer 3 groups | 99.0% | 99.0% |
+| Attach | 97.8% | 98.9% |
+| Layer 2 context | 89.0% | 98.9% |
+| Cross-form | 97.8% | 96.8% |
+| Layer 1 full name | 89.2% | 96.8% |
+| **Layer 0 pages** | **64.6%** | **94.0%** |
+
+Of 800 sampled joins the auditors judged 14 wrong, and not one of those at high confidence: five
+Layer 0 page joins, three Layer 1 full-name, three cross-form, and one each from Layer 2, a Layer 3
+group and an attach. In the 120 people sampled they found four entries describing another man.
+
+**What the audit now calls worst is the other side of the ledger.** Among people who have a
+namesake to compare, 14 of 60 main-entry people have a double that is the same man, and 4 of 60
+others. Of the 25 doubles found, 16 had already been put to an agent, who kept the two apart
+because the evidence was thin; 9 had never been compared, 6 of those because the two people share
+no name form. The precision above was bought with the rule that joins only on positive evidence,
+and the fragmentation is its price. Nothing in the audit suggests the rule is wrong — a wrong join
+publishes a fabricated attribution, a missed one leaves a thin page — but the balance is now
+worth setting deliberately rather than by inheritance.
+
+Two limits stand. People precision still cannot see two men fused inside a single entry, since an
+auditor sees each entry as Layer 0 assembled it. And the sampler drew four of its 854 pairs twice:
+three where two decisions had joined the same two entries, and one positive control that was also
+drawn as an ordinary sample. Neither changes a verdict; the sampler should draw by entry pair and
+keep control pairs out of the strata.
+
+All 43 errors are in the run's `errors.json` for review. The audit changed no identity.
 
 ---
 
