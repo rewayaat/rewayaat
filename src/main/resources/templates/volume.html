@@ -19,7 +19,7 @@
                 narrations
             </span>
             <span class="hub-stat">
-                <span class="hub-stat__value" th:text="${#numbers.formatInteger(#lists.size(chapters), 0, 'COMMA')}">100</span>
+                <span class="hub-stat__value" th:text="${#numbers.formatInteger(chapterCount, 0, 'COMMA')}">100</span>
                 chapters
             </span>
         </div>

@@ -41,6 +41,7 @@
                  bar, same data, two different-looking pills. -->
             <a class="topic-pill tag-filter-bar__pill" th:each="facet : ${tagFacets}"
                th:href="${facet.active} ? ${clearTagUrl} : ${facet.url}"
+               rel="nofollow"
                th:classappend="${facet.active} ? 'topic-pill--active' : ''">
                 <span class="tag-filter-bar__pill-label" th:text="${facet.label}">Tag</span>
                 <span class="tag-filter-bar__pill-count" th:text="${facet.count}">2</span>
