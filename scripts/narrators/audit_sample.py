@@ -141,6 +141,18 @@ def main():
             pool[d["method"]].append((d["decision_id"], candidates))
 
     pairs = []
+    # Two decisions can join the same two entries, and a control pair can also be drawn as an
+    # ordinary sample. Such an item is shown twice, answered twice and counted twice, so each
+    # pair of entries is drawn once however many decisions or strata reach it.
+    seen_pairs = set()
+
+    def once(ua, ub):
+        key = frozenset((tuple(sorted(ua)), tuple(sorted(ub))))
+        if key in seen_pairs:
+            return False
+        seen_pairs.add(key)
+        return True
+
     for stratum in (STRATA if "pair" in kinds else []):
         drawn = 0
         for decision_id, candidates in rng.sample(pool[stratum], len(pool[stratum])):
@@ -151,6 +163,9 @@ def main():
                 ua, ub = entry(a), entry(b)
                 if set(ua) == set(ub):
                     continue
+            if not once(ua, ub):
+                counts["pair already drawn"] += 1
+                continue
             pairs.append(({"stratum": stratum, "decision_id": decision_id,
                            "person_id": membership[a]}, ua, ub))
             drawn += 1
@@ -171,9 +186,15 @@ def main():
                     positive.append((pid, main_units[i], main_units[j]))
     if "pair" not in kinds:
         positive = []
-    for pid, ua, ub in rng.sample(positive, min(CONTROLS["positive"], len(positive))):
+    drawn = 0
+    for pid, ua, ub in rng.sample(positive, len(positive)):
+        if drawn == CONTROLS["positive"]:
+            break
+        if not once(ua, ub):
+            continue
         pairs.append(({"control": "positive", "person_id": pid}, ua, ub))
-    counts["control positive"] = min(CONTROLS["positive"], len(positive))
+        drawn += 1
+    counts["control positive"] = drawn
 
     # negative controls: same primary name, different people, eras six Imams apart
     by_name = defaultdict(list)
@@ -190,10 +211,17 @@ def main():
                     negative.append((p, q))
     if "pair" not in kinds:
         negative = []
-    for p, q in rng.sample(negative, min(CONTROLS["negative"], len(negative))):
+    drawn = 0
+    for p, q in rng.sample(negative, len(negative)):
+        if drawn == CONTROLS["negative"]:
+            break
+        ua, ub = units(p)[0], units(q)[0]
+        if not once(ua, ub):
+            continue
         pairs.append(({"control": "negative", "person_ids": [p["person_id"], q["person_id"]]},
-                      units(p)[0], units(q)[0]))
-    counts["control negative"] = min(CONTROLS["negative"], len(negative))
+                      ua, ub))
+        drawn += 1
+    counts["control negative"] = drawn
 
     rng.shuffle(pairs)
     for n, (meta, ua, ub) in enumerate(pairs):
