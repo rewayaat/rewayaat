@@ -40,6 +40,15 @@ that, and so do two men of one family and city a generation apart. Decide on the
 students, generation and the source's own words. When the subject describes itself as someone's
 brother or son, or points to a different entry, that settles it.
 
+A pair with `"method": "xref_pair"` comes from the source's own words. The subject's entry points
+somewhere — «تقدم في ...» (his entry came earlier under that name), «يأتي في ...» (it comes later),
+«متحد مع سابقه» (he is the man before him) — and `pointer` quotes what was said and how it was
+resolved to the candidates. A source's own statement of identity is the best evidence there is,
+but it is still evidence and not a verdict: the name it gives may be carried by several men, the
+pointer may say where a fact was mentioned rather than who this man is, and a copyist may have
+written it wrongly. Read both entries. If the candidate is the man the pointer names, say so; if
+the pointer does not bear on identity at all, answer none.
+
 ## `kind: "split"`
 
 One person as the pipeline assembled him. `profiles` lists his source **entries**, one per
