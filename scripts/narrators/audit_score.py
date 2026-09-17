@@ -155,8 +155,10 @@ def main():
         report["remaining_splits"][group] = {"counts": dict(c),
                                              **share(c["has a double"], c["audited"])}
     report["controls_passed"] = passed
+    # a run drawn from one stratum has no people in it, so the gate is not what it measures
+    measured = any(c["audited"] for c in bands.values())
     report["gate"] = {"threshold": GATE, "people_precision": round(weighted, 3),
-                      "met": passed and weighted >= GATE}
+                      "people_measured": measured, "met": measured and passed and weighted >= GATE}
 
     write_json_atomic(os.path.join(args.run_dir, "report.json"), report, indent=1)
     write_json_atomic(os.path.join(args.run_dir, "errors.json"), errors, indent=1)
@@ -180,8 +182,11 @@ def main():
     print("\nremaining splits:")
     for group, r in report["remaining_splits"].items():
         print(f"  {group:10s} {r['rate']} {r['interval_95']} {r['counts']}")
-    print(f"\nGATE (people precision >= {GATE}, controls passed): "
-          f"{'MET' if report['gate']['met'] else 'NOT MET'}")
+    if measured:
+        print(f"\nGATE (people precision >= {GATE}, controls passed): "
+              f"{'MET' if report['gate']['met'] else 'NOT MET'}")
+    else:
+        print("\nGATE: not measured — this run drew no people, only the strata named")
     print(f"{len(errors)} errors -> {os.path.join(args.run_dir, 'errors.json')}")
 
 

@@ -84,6 +84,9 @@ def main():
     parser.add_argument("--budget", type=int, default=DEFAULT_BUDGET)
     parser.add_argument("--seed", type=int, default=SEED,
                         help="a fresh draw for a re-audit (the first audit used the default)")
+    parser.add_argument("--strata", default="",
+                        help="draw pair items from these methods only (comma list); the controls "
+                             "are drawn whatever it says, so the auditors are still checked")
     parser.add_argument("--kinds", default="pair,person,recall",
                         help="which questions to draw: pair, person, recall")
     parser.add_argument("--dry-run", action="store_true", help="count items, write nothing")
@@ -154,7 +157,8 @@ def main():
         seen_pairs.add(key)
         return True
 
-    for stratum in (STRATA if "pair" in kinds else []):
+    wanted = [s.strip() for s in args.strata.split(",") if s.strip()] or STRATA
+    for stratum in (wanted if "pair" in kinds else []):
         drawn = 0
         for decision_id, candidates in rng.sample(pool[stratum], len(pool[stratum])):
             a, b = rng.choice(candidates)
