@@ -53,6 +53,7 @@ TMP = os.path.join(REPO, "tmp")
 
 SEED = 20260914
 STRATA = ["layer0_fragments", "layer1_exact", "layer1_full_name", "layer2_context", "xref_pair",
+          "second_opinion_pair",
           "layer3_group", "layer3_pair", "crossform_group", "attach_pair"]
 PER_STRATUM = 100
 PERSON_BANDS = {"2-3": (2, 3), "4-10": (4, 10), "11+": (11, 10 ** 6)}

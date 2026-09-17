@@ -40,6 +40,14 @@ that, and so do two men of one family and city a generation apart. Decide on the
 students, generation and the source's own words. When the subject describes itself as someone's
 brother or son, or points to a different entry, that settles it.
 
+A pair with `"method": "second_opinion_pair"` is a harder attach question. The subject holds no
+main-book entry but carries a reliability verdict of his own, and each candidate holds a main
+entry, shares a name form with him, and either agrees on a kunyah or nisbah or shares a teacher or
+student. Judge it as you would any attach pair, on the teachers, students, generation and the
+source's own words. What hangs on it is which page the subject's verdict belongs to: if he is the
+candidate, his grade belongs on that man's record, and if he is not, joining them would publish
+one man's grade under another's name.
+
 A pair with `"method": "xref_pair"` comes from the source's own words. The subject's entry points
 somewhere — «تقدم في ...» (his entry came earlier under that name), «يأتي في ...» (it comes later),
 «متحد مع سابقه» (he is the man before him) — and `pointer` quotes what was said and how it was

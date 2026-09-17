@@ -226,8 +226,17 @@ def thin(person):
             and not kunyahs and not titles)
 
 
+def chain_names(person):
+    return ({e["value"] for e in person.get("narrated_from", [])}
+            | {e["value"] for e in person.get("narrated_to", [])})
+
+
+def graded(person):
+    return {g["grade"] for g in person.get("reliability_grades", []) if g.get("grade")}
+
+
 def build_attach_tasks(people, record_path, counts, subjects=None, rejudge=False,
-                       any_namesake=False):
+                       any_namesake=False, corroborated=False):
     by_id = {p["person_id"]: p for p in people}
     main = [p for p in people if holds_main_entry(p)]
     owners = defaultdict(set)
@@ -251,6 +260,13 @@ def build_attach_tasks(people, record_path, counts, subjects=None, rejudge=False
         if thin(person):
             counts["thin_not_asked"] += 1
             continue
+        # A second opinion is worth asking only where something beyond the name agrees, and only
+        # about a profile that carries a verdict — those are the ones whose staying apart puts a
+        # grade on a second page under the same man's name. Two men are both «ثقة» far too often
+        # for a shared verdict to be corroboration.
+        if corroborated and not graded(person):
+            counts["no verdict to misplace"] += 1
+            continue
         scored = {}
         for form in name_forms(person):
             # The per-form pass's cap applies here too: `احمد بن محمد` is carried by over a
@@ -262,6 +278,11 @@ def build_attach_tasks(people, record_path, counts, subjects=None, rejudge=False
                 if kunyahs and their_kunyahs and not kunyahs & their_kunyahs:
                     continue
                 agree = 2 * len(kunyahs & their_kunyahs) + len(titles & their_titles)
+                if corroborated:
+                    shared = chain_names(person) & chain_names(by_id[mid])
+                    if agree or shared:
+                        scored[mid] = max(scored.get(mid, 0), 2 * agree + len(shared))
+                    continue
                 if agree or any_namesake:
                     scored[mid] = max(scored.get(mid, 0), agree + (1 if any_namesake else 0))
         if not scored:
@@ -282,10 +303,13 @@ def build_attach_tasks(people, record_path, counts, subjects=None, rejudge=False
 
         tasks.append({
             "kind": "pair",
-            "method": "attach_pair",
-            "task_id": f"attach:{person['person_id']}",
-            "reason": "holds no main-book entry; shares a name form and a kunyah or nisbah "
-                      "with people who do",
+            "method": "second_opinion_pair" if corroborated else "attach_pair",
+            "task_id": f"{'second' if corroborated else 'attach'}:{person['person_id']}",
+            "reason": ("carries a verdict but holds no main-book entry; shares a name form with "
+                       "people who do, and a mark agrees or they share a teacher or student")
+                      if corroborated else
+                      ("holds no main-book entry; shares a name form and a kunyah or nisbah "
+                       "with people who do"),
             "subject": shown(person),
             "candidates": [shown(by_id[m]) for m in chosen],
         })
@@ -305,6 +329,9 @@ def main():
                         help="with --attach: offer namesakes without an agreeing kunyah or nisbah")
     parser.add_argument("--non-main", action="store_true",
                         help="per-form groups over people who hold no main entry")
+    parser.add_argument("--second-opinion", action="store_true",
+                        help="ask again about namesakes an agent kept apart, where a mark agrees "
+                             "or they share a teacher or student and the subject carries a verdict")
     parser.add_argument("--orphans", action="store_true",
                         help="attach pages entry repair split off, asking again what the fused "
                              "entry was judged on")
@@ -316,17 +343,20 @@ def main():
     fingerprint = people_fingerprint(people)
     counts = Counter()
     record_path = os.path.join(args.identity_dir, "decisions.jsonl")
-    kind, prefix = (("pair", "orphan" if args.orphans else "attach2" if args.any_namesake
-                     else "attach") if args.attach or args.orphans
+    kind, prefix = (("pair", "orphan" if args.orphans else "second" if args.second_opinion
+                     else "attach2" if args.any_namesake else "attach")
+                    if args.attach or args.orphans or args.second_opinion
                     else ("group", "xform2" if args.non_main else "xform"))
-    if args.attach or args.orphans:
+    if args.attach or args.orphans or args.second_opinion:
         subjects = None
         if args.orphans:
             with open(os.path.join(args.identity_dir, "membership.json")) as handle:
                 subjects = orphan_people(record_path, json.load(handle))
             counts["orphan_people"] = len(subjects)
         tasks, by_id = build_attach_tasks(people, record_path, counts, subjects,
-                                          rejudge=args.orphans, any_namesake=args.any_namesake)
+                                          rejudge=args.orphans or args.second_opinion,
+                                          any_namesake=args.any_namesake,
+                                          corroborated=args.second_opinion)
         members_of = lambda t: [t["subject"]] + t["candidates"]
         sizes = Counter(len(t["candidates"]) for t in tasks)
         shape = "candidates per subject"
