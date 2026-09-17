@@ -456,3 +456,98 @@ def is_infallible(normalized_ar, normalized_en, context_text=""):
         return True
     ambiguous = (normalized_ar in INFALLIBLE_AMBIGUOUS_AR)
     return ambiguous and has_imam_honorific(context_text)
+
+
+# --- Generations ---
+#
+# Every book says when a man lived by naming the Imam he kept company with, but each says it its
+# own way: Rijal al-Tusi as a chapter heading, «أصحاب أبي عبد الله جعفر بن محمد الصادق»; Khoei and
+# Mamaqani as free text, in 1,926 and 2,564 distinct spellings; al-Du'afa' with the name
+# transliterated, «companion of al-Ṣādiq». Compared as strings they never agree and so never
+# disagree either, which wastes the one piece of evidence al-Tusi gives for all 6,429 of its
+# entries. Read as the Imams they name, they place a man in time to within a generation.
+#
+# The Imams in order, the Prophet at 0. A man may serve two or three in succession, so two
+# readings that overlap corroborate each other, adjacent ones say nothing, and ones three apart
+# — al-Sadiq's companion and the Prophet's, 130 years — cannot be one man.
+
+IMAM_ORDINALS = {
+    "prophet": 0, "ali": 1, "hasan": 2, "husayn": 3, "sajjad": 4, "baqir": 5, "sadiq": 6,
+    "kazim": 7, "rida": 8, "jawad": 9, "hadi": 10, "askari": 11, "mahdi": 12,
+}
+
+# Ordered: a longer lineage is tested before the shorter one it contains, so «الحسن بن علي بن
+# محمد» is read as al-'Askari and not as al-Hasan, and «علي بن الحسين» as al-Sajjad, not 'Ali.
+# The Arabic is folded the same way a name is — ى to ي, ؤ to و — so the patterns are written
+# plainly and folded here rather than spelled in their folded form.
+_IMAM_PATTERNS = [
+    ("askari", r"askar", ["الحسن بن علي بن محمد"]),
+    ("hadi", r"hadi|naqi", ["علي بن محمد بن علي", "أبي الحسن الثالث", "علي بن محمد عليهم"]),
+    ("jawad", r"jawad|taqi", ["محمد بن علي الثاني", "أبي جعفر الثاني", "محمد بن علي بن موسى"]),
+    ("rida", r"rida|ridha", ["علي بن موسى", "أبي الحسن الثاني", "الرضا"]),
+    ("kazim", r"kazim|kadhim", ["موسى بن جعفر", "أبي الحسن موسى", "الكاظم", "أبي الحسن الأول"]),
+    ("sadiq", r"sadiq", ["جعفر بن محمد", "أبي عبد الله جعفر", "الصادق"]),
+    ("baqir", r"baqir", ["محمد بن علي بن الحسين", "أبي جعفر محمد بن علي", "الباقر"]),
+    ("sajjad", r"sajjad|zayn al.?abidin|zayn ul.?abidin",
+     ["علي بن الحسين", "أبي محمد علي بن الحسين", "السجاد", "زين العابدين"]),
+    ("husayn", r"husayn|husain|hussain", ["الحسين بن علي", "أبي عبد الله الحسين"]),
+    ("hasan", r"\bhasan\b", ["الحسن بن علي(?! بن)", "أبي محمد الحسن بن علي(?! بن)"]),
+    ("ali", r"\bali\b|amir al.?mu.?minin|amir ul.?mu.?minin",
+     ["أمير المؤمنين", "علي بن أبي طالب"]),
+    ("mahdi", r"mahdi|qaim", ["الحجة", "صاحب الزمان"]),
+    ("prophet", r"prophet|sahabi|sahabiyya|messenger",
+     ["النبي", "رسول الله", "صحابي", "الصحابة"]),
+]
+
+
+def _fold_pattern(latin, arabic):
+    """One pattern per Imam, its Arabic alternatives folded as a name is folded."""
+    parts = [latin] if latin else []
+    for phrase in arabic:
+        tail = ""
+        if phrase.endswith(")"):                      # keep a lookahead out of the folding
+            phrase, tail = phrase.split("(", 1)
+            tail = "(" + tail
+        parts.append(normalize_arabic_raw_fold(phrase) + tail)
+    return re.compile("|".join(p for p in parts if p))
+
+
+_IMAM_COMPILED = [(name, _fold_pattern(latin, arabic))
+                  for name, latin, arabic in _IMAM_PATTERNS]
+# «باب ذكر أسماء من لم يرو عن واحد من الأئمة» — al-Tusi's chapter for men who kept company with no
+# Imam at all. It names no generation, so it must not be read as one.
+_NO_IMAM = re.compile("|".join(normalize_arabic_raw_fold(p) for p in
+                               ("لم يرو عن واحد من الأئمة", "لم يرو عنهم", "لم يروِ عن")))
+
+
+def imam_generations(raw):
+    """The Imams a generation statement names, as ordinals; empty when it names none."""
+    if not raw:
+        return frozenset()
+    text = normalize_arabic_raw_fold(str(raw)).lower() if any(
+        "؀" <= ch <= "ۿ" for ch in str(raw)) else str(raw).lower()
+    text = re.sub(r"[ʿʾ`'’]", "", text)
+    for fold, plain in (("ā", "a"), ("ī", "i"), ("ū", "u"), ("ṣ", "s"), ("ḍ", "d"), ("ṭ", "t"),
+                        ("ẓ", "z"), ("ḥ", "h"), ("ḳ", "k"), ("ġ", "g"), ("š", "sh")):
+        text = text.replace(fold, plain)
+    if _NO_IMAM.search(text):
+        return frozenset()
+    found, remaining = set(), text
+    for name, pattern in _IMAM_COMPILED:
+        if pattern.search(remaining):
+            found.add(IMAM_ORDINALS[name])
+            remaining = pattern.sub(" ", remaining)
+    return frozenset(found)
+
+
+def generation_distance(a, b):
+    """Generations apart, or None where either statement names no Imam.
+
+    0 means they share an Imam. A man serving two or three Imams in succession is ordinary, so
+    1 and 2 are no evidence of difference; 3 is about eighty years and is.
+    """
+    if not a or not b:
+        return None
+    if a & b:
+        return 0
+    return min(abs(x - y) for x in a for y in b)

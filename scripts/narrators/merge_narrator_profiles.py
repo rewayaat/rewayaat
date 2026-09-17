@@ -25,8 +25,8 @@ from collections import Counter, defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from narrator_schema import (  # noqa: E402
-    fold_kunyah, is_identifying_alias, is_identifying_english_alias,
-    normalize_arabic, normalize_english,
+    fold_kunyah, generation_distance, imam_generations, is_identifying_alias,
+    is_identifying_english_alias, name_tokens, normalize_arabic, normalize_english,
 )
 from identity import write_json_atomic  # noqa: E402
 
@@ -68,6 +68,10 @@ MAX_DISTINCT_PRIMARY = 8
 
 # Death years further apart than this are different people whatever the names say.
 DEATH_YEAR_TOLERANCE = 40
+
+# Generations apart at which no name agreement can make two entries one man: al-Sadiq's
+# companion and al-Sajjad's are two lifetimes apart, whatever they are called.
+GENERATION_CONFLICT = 3
 
 # Page distance within which two same-name profiles from one book are one entry split
 # across extraction batches, rather than two mentions.
@@ -358,10 +362,27 @@ def context_score(profile, merged):
         score += 2
         reasons.append("city")
 
-    generations = _values(merged["generations"])
-    if profile["generation"] and profile["generation"] in generations:
+    # Each book states a generation its own way, so they are compared as the Imams they name
+    # (narrator_schema.imam_generations). A man serving two or three Imams in succession is
+    # ordinary; three generations apart is eighty years and no name agreement survives it.
+    theirs = set()
+    for statement in _values(merged["generations"]):
+        theirs |= imam_generations(statement)
+    mine = imam_generations(profile["generation"])
+    apart = generation_distance(mine, theirs)
+    if apart == 0:
         score += 2
         reasons.append("generation")
+    elif apart is not None and apart >= GENERATION_CONFLICT:
+        return 0, [f"generation_conflict:{apart}"], True
+    elif apart == 2:
+        score -= 2
+        reasons.append("generation_gap")
+    elif profile["generation"] and profile["generation"] in _values(merged["generations"]):
+        # neither statement names an Imam — «4th Century», «Shaykh of al-Saduq» — so all that
+        # can be said is that they say the same thing
+        score += 2
+        reasons.append("generation_stated_alike")
 
     teachers = {normalize_arabic(n) for n in _values(merged["narrated_from"])}
     students = {normalize_arabic(n) for n in _values(merged["narrated_to"])}
@@ -413,7 +434,8 @@ def process_book(state, book, profiles, deferred, quarantine, stats, group_sizes
         for mid, keys in candidates.items():
             score, reasons, disqualified = context_score(profile, state.profiles[mid])
             if disqualified:
-                counts["rejected_death_conflict"] += 1
+                # a death year or a generation that no name agreement can survive
+                counts[f"rejected_{reasons[0].split(':')[0]}"] += 1
                 continue
             if _distinct_primaries(state.profiles[mid]) >= MAX_DISTINCT_PRIMARY:
                 counts["rejected_cluster_cap"] += 1
@@ -448,6 +470,16 @@ def process_book(state, book, profiles, deferred, quarantine, stats, group_sizes
                 state.add(profile, book)
                 continue
             score, _depth, mid, reasons, keys = exact_matches[0]
+            if score == 0 and len(name_tokens(own_key)) < FULL_NAME_TOKENS:
+                # An exact match is still only a name. «زكريا بن يحيى» is two identifying tokens,
+                # and the sources themselves distinguish several men who bear it; with nothing
+                # else agreeing — no kunyah, city, generation, teacher or student — this merge's
+                # own default holds, that a shared common name is a different man, and the
+                # question goes to Layer 3 instead of being settled by the name alone.
+                _defer(deferred, profile, book, exact_matches, "short_exact_name_no_context")
+                counts["deferred_short_exact"] += 1
+                state.add(profile, book)
+                continue
             if score >= 0:
                 state.merge(mid, profile, book, "layer1_exact", own_key, score)
                 counts["merged_exact"] += 1
