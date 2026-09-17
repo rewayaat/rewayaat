@@ -102,6 +102,7 @@ Every stage is held to these. Part II shows what happened when they were not in 
 | 2026-09-14 | **Stage 5: the accuracy audit.** Its protocol and gate were committed before any auditor answered. 1,022 items went to blind auditors, whose hidden controls show they can be trusted. People precision is 88.6% against a 95% gate, so the gate is not met. The agents' joins are 98–99% precise, the rules' 89–98%, and Layer 0's page joins 65%. Much splitting remains. The plan returns through stages 2–4. |
 | 2026-09-14 | **Stage 5a, phase A: repair.** All 782 unexamined Khoei and Mamaqani multi-page entries went to agents page by page, and 309 were split. The people holding them were asked again, and 3,301 Layer 1 full-name and low-score Layer 2 joins were put to agents one pair at a time. Of those joins, 396 were broken and 2,376 confirmed. 24,633 people. A fresh sample of people scores 93.4%, so the gate is still not met. The remaining stray entries trace to rule joins the pass had not asked about. |
 | 2026-09-14 | **Stage 5a, phase B: widening.** A second verify pass over the rule joins the re-audit traced broke 133 more. Khoei and Mamaqani profiles were compared with each other, and 2,090 were joined. The attach question was widened to namesakes, and 737 were attached. 22,013 people. The joins brought new verdict and kunyah clashes and 239 places where one agent's join overrides another's separation, so the split pass runs again before the audit. |
+| 2026-09-18 | **Stage 6: the truncated books.** Rijāl al-Ṭūsī, al-Fihrist and al-Kashshī are re-extracted by rule from the OpenITI texts of the same printed editions — 123 entries → 6,429, 731 → 910, 209 → 430 — with the extractor refusing to write unless it parsed every entry the file marks, and appended so that no existing source key moves. Reconciling the two readings of each book finds 98 entries read from the editions' introductions and published as the books' own verdicts, and 251 that the printed text does not head at all. The enlarged corpus then breaks two merge rules that had been sound only while the main books' headings were long: the generation each book states was being compared as a string, so it never disagreed, and an exact match on a two-token name was merging on no other evidence at all. Fixing both blocks 1,536 impossible merges and sends 1,921 bare-name pairs to Layer 3. People holding a main-book entry 2,990 → 8,459. |
 | 2026-09-16 | **Stage 5a ends; the gate is met.** The split pass ran again over the 426 people phase B left flagged and split 158 of them, leaving 22,203 people. A fresh audit at a new seed put 1,009 items to blind auditors, whose hidden controls they again passed. People precision is 98.7% against the 95% gate, and Layer 0's page joins, at 65% in the first audit, now stand at 94%. What the audit now calls worst is the other side of the ledger: 23% of sampled main-entry people still have a double no pass has joined. |
 
 ### What went wrong in June
@@ -264,7 +265,7 @@ measured.
 | ✓ 4 | **Split pass.** Agents review profiles that may fuse several men: the 17 strongest candidates, the people the stage 3 agents flagged as carrying another man's entry, and those with conflicting verdicts or impossible dates. Then come the entries Layer 0 joined across consecutive homonyms, split page by page. | All 17 and every flagged person resolved; the rest reviewed or queued. Done 2026-09-14: 371 people put to agents and 229 split; 127 Layer 0 entries repaired page by page, and the 68 people they belonged to asked again. Result: 23,879 people, verdict clashes 159 → 139, kunyah clashes 308 → 270. Queued: 14 low-confidence splits for review, and 87 single entries that each describe two men, which is an extraction defect for stage 6. |
 | ✓ 5 | **Accuracy audit.** A random sample of applied merges, each checked against the sources, gives a measured accuracy with its margin — per rule layer, so the rules' acceptance thresholds are set from data. A random sample of people, each checked for other people who are the same man, measures how much splitting remains. Stage 2 showed an alias match three names deep accepted at a context score of 0. | The gate, fixed before the audit ran: people precision of 95% or better, and the auditors reading at least 90% of each kind of hidden control correctly. People precision is the population-weighted share of sampled people whose every entry is one man. See [the accuracy audit](#the-accuracy-audit). First audit, 2026-09-14: **not met**, at 88.6% with the controls passed. The plan returned through stages 2–4 (stage 5a below), and the fresh audit of 2026-09-16 **met the gate**: people precision 98.7%, both controls passed. |
 | ✓ 5a | **Return through stages 2–4, on the audit's findings.** Repair every remaining Khoei and Mamaqani Layer 0 entry page by page. Put Layer 1 full-name joins, and Layer 2 joins below context score 6, to agents. Widen the attach question to namesakes without an agreeing kunyah or nisbah. Compare Khoei and Mamaqani profiles with each other. Put the rule joins a re-audit traces its errors to through a second verify pass. | A fresh audit meets the gate. Phase A (repair) done 2026-09-14: 782 entries shown page by page and 309 split, 190 people asked again, 3,301 rule joins verified and 396 broken. That left 24,633 people. A people-only re-audit scored 93.4%, still short of the gate; its errors traced to Layer 1 exact joins at score 0 and to Layer 2 joins at any score. Phase B (widening) done 2026-09-14. The second verify pass broke 133 rule joins, Khoei against Mamaqani joined 2,090 profiles, and the wider attach question attached 737. That left 22,013 people. The split pass then ran again on the 426 people phase B's agents flagged or disagreed over and split 158 of them, leaving 22,203 people. Done 2026-09-16: the fresh full audit **met the gate** at 98.7%, with both controls passed and every rule layer at 94% or better. What it leaves is the other side of the ledger, where 23% of sampled main-entry people still have a double. |
-| 6 | **Complete the sources.** Re-extract Rijal al-Ṭūsī and Jāmiʿ al-Ruwāt, which were truncated. Re-extract, one man at a time, the 325 entries agents marked as describing two men, 282 of them from Khoei and Mamaqani. An identity decision cannot divide a single extracted profile. Mend what the passes found in the extraction itself: collective phrases headed as men («عدة من أصحابنا»), headings that say only «أحمد ابنه», an entry for the Prophet Moses, aliases and titles belonging to a neighbouring entry, and verdicts quoted from one. Fold the defective spellings the rules cannot match — «عبد الرحمان» against «عبد الرحمن» in 403 headings, «الحرث» against «الحارث» in 43 — and re-merge, then verify the joins that fold newly allows. Settle first how a re-extracted entry is keyed: a source key is `book:index`, so re-extracting a book renumbers it and silently breaks every decision keyed to it. The re-extracted entries need keys of their own — a new book slug with the old entries excluded, or keys taken from an entry's content rather than its position — and the decisions that rested on the old keys have to be asked again. | Each book's yield matches its known entry count; no entry is left marked mixed; the folded spellings match across books. |
+| 6 | **Complete the sources.** Re-extract the books phase 1 truncated — Rijal al-Ṭūsī, al-Fihrist, al-Kashshī, Jāmiʿ al-Ruwāt — from the openly licensed OpenITI texts of the same printed editions, by rule and with no agent reading a page. Re-extract, one man at a time, the 325 entries agents marked as describing two men, 282 of them from Khoei and Mamaqani. An identity decision cannot divide a single extracted profile. Mend what the passes found in the extraction itself: collective phrases headed as men («عدة من أصحابنا»), headings that say only «أحمد ابنه», an entry for the Prophet Moses, aliases and titles belonging to a neighbouring entry, and verdicts quoted from one. Fold the defective spellings the rules cannot match — «عبد الرحمان» against «عبد الرحمن» in 403 headings, «الحرث» against «الحارث» in 43 — and re-merge, then verify the joins that fold newly allows. The keying is settled by appending: a source key is `book:index`, so the re-extracted entries go after the ones already on file, every existing key keeps its entry, and each entry the two readings share is merged into the one that holds the key while its duplicate is excluded. No recorded decision is invalidated, and the 728 resting on al-Ṭūsī's original entries still stand. | Each book's yield matches its known entry count; no entry is left marked mixed; the folded spellings match across books. Three books done 2026-09-18: Rijal al-Ṭūsī 123 entries → 6,429, al-Fihrist 731 → 910, al-Kashshī 209 → 430, each verified against the edition's own numbering rather than a page count. People holding a main-book entry 2,990 → 8,459. Jāmiʿ al-Ruwāt is the book still short, at 1,796; see [completing the sources](#completing-the-sources-stage-6). |
 | 7 | **Publish.** Restore the narrator index, service and API deleted in `9b6adb6`; write the narrator page; add `lookup_narrator` to the MCP connector. A person's display name is his anchor entry's own heading; the merge's longest-form rule gave Ibn Abī ʿUmayr the garbled «أبو أحمد بن محمد بن زياد الأزدي». Before any verdict is shown under a scholar's name, it is checked against the entry it came from. The split pass found 200 entries carrying another man's data, and one Khoei page credits al-Najāshī with praise of Sahl b. Ziyād that al-Najāshī's own entry contradicts. | Narrator pages live, on permanent identifiers; every published verdict traced to its entry. |
 | 8 | **Resolve every chain.** Per-mention records linking each name in each chain to a person, following each book's conventions. | Coverage and confidence measured per book. |
 | 9 | **Publish the research graph.** Node and edge files, documented, with a worked path query. | A researcher can count time-ordered paths between two people from the export alone. |
@@ -280,14 +281,15 @@ published.
 
 | Stage | Output |
 |---|---|
-| Extracted, Phase 1 | 42,076 entries from eight books |
-| Contract-normalized | 42,045 (31 Infallibles removed) |
-| Merged, rule layers 0–2 | 29,514 profiles (merge `29514:d382409476873fe5`) |
-| People, after stage 5a | **22,203**, each with a permanent identifier — 24,633 after phase A, 23,879 after stage 4, 23,425 after stage 3, 25,099 after stage 2 |
-| Identity decisions on record | 76,401 on file across three merge runs, of which 32,359 in force |
-| Review signals | 328, among them 143 agent answers that override another agent's |
+| Extracted | 49,837 entries from eight books — 42,076 from phase 1, and 7,761 from re-extracting three of them in stage 6 |
+| Contract-normalized | 49,801 (36 Infallibles removed) |
+| Merged, rule layers 0–2 | 36,203 profiles (merge `36203:44b9f20da170e557`) |
+| People, after stage 6's three books | **26,458**, each with a permanent identifier — 21,988 before them, 22,203 after stage 5a, 24,633 after phase A, 23,879 after stage 4, 23,425 after stage 3, 25,099 after stage 2. It rises because 7,761 entries arrived, and because 1,921 joins that rested on a two-token name alone were withheld |
+| Holding a main-book entry | **8,459** people, from 2,990. 15,197 people still draw only on Khoei and Mamaqani and have no main-entry namesake anywhere; before stage 6 that was 18,225 |
+| Identity decisions on record | 136,891 on file across six merge runs, of which 34,118 in force. A merge run's rule decisions are replaced wholesale when the merge is re-run; the agent and reviewer decisions stand |
+| Review signals | 104, among them agent answers that override another agent's |
 | Drawing on more than one book | 24.3%. It falls when two people who each draw on several books become one, or when a join across books is broken, and it rises when Khoei and Mamaqani profiles attach to main-book people |
-| Held for human review | 992 low-confidence decisions |
+| Held for human review | 1,211 low-confidence decisions |
 | Most-cited narrators still split | 0 of 12 by main-book entries — each one's sit in one person. Two of the twelve, Yūnus b. ʿAbd al-Raḥmān and Aḥmad b. Muḥammad b. ʿĪsā, have a further person carrying their name and one of their marks; both look like missed merges and are in review |
 | Fusions left | 325 entries an agent marked as describing two men, 282 of them from Khoei and Mamaqani, for re-extraction (stage 6); 93 low-confidence split answers wait for review |
 | Accuracy, stage 5 audit | People precision 88.6% against a 95% gate, **not met**. Agent joins are 98–99% precise, rule joins 89–98%, Layer 0 page joins 65% |
@@ -300,9 +302,12 @@ Under `tmp/`, which is symlinked to `/mnt/share/rewayaat-backup/tmp/`:
 
 | Path | Contents |
 |---|---|
-| `narrators_book_{slug}.json` | Phase 1 extraction as produced — 42,076 entries |
-| `narrators_normalized/{slug}.json` | contract-normalized — 42,046 |
-| `narrators_merge/merged.json` | rule-layer merge — 29,514 profiles, fingerprint `29514:d382409476873fe5` |
+| `narrators_book_{slug}.json` | extraction as produced — 49,837 entries; al-Ṭūsī, al-Fihrist and al-Kashshī carry phase 1's entries first and stage 6's appended after them |
+| `narrators_sources/*.mARkdown`, `*.txt` | the OpenITI texts stage 6 reads, one per book |
+| `narrators_sources/{book}_not_an_entry.json` | the phase 1 entries the printed text does not head |
+| `narrators_sources/{book}_repair_map.json` | which appended entry each phase 1 entry was repaired from |
+| `narrators_normalized/{slug}.json` | contract-normalized — 49,801 |
+| `narrators_merge/merged.json` | rule-layer merge — 36,203 profiles, fingerprint `36203:44b9f20da170e557` |
 | `narrators_merge/{name_group_tasks,deferred,quarantine,violations}.json` | Layer 3 inputs and invariant checks |
 | `narrators_l3/runs/28687-a993d061519aaa64/batches/` | 73 Layer 3 batches — 32 group, 41 pair |
 | `narrators_l3/runs/28687-a993d061519aaa64/outputs/` | the agents' decisions, one file per batch |
@@ -352,7 +357,9 @@ On `feature/narrators`:
 
 | Script | Does |
 |---|---|
-| `scripts/narrators/narrator_schema.py` | normalizers, the reliability vocabulary, the Infallible registry |
+| `scripts/narrators/narrator_schema.py` | normalizers, the reliability vocabulary, the Infallible registry, and the Imams a generation statement names |
+| `scripts/narrators/extract_openiti.py` | re-extracts a truncated book from its OpenITI text by rule, refusing to write if it parsed fewer entries than the file marks |
+| `scripts/narrators/repair_from_openiti.py` | reconciles the two readings of a re-extracted book: matches, merges into the entry that holds the key, excludes the duplicate, re-attributes what was read from the edition's introduction |
 | `scripts/narrators/normalize_extraction.py` | the output contract, applied retroactively |
 | `scripts/narrators/validate_run.py` | checks a Layer 3 run's answers before recording: every task answered once, partitions exact, merges to offered ids |
 | `scripts/narrators/measure_build.py` | measures a build against the snapshot before it: clashes, the twelve most-cited narrators, and whether every person it joined is explained by an agent's answer, by this run's or an earlier one's |
@@ -1400,6 +1407,103 @@ keep control pairs out of the strata.
 All 43 errors are in the run's `errors.json` for review. The audit changed no identity.
 
 ---
+
+### Completing the sources (stage 6)
+
+Phase 1 called a book done when it had read every page of it. Rijāl al-Ṭūsī came out with 123
+entries of 6,429, al-Fihrist 731 of 910, al-Kashshī 209 of 430 — [Appendix D](#appendix-d--phase-1-extraction-record)
+recorded al-Ṭūsī as «truncated — 92 errors; re-run at a smaller batch size» and it was never
+re-run. That shortfall was most of the identity problem it looked unrelated to: of the people
+drawing only on Khoei and Mamaqani, 96% had no main-book namesake anywhere, because the entry
+they belonged to had never been extracted.
+
+The books are in the [OpenITI corpus](https://github.com/OpenITI), openly licensed and
+machine-readable, in the same printed editions the recorded page numbers came from — al-Ṭūsī's
+417 page marks match the count already on file. So the re-extraction needs no agent at all.
+`extract_openiti.py` reads what a rule can read faithfully — the heading, the body as the
+source's own words, the printed page, the Imam whose companion the man was, a kunyah or a grade
+word the text states — and leaves empty what it cannot: teachers and students are named in
+running prose, and a regex guessing at them would put invented chains into a corpus that
+publishes reliability verdicts.
+
+**It refuses to write when it parsed fewer entries than the file marks.** That check is the
+lesson of the truncation: the first run parsed 6,411 of al-Ṭūsī's 6,429 and looked complete,
+and the 18 missing were entries where OpenITI puts a milestone between the number and the dash.
+A gap in the edition's own numbering is reported separately and by number, since a printed
+edition may skip one itself — al-Fihrist's markup has no [434] or [898].
+
+**Keying.** A source key is `book:index`, the entry's position in the raw book file, so
+re-extracting a book renumbers it and silently points every decision at the wrong entry. The
+re-extracted entries are therefore appended after the ones already on file. Every existing key
+keeps its entry, and the 728 decisions resting on al-Ṭūsī's original 123 stand untouched.
+`repair_from_openiti.py` then matches each already-extracted entry to its counterpart in the
+full text, merges the pair into the entry that holds the key, and records the duplicate as
+`exclude`. The recorded pages could not do the matching: they are batch ranges — 723 of
+al-Fihrist's 731 entries span exactly five pages — and al-Ṭūsī's drift against the printed page
+runs from +9 to +22. The match is on the name, with the drift only to choose between namesakes.
+121 of al-Ṭūsī's 123 matched, 640 of al-Fihrist's 731, and 39 of al-Kashshī's 209.
+
+Which reading governs a merge differs by book, because they differ in quality. al-Ṭūsī's 123
+are thin — `assessment_ar` is the heading repeated, and «unknown (majhul)» was read from silence
+for 74 of them — so the printed entry governs and only what the agent added, a footnote or a
+city, is kept. al-Fihrist's and al-Kashshī's carry teachers, students, kunyahs, cities and
+English names that no rule extracts, so they govern, and what they gain is the entry's own page
+and the source's own words as a second assessment beside the first, never over it.
+
+**What reconciling the two readings found in the phase 1 data.** Ninety-eight entries were read
+from the editions' introductions — a modern editor arguing about the book — and recorded as the
+book's own words: «وسيجيء في كلام أبي عمرو الكشي», *it will come in the words of Abū ʿAmr
+al-Kashshī*, stood as a verdict of al-Kashshī's. The reading stays; whose words it is said to be
+is corrected. And 251 entries are not headed anywhere in the printed text — 81 in al-Fihrist,
+170 in al-Kashshī — so they are men named inside another man's entry, anchoring identity as if
+they held a main entry of their own. al-Kashshī was extracted per narrator named in its reports,
+as Khoei and Mamaqani were, so most of its 209 stand beside the printed headings rather than
+duplicating them. They are listed in `tmp/narrators_sources/{book}_not_an_entry.json` rather
+than guessed at.
+
+**What the enlarged corpus then showed about the merge.** Two rules had been sound only because
+the corpus was small.
+
+The first was generation. Every book says when a man lived by naming the Imam he kept company
+with, and al-Ṭūsī says it for all 6,429 of its entries, but each book says it its own way — a
+chapter heading, «Companion of al-Sadiq» in 1,926 Khoei spellings, «companion of al-Ṣādiq»
+transliterated. Compared as strings they never agreed, and so never disagreed either. Read as
+the Imams they name, 88% of the corpus's statements resolve; a man serving two or three in
+succession stays one man, and three apart — al-Ṣādiq's companion and al-Sajjād's, eighty years
+— is disqualifying as a death-year conflict is. 1,536 merges of men who could not have met were
+blocked.
+
+The second was the exact-name rule. An exact whole-name match inside a name group of six or
+fewer merged on a context score of zero: no kunyah, city, generation, teacher or student in
+common, nothing but the name. That contradicted the merge's own default at layer 2 — «a short
+name with no supporting context is a different person who happens to share a common name» — and
+the [Layer 3 brief](#identity-resolution), which tells an agent that absence of conflicting
+evidence is not evidence of sameness. It held while the main books' headings were long. al-Ṭūsī
+heads a man in three words, so 1,872 of one run's joins came to rest on a two-token name:
+«زكريا بن يحيى», which the sources themselves divide between several men. One such entry bridges
+two people into one, as al-Ṭūsī's «محمد بن القاسم بن الفضيل» did to «القاسم بن العلاء» and
+«محمد بن الفضيل». Those pairs now go to Layer 3 rather than being settled by the name.
+
+The audits do not refute the old rule, and they cannot: `layer1_exact` measured 92%, but its
+auditors answered `cannot_tell` for 7–8% and `different` for 1–2%, and `cannot_tell` is the only
+honest answer for a join whose entries share a name and say nothing else. The 92% is carried by
+the joins that do hold evidence.
+
+**Where it stands.** People 21,988 → 26,458, and people holding a main-book entry 2,990 → 8,459.
+No famous narrator is fused; Zurāra's three al-Ṭūsī entries stand as their own person, which is
+the shape of what is left — 3,724 deferred pairs and 2,751 name-group tasks covering 13,288
+profiles, the cross-form work the new main-book entries create. Jāmiʿ al-Ruwāt is the book still
+short, at 1,796 of about 6,400. Its OpenITI text has no entry markup: entries and chain
+citations both open a paragraph with `# `, and «أحمد بن النضر عن الحصين بن عمرو في [يب] في باب
+الزيادات» is a citation while «الحصين بن عمرو الهمداني الكوفي [ين] (مح)» is an entry. A
+bracket-and-citation rule separates only 1,869 of 14,802 paragraphs, and the book is a main
+source whose entries anchor identity, so a fragile parser would be worse than the gap. The book
+is strictly alphabetical, which is the signal a parser should be built on: a paragraph opens an
+entry when its leading name sorts after the last accepted one. Its chain citations are separately
+worth having for [the research graph](#the-research-graph) — they are teacher-and-student pairs,
+each attributed to a book and a chapter — and they can be read without solving the entry
+boundaries at all.
+
 
 ## Appendix D — Phase 1 extraction record
 
