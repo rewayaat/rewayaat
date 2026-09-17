@@ -62,6 +62,8 @@ BY_NAME = re.compile(r"(تقدم في|يأتي في|تقدمت ترجمته في
 IDENTITY = r"(?:متحد مع|متحدة مع|هو|هي|عين|نفس|اتحاده مع)\s+"
 BEFORE = re.compile(IDENTITY + r"(سابقه|ما قبله|المتقدم عليه|من قبله)")
 AFTER = re.compile(IDENTITY + r"(من بعده|ما بعده|التالي له|الآتي بعده|لاحقه)")
+# «ليس بمتّحد مع سابقه» denies the identity the same words would otherwise assert
+NEGATIONS = ("ليس", "ليست", "وليس", "لم يتحد", "لا يتحد")
 # «يأتي في الكنى» points at a section of the book, not at a man
 SECTIONS = {NA(x) for x in ("الكنى", "الالقاب", "النساء", "باب الكنى", "الابواب")}
 # «تقدم في فلان أنه ...» refers to something said under that man, not to his being this man
@@ -84,16 +86,19 @@ def assessment_text(profile):
 def pointers(profile):
     """The cross-references an entry's own text makes: ('name', target) or ('before'/'after', None)."""
     text = assessment_text(profile)
+    negated = lambda at: any(word in text[max(0, at - 25):at] for word in NEGATIONS)
     found = []
     for match in BY_NAME.finditer(text):
+        if negated(match.start()):
+            continue
         target = match.group(2).strip()
         if target and NA(target) not in SECTIONS:
             found.append(("name", match.group(1), target))
     match = BEFORE.search(text)
-    if match:
+    if match and not negated(match.start()):
         found.append(("before", match.group(0).strip(), None))
     match = AFTER.search(text)
-    if match:
+    if match and not negated(match.start()):
         found.append(("after", match.group(0).strip(), None))
     return found
 
