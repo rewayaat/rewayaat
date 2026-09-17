@@ -23,6 +23,16 @@ _AR_FOLD = str.maketrans({
 })
 
 
+# Spellings of one name that the fold above cannot reach, because they differ by a letter rather
+# than by a form of one. Both are ordinary in printed Rijal works and neither is another name:
+# «عبد الرحمان» for «عبد الرحمن» stands in 403 headings, «الحرث» for «الحارث» in 43, and a rule
+# comparing them as strings keeps one man in two people.
+_AR_SPELLINGS = (
+    ("عبد الرحمان", "عبد الرحمن"),
+    ("الحرث", "الحارث"),
+)
+
+
 # Piety formulae that trail a name and identify nobody.
 _AR_NAME_HONORIFICS = (
     "عليه السلام", "عليهم السلام", "عليها السلام", "عليهما السلام",
@@ -42,7 +52,10 @@ def normalize_arabic(raw):
     for h in _AR_NAME_HONORIFICS:
         s = s.replace(normalize_arabic_raw_fold(h), " ")
     parts = [t for t in s.split(" ") if t and t not in _AR_HONORIFIC_TOKENS]
-    return " ".join(parts).strip()
+    s = " ".join(parts).strip()
+    for written, folded in _AR_SPELLINGS:
+        s = s.replace(written, folded)
+    return s
 
 
 def normalize_arabic_raw_fold(raw):
