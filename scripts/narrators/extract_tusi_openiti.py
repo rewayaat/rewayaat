@@ -107,12 +107,45 @@ def parse(text, counts):
     return entries
 
 
-def grade_word(text):
-    """The reliability word the source itself uses, for the contract to canonicalise."""
-    for word in GRADE_KEYWORDS_AR:
-        if word and word in text:
-            return word
-    return None
+AR = r"[\u0621-\u064A]"
+
+# al-Tusi's verdicts, each mapped to what the schema calls it. The word must stand alone: «غال»
+# lives inside «غالب» and «حسن» is al-Hasan's name in 368 entries, which is why a substring
+# match graded them all and why «حسن» is not read as a verdict here at all.
+GRADES_AR = (("ثقة", "thiqa"), ("ثقه", "thiqa"), ("صدوق", "saduq"), ("ضعيف", "daif"),
+             ("ضعيفة", "daif"), ("مجهول", "majhul"), ("مهمل", "muhmal"),
+             ("كذاب", "kadhdhab"), ("وضاع", "kadhdhab"))
+FLAGS_AR = (("واقفي", "waqifi"), ("واقف", "waqifi"), ("واقفة", "waqifi"),
+            ("غالي", "ghali"), ("غال", "ghali"), ("فطحي", "fathi"), ("زيدي", "zaydi"))
+# «روى عنه فلان الثقة» grades the student, not the man whose entry this is
+STUDENT_CLAUSE = re.compile(r"رو[ىي]\s+عنه[^.]{0,40}$")
+
+
+def whole_word(word, text):
+    """Every position where `word` stands as a word of its own."""
+    return [m.start() for m in re.finditer(rf"(?<!{AR}){re.escape(word)}(?!{AR})", text)]
+
+
+def grade_and_flags(text, counts):
+    """The verdict al-Tusi states himself, or None where he states none."""
+    grade, flags = None, []
+    for word, canonical in GRADES_AR + FLAGS_AR:
+        for at in whole_word(word, text):
+            if STUDENT_CLAUSE.search(text[:at]):
+                counts["verdict belongs to the student"] += 1
+                continue
+            if canonical in [g for _, g in GRADES_AR]:
+                grade = grade or canonical
+            elif canonical not in flags:
+                flags.append(canonical)
+            break
+    if grade:
+        counts["grade stated"] += 1
+    if flags:
+        counts["sect flag stated"] += 1
+    if not grade and not flags:
+        return None
+    return ", ".join(([grade] if grade else []) + flags)
 
 
 def profile(entry, index, counts):
@@ -123,9 +156,7 @@ def profile(entry, index, counts):
     if found:
         kunyah = found.group(1).strip()
         counts["kunyah found"] += 1
-    grade = grade_word(body)
-    if grade:
-        counts["grade word found"] += 1
+    grade = grade_and_flags(body, counts)
     female = entry["chapter"] and "النساء" in entry["chapter"]
     return {
         "primary_arabic_name": name,
