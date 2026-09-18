@@ -127,12 +127,30 @@ Evidence, strongest first:
 2. **Kunyah and nisbah together.** `أبو جعفر محمد بن علي` is not `أبو القاسم محمد بن علي`.
    A conflicting kunyah is strong evidence of difference; a shared one is weak on its own,
    since kunyahs are common.
-3. **Teachers and students.** Shared names in `narrated_from` / `narrated_to` place two
+3. **Generation.** `generation` names the Imam a man kept company with — al-Tusi's chapters say
+   it for every entry of his, and the other books say it in their own words. Serving two or three
+   Imams in succession is ordinary, so al-Sadiq's companion and al-Kadhim's may be one man; three
+   apart is about eighty years and they are not, whatever the names say.
+4. **Teachers and students.** Shared names in `narrated_from` / `narrated_to` place two
    profiles in the same generation and circle.
-4. **The quotations themselves.** `assessments[].arabic` is the source's own words. A
+5. **The quotations themselves.** `assessments[].arabic` is the source's own words. A
    source that says "he is the one mentioned as X" or that gives a lineage, city or trade
    is the best evidence available. Read it.
-5. **City or tribe.** Weak alone; useful with a name.
+6. **City or tribe.** Weak alone; useful with a name.
+
+## Entries that say very little
+
+Four books were re-extracted from their printed texts, so many entries now read as their author
+wrote them and no more: Rijal al-Tusi heads a man in three words and gives the Imam whose
+companion he was, often with nothing else; al-Fihrist adds the books he wrote; Jami' al-Ruwat is
+an index of chains, so its entry may be a name, a source mark and a list of where he appears.
+
+That terseness is the book's manner, not a fact about the man. It is not evidence that two such
+entries are one person, and it is not evidence that they are two. An entry that gives a name and
+an Imam's chapter and nothing else belongs in a cluster of its own unless something else in the
+batch — a teacher, a student, a kunyah, a nisbah, a verdict, a lineage — actually agrees with it.
+A man whose entry says only «[ق]» is a companion of al-Sadiq, which is most of the corpus, and
+narrows nothing.
 
 ## The rule that matters
 
