@@ -41,4 +41,6 @@ for run in sys.argv[1:]:
                 if v not in ("same", "different", "cannot_tell"): problems.append(f"{t['task_id']}: verdict {v!r}")
                 c[f"verify {v} {a.get('confidence') if v != 'cannot_tell' else ''}".strip()] += 1
     print(os.path.basename(run.rstrip('/')), dict(sorted(c.items())))
-    print("  problems:", len(problems), problems[:10])
+    print("  problems:", len(problems))
+    for p in problems:
+        print("    ", p)
