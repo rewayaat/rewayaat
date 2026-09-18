@@ -53,6 +53,8 @@ DRIFT = (5, 30)
 # the printed page each book's first entry stands on. Phase 1 read the editions from page 1, so
 # entries it took from pages before this one come from the edition's introduction — a modern
 # editor arguing about the book — and were recorded as if the book itself had said them.
+# Jami' al-Ruwat is absent: phase 1 read it in a pagination of its own, running to page 976
+# where this edition's two volumes each stop at 660, so its pages say nothing about this text.
 FIRST_ENTRY_PAGE = {"tusi": 19, "fihrist": 33, "kashshi": 25}
 # what the agent extraction added that no rule reads, kept whatever governs the merge
 AGENT_FIELDS = ("notes", "city_or_tribe", "death_year_hijri", "narrated_from", "narrated_to",
@@ -67,7 +69,7 @@ def trim(name):
     return extract.NAME_END.split(name, 1)[0].rstrip(".،,؛:").strip() or name
 
 
-def match(existing, appended):
+def match(existing, appended, drift_applies=True):
     """Each already-extracted entry against its counterpart in the full text."""
     by_name = defaultdict(list)
     for index, profile in enumerate(appended):
@@ -90,7 +92,7 @@ def match(existing, appended):
             chosen[index] = candidates[0]
         else:
             near = sorted((appended[c]["source_pages"][0] - span[0], c) for c in candidates
-                          if appended[c]["source_pages"] and span
+                          if drift_applies and appended[c]["source_pages"] and span
                           and DRIFT[0] <= appended[c]["source_pages"][0] - span[0] <= DRIFT[1])
             if near:
                 chosen[index] = near[0][1]
@@ -138,7 +140,9 @@ def relabel_front_matter(existing, book):
     the editor writing about the book, and was recorded as Rijal al-Kashshi's own verdict. The
     reading stays; what changes is whose words it is said to be.
     """
-    first, relabelled = FIRST_ENTRY_PAGE[book], 0
+    first, relabelled = FIRST_ENTRY_PAGE.get(book), 0
+    if first is None:
+        return 0
     for profile in existing:
         pages = profile.get("source_pages") or []
         if not pages or max(pages) >= first:
@@ -167,12 +171,13 @@ def main():
     path = os.path.join(TMP, f"narrators_book_{args.book}_openiti.json")
     profiles = json.load(open(path))
     existing, appended = profiles[:args.kept], profiles[args.kept:]
-    chosen, unmatched, ambiguous = match(existing, appended)
+    chosen, unmatched, ambiguous = match(existing, appended,
+                                         drift_applies=args.book in FIRST_ENTRY_PAGE)
 
     print(f"{args.book}: {len(existing)} already on file, {len(appended)} appended")
     print(f"  matched   {len(chosen)}")
-    first = FIRST_ENTRY_PAGE[args.book]
-    front = [i for i in unmatched
+    first = FIRST_ENTRY_PAGE.get(args.book)
+    front = [] if first is None else [i for i in unmatched
              if (existing[i].get("source_pages") or [first])[-1] < first]
     print(f"  no counterpart in the printed text: {len(unmatched)}"
           f" ({len(front)} of them read from the edition's introduction)")
@@ -199,7 +204,8 @@ def main():
                       [{"source_key": f"{args.book}:{i}",
                         "name": existing[i]["primary_arabic_name"],
                         "recorded_pages": existing[i].get("source_pages"),
-                        "from_the_introduction": bool(existing[i].get("source_pages"))
+                        "from_the_introduction": first is not None
+                        and bool(existing[i].get("source_pages"))
                         and max(existing[i]["source_pages"]) < first}
                        for i in unmatched + ambiguous], indent=1)
 

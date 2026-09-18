@@ -39,6 +39,7 @@ Usage:
 """
 
 import argparse
+import bisect
 from collections import Counter
 import json
 import os
@@ -93,7 +94,52 @@ BOOKS = {
         # «في فلان», «ما روى في فلان» — the heading says «on so-and-so»
         "heading_strip": re.compile(r"^(?:ما\s+رو[ىي]\s+)?(?:في\s+(?:ذكر\s+)?|ومن\s+)"),
     },
+    "ardabili": {
+        "source": "ardabili_jamic.txt",
+        "title": "Jami' al-Ruwat",
+        "author": "Muhammad ibn 'Ali al-Ardabili",
+        # this book marks no entries at all — see parse_running() below
+        "layout": "running",
+        "sections_are_generations": False,
+        # its entries are chains as often as biography, and «ثقة» in one grades whoever the
+        # chain is about, so no verdict is read by rule here
+        "read_verdicts": False,
+    },
 }
+
+# --- Jami' al-Ruwat ---------------------------------------------------------
+#
+# Its text carries no entry marks. An entry and a chain citation both open a paragraph with «# »,
+# and an entry can begin in the middle of one, after the «(مح)» closing al-Ardabili's own remark
+# on the man before. What the book does have is order: chapters run through the alphabet, and
+# within a chapter the entries run through it again. So a paragraph — or a piece of one following
+# a «(مح)» — opens an entry when its leading name begins with the chapter's letter and follows
+# the last entry in the book's own collation. Citations break that order, and are left out by
+# keeping the longest run that does not: they are noise around a monotone sequence.
+#
+# Measured against the 1,796 entries phase 1 read independently, this recovers 84% of them, and
+# 18 of 18 sampled entries are entries rather than citations. What it cannot do is prove a count:
+# the book states no entry numbers, so there is nothing to check a total against, and the
+# extractor reports every piece it set aside instead.
+CHAPTER_LETTERS = {
+    "الالف": "ا", "الهمزه": "ا", "الباء": "ب", "التاء": "ت", "الثاء": "ث", "الجيم": "ج",
+    "الحاء": "ح", "الخاء": "خ", "الدال": "د", "الذال": "ذ", "الراء": "ر", "الزاي": "ز",
+    "السين": "س", "الشين": "ش", "الصاد": "ص", "الضاد": "ض", "الطاء": "ط", "الظاء": "ظ",
+    "العين": "ع", "الغين": "غ", "الفاء": "ف", "القاف": "ق", "الكاف": "ك", "اللام": "ل",
+    "الميم": "م", "النون": "ن", "الهاء": "ه", "الواو": "و", "الياء": "ي", "الكني": "كنى",
+}
+CHAPTER_HEAD = re.compile(r"^#\s+(?:بسم الله الرحمن الرحيم\s+)?باب\s+(\S+)")
+# «(مح)» closes al-Ardabili's remark on a man; the kunya chapter writes it " مح "
+REMARK_END = re.compile("[\\(\"«]\\s*مح\\s*[\\)\"»]\\s*\\.?")
+DIACRITICS = re.compile(r"[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u0640]")
+NAME_STOP = {"عن", "عنه", "روى", "رواه", "ذكره", "يروي", "يروى", "عده", "قال", "وقال",
+             "وروى", "وعنه", "وفي", "وفى", "تقدم", "يأتي"}
+FILLER = ("بن", "ابن", "بنت")
+# The book's own collation: hamza forms count as alif, but «آ» sorts before everything — آدم
+# opens the alif chapter ahead of أبان and إبراهيم, which folding it to alif would reverse.
+COLLATE = str.maketrans({"آ": "\u0600", "أ": "ا", "إ": "ا", "ٱ": "ا", "ء": "ا",
+                         "ى": "ي", "ة": "ه", "ؤ": "و", "ئ": "ي"})
+KUNYA_OPENERS = ("أبو", "ابو", "أبي", "ابي", "أبا", "ابا", "ابن", "أم")
 
 # OpenITI's tag for text that is not the book: a title page, a colophon, a publisher's note
 PARATEXT = re.compile(r"PARATEXT")
@@ -178,6 +224,131 @@ STUDENT_CLAUSE = re.compile(r"رو[ىي]\s+عنه[^.]{0,40}$")
 def whole_word(word, text):
     """Every position where `word` stands as a word of its own."""
     return [m.start() for m in re.finditer(rf"(?<!{AR}){re.escape(word)}(?!{AR})", text)]
+
+
+def chapter_letter(line):
+    found = CHAPTER_HEAD.match(line)
+    return CHAPTER_LETTERS.get(normalize_arabic(found.group(1))) if found else None
+
+
+def leading_name(text):
+    """The name a piece of running text opens with, up to where the biography begins."""
+    text = NOISE.sub(" ", text)
+    out = []
+    for token in re.split(r"[\[\(\"».]", text, 1)[0].split():
+        if normalize_arabic(token) in NAME_STOP:
+            break
+        out.append(token)
+        if len(out) >= 10:
+            break
+    return " ".join(out).strip(" .،-")
+
+
+def collation_key(name):
+    """A name as the book orders it: by its tokens, «بن» skipped, «ال» ignored."""
+    tokens = []
+    for token in DIACRITICS.sub("", name).split():
+        token = token.strip(".,()[]«»،-\"")
+        if not token:
+            continue
+        folded = token.translate(COLLATE)
+        if folded.startswith("ال") and len(folded) > 3:
+            folded = folded[2:]
+        if folded in FILLER:
+            continue
+        tokens.append(folded)
+    return tuple(tokens)
+
+
+def longest_ordered_run(keys):
+    """Indices of a longest non-decreasing run — the entries, without the citations between."""
+    tails, ends, previous = [], [], [None] * len(keys)
+    for n, key in enumerate(keys):
+        at = bisect.bisect_right(tails, key)
+        if at == len(tails):
+            tails.append(key)
+            ends.append(n)
+        else:
+            tails[at], ends[at] = key, n
+        previous[n] = ends[at - 1] if at else None
+    kept, cursor = set(), ends[-1] if ends else None
+    while cursor is not None:
+        kept.add(cursor)
+        cursor = previous[cursor]
+    return kept
+
+
+def running_pieces(lines, start, end):
+    """Every piece of a chapter that may open an entry, with the page it stands on."""
+    page, volume, pieces, buffer = None, None, [], []
+
+    def flush():
+        if buffer:
+            joined = re.sub(r"\s+", " ", " ".join(buffer)).strip()
+            for part in REMARK_END.split(joined):
+                if part.strip():
+                    pieces.append((page, volume, part.strip()))
+        buffer.clear()
+
+    for n in range(start, end):
+        line = lines[n]
+        found = PAGE.search(line)
+        if found:
+            volume, page = int(found.group(1)), int(found.group(2))
+        if line.startswith("# ---"):
+            continue
+        if line.startswith("# "):
+            flush()
+            buffer.append(CHAPTER_HEAD.sub("", line).strip() if n == start else line[2:])
+        elif line.startswith("~~"):
+            buffer.append(line[2:])
+    flush()
+    return pieces
+
+
+def parse_running(text, book, counts):
+    """Recover the entries of a book that marks none, from its chapters and its own order."""
+    lines = text.splitlines()
+    heads = [(n, chapter_letter(line)) for n, line in enumerate(lines) if chapter_letter(line)]
+    if len(heads) < len(set(CHAPTER_LETTERS.values())) - 1:
+        raise SystemExit(f"  REFUSING: found only {len(heads)} chapters")
+    counts["chapters"] = len(heads)
+    entries = []
+    for n, (start, letter) in enumerate(heads):
+        end = heads[n + 1][0] if n + 1 < len(heads) else len(lines)
+        candidates = []
+        for page, volume, piece in running_pieces(lines, start, end):
+            name = leading_name(piece)
+            key = collation_key(name)
+            if not name or not key:
+                counts["no name in the piece"] += 1
+                continue
+            head = next((t.strip(".,()[]«»،-\"") for t in DIACRITICS.sub("", name).split()
+                         if t.strip(".,()[]«»،-\"") not in FILLER), "")
+            if head.startswith("ال") and len(head) > 3:
+                head = head[2:]
+            if letter == "كنى":
+                fits = head[:3] in KUNYA_OPENERS or head in ("أم", "ابنه", "بنت", "أبو")
+                key = key[1:] or key
+            else:
+                fits = head.startswith(letter) or (letter == "ا" and head[:1] in "اأإآء") \
+                    or (letter == "ه" and head[:1] == "ة") or (letter == "ي" and head[:1] == "ى")
+            if not fits:
+                counts["piece opens on another letter"] += 1
+                continue
+            candidates.append((page, volume, name, key, piece))
+        kept = longest_ordered_run([candidate[3] for candidate in candidates])
+        for at, (page, volume, name, key, piece) in enumerate(candidates):
+            if at not in kept:
+                counts["piece breaks the book's order"] += 1
+                continue
+            counts["entries"] += 1
+            counts[f"section: باب {letter}"] += 1
+            # the book runs to two volumes, each numbered from 1, so a page says nothing alone
+            entries.append({"number": None, "name": name, "section": None, "raw": piece,
+                            "chapter": f"باب {letter}" + (f"، الجزء {volume}" if volume else ""),
+                            "page": page, "pages": [page] if page else [], "body": piece})
+    return entries
 
 
 def grade_and_flags(text, counts):
@@ -299,9 +470,10 @@ def main():
     with open(source) as handle:
         text = handle.read()
     counts = Counter()
-    entries = parse(text, book, counts)
+    entries = (parse_running(text, book, counts) if book.get("layout") == "running"
+               else parse(text, book, counts))
     marked = [line for line in text.splitlines()
-              if book["marker"].match(line) and not PARATEXT.search(line)]
+              if book.get("marker") and book["marker"].match(line) and not PARATEXT.search(line)]
     markers = len(marked)
     with open(on_file) as handle:
         existing = json.load(handle)
@@ -311,7 +483,15 @@ def main():
 
     profiles = [profile(e, book, counts) for e in entries]
     strip_conjunction_waw(profiles, counts)
-    print(f"parsed {len(profiles)} entries of {markers} marked in {source}")
+    if markers:
+        print(f"parsed {len(profiles)} entries of {markers} marked in {source}")
+    else:
+        # this book marks no entries, so there is no count to check the parse against; what it
+        # reports instead is everything it set aside, which is where a lost entry would be
+        print(f"parsed {len(profiles)} entries from {source}, which marks none")
+        for key in ("chapters", "no name in the piece", "piece opens on another letter",
+                    "piece breaks the book's order"):
+            print(f"  {key}: {counts[key]}")
     pages = {p["source_pages"][0] for p in profiles if p["source_pages"]}
     print(f"  pages seen {len(pages)} (min {min(pages) if pages else 0}, "
           f"max {max(pages) if pages else 0}); indices {start}..{start + len(profiles) - 1}")
