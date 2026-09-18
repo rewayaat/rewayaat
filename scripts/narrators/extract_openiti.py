@@ -379,10 +379,12 @@ def profile(entry, book, counts):
     # where the heading runs into the biography the name can continue past the heading line, and
     # OpenITI's line wrapping can break it in two; where the heading stands alone it does not
     read_from = entry["name"] if book.get("heading_is_standalone") else body
+    # «ما روى في فلان» must lose its «ما روى في» before the name is cut, or the cut at « روى »
+    # leaves «ما» — which is what happened to 109 of al-Kashshi's headings
+    if book.get("heading_strip"):
+        read_from = book["heading_strip"].sub("", read_from).strip() or read_from
     name = NAME_END.split(read_from, 1)[0].rstrip(".،,؛:").strip() or entry["name"]
     name = re.sub(r"\s+", " ", FOOTNOTE_DIGIT.sub(" ", name)).strip() or name
-    if book.get("heading_strip"):
-        name = book["heading_strip"].sub("", name).strip() or name
     kunyah = None
     found = KUNYAH.search(body) or HEAD_KUNYAH.match(name) or COMMA_KUNYAH.search(entry["name"])
     if found:
