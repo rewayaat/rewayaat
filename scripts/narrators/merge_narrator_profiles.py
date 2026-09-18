@@ -95,7 +95,12 @@ def layer0_consolidate(profiles):
                 and prev["normalized_arabic"]
                 and prev["normalized_arabic"] == profile["normalized_arabic"]
                 and profile["source_index"] == prev["_last_index"] + 1
-                and _pages_contiguous(prev["source_pages"], profile["source_pages"])):
+                and _pages_contiguous(prev["source_pages"], profile["source_pages"])
+                # Two entries the printed edition heads separately are two entries: consecutive
+                # homonyms, which Jami' al-Ruwat and al-Kashshi print as often as Khoei does.
+                # Only phase 1's page batches produce fragments, and a rule extraction has none.
+                and not ("printed_entry" in prev.get("flags", ())
+                         and "printed_entry" in profile.get("flags", ()))):
             _absorb_fragment(prev, profile)
             merged_count += 1
             continue

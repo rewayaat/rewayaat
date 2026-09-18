@@ -425,6 +425,8 @@ def profile(entry, book, counts):
         }],
         "rijal_sources": [book["title"]],
         "source_pages": entry["pages"],
+        # one profile per printed entry: never a page-batch fragment of another
+        "printed_entry": True,
     }
 
 

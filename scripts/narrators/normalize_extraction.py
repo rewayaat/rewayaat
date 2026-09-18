@@ -264,6 +264,9 @@ def normalize_profile(raw, book_slug, index, stats, errors):
         # not acted on: deciding whether the keyword refers to this narrator or to someone
         # in his chain needs the surrounding text, which is a later pass.
         flags.append("grade_recoverable")
+    if raw.get("printed_entry"):
+        # read from the edition's entry markup, one profile per printed entry (extract_openiti.py)
+        flags.append("printed_entry")
         stats["flag_grade_recoverable"] += 1
 
     return {

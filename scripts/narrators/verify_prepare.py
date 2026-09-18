@@ -79,6 +79,9 @@ def main():
     parser.add_argument("--second-pass", action="store_true",
                         help="Layer 1 exact joins at score 0 and Layer 2 joins at any score")
     parser.add_argument("--dry-run", action="store_true", help="count tasks, write nothing")
+    parser.add_argument("--people", default=None,
+                        help="comma-separated person ids: ask every rule join inside them, whatever "
+                             "its layer — for the people a build joined by rule alone")
     args = parser.parse_args()
 
     def load(name):
@@ -106,8 +109,15 @@ def main():
             earlier |= {t["task_id"].split(":", 1)[1] for t in json.load(handle)["tasks"]}
     counts, tasks, id_map, seeds, asked = Counter(), [], {}, {}, set()
     next_id = 1
+    wanted = set(args.people.split(",")) if args.people else None
     for decision in force:
-        why = untrusted(decision, args.second_pass)
+        if wanted is not None:
+            first = (decision.get("sources") or [None])[0]
+            why = ("a rule join inside a person no agent answer explains"
+                   if decision["actor"] == "rule" and decision["kind"] == "same"
+                   and membership.get(first) in wanted else None)
+        else:
+            why = untrusted(decision, args.second_pass)
         if not why:
             continue
         if decision["decision_id"] in earlier:
@@ -147,7 +157,7 @@ def main():
     if args.dry_run:
         return
 
-    prefix = "verify2" if args.second_pass else "verify"
+    prefix = "verify-people" if wanted else ("verify2" if args.second_pass else "verify")
     run_dir = os.path.join(args.out_dir, "runs", f"{prefix}-" + fingerprint.replace(":", "-"))
     batch_dir = os.path.join(run_dir, "batches")
     if os.path.isdir(batch_dir) and os.listdir(batch_dir):
