@@ -83,8 +83,12 @@ def is_entry(key, profile, excluded_keys):
     return key.split(":")[0] in MAIN_BOOKS and key not in excluded_keys
 
 
-# Methods that tie a phase 1 mention profile to the entry it stands for.
-ATTACHMENTS = {"mention_is_entry", "mention_names_one_entry"}
+# Methods that tie a phase 1 mention profile to the man it stands for. A profile read from his
+# own entry is that entry, so every decision on it counts (ANCHORING); a mention attached because
+# its name names one man is his only on that ground, so it joins him and nothing else — its older
+# joins were made on the host entry's data and would bridge him to someone else.
+ANCHORING = {"mention_is_entry"}
+ATTACHMENTS = ANCHORING | {"mention_names_one_entry"}
 
 
 def anchored(decisions, profiles, tmp_dir):
@@ -100,7 +104,7 @@ def anchored(decisions, profiles, tmp_dir):
     headless = not_entries(tmp_dir)
     anchors = {k for k, (_, prof) in profiles.items() if is_entry(k, prof, headless)}
     for d in decisions:
-        if d["kind"] == "same" and d["method"] in ATTACHMENTS:
+        if d["kind"] == "same" and d["method"] in ANCHORING:
             anchors.update(d["sources"])
     kept = []
     for d in decisions:
