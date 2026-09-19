@@ -17,7 +17,12 @@ al-Kazim, [ضا] al-Rida and so on. So:
   al-Tusi         every entry of the name is joined whose chapter is among Khoei's Imams; where
                   Khoei names no Imam, only a name al-Tusi gives a single entry
   Jami' al-Ruwat  the name's single entry is joined, unless its sigla and Khoei's Imams are two
-                  generations apart or more (Jami' gives each man one entry)
+                  generations apart or more (Jami' gives each man one entry). Where Khoei heads
+                  the name more than once, the Jami' entry joins the one Khoei entry that shares
+                  its words in order — the two quote the same older book, «فقيه دين» from
+                  Muntajab al-Din for the Sayyid Abu Talib — at SHARED_SHARE of its opening word
+                  triples with a SHARED_MARGIN over the next; a Khoei entry claimed by two Jami'
+                  entries joins neither (`entry_books_jami_text`)
 
 Measured against link_khoei_citations.py, where Khoei's own citation says which al-Tusi entry he
 means: of names both books give one entry, 690 of 706 join the cited entry, and the sixteen others
@@ -51,6 +56,23 @@ SIGLA = {"ل": "prophet", "ى": "ali", "ي": "ali", "ن": "hasan", "سن": "hasa
          "دي": "hadi", "دى": "hadi", "كر": "askari"}
 SIGLUM = re.compile(r"[\[\(]([^\]\)]{1,20})[\]\)]")
 KHOEI_COMPANION = re.compile(r"أصحاب\s+([^،.()]{2,40})")
+SIGLA_NOISE = re.compile(r"[\[\(][^\]\)]{1,15}[\]\)]|ms\d+|PageV\d+P\d+")
+SHARED_OPENING, SHARED_SHARE, SHARED_MARGIN = 25, 0.5, 0.3
+
+
+def words(text):
+    return re.sub(r"[^\w\s]|_", " ", normalize_arabic(text)).split()
+
+
+def triples(tokens):
+    return [tuple(tokens[i:i + 3]) for i in range(len(tokens) - 2)]
+
+
+def jami_opening(profile):
+    """Jami's own words after its heading, its sigla and page marks set aside."""
+    text = words(SIGLA_NOISE.sub(" ", body(profile)))
+    heading = words(profile["primary_arabic_name"])
+    return (text[len(heading):] if text[:len(heading)] == heading else text)[:SHARED_OPENING]
 
 
 def entries(book):
@@ -141,6 +163,34 @@ def main():
                 links.append((k_key, f"ardabili:{same_name[0]['source_index']}", "jami"))
         elif len(same_name) > 1:
             counts["Jami' al-Ruwat gives the name several entries: left"] += 1
+
+    # names Khoei heads more than once: each Jami' entry to the Khoei entry sharing its words
+    claimed = defaultdict(list)
+    for name, held in k_names.items():
+        if len(name) < 2 or len(held) < 2:
+            continue
+        texts = [(k, set(triples(words(body(k))))) for k in held]
+        for j in j_names.get(name, []):
+            grams = triples(jami_opening(j))
+            if len(grams) < 4:
+                continue
+            scored = sorted(((sum(g in t for g in grams) / len(grams), k) for k, t in texts),
+                            key=lambda x: -x[0])
+            best, runner = scored[0][0], scored[1][0]
+            if best < SHARED_SHARE or best - runner < SHARED_MARGIN:
+                counts["Jami' al-Ruwat: no single Khoei homonym shares its words"] += 1
+                continue
+            k = scored[0][1]
+            apart = generation_distance(khoei_imams(k), jami_imams(j))
+            if apart is not None and apart >= 2:
+                counts["Jami' al-Ruwat: sigla generations apart"] += 1
+                continue
+            claimed[k["source_index"]].append(j)
+    for k_index, js in claimed.items():
+        if len(js) > 1:
+            counts["a Khoei entry two Jami' entries share words with: left"] += 1
+            continue
+        links.append((f"khoei:{k_index}", f"ardabili:{js[0]['source_index']}", "jami_text"))
 
     fresh = [(a, b, w) for a, b, w in links
              if not (membership.get(a) and membership.get(a) == membership.get(b))]
