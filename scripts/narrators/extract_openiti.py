@@ -250,6 +250,13 @@ def recover_inline_entries(lines, book, counts):
         number_at.setdefault(int(found.group("number")), n)
     present = sorted(number_at)
     last = max(present)
+
+    def with_next(n):
+        """The line, and the continuation line after it: a heading may break over the two,
+        «… رجال الشيخ (31) 165 -» and then «~~إبراهيم بن سليمان:»."""
+        nxt = lines[n + 1] if n + 1 < len(lines) and lines[n + 1].startswith("~~") else None
+        return lines[n] + (" " + nxt[2:].lstrip() if nxt is not None else ""), nxt is not None
+
     splits = {}
     for number in range(1, last + 1):
         if number in number_at:
@@ -260,24 +267,32 @@ def recover_inline_entries(lines, book, counts):
         hi = number_at[above[0]] if above else len(lines)
         pattern = re.compile(rf"(?<![\d\u0660-\u0669]){number}\s*(?:ms\d+\s*)?-\s*"
                              rf"[\u0621-\u064A][^:\n]{{0,90}}:")
-        spots = [(n, m.start()) for n in range(lo, hi) for m in pattern.finditer(lines[n])]
+        spots = []
+        for n in range(lo, hi):
+            text, _ = with_next(n)
+            spots += [(n, m.start()) for m in pattern.finditer(text) if m.start() < len(lines[n])]
         if len(spots) == 1:
             splits.setdefault(spots[0][0], []).append(spots[0][1])
             counts["entry recovered from inside a line"] += 1
         else:
             counts["entry missing from the markup"] += 1
-    out = []
+    out, consumed = [], set()
     for n, line in enumerate(lines):
+        if n in consumed:
+            continue
         if n not in splits:
             out.append(line)
             continue
-        cut = 0
-        for at in sorted(splits[n]):
-            out.append(line[cut:at].rstrip())
-            cut = at
-            out.append(None)                 # placeholder: the next piece is an entry heading
-        rest = line[cut:]
-        out[-1] = "### $ " + rest
+        cuts = sorted(splits[n])
+        out.append(line[:cuts[0]].rstrip())
+        for k, at in enumerate(cuts):
+            piece = line[at:cuts[k + 1]] if k + 1 < len(cuts) else line[at:]
+            if k + 1 == len(cuts):
+                text, joins = with_next(n)
+                if joins and ":" not in piece:
+                    piece = text[at:]                  # the heading ends on the next line
+                    consumed.add(n + 1)
+            out.append("### $ " + piece.strip())
     return [l for l in out if l is not None and l != ""]
 
 

@@ -254,19 +254,22 @@ def refresh(book, kept, write):
     for p in fresh:
         if held[where(p)]:
             at = held[where(p)].pop(0)
-            # where a heading the parse had missed stood inside it, its pages and chapter shrink
-            if (p["source_pages"], p["notes"]) != (profiles[at]["source_pages"], profiles[at]["notes"]):
+            # where a heading the parse had missed stood inside it, its text, pages and chapter
+            # shrink to its own
+            if any(p.get(f) != profiles[at].get(f) for f in
+                   ("source_pages", "notes", "source_assessments", "reliability_grade")):
                 updated[at] = p
         else:
             new.append(p)
     gone = sum(len(v) for v in held.values())
-    print(f"{book}: {len(fresh)} entries read, {len(new)} new, {len(updated)} with their pages or "
-          f"chapter corrected, {gone} on file no longer read")
+    print(f"{book}: {len(fresh)} entries read, {len(new)} new, {len(updated)} re-read with a "
+          f"changed text, pages or chapter, {gone} on file no longer read")
     for p in new[:5]:
         print(f"     new: «{p['primary_arabic_name'][:60]}» p. {p['source_pages'][:3]}")
 
     listed = os.path.join(TMP, "narrators_sources", f"{book}_not_an_entry.json")
-    orphans = [int(x["source_key"].split(":")[1]) for x in json.load(open(listed))]
+    listing = json.load(open(listed)) if os.path.exists(listed) else []   # Khoei was never repaired
+    orphans = [int(x["source_key"].split(":")[1]) for x in listing]
     chosen, unmatched, ambiguous = match([profiles[i] for i in orphans], new,
                                          drift_applies=book in FIRST_ENTRY_PAGE)
     print(f"  of {len(orphans)} phase 1 profiles without a printed entry, {len(chosen)} now have "
@@ -277,14 +280,15 @@ def refresh(book, kept, write):
         return
     start = len(profiles)
     for at, p in updated.items():
-        profiles[at]["source_pages"], profiles[at]["notes"] = p["source_pages"], p["notes"]
+        profiles[at] = dict(p, printed_entry=profiles[at].get("printed_entry", True))
     for at, n in chosen.items():
         profiles[orphans[at]] = merge(profiles[orphans[at]], new[n], book)
         new[n]["printed_entry"] = False
     write_json_atomic(path, profiles + new, indent=1)
     still = [orphans[i] for i in unmatched + ambiguous]
-    write_json_atomic(listed, [x for x in json.load(open(listed))
-                               if int(x["source_key"].split(":")[1]) in still], indent=1)
+    if listing:
+        write_json_atomic(listed, [x for x in listing
+                                   if int(x["source_key"].split(":")[1]) in still], indent=1)
     record = load_record(RECORD)
     ids = {d["decision_id"] for d in record}
     decisions = [d for d in (
