@@ -83,8 +83,8 @@ def is_entry(key, profile, excluded_keys):
     return key.split(":")[0] in MAIN_BOOKS and key not in excluded_keys
 
 
-# Methods that tie a phase 1 mention profile to the entry it was read from.
-ATTACHMENTS = {"mention_is_entry"}
+# Methods that tie a phase 1 mention profile to the entry it stands for.
+ATTACHMENTS = {"mention_is_entry", "mention_names_one_entry"}
 
 
 def anchored(decisions, profiles, tmp_dir):
@@ -233,8 +233,10 @@ def main():
     parser.add_argument("--rules-run", help="merge whose rule decisions to use "
                         "(default: the merge in --merge-dir)")
     parser.add_argument("--verify-against", help="merged_final.json whose people to reproduce")
-    parser.add_argument("--mentions-join", action="store_true",
-                        help="let every mention profile join people, as builds before stage 6 did")
+    parser.add_argument("--mentions", choices=("entries", "one-man", "all"), default="entries",
+                        help="which mention profiles join people: only those attached to their own "
+                             "entry (entries), also those whose decisions reach one entry-holder "
+                             "(one-man), or every one, as builds before stage 6 did (all)")
     args = parser.parse_args()
 
     record_path = os.path.join(args.identity_dir, "decisions.jsonl")
@@ -257,13 +259,15 @@ def main():
     excluded = {k for d in force if d["kind"] == "exclude" for k in d["sources"]}
     universe = set(profiles) - excluded
 
-    if args.mentions_join:
+    # A person is a man some book heads (stage 6): only entries, and mention profiles attached to
+    # the entry they were read from, shape people unless asked otherwise.
+    if args.mentions == "all":
         uf, refused, overridden = build_components(universe, force)
     else:
         anchor_decisions, anchors = anchored(force, profiles, os.path.join(args.identity_dir, ".."))
         uf, refused, overridden = build_components(universe, anchor_decisions)
-        mention_stats = attach_mention_groups(uf, universe, force, anchors)
-        print(f"mentions: {mention_stats}")
+        if args.mentions == "one-man":
+            print(f"mentions: {attach_mention_groups(uf, universe, force, anchors)}")
     comps = components(uf, universe)
 
     signals = []
