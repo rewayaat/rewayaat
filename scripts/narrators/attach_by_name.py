@@ -15,6 +15,12 @@ man, 2 different, 9 too thin to tell; the two misses led to the Imam test and to
 entry that carries the name rather than to the man's anchor. Such a mention is attached to that man's anchor entry as a reviewer `same`
 (`mention_names_one_entry`), which build_people.py treats as an attachment.
 
+Widening it to names that run on from one another — a mention «خالد بن مهران الحذاء» to an entry
+«خالد بن مهران البجلي الكوفي» — was measured on 2026-09-20 and rejected: 72 of 100 the same man
+against 89 for names that agree throughout, and 75 of 100 when only whole-token run-ons were
+taken (batch attach-by-name-s20260923, both controls 10/10). Two men share a father's name and
+part at the nisbah, al-Muzani against al-Ghifari, and the corpus holds thousands of such pairs.
+
 The rule is measured before it is used: --sample draws attachments at random, with hidden
 controls, into a batch an auditor reads blind (audit_agent_prompt.md), its key kept outside the
 run, and --score reads the answers back.
@@ -103,6 +109,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--sample", type=int, default=0)
+    parser.add_argument("--seed", type=int, default=SEED, help="a fresh draw, for a changed rule")
     parser.add_argument("--score", default=None)
     parser.add_argument("--write", action="store_true")
     args = parser.parse_args()
@@ -120,7 +127,7 @@ def main():
         print(f"  {n:6d}  {label}")
 
     if args.sample:
-        rng = random.Random(SEED)
+        rng = random.Random(args.seed)
         drawn = rng.sample(links, min(args.sample, len(links)))
         items, key = [], {}
         for n, (m, anchor, _) in enumerate(drawn):
@@ -156,7 +163,7 @@ def main():
             if made == 10:
                 break
         rng.shuffle(items)
-        name = f"attach-by-name-s{SEED}"
+        name = f"attach-by-name-s{args.seed}"
         os.makedirs(os.path.join(RUNS, name, "batches"), exist_ok=True)
         os.makedirs(os.path.join(RUNS, name, "outputs"), exist_ok=True)
         os.makedirs(KEYS, exist_ok=True)
