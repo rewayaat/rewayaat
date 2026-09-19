@@ -94,6 +94,27 @@ BOOKS = {
         # «في فلان», «ما روى في فلان» — the heading says «on so-and-so»
         "heading_strip": re.compile(r"^(?:ما\s+رو[ىي]\s+)?(?:في\s+(?:ذكر\s+)?|ومن\s+)"),
     },
+    "khoei": {
+        "source": "khoei_mujam.txt",
+        "title": "Mu'jam Rijal al-Hadith",
+        "author": "Abu al-Qasim al-Khoei",
+        "entry": re.compile(r"^###\s+\$+\s*(?P<number>\d+)\s*(?:ms\d+\s*)?-\s*(?P<name>.*?)\s*$"),
+        "marker": re.compile(r"^###\s+\$+\s*\d+\s*(?:ms\d+\s*)?-"),
+        # Khoei numbers the reports he quotes inside a long entry, and a list of the four books'
+        # parts, with the same «### $ n -» mark as the entries themselves, restarting at 1 each
+        # time. The entries are the marked lines whose numbers run in order through the book.
+        "layout": "numbered_ordered",
+        "not_heading": re.compile(r"^(?:\"|«|كتب\s+الجزء|كتاب\s+الجزء|الجزء\s+ال|حدث|وجدت|روى|قال|"
+                                  r"ذكر|وبهذا|أن |أنه |أقول|ابن مهران،)"),
+        "sections_are_generations": False,
+        # an entry quotes al-Najashi, al-Shaykh and Ibn al-Ghada'iri on this man and on others,
+        # so a verdict word in it is not Khoei's verdict on this man by rule
+        "read_verdicts": False,
+        "multi_volume": True,
+        # each volume closes with a contents list («فهرست كتب أجزاء الكافي») that is not the last
+        # entry's text; it ends that entry, and nothing after it joins a body until the next entry
+        "body_ends": re.compile(r"^#+\s*فهرس|^#+ENDNOTES"),
+    },
     "ardabili": {
         "source": "ardabili_jamic.txt",
         "title": "Jami' al-Ruwat",
@@ -161,11 +182,95 @@ def clean(line):
     return NOISE.sub(" ", line).strip()
 
 
+def ordered_entry_lines(lines, book, counts):
+    """The marked lines that are entries: numbered in order through the book, not quoted reports.
+
+    A marked line opens an entry when it is not a quotation or a list item, and its number falls
+    on the longest run of numbers that never goes backwards. A line off that run whose number no
+    kept line carries is taken back: it is an entry whose neighbour's number is out of place.
+    """
+    candidates = []
+    for n, line in enumerate(lines):
+        found = book["entry"].match(line)
+        if not found:
+            continue
+        head = NOISE.sub(" ", found.group("name")).strip()
+        if book["not_heading"].match(head):
+            counts["marked line that is a quotation or list item"] += 1
+            continue
+        candidates.append((int(found.group("number")), n, head))
+    kept = longest_ordered_run([number for number, _, _ in candidates])
+    numbers = {candidates[k][0] for k in kept}
+    starts = {candidates[k][1] for k in kept}
+    for k, (number, n, head) in enumerate(candidates):
+        if k in kept:
+            continue
+        if number not in numbers and head.rstrip(". ").endswith(":"):
+            starts.add(n)
+            numbers.add(number)
+            counts["entry taken back off the ordered run"] += 1
+        else:
+            counts["marked line off the ordered run"] += 1
+    return starts
+
+
+def recover_inline_entries(lines, book, counts):
+    """Put back on a line of its own each entry the markup left inside another line.
+
+    OpenITI tags an entry «### $ n - name:», and for a few hundred of Khoei's it did not: the
+    heading runs on inside the line before, «… (189) 42 - أبان …». Such an entry is still pinned
+    by the numbers around it, so it is looked for only between the entries numbered below and
+    above it, and taken only where exactly one «n - name:» stands there.
+    """
+    starts = ordered_entry_lines(lines, book, counts)
+    number_at = {}
+    for n in sorted(starts):
+        found = book["entry"].match(lines[n])
+        number_at.setdefault(int(found.group("number")), n)
+    present = sorted(number_at)
+    last = max(present)
+    splits = {}
+    for number in range(1, last + 1):
+        if number in number_at:
+            continue
+        below = [p for p in present if p < number]
+        above = [p for p in present if p > number]
+        lo = number_at[below[-1]] if below else 0
+        hi = number_at[above[0]] if above else len(lines)
+        pattern = re.compile(rf"(?<![\d\u0660-\u0669]){number}\s*(?:ms\d+\s*)?-\s*"
+                             rf"[\u0621-\u064A][^:\n]{{0,90}}:")
+        spots = [(n, m.start()) for n in range(lo, hi) for m in pattern.finditer(lines[n])]
+        if len(spots) == 1:
+            splits.setdefault(spots[0][0], []).append(spots[0][1])
+            counts["entry recovered from inside a line"] += 1
+        else:
+            counts["entry missing from the markup"] += 1
+    out = []
+    for n, line in enumerate(lines):
+        if n not in splits:
+            out.append(line)
+            continue
+        cut = 0
+        for at in sorted(splits[n]):
+            out.append(line[cut:at].rstrip())
+            cut = at
+            out.append(None)                 # placeholder: the next piece is an entry heading
+        rest = line[cut:]
+        out[-1] = "### $ " + rest
+    return [l for l in out if l is not None and l != ""]
+
+
+
 def parse(text, book, counts):
     """Every entry the book's markup marks, with the section and page it stands under."""
     entry_re, chapter_first = book["entry"], book["entry"].pattern.startswith("^###\\s+\\|")
-    section, chapter, page = None, None, None
+    section, chapter, page, volume = None, None, None, None
     entries, current = [], None
+    all_lines = text.splitlines()
+    starts = None
+    if book.get("layout") == "numbered_ordered":
+        all_lines = recover_inline_entries(all_lines, book, counts)
+        starts = ordered_entry_lines(all_lines, book, Counter())
 
     def close():
         if current and current["body"]:
@@ -173,16 +278,18 @@ def parse(text, book, counts):
         if current:
             entries.append(current)
 
-    for raw in text.splitlines():
+    for line_no, raw in enumerate(all_lines):
         found = PAGE.search(raw)
         if found:
-            page = int(found.group(2))
+            volume, page = int(found.group(1)), int(found.group(2))
             if current is not None and page not in current["pages"]:
                 current["pages"].append(page)
         if CHAPTER.match(raw):
             chapter = CHAPTER.match(raw).group(1)
             continue
         match = entry_re.match(raw)
+        if match and starts is not None and line_no not in starts:
+            match = None                   # a quoted report or list item: part of the body
         if match and not PARATEXT.search(raw):
             close()
             counts["entries"] += 1
@@ -192,10 +299,14 @@ def parse(text, book, counts):
             number = int(match.group("number")) if "number" in match.groupdict() else None
             current = {"number": number, "name": head, "section": section, "raw": raw,
                        "chapter": chapter, "page": page, "pages": [page] if page else [],
-                       "body": [head]}
+                       "volume": volume, "body": [head]}
             continue
         if not chapter_first and SECTION.match(raw):
             section, chapter = SECTION.match(raw).group(1) or None, None
+            continue
+        if book.get("body_ends") and book["body_ends"].match(raw):
+            close()
+            current = None
             continue
         if raw.startswith("#META#") or raw.startswith("######"):
             continue
@@ -414,6 +525,8 @@ def profile(entry, book, counts):
         "death_year_hijri": None,
         "gender": "female" if female else "male",
         "notes": f"{book['title']}, {where}"
+                 + (f", الجزء {entry['volume']}" if book.get("multi_volume") and entry.get("volume")
+                    else "")
                  + (f"; {entry['chapter']}" if entry["chapter"] else "")
                  + (f"; under {entry['section']}" if entry["section"]
                     and not book["sections_are_generations"] else ""),
@@ -476,8 +589,11 @@ def main():
     counts = Counter()
     entries = (parse_running(text, book, counts) if book.get("layout") == "running"
                else parse(text, book, counts))
+    # where the book marks its quoted reports as it marks its entries, the entries are what the
+    # ordered numbering picks out, and the numbering below is the check on what was lost
     marked = [line for line in text.splitlines()
-              if book.get("marker") and book["marker"].match(line) and not PARATEXT.search(line)]
+              if book.get("marker") and book["marker"].match(line) and not PARATEXT.search(line)
+              and book.get("layout") != "numbered_ordered"]
     markers = len(marked)
     with open(on_file) as handle:
         existing = json.load(handle)
@@ -501,7 +617,10 @@ def main():
           f"max {max(pages) if pages else 0}); indices {start}..{start + len(profiles) - 1}")
     print(f"  entries already on file: {len(existing)}")
     for key in ("kunyah found", "grade stated", "sect flag stated",
-                "verdict belongs to the student", "conjunction waw stripped"):
+                "verdict belongs to the student", "conjunction waw stripped",
+                "marked line that is a quotation or list item", "marked line off the ordered run",
+                "entry taken back off the ordered run", "entry recovered from inside a line",
+                "entry missing from the markup"):
         if counts[key]:
             print(f"  {key}: {counts[key]}")
     for key, n in sorted(counts.items()):
