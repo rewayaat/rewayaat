@@ -28,10 +28,11 @@ import glob
 import json
 import os
 import sys
-from collections import Counter
+from collections import Counter, defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from identity import (  # noqa: E402
+from identity import (
+    UnionFind,  # noqa: E402
     append_lines, append_record, assign_ids, write_json_atomic, build_components, components, considered, fragment_members,
     in_force, load_record, load_registry, registry_state, source_key,
 )
@@ -82,6 +83,114 @@ def is_entry(key, profile, excluded_keys):
     return key.split(":")[0] in MAIN_BOOKS and key not in excluded_keys
 
 
+# Methods that tie a phase 1 mention profile to the entry it was read from.
+ATTACHMENTS = {"mention_is_entry"}
+
+
+def anchored(decisions, profiles, tmp_dir):
+    """The decisions that may shape people: those between keys that stand for an entry.
+
+    A key stands for an entry when it is one (is_entry), or when it is a phase 1 profile read
+    from a man's own entry and attached to it. Any other phase 1 profile is a name mentioned
+    inside someone else's entry, carrying that entry's teachers and students. Decisions made on
+    such profiles stay on record for stage 8, which resolves chain mentions to people. They do
+    not join people here, because a mention joined to two men bridges them: the stage 6 audit
+    traced its stray entries to exactly that.
+    """
+    headless = not_entries(tmp_dir)
+    anchors = {k for k, (_, prof) in profiles.items() if is_entry(k, prof, headless)}
+    for d in decisions:
+        if d["kind"] == "same" and d["method"] in ATTACHMENTS:
+            anchors.update(d["sources"])
+    kept = []
+    for d in decisions:
+        if d["kind"] == "same":
+            if d["method"] in ATTACHMENTS or all(k in anchors for k in d["sources"]):
+                kept.append(d)
+        elif d["kind"] == "partition":
+            groups = [[k for k in g if k in anchors] for g in d["groups"]]
+            groups = [g for g in groups if g]
+            if groups:
+                kept.append({**d, "groups": groups})
+        else:
+            kept.append(d)
+    return kept, anchors
+
+
+def attach_mention_groups(uf, universe, decisions, anchors):
+    """Let the mentions the decisions join to one man join him; hold back those that bridge two.
+
+    Mentions joined to each other form groups. A group whose decisions reach exactly one
+    entry-holder joins him — that is what those decisions said, and a Khoei or Mamaqani mention
+    usually carries a verdict worth keeping. A group reaching two entry-holders is the bridge the
+    stage 6 audit traced its stray entries to, and joins neither. A group a separation keeps from
+    its man stays apart. A group reaching none stays a mention for stage 8.
+    """
+    groups = UnionFind(k for k in universe if k not in anchors)
+    links, apart = defaultdict(set), set()
+
+    def members(d):
+        return [d["sources"]] if d["kind"] == "same" else d["groups"]
+
+    for d in decisions:
+        if d["kind"] not in ("same", "partition"):
+            continue
+        for group in members(d):
+            keys = [k for k in group if k in universe]
+            loose = [k for k in keys if k not in anchors]
+            fixed = [k for k in keys if k in anchors]
+            for a, b in zip(loose, loose[1:]):
+                groups.union(a, b)
+            for k in loose:
+                for f in fixed:
+                    links[k].add(f)
+    for d in decisions:
+        if d["kind"] in ("not_same", "distinct"):
+            sides = [[k for k in g if k in universe] for g in d.get("groups") or []]
+            for i, left in enumerate(sides):
+                for right in sides[i + 1:]:
+                    for a in left:
+                        for b in right:
+                            apart.add((a, b))
+                            apart.add((b, a))
+
+    reach = defaultdict(set)
+    for k, fixed in links.items():
+        reach[groups.find(k)] |= {uf.find(f) for f in fixed}
+    by_group = defaultdict(list)
+    for k in universe:
+        if k not in anchors:
+            by_group[groups.find(k)].append(k)
+    stats = Counter()
+    for root, keys in by_group.items():
+        targets = reach.get(root, set())
+        if not targets:
+            stats["groups joined to no entry-holder"] += 1
+            continue
+        if len(targets) > 1:
+            stats["groups bridging two entry-holders: held back"] += 1
+            continue
+        target = next(iter(targets))
+        if any((k, other) in apart for k in keys for other in _members_of(uf, target)):
+            stats["groups a separation keeps from their man"] += 1
+            continue
+        for k in keys:
+            uf.union(target, k)
+        stats["groups joined to their one entry-holder"] += 1
+    return dict(stats)
+
+
+_MEMBER_CACHE = {}
+
+
+def _members_of(uf, root):
+    """The keys whose root is `root`, computed once per build."""
+    if not _MEMBER_CACHE:
+        for k in list(uf.parent):
+            _MEMBER_CACHE.setdefault(uf.find(k), []).append(k)
+    return _MEMBER_CACHE.get(root, [])
+
+
 def assemble(keys, profiles):
     """A person's profile, built from his source entries in anchor order."""
     state = MergeState()
@@ -124,6 +233,8 @@ def main():
     parser.add_argument("--rules-run", help="merge whose rule decisions to use "
                         "(default: the merge in --merge-dir)")
     parser.add_argument("--verify-against", help="merged_final.json whose people to reproduce")
+    parser.add_argument("--mentions-join", action="store_true",
+                        help="let every mention profile join people, as builds before stage 6 did")
     args = parser.parse_args()
 
     record_path = os.path.join(args.identity_dir, "decisions.jsonl")
@@ -146,7 +257,13 @@ def main():
     excluded = {k for d in force if d["kind"] == "exclude" for k in d["sources"]}
     universe = set(profiles) - excluded
 
-    uf, refused, overridden = build_components(universe, force)
+    if args.mentions_join:
+        uf, refused, overridden = build_components(universe, force)
+    else:
+        anchor_decisions, anchors = anchored(force, profiles, os.path.join(args.identity_dir, ".."))
+        uf, refused, overridden = build_components(universe, anchor_decisions)
+        mention_stats = attach_mention_groups(uf, universe, force, anchors)
+        print(f"mentions: {mention_stats}")
     comps = components(uf, universe)
 
     signals = []
