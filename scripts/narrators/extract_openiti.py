@@ -115,6 +115,21 @@ BOOKS = {
         # entry's text; it ends that entry, and nothing after it joins a body until the next entry
         "body_ends": re.compile(r"^#+\s*فهرس|^#+ENDNOTES"),
     },
+    "najashi": {
+        "source": "najashi_rijal.txt",
+        "title": "Rijal al-Najashi",
+        "author": "Ahmad ibn 'Ali al-Najashi",
+        # This text numbers its entries inline, «[ 270 ] أرطاة بن حبيب» and in its opening
+        # section «1 - أبو رافع», several to a paragraph — see parse_inline_numbered() below
+        "layout": "inline_numbered",
+        "sections_are_generations": False,
+        # al-Najashi states verdicts in his own voice at the head of an entry, «كوفي، ثقة», but
+        # the entry goes on to his chains, where other men's names and words follow; the verdict
+        # is read from the head only
+        "verdict_window": 160,
+        # the heading runs into the description with no comma: «علي بن أبي رافع تابعي …»
+        "name_stop": re.compile(r"\s(?:عن|تابعي|شيخ|صاحب|أخبرنا|حدثنا|قال|عربي|مولاهم|يعرف)\s"),
+    },
     "ardabili": {
         "source": "ardabili_jamic.txt",
         "title": "Jami' al-Ruwat",
@@ -323,9 +338,11 @@ AR = r"[\u0621-\u064A]"
 # al-Tusi's verdicts, each mapped to what the schema calls it. The word must stand alone: «غال»
 # lives inside «غالب» and «حسن» is al-Hasan's name in 368 entries, which is why a substring
 # match graded them all and why «حسن» is not read as a verdict here at all.
-GRADES_AR = (("ثقة", "thiqa"), ("ثقه", "thiqa"), ("صدوق", "saduq"), ("ضعيف", "daif"),
+# the labels are the phrases narrator_schema.parse_grade reads: «very weak», not «very_weak»,
+# which it would read as plain «weak», and «liar», since it has no «kadhdhab»
+GRADES_AR = (("ضعيف جدا", "very weak"), ("ثقة", "thiqa"), ("ثقه", "thiqa"), ("صدوق", "saduq"), ("ضعيف", "daif"),
              ("ضعيفة", "daif"), ("مجهول", "majhul"), ("مهمل", "muhmal"),
-             ("كذاب", "kadhdhab"), ("وضاع", "kadhdhab"))
+             ("كذاب", "liar"), ("وضاع", "liar"))
 FLAGS_AR = (("واقفي", "waqifi"), ("واقف", "waqifi"), ("واقفة", "waqifi"),
             ("غالي", "ghali"), ("غال", "ghali"), ("فطحي", "fathi"), ("زيدي", "zaydi"))
 # «روى عنه فلان الثقة» grades the student, not the man whose entry this is
@@ -462,6 +479,71 @@ def parse_running(text, book, counts):
     return entries
 
 
+def parse_inline_numbered(text, book, counts):
+    """Entries numbered inline, several to a paragraph: the numbers that run in order.
+
+    The text is joined into one stream first, because a number often ends a line and its name
+    begins the next after OpenITI's continuation mark. The page numbers the edition prints,
+    «PageV01P106 [ 107 ]», are bracketed as the entries are and are set aside by what precedes
+    them. Of what remains, the entries are the longest run of numbers that rises throughout.
+    """
+    stream, pages = [], []                      # (offset, page) where each page begins
+    size = 0
+    for line in text.splitlines():
+        if line.startswith("#META#") or line.startswith("######"):
+            continue
+        found = PAGE.search(line)
+        if found:
+            pages.append((size, int(found.group(2))))
+            line = re.sub(r"PageV\d+P\d+\s*(?:\[\s*\d+\s*\])?", " ", line)
+        line = re.sub(r"^(?:#+\s*-*\s*|~~)", "", line).replace("~~", " ")
+        stream.append(line)
+        size += len(line) + 1
+    joined = "\n".join(stream)
+    joined = re.sub(r"ms\d+", " ", joined)
+    marks = re.compile(r"(?:\[\s*(\d{1,4})\s*\]|(?<![\d\u0621-\u064A])(\d{1,4})\s*-)\s*"
+                       r"(?=[\u0621-\u064A])")
+    found = [(int(m.group(1) or m.group(2)), m.start(), m.end()) for m in marks.finditer(joined)]
+    kept = sorted(longest_rising_run([n for n, _, _ in found]))
+    starts = [found[k] for k in kept]
+    counts["numbered marks"] = len(found)
+    offsets = [o for o, _ in pages]
+
+    def page_at(offset):
+        at = bisect.bisect_right(offsets, offset) - 1
+        return pages[at][1] if at >= 0 else None
+
+    entries = []
+    for i, (number, begin, end) in enumerate(starts):
+        stop = starts[i + 1][1] if i + 1 < len(starts) else len(joined)
+        body = re.sub(r"\s+", " ", joined[end:stop]).strip()
+        first, last = page_at(begin), page_at(stop - 1)
+        span = sorted({p for p in (first, last) if p}) if first and last and last - first <= 3 \
+            else ([first] if first else [])
+        entries.append({"number": number, "name": body, "section": None, "raw": None,
+                        "chapter": None, "page": first, "pages": span, "body": body})
+        counts["entries"] += 1
+    return entries
+
+
+def longest_rising_run(numbers):
+    """Indices of a longest strictly rising run: entry numbers never repeat."""
+    tails, ends, previous = [], [], [None] * len(numbers)
+    for n, x in enumerate(numbers):
+        at = bisect.bisect_left(tails, x)
+        if at == len(tails):
+            tails.append(x)
+            ends.append(n)
+        else:
+            tails[at], ends[at] = x, n
+        previous[n] = ends[at - 1] if at else None
+    kept, cursor = set(), ends[-1] if ends else None
+    while cursor is not None:
+        kept.add(cursor)
+        cursor = previous[cursor]
+    return kept
+
+
 def grade_and_flags(text, counts):
     """The verdict al-Tusi states himself, or None where he states none."""
     grade, flags = None, []
@@ -495,13 +577,16 @@ def profile(entry, book, counts):
     if book.get("heading_strip"):
         read_from = book["heading_strip"].sub("", read_from).strip() or read_from
     name = NAME_END.split(read_from, 1)[0].rstrip(".،,؛:").strip() or entry["name"]
+    if book.get("name_stop"):
+        name = book["name_stop"].split(" " + name + " ", 1)[0].strip() or name
     name = re.sub(r"\s+", " ", FOOTNOTE_DIGIT.sub(" ", name)).strip() or name
     kunyah = None
     found = KUNYAH.search(body) or HEAD_KUNYAH.match(name) or COMMA_KUNYAH.search(entry["name"])
     if found:
         kunyah = found.group(1).strip()
         counts["kunyah found"] += 1
-    grade = grade_and_flags(body, counts) if book.get("read_verdicts", True) else None
+    window = body[:book["verdict_window"]] if book.get("verdict_window") else body
+    grade = grade_and_flags(window, counts) if book.get("read_verdicts", True) else None
     female = entry["chapter"] and "النساء" in entry["chapter"]
     where = (f"printed entry {entry['number']}" if entry["number"] is not None
              else f"the entry headed «{entry['name'][:40]}»")
@@ -587,7 +672,9 @@ def main():
     with open(source) as handle:
         text = handle.read()
     counts = Counter()
-    entries = (parse_running(text, book, counts) if book.get("layout") == "running"
+    layout = book.get("layout")
+    entries = (parse_running(text, book, counts) if layout == "running"
+               else parse_inline_numbered(text, book, counts) if layout == "inline_numbered"
                else parse(text, book, counts))
     # where the book marks its quoted reports as it marks its entries, the entries are what the
     # ordered numbering picks out, and the numbering below is the check on what was lost

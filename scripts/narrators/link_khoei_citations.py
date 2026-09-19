@@ -45,6 +45,9 @@ CITATIONS = [
     re.compile(r"أصحاب\s+([^،.()]{2,40}?)" + HONORIFIC + r"[،.]?\s*رجال الشيخ\s*\((\d+)\)"),
     re.compile(r"(?:ذكره|عده)\s+الشيخ\s+(?:في رجاله\s+)?(?:تارة\s+)?في\s+أصحاب\s+([^،.()]{2,40}?)"
                + HONORIFIC + r"[،.]?\s*\((\d+)\)"),
+    # a man listed under several Imams: «من أصحاب الجواد عليه السلام (1)، قائلا: (…)، (وأخرى) من
+    # أصحاب الهادي عليه السلام (4)»
+    re.compile(r"أصحاب\s+([^،.()]{2,40}?)" + HONORIFIC + r"\s*[،,]?\s*\((\d+)\)"),
 ]
 LETTER_SECTION = re.compile(r"; (باب [^;]+)")
 
@@ -129,6 +132,26 @@ def main():
                 links.add((a, b))
                 counts["linked"] += 1
 
+    # One printed entry is one man: an al-Tusi entry cited from two Khoei entries joins the one
+    # whose heading shares most of its name, and neither where they tie — Khoei heads homonyms
+    # apart and joins his own double headings by cross-reference.
+    def overlap(a, b):
+        x = set(head_tokens(khoei[int(a.split(":")[1]) - KHOEI_ENTRIES_FROM]["primary_arabic_name"], 6))
+        y = set(head_tokens(tusi[int(b.split(":")[1]) - TUSI_ENTRIES_FROM]["primary_arabic_name"], 6))
+        return len(x & y)
+    by_target = defaultdict(list)
+    for a, b in links:
+        by_target[b].append(a)
+    chosen = set()
+    for b, sources in by_target.items():
+        ranked = sorted(sources, key=lambda a: -overlap(a, b))
+        if len(ranked) == 1 or overlap(ranked[0], b) > overlap(ranked[1], b):
+            chosen.add((ranked[0], b))
+        else:
+            counts["an al-Tusi entry two Khoei entries cite alike: left"] += 1
+    counts["links dropped: another Khoei entry cites the same al-Tusi entry more closely"] += \
+        len(links) - len(chosen) - counts["an al-Tusi entry two Khoei entries cite alike: left"]
+    links = chosen
     print(f"{len(khoei)} Khoei entries against {len(tusi)} al-Tusi entries")
     for key, n in counts.most_common():
         print(f"  {n:6d}  {key}")
