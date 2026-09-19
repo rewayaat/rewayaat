@@ -54,7 +54,10 @@ TMP = os.path.join(REPO, "tmp")
 SEED = 20260914
 STRATA = ["layer0_fragments", "layer1_exact", "layer1_full_name", "layer2_context", "xref_pair",
           "second_opinion_pair",
-          "layer3_group", "layer3_pair", "crossform_group", "attach_pair"]
+          "layer3_group", "layer3_pair", "crossform_group", "attach_pair",
+          # stage 6's joins between entries: a phase 1 profile to the entry it was read from, and
+          # a Khoei entry to the other books' entries he cites or shares a unique name with
+          "mention_is_entry", "khoei_cites_tusi", "entry_books_tusi", "entry_books_jami"]
 PER_STRATUM = 100
 PERSON_BANDS = {"2-3": (2, 3), "4-10": (4, 10), "11+": (11, 10 ** 6)}
 PER_BAND = 40
@@ -238,6 +241,10 @@ def main():
     # --- person items: is every entry one man? ----------------------------------------------
     banded = defaultdict(list)
     for person in people:
+        # A component of mentions alone is not a person and is not published: people precision
+        # is measured over those who hold an entry (build_people.py's holds_entry).
+        if person.get("holds_entry") is False:
+            continue
         n = len(units(person))
         for band, (lo, hi) in PERSON_BANDS.items():
             if lo <= n <= hi:
