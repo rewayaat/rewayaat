@@ -6,7 +6,10 @@ are his. Three ways of saying it are read here:
 
   see       an entry that is only a pointer: «الحسين بن عمرو بن يزيد: تقدم في الحسين بن عمر بن
             يزيد.» — a variant heading sending the reader to the man's entry
-  adjacent  «أقول: هو متحد مع ما بعده» (or «ما قبله»): the entry next to it
+  adjacent  «أقول: هو متحد مع ما بعده» (or «ما قبله»), and the same said as a noun, «الظاهر
+            اتحاده مع سابقه» — apparently he is one with the entry before: the entry next to it.
+            The noun form is his own inference, and only where he states it as such: «الظاهر
+            اتحاده» is taken, «يحتمل اتحاده» and «لا يبعد» are not
   equals    the «= X» lines under a heading, the other titles of the same man. A bare heading
             such as «أحمد بن محمد بن الحسن» can be pointed at from two men — Ibn al-Sakan and
             Ibn al-Walid both carry it — so a pointer joins only where the two point at each
@@ -35,8 +38,16 @@ TMP = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "tmp"
 RECORD = os.path.join(TMP, "narrators_identity", "decisions.jsonl")
 EQUALS = re.compile(r"^\s*=\s*([^=.]{3,80}?)\s*\.")
 SEE = re.compile(r"^\s*:?\s*(?:تقدم|يأتي|سيأتي)(?:\s+(?:في|بعنوان|ترجمة|ترجمته في))+"
-                 r"\s+([^.،(]{3,80}?)\s*[.،]?\s*$")
+                 r"\s*\(?\s*([^.،()]{3,80}?)\s*\)?\s*[.،]?\s*$")
 ADJACENT = re.compile(r"(?:هو\s+)?متحد\s+مع\s+ما\s+(بعده|قبله)")
+# The same union said as a noun, and which way it points. Khoei hedges by degrees and only the
+# first degree is a judgment: «الظاهر اتحاده مع سابقه» — apparently he is one with the entry
+# before — against «يحتمل اتحاده» (it is possible) and «لا يبعد» (it is not unlikely), which say
+# he might be and are not taken.
+SAYS_SO = r"(?:الظاهر|المطمأن به|الصحيح|الاظهر|الأظهر)\s+"
+UNION_BACK = re.compile(SAYS_SO + r"اتحاده\s+مع\s+(?:سابقه|ما\s+تقدم|المتقدم|ما\s+سبق)")
+UNION_ON = re.compile(SAYS_SO + r"اتحاده\s+مع\s+(?:ما\s+بعده|الاتي|الآتي|ما\s+يأتي)")
+NAMES_WHICH = re.compile(r"\s*(?:من|بعنوان)\s")
 
 
 def body(profile):
@@ -75,13 +86,21 @@ def pointers(raw):
                 equals[i].add(target)
             rest = rest[said.end():]
         near = ADJACENT.search(body(raw[i]))
+        step = None
         if near:
             step = 1 if near.group(1) == "بعده" else -1
+        else:
+            # «اتحاده مع ما تقدم من النوفلي ثم الهاشمي» names which earlier entry he means, and it
+            # is not always the neighbour, so a named union is left to his other cross-references
+            said = UNION_ON.search(body(raw[i])) or UNION_BACK.search(body(raw[i]))
+            if said and not NAMES_WHICH.match(body(raw[i])[said.end():]):
+                step = 1 if said.re is UNION_ON else -1
+        if step:
             j = i + step
             while 0 <= j < len(raw) and not raw[j].get("printed_entry"):
                 j += step
             if 0 <= j < len(raw):
-                links.append((i, j, "adjacent"))
+                links.append((i, j, "adjacent" if near else "union"))
 
     pointed_at = Counter(t for targets in equals.values() for t in targets)
     for a, targets in equals.items():
