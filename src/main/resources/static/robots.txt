@@ -1,11 +1,13 @@
 User-agent: *
 Allow: /
-Disallow: /edit
 Disallow: /v1/
 # MCP endpoints. Agent traffic, not crawler traffic - robots.txt does not govern an
 # MCP client, but a crawler has nothing to index here either.
 Disallow: /mcp
 Disallow: /swagger-ui.html
-Disallow: /signin.html
+# /edit and /signin.html are deliberately NOT blocked here. They have to stay crawlable
+# so Google can read the X-Robots-Tag: noindex CrawlerDirectivesConfig sets on them.
+# Blocked, they were indexed anyway from the links in every card's action rail, which is
+# what Search Console reported as "Indexed, though blocked by robots.txt".
 
 Sitemap: https://hadith.academyofislam.com/sitemap.xml

@@ -166,6 +166,19 @@ public class BookCatalog {
         public String url() {
             return "/books/" + bookSlug + "/" + slug;
         }
+
+        /**
+         * Whether this chapter holds exactly one narration, and so duplicates that
+         * narration's own page rather than being a page in its own right.
+         *
+         * <p>The one place this is decided. {@code chapterPage} canonicalises such a chapter
+         * to its narration and {@code booksSitemap} leaves it out, and the two must never
+         * disagree: a sitemap listing a page whose canonical points elsewhere is asking for
+         * the duplicate to be indexed.
+         */
+        public boolean holdsSingleNarration() {
+            return count == 1;
+        }
     }
 
     private volatile List<Book> books = List.of();

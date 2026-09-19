@@ -116,9 +116,13 @@ public class SitemapController {
     /**
      * Every book, volume and chapter hub.
      *
-     * <p>Roughly 7,800 URLs, comfortably inside the 50,000-per-file limit, so this does
+     * <p>Roughly 4,000 URLs, comfortably inside the 50,000-per-file limit, so this does
      * not page. They carry a higher priority than the narrations they lead to because
      * they are the pages that can rank for a book or chapter name.
+     *
+     * <p>Single-narration chapters are left out — about 4,000 of the 7,839, over half.
+     * They canonicalise to their narration, and a sitemap that advertises a non-canonical
+     * URL is asking for the duplicate to be indexed instead of the page it points at.
      */
     @RequestMapping(value = "/sitemap-books.xml", method = RequestMethod.GET, produces = MediaType.APPLICATION_XML_VALUE)
     public ResponseEntity<String> booksSitemap() {
@@ -140,6 +144,14 @@ public class SitemapController {
                     appendUrl(xml, escapeXml(part.url()), "0.8", "monthly");
                 }
                 for (BookCatalog.Chapter chapter : book.chapters()) {
+                    // A chapter holding one narration canonicalises to that narration
+                    // (BookPageController.chapterPage), and a sitemap may only advertise
+                    // canonical URLs. Listing both halves of ~4,000 duplicate pairs is
+                    // what spent the crawl budget that never reached the narrations. The
+                    // same predicate gates the canonical, so the two cannot drift apart.
+                    if (chapter.holdsSingleNarration()) {
+                        continue;
+                    }
                     appendUrl(xml, escapeXml(chapter.url()), "0.7", "monthly");
                 }
             }

@@ -151,6 +151,12 @@ public class BookPageController {
         model.addAttribute("chapters", useParts ? List.of() : chapters);
         model.addAttribute("volumes", List.of());
         model.addAttribute("narrationCount", narrations);
+        // The real chapter count, not #lists.size(chapters). When a volume splits into
+        // parts the chapter list is handed to the part pages instead, so the hero counted
+        // an empty list and announced "0 chapters" on a volume holding 1,448 narrations —
+        // seven of Al-Kafi's eight volume pages read that way, while the meta description
+        // built from chapters.size() gave the true figure on the very same page.
+        model.addAttribute("chapterCount", chapters.size());
         model.addAttribute("seoTitle", book.name() + " " + label + " — Shia Hadith in Arabic & English");
         model.addAttribute("seoDescription", String.format(
                 "%s, %s: %,d narrations across %,d chapters, in Arabic and English.",
@@ -188,6 +194,11 @@ public class BookPageController {
         model.addAttribute("chapters", chapters);
         model.addAttribute("volumes", List.of());
         model.addAttribute("narrationCount", narrations);
+        // A part always lists its own chapters, so this equals #lists.size(chapters) here.
+        // It is set anyway because volume.html is shared with volumePage, where the two
+        // genuinely differ; a template reading one attribute on one route and another on
+        // the other is how the "0 chapters" bug survived as long as it did.
+        model.addAttribute("chapterCount", chapters.size());
         model.addAttribute("seoTitle", part.title() + " — " + book.name());
         model.addAttribute("seoDescription", String.format(
                 "%s, %s: %,d narrations across %,d chapters, in Arabic and English.",
@@ -246,7 +257,22 @@ public class BookPageController {
         model.addAttribute("seoDescription", String.format(
                 "%s: %,d narration%s from %s, in Arabic and English with full chains of transmission.",
                 chapter.title(), chapter.count(), chapter.count() == 1 ? "" : "s", chapter.bookName()));
-        model.addAttribute("canonicalUrl", BASE_URL + chapter.url());
+        // A chapter holding a single narration *is* that narration: the two pages carry
+        // the same text, both were self-canonical, and both sat in a sitemap, so roughly
+        // 4,000 pairs competed with each other and Search Console reported the whole
+        // corpus as "Discovered - currently not indexed". The narration wins the pair: it
+        // is the URL the MCP server cites, the share card names, and other narrations
+        // link to. The chapter page stays crawlable and followed, so the hub graph of
+        // invariant 5 is untouched — only the duplicate signal goes away.
+        //
+        // Gated on the catalog's predicate, the one booksSitemap excludes by, so no chapter
+        // can be both listed in the sitemap and canonical to somewhere else. The size check
+        // confirms the page really shows that one narration: if the index and the catalog
+        // briefly disagree, the chapter stays self-canonical and merely unlisted, which is
+        // the harmless way round.
+        String canonicalPath = chapter.holdsSingleNarration() && all.size() == 1
+                ? str(all.get(0).get("url")) : chapter.url();
+        model.addAttribute("canonicalUrl", BASE_URL + canonicalPath);
         model.addAttribute("shareImageUrl", BASE_URL + chapter.url() + "/card.png");
         model.addAttribute("jsonLd", chapterJsonLd(chapter, narrations));
 

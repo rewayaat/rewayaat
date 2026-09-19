@@ -132,7 +132,11 @@
                     <div class="topic-tag-pills hadith-card__tags"
                          th:if="${!#lists.isEmpty(narration.tags)}">
                         <span class="topic-tag-pills__label">Tags</span>
-                        <a class="topic-pill" th:each="tag : ${narration.tags}"
+                        <!-- nofollow: every pill is a ?tag= view of the chapter, which is
+                             already noindex and canonical to it. Around 19,600 such URLs
+                             exist across the corpus, and following them spent crawl
+                             budget on pages that can never be indexed. -->
+                        <a class="topic-pill" rel="nofollow" th:each="tag : ${narration.tags}"
                            th:href="${tag.url}" th:text="${tag.label}">tag</a>
                     </div>
 

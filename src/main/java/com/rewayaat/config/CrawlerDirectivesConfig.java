@@ -22,11 +22,17 @@ import org.springframework.context.annotation.Configuration;
  * <p>{@code welcome.html} used to be listed here too. It was the home page body, pulled
  * in over XHR, which is why the home page served no content to a crawler; the body is
  * rendered by the server now and the file is gone.
+ *
+ * <p>{@code /edit} and {@code /signin.html} were {@code Disallow}ed in robots.txt instead,
+ * and Search Console duly reported them under "Indexed, though blocked by robots.txt" —
+ * the precise failure the paragraph above describes. Both answer 200 with about seventy
+ * words, and {@code /edit} is linked from every card's action rail, so blocking the fetch
+ * only hid the noindex from the crawler that needed to read it.
  */
 @Configuration
 public class CrawlerDirectivesConfig {
 
-    private static final List<String> NOINDEX_PATHS = List.of("/error/*");
+    private static final List<String> NOINDEX_PATHS = List.of("/error/*", "/edit", "/signin.html");
 
     @Bean
     public FilterRegistrationBean<Filter> noindexFilter() {

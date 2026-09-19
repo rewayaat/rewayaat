@@ -151,6 +151,46 @@ and of the cache key, so the two cannot be served for each other.
 
 `ShareCardIntegrationTest` pins the meta tags, the 304 and the language variants.
 
+### 10. A chapter holding one narration is not a second page
+
+Over half the chapters — 4,059 of 7,716 — contain exactly one narration. The chapter page
+and the narration page then carry the same text: across five random pairs, 89–94% of the
+chapter's vocabulary appeared on the narration page, with identical contiguous runs of 144
+to 273 words. Both were self-canonical and both sat in a sitemap, so the two halves of
+roughly four thousand pairs competed with each other, and Search Console reported 34,504
+pages as "Discovered — currently not indexed".
+
+The narration wins the pair. `chapterPage` canonicalises to `/hadith/{id}` when the chapter
+holds exactly one, and `booksSitemap` omits those chapters, because a sitemap may only
+advertise canonical URLs. The chapter page still answers 200, still carries its links, and
+is still followed — invariant 5 is untouched. Only the duplicate signal goes away.
+
+**Both halves ask one question.** `BookCatalog.Chapter.holdsSingleNarration()` is the only
+place the rule is decided: the sitemap excludes by it and the canonical is gated on it. The
+canonical also checks that the page really loaded exactly one narration, so if the index
+and the catalog ever briefly disagree, the chapter stays self-canonical and merely unlisted
+— the harmless way round. The harmful way round cannot happen: a chapter listed in the
+sitemap whose canonical points somewhere else. `IndexingSignalsTest` pins that both sites
+use the predicate.
+
+### 11. Facet links are `nofollow`, not merely `noindex`
+
+`noindex, follow` stops a `?tag=` view being indexed. It does not stop it being crawled.
+About 19,600 of them exist — 2.5 per chapter across 7,839 chapters — and Google had already
+crawled 1,731, spending on pages that can never be indexed the budget meant for the
+narrations. The pills in `chapter.html` and `fragments/hadith-card.html` therefore carry
+`rel="nofollow"` as well as the directive.
+
+### 12. A page that must not be indexed has to be crawlable
+
+`/edit` and `/signin.html` answer 200 with about seventy words each, and were `Disallow`ed
+in robots.txt. Search Console reported both as "Indexed, though blocked by robots.txt": the
+block stopped Google fetching them, so it never read a noindex, while the links from every
+card's action rail were enough to index the URLs anyway. They are in
+`CrawlerDirectivesConfig.NOINDEX_PATHS` now and deliberately absent from robots.txt.
+
+The rule `/error/*` already followed: **`Disallow` hides the instruction, not the page.**
+
 ## Page inventory
 
 | Surface | Indexable | Rendered by |
@@ -160,9 +200,11 @@ and of the cache key, so the two cannot be served for each other.
 | `/books` | yes | Server |
 | `/books/{book}` | yes | Server |
 | `/books/{book}/volume/{n}` | yes | Server |
-| `/books/{book}/{chapter}` | yes | Server |
-| `/books/{book}/{chapter}?tag=` | **no** — `noindex, follow` | Server |
+| `/books/{book}/part/{part}` | yes | Server |
+| `/books/{book}/{chapter}` | yes — **unless it holds one narration**, then canonical to `/hadith/{id}` | Server |
+| `/books/{book}/{chapter}?tag=` | **no** — `noindex, follow`, and the links are `rel="nofollow"` | Server |
 | `/hadith/{id}` | yes | Server |
+| `/edit`, `/signin.html` | no | — (`X-Robots-Tag: noindex`; crawlable on purpose, see invariant 12) |
 | `/error/*` | no | — (`X-Robots-Tag: noindex`) |
 
 ## Sitemaps
@@ -172,7 +214,7 @@ and of the cache key, so the two cannot be served for each other.
 | Sitemap | Contents |
 |---------|----------|
 | `/sitemap-static.xml` | `/`, `/books`, `/updates.html`, `/search_tips.html` |
-| `/sitemap-books.xml` | 7,885 URLs — `/books`, 18 books, their volumes, 7,836 chapters |
+| `/sitemap-books.xml` | ~4,000 URLs — `/books`, 18 books, 30 volumes, 166 parts, and the ~3,800 chapters holding more than one narration |
 | `/sitemap-hadith-{1..4}.xml` | 32,519 narrations, 10,000 per page |
 
 Two things learned the hard way, both pinned by `SitemapIntegrationTest`:
