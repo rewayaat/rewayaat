@@ -40,6 +40,16 @@ Evidence that two entries are the same man:
 - the same teachers or students in the same generation
 - the same quotation or verdict text
 
+Two traps that have caught auditors before:
+
+- **A citation is not an identification.** «رجال الشيخ (24)» or «قال النجاشي» says the book lists
+  that name somewhere. It does not say the two entries before you are one man. Read what each
+  entry says about the man himself.
+- **Read the generation.** An entry standing in al-Ṭūsī's chapter of the Prophet's Companions is
+  not the companion of al-Ṣādiq a century later, whatever either side cites. Where the two are
+  several Imams apart and share nothing but a name, they are different men. An item that carries
+  `imams_apart` states this gap for you; the sources' words still decide.
+
 Evidence that they are different men:
 
 - a contradicting father or lineage, kunyah, or nisbah of a different tribe

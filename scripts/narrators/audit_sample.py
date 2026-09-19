@@ -46,6 +46,7 @@ from crossform_prepare import (MAIN_BOOKS, marks, name_forms, people_fingerprint
                                truncations)
 from identity import anchor_rank, fragment_members, in_force, load_record, write_json_atomic  # noqa: E402
 from l3_prepare import DEFAULT_BUDGET, evidence, pack  # noqa: E402
+from narrator_schema import generation_distance, imam_generations  # noqa: E402
 from split_prepare import eras  # noqa: E402
 
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
@@ -62,7 +63,10 @@ STRATA = ["layer0_fragments", "layer1_exact", "layer1_full_name", "layer2_contex
           # older books, Khoei's cross-references between his own entries, mentions tied by name
           "khoei_quotes_najashi", "khoei_quotes_fihrist", "khoei_quotes_kashshi",
           "jami_quotes_najashi", "jami_quotes_fihrist", "khoei_points_equals", "khoei_points_see",
-          "khoei_points_adjacent", "mention_names_one_entry"]
+          "khoei_points_adjacent", "mention_names_one_entry",
+          # Jami' al-Ruwat's own joins: its copies of al-Tusi's listings, and its entries placed
+          # among Khoei's homonyms by the words they share
+          "entry_books_jami_tusi", "entry_books_jami_text"]
 PER_STRATUM = 100
 PERSON_BANDS = {"2-3": (2, 3), "4-10": (4, 10), "11+": (11, 10 ** 6)}
 PER_BAND = 40
@@ -74,6 +78,26 @@ CONTROLS = {"positive": 30, "negative": 30}
 # One man's entries in two main books: the twelve most-cited narrators, by permanent id.
 POSITIVE_PEOPLE = ["n000515", "n000488", "n000907", "n000912", "n001232", "n000151",
                    "n000220", "n000034", "n000866", "n000549", "n000349"]
+
+
+def generations_apart(a, b):
+    """What the two sides say about when each man lived, and how far apart that is.
+
+    Auditors read a citation such as «رجال الشيخ (24)» as proof of identity and miss the chapter
+    it stands in: three of audit 3's negative controls were called the same man although one side
+    is a Companion of the Prophet and the other a companion of al-Sadiq. The sources' own words
+    are still what settles it — this only says plainly what they already say.
+    """
+    first = frozenset().union(*(imam_generations(g) for g in a.get("generation") or [])) \
+        if a.get("generation") else frozenset()
+    second = frozenset().union(*(imam_generations(g) for g in b.get("generation") or [])) \
+        if b.get("generation") else frozenset()
+    apart = generation_distance(first, second)
+    if not first or not second or apart is None:
+        return None
+    return {"A": sorted(first), "B": sorted(second), "imams_between": apart,
+            "note": "the ordinal of each Imam the entry names (0 the Prophet, 6 al-Sadiq, "
+                    "12 the Mahdi). Several Imams apart with nothing else in common is two men."}
 
 
 def shown(keys, profiles, label):
@@ -239,8 +263,11 @@ def main():
     rng.shuffle(pairs)
     for n, (meta, ua, ub) in enumerate(pairs):
         item_id = f"p{n:04d}"
+        a, b = shown(ua, profiles, "A"), shown(ub, profiles, "B")
+        gap = generations_apart(a, b)
         items.append({"kind": "pair", "item_id": item_id,
-                      "entries": [shown(ua, profiles, "A"), shown(ub, profiles, "B")]})
+                      **({"imams_apart": gap} if gap else {}),
+                      "entries": [a, b]})
         key[item_id] = {"kind": "pair", "A": ua, "B": ub, **meta}
 
     # --- person items: is every entry one man? ----------------------------------------------
