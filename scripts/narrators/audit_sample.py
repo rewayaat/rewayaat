@@ -57,7 +57,12 @@ STRATA = ["layer0_fragments", "layer1_exact", "layer1_full_name", "layer2_contex
           "layer3_group", "layer3_pair", "crossform_group", "attach_pair",
           # stage 6's joins between entries: a phase 1 profile to the entry it was read from, and
           # a Khoei entry to the other books' entries he cites or shares a unique name with
-          "mention_is_entry", "khoei_cites_tusi", "entry_books_tusi", "entry_books_jami"]
+          "mention_is_entry", "khoei_cites_tusi", "entry_books_tusi", "entry_books_jami",
+          # and the entry-level joins of 2026-09-19: Khoei's and Jami' al-Ruwat's quotations of the
+          # older books, Khoei's cross-references between his own entries, mentions tied by name
+          "khoei_quotes_najashi", "khoei_quotes_fihrist", "khoei_quotes_kashshi",
+          "jami_quotes_najashi", "jami_quotes_fihrist", "khoei_points_equals", "khoei_points_see",
+          "khoei_points_adjacent", "mention_names_one_entry"]
 PER_STRATUM = 100
 PERSON_BANDS = {"2-3": (2, 3), "4-10": (4, 10), "11+": (11, 10 ** 6)}
 PER_BAND = 40
