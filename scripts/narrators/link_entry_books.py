@@ -24,6 +24,12 @@ al-Kazim, [ضا] al-Rida and so on. So:
                   triples with a SHARED_MARGIN over the next; a Khoei entry claimed by two Jami'
                   entries joins neither (`entry_books_jami_text`)
 
+Jami' al-Ruwat also copies al-Tusi's listings word for word and marks them with his chapter's
+siglum: «عمر بن مسلم الهراء كوفي (ق)» is al-Tusi's «عمر بن مسلم الهراء، كوفي.» under al-Sadiq. A
+Jami' entry that opens with the whole text of an al-Tusi entry — at least as far as its own
+heading runs, so a bare «عيسى بن راشد» copies nothing — and whose sigla name that entry's Imam,
+is joined to it where exactly one such entry exists (`entry_books_jami_tusi`).
+
 Measured against link_khoei_citations.py, where Khoei's own citation says which al-Tusi entry he
 means: of names both books give one entry, 690 of 706 join the cited entry, and the sixteen others
 are, save three, the same man's listing under another Imam — which the Imam test now requires.
@@ -191,6 +197,24 @@ def main():
             counts["a Khoei entry two Jami' entries share words with: left"] += 1
             continue
         links.append((f"khoei:{k_index}", f"ardabili:{js[0]['source_index']}", "jami_text"))
+
+    # Jami' al-Ruwat's copies of al-Tusi's listings
+    opens = defaultdict(list)
+    for t in tusi:
+        text = words(body(t))
+        if len(text) >= 3:
+            opens[tuple(text[:3])].append((t, text))
+    for j in jami:
+        text = words(SIGLA_NOISE.sub(" ", body(j)))
+        heading = len(words(SIGLA_NOISE.sub(" ", j["primary_arabic_name"])))
+        copies = [t for t, t_text in opens.get(tuple(text[:3]), [])
+                  if text[:len(t_text)] == t_text and len(t_text) >= heading
+                  and imam_generations(t.get("generation")) & jami_imams(j)]
+        if len(copies) == 1:
+            links.append((f"ardabili:{j['source_index']}", f"tusi:{copies[0]['source_index']}",
+                          "jami_tusi"))
+        elif copies:
+            counts["Jami' al-Ruwat copies several al-Tusi entries: left"] += 1
 
     fresh = [(a, b, w) for a, b, w in links
              if not (membership.get(a) and membership.get(a) == membership.get(b))]
