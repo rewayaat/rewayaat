@@ -494,20 +494,28 @@ IMAM_ORDINALS = {
 # The Arabic is folded the same way a name is — ى to ي, ؤ to و — so the patterns are written
 # plainly and folded here rather than spelled in their folded form.
 _IMAM_PATTERNS = [
-    ("askari", r"askar", ["الحسن بن علي بن محمد"]),
-    ("hadi", r"hadi|naqi", ["علي بن محمد بن علي", "أبي الحسن الثالث", "علي بن محمد عليهم"]),
-    ("jawad", r"jawad|taqi", ["محمد بن علي الثاني", "أبي جعفر الثاني", "محمد بن علي بن موسى"]),
+    # al-Tusi heads al-'Askari's chapter with his lineage, «الحسن بن علي بن محمد بن علي الرضا»:
+    # read whole, or its tail is taken for al-Rida
+    ("askari", r"askar", ["الحسن بن علي بن محمد بن علي الرضا", "الحسن بن علي بن محمد",
+                          "الحسن العسكري", "أبي محمد العسكري", "العسكري"]),
+    ("hadi", r"hadi|naqi", ["علي بن محمد بن علي", "أبي الحسن الثالث", "علي بن محمد عليهم",
+                            "علي الهادي", "الهادي"]),
+    ("jawad", r"jawad|taqi", ["محمد بن علي الثاني", "أبي جعفر الثاني", "محمد بن علي بن موسى",
+                              "محمد الجواد", "الجواد"]),
     ("rida", r"rida|ridha", ["علي بن موسى", "أبي الحسن الثاني", "الرضا"]),
     ("kazim", r"kazim|kadhim", ["موسى بن جعفر", "أبي الحسن موسى", "الكاظم", "أبي الحسن الأول"]),
     ("sadiq", r"sadiq", ["جعفر بن محمد", "أبي عبد الله جعفر", "الصادق"]),
     ("baqir", r"baqir", ["محمد بن علي بن الحسين", "أبي جعفر محمد بن علي", "الباقر"]),
     ("sajjad", r"sajjad|zayn al.?abidin|zayn ul.?abidin",
      ["علي بن الحسين", "أبي محمد علي بن الحسين", "السجاد", "زين العابدين"]),
-    ("husayn", r"husayn|husain|hussain", ["الحسين بن علي", "أبي عبد الله الحسين"]),
-    ("hasan", r"\bhasan\b", ["الحسن بن علي(?! بن)", "أبي محمد الحسن بن علي(?! بن)"]),
+    # Khoei names the second and third Imams and the first bare: «من أصحاب الحسن عليه السلام»
+    ("husayn", r"husayn|husain|hussain", ["الحسين بن علي", "أبي عبد الله الحسين",
+                                          "أصحاب الحسين(?! بن)"]),
+    ("hasan", r"\bhasan\b", ["الحسن بن علي(?! بن)", "أبي محمد الحسن بن علي(?! بن)",
+                              "أصحاب الحسن(?! بن)"]),
     ("ali", r"\bali\b|amir al.?mu.?minin|amir ul.?mu.?minin",
-     ["أمير المؤمنين", "علي بن أبي طالب"]),
-    ("mahdi", r"mahdi|qaim", ["الحجة", "صاحب الزمان"]),
+     ["أمير المؤمنين", "علي بن أبي طالب", "أصحاب علي(?! بن)"]),
+    ("mahdi", r"mahdi|qaim", ["الحجة", "صاحب الزمان", "صاحب الأمر"]),
     ("prophet", r"prophet|sahabi|sahabiyya|messenger",
      ["النبي", "رسول الله", "صحابي", "الصحابة"]),
 ]

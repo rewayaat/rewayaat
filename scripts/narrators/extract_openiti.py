@@ -81,9 +81,12 @@ BOOKS = {
         "source": "kashshi_pri.mARkdown",
         "title": "Ikhtiyar Ma'rifat al-Rijal",
         "author": "Muhammad ibn 'Umar al-Kashshi",
-        # no entry numbers: the heading itself is the entry
-        "entry": re.compile(r"^###\s+\|(?!\|)\s*(?P<name>.+?)\s*$"),
-        "marker": re.compile(r"^###\s+\|(?!\|)\s*\S"),
+        # no entry numbers: the heading itself is the entry. Two of Yunus b. 'Abd al-Rahman's
+        # headings are marked a level down, «### || في يونس بن عبد الرحمن…»; a second-level
+        # heading is taken where it opens as an entry does, and not the letter quoted under it
+        "entry": re.compile(r"^###\s+(?:\|(?!\|)|\|\|(?=\s*(?:ما\s+رو[ىي]\s+)?في\s))"
+                            r"\s*(?P<name>.+?)\s*$"),
+        "marker": re.compile(r"^###\s+(?:\|(?!\|)|\|\|(?=\s*(?:ما\s+رو[ىي]\s+)?في\s))\s*\S"),
         "sections_are_generations": False,
         # the heading stands on its own line here, so the name ends where the heading does
         "heading_is_standalone": True,
@@ -173,8 +176,11 @@ NAME_STOP = {"عن", "عنه", "روى", "رواه", "ذكره", "يروي", "ي
 FILLER = ("بن", "ابن", "بنت")
 # The book's own collation: hamza forms count as alif, but «آ» sorts before everything — آدم
 # opens the alif chapter ahead of أبان and إبراهيم, which folding it to alif would reverse.
+# Jami' al-Ruwat orders its letters «… ن و ه ي», not in code-point order «… ن ه و ي»: سويد stands
+# before سهل. Collated the other way the whole «سه» block broke the book's order and was lost,
+# Sahl b. Ziyad with it; «ه» and «ة» are therefore folded to a point between «و» and «ي».
 COLLATE = str.maketrans({"آ": "\u0600", "أ": "ا", "إ": "ا", "ٱ": "ا", "ء": "ا",
-                         "ى": "ي", "ة": "ه", "ؤ": "و", "ئ": "ي"})
+                         "ى": "ي", "ة": "\u0649", "ه": "\u0649", "ؤ": "و", "ئ": "ي"})
 KUNYA_OPENERS = ("أبو", "ابو", "أبي", "ابي", "أبا", "ابا", "ابن", "أم")
 
 # OpenITI's tag for text that is not the book: a title page, a colophon, a publisher's note
@@ -278,7 +284,9 @@ def recover_inline_entries(lines, book, counts):
 
 def parse(text, book, counts):
     """Every entry the book's markup marks, with the section and page it stands under."""
-    entry_re, chapter_first = book["entry"], book["entry"].pattern.startswith("^###\\s+\\|")
+    # a book whose entries are «### |» headings has no chapter headings of that form to skip
+    entry_re = book["entry"]
+    chapter_first = entry_re.pattern.startswith(("^###\\s+\\|", "^###\\s+(?:\\|"))
     section, chapter, page, volume = None, None, None, None
     entries, current = [], None
     all_lines = text.splitlines()
@@ -299,12 +307,13 @@ def parse(text, book, counts):
             volume, page = int(found.group(1)), int(found.group(2))
             if current is not None and page not in current["pages"]:
                 current["pages"].append(page)
-        if CHAPTER.match(raw):
-            chapter = CHAPTER.match(raw).group(1)
-            continue
+        # an entry first: al-Kashshi marks two entries at the level other books use for chapters
         match = entry_re.match(raw)
         if match and starts is not None and line_no not in starts:
             match = None                   # a quoted report or list item: part of the body
+        if not match and CHAPTER.match(raw):
+            chapter = CHAPTER.match(raw).group(1)
+            continue
         if match and not PARATEXT.search(raw):
             close()
             counts["entries"] += 1

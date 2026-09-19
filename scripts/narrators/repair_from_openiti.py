@@ -24,10 +24,12 @@ name, with the drift used only to choose among namesakes.
 Usage:
     python3 scripts/narrators/repair_from_openiti.py --book fihrist
     python3 scripts/narrators/repair_from_openiti.py --book fihrist --write
+    python3 scripts/narrators/repair_from_openiti.py --book fihrist --move-flags
+    python3 scripts/narrators/repair_from_openiti.py --book ardabili --kept 1796 --refresh [--write]
 """
 
 import argparse
-from collections import defaultdict
+from collections import Counter, defaultdict
 import importlib.util
 import json
 import os
@@ -35,7 +37,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from identity import append_record, load_record, make_decision, write_json_atomic  # noqa: E402
-from narrator_schema import normalize_arabic  # noqa: E402
+from narrator_schema import name_tokens, normalize_arabic  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.join(HERE, "..", "..")
@@ -117,6 +119,7 @@ def merge(old, new, book):
                                 "not stated in the printed entry.")
         return merged
     merged = dict(old)
+    merged["printed_entry"] = True
     merged["source_pages"] = new["source_pages"] or old.get("source_pages") or []
     merged["generation"] = old.get("generation") or new.get("generation")
     merged["reliability_grade"] = old.get("reliability_grade") or new.get("reliability_grade")
@@ -159,14 +162,164 @@ def relabel_front_matter(existing, book):
     return relabelled
 
 
+def move_flags(book):
+    """Mark the key holder, not its excluded duplicate, as the printed entry.
+
+    Until 2026-09-19 a merge the existing entry governs kept that entry's flags, so the key
+    holder went unmarked and the mark stayed on the duplicate recorded as `exclude`. Everything
+    reading the mark — the Khoei linkers, the merge's same-book guard — then chose a key the
+    build drops: 2,153 links had joined nothing. This moves the mark on a book already repaired.
+
+    Phase 1 read some entries twice, where two batches overlapped, and both readings were
+    repaired from the one printed entry. They are one man where one heading extends the other
+    («أبو رافع», «أبو رافع مولى رسول الله»): the first keeps the mark and the rest are joined to
+    it as a reviewer `same`. Where the headings part — al-Kashshi's bare «حذيفة» matched both
+    Hudhayfa b. Mansur and Hudhayfa b. al-Yaman — each keeps the mark, and the guard keeps them
+    apart.
+    """
+    path = os.path.join(TMP, f"narrators_book_{book}.json")
+    profiles = json.load(open(path))
+    record = load_record(RECORD)
+    holders = defaultdict(list)
+    for d in record:
+        if d["kind"] == "exclude" and d["method"] == f"{book}_reextraction_duplicate":
+            for key in d["sources"]:
+                holders[int(key.split(":")[1])].append(int(d["evidence"]["repaired_into"].split(":")[1]))
+
+    def tokens(i):
+        return name_tokens(normalize_arabic(profiles[i]["primary_arabic_name"]))
+
+    def extends(a, b):
+        shorter, longer = sorted((tokens(a), tokens(b)), key=len)
+        return longer[:len(shorter)] == shorter
+
+    moved, joins, apart = 0, [], 0
+    for duplicate, held in holders.items():
+        profiles[duplicate]["printed_entry"] = False
+        held = sorted(set(held))
+        first = held[0]
+        for other in held[1:]:
+            if extends(first, other):
+                profiles[other]["printed_entry"] = False
+                joins.append((first, other))
+            else:
+                profiles[other]["printed_entry"] = True
+                apart += 1
+        moved += not profiles[first].get("printed_entry")
+        profiles[first]["printed_entry"] = True
+    write_json_atomic(path, profiles, indent=1)
+    on_file = {d["decision_id"] for d in record}
+    decisions = [d for d in (
+        make_decision("same", method=f"{book}_read_twice", actor="reviewer", confidence="high",
+                      sources=[f"{book}:{a}", f"{book}:{b}"],
+                      evidence={"why": "phase 1 read one printed entry twice; both were repaired "
+                                       "from it"},
+                      origin={"run": f"stage6:{book}_openiti"})
+        for a, b in joins) if d["decision_id"] not in on_file]
+    append_record(RECORD, decisions)
+    print(f"{book}: the mark moved to {moved} key holders; {len(joins)} double readings joined "
+          f"({len(decisions)} new); {apart} readings of one heading left apart")
+
+
+def refresh(book, kept, write):
+    """Re-read a book already appended, keeping every key where it stands.
+
+    A parser fix (Jami' al-Ruwat's letter order, 2026-09-19) finds entries the first append
+    missed. The entries already appended keep their index and their text — the running parse
+    drops what breaks the book's order rather than folding it into a neighbour, so none of them
+    changed. What is new is appended after the last key, and the phase 1 profiles the first
+    repair found no printed entry for are matched against the new entries alone, merged and
+    their duplicates excluded, as the repair does.
+    """
+    path = os.path.join(TMP, f"narrators_book_{book}.json")
+    profiles = json.load(open(path))
+    config = extract.BOOKS[book]
+    with open(os.path.join(TMP, "narrators_sources", config["source"])) as handle:
+        text = handle.read()
+    counts = Counter()
+    layout = config.get("layout")
+    parsed = (extract.parse_running(text, config, counts) if layout == "running"
+              else extract.parse_inline_numbered(text, config, counts) if layout == "inline_numbered"
+              else extract.parse(text, config, counts))
+    fresh = [extract.profile(e, config, counts) for e in parsed]
+    extract.strip_conjunction_waw(fresh, counts)
+
+    def where(p):
+        """An entry by its heading and the page it opens on."""
+        return (normalize_arabic(p["primary_arabic_name"]), (p.get("source_pages") or [None])[0])
+    held = defaultdict(list)
+    for at in range(kept, len(profiles)):
+        held[where(profiles[at])].append(at)
+    new, updated = [], {}
+    for p in fresh:
+        if held[where(p)]:
+            at = held[where(p)].pop(0)
+            # where a heading the parse had missed stood inside it, its pages and chapter shrink
+            if (p["source_pages"], p["notes"]) != (profiles[at]["source_pages"], profiles[at]["notes"]):
+                updated[at] = p
+        else:
+            new.append(p)
+    gone = sum(len(v) for v in held.values())
+    print(f"{book}: {len(fresh)} entries read, {len(new)} new, {len(updated)} with their pages or "
+          f"chapter corrected, {gone} on file no longer read")
+    for p in new[:5]:
+        print(f"     new: «{p['primary_arabic_name'][:60]}» p. {p['source_pages'][:3]}")
+
+    listed = os.path.join(TMP, "narrators_sources", f"{book}_not_an_entry.json")
+    orphans = [int(x["source_key"].split(":")[1]) for x in json.load(open(listed))]
+    chosen, unmatched, ambiguous = match([profiles[i] for i in orphans], new,
+                                         drift_applies=book in FIRST_ENTRY_PAGE)
+    print(f"  of {len(orphans)} phase 1 profiles without a printed entry, {len(chosen)} now have "
+          f"one; {len(unmatched)} still none, {len(ambiguous)} several")
+    for at, n in list(chosen.items())[:8]:
+        print(f"     «{profiles[orphans[at]]['primary_arabic_name'][:40]}» = «{new[n]['primary_arabic_name'][:40]}»")
+    if not write:
+        return
+    start = len(profiles)
+    for at, p in updated.items():
+        profiles[at]["source_pages"], profiles[at]["notes"] = p["source_pages"], p["notes"]
+    for at, n in chosen.items():
+        profiles[orphans[at]] = merge(profiles[orphans[at]], new[n], book)
+        new[n]["printed_entry"] = False
+    write_json_atomic(path, profiles + new, indent=1)
+    still = [orphans[i] for i in unmatched + ambiguous]
+    write_json_atomic(listed, [x for x in json.load(open(listed))
+                               if int(x["source_key"].split(":")[1]) in still], indent=1)
+    record = load_record(RECORD)
+    ids = {d["decision_id"] for d in record}
+    decisions = [d for d in (
+        make_decision("exclude", method=f"{book}_reextraction_duplicate", actor="reviewer",
+                      confidence="high", sources=[f"{book}:{start + n}"],
+                      evidence={"repaired_into": f"{book}:{orphans[at]}",
+                                "why": "the entry already on file was repaired from this one, "
+                                       "keeping its key"},
+                      origin={"run": f"stage6:{book}_openiti_refresh"})
+        for at, n in sorted(chosen.items())) if d["decision_id"] not in ids]
+    append_record(RECORD, decisions)
+    print(f"  wrote {len(profiles) + len(new)} profiles, {len(new)} appended from {start}; "
+          f"{len(decisions)} excludes recorded")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--book", required=True, choices=sorted(extract.BOOKS))
-    parser.add_argument("--kept", type=int, required=True,
+    parser.add_argument("--kept", type=int,
                         help="how many entries were already on file before the append")
     parser.add_argument("--write", action="store_true")
+    parser.add_argument("--refresh", action="store_true",
+                        help="re-read a book already appended, appending only what is new")
+    parser.add_argument("--move-flags", action="store_true",
+                        help="on a book already repaired, mark the key holders as printed entries")
     args = parser.parse_args()
+    if args.move_flags:
+        return move_flags(args.book)
+    if args.refresh:
+        if args.kept is None:
+            parser.error("--refresh needs --kept")
+        return refresh(args.book, args.kept, args.write)
+    if args.kept is None:
+        parser.error("--kept is required")
 
     path = os.path.join(TMP, f"narrators_book_{args.book}_openiti.json")
     profiles = json.load(open(path))
@@ -195,6 +348,7 @@ def main():
         print(f"  re-attributed {relabelled} assessments read from the edition's introduction")
     for old_index, new_index in chosen.items():
         existing[old_index] = merge(existing[old_index], appended[new_index], args.book)
+        appended[new_index]["printed_entry"] = False    # the key holder is the entry now
     write_json_atomic(path, existing + appended, indent=1)
 
     # an entry the printed text does not head is a man named inside another man's entry, or read

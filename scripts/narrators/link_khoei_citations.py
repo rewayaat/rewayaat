@@ -39,7 +39,9 @@ RECORD = os.path.join(TMP, "narrators_identity", "decisions.jsonl")
 KHOEI_ENTRIES_FROM = 21938      # phase 1's per-mention profiles come first
 TUSI_ENTRIES_FROM = 123
 WINDOW = 2
-HONORIFIC = r"(?:\s*(?:عليه|عليهم|عليهما)\s+السلام|\s*صلى الله عليه وآله(?:\s*وسلم)?)?"
+# the honorific, bare or in brackets: «أصحاب الهادي (عليه السلام)، رجال الشيخ (5)»
+HONORIFIC = (r"(?:\s*\(?\s*(?:(?:عليه|عليهم|عليهما)\s+السلام|صلى الله عليه وآله(?:\s*وسلم)?)"
+             r"\s*\)?)?")
 # «من أصحاب الصادق عليه السلام، رجال الشيخ (189)» and «ذكره الشيخ في أصحاب الصادق (159)»
 CITATIONS = [
     re.compile(r"أصحاب\s+([^،.()]{2,40}?)" + HONORIFIC + r"[،.]?\s*رجال الشيخ\s*\((\d+)\)"),
