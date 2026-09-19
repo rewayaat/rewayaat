@@ -24,6 +24,7 @@ Usage:
 
 import argparse
 import datetime
+import glob
 import json
 import os
 import sys
@@ -51,6 +52,34 @@ def load_sources(normalized_dir):
             for profile in json.load(handle):
                 profiles[source_key(book, profile["source_index"])] = (book, profile)
     return profiles
+
+
+# --- Which people hold an entry ---
+#
+# A person is a man some Rijal book gives an entry of his own. Phase 1 read Khoei and Mamaqani
+# page by page and made a profile of every name on a page, so most of their profiles are names
+# mentioned inside other men's entries: they belong to chains, for stage 8 to resolve, and a
+# component made only of them is not a person. Khoei's own entries are now in the corpus, one
+# profile each, marked `printed_entry`; attach_mentions.py joins the phase 1 profiles read from
+# them. The main books were read entry by entry, save the ones repair_from_openiti.py found the
+# printed text does not head.
+
+MAIN_BOOKS = {"najashi", "fihrist", "kashshi", "tusi", "duafa", "ardabili"}
+
+
+def not_entries(tmp_dir):
+    """Main-book keys the printed text does not head (repair_from_openiti.py)."""
+    keys = set()
+    for path in glob.glob(os.path.join(tmp_dir, "narrators_sources", "*_not_an_entry.json")):
+        with open(path) as handle:
+            keys |= {item["source_key"] for item in json.load(handle)}
+    return keys
+
+
+def is_entry(key, profile, excluded_keys):
+    if "printed_entry" in (profile or {}).get("flags", ()):
+        return True
+    return key.split(":")[0] in MAIN_BOOKS and key not in excluded_keys
 
 
 def assemble(keys, profiles):
@@ -142,9 +171,12 @@ def main():
     print(f"assembling {len(comps)} people...")
     people = []
     membership = {}
+    headless = not_entries(os.path.join(args.identity_dir, ".."))
     for keys, person_id in zip(comps, ids):
         person = assemble(keys, profiles)
-        people.append({"person_id": person_id, "anchor": keys[0], "source_keys": keys, **person})
+        holds = any(is_entry(k, (profiles.get(k) or (None, None))[1], headless) for k in keys)
+        people.append({"person_id": person_id, "anchor": keys[0], "source_keys": keys,
+                       "holds_entry": holds, **person})
         for key in keys:
             membership[key] = person_id
     people.sort(key=lambda p: p["person_id"])
@@ -166,6 +198,8 @@ def main():
         "sources": len(profiles),
         "excluded": len(excluded),
         "people": len(comps),
+        "people_holding_an_entry": sum(1 for p in people if p["holds_entry"]),
+        "mention_only": sum(1 for p in people if not p["holds_entry"]),
         "people_on_more_than_one_book": sum(
             1 for comp in comps if len({k.split(':')[0] for k in comp}) > 1),
         "refused_unions": dict(Counter(f"{r['method']} blocked by {b['kind']}"

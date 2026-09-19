@@ -194,6 +194,10 @@ class MergeState:
 
     def _absorb(self, merged, profile, book, layer, key, score):
         pages = profile["source_pages"]
+        if "printed_entry" in profile.get("flags", ()):
+            merged.setdefault("printed_books", [])
+            if book not in merged["printed_books"]:
+                merged["printed_books"].append(book)
         # Every source key this profile covers, Layer 0 fragments included, so the merge
         # describes itself in permanent source keys (identity.py) without a replay.
         merged["contributing_sources"].append({
@@ -436,7 +440,14 @@ def process_book(state, book, profiles, deferred, quarantine, stats, group_sizes
             continue
 
         scored = []
+        printed = "printed_entry" in profile.get("flags", ())
         for mid, keys in candidates.items():
+            # An author who heads two entries of one name has kept them apart: Khoei gives
+            # consecutive homonyms an entry each, and joins two only by saying so, which the
+            # cross-reference pass reads. A rule does not overrule him on the name.
+            if printed and book in state.profiles[mid].get("printed_books", ()):
+                counts["rejected_same_book_entry"] += 1
+                continue
             score, reasons, disqualified = context_score(profile, state.profiles[mid])
             if disqualified:
                 # a death year or a generation that no name agreement can survive
