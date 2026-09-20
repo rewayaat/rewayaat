@@ -83,7 +83,10 @@ function announcementText(data, field) {
         // recording later is a one-line edit to the JSON rather than a code change.
         if (data.linkUrl && announcementText(data, 'linkText')) {
             var link = element('a', 'site-announcement__link', announcementText(data, 'linkText'));
-            link.href = data.linkUrl;
+            // Keep the reader on the site they are reading: the bar sits on every page,
+            // and an unprefixed link sent an Arabic reader to the English updates page.
+            var prefix = (window.I18N_LOCALE === 'ar') ? '/ar' : '';
+            link.href = (data.linkUrl.charAt(0) === '/') ? prefix + data.linkUrl : data.linkUrl;
             inner.appendChild(link);
         }
         if (data.videoUrl && data.videoText) {

@@ -13,6 +13,41 @@ function t(key, fallback) {
     return (typeof value === 'string' && value.length) ? value : fallback;
 }
 
+/**
+ * The current language's URL for an internal path.
+ *
+ * The Arabic site is the same pages under /ar. Every link the server renders carries that
+ * prefix through arPrefix; links built here did not, so following one - a book card, a
+ * narration, the announcement bar - dropped the reader back onto the English site without
+ * anything appearing to go wrong.
+ */
+function localeHref(path) {
+    var prefix = (window.I18N_LOCALE === 'ar') ? '/ar' : '';
+    if (!path) { return prefix + '/'; }
+    return prefix + (path.charAt(0) === '/' ? path : '/' + path);
+}
+
+/**
+ * A narration's field in the reader's language.
+ *
+ * The index carries book_ar, chapter_ar, section_ar and part_ar beside the English ones
+ * and the API returns them, so metadata on a card can read in Arabic rather than being
+ * labelled in Arabic and filled in English. Coverage is partial by design - chapter_ar
+ * reaches 88% - so each field falls back on its own.
+ */
+function localeField(narration, field) {
+    if (!narration) { return undefined; }
+    if (window.I18N_LOCALE === 'ar') {
+        var arabic = narration[field + '_ar'];
+        if (typeof arabic === 'string' && arabic.length) { return arabic; }
+        var extra = narration.additionalProperties;
+        if (extra && typeof extra[field + '_ar'] === 'string' && extra[field + '_ar'].length) {
+            return extra[field + '_ar'];
+        }
+    }
+    return narration[field];
+}
+
 var vueApp;
 var currentQueryText = '';
 var bookBlurbs;
@@ -149,7 +184,7 @@ function loadQuery(query, page = 1, sortFields, skipBrowseRedirect) {
         return;
     }
     if (isCollectionMode()) {
-        $.getJSON("book_blurbs.json", function(book_blurbs) {
+        $.getJSON("/book_blurbs.json", function(book_blurbs) {
             bookBlurbs = book_blurbs;
             setupVue(query || '', page, sortFields);
             syncChromeForQuery(query || '', sortFields);
@@ -166,7 +201,7 @@ function loadQuery(query, page = 1, sortFields, skipBrowseRedirect) {
             // display query in search bar
             displayQuery(query);
             // load book blurbs
-            $.getJSON("book_blurbs.json", function(book_blurbs) {
+            $.getJSON("/book_blurbs.json", function(book_blurbs) {
                 bookBlurbs = book_blurbs
                 // load the query
                 setupVue(query, page, sortFields);
@@ -186,7 +221,7 @@ function loadQuery(query, page = 1, sortFields, skipBrowseRedirect) {
         // show default mark-down welcome page
         displayWelcomeContent();
         // load book blurbs
-        $.getJSON("book_blurbs.json", function(book_blurbs) {
+        $.getJSON("/book_blurbs.json", function(book_blurbs) {
             bookBlurbs = book_blurbs
         });
     }
@@ -1989,7 +2024,8 @@ function openHadithEditorModal(options) {
     meta.className = 'hadith-editor-modal__meta';
     meta.innerHTML =
         '<span class="hadith-editor-modal__meta-id">ID ' + escapeHtml((narration._id || '').toString()) + '</span>' +
-        '<span>' + escapeHtml(((narration.book || 'Narration') + (narration.number ? (' #' + narration.number) : '')).trim()) + '</span>';
+        '<span>' + escapeHtml(((localeField(narration, 'book') || t('js.narration', 'Narration'))
+            + (narration.number ? (' #' + narration.number) : '')).trim()) + '</span>';
     wrapper.appendChild(meta);
 
     var grid = document.createElement('div');
@@ -3055,7 +3091,7 @@ function formatFacetDisplay(key, value) {
     }
     var label = String(value);
     if (key === 'volume' && label.toLowerCase().indexOf('volume') === -1) {
-        return 'Volume ' + label;
+        return t('book.volumeNumber', 'Volume {0}').replace('{0}', label);
     }
     return label;
 }
@@ -3339,7 +3375,7 @@ function loadRecentUpdates() {
                 var highlights = Array.isArray(update.highlights) ? update.highlights : [];
                 var link = document.createElement('a');
                 link.className = 'recent-update-card__link';
-                link.href = '/updates.html';
+                link.href = localeHref('/updates.html');
                 link.innerHTML =
                     '<div class="recent-update-date">' + escapeHtml(update.date || '') + '</div>' +
                     '<h3 class="recent-update-title">' + escapeHtml(update.title || 'Update') + '</h3>' +
@@ -4006,6 +4042,9 @@ function populateBrowseBooks(books) {
     var MOBILE_BOOK_LIMIT = 4;
     books.forEach(function(item, idx) {
         var name = item.name || item.key || '';
+        // The list is built here, so the Arabic name has to travel with the data;
+        // /v1/browse/books carries it as nameAr.
+        var displayName = (window.I18N_LOCALE === 'ar' && item.nameAr) ? item.nameAr : name;
         if (!name) {
             return;
         }
@@ -4021,12 +4060,14 @@ function populateBrowseBooks(books) {
                 card.className += ' browse-book-card--overflow';
             }
             card.setAttribute('data-book', name);
-            card.setAttribute('href', '/books/' + encodeURIComponent(item.slug || ''));
+            card.setAttribute('href', localeHref('/books/' + encodeURIComponent(item.slug || '')));
             card.innerHTML = '<div class=\"browse-book-head\">' +
                 '<span class=\"browse-book-icon\" aria-hidden=\"true\"><i class=\"fa fa-book\"></i></span>' +
                 '<div class=\"browse-book-copy\">' +
-                '<div class=\"browse-book-title\">' + escapeHtml(name) + '</div>' +
-                '<div class=\"browse-book-count\">' + count.toLocaleString() + ' narrations</div>' +
+                '<div class=\"browse-book-title\">' + escapeHtml(displayName) + '</div>' +
+                '<div class=\"browse-book-count\">'
+                    + count.toLocaleString(window.I18N_LOCALE === 'ar' ? 'ar-EG' : undefined)
+                    + ' ' + t('books.card.narrations', 'narrations') + '</div>' +
                 '</div></div>';
             bookList.appendChild(card);
         }
@@ -4035,7 +4076,7 @@ function populateBrowseBooks(books) {
         var toggle = document.createElement('button');
         toggle.className = 'browse-book-drawer-toggle';
         toggle.type = 'button';
-        toggle.textContent = 'Show all ' + books.length + ' books';
+        toggle.textContent = t('js.showAllBooks', 'Show all {0} books').replace('{0}', books.length);
         toggle.addEventListener('click', function() {
             var expanded = bookList.classList.toggle('is-expanded');
             toggle.textContent = expanded ? 'Show fewer books' : 'Show all ' + books.length + ' books';
@@ -4051,6 +4092,9 @@ function populateBookSelect(select, books, placeholder) {
     select.innerHTML = '<option value=\"\">' + placeholder + '</option>';
     (books || []).forEach(function(item) {
         var name = item.name || item.key || '';
+        // The list is built here, so the Arabic name has to travel with the data;
+        // /v1/browse/books carries it as nameAr.
+        var displayName = (window.I18N_LOCALE === 'ar' && item.nameAr) ? item.nameAr : name;
         if (!name) {
             return;
         }
@@ -4323,6 +4367,10 @@ function setupVue(query, page, sortFields) {
             pageSize: SEARCH_PAGE_SIZE,
             book_blurbs: bookBlurbs,
             collectionMode: isCollectionMode(),
+            // On the Arabic site the narration shows its Arabic only. The English is a
+            // translation of the same text, and a reader who chose Arabic did not ask for
+            // a parallel column; hiding it also lets the Arabic use the full width.
+            arabicSite: (window.I18N_LOCALE === 'ar'),
             collectionId: resolveCollectionIdParam(),
             collectionTitle: '',
             collectionMeta: null,
@@ -4465,7 +4513,9 @@ function setupVue(query, page, sortFields) {
                     var totalCount = Number(this.baseNarrationTotal) || Number(this.totalHits) || 0;
                     return 'Showing ' + (tagTotal || this.matchingNarrationsCount) + '/' + totalCount + ' results';
                 }
-                return (Number(this.totalHits) || 0) + ' results found.';
+                var total = (Number(this.totalHits) || 0);
+                return t('js.resultsFound', '{0} results found.')
+                    .replace('{0}', total.toLocaleString(window.I18N_LOCALE === 'ar' ? 'ar-EG' : undefined));
             },
             matchingNarrationsCount: function() {
                 var self = this;
@@ -4564,7 +4614,9 @@ function setupVue(query, page, sortFields) {
                 }).map(function(tag) {
                     return {
                         slug: tag,
-                        label: (taxonomy[tag] && taxonomy[tag].en) || tag,
+                        label: (taxonomy[tag]
+                            && ((window.I18N_LOCALE === 'ar' && taxonomy[tag].ar) || taxonomy[tag].en))
+                            || tag,
                         count: counts[tag] || 0
                     };
                 }).sort(function(left, right) {
@@ -4656,8 +4708,23 @@ function setupVue(query, page, sortFields) {
                 }
                 this.$set(narration, 'mobileTagsExpanded', !narration.mobileTagsExpanded);
             },
+            /**
+             * A UI string, for the Vue templates.
+             *
+             * Templates resolve names against the component instance, not the window, so
+             * the global t() is not reachable from a {{ }} expression. This is the same
+             * lookup under a name the template can see.
+             */
+            tr: function(key, fallback) {
+                return t(key, fallback);
+            },
             taxonomyLabel: function(slug) {
-                return (this.taxonomy[slug] && this.taxonomy[slug].en) || slug;
+                // taxonomy.json carries both: {"slug":"prayer","en":"Prayer","ar":"صلاة"}.
+                // Only the English was ever read, so the Arabic site showed English tags.
+                var entry = this.taxonomy[slug];
+                if (!entry) { return slug; }
+                if (window.I18N_LOCALE === 'ar' && entry.ar) { return entry.ar; }
+                return entry.en || slug;
             },
             taxonomyCategory: function(slug) {
                 return (this.taxonomy[slug] && this.taxonomy[slug].category) || 'other';
@@ -4829,22 +4896,25 @@ function setupVue(query, page, sortFields) {
                 if (!narration) {
                     return '';
                 }
+                // Displayed metadata reads from the _ar fields where the index has them.
+                // Only the display: the same values build book:"..." query filters
+                // elsewhere and those must stay in the language the index is keyed on.
                 var parts = [];
                 if (narration.book) {
-                    parts.push(strip(narration.book));
+                    parts.push(strip(localeField(narration, 'book')));
                 }
                 if (narration.volume) {
                     parts.push(strip(narration.volume));
                 }
                 if (narration.chapter) {
-                    parts.push(strip(narration.chapter));
+                    parts.push(strip(localeField(narration, 'chapter')));
                 } else if (narration.section) {
-                    parts.push(strip(narration.section));
+                    parts.push(strip(localeField(narration, 'section')));
                 } else if (narration.part) {
-                    parts.push(strip(narration.part));
+                    parts.push(strip(localeField(narration, 'part')));
                 }
                 if (narration.number) {
-                    parts.push('Hadith #' + strip(narration.number));
+                    parts.push(t('js.hadith', 'Hadith') + ' #' + strip(narration.number));
                 }
                 return parts.join(' · ');
             },
@@ -5002,8 +5072,11 @@ function setupVue(query, page, sortFields) {
                 if (value.notes) {
                     value.notes = marked(value.notes);
                 }
-                if (value.volume && String(value.volume).indexOf('Volume ') !== 0) {
-                    value.volume = "Volume " + value.volume;
+                // The index stores a bare number; the word in front of it is display,
+                // so it comes from the bundle and reads الجزء 4 on the Arabic site.
+                if (value.volume && String(value.volume).indexOf('Volume ') !== 0
+                        && !/^\D/.test(String(value.volume))) {
+                    value.volume = t('book.volumeNumber', 'Volume {0}').replace('{0}', value.volume);
                 }
                 value = socialMediaDecoratedHadith(value);
                 value = decorateNarrationForSimilarity(value);
@@ -5275,7 +5348,7 @@ function setupVue(query, page, sortFields) {
             },
             narrationShareLabel: function(narration) {
                 if (!narration) { return ''; }
-                var book = narration.book || 'Narration';
+                var book = localeField(narration, 'book') || t('js.narration', 'Narration');
                 return (book + (narration.number ? (' #' + narration.number) : '')).trim();
             },
             requestArabicSuggestion: function(resultNarrations) {
@@ -5707,7 +5780,7 @@ function setupVue(query, page, sortFields) {
                         var total = Number(data && data.totalResultSetSize);
                         narration.similarItems = incoming.map(function(item) {
                             if (item.volume && String(item.volume).indexOf('Volume') !== 0) {
-                                item.volume = 'Volume ' + item.volume;
+                                item.volume = t('book.volumeNumber', 'Volume {0}').replace('{0}', item.volume);
                             }
                             return item;
                         });
@@ -6312,10 +6385,10 @@ function setupVue(query, page, sortFields) {
                     parts.push(narration.volume);
                 }
                 if (narration.part) {
-                    parts.push(narration.part);
+                    parts.push(localeField(narration, 'part'));
                 }
                 if (narration.section) {
-                    parts.push(narration.section);
+                    parts.push(localeField(narration, 'section'));
                 }
                 if (narration.chapter) {
                     parts.push(narration.chapter);

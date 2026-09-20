@@ -145,7 +145,7 @@
                             items.push({
                                 key: 'hadith-number',
                                 icon: 'fa fa-hashtag',
-                                label: 'Hadith #',
+                                label: t('js.hadith', 'Hadith') + ' #',
                                 html: this.escapeHtml(this.hadithNumber),
                                 clickable: false
                             });
@@ -154,8 +154,8 @@
                             items.push({
                                 key: 'book',
                                 icon: 'fa fa-book',
-                                label: 'Book',
-                                html: this.narration.book,
+                                label: t('filter.book', 'Book'),
+                                html: localeField(this.narration, 'book'),
                                 clickable: true,
                                 onClick: this.showSpecific.bind(this, this.narration, 'book')
                             });
@@ -164,8 +164,8 @@
                             items.push({
                                 key: 'volume',
                                 icon: 'fa fa-layer-group',
-                                label: 'Volume',
-                                html: this.narration.volume,
+                                label: t('filter.volume', 'Volume'),
+                                html: localeField(this.narration, 'volume'),
                                 clickable: true,
                                 onClick: this.showSpecific.bind(this, this.narration, 'volume')
                             });
@@ -182,8 +182,8 @@
                             items.push({
                                 key: 'section',
                                 icon: 'fa fa-bookmark',
-                                label: 'Section',
-                                html: this.narration.section,
+                                label: t('filter.section', 'Section'),
+                                html: localeField(this.narration, 'section'),
                                 clickable: false
                             });
                         }
@@ -191,8 +191,8 @@
                             items.push({
                                 key: 'part',
                                 icon: 'fa fa-clone',
-                                label: 'Part',
-                                html: this.narration.part,
+                                label: t('filter.part', 'Part'),
+                                html: localeField(this.narration, 'part'),
                                 clickable: true,
                                 onClick: this.showSpecific.bind(this, this.narration, 'part')
                             });
@@ -201,8 +201,8 @@
                             items.push({
                                 key: 'chapter',
                                 icon: 'fa fa-heading',
-                                label: 'Chapter',
-                                html: this.narration.chapter,
+                                label: t('filter.chapter', 'Chapter'),
+                                html: localeField(this.narration, 'chapter'),
                                 clickable: true,
                                 onClick: this.showSpecific.bind(this, this.narration, 'chapter')
                             });
@@ -211,8 +211,8 @@
                             items.push({
                                 key: 'source',
                                 icon: 'fa fa-arrow-right-from-bracket',
-                                label: 'Source',
-                                html: this.narration.source,
+                                label: t('js.source', 'Source'),
+                                html: localeField(this.narration, 'source'),
                                 clickable: false
                             });
                         }
@@ -220,7 +220,7 @@
                             items.push({
                                 key: 'edition',
                                 icon: 'fa fa-pen-to-square',
-                                label: 'Edition',
+                                label: t('js.edition', 'Edition'),
                                 html: this.escapeHtml('(' + this.narration.edition + ')'),
                                 clickable: false
                             });
@@ -229,7 +229,7 @@
                             items.push({
                                 key: 'publisher',
                                 icon: 'fa fa-building',
-                                label: 'Publisher',
+                                label: t('js.publisher', 'Publisher'),
                                 html: this.narration.publisher,
                                 clickable: false
                             });

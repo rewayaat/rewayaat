@@ -7,6 +7,7 @@ import co.elastic.clients.elasticsearch._types.aggregations.StringTermsAggregate
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.util.NamedValue;
+import com.rewayaat.service.ArabicNames;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -39,6 +40,13 @@ public class BrowseFacets {
         for (int i = 0; i < books.length(); i++) {
             JSONObject book = books.getJSONObject(i);
             book.put("slug", Slugs.slugify(book.optString("name")));
+            // The browse list is built in the browser, so it cannot reach the message
+            // bundle; without the Arabic name here the Arabic home page listed eighteen
+            // books in English under an Arabic heading.
+            String arabic = ArabicNames.book(book.optString("name"));
+            if (arabic != null) {
+                book.put("nameAr", arabic);
+            }
         }
         return books;
     }

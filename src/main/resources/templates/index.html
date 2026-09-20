@@ -229,14 +229,13 @@
                     <button type="button"
                             class="btn btn-link btn-sm"
                             v-if="activeTopicTags.length > 0"
-                            v-on:click="clearTagFilters">
-                        Clear all
+                            v-on:click="clearTagFilters" v-text="tr('js.clearAll', 'Clear all')">
                     </button>
                     <button type="button"
                             class="tag-filter-bar__toggle"
                             v-if="hasCollapsedTagFilters"
                             v-on:click="toggleTagFilterExpansion">
-                        {{ tagFilterExpanded ? 'Show fewer' : 'Show more' }}
+                        {{ tagFilterExpanded ? tr('js.showFewer', 'Show fewer') : tr('js.showMore', 'Show more') }}
                     </button>
                 </div>
             </div>
@@ -322,7 +321,7 @@
                          v-bind:class="'hadith-card--' + activeNarrationSidecarTab(narration)"
                          v-bind:style="sidecarStyleVars"
                          v-bind:id="narrationDomId(narration)">
-                    <div class="hadith-card__result-num">{{ collectionMode ? 'Hadith' : 'Result' }} {{ resultOrdinal(narration, index) }}/{{ totalHits }}</div>
+                    <div class="hadith-card__result-num">{{ collectionMode ? tr('js.hadith', 'Hadith') : tr('js.result', 'Result') }} {{ resultOrdinal(narration, index) }}/{{ totalHits }}</div>
                     <div class="card-body">
                         <div class="row g-4 hadith-card__layout">
                             <aside class="hadith-sidecar hadith-card__meta">
@@ -544,13 +543,13 @@
                                     <div class="hadith-reading-scroll"
                                          v-bind:class="{'hadith-reading-scroll--clamped': isNarrationCollapsible(narration) && !isNarrationExpanded(narration)}">
                                         <div class="row g-4 hadith-reading-row">
-                                            <div class="col-12 col-lg-6">
+                                            <div class="col-12 col-lg-6" v-if="!arabicSite">
                                                 <div class="hadith-text-block hadith-text-block--primary">
                                                     <div class="hadith-chain" v-if="narration.englishChain" v-html="narration.englishChain"></div>
                                                     <div class="hadith-english" v-html="narration.englishContent || narration.english"></div>
                                                 </div>
                                             </div>
-                                            <div class="col-12 col-lg-6">
+                                            <div class="col-12" v-bind:class="arabicSite ? '' : 'col-lg-6'">
                                                 <div class="hadith-text-block hadith-text-block--primary hadith-text-block--arabic">
                                                     <div class="hadith-chain hadith-chain--arabic arabic-text"
                                                          v-if="narration.arabicChain"
@@ -571,7 +570,7 @@
                                                 class="text-toggle"
                                                 v-bind:aria-expanded="isNarrationExpanded(narration) ? 'true' : 'false'"
                                                 v-on:click="toggleNarrationExpand(narration)">
-                                            <span>{{ isNarrationExpanded(narration) ? 'Show less' : 'Show more' }}</span>
+                                            <span>{{ isNarrationExpanded(narration) ? tr('js.showLess', 'Show less') : tr('js.showMore', 'Show more') }}</span>
                                             <i class="fa"
                                                v-bind:class="isNarrationExpanded(narration) ? 'fa-chevron-up' : 'fa-chevron-down'"
                                                aria-hidden="true"></i>
@@ -594,7 +593,7 @@
                                                 v-bind:aria-expanded="isNotesExpanded(narration) ? 'true' : 'false'"
                                                 v-bind:aria-controls="narrationDomId(narration) + '-notes'"
                                                 v-on:click="toggleNotesExpand(narration)">
-                                            <span>{{ isNotesExpanded(narration) ? 'Show less' : 'Show more' }}</span>
+                                            <span>{{ isNotesExpanded(narration) ? tr('js.showLess', 'Show less') : tr('js.showMore', 'Show more') }}</span>
                                             <i class="fa"
                                                v-bind:class="isNotesExpanded(narration) ? 'fa-chevron-up' : 'fa-chevron-down'"
                                                aria-hidden="true"></i>
@@ -697,7 +696,7 @@
                                                             v-if="snippetPreview(snippet.commentary_text, narration).length < snippet.commentary_text.replace(/<\/?em>/g,'').trim().length"
                                                             v-bind:aria-expanded="isSnippetExpanded(narration, sidx) ? 'true' : 'false'"
                                                             v-on:click="toggleSnippetExpand(narration, sidx)">
-                                                        <span>{{ isSnippetExpanded(narration, sidx) ? 'Show less' : 'Show more' }}</span>
+                                                        <span>{{ isSnippetExpanded(narration, sidx) ? tr('js.showLess', 'Show less') : tr('js.showMore', 'Show more') }}</span>
                                                         <i class="fa"
                                                            v-bind:class="isSnippetExpanded(narration, sidx) ? 'fa-chevron-up' : 'fa-chevron-down'"
                                                            aria-hidden="true"></i>
@@ -729,7 +728,7 @@
                                                     class="hadith-tags-toggle"
                                                     v-if="shouldShowNarrationTagToggle(narration)"
                                                     v-on:click.stop="toggleNarrationTags(narration)">
-                                                {{ narration.mobileTagsExpanded ? 'Show less' : 'Show more' }}
+                                                {{ narration.mobileTagsExpanded ? tr('js.showLess', 'Show less') : tr('js.showMore', 'Show more') }}
                                             </button>
                                         </div>
                                         <div class="d-flex flex-wrap gap-2 hadith-header-actions hadith-card__actions">

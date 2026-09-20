@@ -1,3 +1,16 @@
+/** A UI string in the page's language. See rewayaat.js. */
+function t(key, fallback) {
+    var table = window.I18N || {};
+    var value = table[key];
+    return (typeof value === 'string' && value.length) ? value : fallback;
+}
+
+/** The current language's URL for an internal path. See rewayaat.js. */
+function localeHref(path) {
+    var prefix = (window.I18N_LOCALE === 'ar') ? '/ar' : '';
+    return prefix + (path.charAt(0) === '/' ? path : '/' + path);
+}
+
 /**
  * Auth and save-to-collection for the server-rendered pages (books, book, volume,
  * chapter, hadith).
@@ -446,7 +459,7 @@
                           + '<span class="similar-reason-label">Why this matched:</span> '
                           + escapeHtml(item.matchReason) + '</div>'
                         : '')
-                    + '<a class="quranic-verse-link" href="/hadith/' + encodeURIComponent(id) + '">'
+                    + '<a class="quranic-verse-link" href="' + localeHref('/hadith/' + encodeURIComponent(id)) + '">'
                     + 'Read this narration <i class="fa fa-external-link-alt fa-xs"></i></a>';
             }, 'similar');
     }
@@ -510,7 +523,7 @@
         // server-side. Section has no page and stays plain text.
         var meta = [
             {level: 'book', text: item.book || ''},
-            {level: 'volume', text: item.volume ? 'Volume ' + item.volume : ''},
+            {level: 'volume', text: item.volume ? t('book.volumeNumber', 'Volume {0}').replace('{0}', item.volume) : ''},
             {level: 'section', text: item.section ? 'Section ' + item.section : ''},
             {level: 'chapter', text: item.chapter || ''}
         ].filter(function (seg) { return seg.text; });
@@ -518,7 +531,7 @@
         return '<div class="hadith-inline-context__meta-band hadith-inline-context__meta-band--compact">'
             + '<div class="hadith-inline-context__title-block">'
             + '<div class="hadith-inline-context__eyebrow">Similar Hadith</div>'
-            + '<a class="hadith-inline-context__title-link" href="/hadith/' + encodeURIComponent(id) + '">'
+            + '<a class="hadith-inline-context__title-link" href="' + localeHref('/hadith/' + encodeURIComponent(id)) + '">'
             + escapeHtml(title || 'Similar narration') + '</a>'
             + (meta.length ? '<div class="hadith-inline-context__meta-line" data-hub-meta-line>'
                 + meta.map(function (seg, i) {
