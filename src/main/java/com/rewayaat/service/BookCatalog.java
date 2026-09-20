@@ -151,6 +151,23 @@ public class BookCatalog {
         public String url() {
             return "/books/" + bookSlug + "/part/" + slug;
         }
+
+        /**
+         * Whether this part holds exactly one chapter, and so duplicates that chapter's
+         * own page rather than being a page in its own right.
+         *
+         * <p>Invariant 10 one level up the hierarchy. Eighteen of the 166 parts wrap a
+         * single chapter that carries the part's own title, so the part page is a heading,
+         * a blurb and one link to a page of the same name — about a hundred words, most of
+         * it chrome.
+         *
+         * <p>The one place this is decided, exactly as {@link Chapter#holdsSingleNarration()}
+         * is: {@code partPage} canonicalises such a part to its chapter and
+         * {@code booksSitemap} leaves it out, and the two must never disagree.
+         */
+        public boolean holdsSingleChapter() {
+            return chapterCount == 1;
+        }
     }
 
     /**

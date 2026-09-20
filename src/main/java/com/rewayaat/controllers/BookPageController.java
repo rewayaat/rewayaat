@@ -203,7 +203,20 @@ public class BookPageController {
         model.addAttribute("seoDescription", String.format(
                 "%s, %s: %,d narrations across %,d chapters, in Arabic and English.",
                 book.name(), part.title(), narrations, chapters.size()));
-        model.addAttribute("canonicalUrl", BASE_URL + part.url());
+        // A part wrapping one chapter *is* that chapter: same title, same narration count,
+        // and the page's whole body is a single link to it. Invariant 10 one level up.
+        //
+        // It points at the chapter's own canonical rather than at the chapter URL, because
+        // a chapter holding one narration has already folded into that narration and a
+        // part -> chapter -> narration chain is a signal Google follows but discounts.
+        // Gated on the catalog's predicate, the one booksSitemap excludes by, and checked
+        // against the chapters the page actually loaded: if the index and the catalog
+        // briefly disagree the part stays self-canonical and merely unlisted, which is the
+        // harmless way round.
+        String canonicalPath = part.holdsSingleChapter() && chapters.size() == 1
+                ? canonicalPathFor(chapters.get(0), narrationsIn(chapters.get(0)))
+                : part.url();
+        model.addAttribute("canonicalUrl", BASE_URL + canonicalPath);
         model.addAttribute("sectionSummary", blurbs.sectionSummaryForPath(part.url()));
         model.addAttribute("shareImageUrl", BASE_URL + part.url() + "/card.png");
         model.addAttribute("jsonLd", bookJsonLd(book));
@@ -270,9 +283,7 @@ public class BookPageController {
         // confirms the page really shows that one narration: if the index and the catalog
         // briefly disagree, the chapter stays self-canonical and merely unlisted, which is
         // the harmless way round.
-        String canonicalPath = chapter.holdsSingleNarration() && all.size() == 1
-                ? str(all.get(0).get("url")) : chapter.url();
-        model.addAttribute("canonicalUrl", BASE_URL + canonicalPath);
+        model.addAttribute("canonicalUrl", BASE_URL + canonicalPathFor(chapter, all));
         model.addAttribute("shareImageUrl", BASE_URL + chapter.url() + "/card.png");
         model.addAttribute("jsonLd", chapterJsonLd(chapter, narrations));
 
@@ -290,6 +301,21 @@ public class BookPageController {
 
         addBreadcrumbs(model, trail);
         return "chapter";
+    }
+
+    /**
+     * Where a chapter's page declares its canonical: itself, or the narration it folds
+     * into when it holds exactly one.
+     *
+     * <p>Shared with {@code partPage} so a part wrapping that chapter lands on the same
+     * URL the chapter does instead of on a URL that is itself non-canonical. The size
+     * check confirms the page really loaded that one narration, so a momentary
+     * disagreement between the index and the catalog leaves the page self-canonical
+     * rather than pointing somewhere wrong.
+     */
+    private String canonicalPathFor(BookCatalog.Chapter chapter, List<Map<String, Object>> narrations) {
+        return chapter.holdsSingleNarration() && narrations.size() == 1
+                ? str(narrations.get(0).get("url")) : chapter.url();
     }
 
     /**

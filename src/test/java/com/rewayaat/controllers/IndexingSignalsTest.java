@@ -29,6 +29,11 @@ class IndexingSignalsTest {
     private static final Path SITEMAP =
             Path.of("src/main/java/com/rewayaat/controllers/SitemapController.java");
 
+    private static BookCatalog.Part partOf(int chapters) {
+        return new BookCatalog.Part("Al-Kāfi", "al-kafi", "the-book-of-food",
+                "The Book of Food", "6", chapters);
+    }
+
     private static BookCatalog.Chapter chapterOf(long narrations) {
         return new BookCatalog.Chapter("Al-Kāfi", "al-kafi", "honey", "Honey",
                 "6", "The Book of Food", "", narrations);
@@ -54,10 +59,51 @@ class IndexingSignalsTest {
 
         assertTrue(sitemap.contains("chapter.holdsSingleNarration()"),
                 "booksSitemap no longer excludes single-narration chapters by the shared predicate");
-        assertTrue(methodBody(pages, "chapterPage").contains("chapter.holdsSingleNarration()"),
-                "chapterPage no longer gates its canonical on the shared predicate");
+        assertTrue(methodBody(pages, "canonicalPathFor").contains("chapter.holdsSingleNarration()"),
+                "canonicalPathFor no longer gates the canonical on the shared predicate");
+        assertTrue(methodBody(pages, "chapterPage").contains("canonicalPathFor("),
+                "chapterPage builds its canonical without the shared helper");
         assertFalse(sitemap.contains("count() == 1"),
                 "the sitemap is deciding single-narration chapters by its own count again");
+    }
+
+    @Test
+    void onlyAPartOfExactlyOneChapterDuplicatesIt() {
+        assertTrue(partOf(1).holdsSingleChapter());
+        assertFalse(partOf(2).holdsSingleChapter());
+        // A part the catalog counted as empty duplicates nothing.
+        assertFalse(partOf(0).holdsSingleChapter());
+    }
+
+    /**
+     * The same trap as the chapters, one level up: 18 of the 166 parts wrap a single chapter
+     * of their own title, so the part page is a heading and one link to a page that says the
+     * same thing. Search Console reported 45 pages as "Soft 404".
+     */
+    @Test
+    void theSitemapAndTheCanonicalAskTheSameQuestionAboutParts() throws IOException {
+        String sitemap = read(SITEMAP);
+        String partPage = methodBody(read(BOOK_PAGES), "partPage");
+
+        assertTrue(sitemap.contains("part.holdsSingleChapter()"),
+                "booksSitemap no longer excludes single-chapter parts by the shared predicate");
+        assertTrue(partPage.contains("part.holdsSingleChapter()"),
+                "partPage no longer gates its canonical on the shared predicate");
+        assertFalse(sitemap.contains("chapterCount() == 1"),
+                "the sitemap is deciding single-chapter parts by its own count again");
+    }
+
+    /**
+     * A part wrapping a chapter that itself holds one narration would otherwise declare a
+     * canonical that is not canonical either — part to chapter to narration. Routing the
+     * part through the chapter's own answer collapses the chain to one hop.
+     */
+    @Test
+    void aSingleChapterPartPointsWhereTheChapterPoints() throws IOException {
+        String partPage = methodBody(read(BOOK_PAGES), "partPage");
+        assertTrue(partPage.contains("canonicalPathFor("),
+                "partPage canonicalises to the chapter URL directly, which may itself be "
+                        + "non-canonical when that chapter holds a single narration");
     }
 
     /**
@@ -106,12 +152,32 @@ class IndexingSignalsTest {
         }
     }
 
-    /** One handler's source, from its name to the next route mapping. */
+    /**
+     * One method's source, from its name to whatever comes next.
+     *
+     * <p>Bounded by the private helpers as well as by the next route mapping.
+     * {@code chapterPage} is the last {@code @GetMapping} in the file, so stopping only at
+     * the next one swept every helper below it into the body and an assertion about
+     * {@code chapterPage} passed on code that was no longer in it.
+     */
     private static String methodBody(String source, String name) {
-        int start = source.indexOf(" " + name + "(");
-        assertTrue(start >= 0, "could not find " + name + " in BookPageController");
-        int end = source.indexOf("@GetMapping", start);
-        return source.substring(start, end < 0 ? source.length() : end);
+        // Anchored on the declaration, not on the first mention: a helper is called before
+        // it is declared, and matching the call site returned the caller's one line as the
+        // helper's body.
+        Matcher declaration = Pattern
+                .compile("(?m)^\\s*(?:public|private|protected)\\s+[\\w<>,\\[\\]. ]+?\\s+"
+                        + Pattern.quote(name) + "\\s*\\(")
+                .matcher(source);
+        assertTrue(declaration.find(), "could not find " + name + " in BookPageController");
+        int start = declaration.start();
+        int end = source.length();
+        for (String boundary : new String[]{"@GetMapping", "\n    private "}) {
+            int at = source.indexOf(boundary, start);
+            if (at >= 0 && at < end) {
+                end = at;
+            }
+        }
+        return source.substring(start, end);
     }
 
     private static String read(Path path) throws IOException {

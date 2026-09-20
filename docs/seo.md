@@ -191,6 +191,27 @@ card's action rail were enough to index the URLs anyway. They are in
 
 The rule `/error/*` already followed: **`Disallow` hides the instruction, not the page.**
 
+### 13. A part wrapping one chapter is not a third page
+
+The same shape as invariant 10, one level up. Eighteen of the 166 `/part/` pages hold a
+single chapter that carries the part's own title, so the part page is a heading, a blurb
+and one link to a page saying the same thing — about a hundred words, most of it chrome.
+`/books/al-kafi/part/the-book-of-intelligence-and-ignorance` and
+`/books/al-kafi/the-book-of-intelligence-and-ignorance` were both self-canonical and both
+in the sitemap.
+
+`BookCatalog.Part.holdsSingleChapter()` is the only place the rule is decided, and
+`booksSitemap` excludes by exactly the predicate `partPage` canonicalises on.
+
+**The canonical goes where the chapter's own canonical goes**, not to the chapter URL. If
+that one chapter also holds a single narration, the chapter has already folded into the
+narration (invariant 10), and pointing the part at the chapter would declare a canonical
+that is not itself canonical — `part → chapter → narration`. Both routes call
+`BookPageController.canonicalPathFor`, so the chain is always one hop. That costs the part
+page one extra Elasticsearch query, on at most eighteen rarely-requested pages.
+
+`IndexingSignalsTest` pins both sides and the chain.
+
 ## Page inventory
 
 | Surface | Indexable | Rendered by |
@@ -200,7 +221,7 @@ The rule `/error/*` already followed: **`Disallow` hides the instruction, not th
 | `/books` | yes | Server |
 | `/books/{book}` | yes | Server |
 | `/books/{book}/volume/{n}` | yes | Server |
-| `/books/{book}/part/{part}` | yes | Server |
+| `/books/{book}/part/{part}` | yes — **unless it holds one chapter**, then canonical to that chapter (or to its narration) | Server |
 | `/books/{book}/{chapter}` | yes — **unless it holds one narration**, then canonical to `/hadith/{id}` | Server |
 | `/books/{book}/{chapter}?tag=` | **no** — `noindex, follow`, and the links are `rel="nofollow"` | Server |
 | `/hadith/{id}` | yes | Server |
@@ -214,7 +235,7 @@ The rule `/error/*` already followed: **`Disallow` hides the instruction, not th
 | Sitemap | Contents |
 |---------|----------|
 | `/sitemap-static.xml` | `/`, `/books`, `/updates.html`, `/search_tips.html` |
-| `/sitemap-books.xml` | ~4,000 URLs — `/books`, 18 books, 30 volumes, 166 parts, and the ~3,800 chapters holding more than one narration |
+| `/sitemap-books.xml` | ~3,900 URLs — `/books`, 18 books, 30 volumes, the 148 parts holding more than one chapter, and the ~3,700 chapters holding more than one narration |
 | `/sitemap-hadith-{1..4}.xml` | 32,519 narrations, 10,000 per page |
 
 Two things learned the hard way, both pinned by `SitemapIntegrationTest`:
