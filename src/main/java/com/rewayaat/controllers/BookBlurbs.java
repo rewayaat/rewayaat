@@ -88,7 +88,11 @@ class BookBlurbs {
         }
         String arabicBlurb = bySlugAr.get(slug);
         if (arabicBlurb == null || arabicBlurb.isBlank()) {
-            return summaries.get(slug);
+            // Deliberately no English fallback. The hero already collapses to its centred
+            // layout when there is no intro, whereas an English paragraph under an Arabic
+            // heading is mixed-language body text on a page whose whole purpose is to rank
+            // for Arabic queries. Eight of the eighteen books are in that state today.
+            return null;
         }
         Element paragraph = Jsoup.parseBodyFragment(arabicBlurb).body().selectFirst("p");
         if (paragraph == null) {

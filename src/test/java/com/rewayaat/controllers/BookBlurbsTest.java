@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** The Arabic blurbs load, and the hero gets text rather than markup. */
@@ -30,6 +31,13 @@ class BookBlurbsTest {
         assertNotNull(summary);
         assertFalse(summary.contains("<"), "hero summary must carry no markup: " + summary);
         assertFalse(summary.contains("&lt;"), "nor escaped markup: " + summary);
+    }
+
+    @Test
+    @DisplayName("a book with no Arabic blurb shows no intro rather than an English one")
+    void untranslatedBooksGetNoIntro() {
+        assertNull(blurbs.summaryForSlug("kitab-al-ghayba", true));
+        assertNotNull(blurbs.summaryForSlug("al-kafi", true), "al-kafi does have one");
     }
 
     @Test
