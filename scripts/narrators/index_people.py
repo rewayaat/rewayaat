@@ -56,6 +56,10 @@ BOOK_TITLE = {slug: title for slug, title, _ in BOOKS}
 BOOK_AUTHOR = {slug: author for slug, _, author in BOOKS}
 # Ibn al-Ghada'iri's book is shown under his name with Khoei's doubt beside it: Khoei held that
 # «الكتاب المنسوب إلى ابن الغضائري لم يثبت», the book ascribed to him is not established as his.
+# grades the phase 1 extraction read from a book's silence rather than from a verdict. They are
+# kept on the entry, where «unknown» is honest, and left out of the verdicts a page leads with,
+# where it would read as though the book had said it.
+UNSTATED = {"not_assessed", "majhul", "assessed", "unknown (majhul)", None}
 BOOK_NOTE = {"duafa": "The ascription of this book to Ibn al-Ghaḍāʾirī is disputed; al-Khoei "
                       "held it unproven («الكتاب المنسوب إلى ابن الغضائري… لم يثبت»)."}
 
@@ -150,6 +154,7 @@ def document(person, source, headless):
     for grade in values(person, "reliability_grades"):
         book, pages = grade.get("source_book"), grade.get("source_pages") or []
         verdicts.append({"grade": grade.get("grade"), "said": grade.get("raw"),
+                         "stated": grade.get("grade") not in UNSTATED,
                          "book": book, "book_title": BOOK_TITLE.get(book, book), "pages": pages,
                          "book_note": BOOK_NOTE.get(book),
                          "source_key": entry_key_for(person, book, pages, entry_keys)})

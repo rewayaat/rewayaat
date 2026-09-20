@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/site :: sitehead}"></head>
+<body>
+<nav th:replace="~{fragments/site :: sitenav}"></nav>
+
+<main class="container py-3">
+    <nav th:replace="~{fragments/site :: crumbtrail}"></nav>
+
+    <header class="hub-hero hub-hero--split">
+        <div class="hub-hero__identity">
+            <div class="hub-hero__eyebrow">Narrator</div>
+            <h1 class="hub-hero__title narrator-name-ar" dir="rtl" lang="ar"
+                th:text="${displayAr}">اسم الراوي</h1>
+            <p class="narrator-name-en" th:if="${!#strings.isEmpty(displayEn)}"
+               th:text="${displayEn}">Transliterated name</p>
+            <div class="hub-hero__stats">
+                <span class="hub-stat">
+                    <span class="hub-stat__value" th:text="${narrator.entry_count}">5</span>
+                    entries
+                </span>
+                <span class="hub-stat">
+                    <span class="hub-stat__value" th:text="${#lists.size(books)}">4</span>
+                    books
+                </span>
+            </div>
+        </div>
+
+        <!-- The books disagree about most men, and that disagreement is the thing a reader
+             comes for. It goes at the top, each verdict under the name of the book that
+             gives it, so «thiqa» is never shown as though the tradition spoke with one
+             voice. -->
+        <div class="hub-hero__intro" th:if="${!#lists.isEmpty(narrator.verdicts)}">
+            <p class="hub-hero__intro-text">What each book says of him:</p>
+            <ul class="narrator-verdicts">
+                <li class="narrator-verdict" th:each="verdict : ${narrator.verdicts}"
+                    th:if="${verdict.stated}">
+                    <span class="narrator-verdict__book" th:text="${verdict.book_title}">Book</span>
+                    <span class="narrator-verdict__grade"
+                          th:classappend="'narrator-verdict__grade--' + ${verdict.grade}"
+                          th:text="${verdict.said != null ? verdict.said : verdict.grade}">thiqa</span>
+                    <span class="narrator-verdict__where" th:if="${!#lists.isEmpty(verdict.pages)}"
+                          th:text="'p. ' + ${verdict.pages[0]}">p. 183</span>
+                </li>
+            </ul>
+        </div>
+    </header>
+
+    <div th:replace="~{fragments/site :: ornament}"></div>
+
+    <!-- One block per entry, in the order the tradition reads the books. Each carries the
+         book's own words: a verdict is never paraphrased here, and never shown without the
+         page it stands on. -->
+    <h2 class="hub-group__label">In the Rijal books</h2>
+
+    <section class="narrator-entries">
+        <article class="narrator-entry" th:each="entry : ${narrator.entries}">
+            <header class="narrator-entry__head">
+                <h3 class="narrator-entry__book" th:text="${entry.book_title}">Rijāl al-Najāshī</h3>
+                <span class="narrator-entry__author" th:if="${entry.book_author != null}"
+                      th:text="${entry.book_author}">Author</span>
+                <span class="narrator-entry__page" th:if="${entry.page_first != null}"
+                      th:text="'p. ' + ${entry.page_first}">p. 183</span>
+                <span class="narrator-entry__grade"
+                      th:if="${entry.grade != null and entry.grade != 'not_assessed'
+                               and entry.grade != 'majhul'}"
+                      th:classappend="'narrator-verdict__grade--' + ${entry.grade}"
+                      th:text="${entry.grade}">thiqa</span>
+            </header>
+
+            <!-- A book heads the same man differently — «سهل بن زياد» in one, «سهل بن زياد
+                 الآدمي الرازي» in another — and the heading is part of what that book says.
+                 Most entries open with that name, though, so it is printed only where the
+                 book's own words below do not already carry it. -->
+            <p class="narrator-entry__heading" dir="rtl" lang="ar"
+               th:if="${entry.heading_ar != null and (entry.text_ar == null
+                       or !#strings.startsWith(entry.text_ar, entry.heading_ar))}"
+               th:text="${entry.heading_ar}">الاسم كما يذكره الكتاب</p>
+
+            <p class="narrator-entry__note" th:if="${entry.book_note != null}"
+               th:text="${entry.book_note}">A note about this book.</p>
+
+            <blockquote class="narrator-entry__text" dir="rtl" lang="ar"
+                        th:if="${entry.text_ar != null}" th:text="${entry.text_ar}">نص الترجمة.</blockquote>
+
+            <p class="narrator-entry__text-en" th:if="${entry.text_en != null}"
+               th:text="${entry.text_en}">The entry in English.</p>
+
+            <p class="narrator-entry__generation" th:if="${entry.generation != null}">
+                <span class="narrator-entry__label">Kept company with</span>
+                <span th:text="${entry.generation}">the companions of al-Sadiq</span>
+            </p>
+        </article>
+    </section>
+
+    <!-- Where he came from and when he lived, each statement under the book that makes it.
+         Two books often disagree here too, and both are shown. -->
+    <section class="narrator-facts"
+             th:if="${!#lists.isEmpty(narrator.cities_or_tribes) or !#lists.isEmpty(narrator.death_years)
+                     or !#lists.isEmpty(narrator.generations)}">
+        <h2 class="hub-group__label">What the books state about him</h2>
+        <dl class="narrator-facts__list">
+            <th:block th:if="${!#lists.isEmpty(narrator.generations)}">
+                <dt>Generation</dt>
+                <dd th:each="fact : ${narrator.generations}">
+                    <span th:text="${fact.value}">a companion of al-Sadiq</span>
+                    <span class="narrator-facts__source" th:text="'— ' + ${fact.book_title}">— book</span>
+                </dd>
+            </th:block>
+            <th:block th:if="${!#lists.isEmpty(narrator.cities_or_tribes)}">
+                <dt>City or tribe</dt>
+                <dd th:each="fact : ${narrator.cities_or_tribes}">
+                    <span th:text="${fact.value}">Kufa</span>
+                    <span class="narrator-facts__source" th:text="'— ' + ${fact.book_title}">— book</span>
+                </dd>
+            </th:block>
+            <th:block th:if="${!#lists.isEmpty(narrator.death_years)}">
+                <dt>Died</dt>
+                <dd th:each="fact : ${narrator.death_years}">
+                    <span th:text="${fact.value}">260 AH</span>
+                    <span class="narrator-facts__source" th:text="'— ' + ${fact.book_title}">— book</span>
+                </dd>
+            </th:block>
+        </dl>
+    </section>
+
+    <!-- The names he is headed under, so a reader who came looking for one of them can see
+         that this is the same man, and why the page answered to it. -->
+    <section class="narrator-names" th:if="${!#lists.isEmpty(narrator.names_ar)}">
+        <h2 class="hub-group__label">Also named</h2>
+        <p class="narrator-names__list" dir="rtl" lang="ar"
+           th:text="${#strings.listJoin(narrator.names_ar, ' · ')}">أسماء أخرى</p>
+    </section>
+
+    <p class="narrator-provenance">
+        This page is assembled from <span th:text="${narrator.entry_count}">5</span>
+        entries<span th:if="${narrator.mention_count > 0}"> and
+        <span th:text="${narrator.mention_count}">9</span> mentions in the chains</span>,
+        joined into one man by what the books themselves say. Nothing here is our judgment of
+        him: every verdict above is quoted from the book named beside it.
+    </p>
+</main>
+
+<footer th:replace="~{fragments/site :: sitefooter}"></footer>
+<th:block th:replace="~{fragments/site :: analytics}"></th:block>
+</body>
+</html>

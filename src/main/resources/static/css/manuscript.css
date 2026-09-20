@@ -13356,3 +13356,235 @@ html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
 [dir="rtl"] .hub-chapter__index {
     margin-top: calc((1.12rem * 1.6 - 2.15rem) / 2);
 }
+/* ── Narrator pages ─────────────────────────────────────────────────────────────
+   A narrator page is a page of quotations: every line on it belongs to a named book
+   at a named page, and the layout has to keep that visible. The entry blocks carry
+   the book's own words in Arabic; the verdict chips at the top carry the books'
+   disagreement, which is usually the reason a reader came. */
+
+.narrator-name-ar {
+    font-family: var(--font-arabic);
+    line-height: 1.5;
+}
+
+.narrator-name-en {
+    margin: 0.35rem 0 0;
+    font-family: var(--font-ui);
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.narrator-verdicts {
+    list-style: none;
+    margin: 0.6rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.narrator-verdict {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.86);
+}
+
+.narrator-verdict__book {
+    font-family: var(--font-ui);
+    letter-spacing: 0.02em;
+}
+
+/* The grade is a word from the book, not a score of ours, so it is set as a quoted
+   label rather than a coloured badge; only trust and its opposite are tinted, and
+   then only enough to be scannable down a column. */
+.narrator-verdict__grade {
+    font-family: var(--font-ui);
+    font-weight: 600;
+    padding: 0.05rem 0.45rem;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.narrator-verdict__grade--thiqa,
+.narrator-verdict__grade--saduq,
+.narrator-verdict__grade--hasan {
+    background: rgba(120, 190, 140, 0.22);
+}
+
+.narrator-verdict__grade--daif,
+.narrator-verdict__grade--very_weak,
+.narrator-verdict__grade--kadhdhab,
+.narrator-verdict__grade--non_existent {
+    background: rgba(220, 120, 110, 0.24);
+}
+
+.narrator-verdict__where {
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.76rem;
+}
+
+.narrator-entries {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+}
+
+.narrator-entry {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.1rem 1.3rem;
+}
+
+.narrator-entry__head {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 0.7rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.narrator-entry__book {
+    margin: 0;
+    font-family: var(--font-ui);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.narrator-entry__author,
+.narrator-entry__page {
+    font-family: var(--font-ui);
+    font-size: 0.76rem;
+    color: var(--text-muted);
+}
+
+.narrator-entry__grade {
+    margin-left: auto;
+    font-family: var(--font-ui);
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.1rem 0.5rem;
+    border-radius: 3px;
+    background: var(--bg-subtle);
+    color: var(--text-secondary);
+}
+
+.narrator-entry__heading {
+    margin: 0 0 0.5rem;
+    font-family: var(--font-arabic);
+    font-size: 1.15rem;
+    color: var(--text);
+}
+
+/* Ibn al-Ghada'iri's book carries Khoei's doubt about its ascription. It sits above the
+   text rather than below it: a reader should meet the caveat before the verdict. */
+.narrator-entry__note {
+    margin: 0 0 0.6rem;
+    padding: 0.4rem 0.6rem;
+    border-left: 3px solid var(--gold);
+    background: var(--gold-bg);
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.narrator-entry__text {
+    margin: 0;
+    font-family: var(--font-arabic);
+    font-size: 1.22rem;
+    line-height: 2.05;
+    color: var(--text);
+}
+
+.narrator-entry__text-en {
+    margin: 0.7rem 0 0;
+    font-size: 0.92rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+}
+
+.narrator-entry__generation {
+    margin: 0.7rem 0 0;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+}
+
+.narrator-entry__label {
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-right: 0.4rem;
+}
+
+.narrator-facts,
+.narrator-names {
+    margin-bottom: 2rem;
+}
+
+.narrator-facts__list {
+    margin: 0;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.35rem 1.2rem;
+    font-size: 0.88rem;
+}
+
+.narrator-facts__list dt {
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding-top: 0.15rem;
+}
+
+.narrator-facts__list dd {
+    margin: 0;
+    color: var(--text);
+}
+
+.narrator-facts__source {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.narrator-names__list {
+    font-family: var(--font-arabic);
+    font-size: 1.05rem;
+    line-height: 2;
+    color: var(--text-secondary);
+}
+
+.narrator-provenance {
+    margin: 0 0 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: var(--text-muted);
+}
+
+@media (max-width: 640px) {
+    .narrator-facts__list {
+        grid-template-columns: 1fr;
+        gap: 0.15rem;
+    }
+
+    .narrator-facts__list dt {
+        margin-top: 0.6rem;
+    }
+
+    .narrator-entry__grade {
+        margin-left: 0;
+    }
+}
