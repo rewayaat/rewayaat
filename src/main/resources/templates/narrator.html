@@ -73,62 +73,63 @@
           year, so the spacing is the chronology and not a decoration: al-Ḥasan's ten years
           are a tenth of al-Ṣādiq's century.
         -->
+        <!--
+          The band is the page's one picture, so it is built to carry that: the years ruled
+          across the head, the Prophet's period and the twelve imamates set out beneath them
+          as panels in proportion to their length, each bearing its Imam's name, and the ones
+          this man lived under laid in gold leaf. His death is a thread struck through it.
+        -->
         <div class="chrono" th:if="${placement != null and placement.hasAnything()}"
              aria-label="Where this narrator stands against the Prophet and the Imams">
             <span class="chrono__ground" aria-hidden="true"></span>
 
-            <!-- A band of ornament along the head, as an illuminated page carries above a
-                 ruled table: the motif repeats, the corners are turned with a rosette. -->
-            <div class="chrono__frieze" aria-hidden="true">
-                <span class="chrono__frieze-end">۞</span>
-                <span class="chrono__frieze-run"></span>
-                <span class="chrono__frieze-end">۞</span>
-            </div>
-
-            <div class="chrono__rule">
-                <span class="chrono__year chrono__year--from">١ هـ</span>
-                <span class="chrono__year chrono__year--to">٥٠٠ هـ</span>
-
-                <!-- the years he lived through, laid over the rule as gold leaf -->
-                <span class="chrono__ribbon" th:each="era : ${placement.eras}"
-                      th:if="${era.highlighted}"
-                      th:style="|inset-inline-start:${era.leftPercent}%; width:${era.widthPercent}%|"></span>
-
-                <!-- Every era, named. A dot nobody can read is not a chronology: each carries
-                     a stem down to its name, and the names alternate depth so that al-Ḥasan's
-                     ten years and al-Ḥusayn's eleven do not write over each other. -->
+            <!-- The dates, ruled above: the year each period opens on, and the axis end. -->
+            <div class="chrono__dates">
                 <th:block th:each="era, it : ${placement.eras}">
-                    <!-- The state classes carry no «__»: that is Thymeleaf's preprocessing
-                         delimiter, and a BEM name inside an expression is parsed as one. -->
-                    <span class="chrono__mark"
-                          th:classappend="${(era.highlighted ? 'is-on ' : '')
-                                          + (it.index % 2 == 1 ? 'is-low' : '')}"
-                          th:style="|inset-inline-start:${era.centerPercent()}%|"
-                          th:title="${era.nameEn} + ' · ' + ${era.fromAh} + '–' + ${era.toAh} + ' AH'">
-                        <span class="chrono__stem"></span>
-                        <span class="chrono__name" dir="rtl" lang="ar" th:text="${era.shortAr}">الصادق</span>
+                    <span class="chrono__date"
+                          th:classappend="${it.index % 2 == 1 ? 'is-low' : ''}"
+                          th:style="|inset-inline-start:${era.leftPercent}%|">
+                        <span class="chrono__date-year" th:text="${era.fromArabic()}">١١٤</span>
+                        <span class="chrono__date-tick"></span>
                     </span>
                 </th:block>
+                <span class="chrono__date chrono__date--end">
+                    <span class="chrono__date-year">٥٠٠</span>
+                    <span class="chrono__date-tick"></span>
+                </span>
+            </div>
 
-                <!-- the ones he lived under, raised into medallions on the rule itself -->
-                <span class="chrono__medal" th:each="era : ${placement.eras}"
-                      th:if="${era.highlighted}"
-                      th:style="|inset-inline-start:${era.centerPercent()}%|"
+            <!-- The band itself: panels in proportion to the years they ran. -->
+            <div class="chrono__band">
+                <span class="chrono__cell" th:each="era : ${placement.eras}"
+                      th:classappend="${era.highlighted ? 'is-on' : ''}"
+                      th:style="|inset-inline-start:${era.leftPercent}%; width:${era.widthPercent}%|"
                       th:title="${era.nameEn} + ' · ' + ${era.fromAh} + '–' + ${era.toAh} + ' AH'">
-                    <span class="chrono__medal-glyph"
-                          th:text="${era.isProphet()} ? '۞' : ${era.orderArabic()}">٩</span>
+                    <!-- A panel of six years cannot hold a name; it keeps its number, and the
+                         name is read from the panel's tooltip and the cartouche below. -->
+                    <span class="chrono__cell-name" dir="rtl" lang="ar"
+                          th:if="${era.widthPercent gt 3.0}" th:text="${era.shortAr}">الصادق</span>
+                    <span class="chrono__cell-num" th:if="${era.widthPercent gt 1.6}"
+                          th:text="${era.isProphet()} ? '۞' : ${era.orderArabic()}">٦</span>
                 </span>
 
-                <span class="chrono__death"
+                <!-- Past the twelfth imamate the axis keeps running, because men of the sixth
+                     century are placed on it too. -->
+                <th:block th:with="last=${placement.eras[#lists.size(placement.eras) - 1]},
+                                   tail=${last.leftPercent + last.widthPercent}">
+                    <span class="chrono__tail" th:if="${tail lt 99}"
+                          th:style="|inset-inline-start:${tail}%; width:${100 - tail}%|"
+                          title="After the twelfth Imam — the occultation"></span>
+                </th:block>
+
+                <span class="chrono__thread"
                       th:if="${placement.deathPercent != null and !placement.deathOutsideScale}"
                       th:style="|inset-inline-start:${placement.deathPercent}%|"
                       th:title="'Died ' + ${placement.deathAh} + ' AH'">
-                    <span class="chrono__death-glyph">۞</span>
-                    <span class="chrono__death-label" th:text="${placement.deathAh} + ' هـ'">١٥٠ هـ</span>
+                    <span class="chrono__thread-head">۞</span>
                 </span>
             </div>
 
-            <!-- The reading, in a cartouche: the shape a manuscript puts a title in. -->
             <p class="chrono__cartouche">
                 <span class="chrono__cartouche-wing" aria-hidden="true">❧</span>
                 <span class="chrono__cartouche-text">

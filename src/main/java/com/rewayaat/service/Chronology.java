@@ -69,13 +69,28 @@ public class Chronology {
             return order == 0;
         }
 
-        /** The imamate's number in Arabic-Indic figures, «٩», as a manuscript would set it. */
-        public String orderArabic() {
+        /** Arabic-Indic figures, «٢٥٤», as a manuscript sets a number. */
+        public static String arabicFigures(int value) {
             StringBuilder out = new StringBuilder();
-            for (char digit : String.valueOf(order).toCharArray()) {
+            for (char digit : String.valueOf(value).toCharArray()) {
                 out.append((char) ('\u0660' + (digit - '0')));
             }
             return out.toString();
+        }
+
+        /** The imamate's number in Arabic-Indic figures, «٩». */
+        public String orderArabic() {
+            return arabicFigures(order);
+        }
+
+        /** The year this era opens on, for the dates ruled above the band. */
+        public String fromArabic() {
+            return arabicFigures(fromAh);
+        }
+
+        /** The year it closes on: only the last era prints this, as the axis end. */
+        public String toArabic() {
+            return arabicFigures(toAh);
         }
 
         /** Where a medallion for this era sits: the middle of its span. */
