@@ -214,11 +214,21 @@ page one extra Elasticsearch query, on at most eighteen rarely-requested pages.
 
 ### 14. A part that divides nothing is not a page
 
+Fifteen part pages duplicated their parent whole. They came in two shapes.
+
 Four parents are filed as one part named "Content" holding everything plus an
 "Introduction" holding a single chapter: Al-Tawḥīd (68 chapters), Kāmil al-Ziyārāt (109),
 Kitāb al-Zuhd (21) and volume 1 of ʿUyūn akhbār al-Riḍā (29). The hub's entire outbound
 link list was those two URLs, and every chapter sat two hops down behind a page that
 divided nothing.
+
+The other eleven were worse and invisible. A volume holding exactly one part rendered its
+chapters directly — the old `useParts` needed `parts.size() > 1` — so the part was linked
+from nowhere, while `booksSitemap` advertised it anyway out of `book.parts()`.
+`/books/al-kafi/part/the-book-garden-of-flowers` carried all 594 chapters of volume 8: a
+complete clone of `/books/al-kafi/volume/8`, in the sitemap, reachable only from the
+sitemap. **A hub-link audit cannot find these** — walking the site's own links is exactly
+what misses a page nothing links to. Diff the sitemap against the link graph instead.
 
 A part earns a URL only when it is **one of several parts that actually divide its
 parent** — `BookCatalog.Book.isOwnPage`, reached through `pageParts()`, `pagePartsIn()`
@@ -237,7 +247,9 @@ Two things about it are load-bearing:
   `/sitemap-hadith-4.xml`).
 
 Largest hub this collapses is Kāmil al-Ziyārāt at 109 chapters, well inside what invariant
-6 protects: Al-Kāfi volume 8 already lists 594. `IndexingSignalsTest` builds real catalogs
+6 protects: Al-Kāfi volume 8 already lists 594. Nothing is orphaned by the collapse — the
+parent now lists the chapters the part used to, and the eleven unlinked clones were never
+in the link graph to begin with. `IndexingSignalsTest` builds real catalogs
 and pins both the rule and the fact that the hubs still link everything.
 
 ## Page inventory
@@ -263,7 +275,7 @@ and pins both the rule and the fact that the hubs still link everything.
 | Sitemap | Contents |
 |---------|----------|
 | `/sitemap-static.xml` | `/`, `/books`, `/updates.html`, `/search_tips.html` |
-| `/sitemap-books.xml` | ~3,900 URLs — `/books`, 18 books, 30 volumes, the 144 parts that are pages in their own right, and the ~3,700 chapters holding more than one narration |
+| `/sitemap-books.xml` | ~3,900 URLs — `/books`, 18 books, 30 volumes, the 133 parts that are pages in their own right (of 166: 18 wrap one chapter, 15 duplicate their parent), and the ~3,700 chapters holding more than one narration |
 | `/sitemap-hadith-{1..4}.xml` | 32,519 narrations, 10,000 per page |
 
 Two things learned the hard way, both pinned by `SitemapIntegrationTest`:
