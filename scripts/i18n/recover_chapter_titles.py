@@ -43,6 +43,69 @@ SOURCES = {
     },
 }
 
+
+# The index's own division names, mapped to the kitāb each one is in the printed text.
+#
+# Curated rather than derived, because the two obvious candidates both fail.
+# part_ar carries the same back-translation defect as the chapter titles - it says
+# كتاب التجارة where al-Kāfī has كتاب المعيشة, كتاب الموت والدار الآخرة where the book
+# has كتاب الجنائز, and كتاب الدواب for كتاب الدواجن. Matching on the Arabic name would
+# therefore inherit those errors. Matching on bāb counts alone is ambiguous: the index
+# holds two zakāt divisions, 46 and 43, against كتاب الزكاة (47) and أبواب الصدقة (43).
+#
+# The counts are the check, not the key: every pair below agrees to within two abwāb
+# except where noted. Each line is a claim about a printed book and can be read as one.
+KITAB_ALIASES = {
+    "al-kafi": {
+        "The Book of Belief and Disbelief": "كتاب الايمان والكفر",
+        "The Book of Haj": "كتاب الحج",
+        "The Book of Commerce": "كتاب المعيشة",
+        "The Book about people with Divine Authority": "كتاب الحجة",
+        "The Book of Prayer": "كتاب الصلاة",
+        "The Book of Marriage": "كتاب النكاح",
+        "The Book of Food": "كتاب الأطعمة",
+        "The Book of Dresses, Beautification and Kindness": "كتاب الزي والتجمل والمروءة",
+        "The Book on Dying People": "كتاب الجنائز",
+        "The Book of Talaq (Divorces)": "كتاب الطلاق",
+        "The Book of Fasting": "كتاب الصيام",
+        "The Book of Supplication": "كتاب الدعاء",
+        "The Book of Taharat (Cleansing)": "كتاب الطهارة",
+        "The Book of Inheritance": "كتاب المواريث",
+        "The Book of al-Zakat": "كتاب الزكاة",
+        "The Book of Zakat": "أبواب الصدقة",
+        "The Book of Drinks": "كتاب الأشربة",
+        "The Book of Wills": "كتاب الوصايا",
+        "The Book of ‘Aqiqah (Offering Animal Sacrifice for a Newborn Child)": "كتاب العقيقة",
+        "The Book on Oneness of Allah (God)": "كتاب التوحيد",
+        "The Book of Social Manners": "كتاب العشرة",
+        "The Book on Virtue of Knowledge": "كتاب فضل العلم",
+        "The Book of Jihad (Serving in the Army)": "كتاب الجهاد",
+        "The Book of Oaths, Vows and Expiations": "كتاب الايمان والنذور والكفارات",
+        "The Book of the Excellence of the Holy Quran": "كتاب فضل القرآن",
+        "The Book of Testimony": "كتاب الشهادات",
+        "The Book of Hunting": "كتاب الصيد",
+        "The Book of Domestic Animals": "كتاب الدواجن",
+        "The Book of Hayd (menses)": "كتاب الحيض",
+        "The Book of Adjudication and Rules": "كتاب القضاء والأحكام",
+        "The Book of Slaughtering Animals for Food": "كتاب الذبائح",
+    },
+}
+
+# Divisions with no bāb structure to align against, and why. Left alone rather than
+# guessed at: a heading invented for these would be indistinguishable from a recovered one.
+NO_STRUCTURE = {
+    "al-kafi": {
+        # The book runs straight through in the printed text; it has no abwāb to number.
+        "The Book of Intelligence and Ignorance": "undivided in the source",
+        # al-Kāfī's preface, which is not a kitāb.
+        "Introduction": "not a kitāb",
+        # The Rawḍa is a miscellany, not a divided book: the index counts 594 chapters
+        # where the text carries 51 headings, so an ordinal means different things on
+        # each side and cannot be joined.
+        "The Book - Garden (of Flowers)": "miscellany; 594 index chapters vs 51 headings",
+    },
+}
+
 RAW = "https://raw.githubusercontent.com/OpenITI/{repo}/master/data/{author}/{work}/{version}"
 
 
@@ -80,6 +143,10 @@ def parse_structure(path):
     def clean(line):
         line = re.sub(r"^\s*#+\s*\|+\s*", "", line)
         line = line.replace("*", " ")
+        # OpenITI keeps manuscript shelf marks inline, at the end of a heading and inside
+        # one: "كتاب الحج ms1683", "باب ms0826 خلف الوعد". A word boundary does not hold
+        # between an Arabic letter and a Latin one, so this matches without one.
+        line = re.sub(r"ms\d+", " ", line)
         line = re.sub(r"[()‏]", " ", line)
         return re.sub(r"\s+", " ", line).strip()
 
@@ -114,7 +181,7 @@ def index_chapters(es_host, book):
         return json.load(resp)["aggregations"]["p"]["buckets"]
 
 
-def align(kutub, parts, part_ar):
+def align(kutub, parts, part_ar, book_key):
     """Join the index to the text on kitāb and bāb ordinal."""
     by_name = [(normalise(k["kitab"]), k["abwab"]) for k in kutub]
 
@@ -132,9 +199,15 @@ def align(kutub, parts, part_ar):
                 return abwab
         return None
 
-    recovered, unmatched = {}, []
+    aliases = KITAB_ALIASES.get(book_key, {})
+    skip = NO_STRUCTURE.get(book_key, {})
+    recovered, unmatched, skipped = {}, [], []
     for part in parts:
-        abwab = kitab_for(part_ar.get(part["key"]))
+        if part["key"] in skip:
+            skipped.append((part["key"], skip[part["key"]]))
+            continue
+        # The curated name first; part_ar only where the index has no claim to check.
+        abwab = kitab_for(aliases.get(part["key"]) or part_ar.get(part["key"]))
         if not abwab:
             unmatched.append(part["key"])
             continue
@@ -146,7 +219,7 @@ def align(kutub, parts, part_ar):
             chapters = section["c"]["buckets"]
             if chapters and 1 <= ordinal <= len(abwab):
                 recovered[chapters[0]["key"]] = abwab[ordinal - 1]
-    return recovered, unmatched
+    return recovered, unmatched, skipped
 
 
 def main():
@@ -170,10 +243,12 @@ def main():
 
     part_ar = json.loads((MAPPING_DIR / "part_ar_mapping.json").read_text(encoding="utf-8"))
     parts = index_chapters(args.es_host, spec["book"])
-    recovered, unmatched = align(kutub, parts, part_ar)
+    recovered, unmatched, skipped = align(kutub, parts, part_ar, args.book)
     print(f"  recovered {len(recovered)} chapter titles; {len(unmatched)} kutub unmatched")
     for name in unmatched:
         print(f"    unmatched kitāb: {name}")
+    for name, why in skipped:
+        print(f"    no structure to align: {name} ({why})")
 
     if args.verify:
         existing = json.loads((MAPPING_DIR / "chapter_ar_mapping.json").read_text(encoding="utf-8"))
