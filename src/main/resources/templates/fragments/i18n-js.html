@@ -1,0 +1,21 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!--
+  The page's messages, handed to the browser.
+
+  The search application renders its own interface, so those strings never reach
+  Thymeleaf. They read window.I18N instead, through the t() helper in rewayaat.js,
+  which keeps the English text inline as a fallback - a missing key shows English
+  rather than an empty button.
+
+  Interactive chrome only. Anything a crawler must read is rendered by the server:
+  a string that exists only here is invisible to a client that does not run scripts.
+-->
+<th:block th:fragment="i18n">
+    <script th:inline="javascript">
+        window.I18N = /*[[${uiMessages}]]*/ {};
+        window.I18N_LOCALE = /*[[${htmlLang} ?: 'en']]*/ 'en';
+        window.I18N_DIR = /*[[${htmlDir} ?: 'ltr']]*/ 'ltr';
+    </script>
+</th:block>
+</html>

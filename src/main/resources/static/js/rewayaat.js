@@ -1,3 +1,18 @@
+/**
+ * A UI string in the page's language.
+ *
+ * The English text stays at the call site as the fallback, so a key that has not been
+ * added to the bundle yet renders English rather than an empty element, and the file
+ * stays readable without cross-referencing a properties file.
+ *
+ * Interactive chrome only: anything a crawler must read is rendered by the server.
+ */
+function t(key, fallback) {
+    var table = window.I18N || {};
+    var value = table[key];
+    return (typeof value === 'string' && value.length) ? value : fallback;
+}
+
 var vueApp;
 var currentQueryText = '';
 var bookBlurbs;
@@ -30,7 +45,12 @@ var searchSuggestionNavigationArmed = false;
 var welcomeContentLoading = false;
 var welcomeContentInitialized = false;
 var SEARCH_PLACEHOLDER_DEFAULT = '';
-var SEARCH_PLACEHOLDER_EXAMPLES = ['anger', '"Household of the Prophet"', 'اهل البيت'];
+// The examples type themselves out in the search box, so they are the first thing a
+// visitor reads. On the Arabic site they lead in Arabic; both lists keep one example
+// from the other language, because the corpus is searchable in both either way.
+var SEARCH_PLACEHOLDER_EXAMPLES = (window.I18N_LOCALE === 'ar')
+    ? ['اهل البيت', '"الصلاة"', 'anger']
+    : ['anger', '"Household of the Prophet"', 'اهل البيت'];
 var searchPlaceholderAnimation = {
     timer: null,
     control: null,
@@ -1074,7 +1094,10 @@ function applyAuthState() {
     var profileInitial = document.getElementById('authProfileInitial');
     if (signInBtn) {
         signInBtn.classList.toggle('d-none', isAuthed);
-        signInBtn.innerHTML = '<i class="fa fa-right-to-bracket" aria-hidden="true"></i> Sign In';
+        // The server already rendered this label in the page's language; rebuilding the
+        // button here threw that away and put English back on the Arabic page.
+        signInBtn.innerHTML = '<i class="fa fa-right-to-bracket" aria-hidden="true"></i> '
+            + t('nav.signin', 'Sign In');
     }
     var mobileToggle = document.getElementById('authMobileToggle');
     if (mobileToggle) {
@@ -1273,7 +1296,7 @@ function renderUserProfileMenu(collections) {
     var createBtn = document.createElement('button');
     createBtn.type = 'button';
     createBtn.className = 'btn btn-link btn-sm px-0';
-    createBtn.innerHTML = '<i class="fa fa-plus"></i> Create collection';
+    createBtn.innerHTML = '<i class="fa fa-plus"></i> ' + t('home.createCollection', 'Create collection');
     createBtn.addEventListener('click', function(event) {
         event.preventDefault();
         closeUserProfileMenu();
@@ -1284,7 +1307,7 @@ function renderUserProfileMenu(collections) {
     var signOutBtn = document.createElement('button');
     signOutBtn.type = 'button';
     signOutBtn.className = 'btn btn-primary btn-sm collection-picker-modal__submit';
-    signOutBtn.textContent = 'Sign Out';
+    signOutBtn.textContent = t('js.signOut', 'Sign Out');
     signOutBtn.addEventListener('click', function(event) {
         event.preventDefault();
         apiJSON('/v1/auth/logout', { method: 'POST' }).then(function() {
@@ -1552,7 +1575,7 @@ function openCollectionPickerModal(hadithId, collections) {
 
     var label = document.createElement('label');
     label.className = 'auth-modal-label';
-    label.textContent = 'Collection';
+    label.textContent = t('js.collection', 'Collection');
     wrapper.appendChild(label);
 
     // Create a select dropdown for existing collections
@@ -1582,7 +1605,7 @@ function openCollectionPickerModal(hadithId, collections) {
     // Add "New Collection" option LAST
     var newOption = document.createElement('option');
     newOption.value = '';
-    newOption.textContent = '+ New Collection';
+    newOption.textContent = t('js.newCollection', '+ New Collection');
     select.appendChild(newOption);
 
     wrapper.appendChild(select);
@@ -1595,7 +1618,7 @@ function openCollectionPickerModal(hadithId, collections) {
 
     var newLabel = document.createElement('label');
     newLabel.className = 'auth-modal-label';
-    newLabel.textContent = 'New Collection Name';
+    newLabel.textContent = t('js.newCollectionName', 'New Collection Name');
     newLabel.style.fontSize = '0.85rem';
     newCollectionContainer.appendChild(newLabel);
 
@@ -1613,7 +1636,7 @@ function openCollectionPickerModal(hadithId, collections) {
     var manageBtn = document.createElement('button');
     manageBtn.type = 'button';
     manageBtn.className = 'btn btn-link btn-sm px-0';
-    manageBtn.textContent = 'Manage collections';
+    manageBtn.textContent = t('js.manageCollections', 'Manage collections');
     manageBtn.addEventListener('click', function() {
         swal.close();
         openUserProfileModal();
@@ -1623,7 +1646,7 @@ function openCollectionPickerModal(hadithId, collections) {
     var submitBtn = document.createElement('button');
     submitBtn.type = 'button';
     submitBtn.className = 'btn btn-primary btn-sm collection-picker-modal__submit';
-    submitBtn.textContent = 'Save Hadith';
+    submitBtn.textContent = t('js.saveHadith', 'Save Hadith');
     submitBtn.addEventListener('click', function() {
         var selectedValue = select.value;
         var selectedIndex = select.selectedIndex;
@@ -1705,10 +1728,10 @@ function openCreateCollectionModal() {
         return;
     }
     openCollectionNameModal({
-        title: 'Create Collection',
+        title: t('home.createCollection', 'Create Collection'),
         subtitle: 'Create a reading list you can revisit from your profile or the home page.',
-        placeholder: 'e.g. Purification Narrations',
-        submitLabel: 'Create',
+        placeholder: t('js.collectionPlaceholder', 'e.g. Purification Narrations'),
+        submitLabel: t('js.create', 'Create'),
         onSubmit: function(name) {
             // Check for duplicate name
             var existing = userCollectionsCache || [];
@@ -1767,15 +1790,15 @@ function openCollectionManageModal() {
 }
 
 var hadithEditorScalarFields = [
-    { key: 'book', label: 'Book' },
-    { key: 'number', label: 'Number' },
-    { key: 'edition', label: 'Edition' },
-    { key: 'source', label: 'Source' },
-    { key: 'publisher', label: 'Publisher' },
-    { key: 'volume', label: 'Volume' },
-    { key: 'part', label: 'Part' },
-    { key: 'section', label: 'Section' },
-    { key: 'chapter', label: 'Chapter' }
+    { key: 'book', label: t('filter.book', 'Book') },
+    { key: 'number', label: t('js.number', 'Number') },
+    { key: 'edition', label: t('js.edition', 'Edition') },
+    { key: 'source', label: t('js.source', 'Source') },
+    { key: 'publisher', label: t('js.publisher', 'Publisher') },
+    { key: 'volume', label: t('filter.volume', 'Volume') },
+    { key: 'part', label: t('filter.part', 'Part') },
+    { key: 'section', label: t('filter.section', 'Section') },
+    { key: 'chapter', label: t('filter.chapter', 'Chapter') }
 ];
 var hadithEditorKnownKeys = [
     '_id',
@@ -1870,7 +1893,7 @@ function createHadithEditorRowEditor(title, subtitle, fields, items) {
         var removeBtn = document.createElement('button');
         removeBtn.type = 'button';
         removeBtn.className = 'btn btn-outline-danger btn-sm';
-        removeBtn.textContent = 'Remove';
+        removeBtn.textContent = t('js.remove', 'Remove');
         removeBtn.addEventListener('click', function() {
             row.remove();
         });
@@ -2075,9 +2098,9 @@ function openHadithEditorModal(options) {
         'Gradings',
         'Use one row per grading.',
         [
-            { key: 'grader', label: 'Grader' },
-            { key: 'grading', label: 'Grading' },
-            { key: 'rationale', label: 'Rationale', multiline: true, rows: 2 }
+            { key: 'grader', label: t('js.grader', 'Grader') },
+            { key: 'grading', label: t('js.grading', 'Grading') },
+            { key: 'rationale', label: t('js.rationale', 'Rationale'), multiline: true, rows: 2 }
         ],
         narration.gradings
     );
@@ -2087,9 +2110,9 @@ function openHadithEditorModal(options) {
         'Related Links',
         'Optional related resources for this narration.',
         [
-            { key: 'title', label: 'Title' },
+            { key: 'title', label: t('js.title', 'Title') },
             { key: 'url', label: 'URL' },
-            { key: 'description', label: 'Description', multiline: true, rows: 2 }
+            { key: 'description', label: t('js.description', 'Description'), multiline: true, rows: 2 }
         ],
         narration.related
     );
@@ -2121,7 +2144,7 @@ function openHadithEditorModal(options) {
     var cancelBtn = document.createElement('button');
     cancelBtn.type = 'button';
     cancelBtn.className = 'btn btn-link btn-sm px-0';
-    cancelBtn.textContent = 'Cancel';
+    cancelBtn.textContent = t('js.cancel', 'Cancel');
     cancelBtn.addEventListener('click', function() {
         if (!saveBtn.disabled) {
             swal.close();
@@ -2132,7 +2155,7 @@ function openHadithEditorModal(options) {
     var saveBtn = document.createElement('button');
     saveBtn.type = 'button';
     saveBtn.className = 'btn btn-primary btn-sm collection-picker-modal__submit';
-    saveBtn.textContent = 'Save Changes';
+    saveBtn.textContent = t('js.saveChanges', 'Save Changes');
     actions.appendChild(saveBtn);
     wrapper.appendChild(actions);
 
@@ -2148,14 +2171,14 @@ function openHadithEditorModal(options) {
     var topicControl = null;
     if (typeof TomSelect !== 'undefined') {
         tagsControl = new TomSelect(tagsSelect, {
-            plugins: { remove_button: { title: 'Remove' } },
+            plugins: { remove_button: { title: t('js.remove', 'Remove') } },
             persist: false,
             create: true,
             hideSelected: true,
             maxOptions: 200
         });
         topicControl = new TomSelect(topicSelect, {
-            plugins: { remove_button: { title: 'Remove' } },
+            plugins: { remove_button: { title: t('js.remove', 'Remove') } },
             persist: true,
             create: false,
             hideSelected: true,
@@ -2286,7 +2309,7 @@ function renderCollectionsSection(collections) {
         var viewBtn = document.createElement('button');
         viewBtn.type = 'button';
         viewBtn.className = 'btn btn-outline-dark btn-sm';
-        viewBtn.textContent = 'Open';
+        viewBtn.textContent = t('js.open', 'Open');
         viewBtn.addEventListener('click', function() {
             openCollectionPage(collection.id, 1, []);
         });
@@ -2295,7 +2318,7 @@ function renderCollectionsSection(collections) {
         var deleteBtn = document.createElement('button');
         deleteBtn.type = 'button';
         deleteBtn.className = 'btn btn-outline-danger btn-sm';
-        deleteBtn.textContent = 'Delete';
+        deleteBtn.textContent = t('js.delete', 'Delete');
         deleteBtn.addEventListener('click', function() {
             deleteCollection(collection.id);
         });
@@ -2334,7 +2357,7 @@ function initSelect2(select2_id) {
     searchSelectControl = new TomSelect(selectEl, {
         plugins: {
             remove_button: {
-                title: 'Remove'
+                title: t('js.remove', 'Remove')
             }
         },
         persist: false,
@@ -3874,7 +3897,7 @@ function loadBrowseBooks() {
     }
     var heroMeta = document.getElementById('heroBrowseMeta');
     if (heroMeta) {
-        heroMeta.textContent = 'Choose optional filters to refine your search.';
+        heroMeta.textContent = t('filter.hint', 'Choose optional filters to refine your search.');
     }
     if (heroRefineToggle && heroRefinePanel && !heroRefineToggle.dataset.bound) {
         heroRefineToggle.addEventListener('click', function() {
@@ -4058,7 +4081,7 @@ function handleHeroSelectionChange(resetFacets) {
     if (!selections.book) {
         resetHeroFacetSelects();
         if (meta) {
-            meta.textContent = 'Choose optional filters to refine your search.';
+            meta.textContent = t('filter.hint', 'Choose optional filters to refine your search.');
         }
         return;
     }
@@ -4069,7 +4092,7 @@ function handleHeroSelectionChange(resetFacets) {
         selections.chapter = '';
     }
     if (meta) {
-        meta.textContent = 'Loading filters...';
+        meta.textContent = t('js.loadingFilters', 'Loading filters...');
     }
     fetchHeroFacets(selections);
 }
@@ -4083,7 +4106,7 @@ function handleBrowseSelectionChange(resetFacets) {
         resetBrowseFacetSelects();
         updateBrowseSubmitState(selections);
         if (meta) {
-            meta.textContent = 'Choose a book to unlock volume, part, section, and chapter filters.';
+            meta.textContent = t('js.chooseBookFirst', 'Choose a book to unlock volume, part, section, and chapter filters.');
         }
         return;
     }
@@ -4096,7 +4119,7 @@ function handleBrowseSelectionChange(resetFacets) {
         selections.chapter = '';
     }
     if (meta) {
-        meta.textContent = 'Loading filters...';
+        meta.textContent = t('js.loadingFilters', 'Loading filters...');
     }
     updateBrowseSubmitState(selections);
     fetchBrowseFacets(selections);
