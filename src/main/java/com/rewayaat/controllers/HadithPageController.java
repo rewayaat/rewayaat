@@ -4,6 +4,7 @@ import com.rewayaat.config.ESClientProvider;
 import com.rewayaat.core.HadithDisplaySegmenter;
 import com.rewayaat.core.HadithObjectCollection;
 import com.rewayaat.service.BookCatalog;
+import com.rewayaat.service.PageLocale;
 import com.rewayaat.service.HadithCardFactory;
 import com.rewayaat.service.QuranicInsightsService;
 import com.rewayaat.service.SimilarHadithService;
@@ -11,6 +12,7 @@ import com.rewayaat.core.HadithSourceFilter;
 import com.rewayaat.core.data.HadithObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Hidden;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +58,8 @@ public class HadithPageController {
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public String hadithPage(@PathVariable("id") String id, Model model, HttpServletResponse response)
+    public String hadithPage(@PathVariable("id") String id, Model model, HttpServletResponse response,
+                             HttpServletRequest request)
             throws IOException {
         HadithObject hadith = loadNarration(id);
         if (hadith == null) {
@@ -86,7 +89,19 @@ public class HadithPageController {
         String seoDescription = truncate(englishContent.isEmpty() ? englishFull : englishContent, 160);
 
         // Canonical URL
-        String canonicalUrl = BASE_URL + "/hadith/" + id;
+        // The Arabic narration page is reachable but not indexable, so it is canonical to
+        // itself rather than to the English page - a noindex page pointing its canonical
+        // elsewhere sends two contradictory instructions - and it publishes no hreflang
+        // pair, because hreflang describes pages that are meant to be indexed.
+        PageLocale locale = PageLocale.of(request);
+        String canonicalUrl = locale.urlFor("/hadith/" + id);
+        if (locale.isArabic()) {
+            model.addAttribute("robotsDirective", "noindex, follow");
+        }
+        model.addAttribute("htmlLang", locale.tag());
+        model.addAttribute("htmlDir", locale.direction());
+        model.addAttribute("isArabic", locale.isArabic());
+        model.addAttribute("arPrefix", locale.prefix());
 
         // JSON-LD structured data
         String jsonLd = buildJsonLd(hadith, canonicalUrl);

@@ -54,9 +54,9 @@
                 <img src="/img/ali_icon.png" th:src="@{/img/ali_icon.png}" class="brand-logo--icon d-md-none" alt="ALI"/>
             </a>
             <div class="d-none d-md-flex home-nav-links">
-                <a href="#welcome" class="home-nav-link"><i class="fa fa-magnifying-glass" aria-hidden="true"></i><span>Search</span></a>
-                <a href="#browse" class="home-nav-link"><i class="fa fa-layer-group" aria-hidden="true"></i><span>Browse</span></a>
-                <a href="/updates.html" class="home-nav-link"><i class="fa fa-bolt" aria-hidden="true"></i><span>Updates</span></a>
+                <a href="#welcome" class="home-nav-link"><i class="fa fa-magnifying-glass" aria-hidden="true"></i><span th:text="#{nav.search}">Search</span></a>
+                <a href="#browse" class="home-nav-link"><i class="fa fa-layer-group" aria-hidden="true"></i><span th:text="#{nav.browse}">Browse</span></a>
+                <a href="/updates.html" class="home-nav-link"><i class="fa fa-bolt" aria-hidden="true"></i><span th:text="#{nav.updates}">Updates</span></a>
             </div>
 	        <div id="queryBar" class="navbar-search">
 	            <div class="navbar-search__input">
@@ -68,20 +68,20 @@
 	                        <div class="search-submit-menu">
 	                        <button type="button" class="btn btn-primary search-btn-with-border" id="searchBtn1">
 	                            <i class="fa fa-search search-btn__icon-mobile" aria-hidden="true"></i>
-	                            <span class="search-btn__text">Search</span>
+	                            <span class="search-btn__text" th:text="#{search.button}">Search</span>
 	                            <i class="fa fa-chevron-down search-btn-caret" aria-hidden="true"></i>
 	                        </button>
-	                        <div class="search-mode-menu" id="searchModeDropdown" role="menu" aria-label="Search mode">
+	                        <div class="search-mode-menu" id="searchModeDropdown" role="menu" aria-label="Search mode" th:aria-label="#{search.mode.aria}">
 	                            <button type="button" class="search-mode-option" data-mode="flexible" role="menuitem">
 	                                <i class="fa fa-arrows-left-right search-mode-option__icon" aria-hidden="true"></i>
-	                                <span class="search-mode-option__label">Flexible</span>
-	                                <span class="search-mode-option__meta">Near spellings and variants; not every word required</span>
+	                                <span class="search-mode-option__label" th:text="#{search.mode.flexible}">Flexible</span>
+	                                <span class="search-mode-option__meta" th:text="#{search.mode.flexible.desc}">Near spellings and variants; not every word required</span>
 	                                <i class="fa fa-check search-mode-option__check" aria-hidden="true"></i>
 	                            </button>
 	                            <button type="button" class="search-mode-option" data-mode="precise" role="menuitem">
 	                                <i class="fa fa-bullseye search-mode-option__icon" aria-hidden="true"></i>
-	                                <span class="search-mode-option__label">Precise</span>
-	                                <span class="search-mode-option__meta">Every word exactly as you typed it</span>
+	                                <span class="search-mode-option__label" th:text="#{search.mode.precise}">Precise</span>
+	                                <span class="search-mode-option__meta" th:text="#{search.mode.precise.desc}">Every word exactly as you typed it</span>
 	                                <i class="fa fa-check search-mode-option__check" aria-hidden="true"></i>
 	                            </button>
 	                        </div>
@@ -95,9 +95,9 @@
                     <div class="auth-mobile-menu-wrapper">
                         <button class="btn btn-dark btn-sm top-action auth-action" id="authSignInBtn" type="button">
                             <i class="fa fa-right-to-bracket" aria-hidden="true"></i>
-                            <span class="auth-action__label">Sign In</span>
+                            <span class="auth-action__label" th:text="#{nav.signin}">Sign In</span>
                         </button>
-                        <button class="btn btn-dark btn-sm top-action auth-action__mobile-toggle" id="authMobileToggle" type="button" aria-label="Menu" aria-expanded="false">
+                        <button class="btn btn-dark btn-sm top-action auth-action__mobile-toggle" id="authMobileToggle" type="button" aria-label="Menu" th:aria-label="#{nav.menu}" aria-expanded="false">
                             <i class="fa fa-bars" aria-hidden="true"></i>
                         </button>
                         <div class="auth-mobile-dropdown" id="authMobileDropdown" aria-hidden="true">
@@ -107,10 +107,10 @@
                         </div>
                     </div>
                     <div class="profile-menu d-none" id="authProfileShell">
-                        <button class="top-action profile-chip" id="authProfileBtn" type="button" aria-label="Open profile" aria-expanded="false">
+                        <button class="top-action profile-chip" id="authProfileBtn" type="button" aria-label="Open profile" th:aria-label="#{nav.profile.open}" aria-expanded="false">
                             <span class="profile-chip__avatar" id="authProfileInitial">R</span>
                             <span class="profile-chip__meta">
-                                <span class="profile-chip__name" id="authProfileName">Account</span>
+                                <span class="profile-chip__name" id="authProfileName" th:text="#{nav.account}">Account</span>
                             </span>
                             <i class="fa fa-angle-down" aria-hidden="true"></i>
                         </button>
@@ -124,7 +124,7 @@
 
 <main class="container py-3">
 
-<h1 class="visually-hidden">Shia Hadith Database &mdash; Search 32,000+ Narrations of the Ahlul Bayt in Arabic and English</h1>
+<h1 class="visually-hidden" th:text="#{home.h1}">Shia Hadith Database — Search 32,000+ Narrations of the Ahlul Bayt in Arabic and English</h1>
 <section id="welcome"><div th:replace="~{fragments/home-content :: body}"></div></section>
 
 <section id="hadithView" class="mb-4" v-cloak>
@@ -135,15 +135,15 @@
             <div class="tag-filter-bar__results-head">
                 <div>
                     <div class="collection-hero" v-if="collectionMode">
-                        <div class="collection-hero__eyebrow">Collection View</div>
+                        <div class="collection-hero__eyebrow" th:text="#{collection.view}">Collection View</div>
                         <div class="results-heading-inline">
                             <div class="collection-title-wrapper" v-if="!isEditingCollectionTitle">
                                 <h2 class="collection-hero__title mb-1">
                                     {{ collectionTitle || 'Saved Hadith' }}
                                     <button class="collection-title-edit" type="button"
                                             v-on:click="startEditCollectionTitle"
-                                            aria-label="Edit collection name"
-                                            title="Edit collection name">
+                                            aria-label="Edit collection name" th:aria-label="#{collection.editName}"
+                                            title="Edit collection name" th:title="#{collection.editName}">
                                         <i class="fa fa-pencil" aria-hidden="true"></i>
                                     </button>
                                 </h2>
@@ -157,14 +157,14 @@
                                        ref="collectionTitleInput">
                                 <button class="icon-action collection-title-save" type="button"
                                         v-on:click="saveCollectionTitle"
-                                        aria-label="Save"
-                                        title="Save">
+                                        aria-label="Save" th:aria-label="#{collection.save}"
+                                        title="Save" th:title="#{collection.save}">
                                     <i class="fa fa-check" aria-hidden="true"></i>
                                 </button>
                                 <button class="icon-action collection-title-cancel" type="button"
                                         v-on:click="cancelEditCollectionTitle"
-                                        aria-label="Cancel"
-                                        title="Cancel">
+                                        aria-label="Cancel" th:aria-label="#{collection.cancel}"
+                                        title="Cancel" th:title="#{collection.cancel}">
                                     <i class="fa fa-times" aria-hidden="true"></i>
                                 </button>
                             </div>
@@ -223,7 +223,7 @@
             <div class="tag-filter-bar__head"
                  v-if="allNarrations.length > 0 && visibleTagFilterOptions.length > 0">
                 <div class="tag-filter-bar__meta">
-                    <div class="tag-filter-bar__title">Filter by Tag</div>
+                    <div class="tag-filter-bar__title" th:text="#{chapter.filterByTag}">Filter by Tag</div>
                 </div>
                 <div class="tag-filter-bar__actions">
                     <button type="button"
@@ -326,16 +326,16 @@
                     <div class="card-body">
                         <div class="row g-4 hadith-card__layout">
                             <aside class="hadith-sidecar hadith-card__meta">
-                                <div class="hadith-sidecar__rail" role="tablist" aria-label="Hadith context panels">
+                                <div class="hadith-sidecar__rail" role="tablist" aria-label="Hadith context panels" th:aria-label="#{sidecar.aria}">
                                     <button type="button"
                                             class="hadith-sidecar__rail-btn"
                                             v-bind:class="{'is-active': isNarrationSidecarTabActive(narration, 'metadata')}"
                                             v-bind:aria-selected="isNarrationSidecarTabActive(narration, 'metadata') ? 'true' : 'false'"
-                                            aria-label="Open hadith metadata panel"
-                                            title="Metadata"
+                                            aria-label="Open hadith metadata panel" th:aria-label="#{sidecar.openMetadata}"
+                                            title="Metadata" th:title="#{sidecar.metadata}"
                                             v-on:click="setNarrationSidecarTab(narration, 'metadata')">
                                         <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
-                                        <span class="hadith-sidecar__rail-label">DETAILS</span>
+                                        <span class="hadith-sidecar__rail-label" th:text="#{sidecar.details}">DETAILS</span>
                                         <span class="hadith-sidecar__rail-icon"><i class="fa fa-info-circle" aria-hidden="true"></i></span>
                                     </button>
                                     <button type="button"
@@ -347,7 +347,7 @@
                                             v-bind:disabled="isNarrationSidecarTabDisabled(narration, 'similar')"
                                             v-on:click="setNarrationSidecarTab(narration, 'similar')">
                                         <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
-                                        <span class="hadith-sidecar__rail-label">RELATED</span>
+                                        <span class="hadith-sidecar__rail-label" th:text="#{sidecar.related}">RELATED</span>
                                         <span class="hadith-sidecar__rail-icon"><i class="fa fa-clone" aria-hidden="true"></i></span>
                                         <span class="hadith-sidecar__rail-badge"
                                               v-bind:class="{'is-zero': resolvedNarrationRailCount(narration, 'similar') === 0, 'is-loading': narration.similarCountLoading || narration.similarCount === null}">
@@ -363,7 +363,7 @@
                                             v-bind:disabled="isNarrationSidecarTabDisabled(narration, 'quran')"
                                             v-on:click="setNarrationSidecarTab(narration, 'quran')">
                                         <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
-                                        <span class="hadith-sidecar__rail-label">TAFSIR</span>
+                                        <span class="hadith-sidecar__rail-label" th:text="#{sidecar.tafsir}">TAFSIR</span>
                                         <span class="hadith-sidecar__rail-icon"><i class="fa fa-book" aria-hidden="true"></i></span>
                                         <span class="hadith-sidecar__rail-badge"
                                               v-bind:class="{'is-zero': resolvedNarrationRailCount(narration, 'quran') === 0, 'is-loading': narration.quranicInsightsCountLoading || narration.quranicInsightsCount === null}">
@@ -848,25 +848,25 @@
     <div class="container">
         <div class="site-footer__grid">
             <div>
-                <div class="site-footer__title">Rewayaat</div>
+                <div class="site-footer__title" th:text="#{site.name}">Rewayaat</div>
                 <p class="site-footer__text">
                     A project of the <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" class="site-footer__link">Academy for Learning Islam</a>. Search, browse, and study Shi'i narrations in Arabic and English.
                 </p>
             </div>
             <div>
-                <div class="site-footer__label">Explore</div>
+                <div class="site-footer__label" th:text="#{footer.explore}">Explore</div>
                 <div class="site-footer__links">
                     <a href="/updates.html">Updates</a>
-                    <a href="/search_tips.html">Search Tips</a>
-                    <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer">API Documentation</a>
+                    <a href="/search_tips.html" th:text="#{footer.searchTips}">Search Tips</a>
+                    <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer" th:text="#{footer.apiDocs}">API Documentation</a>
                 </div>
             </div>
             <div>
-                <div class="site-footer__label">Contact</div>
+                <div class="site-footer__label" th:text="#{footer.contact}">Contact</div>
                 <div class="site-footer__links">
                     <a href="mailto:rewayaat.org@gmail.com">rewayaat.org@gmail.com</a>
-                    <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
-                    <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer">Academy of Islam</a>
+                    <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer" th:text="#{footer.github}">GitHub Repository</a>
+                    <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" th:text="#{footer.academy}">Academy of Islam</a>
                 </div>
             </div>
         </div>
@@ -877,7 +877,7 @@
                 <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer" title="REST API"><i class="fa fa-code"></i></a>
                 <a href="mailto:rewayaat.org@gmail.com" title="Email"><i class="fa fa-envelope"></i></a>
             </div>
-            <span>Content and translations remain the responsibility of their original sources.</span>
+            <span th:text="#{footer.disclaimer}">Content and translations remain the responsibility of their original sources.</span>
         </div>
     </div>
 </footer>
@@ -932,7 +932,7 @@
                 '<div style="display:flex;align-items:flex-start;gap:12px;">' +
                     '<i class="fa fa-comment-dots" style="font-size:1.4rem;color:#d4940a;margin-top:2px;flex-shrink:0;"></i>' +
                     '<div style="flex:1;min-width:0;">' +
-                        '<div style="font-weight:600;font-size:0.95rem;margin-bottom:8px;">How are you finding HDP?</div>' +
+                        '<div style="font-weight:600;font-size:0.95rem;margin-bottom:8px;" th:text="#{feedback.title}">How are you finding HDP?</div>' +
                         '<div id="feedbackStars" style="display:flex;gap:4px;margin-bottom:10px;font-size:1.4rem;cursor:pointer;" aria-label="Rate 1 to 5 stars">' +
                             '<span data-star="1" style="color:#555;transition:color .15s;">&#9733;</span>' +
                             '<span data-star="2" style="color:#555;transition:color .15s;">&#9733;</span>' +
@@ -940,7 +940,7 @@
                             '<span data-star="4" style="color:#555;transition:color .15s;">&#9733;</span>' +
                             '<span data-star="5" style="color:#555;transition:color .15s;">&#9733;</span>' +
                         '</div>' +
-                        '<div style="font-size:0.75rem;color:#888;margin-bottom:8px;">Your feedback helps us improve the platform</div>' +
+                        '<div style="font-size:0.75rem;color:#888;margin-bottom:8px;" th:text="#{feedback.subtitle}">Your feedback helps us improve the platform</div>' +
                         '<input id="feedbackName" type="text" placeholder="Name (optional)" ' +
                             'style="width:100%;box-sizing:border-box;padding:7px 10px;border-radius:8px;border:1px solid #3a3a55;background:#252540;color:#e0e0e0;font-size:0.84rem;font-family:inherit;margin-bottom:6px;-webkit-appearance:none;" />' +
                         '<input id="feedbackEmail" type="email" placeholder="Email (optional)" ' +
@@ -948,9 +948,9 @@
                         '<textarea id="feedbackComment" rows="2" placeholder="Any features you\'d like or bugs to report? (optional)" ' +
                             'style="width:100%;box-sizing:border-box;padding:8px 10px;border-radius:8px;border:1px solid #3a3a55;background:#252540;color:#e0e0e0;font-size:0.84rem;font-family:inherit;resize:vertical;min-height:48px;-webkit-appearance:none;"></textarea>' +
                         '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center;">' +
-                            '<button id="feedbackSubmit" disabled style="padding:6px 18px;border-radius:6px;background:#d4940a;color:#fff;font-size:0.84rem;font-weight:600;border:none;cursor:pointer;opacity:0.4;-webkit-tap-highlight-color:transparent;">Submit</button>' +
-                            '<button id="feedbackDismiss" style="padding:6px 12px;border-radius:6px;background:transparent;border:1px solid rgba(255,255,255,0.15);color:#aaa;font-size:0.8rem;cursor:pointer;-webkit-tap-highlight-color:transparent;">Maybe later</button>' +
-                            '<span id="feedbackThanks" style="display:none;color:#4ade80;font-size:0.84rem;font-weight:500;">Thanks for your feedback!</span>' +
+                            '<button id="feedbackSubmit" disabled style="padding:6px 18px;border-radius:6px;background:#d4940a;color:#fff;font-size:0.84rem;font-weight:600;border:none;cursor:pointer;opacity:0.4;-webkit-tap-highlight-color:transparent;" th:text="#{feedback.submit}">Submit</button>' +
+                            '<button id="feedbackDismiss" style="padding:6px 12px;border-radius:6px;background:transparent;border:1px solid rgba(255,255,255,0.15);color:#aaa;font-size:0.8rem;cursor:pointer;-webkit-tap-highlight-color:transparent;" th:text="#{feedback.maybeLater}">Maybe later</button>' +
+                            '<span id="feedbackThanks" style="display:none;color:#4ade80;font-size:0.84rem;font-weight:500;" th:text="#{feedback.thanks}">Thanks for your feedback!</span>' +
                         '</div>' +
                     '</div>' +
                     '<button id="feedbackClose" style="background:none;border:none;color:#888;font-size:1.2rem;cursor:pointer;padding:0 0 0 8px;line-height:1;-webkit-tap-highlight-color:transparent;" aria-label="Dismiss">&times;</button>' +

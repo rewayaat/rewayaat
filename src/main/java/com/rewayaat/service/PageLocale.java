@@ -108,12 +108,16 @@ public enum PageLocale {
     /**
      * Whether a page exists in Arabic at all.
      *
-     * <p>The Arabic site is the home page and the book hub tree: the pages that answer
-     * the phrases someone types in Arabic, and the ones whose text is drawn from the
-     * translated labels. The 32,519 narration pages are deliberately not included. Their
-     * body is the narration, which is already Arabic on the English page, so an Arabic
-     * version would be the same text at a second URL - and it would double a URL count
-     * that Search Console is already reporting as more than it will index.
+     * <p>Everything a reader can reach while browsing: the home page, the book hub tree,
+     * the narration pages and the privacy policy. A reader who switches to Arabic and then
+     * opens a narration should not hit a 404.
+     *
+     * <p>Reaching a page and being indexed at it are separate questions. The narration
+     * pages render in Arabic but are {@code noindex, follow}: their body is the narration
+     * itself, which is already Arabic on the English page, so an Arabic copy is the same
+     * text at a second URL. Indexing all 32,519 of them would double a URL count Search
+     * Console already reports as more than it will crawl. {@code HadithPageController}
+     * applies that, and they stay out of every sitemap.
      *
      * <p>Anything else under the prefix answers 404 rather than rendering half-translated:
      * a page that does not exist should say so, not enter the index and dilute the pages
@@ -125,7 +129,9 @@ public enum PageLocale {
         }
         return strippedPath.equals("/")
                 || strippedPath.equals("/books")
-                || strippedPath.startsWith("/books/");
+                || strippedPath.startsWith("/books/")
+                || strippedPath.startsWith("/hadith/")
+                || strippedPath.equals("/privacy");
     }
 
     /**

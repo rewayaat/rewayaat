@@ -12,27 +12,33 @@
     <div class="home-hero__card">
         <div class="home-hero__layout">
             <div class="home-hero__content home-hero__content--stacked">
-                <p class="home-hero__presents">Presented by the <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer">Academy for Learning Islam</a></p>
+                <p class="home-hero__presents"
+                   th:with="academy=|<a href=&quot;https://academyofislam.com&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot;>${#messages.msg('home.academyName')}</a>|"
+                   th:utext="#{home.presentedBy(${academy})}">Presented by the <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer">Academy for Learning Islam</a></p>
                 <div class="home-hero__brand">
                     <img src="/img/mainlogo-transparent.webp" th:src="@{/img/mainlogo-transparent.webp}" class="home-hero__logo" width="780" height="780" alt="The Hadith Database logo" />
                 </div>
                 <!-- Real prose on the home page, which previously carried none a crawler
                      could read. It is also the only place the phrase the site is trying
                      to rank for appears in the visible copy. -->
-                <p class="home-hero__lede">
-                    A searchable database of Shia hadith &mdash;
-                    <span th:text="${#numbers.formatInteger(totalNarrations, 0, 'COMMA')}">32,000</span>
-                    narrations of the Prophet and the Ahlul Bayt, in the original Arabic with English
-                    translation, drawn from <a href="/books" class="home-hero__lede-link">Primary Collections</a>.
+                <p class="home-hero__lede"
+                   th:with="count=${#numbers.formatInteger(totalNarrations, 0, 'COMMA')},
+                            collections=|<a href=&quot;${arPrefix}/books&quot; class=&quot;home-hero__lede-link&quot;>${#messages.msg('home.primaryCollections')}</a>|"
+                   th:utext="#{home.lede(${count}, ${collections})}">
+                    A searchable database of Shia hadith &mdash; 32,000 narrations of the Prophet and
+                    the Ahlul Bayt, in the original Arabic with English translation.
                 </p>
-                <p class="home-hero__search-note">
+                <p class="home-hero__search-note"
+                   th:with="en=|<span>${#messages.msg('lang.english')}</span>|,
+                            ar=|<span>${#messages.msg('lang.arabic')}</span>|"
+                   th:utext="#{home.searchNote(${en}, ${ar})}">
                     Search in <span>English</span> or <span>Arabic</span> by single terms or phrases wrapped in quotations.
                 </p>
                 <div id="hero-search-slot" class="home-hero__search"></div>
                 <div class="home-hero__refine-toggle-row">
                     <button type="button" id="heroRefineToggle" class="home-hero__refine-toggle" aria-expanded="false" aria-controls="heroRefinePanel">
                         <i class="fa fa-sliders" aria-hidden="true"></i>
-                        <span>Refine Search</span>
+                        <span th:text="#{home.refineSearch}">Refine Search</span>
                         <i class="fa fa-chevron-down home-hero__refine-caret" aria-hidden="true"></i>
                     </button>
                 </div>
@@ -40,48 +46,48 @@
                     <div class="browse-panel browse-panel--hero">
                         <div class="browse-panel__advanced">
                             <div class="browse-field browse-field--hero" data-hero-facet="book" data-persist-visible="true">
-                                <label for="heroBookSelect">Book</label>
+                                <label for="heroBookSelect" th:text="#{filter.book}">Book</label>
                                 <div class="facet-select-wrap">
                                     <select id="heroBookSelect" class="form-select form-select-sm">
-                                        <option value="">All Books</option>
+                                        <option value="" th:text="#{filter.allBooks}">All Books</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="browse-field" data-hero-facet="volume" data-persist-visible="true">
-                                <label for="heroVolumeSelect">Volume</label>
+                                <label for="heroVolumeSelect" th:text="#{filter.volume}">Volume</label>
                                 <div class="facet-select-wrap">
                                     <select id="heroVolumeSelect" class="form-select form-select-sm" disabled>
-                                        <option value="">All Volumes</option>
+                                        <option value="" th:text="#{filter.allVolumes}">All Volumes</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="browse-field" data-hero-facet="part" data-persist-visible="true">
-                                <label for="heroPartSelect">Part</label>
+                                <label for="heroPartSelect" th:text="#{filter.part}">Part</label>
                                 <div class="facet-select-wrap">
                                     <select id="heroPartSelect" class="form-select form-select-sm" disabled>
-                                        <option value="">All Parts</option>
+                                        <option value="" th:text="#{filter.allParts}">All Parts</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="browse-field" data-hero-facet="section" data-persist-visible="true">
-                                <label for="heroSectionSelect">Section</label>
+                                <label for="heroSectionSelect" th:text="#{filter.section}">Section</label>
                                 <div class="facet-select-wrap">
                                     <select id="heroSectionSelect" class="form-select form-select-sm" disabled>
-                                        <option value="">All Sections</option>
+                                        <option value="" th:text="#{filter.allSections}">All Sections</option>
                                     </select>
                                 </div>
                             </div>
                             <div class="browse-field" data-hero-facet="chapter" data-persist-visible="true">
-                                <label for="heroChapterSelect">Chapter</label>
+                                <label for="heroChapterSelect" th:text="#{filter.chapter}">Chapter</label>
                                 <div class="facet-select-wrap">
                                     <select id="heroChapterSelect" class="form-select form-select-sm" disabled>
-                                        <option value="">All Chapters</option>
+                                        <option value="" th:text="#{filter.allChapters}">All Chapters</option>
                                     </select>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div id="heroBrowseMeta" class="browse-meta browse-meta--hero text-muted">Choose optional filters to refine your search.</div>
+                    <div id="heroBrowseMeta" class="browse-meta browse-meta--hero text-muted" th:text="#{filter.hint}">Choose optional filters to refine your search.</div>
                 </div>
             </div>
         </div>
@@ -91,8 +97,10 @@
 <section class="home-browse" id="browse">
     <div class="home-section-header">
         <div>
-            <h2 class="home-section-title">Browse by Book</h2>
-            <p class="home-section-subtitle">Open a collection to read it by volume and chapter, or <a href="/books">see all books</a>.</p>
+            <h2 class="home-section-title" th:text="#{home.browseByBook}">Browse by Book</h2>
+            <p class="home-section-subtitle"
+               th:with="all=|<a href=&quot;${arPrefix}/books&quot;>${#messages.msg('home.seeAllBooks')}</a>|"
+               th:utext="#{home.browseSubtitle(${all})}">Open a collection to read it by volume and chapter, or <a href="/books">see all books</a>.</p>
         </div>
     </div>
     <!-- Rendered by the server so the links exist without scripts; populateBrowseBooks
@@ -104,7 +112,7 @@
             <div class="browse-book-head">
                 <span class="browse-book-icon" aria-hidden="true"><i class="fa fa-book"></i></span>
                 <div class="browse-book-copy">
-                    <div class="browse-book-title" th:text="${book.name}">Al-Kafi</div>
+                    <div class="browse-book-title" th:text="${isArabic} ? (${book.nameAr} ?: ${book.name}) : ${book.name}">Al-Kafi</div>
                     <div class="browse-book-count">
                         <span th:text="${#numbers.formatInteger(book.count, 0, 'COMMA')}">14,242</span> narrations
                     </div>
@@ -114,42 +122,42 @@
     </div>
     <div id="browseFacetPanel" class="browse-panel is-hidden">
         <div id="browseBookField" class="browse-field is-hidden">
-            <label for="browseBookSelect">Book</label>
+            <label for="browseBookSelect" th:text="#{filter.book}">Book</label>
             <div class="facet-select-wrap">
                 <select id="browseBookSelect" class="form-select form-select-sm">
-                    <option value="">Select a book</option>
+                    <option value="" th:text="#{filter.selectBook}">Select a book</option>
                 </select>
             </div>
         </div>
         <div class="browse-field is-hidden" data-browse-facet="volume">
-            <label for="browseVolumeSelect">Volume</label>
+            <label for="browseVolumeSelect" th:text="#{filter.volume}">Volume</label>
             <div class="facet-select-wrap">
                 <select id="browseVolumeSelect" class="form-select form-select-sm" disabled>
-                    <option value="">All Volumes</option>
+                    <option value="" th:text="#{filter.allVolumes}">All Volumes</option>
                 </select>
             </div>
         </div>
         <div class="browse-field is-hidden" data-browse-facet="part">
-            <label for="browsePartSelect">Part</label>
+            <label for="browsePartSelect" th:text="#{filter.part}">Part</label>
             <div class="facet-select-wrap">
                 <select id="browsePartSelect" class="form-select form-select-sm" disabled>
-                    <option value="">All Parts</option>
+                    <option value="" th:text="#{filter.allParts}">All Parts</option>
                 </select>
             </div>
         </div>
         <div class="browse-field is-hidden" data-browse-facet="section">
-            <label for="browseSectionSelect">Section</label>
+            <label for="browseSectionSelect" th:text="#{filter.section}">Section</label>
             <div class="facet-select-wrap">
                 <select id="browseSectionSelect" class="form-select form-select-sm" disabled>
-                    <option value="">All Sections</option>
+                    <option value="" th:text="#{filter.allSections}">All Sections</option>
                 </select>
             </div>
         </div>
         <div class="browse-field is-hidden" data-browse-facet="chapter">
-            <label for="browseChapterSelect">Chapter</label>
+            <label for="browseChapterSelect" th:text="#{filter.chapter}">Chapter</label>
             <div class="facet-select-wrap">
                 <select id="browseChapterSelect" class="form-select form-select-sm" disabled>
-                    <option value="">All Chapters</option>
+                    <option value="" th:text="#{filter.allChapters}">All Chapters</option>
                 </select>
             </div>
         </div>
@@ -164,8 +172,10 @@
 <section class="home-updates" id="updates">
     <div class="home-section-header">
         <div>
-            <h2 class="home-section-title">Recent Updates</h2>
-            <p class="home-section-subtitle">What changed recently in the experience. <a href="/updates.html" class="recent-updates-more">View all updates &#8594;</a></p>
+            <h2 class="home-section-title" th:text="#{home.recentUpdates}">Recent Updates</h2>
+            <p class="home-section-subtitle"
+               th:with="more=|<a href=&quot;/updates.html&quot; class=&quot;recent-updates-more&quot;>${#messages.msg('home.viewAllUpdates')}</a>|"
+               th:utext="#{home.recentSubtitle(${more})}">What changed recently in the experience.</p>
         </div>
     </div>
     <div id="recentUpdatesList" class="recent-updates-grid"></div>
@@ -174,21 +184,21 @@
 <section class="home-collections d-none" id="userCollectionsSection">
     <div class="home-section-header">
         <div>
-            <h2 class="home-section-title">My Collections</h2>
-            <p class="home-section-subtitle">Save narrations into named lists and revisit them while signed in.</p>
+            <h2 class="home-section-title" th:text="#{home.myCollections}">My Collections</h2>
+            <p class="home-section-subtitle" th:text="#{home.collectionsSubtitle}">Save narrations into named lists and revisit them while signed in.</p>
         </div>
-        <button id="createCollectionBtn" class="btn btn-primary btn-sm" type="button">Create Collection</button>
+        <button id="createCollectionBtn" class="btn btn-primary btn-sm" type="button" th:text="#{home.createCollection}">Create Collection</button>
     </div>
     <div id="collectionsList" class="collections-grid"></div>
-    <div id="collectionsEmpty" class="small text-muted">No collections yet. Save a hadith to create your first list.</div>
+    <div id="collectionsEmpty" class="small text-muted" th:text="#{home.noCollections}">No collections yet. Save a hadith to create your first list.</div>
 </section>
 
 
 <section class="home-notice" id="about">
     <div class="card shadow-sm border-0 home-card">
         <div class="card-body">
-            <h2 class="h5">Disclaimer</h2>
-            <div class="text-muted">
+            <h2 class="h5" th:text="#{home.disclaimer}">Disclaimer</h2>
+            <div class="text-muted" th:text="#{home.disclaimerBody}">
                 The Hadith Database Project (HDP) team at the Academy for Learning Islam (A.L.I.) has collected
                 Shi`i Islamic Hadith from available translations online and in print from renown primary sources.
                 The objective of the HDP is to provide easy to search Shi'i Islamic Hadith online. A.L.I. is not
