@@ -38,7 +38,7 @@ public class HomeController {
      * which resolves against whichever host served it — so the mirror declared itself
      * canonical and the two domains competed for the same rankings.
      */
-    static final String BASE_URL = "https://hadith.academyofislam.com";
+    static final String BASE_URL = com.rewayaat.service.PageLocale.BASE_URL;
 
     /**
      * Front-loaded with the phrase the site is trying to rank for. The old title opened
