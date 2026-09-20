@@ -13,7 +13,7 @@
     <header class="hub-hero" th:classappend="${bookSummary != null} ? 'hub-hero--split' : ''">
       <div class="hub-hero__identity">
         <div class="hub-hero__eyebrow">Collection</div>
-        <h1 class="hub-hero__title" th:text="${book.name}">Book name</h1>
+        <h1 class="hub-hero__title" th:text="${bookTitle} ?: ${book.name}">Book name</h1>
         <div class="hub-hero__stats">
             <span class="hub-stat">
                 <span class="hub-stat__value" th:text="${#numbers.formatInteger(book.count, 0, 'COMMA')}">1,000</span>
@@ -45,7 +45,7 @@
     <section class="hub-group" id="volumes" th:if="${!#lists.isEmpty(volumes)}">
         <h2 class="hub-group__label">Volumes</h2>
         <div class="hub-grid">
-            <a class="hub-card" th:each="volume : ${volumes}" th:href="${volume.url}">
+            <a class="hub-card" th:each="volume : ${volumes}" th:href="${arPrefix} + ${volume.url}">
                 <div class="hub-card__title" th:text="${volume.label}">Volume 1</div>
                 <div class="hub-card__meta">
                     <span><strong th:text="${#numbers.formatInteger(volume.chapterCount, 0, 'COMMA')}">100</strong> chapters</span>
@@ -57,8 +57,8 @@
     <section class="hub-group" th:if="${!#lists.isEmpty(parts)}">
         <h2 class="hub-group__label">Parts</h2>
         <div class="hub-grid">
-            <a class="hub-card" th:each="part : ${parts}" th:href="${part.url}">
-                <div class="hub-card__title" th:text="${part.title}">Part 1</div>
+            <a class="hub-card" th:each="part : ${parts}" th:href="${arPrefix} + ${part.url}">
+                <div class="hub-card__title" th:text="${isArabic} ? (${part.titleAr} ?: ${part.title}) : ${part.title}">Part 1</div>
                 <div class="hub-card__meta">
                     <span><strong th:text="${#numbers.formatInteger(part.chapterCount, 0, 'COMMA')}">100</strong> chapters</span>
                 </div>
@@ -74,9 +74,9 @@
              and browsing to read. A single link could not serve both. -->
         <ul class="hub-chapters">
             <li class="hub-chapter-row" th:each="chapter, it : ${chapters}">
-                <a class="hub-chapter" th:href="${chapter.url}">
+                <a class="hub-chapter" th:href="${arPrefix} + ${chapter.url}">
                     <span class="hub-chapter__index" th:text="${it.count} + '.'">1.</span>
-                    <span class="hub-chapter__title" th:text="${chapter.title}">Chapter title</span>
+                    <span class="hub-chapter__title" th:text="${isArabic} ? (${chapter.titleAr} ?: ${chapter.title}) : ${chapter.title}">Chapter title</span>
                     <!-- Labelled, not a bare number: the ordinal on the left is also a
                          bare number, and across two or three columns the two were
                          indistinguishable. -->

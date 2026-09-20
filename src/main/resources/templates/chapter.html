@@ -8,8 +8,8 @@
     <nav th:replace="~{fragments/site :: crumbtrail}"></nav>
 
     <header class="hub-hero">
-        <a class="hub-hero__eyebrow" th:href="${bookUrl}" th:text="${chapter.bookName}">Al-Kafi</a>
-        <h1 class="hub-hero__title" th:text="${chapter.title}">Chapter title</h1>
+        <a class="hub-hero__eyebrow" th:href="${bookUrl}" th:text="${bookTitle} ?: ${chapter.bookName}">Al-Kafi</a>
+        <h1 class="hub-hero__title" th:text="${chapterTitle} ?: ${chapter.title}">Chapter title</h1>
         <div class="hub-hero__stats">
             <a class="hub-stat" th:if="${volumeUrl != null}" th:href="${volumeUrl}">
                 Volume <span class="hub-stat__value" th:text="${chapter.volume}">1</span>
@@ -51,7 +51,7 @@
 
     <div class="hub-list-actions">
         <button type="button" class="hub-save" data-hub-print
-                th:attr="data-print-title=${chapter.bookName} + ' — ' + ${chapter.title}">
+                th:attr="data-print-title=(${bookTitle} ?: ${chapter.bookName}) + ' — ' + (${chapterTitle} ?: ${chapter.title})">
             <i class="fa fa-file-arrow-down" aria-hidden="true"></i>
             <span>Export PDF</span>
         </button>

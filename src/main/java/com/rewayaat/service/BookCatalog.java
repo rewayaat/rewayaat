@@ -153,6 +153,11 @@ public class BookCatalog {
     public record Part(String bookName, String bookSlug, String slug, String title,
                        String volume, int chapterCount) {
 
+        /** The Arabic title, or null. */
+        public String titleAr() {
+            return ArabicNames.part(title);
+        }
+
         public String url() {
             return "/books/" + bookSlug + "/part/" + slug;
         }

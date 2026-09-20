@@ -204,7 +204,10 @@ public class BookPageController {
         long narrations = chapters.stream().mapToLong(BookCatalog.Chapter::count).sum();
 
         model.addAttribute("book", book);
-        model.addAttribute("volumeLabel", part.title());
+        // The part page reuses the volume template, whose heading is volumeLabel.
+        PageLocale locale = PageLocale.of(request);
+        String partTitle = named(locale, part.title(), part.titleAr());
+        model.addAttribute("volumeLabel", partTitle);
         model.addAttribute("parts", List.of());
         model.addAttribute("chapters", chapters);
         model.addAttribute("volumes", List.of());
@@ -214,9 +217,7 @@ public class BookPageController {
         // genuinely differ; a template reading one attribute on one route and another on
         // the other is how the "0 chapters" bug survived as long as it did.
         model.addAttribute("chapterCount", chapters.size());
-        PageLocale locale = PageLocale.of(request);
         String bookName = named(locale, book.name(), book.nameAr());
-        String partTitle = named(locale, part.title(), ArabicNames.part(part.title()));
         model.addAttribute("bookTitle", bookName);
         model.addAttribute("partTitle", partTitle);
         model.addAttribute("seoTitle", msg(locale, "seo.part.title", partTitle, bookName));
@@ -262,19 +263,19 @@ public class BookPageController {
         model.addAttribute("tagFacets", facets);
         model.addAttribute("activeTag", activeTag);
         model.addAttribute("activeTagLabel", activeTag == null ? null : topicLabels.label(activeTag));
-        model.addAttribute("clearTagUrl", chapter.url());
+        PageLocale locale = PageLocale.of(request);
+        model.addAttribute("clearTagUrl", locale.prefix() + chapter.url());
         // A filtered view is a slice of a page that is already indexed, so it points its
         // canonical back at the whole chapter rather than competing with it.
         model.addAttribute("robotsDirective", activeTag == null ? null : "noindex, follow");
 
         model.addAttribute("chapter", chapter);
         model.addAttribute("narrations", narrations);
-        model.addAttribute("bookUrl", "/books/" + bookSlug);
+        model.addAttribute("bookUrl", locale.prefix() + "/books/" + bookSlug);
         // The hero chips navigate where a destination exists: the book name and the
         // volume have pages, the section does not.
         model.addAttribute("volumeUrl", chapter.volume() == null || chapter.volume().isBlank()
-                ? null : "/books/" + bookSlug + "/volume/" + encode(chapter.volume()));
-        PageLocale locale = PageLocale.of(request);
+                ? null : locale.prefix() + "/books/" + bookSlug + "/volume/" + encode(chapter.volume()));
         String chapterTitle = named(locale, chapter.title(), chapter.titleAr());
         String chapterBook = named(locale, chapter.bookName(), chapter.bookNameAr());
         model.addAttribute("chapterTitle", chapterTitle);

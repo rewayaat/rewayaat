@@ -11,7 +11,8 @@
          part titles say the whole thing already, so most of these heroes stay centred. -->
     <header class="hub-hero" th:classappend="${sectionSummary != null} ? 'hub-hero--split' : ''">
       <div class="hub-hero__identity">
-        <a class="hub-hero__eyebrow" th:href="@{'/books/' + ${book.slug}}" th:text="${book.name}">Al-Kafi</a>
+        <a class="hub-hero__eyebrow" th:href="@{${arPrefix} ?: '' } + '/books/' + ${book.slug}"
+           th:text="${bookTitle} ?: ${book.name}">Al-Kafi</a>
         <h1 class="hub-hero__title" th:text="${volumeLabel}">Volume 1</h1>
         <div class="hub-hero__stats">
             <span class="hub-stat">
@@ -34,8 +35,8 @@
     <section class="hub-group" th:if="${!#lists.isEmpty(parts)}">
         <h2 class="hub-group__label">Parts</h2>
         <div class="hub-grid">
-            <a class="hub-card" th:each="part : ${parts}" th:href="${part.url}">
-                <div class="hub-card__title" th:text="${part.title}">Part 1</div>
+            <a class="hub-card" th:each="part : ${parts}" th:href="${arPrefix} + ${part.url}">
+                <div class="hub-card__title" th:text="${isArabic} ? (${part.titleAr} ?: ${part.title}) : ${part.title}">Part 1</div>
                 <div class="hub-card__meta">
                     <span><strong th:text="${#numbers.formatInteger(part.chapterCount, 0, 'COMMA')}">100</strong> chapters</span>
                 </div>
@@ -51,9 +52,9 @@
              and browsing to read. A single link could not serve both. -->
         <ul class="hub-chapters">
             <li class="hub-chapter-row" th:each="chapter, it : ${chapters}">
-                <a class="hub-chapter" th:href="${chapter.url}">
+                <a class="hub-chapter" th:href="${arPrefix} + ${chapter.url}">
                     <span class="hub-chapter__index" th:text="${it.count} + '.'">1.</span>
-                    <span class="hub-chapter__title" th:text="${chapter.title}">Chapter title</span>
+                    <span class="hub-chapter__title" th:text="${isArabic} ? (${chapter.titleAr} ?: ${chapter.title}) : ${chapter.title}">Chapter title</span>
                     <!-- Labelled, not a bare number: the ordinal on the left is also a
                          bare number, and across two or three columns the two were
                          indistinguishable. -->
