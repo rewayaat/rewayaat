@@ -222,11 +222,19 @@ public class NarratorService {
         }
     }
 
-    /** How many narrations name him, without fetching any of them: for the tab's count. */
-    public long countNarrationsNaming(List<String> nameForms) {
+    /**
+     * How many narrations name him, and which books they sit in — without fetching any.
+     *
+     * <p>Where a man's narrations concentrate is a rijali fact in itself: 1,396 of Sahl b.
+     * Ziyad's 1,504 are in al-Kafi, which is why a judgment on him moves so much of that book.
+     */
+    public Map<String, Object> narrationSummary(List<String> nameForms) {
+        Map<String, Object> summary = new LinkedHashMap<>();
+        summary.put("total", 0L);
+        summary.put("books", new ArrayList<>());
         List<String> forms = distinctive(nameForms);
         if (forms.isEmpty()) {
-            return 0L;
+            return summary;
         }
         try (ESClientProvider provider = new ESClientProvider()) {
             SearchResponse<Map> response = provider.client().search(s -> s
@@ -237,11 +245,25 @@ public class NarratorService {
                             b.should(sh -> sh.matchPhrase(m -> m.field("arabic").query(form)));
                         }
                         return b.minimumShouldMatch("1");
-                    })), Map.class);
-            return response.hits().total() == null ? 0L : response.hits().total().value();
+                    }))
+                    .aggregations("books", a -> a.terms(t -> t.field("book").size(4))), Map.class);
+
+            long total = response.hits().total() == null ? 0L : response.hits().total().value();
+            List<Map<String, Object>> books = new ArrayList<>();
+            if (response.aggregations().get("books") != null) {
+                for (StringTermsBucket bucket : response.aggregations().get("books")
+                        .sterms().buckets().array()) {
+                    books.add(Map.of("book", bucket.key().stringValue(),
+                            "count", bucket.docCount(),
+                            "share", total == 0 ? 0 : Math.round(bucket.docCount() * 100.0 / total)));
+                }
+            }
+            summary.put("total", total);
+            summary.put("books", books);
+            return summary;
         } catch (Exception e) {
-            LOGGER.warn("Could not count narrations naming {}: {}", nameForms, e.getMessage());
-            return 0L;
+            LOGGER.warn("Could not summarise narrations naming {}: {}", nameForms, e.getMessage());
+            return summary;
         }
     }
 

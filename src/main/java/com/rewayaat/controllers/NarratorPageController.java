@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -157,8 +158,7 @@ public class NarratorPageController {
         String view = "narrations".equals(tab) ? "narrations" : "books";
         Map<String, Object> naming = "narrations".equals(view)
                 ? narratorService.narrationsNaming(names, tag, page, PER_PAGE)
-                : Map.of("total", narratorService.countNarrationsNaming(names),
-                         "hits", List.of(), "tags", List.of(), "searched_for", List.of());
+                : summaryOf(names);
         List<Map<String, Object>> narrations = new ArrayList<>();
         for (Object row : (List<?>) naming.getOrDefault("hits", List.of())) {
             Map<?, ?> hit = (Map<?, ?>) row;
@@ -178,6 +178,7 @@ public class NarratorPageController {
         model.addAttribute("narrations", narrations);
         model.addAttribute("narrationTotal", narrationTotal);
         model.addAttribute("searchedNames", naming.get("searched_for"));
+        model.addAttribute("narrationBooks", naming.getOrDefault("books", List.of()));
         model.addAttribute("view", view);
         model.addAttribute("booksUrl", base);
         model.addAttribute("narrationsUrl", narrationsBase);
@@ -189,6 +190,16 @@ public class NarratorPageController {
         model.addAttribute("narrationsPrevUrl", narrationsBase + withTag + "&page=" + (page - 1));
         model.addAttribute("narrationsHasMore", (long) page * PER_PAGE < narrationTotal);
         return "narrator";
+    }
+
+    /** The narrations tab's count, and where those narrations sit, for the counters. */
+    private Map<String, Object> summaryOf(List<String> names) {
+        Map<String, Object> summary = narratorService.narrationSummary(names);
+        Map<String, Object> out = new LinkedHashMap<>(summary);
+        out.put("hits", List.of());
+        out.put("tags", List.of());
+        out.put("searched_for", List.of());
+        return out;
     }
 
     /** The tag bar's pills: the tags these narrations carry, each a link that filters them. */

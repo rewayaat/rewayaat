@@ -35,7 +35,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from build_people import MAIN_BOOKS, is_entry, not_entries  # noqa: E402
 from narrator_schema import imam_generations, normalize_arabic  # noqa: E402
 
-TMP = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "tmp")
+REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
+TMP = os.path.join(REPO, "tmp")
+# the same table the page's band is drawn from, read rather than copied
+CHRONOLOGY = os.path.join(REPO, "src", "main", "resources", "data", "chronology.json")
 IDENTITY = os.path.join(TMP, "narrators_identity")
 NORMALIZED = os.path.join(TMP, "narrators_normalized")
 INDEX = "rewayaat_narrators"
@@ -100,6 +103,16 @@ def join_names(names):
 def load(path):
     with open(path) as handle:
         return json.load(handle)
+
+
+def imam_years():
+    """Each Imam's ordinal to the years his period ran, from the page's own chronology."""
+    if not os.path.exists(CHRONOLOGY):
+        return {}
+    return {e["order"]: (e["fromAh"], e["toAh"]) for e in load(CHRONOLOGY).get("eras", [])}
+
+
+YEARS = None
 
 
 def profiles():
@@ -237,6 +250,7 @@ def document(person, source, headless):
     # better than a date, and most men have no date at all. The city is the one the books name
     # most often; where two books name different cities both are listed under the facts below.
     imams_named = [IMAM_NAMES[n] for n in sorted(imams) if n < len(IMAM_NAMES)]
+    spans = [YEARS[n] for n in sorted(imams) if n in (YEARS or {})]
     cities = [c["value"] for c in values(person, "city_or_tribe") if c.get("value")]
     died = [d["value"] for d in values(person, "death_years") if d.get("value")]
     life = {"imams": imams_named,
@@ -310,8 +324,16 @@ def document(person, source, headless):
         "imam_ordinals": sorted(imams),
         "cities_or_tribes": traced("city_or_tribe"),
         "death_years": traced("death_years"),
+        # Whom he takes from and who takes from him: the evidence a rijali argument about
+        # his generation actually runs on, so the counts are kept whole even where the
+        # lists shown are trimmed.
         "narrated_from": [n.get("value") for n in values(person, "narrated_from") if n.get("value")][:60],
         "narrated_to": [n.get("value") for n in values(person, "narrated_to") if n.get("value")][:60],
+        "teacher_count": len({n.get("value") for n in values(person, "narrated_from") if n.get("value")}),
+        "student_count": len({n.get("value") for n in values(person, "narrated_to") if n.get("value")}),
+        # the years his imamates cover, first to last
+        "span_from": min((y[0] for y in spans), default=None),
+        "span_to": max((y[1] for y in spans), default=None),
         "sect_flags": traced("sect_flags"),
         "mention_count": len(keys) - len(entry_keys),
         "holds_entry": bool(entry_keys),
@@ -362,6 +384,8 @@ def main():
     parser.add_argument("--index", default=INDEX)
     args = parser.parse_args()
 
+    global YEARS
+    YEARS = imam_years()
     people = load(os.path.join(IDENTITY, "people.json"))
     source, headless = profiles(), not_entries(TMP)
     counts = Counter()

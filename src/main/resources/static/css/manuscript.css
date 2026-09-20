@@ -14313,6 +14313,65 @@ html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
     .chrono__cartouche { font-size: 0.72rem; padding: 0.4rem 1rem; }
     .narrator-seal { width: 3rem; height: 3rem; }
 }
+
+/* ── The narrator in numbers ────────────────────────────────────────────────────
+   A ledger row rather than a set of cards: these are figures read across against
+   each other — how many take from him, how the books divide on him, how much of
+   the corpus his name carries — and boxes would break that reading into five
+   unrelated facts. */
+
+.ledger {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 0 2rem;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-warm);
 }
+
+.ledger__cell {
+    flex: 1 1 9rem;
+    min-width: 0;
+    padding: 0.95rem 1.1rem;
+    border-inline-start: 1px solid var(--border);
 }
+
+.ledger__cell:first-child {
+    border-inline-start: none;
+}
+
+.ledger__value {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 1.75rem;
+    line-height: 1.1;
+    color: var(--primary);
+}
+
+.ledger__for { color: #2f6b45; }
+.ledger__against { color: #8d3a32; }
+
+.ledger__slash {
+    color: var(--text-faint);
+    margin: 0 0.1rem;
+}
+
+.ledger__label {
+    margin-top: 0.3rem;
+    font-family: var(--font-ui);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--gold-dark);
+}
+
+.ledger__note {
+    margin-top: 0.15rem;
+    font-size: 0.74rem;
+    line-height: 1.4;
+    color: var(--text-muted);
+}
+
+@media (max-width: 575.98px) {
+    .ledger__value { font-size: 1.4rem; }
 }

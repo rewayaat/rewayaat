@@ -153,6 +153,50 @@
 
     <div th:replace="~{fragments/site :: ornament}"></div>
 
+    <!--
+      The count of things a rijali argument is actually made of: whom he takes from and who
+      takes from him (the evidence for his generation), how many books wrote him up and how
+      they divide, and how much of the corpus rests on him — with the book that rests on him
+      most, because a verdict on a man who carries 1,396 narrations of al-Kafi is a verdict
+      on a great deal of al-Kafi.
+    -->
+    <section class="ledger" aria-label="The narrator in numbers">
+        <div class="ledger__cell">
+            <div class="ledger__value" th:text="${narrator.teacher_count}">37</div>
+            <div class="ledger__label">Narrates from</div>
+            <div class="ledger__note">men the books name</div>
+        </div>
+        <div class="ledger__cell">
+            <div class="ledger__value" th:text="${narrator.student_count}">26</div>
+            <div class="ledger__label">Narrated to</div>
+            <div class="ledger__note">men who take from him</div>
+        </div>
+        <div class="ledger__cell">
+            <div class="ledger__value">
+                <span class="ledger__for" th:text="${#lists.size(narrator.for_him)}">2</span>
+                <span class="ledger__slash">/</span>
+                <span class="ledger__against" th:text="${#lists.size(narrator.against_him)}">5</span>
+            </div>
+            <div class="ledger__label">Reliable / weak</div>
+            <div class="ledger__note">books that grade him</div>
+        </div>
+        <div class="ledger__cell">
+            <div class="ledger__value"
+                 th:text="${#numbers.formatInteger(narrationTotal, 0, 'COMMA')}">1,504</div>
+            <div class="ledger__label">Narrations</div>
+            <div class="ledger__note" th:if="${!#lists.isEmpty(narrationBooks)}"
+                 th:text="${narrationBooks[0].share} + '% in ' + ${narrationBooks[0].book}">93% in Al-Kāfi</div>
+        </div>
+        <div class="ledger__cell" th:if="${narrator.span_from != null}">
+            <div class="ledger__value">
+                <span th:text="${narrator.span_from}">203</span>–<span th:text="${narrator.span_to}">260</span>
+            </div>
+            <div class="ledger__label">Active, AH</div>
+            <div class="ledger__note"
+                 th:text="${#lists.size(narrator.life.imams)} + ' imamates'">3 imamates</div>
+        </div>
+    </section>
+
     <!-- Two tabs, in the URL rather than in script: what the books say of him is one reading,
          the narrations he stands in another, and a reader wants one at a time. -->
     <nav class="narrator-tabs" aria-label="Sections">
