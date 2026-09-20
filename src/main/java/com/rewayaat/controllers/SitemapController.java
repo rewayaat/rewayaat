@@ -123,7 +123,8 @@ public class SitemapController {
      * <p>Single-narration chapters are left out — about 4,000 of the 7,839, over half.
      * They canonicalise to their narration, and a sitemap that advertises a non-canonical
      * URL is asking for the duplicate to be indexed instead of the page it points at.
-     * Single-chapter parts are left out for the same reason, 18 of the 166.
+     * Parts that are not pages of their own are left out for the same reason: the 18 that
+     * wrap a single chapter, and the 4 that are the only part dividing their parent.
      */
     @RequestMapping(value = "/sitemap-books.xml", method = RequestMethod.GET, produces = MediaType.APPLICATION_XML_VALUE)
     public ResponseEntity<String> booksSitemap() {
@@ -141,14 +142,13 @@ public class SitemapController {
                 }
                 // Thirteen of the eighteen books divide into parts, and for some the part
                 // is the organising principle rather than the volume.
-                for (BookCatalog.Part part : book.parts()) {
-                    // A part wrapping one chapter canonicalises to that chapter
-                    // (BookPageController.partPage) and so may not be advertised here,
-                    // for the same reason a single-narration chapter may not be. Same
-                    // predicate on both sides, so the two cannot drift apart.
-                    if (part.holdsSingleChapter()) {
-                        continue;
-                    }
+                // Only the parts that are pages in their own right. A part wrapping one
+                // chapter canonicalises to that chapter, and a part that is the only one
+                // dividing its parent canonicalises to the parent
+                // (BookPageController.partPage); neither may be advertised here, for the
+                // same reason a single-narration chapter may not be. pageParts() is the
+                // predicate partPage gates on, so the two cannot drift apart.
+                for (BookCatalog.Part part : book.pageParts()) {
                     appendUrl(xml, escapeXml(part.url()), "0.8", "monthly");
                 }
                 for (BookCatalog.Chapter chapter : book.chapters()) {

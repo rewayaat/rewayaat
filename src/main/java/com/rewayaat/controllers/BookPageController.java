@@ -99,7 +99,12 @@ public class BookPageController {
         List<String> volumes = book.volumes();
         List<BookCatalog.Part> parts = book.parts();
         boolean useVolumes = volumes.size() > 1;
-        boolean useParts = !useVolumes && parts.size() > 1;
+        // A part layer only earns its place when more than one part actually divides the
+        // book. Three books are filed as one part named "Content" holding everything plus
+        // an "Introduction" holding a single chapter, and this page's whole link list was
+        // those two. The full part list is still what gets rendered when the layer stays:
+        // a part that is not a page of its own is still the only link to its chapters.
+        boolean useParts = !useVolumes && !book.pageParts().isEmpty();
 
         model.addAttribute("book", book);
         model.addAttribute("volumes", useVolumes ? volumes.stream()
@@ -143,7 +148,9 @@ public class BookPageController {
         String label = "Volume " + volume;
         long narrations = chapters.stream().mapToLong(BookCatalog.Chapter::count).sum();
         List<BookCatalog.Part> parts = book.partsInVolume(volume);
-        boolean useParts = parts.size() > 1;
+        // As on the book page: volume 1 of Uyun akhbar al-Rida splits into "Content" and a
+        // one-chapter "Introduction", which divides nothing.
+        boolean useParts = !book.pagePartsIn(volume).isEmpty();
 
         model.addAttribute("book", book);
         model.addAttribute("volumeLabel", label);
@@ -203,8 +210,10 @@ public class BookPageController {
         model.addAttribute("seoDescription", String.format(
                 "%s, %s: %,d narrations across %,d chapters, in Arabic and English.",
                 book.name(), part.title(), narrations, chapters.size()));
-        // A part wrapping one chapter *is* that chapter: same title, same narration count,
-        // and the page's whole body is a single link to it. Invariant 10 one level up.
+        // A part is a page of its own only when it is one of several parts that divide its
+        // parent. A part wrapping one chapter *is* that chapter: same title, same narration
+        // count, and the page's whole body is a single link to it. A part that is the only
+        // one dividing its parent *is* that parent. Invariants 13 and 14.
         //
         // It points at the chapter's own canonical rather than at the chapter URL, because
         // a chapter holding one narration has already folded into that narration and a
@@ -213,9 +222,17 @@ public class BookPageController {
         // against the chapters the page actually loaded: if the index and the catalog
         // briefly disagree the part stays self-canonical and merely unlisted, which is the
         // harmless way round.
-        String canonicalPath = part.holdsSingleChapter() && chapters.size() == 1
-                ? canonicalPathFor(chapters.get(0), narrationsIn(chapters.get(0)))
-                : part.url();
+        String canonicalPath = part.url();
+        if (part.holdsSingleChapter()) {
+            if (chapters.size() == 1) {
+                canonicalPath = canonicalPathFor(chapters.get(0), narrationsIn(chapters.get(0)));
+            }
+        } else if (!book.partIsItsOwnPage(part)) {
+            // The only part dividing its parent covers the parent whole, so the parent is
+            // the page: the hub lists those chapters itself now, and this URL says the same
+            // thing one hop further down.
+            canonicalPath = parentPathOf(bookSlug, book, part);
+        }
         model.addAttribute("canonicalUrl", BASE_URL + canonicalPath);
         model.addAttribute("sectionSummary", blurbs.sectionSummaryForPath(part.url()));
         model.addAttribute("shareImageUrl", BASE_URL + part.url() + "/card.png");
@@ -301,6 +318,18 @@ public class BookPageController {
 
         addBreadcrumbs(model, trail);
         return "chapter";
+    }
+
+    /**
+     * The hub a part hangs from: its volume when the book has more than one, else the book.
+     *
+     * <p>The same choice the breadcrumb trail makes, so a part that folds into its parent
+     * folds into the page the trail says it came from.
+     */
+    private String parentPathOf(String bookSlug, BookCatalog.Book book, BookCatalog.Part part) {
+        return part.volume() != null && !part.volume().isBlank() && book.volumes().size() > 1
+                ? "/books/" + bookSlug + "/volume/" + encode(part.volume())
+                : "/books/" + bookSlug;
     }
 
     /**

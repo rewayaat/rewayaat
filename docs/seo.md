@@ -212,6 +212,34 @@ page one extra Elasticsearch query, on at most eighteen rarely-requested pages.
 
 `IndexingSignalsTest` pins both sides and the chain.
 
+### 14. A part that divides nothing is not a page
+
+Four parents are filed as one part named "Content" holding everything plus an
+"Introduction" holding a single chapter: Al-Tawḥīd (68 chapters), Kāmil al-Ziyārāt (109),
+Kitāb al-Zuhd (21) and volume 1 of ʿUyūn akhbār al-Riḍā (29). The hub's entire outbound
+link list was those two URLs, and every chapter sat two hops down behind a page that
+divided nothing.
+
+A part earns a URL only when it is **one of several parts that actually divide its
+parent** — `BookCatalog.Book.isOwnPage`, reached through `pageParts()`, `pagePartsIn()`
+and `partIsItsOwnPage()`. The sitemap advertises `pageParts()`; `partPage` canonicalises
+to the parent for anything it excludes.
+
+Two things about it are load-bearing:
+
+- **The hubs decide on `pageParts()` but still render every part.** Al-Khisāl has three
+  one-chapter parts among 29; the layer stays, and those three are still the only link to
+  their chapters. Rendering `pageParts()` would orphan them, which invariant 5 forbids.
+  The rule governs *canonicals and sitemaps*, never what a page links to.
+- **`pageParts()` builds `parts()` once.** `parts()` counts each part's chapters by walking
+  the whole chapter list, so asking per part rebuilt that 166 times inside the sitemap —
+  the one response a crawler abandons when it is slow (see the 24-second
+  `/sitemap-hadith-4.xml`).
+
+Largest hub this collapses is Kāmil al-Ziyārāt at 109 chapters, well inside what invariant
+6 protects: Al-Kāfi volume 8 already lists 594. `IndexingSignalsTest` builds real catalogs
+and pins both the rule and the fact that the hubs still link everything.
+
 ## Page inventory
 
 | Surface | Indexable | Rendered by |
@@ -221,7 +249,7 @@ page one extra Elasticsearch query, on at most eighteen rarely-requested pages.
 | `/books` | yes | Server |
 | `/books/{book}` | yes | Server |
 | `/books/{book}/volume/{n}` | yes | Server |
-| `/books/{book}/part/{part}` | yes — **unless it holds one chapter**, then canonical to that chapter (or to its narration) | Server |
+| `/books/{book}/part/{part}` | yes — **unless it holds one chapter** (canonical to that chapter, or to its narration) **or is the only part dividing its parent** (canonical to the book or volume) | Server |
 | `/books/{book}/{chapter}` | yes — **unless it holds one narration**, then canonical to `/hadith/{id}` | Server |
 | `/books/{book}/{chapter}?tag=` | **no** — `noindex, follow`, and the links are `rel="nofollow"` | Server |
 | `/hadith/{id}` | yes | Server |
@@ -235,7 +263,7 @@ page one extra Elasticsearch query, on at most eighteen rarely-requested pages.
 | Sitemap | Contents |
 |---------|----------|
 | `/sitemap-static.xml` | `/`, `/books`, `/updates.html`, `/search_tips.html` |
-| `/sitemap-books.xml` | ~3,900 URLs — `/books`, 18 books, 30 volumes, the 148 parts holding more than one chapter, and the ~3,700 chapters holding more than one narration |
+| `/sitemap-books.xml` | ~3,900 URLs — `/books`, 18 books, 30 volumes, the 144 parts that are pages in their own right, and the ~3,700 chapters holding more than one narration |
 | `/sitemap-hadith-{1..4}.xml` | 32,519 narrations, 10,000 per page |
 
 Two things learned the hard way, both pinned by `SitemapIntegrationTest`:
