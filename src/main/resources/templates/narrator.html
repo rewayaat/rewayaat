@@ -72,9 +72,22 @@
                       th:style="'inset-inline-start:' + ${era.leftPercent} + '%; width:' + ${era.widthPercent} + '%'"
                       th:classappend="${era.cssClass()}"
                       th:title="${era.nameEn} + ' · ' + ${era.fromAh} + '–' + ${era.toAh} + ' AH'">
-                    <span class="hub-chrono__era-label"
+                    <!-- al-ʿAskarī's imamate is six years, a hair over 1% of the axis, and
+                         its number spilled across the divider into al-Mahdī's. A segment too
+                         narrow to hold its number carries none; the tooltip still names it. -->
+                    <span class="hub-chrono__era-label" th:if="${era.widthPercent gt 1.8 or era.isProphet()}"
                           th:text="${era.isProphet() ? '۞' : era.order}">1</span>
                 </span>
+
+                <!-- The axis runs past the last imamate, because men of the sixth century are
+                     placed on it too. That tail is the occultation, and it is drawn as such
+                     rather than left as unexplained empty rail. -->
+                <th:block th:with="last=${placement.eras[#lists.size(placement.eras) - 1]},
+                                   tail=${last.leftPercent + last.widthPercent}">
+                    <span class="hub-chrono__after" th:if="${tail lt 99}"
+                          th:style="|inset-inline-start:${tail}%; width:${100 - tail}%|"
+                          title="After the twelfth Imam — the occultation"></span>
+                </th:block>
 
                 <span class="hub-chrono__marker" th:if="${placement.deathPercent != null and !placement.deathOutsideScale}"
                       th:style="'inset-inline-start:' + ${placement.deathPercent} + '%'"
@@ -82,9 +95,13 @@
             </div>
 
             <div class="hub-chrono__axis">
-                <span th:if="${!#lists.isEmpty(placement.highlightedNames)}"
-                      th:text="'Contemporary of ' + ${#strings.listJoin(placement.highlightedNames, ', ')}">Contemporary of</span>
-                <span th:unless="${!#lists.isEmpty(placement.highlightedNames)}">No generation recorded</span>
+                <span th:if="${!#lists.isEmpty(placement.highlightedNames)}">
+                    <span class="hub-chrono__legend">Lived under</span>
+                    <span th:text="${#strings.listJoin(placement.highlightedNames, ' · ')}">the Imams</span>
+                </span>
+                <span th:unless="${!#lists.isEmpty(placement.highlightedNames)}">
+                    <span class="hub-chrono__legend">Lived under</span> no Imam the books name
+                </span>
 
                 <span class="hub-chrono__here" th:if="${placement.deathAh != null}">
                     <span th:text="'Died ' + ${placement.deathAh} + ' AH'">Died 148 AH</span>
