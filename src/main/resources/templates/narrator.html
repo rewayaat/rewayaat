@@ -24,21 +24,29 @@
                 <span th:if="${narrator.standing == 'unstated'}">No book grades him</span>
             </div>
 
+            <!-- Each of these said what it is. Unlabelled they were three pills reading
+                 «al-Jawād, al-Hādī, al-ʿAskarī», «Rayy» and «10 entries in 7 books», and
+                 nothing on the page said which was a lifetime and which a birthplace. -->
             <div class="hub-hero__stats">
                 <span class="hub-stat" th:if="${!#lists.isEmpty(narrator.life.imams)}">
+                    <span class="hub-stat__label">Companion of</span>
                     <span class="hub-stat__value"
                           th:text="${#strings.listJoin(narrator.life.imams, ', ')}">al-Sadiq</span>
                 </span>
                 <span class="hub-stat" th:if="${narrator.life.city != null}">
+                    <span class="hub-stat__label">From</span>
                     <span class="hub-stat__value" th:text="${narrator.life.city}">Kufa</span>
                 </span>
                 <span class="hub-stat" th:if="${narrator.life.died != null}">
-                    d. <span class="hub-stat__value" th:text="${narrator.life.died}">150</span> AH
+                    <span class="hub-stat__label">Died</span>
+                    <span class="hub-stat__value" th:text="${narrator.life.died}">150</span> AH
                 </span>
                 <span class="hub-stat">
+                    <span class="hub-stat__label">Written about in</span>
+                    <span class="hub-stat__value" th:text="${#lists.size(books)}">4</span>
+                    books,
                     <span class="hub-stat__value" th:text="${narrator.entry_count}">5</span>
-                    entries in
-                    <span class="hub-stat__value" th:text="${#lists.size(books)}">4</span> books
+                    entries
                 </span>
             </div>
         </div>
@@ -94,11 +102,9 @@
                       th:text="${entry.book_author}">Author</span>
                 <span class="narrator-entry__page" th:if="${entry.page_first != null}"
                       th:text="'p. ' + ${entry.page_first}">p. 183</span>
-                <span class="narrator-entry__grade"
-                      th:if="${entry.grade != null and entry.grade != 'not_assessed'
-                               and entry.grade != 'majhul'}"
+                <span class="narrator-entry__grade" th:if="${entry.grade_said != null}"
                       th:classappend="'narrator-verdict__grade--' + ${entry.grade}"
-                      th:text="${entry.grade}">thiqa</span>
+                      th:text="${entry.grade_said}">thiqa — trustworthy</span>
             </header>
 
             <!-- A book heads the same man differently — «سهل بن زياد» in one, «سهل بن زياد
@@ -119,9 +125,9 @@
             <p class="narrator-entry__text-en" th:if="${entry.text_en != null}"
                th:text="${entry.text_en}">The entry in English.</p>
 
-            <p class="narrator-entry__generation" th:if="${entry.generation != null}">
-                <span class="narrator-entry__label">Kept company with</span>
-                <span th:text="${entry.generation}">the companions of al-Sadiq</span>
+            <p class="narrator-entry__generation" th:if="${!#lists.isEmpty(entry.under_imams)}">
+                <span class="narrator-entry__label">Listed under</span>
+                <span th:text="${#strings.listJoin(entry.under_imams, ', ')}">al-Jawād</span>
             </p>
         </article>
     </section>

@@ -155,6 +155,16 @@ def document(person, source, headless):
             "text_ar": text_of(profile),
             "text_en": text_of(profile, arabic=False),
             "grade": profile.get("reliability_grade"),
+            # the grade in words, as the verdicts use: a badge reading «VERY_WEAK» is our
+            # vocabulary showing through, not the book's
+            "grade_said": GRADE_WORDS.get(profile.get("reliability_grade"), (None, None))[0],
+            # Which Imam this entry places him under, in short. The raw statement is the book's
+            # chapter heading — «أصحاب أبي جعفر محمد بن علي الثاني عليهما السلام» — and printed
+            # under all three of al-Tusi's listings it said the same thing three times in the
+            # longest possible way. The names are already in the hero; what an entry adds is
+            # which of them this one is filed under.
+            "under_imams": [IMAM_NAMES[n] for n in sorted(imam_generations(profile.get("generation")))
+                            if n < len(IMAM_NAMES)],
             "generation": profile.get("generation"),
             "is_printed_entry": "printed_entry" in (profile.get("flags") or ()),
         })

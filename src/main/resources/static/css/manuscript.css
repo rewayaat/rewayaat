@@ -13826,3 +13826,19 @@ html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
     -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
     mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
 }
+
+/* A hero chip says what it is before it says the value. */
+.hub-stat__label {
+    margin-right: 0.35rem;
+    font-family: var(--font-ui);
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.62;
+}
+
+.narrator-entry__grade {
+    text-transform: none;
+    letter-spacing: 0.02em;
+}
