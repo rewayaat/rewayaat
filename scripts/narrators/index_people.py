@@ -60,8 +60,26 @@ BOOK_AUTHOR = {slug: author for slug, _, author in BOOKS}
 # kept on the entry, where «unknown» is honest, and left out of the verdicts a page leads with,
 # where it would read as though the book had said it.
 UNSTATED = {"not_assessed", "majhul", "assessed", "unknown (majhul)", None}
+# how a grade is said on the page, and whether it speaks for or against the man
+GRADE_WORDS = {"thiqa": ("thiqa — trustworthy", "for"), "saduq": ("ṣadūq — truthful", "for"),
+               "hasan": ("ḥasan — good", "for"), "qawi": ("qawī — strong", "for"),
+               "mukhtalaf_fih": ("disputed", "mixed"), "daif": ("ḍaʿīf — weak", "against"),
+               "very_weak": ("very weak", "against"), "kadhdhab": ("a liar", "against"),
+               "non_existent": ("no such narrator", "against"), "muhmal": ("passed over", "mixed")}
+# the Imams, in order, as a page names them
+IMAM_NAMES = ["the Prophet", "ʿAlī", "al-Ḥasan", "al-Ḥusayn", "al-Sajjād", "al-Bāqir",
+              "al-Ṣādiq", "al-Kāẓim", "al-Riḍā", "al-Jawād", "al-Hādī", "al-ʿAskarī",
+              "the Mahdī"]
 BOOK_NOTE = {"duafa": "The ascription of this book to Ibn al-Ghaḍāʾirī is disputed; al-Khoei "
                       "held it unproven («الكتاب المنسوب إلى ابن الغضائري… لم يثبت»)."}
+
+
+def join_names(names):
+    """«A, B and C» — a list as a sentence reads it."""
+    names = list(names)
+    if len(names) <= 1:
+        return names[0] if names else ""
+    return ", ".join(names[:-1]) + " and " + names[-1]
 
 
 def load(path):
@@ -159,10 +177,81 @@ def document(person, source, headless):
                          "book_note": BOOK_NOTE.get(book),
                          "source_key": entry_key_for(person, book, pages, entry_keys)})
 
-    anchor = source.get(person.get("anchor")) or {}
+    # One position per book, not one per profile. A book is read into several profiles — Khoei's
+    # entry spans five pages and phase 1 read each — and the same verdict came back once per
+    # profile, so a page showed «Tanqīḥ al-Maqāl: thiqa» three times. Where a book really does
+    # take two positions, as Mamaqani does in quoting al-Najashi's «weak» before concluding
+    # «thiqa» himself, both are kept and the disagreement is marked.
+    stands = {}
+    for verdict in verdicts:
+        if not verdict["stated"]:
+            continue
+        book = verdict["book"]
+        held = stands.setdefault(book, {"book": book, "book_title": verdict["book_title"],
+                                        "book_note": verdict["book_note"], "positions": []})
+        already = next((p for p in held["positions"] if p["grade"] == verdict["grade"]), None)
+        if already:
+            already["pages"] = sorted(set(already["pages"]) | set(verdict["pages"] or []))
+            continue
+        word, leaning = GRADE_WORDS.get(verdict["grade"], (verdict["said"], "mixed"))
+        held["positions"].append({"grade": verdict["grade"], "said": word,
+                                  "leaning": leaning, "pages": list(verdict["pages"] or [])})
+    where_books_stand = []
+    for book, _, _ in BOOKS:
+        held = stands.get(book)
+        if not held:
+            continue
+        held["divided"] = len({p["leaning"] for p in held["positions"]}) > 1
+        where_books_stand.append(held)
+
     imams = set()
     for statement in values(person, "generations"):
         imams |= imam_generations(statement.get("value"))
+
+    # Who he was, in the terms the books use: the Imams he kept company with place a man in time
+    # better than a date, and most men have no date at all. The city is the one the books name
+    # most often; where two books name different cities both are listed under the facts below.
+    imams_named = [IMAM_NAMES[n] for n in sorted(imams) if n < len(IMAM_NAMES)]
+    cities = [c["value"] for c in values(person, "city_or_tribe") if c.get("value")]
+    died = [d["value"] for d in values(person, "death_years") if d.get("value")]
+    life = {"imams": imams_named,
+            "city": Counter(cities).most_common(1)[0][0] if cities else None,
+            "died": died[0] if died else None}
+
+    # Where the books leave him, in one word: a reader wants to know whether he is relied on
+    # before reading eight entries, and the honest answer is often «they disagree».
+    for_him = {b["book_title"] for b in where_books_stand
+               if any(p["leaning"] == "for" for p in b["positions"])}
+    against_him = {b["book_title"] for b in where_books_stand
+                   if any(p["leaning"] == "against" for p in b["positions"])}
+    standing = ("disputed" if for_him and against_him else "trusted" if for_him
+                else "weakened" if against_him else "unstated")
+
+    anchor = source.get(person.get("anchor")) or {}
+    display = (anchor.get("primary_english_name") or person.get("primary_english_name")
+               or anchor.get("primary_arabic_name") or "He")
+
+    # The blurb a reader wants before the eight entries: when he lived, where, and where the
+    # books leave him. It is assembled from the statements below it and says nothing they do
+    # not — the books are named, so a reader can see whose judgment each clause carries.
+    said = []
+    if imams_named:
+        said.append(f"{display} kept company with " + join_names(imams_named))
+    elif life["city"]:
+        said.append(f"{display} was of {life['city']}")
+    if life["city"] and imams_named:
+        said.append(f"and was of {life['city']}")
+    if life["died"]:
+        said.append(f"and died in {life['died']} AH")
+    where = ""
+    if standing == "disputed":
+        where = ("The books are divided about him: " + join_names(sorted(for_him))
+                 + " hold him reliable, while " + join_names(sorted(against_him)) + " weaken him.")
+    elif standing == "trusted":
+        where = join_names(sorted(for_him)) + " hold him reliable."
+    elif standing == "weakened":
+        where = join_names(sorted(against_him)) + " weaken him."
+    blurb = ((" ".join(said) + ". ") if said else "") + where
     names_ar = [n["value"] for n in values(person, "primary_names") + values(person, "arabic_aliases")
                 if n.get("value")]
     names_en = [n["value"] for n in values(person, "english_aliases") if n.get("value")]
@@ -184,6 +273,12 @@ def document(person, source, headless):
         "entries": entries,
         "entry_count": len(entries),
         "verdicts": verdicts,
+        "where_books_stand": where_books_stand,
+        "for_him": sorted(for_him),
+        "against_him": sorted(against_him),
+        "standing": standing,
+        "life": life,
+        "blurb": blurb.strip(),
         "generations": traced("generations"),
         "imam_ordinals": sorted(imams),
         "cities_or_tribes": traced("city_or_tribe"),

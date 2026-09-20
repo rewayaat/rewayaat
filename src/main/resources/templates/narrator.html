@@ -14,39 +14,72 @@
                 th:text="${displayAr}">اسم الراوي</h1>
             <p class="narrator-name-en" th:if="${!#strings.isEmpty(displayEn)}"
                th:text="${displayEn}">Transliterated name</p>
+
+            <!-- Where the books leave him, in one word, before any of them is quoted. For most
+                 men the honest word is «divided». -->
+            <div class="narrator-standing" th:classappend="'narrator-standing--' + ${narrator.standing}">
+                <span th:if="${narrator.standing == 'disputed'}">The books disagree about him</span>
+                <span th:if="${narrator.standing == 'trusted'}">Held reliable</span>
+                <span th:if="${narrator.standing == 'weakened'}">Held weak</span>
+                <span th:if="${narrator.standing == 'unstated'}">No book grades him</span>
+            </div>
+
             <div class="hub-hero__stats">
-                <span class="hub-stat">
-                    <span class="hub-stat__value" th:text="${narrator.entry_count}">5</span>
-                    entries
+                <span class="hub-stat" th:if="${!#lists.isEmpty(narrator.life.imams)}">
+                    <span class="hub-stat__value"
+                          th:text="${#strings.listJoin(narrator.life.imams, ', ')}">al-Sadiq</span>
+                </span>
+                <span class="hub-stat" th:if="${narrator.life.city != null}">
+                    <span class="hub-stat__value" th:text="${narrator.life.city}">Kufa</span>
+                </span>
+                <span class="hub-stat" th:if="${narrator.life.died != null}">
+                    d. <span class="hub-stat__value" th:text="${narrator.life.died}">150</span> AH
                 </span>
                 <span class="hub-stat">
-                    <span class="hub-stat__value" th:text="${#lists.size(books)}">4</span>
-                    books
+                    <span class="hub-stat__value" th:text="${narrator.entry_count}">5</span>
+                    entries in
+                    <span class="hub-stat__value" th:text="${#lists.size(books)}">4</span> books
                 </span>
             </div>
         </div>
 
-        <!-- The books disagree about most men, and that disagreement is the thing a reader
-             comes for. It goes at the top, each verdict under the name of the book that
-             gives it, so «thiqa» is never shown as though the tradition spoke with one
-             voice. -->
-        <div class="hub-hero__intro" th:if="${!#lists.isEmpty(narrator.verdicts)}">
-            <p class="hub-hero__intro-text">What each book says of him:</p>
-            <ul class="narrator-verdicts">
-                <li class="narrator-verdict" th:each="verdict : ${narrator.verdicts}"
-                    th:if="${verdict.stated}">
-                    <span class="narrator-verdict__book" th:text="${verdict.book_title}">Book</span>
-                    <span class="narrator-verdict__grade"
-                          th:classappend="'narrator-verdict__grade--' + ${verdict.grade}"
-                          th:text="${verdict.said != null ? verdict.said : verdict.grade}">thiqa</span>
-                    <span class="narrator-verdict__where" th:if="${!#lists.isEmpty(verdict.pages)}"
-                          th:text="'p. ' + ${verdict.pages[0]}">p. 183</span>
-                </li>
-            </ul>
+        <div class="hub-hero__intro" th:if="${!#strings.isEmpty(narrator.blurb)}">
+            <p class="hub-hero__intro-text" th:text="${narrator.blurb}">A sentence about him.</p>
         </div>
     </header>
 
     <div th:replace="~{fragments/site :: ornament}"></div>
+
+    <!-- One row per book, not one per entry. A book read into several profiles used to repeat
+         its verdict three times over; here each book states its position once, and a book that
+         takes two — Mamaqani quotes al-Najashi's «weak» before concluding «thiqa» himself — is
+         marked as divided rather than shown twice as if it were two books. -->
+    <section class="narrator-stands" th:if="${!#lists.isEmpty(narrator.where_books_stand)}">
+        <h2 class="hub-group__label">Where each book stands</h2>
+        <table class="narrator-stands__table">
+            <tbody>
+            <tr th:each="stand : ${narrator.where_books_stand}">
+                <th scope="row" th:text="${stand.book_title}">Rijāl al-Najāshī</th>
+                <td>
+                    <span class="narrator-stands__position" th:each="pos : ${stand.positions}"
+                          th:classappend="'narrator-stands__position--' + ${pos.leaning}">
+                        <span th:text="${pos.said}">thiqa — trustworthy</span>
+                        <span class="narrator-stands__page" th:if="${!#lists.isEmpty(pos.pages)}"
+                              th:text="'p. ' + ${pos.pages[0]}">p. 183</span>
+                    </span>
+                    <span class="narrator-stands__divided" th:if="${stand.divided}">
+                        this book takes both sides — see its entries below
+                    </span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <p class="narrator-stands__note" th:if="${narrator.standing == 'disputed'}">
+            A grade is the judgment of the scholar who wrote it, not of the tradition. Where the
+            books divide, the chain has to be judged on which of them you follow.
+        </p>
+    </section>
+
 
     <!-- One block per entry, in the order the tradition reads the books. Each carries the
          book's own words: a verdict is never paraphrased here, and never shown without the

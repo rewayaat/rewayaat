@@ -4584,6 +4584,7 @@ function setupVue(query, page, sortFields) {
             sortFields: sortFields,
             page: isCollectionMode() ? page : 1,
             totalHits: 0,
+            narratorMatches: [],
             pageSize: SEARCH_PAGE_SIZE,
             book_blurbs: bookBlurbs,
             collectionMode: isCollectionMode(),
@@ -5821,6 +5822,34 @@ function setupVue(query, page, sortFields) {
                 reqUrl += '&match_mode=' + encodeURIComponent(resolveSearchMatchModeParam());
                 xhr.open('GET', reqUrl);
                 xhr.send();
+                this.fetchNarratorMatches(queryToUse);
+            },
+            /**
+             * Narrators whose name answers to the same query.
+             *
+             * A reader searching «Sahl b. Ziyad» usually wants the man, not the 2,000
+             * narrations he stands in, and until now there was nowhere for that to land. The
+             * strip appears only when the query really names someone the Rijal books head:
+             * a query that matches nothing shows nothing, and a query that matches a man
+             * weakly — one whose entry count is low and whose name only half-matches — is not
+             * worth a strip above the narrations either.
+             */
+            fetchNarratorMatches: function(query) {
+                var self = this;
+                var text = (query || '').trim();
+                if (text.length < 3 || this.collectionMode) {
+                    this.narratorMatches = [];
+                    return;
+                }
+                fetch('/v1/narrators?q=' + encodeURIComponent(text) + '&per_page=3')
+                    .then(function(response) { return response.ok ? response.json() : null; })
+                    .then(function(payload) {
+                        var found = (payload && payload.narrators) || [];
+                        self.narratorMatches = found.filter(function(narrator) {
+                            return narrator && narrator.entry_count > 0;
+                        }).slice(0, 3);
+                    })
+                    .catch(function() { self.narratorMatches = []; });
             },
             narrationDomId: function(narration) {
                 if (!narration) {

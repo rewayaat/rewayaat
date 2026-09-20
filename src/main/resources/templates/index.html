@@ -156,6 +156,34 @@
 <section id="hadithView" class="mb-4" v-cloak>
     <div class="hadith-layout">
         <div class="hadith-content">
+        <!-- A search for a person, answered as a person. «Sahl b. Ziyad» used to return two
+             thousand narrations he stands in and no way to ask who he was; the strip appears
+             only when the query names a man the Rijal books head, and says where they leave
+             him before the narrations start. -->
+        <div class="narrator-strip" v-if="narratorMatches.length">
+            <div class="narrator-strip__label">
+                {{ narratorMatches.length === 1 ? 'A narrator by this name' : 'Narrators by this name' }}
+            </div>
+            <div class="narrator-strip__cards">
+                <a class="narrator-strip__card" v-for="narrator in narratorMatches"
+                   :key="narrator.person_id" :href="'/narrator/' + narrator.person_id">
+                    <div class="narrator-strip__name" dir="rtl" lang="ar">{{ narrator.display_ar }}</div>
+                    <div class="narrator-strip__name-en" v-if="narrator.display_en">{{ narrator.display_en }}</div>
+                    <div class="narrator-strip__meta">
+                        <span class="narrator-strip__standing"
+                              :class="'narrator-strip__standing--' + narrator.standing"
+                              v-if="narrator.standing && narrator.standing !== 'unstated'">
+                            {{ narrator.standing === 'disputed' ? 'the books disagree'
+                               : narrator.standing === 'trusted' ? 'held reliable' : 'held weak' }}
+                        </span>
+                        <span>{{ narrator.entry_count }} entries</span>
+                        <span v-if="narrator.life && narrator.life.imams && narrator.life.imams.length">
+                            {{ narrator.life.imams.join(', ') }}
+                        </span>
+                    </div>
+                </a>
+            </div>
+        </div>
         <div class="tag-filter-bar tag-filter-bar--results mb-3"
              v-if="collectionMode || totalHits || allNarrations.length > 0">
             <div class="tag-filter-bar__results-head">
