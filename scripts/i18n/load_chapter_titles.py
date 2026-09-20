@@ -29,7 +29,15 @@ VERIFIED = {
     "al-kafi": "0329IbnYacqubKulayni.Kafi.Shia001122Vols-ara1",
     "maani-al-akhbar": "0381IbnBabawayhSaduq.MacaniAkhbar.Shia001148-ara1",
     "al-tawhid": "0381IbnBabawayhSaduq.Tawhid.Shia001136-ara1",
+    "al-khisal": "0381IbnBabawayhSaduq.Khisal.Shia001137-ara1",
+    "man-la-yahduruh": "0381IbnBabawayhSaduq.ManLaYahduruhuFaqih.Shia001149Vols-ara1",
+    "uyun-akhbar": "0381IbnBabawayhSaduq.CuyunAkhbarRida.Shia001142Vols-ara1",
 }
+
+# Titles found by locating each chapter's narrations in the printed text rather than by
+# counting headings. Preferred wherever it exists: it cannot drift, because it never
+# depends on a position.
+SUFFIX = "_matn_matched.json"
 
 
 def post(url, body=None, method="POST"):
@@ -58,9 +66,9 @@ def main():
 
     titles = {}
     for key, version in VERIFIED.items():
-        path = CACHE / f"{key}_recovered.json"
+        path = CACHE / f"{key}{SUFFIX}"
         if not path.exists():
-            print(f"  missing {path}; run recover_chapter_titles.py --book {key} --align")
+            print(f"  missing {path}; run match_chapters_by_matn.py --book {key}")
             continue
         for english, arabic in json.loads(path.read_text(encoding="utf-8")).items():
             if english and arabic:
