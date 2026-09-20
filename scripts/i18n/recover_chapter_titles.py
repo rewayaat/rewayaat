@@ -180,6 +180,28 @@ NO_STRUCTURE = {
     },
 }
 
+
+# Books whose recovery is not yet trustworthy, and why. Checked by reading the output:
+# a matching chapter count is not evidence of an alignment.
+#
+#   thawab-al-amal   592 recovered against 592 chapters, and misaligned. The book is
+#                    Thawāb al-Aʿmāl *wa ʿIqāb al-Aʿmāl* and OpenITI splits it in two -
+#                    ThawabAcmal...BK1 and CiqabAcmal...BK2 - so only the rewards were
+#                    fetched while the index numbers rewards and punishments in one
+#                    sequence. Chapter 10, "Punishment of Qadiris", came back as a ثواب
+#                    heading. Needs both parts merged in order before it can be used.
+#
+#   fadail-al-shia   45 recovered and correctly aligned, but the source carries no
+#                    chapter titles: its headings are الحديث الأول, الحديث العاشر. The
+#                    English titles in the index are descriptions someone wrote, not
+#                    translations of a heading, so there is nothing to recover here.
+#
+#   al-khisal        nested under kutub and has no KITAB_ALIASES entry yet, so nothing
+#   man-la-yahduruh  aligns (al-Khiṣāl) or only the divisions whose Arabic name happens
+#   nahj-al-balagha  to match do (the other two).
+NEEDS_WORK = {"thawab-al-amal", "fadail-al-shia", "al-khisal", "man-la-yahduruh",
+              "nahj-al-balagha", "uyun-akhbar"}
+
 RAW = "https://raw.githubusercontent.com/OpenITI/{repo}/master/data/{author}/{work}/{version}"
 
 
