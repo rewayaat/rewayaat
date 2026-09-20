@@ -43,6 +43,9 @@ BOOKS = {
     "maani-al-akhbar": ("Maʿānī al-ʾAkhbār", 1),
     "al-tawhid": ("Al-Tawḥīd", 1),
     "uyun-akhbar": ("ʿUyūn akhbār al-Riḍā", 1),
+    # Two different Amālīs share one book name in the index, al-Ṣadūq's and al-Mufīd's,
+    # so the compiler has to be part of the query or the two are matched against one text.
+    "al-amali-saduq": ("Al-Amālī", 1, "Shaykh Muḥammad b. ʿAlī al-Ṣaduq"),
 }
 
 # Several windows rather than one. A single probe can still land in the isnād of a long
@@ -84,10 +87,13 @@ def segments(path, level=2):
     return [(h, b) for h, b in found if h]
 
 
-def narrations(es_host, index, book):
+def narrations(es_host, index, book, compiler=None):
     """Every narration of a book, with its chapter and its Arabic."""
+    must = [{"term": {"book": book}}]
+    if compiler:
+        must.append({"term": {"source": compiler}})
     body = {"size": 1000, "_source": ["chapter", "arabic"],
-            "query": {"term": {"book": book}}}
+            "query": {"bool": {"filter": must}}}
     request = urllib.request.Request(f"{es_host}/{index}/_search?scroll=5m",
                                      data=json.dumps(body).encode(),
                                      headers={"Content-Type": "application/json"})
@@ -119,13 +125,15 @@ def main():
         print(f"  no source at {source}; fetch it with recover_chapter_titles.py --fetch")
         return 1
 
-    book_name, level = BOOKS[args.book]
+    spec = BOOKS[args.book]
+    book_name, level = spec[0], spec[1]
+    compiler = spec[2] if len(spec) > 2 else None
     bodies = [(heading, flatten(text)) for heading, text in segments(source, level)]
     print(f"  {len(bodies)} bāb segments in the source")
 
     votes = defaultdict(Counter)
     probed = 0
-    for record in narrations(args.es_host, args.index, book_name):
+    for record in narrations(args.es_host, args.index, book_name, compiler):
         chapter = (record.get("chapter") or "").strip()
         text = flatten(record.get("arabic", ""))
         if not chapter or len(text) < MIN_TEXT:

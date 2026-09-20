@@ -32,6 +32,7 @@ VERIFIED = {
     "al-khisal": "0381IbnBabawayhSaduq.Khisal.Shia001137-ara1",
     "man-la-yahduruh": "0381IbnBabawayhSaduq.ManLaYahduruhuFaqih.Shia001149Vols-ara1",
     "uyun-akhbar": "0381IbnBabawayhSaduq.CuyunAkhbarRida.Shia001142Vols-ara1",
+    "al-amali-saduq": "0381IbnBabawayhSaduq.Amali.Shia001134-ara1",
 }
 
 # Titles found by locating each chapter's narrations in the printed text rather than by
