@@ -120,10 +120,7 @@ public class BookPageController {
         model.addAttribute("parts", useParts ? parts : List.of());
         model.addAttribute("chapters", useVolumes || useParts ? List.of() : book.chapters());
         model.addAttribute("blurb", blurbs.forSlug(bookSlug, locale.isArabic()));
-        // book_summaries.json has no Arabic. The Arabic blurb is a written introduction in
-        // its own right, so the Arabic page leads with that rather than English prose.
-        model.addAttribute("bookSummary", locale.isArabic()
-                ? blurbs.forSlug(bookSlug, true) : blurbs.summaryForSlug(bookSlug));
+        model.addAttribute("bookSummary", blurbs.summaryForSlug(bookSlug, locale.isArabic()));
         String bookName = named(locale, book.name(), book.nameAr());
         model.addAttribute("bookTitle", bookName);
         model.addAttribute("seoTitle", msg(locale, "seo.book.title", bookName));

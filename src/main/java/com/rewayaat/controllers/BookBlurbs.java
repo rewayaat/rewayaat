@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rewayaat.service.BookCatalog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.InputStream;
@@ -67,6 +69,33 @@ class BookBlurbs {
      */
     String summaryForSlug(String slug) {
         return summaries.get(slug);
+    }
+
+    /**
+     * A plain-text opening paragraph for the hero, in the page's language.
+     *
+     * <p>book_summaries.json is English only. The Arabic blurb is a written introduction
+     * in its own right, so the Arabic hero draws its first paragraph from there instead of
+     * showing English prose under an Arabic heading.
+     *
+     * <p>The blurb is HTML - the About section renders it with {@code th:utext} - while the
+     * hero is plain text in a {@code th:text}. Handing the markup straight over printed the
+     * tags to the reader, so the paragraph is parsed out and unwrapped here.
+     */
+    String summaryForSlug(String slug, boolean arabic) {
+        if (!arabic) {
+            return summaries.get(slug);
+        }
+        String arabicBlurb = bySlugAr.get(slug);
+        if (arabicBlurb == null || arabicBlurb.isBlank()) {
+            return summaries.get(slug);
+        }
+        Element paragraph = Jsoup.parseBodyFragment(arabicBlurb).body().selectFirst("p");
+        if (paragraph == null) {
+            return null;
+        }
+        String text = paragraph.text().trim();
+        return text.isEmpty() ? null : text;
     }
 
     /**
