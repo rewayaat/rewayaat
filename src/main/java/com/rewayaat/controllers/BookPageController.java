@@ -109,18 +109,21 @@ public class BookPageController {
         boolean useVolumes = volumes.size() > 1;
         boolean useParts = !useVolumes && parts.size() > 1;
 
+        PageLocale locale = PageLocale.of(request);
         model.addAttribute("book", book);
         model.addAttribute("volumes", useVolumes ? volumes.stream()
                 .map(v -> Map.of(
-                        "label", "Volume " + v,
+                        "label", msg(locale, "book.volumeNumber", v),
                         "url", "/books/" + bookSlug + "/volume/" + encode(v),
                         "chapterCount", book.chaptersInVolume(v).size()))
                 .toList() : List.of());
         model.addAttribute("parts", useParts ? parts : List.of());
         model.addAttribute("chapters", useVolumes || useParts ? List.of() : book.chapters());
-        model.addAttribute("blurb", blurbs.forSlug(bookSlug));
-        model.addAttribute("bookSummary", blurbs.summaryForSlug(bookSlug));
-        PageLocale locale = PageLocale.of(request);
+        model.addAttribute("blurb", blurbs.forSlug(bookSlug, locale.isArabic()));
+        // book_summaries.json has no Arabic. The Arabic blurb is a written introduction in
+        // its own right, so the Arabic page leads with that rather than English prose.
+        model.addAttribute("bookSummary", locale.isArabic()
+                ? blurbs.forSlug(bookSlug, true) : blurbs.summaryForSlug(bookSlug));
         String bookName = named(locale, book.name(), book.nameAr());
         model.addAttribute("bookTitle", bookName);
         model.addAttribute("seoTitle", msg(locale, "seo.book.title", bookName));

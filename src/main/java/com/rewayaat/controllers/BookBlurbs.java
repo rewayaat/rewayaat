@@ -24,16 +24,35 @@ class BookBlurbs {
     private static final Logger LOGGER = LoggerFactory.getLogger(BookBlurbs.class);
 
     private final Map<String, String> bySlug;
+    private final Map<String, String> bySlugAr;
     private final Map<String, String> summaries;
     private final Map<String, String> sectionSummaries;
 
     BookBlurbs() {
-        this.bySlug = load();
+        this.bySlug = load("blurb");
+        this.bySlugAr = load("blurb_ar");
         this.summaries = loadSummaries("static/book_summaries.json");
         this.sectionSummaries = loadSummaries("static/section_summaries.json");
     }
 
     String forSlug(String slug) {
+        return bySlug.get(slug);
+    }
+
+    /**
+     * The blurb in the page's language, falling back to English.
+     *
+     * <p>All ten books carry a {@code blurb_ar}. The fallback is for a book added later
+     * without one: an English paragraph on an Arabic page is worse than an Arabic one and
+     * better than a blank hero.
+     */
+    String forSlug(String slug, boolean arabic) {
+        if (arabic) {
+            String arabicBlurb = bySlugAr.get(slug);
+            if (arabicBlurb != null && !arabicBlurb.isBlank()) {
+                return arabicBlurb;
+            }
+        }
         return bySlug.get(slug);
     }
 
@@ -84,13 +103,13 @@ class BookBlurbs {
         return Map.copyOf(loaded);
     }
 
-    private static Map<String, String> load() {
+    private static Map<String, String> load(String field) {
         Map<String, String> loaded = new LinkedHashMap<>();
         try (InputStream in = new ClassPathResource("static/book_blurbs.json").getInputStream()) {
             JsonNode root = new ObjectMapper().readTree(in);
             for (JsonNode entry : root) {
                 String book = entry.path("book").asText("");
-                String blurb = entry.path("blurb").asText("");
+                String blurb = entry.path(field).asText("");
                 if (!book.isBlank() && !blurb.isBlank()) {
                     loaded.put(BookCatalog.slugify(book), blurb);
                 }

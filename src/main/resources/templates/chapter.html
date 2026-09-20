@@ -31,8 +31,8 @@
          view is a real URL a reader can share. -->
     <div class="tag-filter-bar tag-filter-bar--results mb-3" th:if="${!#lists.isEmpty(tagFacets)}">
         <div class="tag-filter-bar__head">
-            <span class="tag-filter-bar__label">Filter by Tag</span>
-            <a class="tag-filter-bar__clear" th:if="${activeTag != null}" th:href="${clearTagUrl}">Clear</a>
+            <span class="tag-filter-bar__label" th:text="#{chapter.filterByTag}">Filter by Tag</span>
+            <a class="tag-filter-bar__clear" th:if="${activeTag != null}" th:href="${clearTagUrl}" th:text="#{chapter.clear}">Clear</a>
         </div>
         <div class="tag-filter-bar__pills">
             <!-- Same classes the search page's filter pills use. They had drifted: the
@@ -53,14 +53,14 @@
         <button type="button" class="hub-save" data-hub-print
                 th:attr="data-print-title=(${bookTitle} ?: ${chapter.bookName}) + ' — ' + (${chapterTitle} ?: ${chapter.title})">
             <i class="fa fa-file-arrow-down" aria-hidden="true"></i>
-            <span>Export PDF</span>
+            <span th:text="#{chapter.exportPdf}">Export PDF</span>
         </button>
     </div>
 
     <h2 class="hub-group__label">
         In this chapter
         <span class="hub-group__note" th:if="${activeTag != null}"
-              th:text="'filtered by ' + ${activeTagLabel}">filtered</span>
+              th:text="#{chapter.filteredBy(${activeTagLabel})}">filtered</span>
     </h2>
 
     <p class="text-muted" th:if="${#lists.isEmpty(narrations)}">
@@ -86,13 +86,13 @@
         <a class="hub-pager__link hub-pager__link--prev" th:if="${prevUrl != null}" th:href="${prevUrl}">
             <i class="fa fa-arrow-left" aria-hidden="true"></i>
             <span class="hub-pager__meta">
-                <span class="hub-pager__eyebrow">Previous</span>
+                <span class="hub-pager__eyebrow" th:text="#{chapter.previous}">Previous</span>
                 <span class="hub-pager__title" th:text="${prevLabel}">Previous chapter</span>
             </span>
         </a>
         <a class="hub-pager__link hub-pager__link--next" th:if="${nextUrl != null}" th:href="${nextUrl}">
             <span class="hub-pager__meta">
-                <span class="hub-pager__eyebrow">Next</span>
+                <span class="hub-pager__eyebrow" th:text="#{chapter.next}">Next</span>
                 <span class="hub-pager__title" th:text="${nextLabel}">Next chapter</span>
             </span>
             <i class="fa fa-arrow-right" aria-hidden="true"></i>

@@ -12,20 +12,20 @@
          otherwise show an empty half. -->
     <header class="hub-hero" th:classappend="${bookSummary != null} ? 'hub-hero--split' : ''">
       <div class="hub-hero__identity">
-        <div class="hub-hero__eyebrow">Collection</div>
+        <div class="hub-hero__eyebrow" th:text="#{book.collection}">Collection</div>
         <h1 class="hub-hero__title" th:text="${bookTitle} ?: ${book.name}">Book name</h1>
         <div class="hub-hero__stats">
             <span class="hub-stat">
                 <span class="hub-stat__value" th:text="${#numbers.formatInteger(book.count, 0, 'COMMA')}">1,000</span>
-                narrations
+                <span th:text="#{books.stat.narrations}">narrations</span>
             </span>
             <span class="hub-stat">
                 <span class="hub-stat__value" th:text="${#numbers.formatInteger(#lists.size(book.chapters), 0, 'COMMA')}">100</span>
-                chapters
+                <span th:text="#{books.card.chapters}">chapters</span>
             </span>
             <a class="hub-stat" th:if="${!#lists.isEmpty(volumes)}" href="#volumes">
                 <span class="hub-stat__value" th:text="${#lists.size(volumes)}">8</span>
-                volumes
+                <span th:text="#{book.volumes}">volumes</span>
             </a>
         </div>
       </div>
@@ -43,31 +43,31 @@
     <!-- Books with volumes list those; the chapters live one level down so that no
          single page carries thousands of links. Flat books list chapters directly. -->
     <section class="hub-group" id="volumes" th:if="${!#lists.isEmpty(volumes)}">
-        <h2 class="hub-group__label">Volumes</h2>
+        <h2 class="hub-group__label" th:text="#{book.volumes}">Volumes</h2>
         <div class="hub-grid">
             <a class="hub-card" th:each="volume : ${volumes}" th:href="${arPrefix} + ${volume.url}">
                 <div class="hub-card__title" th:text="${volume.label}">Volume 1</div>
                 <div class="hub-card__meta">
-                    <span><strong th:text="${#numbers.formatInteger(volume.chapterCount, 0, 'COMMA')}">100</strong> chapters</span>
+                    <span><strong th:text="${#numbers.formatInteger(volume.chapterCount, 0, 'COMMA')}">100</strong> <span th:text="#{books.card.chapters}">chapters</span></span>
                 </div>
             </a>
         </div>
     </section>
 
     <section class="hub-group" th:if="${!#lists.isEmpty(parts)}">
-        <h2 class="hub-group__label">Parts</h2>
+        <h2 class="hub-group__label" th:text="#{book.parts}">Parts</h2>
         <div class="hub-grid">
             <a class="hub-card" th:each="part : ${parts}" th:href="${arPrefix} + ${part.url}">
                 <div class="hub-card__title" th:text="${isArabic} ? (${part.titleAr} ?: ${part.title}) : ${part.title}">Part 1</div>
                 <div class="hub-card__meta">
-                    <span><strong th:text="${#numbers.formatInteger(part.chapterCount, 0, 'COMMA')}">100</strong> chapters</span>
+                    <span><strong th:text="${#numbers.formatInteger(part.chapterCount, 0, 'COMMA')}">100</strong> <span th:text="#{books.card.chapters}">chapters</span></span>
                 </div>
             </a>
         </div>
     </section>
 
     <section class="hub-group" th:if="${!#lists.isEmpty(chapters)}">
-        <h2 class="hub-group__label">Chapters</h2>
+        <h2 class="hub-group__label" th:text="#{book.chapters}">Chapters</h2>
         <!-- Two destinations per row on purpose. The title goes to the chapter's own
              page, which is the crawlable, rankable URL and where a search engine sends
              people; the icon jumps straight into reading mode for someone already here
@@ -83,7 +83,7 @@
                     <span class="hub-chapter__count">
                         <span th:text="${chapter.count}">12</span>
                         <span class="hub-chapter__count-unit"
-                              th:text="${chapter.count == 1} ? 'hadith' : 'hadith'">hadith</span>
+                              th:text="#{common.hadith}">hadith</span>
                     </span>
                 </a>
             </li>
@@ -91,7 +91,7 @@
     </section>
 
     <section class="hub-group" th:if="${blurb != null}">
-        <h2 class="hub-group__label">About this collection</h2>
+        <h2 class="hub-group__label" th:text="#{book.about}">About this collection</h2>
         <div class="hub-blurb">
             <div class="hub-blurb__body" th:utext="${blurb}"></div>
         </div>
