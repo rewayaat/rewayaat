@@ -176,6 +176,14 @@ public enum PageLocale {
         model.addAttribute("isArabic", isArabic());
         // Every in-page link has to stay inside the language the visitor is reading.
         model.addAttribute("arPrefix", prefix);
+
+        // The visible language toggle is a relative path, unlike the hreflang tags above.
+        // Those have to be absolute and on the canonical host; a link a reader clicks does
+        // not, and an absolute one would carry a visitor on the rewayaat.info mirror - or a
+        // developer on localhost - onto a different host mid-visit.
+        PageLocale other = isArabic() ? ENGLISH : ARABIC;
+        model.addAttribute("switchLocalePath", other.prefix + normalise(path));
+        model.addAttribute("switchLocaleTag", other.tag);
     }
 
     private static String normalise(String path) {

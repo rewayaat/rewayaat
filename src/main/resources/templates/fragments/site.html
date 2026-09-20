@@ -77,14 +77,25 @@
 <nav th:fragment="sitenav" class="navbar navbar-expand-lg sticky-top site-nav">
     <div class="container">
         <div class="navbar-top w-100 d-flex align-items-center flex-wrap gap-3">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="/"
+               th:href="@{${arPrefix} ?: '' } + '/'">
                 <img src="/img/Alilogov2-transparent.png" th:src="@{/img/Alilogov2-transparent.png}" class="brand-logo--full brand-logo--full-v2 d-none d-md-block" alt="ALI Logo"/>
                 <img src="/img/ali_icon.png" th:src="@{/img/ali_icon.png}" class="brand-logo--icon d-md-none" alt="ALI"/>
             </a>
             <div class="d-flex home-nav-links">
-                <a href="/" class="home-nav-link"><i class="fa fa-magnifying-glass" aria-hidden="true"></i><span>Search</span></a>
-                <a href="/books" class="home-nav-link is-current"><i class="fa fa-book-open" aria-hidden="true"></i><span>Books</span></a>
-                <a href="/updates.html" class="home-nav-link"><i class="fa fa-bolt" aria-hidden="true"></i><span>Updates</span></a>
+                <a href="/" th:href="@{${arPrefix} ?: '' } + '/'" class="home-nav-link"><i class="fa fa-magnifying-glass" aria-hidden="true"></i><span th:text="#{nav.search}">Search</span></a>
+                <a href="/books" th:href="@{${arPrefix} ?: '' } + '/books'" class="home-nav-link is-current"><i class="fa fa-book-open" aria-hidden="true"></i><span th:text="#{nav.books}">Books</span></a>
+                <!-- No Arabic version of the updates page, so this link stays English. -->
+                <a href="/updates.html" class="home-nav-link"><i class="fa fa-bolt" aria-hidden="true"></i><span th:text="#{nav.updates}">Updates</span></a>
+                <!--
+                  The toggle is the other language's URL, not a switch that changes state:
+                  the language is the URL, so switching is navigation. It appears only on
+                  the pages that exist in both, which is exactly where alternates are set.
+                -->
+                <a th:if="${switchLocalePath != null}" class="home-nav-link home-nav-link--lang"
+                   th:href="@{${switchLocalePath}}"
+                   th:hreflang="${switchLocaleTag}"
+                   th:text="${isArabic} ? #{lang.switchToEnglish} : #{lang.switchToArabic}">العربية</a>
             </div>
 
             <!-- The same auth block the home page carries, down to the element ids, so a
@@ -94,14 +105,14 @@
                 <div class="d-flex gap-2 top-actions flex-nowrap">
                     <button class="btn btn-dark btn-sm top-action auth-action" id="authSignInBtn" type="button">
                         <i class="fa fa-right-to-bracket" aria-hidden="true"></i>
-                        <span class="auth-action__label">Sign In</span>
+                        <span class="auth-action__label" th:text="#{nav.signin}">Sign In</span>
                     </button>
                     <div class="profile-menu d-none" id="authProfileShell">
                         <button class="top-action profile-chip" id="authProfileBtn" type="button"
-                                aria-label="Open profile" aria-expanded="false">
+                                aria-label="Open profile" th:aria-label="#{nav.profile.open}" aria-expanded="false">
                             <span class="profile-chip__avatar" id="authProfileInitial">R</span>
                             <span class="profile-chip__meta">
-                                <span class="profile-chip__name" id="authProfileName">Account</span>
+                                <span class="profile-chip__name" id="authProfileName" th:text="#{nav.account}">Account</span>
                             </span>
                             <i class="fa fa-angle-down" aria-hidden="true"></i>
                         </button>
@@ -114,7 +125,7 @@
 </nav>
 
 <!-- The visible trail, rendered from the same list the BreadcrumbList is built from. -->
-<nav th:fragment="crumbtrail" class="hub-crumbs" aria-label="Breadcrumb">
+<nav th:fragment="crumbtrail" class="hub-crumbs" aria-label="Breadcrumb" th:aria-label="#{common.breadcrumb}">
     <th:block th:each="crumb, it : ${breadcrumbs}">
         <span th:if="${!it.first}" class="hub-crumbs__sep">/</span>
         <a th:if="${!it.last}" th:href="${crumb.url}" th:text="${crumb.name}">Crumb</a>
@@ -134,32 +145,33 @@
     <div class="container">
         <div class="site-footer__grid">
             <div>
-                <div class="site-footer__title">Rewayaat</div>
-                <p class="site-footer__text">
+                <div class="site-footer__title" th:text="#{site.name}">Rewayaat</div>
+                <p class="site-footer__text" th:with="academy=|<a href=&quot;https://academyofislam.com&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; class=&quot;site-footer__link&quot;>${#messages.msg('site.footer.academyName')}</a>|"
+                   th:utext="#{site.footer.text(${academy})}">
                     A project of the <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" class="site-footer__link">Academy for Learning Islam</a>. Search, browse, and study Shi'i narrations in Arabic and English.
                 </p>
             </div>
             <div>
-                <div class="site-footer__label">Explore</div>
+                <div class="site-footer__label" th:text="#{footer.explore}">Explore</div>
                 <div class="site-footer__links">
-                    <a href="/books">All Books</a>
-                    <a href="/updates.html">Updates</a>
-                    <a href="/search_tips.html">Search Tips</a>
-                    <a href="/privacy">Privacy</a>
+                    <a href="/books" th:href="@{${arPrefix} ?: '' } + '/books'" th:text="#{footer.allBooks}">All Books</a>
+                    <a href="/updates.html" th:text="#{footer.updates}">Updates</a>
+                    <a href="/search_tips.html" th:text="#{footer.searchTips}">Search Tips</a>
+                    <a href="/privacy" th:text="#{footer.privacy}">Privacy</a>
                 </div>
             </div>
             <div>
-                <div class="site-footer__label">Contact</div>
+                <div class="site-footer__label" th:text="#{footer.contact}">Contact</div>
                 <div class="site-footer__links">
                     <a href="mailto:rewayaat.org@gmail.com">rewayaat.org@gmail.com</a>
-                    <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
-                    <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer">Academy of Islam</a>
+                    <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer" th:text="#{footer.github}">GitHub Repository</a>
+                    <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" th:text="#{footer.academy}">Academy of Islam</a>
                 </div>
             </div>
         </div>
         <div class="site-footer__bottom">
-            <span>&copy; 2026 Academy for Learning Islam (A.L.I.)</span>
-            <span>Content and translations remain the responsibility of their original sources.</span>
+            <span th:utext="#{footer.rights}">&copy; 2026 Academy for Learning Islam (A.L.I.)</span>
+            <span th:text="#{footer.disclaimer}">Content and translations remain the responsibility of their original sources.</span>
         </div>
     </div>
 </footer>

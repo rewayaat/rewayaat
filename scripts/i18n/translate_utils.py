@@ -25,6 +25,11 @@ except ImportError:
 SCRIPT_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = SCRIPT_DIR / "data"
 
+# The English -> Arabic mappings are not pipeline scratch: the application reads the
+# same files from the classpath to label the hub pages, so they live with the other
+# resources and there is one copy of each translation rather than two that can drift.
+MAPPING_DIR = SCRIPT_DIR.parent / "src" / "main" / "resources" / "i18n"
+
 
 def get_es_client(host="http://localhost:9200"):
     """Create ES client with timeout."""

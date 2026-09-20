@@ -100,5 +100,11 @@ class PageLocaleTest {
         assertEquals("ltr", english.getAttribute("htmlDir"));
         assertEquals("", english.getAttribute("arPrefix"),
                 "an empty prefix keeps English links on English URLs");
+
+        // The toggle is relative; only the hreflang tags are absolute.
+        assertEquals("/books/al-kafi", model.getAttribute("switchLocalePath"));
+        assertEquals("en", model.getAttribute("switchLocaleTag"));
+        assertEquals("/ar/books/al-kafi", english.getAttribute("switchLocalePath"));
+        assertEquals("ar", english.getAttribute("switchLocaleTag"));
     }
 }

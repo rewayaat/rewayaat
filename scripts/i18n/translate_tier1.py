@@ -37,7 +37,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from scripts.i18n.translate_utils import (
     get_es_client, scroll_all, atomic_write_json, load_json_cache,
     ensure_field_mapping, bulk_update_with_checkpoint,
-    DATA_DIR, SCRIPT_DIR,
+    DATA_DIR, MAPPING_DIR, SCRIPT_DIR,
 )
 
 # The application reads and writes an alias, not an index (see
@@ -79,7 +79,7 @@ def extract_unique_values(es, index, fields=None):
     # Write mapping template files and print stats
     for field in fields:
         counts = unique_values[field]
-        mapping_file = DATA_DIR / f"{field}_ar_mapping.json"
+        mapping_file = MAPPING_DIR / f"{field}_ar_mapping.json"
 
         if not counts:
             print(f"  {field}: no values found")
@@ -147,7 +147,7 @@ def apply_mappings(es, index, fields=None, dry_run=False):
     fields = fields or TIER1_FIELDS
 
     for field in fields:
-        mapping_file = DATA_DIR / f"{field}_ar_mapping.json"
+        mapping_file = MAPPING_DIR / f"{field}_ar_mapping.json"
         if not mapping_file.exists():
             print(f"  {field}: mapping file not found ({mapping_file}), skipping")
             continue
