@@ -80,6 +80,7 @@ public class NarratorPageController {
 
     @GetMapping("/narrator/{id}")
     public String narratorPage(@PathVariable("id") String id,
+                               @RequestParam(value = "tab", defaultValue = "books") String tab,
                                @RequestParam(value = "tag", required = false) String tag,
                                @RequestParam(value = "page", defaultValue = "1") int page,
                                Model model, HttpServletResponse response) throws IOException {
@@ -109,7 +110,14 @@ public class NarratorPageController {
         // are found by his name, not by a resolved chain, so the section says so plainly.
         @SuppressWarnings("unchecked")
         List<String> names = (List<String>) narrator.getOrDefault("names_ar", List.of());
-        Map<String, Object> naming = narratorService.narrationsNaming(names, tag, page, PER_PAGE);
+        // Two tabs, because the page had become a scroll: what the books say of him, and the
+        // narrations he stands in. The tab is in the URL, so each is a page that can be sent to
+        // someone, and the narrations are fetched only when they are the tab being read.
+        String view = "narrations".equals(tab) ? "narrations" : "books";
+        Map<String, Object> naming = "narrations".equals(view)
+                ? narratorService.narrationsNaming(names, tag, page, PER_PAGE)
+                : Map.of("total", narratorService.countNarrationsNaming(names),
+                         "hits", List.of(), "tags", List.of(), "searched_for", List.of());
         List<Map<String, Object>> narrations = new ArrayList<>();
         for (Object row : (List<?>) naming.getOrDefault("hits", List.of())) {
             Map<?, ?> hit = (Map<?, ?>) row;
@@ -125,19 +133,21 @@ public class NarratorPageController {
                 insightCounts.getOrDefault(String.valueOf(card.get("id")), 0)));
         long narrationTotal = ((Number) naming.getOrDefault("total", 0)).longValue();
         String base = "/narrator/" + id;
-        String withTag = tag == null || tag.isBlank() ? "" : "?tag=" + encode(tag);
+        String narrationsBase = base + "?tab=narrations";
+        String withTag = tag == null || tag.isBlank() ? "" : "&tag=" + encode(tag);
 
         model.addAttribute("narrations", narrations);
         model.addAttribute("narrationTotal", narrationTotal);
         model.addAttribute("searchedNames", naming.get("searched_for"));
-        model.addAttribute("tagFacets", tagFacets(naming.get("tags"), base, tag));
+        model.addAttribute("view", view);
+        model.addAttribute("booksUrl", base);
+        model.addAttribute("narrationsUrl", narrationsBase);
+        model.addAttribute("tagFacets", tagFacets(naming.get("tags"), narrationsBase, tag));
         model.addAttribute("activeTag", tag == null || tag.isBlank() ? null : tag);
-        model.addAttribute("clearTagUrl", base);
+        model.addAttribute("clearTagUrl", narrationsBase);
         model.addAttribute("narrationsPage", page);
-        model.addAttribute("narrationsNextUrl", base + (withTag.isEmpty() ? "?" : withTag + "&")
-                + "page=" + (page + 1));
-        model.addAttribute("narrationsPrevUrl", base + (withTag.isEmpty() ? "?" : withTag + "&")
-                + "page=" + (page - 1));
+        model.addAttribute("narrationsNextUrl", narrationsBase + withTag + "&page=" + (page + 1));
+        model.addAttribute("narrationsPrevUrl", narrationsBase + withTag + "&page=" + (page - 1));
         model.addAttribute("narrationsHasMore", (long) page * PER_PAGE < narrationTotal);
         return "narrator";
     }
@@ -150,7 +160,7 @@ public class NarratorPageController {
             String label = String.valueOf(bucket.get("label"));
             facets.add(Map.of("label", label,
                     "count", bucket.get("count"),
-                    "url", base + "?tag=" + encode(label),
+                    "url", base + "&tag=" + encode(label),
                     "active", label.equals(active)));
         }
         return facets;

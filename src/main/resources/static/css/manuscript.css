@@ -13812,11 +13812,20 @@ html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
 }
 
 .narrator-narrations__caveat {
-    max-width: 68ch;
-    margin: -0.4rem 0 1rem;
+    max-width: 72ch;
+    margin: 0 0 1.1rem;
     font-size: 0.8rem;
     line-height: 1.65;
     color: var(--text-muted);
+}
+
+.narrator-narrations__caveat p {
+    margin: 0 0 0.5rem;
+}
+
+.narrator-narrations__caveat .narrator-names__chip {
+    font-size: 0.95rem;
+    padding: 0.12rem 0.55rem;
 }
 
 /* A Rijal entry folded to a readable height, with the same control a long narration uses. */
@@ -13841,4 +13850,81 @@ html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
 .narrator-entry__grade {
     text-transform: none;
     letter-spacing: 0.02em;
+}
+
+/* Narrator page tabs. Links, not script: each tab is a URL, and the page works without JS. */
+
+.narrator-tabs {
+    display: flex;
+    gap: 0.35rem;
+    margin: 0 0 1.6rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.narrator-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.6rem 1.1rem;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 5px 5px 0 0;
+    margin-bottom: -1px;
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+
+.narrator-tab:hover {
+    color: var(--primary);
+    background: var(--bg-subtle);
+}
+
+.narrator-tab--active {
+    border-color: var(--border);
+    background: var(--surface);
+    color: var(--primary);
+}
+
+.narrator-tab__count {
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px;
+    background: var(--bg-subtle);
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.narrator-tab--active .narrator-tab__count {
+    background: var(--gold-bg);
+    color: var(--gold-dark);
+}
+
+/* Aliases as chips. A dot-separated run of twenty Arabic names reads as one long name. */
+.narrator-names__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0 0 0.6rem;
+    padding: 0;
+    list-style: none;
+}
+
+.narrator-names__chip {
+    padding: 0.22rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    font-family: var(--font-arabic);
+    font-size: 1.02rem;
+    line-height: 1.7;
+    color: var(--text);
+}
+
+.narrator-names__chips--latin .narrator-names__chip {
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    color: var(--text-secondary);
 }

@@ -58,10 +58,27 @@
 
     <div th:replace="~{fragments/site :: ornament}"></div>
 
+    <!-- Two tabs, in the URL rather than in script: what the books say of him is one reading,
+         the narrations he stands in another, and a reader wants one at a time. -->
+    <nav class="narrator-tabs" aria-label="Sections">
+        <a class="narrator-tab" th:href="${booksUrl}"
+           th:classappend="${view == 'books'} ? 'narrator-tab--active' : ''">
+            What the books say
+            <span class="narrator-tab__count" th:text="${narrator.entry_count}">10</span>
+        </a>
+        <a class="narrator-tab" th:href="${narrationsUrl}"
+           th:classappend="${view == 'narrations'} ? 'narrator-tab--active' : ''">
+            Narrations naming him
+            <span class="narrator-tab__count"
+                  th:text="${#numbers.formatInteger(narrationTotal, 0, 'COMMA')}">1,504</span>
+        </a>
+    </nav>
+
     <!-- One row per book, not one per entry. A book read into several profiles used to repeat
          its verdict three times over; here each book states its position once, and a book that
          takes two — Mamaqani quotes al-Najashi's «weak» before concluding «thiqa» himself — is
          marked as divided rather than shown twice as if it were two books. -->
+    <div th:if="${view == 'books'}">
     <section class="narrator-stands" th:if="${!#lists.isEmpty(narrator.where_books_stand)}">
         <h2 class="hub-group__label">Where each book stands</h2>
         <table class="narrator-stands__table">
@@ -164,31 +181,40 @@
     </section>
 
     <!-- The names he is headed under, so a reader who came looking for one of them can see
-         that this is the same man, and why the page answered to it. -->
+         that this is the same man, and why the page answered to it. One chip each: run
+         together with separators they read as one long unbroken name. -->
     <section class="narrator-names" th:if="${!#lists.isEmpty(narrator.names_ar)}">
         <h2 class="hub-group__label">Also named</h2>
-        <p class="narrator-names__list" dir="rtl" lang="ar"
-           th:text="${#strings.listJoin(narrator.names_ar, ' · ')}">أسماء أخرى</p>
+        <ul class="narrator-names__chips">
+            <li class="narrator-names__chip" th:each="name : ${narrator.names_ar}"
+                dir="rtl" lang="ar" th:text="${name}">اسم</li>
+        </ul>
+        <ul class="narrator-names__chips narrator-names__chips--latin"
+            th:if="${!#lists.isEmpty(narrator.names_en)}">
+            <li class="narrator-names__chip" th:each="name : ${narrator.names_en}"
+                th:text="${name}">A name</li>
+        </ul>
     </section>
+    </div>
 
     <!-- The narrations that name him, in the same card the search results and chapter pages
          use, with the same tag filter bar. They are gathered by his name: the chains are not
          yet resolved to people, so a distinctive name gathers his narrations exactly and a
          common one gathers his namesakes' too. Saying which names were searched is the least
          a reader needs to judge that. -->
-    <section class="narrator-narrations" th:if="${narrationTotal > 0}">
-        <h2 class="hub-group__label">
-            Narrations naming him
-            <span class="hub-group__note"
-                  th:text="${#numbers.formatInteger(narrationTotal, 0, 'COMMA')}">1,500</span>
-        </h2>
-
-        <p class="narrator-narrations__caveat">
-            Found by searching the chains for
-            <span th:text="${#strings.listJoin(searchedNames, '، ')}" dir="rtl" lang="ar">الاسم</span>.
-            The chains are not yet linked to people, so where a name is shared these will
-            include his namesakes.
-        </p>
+    <section class="narrator-narrations" th:if="${view == 'narrations' and narrationTotal > 0}">
+        <!-- Arabic names set inline in an English sentence broke across the line in both
+             directions at once; they sit on their own row as chips. -->
+        <div class="narrator-narrations__caveat">
+            <p>
+                Found by searching the chains for these names. The chains are not yet linked to
+                people, so where a name is shared these will include his namesakes.
+            </p>
+            <ul class="narrator-names__chips">
+                <li class="narrator-names__chip" th:each="name : ${searchedNames}"
+                    dir="rtl" lang="ar" th:text="${name}">اسم</li>
+            </ul>
+        </div>
 
         <div class="tag-filter-bar tag-filter-bar--results mb-3" th:if="${!#lists.isEmpty(tagFacets)}">
             <div class="tag-filter-bar__head">

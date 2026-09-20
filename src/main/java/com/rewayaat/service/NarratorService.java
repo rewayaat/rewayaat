@@ -222,6 +222,29 @@ public class NarratorService {
         }
     }
 
+    /** How many narrations name him, without fetching any of them: for the tab's count. */
+    public long countNarrationsNaming(List<String> nameForms) {
+        List<String> forms = distinctive(nameForms);
+        if (forms.isEmpty()) {
+            return 0L;
+        }
+        try (ESClientProvider provider = new ESClientProvider()) {
+            SearchResponse<Map> response = provider.client().search(s -> s
+                    .index(ESClientProvider.INDEX)
+                    .size(0)
+                    .query(q -> q.bool(b -> {
+                        for (String form : forms) {
+                            b.should(sh -> sh.matchPhrase(m -> m.field("arabic").query(form)));
+                        }
+                        return b.minimumShouldMatch("1");
+                    })), Map.class);
+            return response.hits().total() == null ? 0L : response.hits().total().value();
+        } catch (Exception e) {
+            LOGGER.warn("Could not count narrations naming {}: {}", nameForms, e.getMessage());
+            return 0L;
+        }
+    }
+
     /**
      * The name forms worth searching a chain for.
      *
