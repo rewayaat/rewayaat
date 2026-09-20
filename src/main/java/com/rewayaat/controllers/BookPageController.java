@@ -177,7 +177,7 @@ public class BookPageController {
                 bookName, volumeLabel, count(narrations), count(chapters.size())));
         locale.applyTo(model, "/books/" + bookSlug + "/volume/" + encode(volume));
         model.addAttribute("sectionSummary",
-                blurbs.sectionSummaryForPath("books/" + bookSlug + "/volume/" + volume));
+                blurbs.sectionSummaryForPath("books/" + bookSlug + "/volume/" + volume, locale.isArabic()));
         model.addAttribute("shareImageUrl", BASE_URL + "/books/" + bookSlug + "/volume/" + encode(volume) + "/card.png");
 
         LinkedHashMap<String, String> trail = new LinkedHashMap<>();
@@ -224,7 +224,7 @@ public class BookPageController {
         model.addAttribute("seoDescription", msg(locale, "seo.part.description",
                 bookName, partTitle, count(narrations), count(chapters.size())));
         locale.applyTo(model, part.url());
-        model.addAttribute("sectionSummary", blurbs.sectionSummaryForPath(part.url()));
+        model.addAttribute("sectionSummary", blurbs.sectionSummaryForPath(part.url(), locale.isArabic()));
         model.addAttribute("shareImageUrl", BASE_URL + part.url() + "/card.png");
         model.addAttribute("jsonLd", bookJsonLd(book));
 

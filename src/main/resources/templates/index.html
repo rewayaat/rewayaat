@@ -343,7 +343,7 @@
                                             v-bind:class="{'is-active': isNarrationSidecarTabActive(narration, 'similar')}"
                                             v-bind:aria-selected="isNarrationSidecarTabActive(narration, 'similar') ? 'true' : 'false'"
                                             aria-label="Open similar hadith panel"
-                                            title="Similar Hadith"
+                                            title="Similar Hadith" th:title="#{sidecar.similarHadith}"
                                             v-bind:disabled="isNarrationSidecarTabDisabled(narration, 'similar')"
                                             v-on:click="setNarrationSidecarTab(narration, 'similar')">
                                         <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
@@ -359,7 +359,7 @@
                                             v-bind:class="{'is-active': isNarrationSidecarTabActive(narration, 'quran')}"
                                             v-bind:aria-selected="isNarrationSidecarTabActive(narration, 'quran') ? 'true' : 'false'"
                                             aria-label="Open Quranic insights panel"
-                                            title="Quranic Insights"
+                                            title="Quranic Insights" th:title="#{card.quranicInsights}"
                                             v-bind:disabled="isNarrationSidecarTabDisabled(narration, 'quran')"
                                             v-on:click="setNarrationSidecarTab(narration, 'quran')">
                                         <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
@@ -385,7 +385,7 @@
                                              aria-live="polite"
                                              aria-label="Loading similar hadith">
                                             <div class="similar-tab-body similar-tab-body--loading mt-2">
-                                                <div class="hadith-loading-label">Fetching...</div>
+                                                <div class="hadith-loading-label" th:text="#{common.fetching}">Fetching...</div>
                                                 <div class="hadith-loading-skeleton" style="margin-top: 12px;">
                                                     <div class="hadith-skeleton-bar hadith-skeleton-bar--short"></div>
                                                     <div class="hadith-skeleton-bar hadith-skeleton-bar--long"></div>
@@ -449,7 +449,7 @@
                                              aria-live="polite"
                                              aria-label="Loading Quranic insights">
                                             <div class="similar-tab-body similar-tab-body--loading mt-2">
-                                                <div class="hadith-loading-label">Fetching...</div>
+                                                <div class="hadith-loading-label" th:text="#{common.fetching}">Fetching...</div>
                                                 <div class="hadith-loading-skeleton" style="margin-top: 12px;">
                                                     <div class="hadith-skeleton-bar hadith-skeleton-bar--short"></div>
                                                     <div class="hadith-skeleton-bar hadith-skeleton-bar--long"></div>
@@ -500,7 +500,7 @@
                                                            target="_blank" rel="noopener">View on Al-Islam.org <i class="fa fa-external-link-alt fa-xs"></i></a>
                                                         <div class="hadith-sidecar__source-tree"
                                                              v-if="quranicInsightSources(item).length > 0">
-                                                            <div class="hadith-sidecar__source-tree-label">Tafsir Sources</div>
+                                                            <div class="hadith-sidecar__source-tree-label" th:text="#{sidecar.tafsirSources}">Tafsir Sources</div>
                                                             <div class="hadith-sidecar__source-tree-children">
                                                                 <button type="button"
                                                                         class="hadith-sidecar__source-node"
@@ -582,7 +582,7 @@
                                          above the similar/tafsir panels which are separate corpora. -->
                                     <div class="hadith-notes mt-3" v-if="narration.notes">
                                         <div class="hadith-notes__head">
-                                            <span class="hadith-notes__label">Notes</span>
+                                            <span class="hadith-notes__label" th:text="#{sidecar.notes}">Notes</span>
                                         </div>
                                         <div class="hadith-notes__body"
                                              v-bind:id="narrationDomId(narration) + '-notes'"
@@ -604,7 +604,7 @@
                                          v-if="activeNarrationSidecarTab(narration) === 'similar' && activeSimilar(narration)">
                                         <div class="hadith-inline-context__meta-band hadith-inline-context__meta-band--compact">
                                             <div class="hadith-inline-context__title-block">
-                                                <div class="hadith-inline-context__eyebrow">Similar Hadith</div>
+                                                <div class="hadith-inline-context__eyebrow" th:text="#{sidecar.similarHadith}">Similar Hadith</div>
                                                 <button type="button"
                                                         class="hadith-inline-context__title-link"
                                                         v-on:click.prevent="jumpToSimilarHadith(activeSimilar(narration), 'book')">
@@ -666,7 +666,7 @@
                                          v-else-if="activeNarrationSidecarTab(narration) === 'quran' && activeQuranicInsight(narration)">
                                         <div class="hadith-inline-context__meta-band hadith-inline-context__meta-band--compact hadith-inline-context__meta-band--quran">
                                             <div class="hadith-inline-context__title-block">
-                                                <div class="hadith-inline-context__eyebrow">Quranic Insight</div>
+                                                <div class="hadith-inline-context__eyebrow" th:text="#{sidecar.quranicInsight}">Quranic Insight</div>
                                                 <div class="hadith-inline-context__meta-line"
                                                      v-if="quranContextSegments(narration).length > 0">
                                                     <template v-for="(segment, segmentIdx) in quranContextSegments(narration)">
@@ -684,7 +684,7 @@
                                         </div>
                                         <div class="hadith-inline-context__snippets"
                                              v-if="activeQuranicInsightSelectedSnippets(narration).length > 0">
-                                            <div class="quranic-section__label">Tafsir Sources</div>
+                                            <div class="quranic-section__label" th:text="#{sidecar.tafsirSources}">Tafsir Sources</div>
                                             <div class="quranic-snippet"
                                                  v-for="(snippet, sidx) in activeQuranicInsightSelectedSnippets(narration)"
                                                  v-bind:key="'snippet-inline-' + (snippet.tafsir_slug || sidx)">
@@ -716,7 +716,7 @@
                                     <div class="hadith-card__footer">
                                         <div class="topic-tag-pills hadith-card__tags"
                                              v-if="narration.topic_tags && narration.topic_tags.length > 0">
-                                            <span class="topic-tag-pills__label">Tags</span>
+                                            <span class="topic-tag-pills__label" th:text="#{sidecar.tags}">Tags</span>
                                             <button type="button"
                                                     class="topic-pill"
                                                     v-for="slug in visibleNarrationTopicTags(narration)"
@@ -934,7 +934,7 @@
                 '<div style="display:flex;align-items:flex-start;gap:12px;">' +
                     '<i class="fa fa-comment-dots" style="font-size:1.4rem;color:#d4940a;margin-top:2px;flex-shrink:0;"></i>' +
                     '<div style="flex:1;min-width:0;">' +
-                        '<div style="font-weight:600;font-size:0.95rem;margin-bottom:8px;" th:text="#{feedback.title}">How are you finding HDP?</div>' +
+                        '<div style="font-weight:600;font-size:0.95rem;margin-bottom:8px;">' + t('feedback.title', 'How are you finding HDP?') + '</div>' +
                         '<div id="feedbackStars" style="display:flex;gap:4px;margin-bottom:10px;font-size:1.4rem;cursor:pointer;" aria-label="Rate 1 to 5 stars">' +
                             '<span data-star="1" style="color:#555;transition:color .15s;">&#9733;</span>' +
                             '<span data-star="2" style="color:#555;transition:color .15s;">&#9733;</span>' +
@@ -942,7 +942,7 @@
                             '<span data-star="4" style="color:#555;transition:color .15s;">&#9733;</span>' +
                             '<span data-star="5" style="color:#555;transition:color .15s;">&#9733;</span>' +
                         '</div>' +
-                        '<div style="font-size:0.75rem;color:#888;margin-bottom:8px;" th:text="#{feedback.subtitle}">Your feedback helps us improve the platform</div>' +
+                        '<div style="font-size:0.75rem;color:#888;margin-bottom:8px;">' + t('feedback.subtitle', 'Your feedback helps us improve the platform') + '</div>' +
                         '<input id="feedbackName" type="text" placeholder="Name (optional)" ' +
                             'style="width:100%;box-sizing:border-box;padding:7px 10px;border-radius:8px;border:1px solid #3a3a55;background:#252540;color:#e0e0e0;font-size:0.84rem;font-family:inherit;margin-bottom:6px;-webkit-appearance:none;" />' +
                         '<input id="feedbackEmail" type="email" placeholder="Email (optional)" ' +
@@ -950,9 +950,9 @@
                         '<textarea id="feedbackComment" rows="2" placeholder="Any features you\'d like or bugs to report? (optional)" ' +
                             'style="width:100%;box-sizing:border-box;padding:8px 10px;border-radius:8px;border:1px solid #3a3a55;background:#252540;color:#e0e0e0;font-size:0.84rem;font-family:inherit;resize:vertical;min-height:48px;-webkit-appearance:none;"></textarea>' +
                         '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center;">' +
-                            '<button id="feedbackSubmit" disabled style="padding:6px 18px;border-radius:6px;background:#d4940a;color:#fff;font-size:0.84rem;font-weight:600;border:none;cursor:pointer;opacity:0.4;-webkit-tap-highlight-color:transparent;" th:text="#{feedback.submit}">Submit</button>' +
-                            '<button id="feedbackDismiss" style="padding:6px 12px;border-radius:6px;background:transparent;border:1px solid rgba(255,255,255,0.15);color:#aaa;font-size:0.8rem;cursor:pointer;-webkit-tap-highlight-color:transparent;" th:text="#{feedback.maybeLater}">Maybe later</button>' +
-                            '<span id="feedbackThanks" style="display:none;color:#4ade80;font-size:0.84rem;font-weight:500;" th:text="#{feedback.thanks}">Thanks for your feedback!</span>' +
+                            '<button id="feedbackSubmit" disabled style="padding:6px 18px;border-radius:6px;background:#d4940a;color:#fff;font-size:0.84rem;font-weight:600;border:none;cursor:pointer;opacity:0.4;-webkit-tap-highlight-color:transparent;">' + t('feedback.submit', 'Submit') + '</button>' +
+                            '<button id="feedbackDismiss" style="padding:6px 12px;border-radius:6px;background:transparent;border:1px solid rgba(255,255,255,0.15);color:#aaa;font-size:0.8rem;cursor:pointer;-webkit-tap-highlight-color:transparent;">' + t('feedback.maybeLater', 'Maybe later') + '</button>' +
+                            '<span id="feedbackThanks" style="display:none;color:#4ade80;font-size:0.84rem;font-weight:500;">' + t('feedback.thanks', 'Thanks for your feedback!') + '</span>' +
                         '</div>' +
                     '</div>' +
                     '<button id="feedbackClose" style="background:none;border:none;color:#888;font-size:1.2rem;cursor:pointer;padding:0 0 0 8px;line-height:1;-webkit-tap-highlight-color:transparent;" aria-label="Dismiss">&times;</button>' +
@@ -1022,11 +1022,11 @@
                         setTimeout(function() { dismiss(); }, 2500);
                     } else {
                         submitBtn.disabled = false;
-                        submitBtn.textContent = 'Submit';
+                        submitBtn.textContent = t('feedback.submit', 'Submit');
                     }
                 }).catch(function() {
                     submitBtn.disabled = false;
-                    submitBtn.textContent = 'Submit';
+                    submitBtn.textContent = t('feedback.submit', 'Submit');
                 });
             });
 

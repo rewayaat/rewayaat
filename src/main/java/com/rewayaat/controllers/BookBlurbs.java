@@ -112,6 +112,15 @@ class BookBlurbs {
      * nothing left to explain. The hero falls back to its centred layout when there is
      * nothing here, exactly as a book with no summary does.
      */
+    /**
+     * The same rule as {@link #summaryForSlug(String, boolean)}: section_summaries.json is
+     * English only, and English prose under an Arabic heading works against the one thing
+     * an Arabic page is for. The hero falls back to its centred layout without one.
+     */
+    String sectionSummaryForPath(String path, boolean arabic) {
+        return arabic ? null : sectionSummaryForPath(path);
+    }
+
     String sectionSummaryForPath(String path) {
         if (path == null || path.isBlank()) {
             return null;
