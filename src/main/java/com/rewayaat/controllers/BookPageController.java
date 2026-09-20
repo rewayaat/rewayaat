@@ -11,7 +11,9 @@ import com.rewayaat.service.HadithCardFactory;
 import com.rewayaat.service.QuranicInsightsService;
 import com.rewayaat.service.TopicLabelSource;
 import io.swagger.v3.oas.annotations.Hidden;
+import com.rewayaat.service.ArabicNames;
 import com.rewayaat.service.PageLocale;
+import org.springframework.context.MessageSource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -49,6 +51,8 @@ public class BookPageController {
     private static final ObjectMapper JSON = new ObjectMapper();
     private static final String BASE_URL = HomeController.BASE_URL;
 
+    private final MessageSource messages;
+
     /** Enough to be a useful chapter page without turning one into a 500-narration wall. */
     private static final int MAX_CHAPTER_NARRATIONS = 500;
     private static final int EXCERPT_CHARS = 220;
@@ -61,7 +65,9 @@ public class BookPageController {
     private final QuranicInsightsService quranicInsights;
 
     public BookPageController(BookCatalog catalog, HadithCardFactory cards,
-                              TopicLabelSource topicLabels, QuranicInsightsService quranicInsights) {
+                              TopicLabelSource topicLabels, QuranicInsightsService quranicInsights,
+                              MessageSource messages) {
+        this.messages = messages;
         this.catalog = catalog;
         this.cards = cards;
         this.topicLabels = topicLabels;
@@ -74,13 +80,12 @@ public class BookPageController {
 
         model.addAttribute("books", books);
         model.addAttribute("totalNarrations", books.stream().mapToLong(BookCatalog.Book::count).sum());
-        model.addAttribute("seoTitle", "Shia Hadith Books — Al-Kafi, Nahj al-Balagha and More");
-        model.addAttribute("seoDescription",
-                "Browse the primary Shia hadith collections: Al-Kafi, Nahj al-Balagha, "
-                + "Man La Yahduruh al-Faqih, Al-Khisal, Al-Amali and more, in Arabic and English.");
-        PageLocale.of(request).applyTo(model, "/books");
+        PageLocale locale = PageLocale.of(request);
+        model.addAttribute("seoTitle", msg(locale, "seo.books.title"));
+        model.addAttribute("seoDescription", msg(locale, "seo.books.description"));
+        locale.applyTo(model, "/books");
         model.addAttribute("jsonLd", booksIndexJsonLd(books));
-        addBreadcrumbs(model, new LinkedHashMap<>());
+        addBreadcrumbs(model, new LinkedHashMap<>(), locale);
         return "books";
     }
 
@@ -115,17 +120,18 @@ public class BookPageController {
         model.addAttribute("chapters", useVolumes || useParts ? List.of() : book.chapters());
         model.addAttribute("blurb", blurbs.forSlug(bookSlug));
         model.addAttribute("bookSummary", blurbs.summaryForSlug(bookSlug));
-        model.addAttribute("seoTitle", book.name() + " — Shia Hadith in Arabic & English");
-        model.addAttribute("seoDescription", String.format(
-                "Read %s in Arabic and English: %,d narrations across %,d chapters, "
-                + "with similar narrations and Quranic insights for each hadith.",
-                book.name(), book.count(), book.chapters().size()));
-        PageLocale.of(request).applyTo(model, "/books/" + bookSlug);
+        PageLocale locale = PageLocale.of(request);
+        String bookName = named(locale, book.name(), book.nameAr());
+        model.addAttribute("bookTitle", bookName);
+        model.addAttribute("seoTitle", msg(locale, "seo.book.title", bookName));
+        model.addAttribute("seoDescription", msg(locale, "seo.book.description",
+                bookName, count(book.count()), count(book.chapters().size())));
+        locale.applyTo(model, "/books/" + bookSlug);
         model.addAttribute("shareImageUrl", BASE_URL + "/books/" + bookSlug + "/card.png");
         model.addAttribute("jsonLd", bookJsonLd(book));
         LinkedHashMap<String, String> trail = new LinkedHashMap<>();
-        trail.put(book.name(), "/books/" + bookSlug);
-        addBreadcrumbs(model, trail);
+        trail.put(bookName, "/books/" + bookSlug);
+        addBreadcrumbs(model, trail, locale);
         return "book";
     }
 
@@ -161,19 +167,23 @@ public class BookPageController {
         // seven of Al-Kafi's eight volume pages read that way, while the meta description
         // built from chapters.size() gave the true figure on the very same page.
         model.addAttribute("chapterCount", chapters.size());
-        model.addAttribute("seoTitle", book.name() + " " + label + " — Shia Hadith in Arabic & English");
-        model.addAttribute("seoDescription", String.format(
-                "%s, %s: %,d narrations across %,d chapters, in Arabic and English.",
-                book.name(), label, narrations, chapters.size()));
-        PageLocale.of(request).applyTo(model, "/books/" + bookSlug + "/volume/" + encode(volume));
+        PageLocale locale = PageLocale.of(request);
+        String bookName = named(locale, book.name(), book.nameAr());
+        String volumeLabel = locale.isArabic() ? msg(locale, "book.volumeNumber", volume) : label;
+        model.addAttribute("bookTitle", bookName);
+        model.addAttribute("volumeLabel", volumeLabel);
+        model.addAttribute("seoTitle", msg(locale, "seo.volume.title", bookName, volumeLabel));
+        model.addAttribute("seoDescription", msg(locale, "seo.volume.description",
+                bookName, volumeLabel, count(narrations), count(chapters.size())));
+        locale.applyTo(model, "/books/" + bookSlug + "/volume/" + encode(volume));
         model.addAttribute("sectionSummary",
                 blurbs.sectionSummaryForPath("books/" + bookSlug + "/volume/" + volume));
         model.addAttribute("shareImageUrl", BASE_URL + "/books/" + bookSlug + "/volume/" + encode(volume) + "/card.png");
 
         LinkedHashMap<String, String> trail = new LinkedHashMap<>();
-        trail.put(book.name(), "/books/" + bookSlug);
-        trail.put(label, "/books/" + bookSlug + "/volume/" + encode(volume));
-        addBreadcrumbs(model, trail);
+        trail.put(bookName, "/books/" + bookSlug);
+        trail.put(volumeLabel, "/books/" + bookSlug + "/volume/" + encode(volume));
+        addBreadcrumbs(model, trail, locale);
         model.addAttribute("jsonLd", bookJsonLd(book));
         return "volume";
     }
@@ -204,22 +214,27 @@ public class BookPageController {
         // genuinely differ; a template reading one attribute on one route and another on
         // the other is how the "0 chapters" bug survived as long as it did.
         model.addAttribute("chapterCount", chapters.size());
-        model.addAttribute("seoTitle", part.title() + " — " + book.name());
-        model.addAttribute("seoDescription", String.format(
-                "%s, %s: %,d narrations across %,d chapters, in Arabic and English.",
-                book.name(), part.title(), narrations, chapters.size()));
-        PageLocale.of(request).applyTo(model, part.url());
+        PageLocale locale = PageLocale.of(request);
+        String bookName = named(locale, book.name(), book.nameAr());
+        String partTitle = named(locale, part.title(), ArabicNames.part(part.title()));
+        model.addAttribute("bookTitle", bookName);
+        model.addAttribute("partTitle", partTitle);
+        model.addAttribute("seoTitle", msg(locale, "seo.part.title", partTitle, bookName));
+        model.addAttribute("seoDescription", msg(locale, "seo.part.description",
+                bookName, partTitle, count(narrations), count(chapters.size())));
+        locale.applyTo(model, part.url());
         model.addAttribute("sectionSummary", blurbs.sectionSummaryForPath(part.url()));
         model.addAttribute("shareImageUrl", BASE_URL + part.url() + "/card.png");
         model.addAttribute("jsonLd", bookJsonLd(book));
 
         LinkedHashMap<String, String> trail = new LinkedHashMap<>();
-        trail.put(book.name(), "/books/" + bookSlug);
+        trail.put(bookName, "/books/" + bookSlug);
         if (part.volume() != null && !part.volume().isBlank() && book.volumes().size() > 1) {
-            trail.put("Volume " + part.volume(), "/books/" + bookSlug + "/volume/" + encode(part.volume()));
+            trail.put(msg(locale, "book.volumeNumber", part.volume()),
+                    "/books/" + bookSlug + "/volume/" + encode(part.volume()));
         }
-        trail.put(part.title(), part.url());
-        addBreadcrumbs(model, trail);
+        trail.put(partTitle, part.url());
+        addBreadcrumbs(model, trail, locale);
         return "volume";
     }
 
@@ -259,10 +274,14 @@ public class BookPageController {
         // volume have pages, the section does not.
         model.addAttribute("volumeUrl", chapter.volume() == null || chapter.volume().isBlank()
                 ? null : "/books/" + bookSlug + "/volume/" + encode(chapter.volume()));
-        model.addAttribute("seoTitle", chapter.title() + " — " + chapter.bookName());
-        model.addAttribute("seoDescription", String.format(
-                "%s: %,d narration%s from %s, in Arabic and English with full chains of transmission.",
-                chapter.title(), chapter.count(), chapter.count() == 1 ? "" : "s", chapter.bookName()));
+        PageLocale locale = PageLocale.of(request);
+        String chapterTitle = named(locale, chapter.title(), chapter.titleAr());
+        String chapterBook = named(locale, chapter.bookName(), chapter.bookNameAr());
+        model.addAttribute("chapterTitle", chapterTitle);
+        model.addAttribute("bookTitle", chapterBook);
+        model.addAttribute("seoTitle", msg(locale, "seo.chapter.title", chapterTitle, chapterBook));
+        model.addAttribute("seoDescription", msg(locale, "seo.chapter.description",
+                chapterTitle, count(chapter.count()), chapterBook));
         // A chapter holding a single narration *is* that narration: the two pages carry
         // the same text, both were self-canonical, and both sat in a sitemap, so roughly
         // 4,000 pairs competed with each other and Search Console reported the whole
@@ -278,23 +297,24 @@ public class BookPageController {
         // the harmless way round.
         String canonicalPath = chapter.holdsSingleNarration() && all.size() == 1
                 ? str(all.get(0).get("url")) : chapter.url();
-        PageLocale.of(request).applyTo(model, canonicalPath);
+        locale.applyTo(model, canonicalPath);
         model.addAttribute("shareImageUrl", BASE_URL + chapter.url() + "/card.png");
         model.addAttribute("jsonLd", chapterJsonLd(chapter, narrations));
 
         LinkedHashMap<String, String> trail = new LinkedHashMap<>();
-        trail.put(chapter.bookName(), "/books/" + bookSlug);
-        trail.put(chapter.title(), chapter.url());
+        trail.put(chapterBook, "/books/" + bookSlug);
+        trail.put(chapterTitle, chapter.url());
+        // Previous/next stay inside the language the reader is in, title and URL alike.
         catalog.siblingChapter(chapter, -1).ifPresent(prev -> {
-            model.addAttribute("prevUrl", prev.url());
-            model.addAttribute("prevLabel", prev.title());
+            model.addAttribute("prevUrl", locale.prefix() + prev.url());
+            model.addAttribute("prevLabel", named(locale, prev.title(), prev.titleAr()));
         });
         catalog.siblingChapter(chapter, 1).ifPresent(next -> {
-            model.addAttribute("nextUrl", next.url());
-            model.addAttribute("nextLabel", next.title());
+            model.addAttribute("nextUrl", locale.prefix() + next.url());
+            model.addAttribute("nextLabel", named(locale, next.title(), next.titleAr()));
         });
 
-        addBreadcrumbs(model, trail);
+        addBreadcrumbs(model, trail, locale);
         return "chapter";
     }
 
@@ -440,15 +460,33 @@ public class BookPageController {
         return text.substring(0, cut <= 0 ? EXCERPT_CHARS : cut) + "…";
     }
 
+    /** A message in the page's language. Arguments are pre-formatted strings. */
+    private String msg(PageLocale locale, String key, Object... args) {
+        return messages.getMessage(key, args, locale.locale());
+    }
+
+    /** The Arabic name when there is one and the page is Arabic; the English one otherwise. */
+    private static String named(PageLocale locale, String english, String arabic) {
+        return locale.isArabic() && arabic != null && !arabic.isBlank() ? arabic : english;
+    }
+
+    /** Thousands-separated, in Latin digits, because these land in titles a crawler reads. */
+    private static String count(long value) {
+        return String.format("%,d", value);
+    }
+
     /**
      * The visible breadcrumb trail and its BreadcrumbList, built from one list so the two
      * can never disagree — a mismatch between them is exactly what Google flags.
      */
-    private void addBreadcrumbs(Model model, Map<String, String> trail) {
+    private void addBreadcrumbs(Model model, Map<String, String> trail, PageLocale locale) {
         List<Map<String, String>> crumbs = new ArrayList<>();
-        crumbs.add(Map.of("name", "Home", "url", "/"));
-        crumbs.add(Map.of("name", "Books", "url", "/books"));
-        trail.forEach((name, url) -> crumbs.add(Map.of("name", name, "url", url)));
+        // Every URL in the trail carries the prefix, so a reader following it back up
+        // stays in Arabic, and the BreadcrumbList describes the page it is actually on.
+        String prefix = locale.prefix();
+        crumbs.add(Map.of("name", msg(locale, "crumb.home"), "url", prefix + "/"));
+        crumbs.add(Map.of("name", msg(locale, "nav.books"), "url", prefix + "/books"));
+        trail.forEach((name, url) -> crumbs.add(Map.of("name", name, "url", prefix + url)));
         model.addAttribute("breadcrumbs", crumbs);
         model.addAttribute("breadcrumbJsonLd", breadcrumbJsonLd(crumbs));
     }

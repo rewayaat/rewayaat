@@ -41,7 +41,7 @@ class ShareImageCoverageTest {
         // Each page method publishes exactly one canonical, through PageLocale so that the
         // Arabic URL is canonical to itself; the card should follow it.
         Matcher m = Pattern.compile(
-                "PageLocale\\.of\\(request\\)\\.applyTo\\(model,(.*?)\\);", Pattern.DOTALL)
+                "\\.applyTo\\(model,(.*?)\\);", Pattern.DOTALL)
                 .matcher(source);
         Set<String> missing = new LinkedHashSet<>();
         int pages = 0;

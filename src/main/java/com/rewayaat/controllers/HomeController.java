@@ -28,8 +28,11 @@ public class HomeController {
     private static final Logger log = LoggerFactory.getLogger(HomeController.class);
 
     private final BookCatalog catalog;
+    private final org.springframework.context.MessageSource messages;
 
-    public HomeController(BookCatalog catalog) {
+    public HomeController(BookCatalog catalog,
+                          org.springframework.context.MessageSource messages) {
+        this.messages = messages;
         this.catalog = catalog;
     }
 
@@ -109,9 +112,14 @@ public class HomeController {
         model.addAttribute("books", books);
         model.addAttribute("totalNarrations", books.stream().mapToLong(BookCatalog.Book::count).sum());
 
-        model.addAttribute("seoTitle", HOME_TITLE);
-        model.addAttribute("seoDescription", HOME_DESCRIPTION);
-        PageLocale.of(request).applyTo(model, "/");
+        // The constants stay: the JSON-LD above is the site's own description and is not
+        // per-request. What a reader and a crawler see is the page's own language.
+        PageLocale homeLocale = PageLocale.of(request);
+        model.addAttribute("seoTitle",
+                messages.getMessage("seo.home.title", null, homeLocale.locale()));
+        model.addAttribute("seoDescription",
+                messages.getMessage("seo.home.description", null, homeLocale.locale()));
+        homeLocale.applyTo(model, "/");
         model.addAttribute("jsonLd", HOME_JSON_LD);
 
         // A search result page is thin, unbounded and duplicates the narration pages it

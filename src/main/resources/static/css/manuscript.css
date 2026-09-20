@@ -11926,3 +11926,56 @@ a.hub-hero__eyebrow:hover {
 .search-mode-option[aria-pressed="true"] .search-mode-option__check {
     opacity: 1;
 }
+
+/* ==========================================================================
+   Right-to-left
+   ==========================================================================
+   Appended as its own pass, like the ornament block above it, rather than
+   folded into the rules it corrects.
+
+   Bootstrap's own RTL build handles the layout primitives; what it cannot know
+   about is this file's decorations. Several of them are light sweeps parked off
+   the left edge of their host until a hover animates them across:
+
+       .site-nav::before      left: -40%
+       .hub-card::before      transform: translateX(-190%)
+       .topic-tag-pills::before, the action rail, the share card
+
+   In a left-to-right document a box hanging off the left edge is invisible and
+   costs nothing: the browser does not make leftward overflow scrollable. In a
+   right-to-left document the left edge is the *end* of the inline axis, so the
+   same box becomes scrollable overflow. .site-nav::before is 40% of the navbar
+   wide, which made the document 1,771px in a 1,280px viewport and pushed the
+   whole page sideways, with the content cut off at one edge and 506px of empty
+   space at the other. */
+
+[dir="rtl"] body {
+    /* clip, not hidden: hidden would make the body a scroll container and break
+       position: sticky on the navbar. clip creates no scroll container, so the
+       decorations are trimmed and the sticky header still sticks. */
+    overflow-x: clip;
+}
+
+/* Mirror the sweeps so they enter from the side the reader's eye starts on.
+   The clip above already stops them distorting the page; this is what makes
+   them sweep the right way rather than backwards. */
+[dir="rtl"] .site-nav::before {
+    left: auto;
+    right: -40%;
+}
+
+[dir="rtl"] .hub-card::before {
+    left: auto;
+    right: 0;
+    transform: translateX(190%);
+}
+
+[dir="rtl"] .hub-card:hover::before {
+    transform: translateX(-30%);
+}
+
+/* The ۞ that marks a card sits in the corner the reader ends on. */
+[dir="rtl"] .hub-card::after {
+    left: 12px;
+    right: auto;
+}
