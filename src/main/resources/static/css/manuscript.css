@@ -11979,3 +11979,10 @@ a.hub-hero__eyebrow:hover {
     left: 12px;
     right: auto;
 }
+
+/* Text set in CSS cannot reach the message bundle, so the Arabic is stated here.
+   This is the only generated-content string on the site; anything else a reader
+   has to read is rendered by the server. */
+[dir="rtl"] .home-browse .home-section-header::after {
+    content: "فهرس المجاميع";
+}
