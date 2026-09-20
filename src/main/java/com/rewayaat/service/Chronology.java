@@ -69,6 +69,20 @@ public class Chronology {
             return order == 0;
         }
 
+        /** The imamate's number in Arabic-Indic figures, «٩», as a manuscript would set it. */
+        public String orderArabic() {
+            StringBuilder out = new StringBuilder();
+            for (char digit : String.valueOf(order).toCharArray()) {
+                out.append((char) ('\u0660' + (digit - '0')));
+            }
+            return out.toString();
+        }
+
+        /** Where a medallion for this era sits: the middle of its span. */
+        public double centerPercent() {
+            return leftPercent + widthPercent / 2;
+        }
+
         /**
          * The modifier classes for this span, built here rather than in the template.
          *

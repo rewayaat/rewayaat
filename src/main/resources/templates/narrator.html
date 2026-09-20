@@ -65,50 +65,63 @@
           reader to know what that means; this says it in a picture. Both inputs are
           routinely absent, and the band does not render at all when neither is recorded.
         -->
-        <div class="hub-chrono" th:if="${placement != null and placement.hasAnything()}"
+        <!--
+          The band as a manuscript would rule it: a gold line across the foot of the banner,
+          the Prophet's period and the twelve imamates marked along it by lozenges, and the
+          ones this man lived under raised into medallions bearing their number in Arabic
+          figures. His death is struck on the same line as a rosette. Everything is placed by
+          year, so the spacing is the chronology and not a decoration: al-Ḥasan's ten years
+          are a tenth of al-Ṣādiq's century.
+        -->
+        <div class="chrono" th:if="${placement != null and placement.hasAnything()}"
              aria-label="Where this narrator stands against the Prophet and the Imams">
-            <div class="hub-chrono__track">
-                <span class="hub-chrono__era" th:each="era : ${placement.eras}"
-                      th:style="'inset-inline-start:' + ${era.leftPercent} + '%; width:' + ${era.widthPercent} + '%'"
-                      th:classappend="${era.cssClass()}"
+            <span class="chrono__ground" aria-hidden="true"></span>
+            <div class="chrono__rule">
+                <span class="chrono__year chrono__year--from">١ هـ</span>
+                <span class="chrono__year chrono__year--to">٥٠٠ هـ</span>
+                <!-- the illuminated span: one ribbon per imamate he lived under, meeting
+                     where the imamates meet, so a life of three reigns reads as one stretch -->
+                <span class="chrono__ribbon" th:each="era : ${placement.eras}"
+                      th:if="${era.highlighted}"
+                      th:style="|inset-inline-start:${era.leftPercent}%; width:${era.widthPercent}%|"></span>
+
+                <!-- every era, marked; the unlit ones are lozenges on the rule -->
+                <span class="chrono__tick" th:each="era : ${placement.eras}"
+                      th:unless="${era.highlighted}"
+                      th:style="|inset-inline-start:${era.centerPercent()}%|"
+                      th:title="${era.nameEn} + ' · ' + ${era.fromAh} + '–' + ${era.toAh} + ' AH'"></span>
+
+                <!-- the ones he lived under, raised into medallions -->
+                <span class="chrono__medal" th:each="era : ${placement.eras}"
+                      th:if="${era.highlighted}"
+                      th:classappend="${era.isProphet()} ? 'chrono__medal--prophet' : ''"
+                      th:style="|inset-inline-start:${era.centerPercent()}%|"
                       th:title="${era.nameEn} + ' · ' + ${era.fromAh} + '–' + ${era.toAh} + ' AH'">
-                    <!-- al-ʿAskarī's imamate is six years, a hair over 1% of the axis, and
-                         its number spilled across the divider into al-Mahdī's. A segment too
-                         narrow to hold its number carries none; the tooltip still names it. -->
-                    <span class="hub-chrono__era-label" th:if="${era.widthPercent gt 1.8 or era.isProphet()}"
-                          th:text="${era.isProphet() ? '۞' : era.order}">1</span>
+                    <span class="chrono__medal-glyph"
+                          th:text="${era.isProphet()} ? '۞' : ${era.orderArabic()}">٩</span>
                 </span>
 
-                <!-- The axis runs past the last imamate, because men of the sixth century are
-                     placed on it too. That tail is the occultation, and it is drawn as such
-                     rather than left as unexplained empty rail. -->
-                <th:block th:with="last=${placement.eras[#lists.size(placement.eras) - 1]},
-                                   tail=${last.leftPercent + last.widthPercent}">
-                    <span class="hub-chrono__after" th:if="${tail lt 99}"
-                          th:style="|inset-inline-start:${tail}%; width:${100 - tail}%|"
-                          title="After the twelfth Imam — the occultation"></span>
-                </th:block>
-
-                <span class="hub-chrono__marker" th:if="${placement.deathPercent != null and !placement.deathOutsideScale}"
-                      th:style="'inset-inline-start:' + ${placement.deathPercent} + '%'"
-                      th:title="'Died ' + ${placement.deathAh} + ' AH'"></span>
+                <span class="chrono__death"
+                      th:if="${placement.deathPercent != null and !placement.deathOutsideScale}"
+                      th:style="|inset-inline-start:${placement.deathPercent}%|"
+                      th:title="'Died ' + ${placement.deathAh} + ' AH'">۞</span>
             </div>
 
-            <div class="hub-chrono__axis">
-                <span th:if="${!#lists.isEmpty(placement.highlightedNames)}">
-                    <span class="hub-chrono__legend">Lived under</span>
+            <p class="chrono__caption">
+                <th:block th:if="${!#lists.isEmpty(placement.highlightedNames)}">
+                    <span class="chrono__caption-label">Lived under</span>
                     <span th:text="${#strings.listJoin(placement.highlightedNames, ' · ')}">the Imams</span>
-                </span>
-                <span th:unless="${!#lists.isEmpty(placement.highlightedNames)}">
-                    <span class="hub-chrono__legend">Lived under</span> no Imam the books name
-                </span>
-
-                <span class="hub-chrono__here" th:if="${placement.deathAh != null}">
-                    <span th:text="'Died ' + ${placement.deathAh} + ' AH'">Died 148 AH</span>
-                    <!-- Two books disagreeing is the normal case, not an error. -->
-                    <span th:if="${placement.disputedDeath}" class="hub-chrono__disputed">· books disagree</span>
-                </span>
-            </div>
+                </th:block>
+                <th:block th:unless="${!#lists.isEmpty(placement.highlightedNames)}">
+                    <span class="chrono__caption-label">No Imam the books name</span>
+                </th:block>
+                <th:block th:if="${placement.deathAh != null}">
+                    <span class="chrono__caption-sep">۞</span>
+                    <span th:text="'died ' + ${placement.deathAh} + ' AH'">died 150 AH</span>
+                    <!-- Two books disagreeing about a year is the ordinary case, not a fault. -->
+                    <span class="chrono__caption-note" th:if="${placement.disputedDeath}">the books differ</span>
+                </th:block>
+            </p>
         </div>
     </header>
 
