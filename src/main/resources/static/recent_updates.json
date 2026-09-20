@@ -56,6 +56,50 @@
         "videoTitle": "Adding the Hadith connector in ChatGPT",
         "videoAspect": "1600 / 1088"
       }
+    ],
+    "title_ar": "إجابات يمكنك التحقّق منها: قاعدة بيانات الحديث داخل Claude وChatGPT",
+    "summary_ar": "لطلبة العلم والباحثين ممّن يحتاجون معرفة مصدر الرواية. بربط قاعدة بيانات الحديث، يتوقّف Claude أو ChatGPT عن الاعتماد على الذاكرة والبحث المفتوح: فيبحث في 32,519 رواية في 18 كتاباً، بالعربية أو الإنجليزية، ويخبرك بعدد ما وجد، ويربط كل رواية يقتبسها بنصّها الكامل على هذا الموقع.",
+    "videoTitle_ar": "إضافة موصل قاعدة بيانات الحديث في Claude",
+    "why_ar": {
+      "title": "ولمَ لا أسأل Claude أو ChatGPT مباشرة؟",
+      "intro": "المساعد وحده لم يقرأ هذه الكتب قطّ ككتب. إنّما يجيب من الذاكرة — انطباعٍ عمّا استوعبه في التدريب — أو من البحث في الشبكة، حيث ما يجده صفحاتٌ كُتبت <em>عن</em> الكتب: مداخل موسوعات، ومواقع فتاوى، ومنتديات، ومجموعات اقتباسات. الروايات المشهورة كُتب عنها مرّات كثيرة، وأكثر الـ32,519 كُتب عنه قليلاً أو لم يُكتب عنه شيء. فهو يرى شذرات، ولا يستطيع أن يخبرك بما فاته، وجودة ما تحصل عليه رهنٌ بما تصادف وجوده على الشبكة. أمّا مع الموصل فهو يقرأ الكتب نفسها: مجموعة كاملة يبحث فيها ويعدّ ويقتبس منها.",
+      "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/compare-v2.mp4",
+      "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/compare-v2.jpg",
+      "videoAspect": "1600 / 1080",
+      "videoAlt": "Side by side, the same question is asked of Claude on its own and of Claude with The Hadith Database: how many narrations are in al-Kāfi's chapter on the rights of the neighbour, listed with their numbers. On its own it says it cannot give a reliable numbered list, thinks there are about 15, labels one narration No. 1 when it is the chapter's second, and doubts that another is in the chapter when it is. With the connector it returns all 16, numbered #2298 to #2313, complete, each graded and linked.",
+      "source": "The question was put to the model behind Claude, with no tools, three separate times on 14 September 2026; the video quotes the first answer. Every run said “about 15”, none could number the chapter, and each misplaced at least one narration. What an assistant recalls on its own changes with the model and from one asking to the next; the size of a chapter does not."
+    },
+    "guides_ar": [
+      {
+        "id": "connector-claude",
+        "name": "أضفه إلى Claude",
+        "steps": [
+          "In claude.ai, open <strong>Customize → Connectors</strong>.",
+          "Click <strong>+</strong>, then <strong>Add custom connector</strong>.",
+          "Name it <strong>Hadith</strong> and paste the connector URL above. Leave <strong>Advanced settings</strong> empty — there is nothing to sign in to.",
+          "In a chat, open <strong>+ → Connectors</strong> and switch <strong>Hadith</strong> on, then ask your question."
+        ],
+        "note": "Works on every Claude plan; the free plan allows one custom connector. On Team and Enterprise, an owner adds it once under Organization settings → Connectors.",
+        "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v1.mp4",
+        "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v1.jpg",
+        "videoTitle": "Adding the Hadith connector in Claude",
+        "videoAspect": "1600 / 1088"
+      },
+      {
+        "id": "connector-chatgpt",
+        "name": "أضفه إلى ChatGPT",
+        "steps": [
+          "In chatgpt.com, open <strong>Settings → Apps → Advanced settings</strong> and turn on <strong>Developer mode</strong>.",
+          "Click <strong>Create app</strong>. Name it <strong>Hadith</strong>, paste the connector URL above, and set <strong>Authentication</strong> to <strong>No Auth</strong>.",
+          "Confirm that you trust the app, then click <strong>Create</strong>.",
+          "In a chat, open <strong>+</strong> and choose <strong>Hadith</strong>, then ask your question."
+        ],
+        "note": "Developer mode is available on the web for Plus, Pro, Business, Enterprise and Edu plans.",
+        "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/chatgpt-v1.mp4",
+        "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/chatgpt-v1.jpg",
+        "videoTitle": "Adding the Hadith connector in ChatGPT",
+        "videoAspect": "1600 / 1088"
+      }
     ]
   },
   {
@@ -71,7 +115,9 @@
     "video": "https://www.loom.com/embed/c2d4a360f906440f80c5b326f4d87632",
     "videoTitle": "A short walkthrough of sharing a narration as an image",
     "videoAspect": "1280 / 960",
-    "videoSeconds": 34
+    "videoSeconds": 34,
+    "title_ar": "شارك الرواية بصورة",
+    "summary_ar": "صار بالإمكان تحويل كل رواية إلى بطاقة تنشرها أو ترسلها — بالعربية والإنجليزية معاً، وعليها الكتاب والباب والرقم، فيسافر المصدر مع النصّ."
   },
   {
     "date": "2026-06-02",
@@ -83,7 +129,9 @@
       "Dynamic sitemap for full search engine coverage",
       "Quranic Insights panel connecting hadith to Quranic verses with tafsir sources",
       "Tag-based topic filtering across search results"
-    ]
+    ],
+    "title_ar": "إصدار عيد الغدير",
+    "summary_ar": "إصدار كبير تزامناً مع عيد الغدير: واجهة أُعيد تصميمها بالكامل، ومراجعة شاملة لتحسين الظهور في محرّكات البحث، وميزات جديدة مهمّة في المنصّة."
   },
   {
     "date": "2026-05-15",
@@ -94,7 +142,9 @@
       "Click any tag to filter results to that topic",
       "Clear all filters with one click",
       "Coverage across 50+ topic categories"
-    ]
+    ],
+    "title_ar": "التصفية حسب الموضوعات",
+    "summary_ar": "صارت نتائج البحث تتضمّن وسوم موضوعات يمكنك النقر عليها لتصفية الروايات حسب الموضوع فوراً."
   },
   {
     "date": "2026-04-20",
@@ -105,7 +155,9 @@
       "Tafsir source tree for exploring multiple commentaries",
       "Verse count shown upfront on the trigger tab",
       "Supported by a curated filter pipeline for accuracy"
-    ]
+    ],
+    "title_ar": "إضاءات قرآنية — من الحديث إلى التفسير",
+    "summary_ar": "صار كل حديث يعرض الآيات القرآنية المرتبطة به مع التفسير، فيصل الروايات بجذورها في الكتاب."
   },
   {
     "date": "2026-03-10",
@@ -116,7 +168,9 @@
       "Arabic calligraphy ornaments between hadith cards",
       "Improved readability with better spacing and contrast",
       "Responsive design improvements for mobile"
-    ]
+    ],
+    "title_ar": "تجديد الواجهة والخطوط",
+    "summary_ar": "إعادة تصميم من الأساس لتجربة القراءة، بخطوط وزخارف جديدة وتخطيط أوضح."
   },
   {
     "date": "2026-02-17",
@@ -127,7 +181,9 @@
       "Upfront similar count shown on the trigger",
       "Tabbed similar hadith browsing with full text display",
       "Hybrid retrieval combining semantic similarity and lexical matching"
-    ]
+    ],
+    "title_ar": "البحث عن الأحاديث المشابهة",
+    "summary_ar": "صارت كل رواية تعرض ما يشبهها من الأحاديث، عبر استرجاع دلالي يعتمد نموذج تضمين متعدّد اللغات مُدرَّباً خصيصاً."
   },
   {
     "date": "2026-02-17",
@@ -137,7 +193,9 @@
       "Flexible (default) and Exact search modes",
       "Reading controls for book/chapter/volume navigation",
       "Optional filter guidance in reading and browse views"
-    ]
+    ],
+    "title_ar": "نمط البحث ونمط القراءة",
+    "summary_ar": "نمطان واضحان للعمل، ليتمكّن المستخدم من التصفّح الواسع أو القراءة المتسلسلة."
   },
   {
     "date": "2026-02-17",
@@ -147,7 +205,9 @@
       "Single Sign In button in the main menu",
       "Create account action inside the sign-in dialog",
       "Password reset available in the same flow"
-    ]
+    ],
+    "title_ar": "تسجيل الدخول والوصول إلى الحساب",
+    "summary_ar": "مدخل واحد لتسجيل الدخول، مع إنشاء الحساب وإعادة تعيين كلمة المرور في مسار مبسّط."
   },
   {
     "date": "2026-01-05",
@@ -157,7 +217,9 @@
       "Clickable book cards with narration counts",
       "Cascading dropdown filters",
       "Direct jump to any section or chapter"
-    ]
+    ],
+    "title_ar": "التصفّح حسب الكتاب",
+    "summary_ar": "منتقي كتب مرئي في الصفحة الرئيسية، مع عوامل تصفية متتابعة للجزء والقسم والفصل والباب."
   },
   {
     "date": "2025-11-01",
@@ -167,6 +229,8 @@
       "Al-Amali by Shaykh al-Mufid",
       "Al-Khisal by Shaykh al-Saduq",
       "Uyun Akhbar Al-Rida by Shaykh al-Saduq"
-    ]
+    ],
+    "title_ar": "توسعة المجموعة — الأمالي، والخصال، وعيون أخبار الرضا",
+    "summary_ar": "أُضيفت ثلاث مجاميع حديثية شيعية كبرى إلى قاعدة البيانات، ممّا وسّع التغطية توسيعاً ملحوظاً."
   }
 ]

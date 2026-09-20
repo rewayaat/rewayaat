@@ -1,29 +1,34 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${htmlLang} ?: 'en'" th:dir="${htmlDir} ?: 'ltr'" lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <title>Updates — Rewayaat Hadith Database</title>
-    <meta name="description" content="See what's new in Rewayaat. Feature releases, collection expansions, and improvements to the hadith search experience."/>
+    <title th:text="${seoTitle}">Updates — The Hadith Database</title>
+    <meta name="description" th:content="${seoDescription}" content="What is new in The Hadith Database."/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
-    <link rel="canonical" href="https://hadith.academyofislam.com/updates.html"/>
+    <link rel="canonical" th:href="${canonicalUrl}" href="https://hadith.academyofislam.com/updates.html"/>
+    <th:block th:if="${hreflangAlternates != null}">
+        <link th:each="alt : ${hreflangAlternates}" rel="alternate"
+              th:hreflang="${alt.key}" th:href="${alt.value}"/>
+    </th:block>
     <meta property="og:type" content="website"/>
     <meta property="og:site_name" content="Rewayaat — Shia Hadith Database"/>
-    <meta property="og:title" content="Updates — Rewayaat Hadith Database"/>
-    <meta property="og:description" content="See what's new in Rewayaat. Feature releases, collection expansions, and improvements to the hadith search experience."/>
-    <meta property="og:url" content="https://hadith.academyofislam.com/updates.html"/>
+    <meta property="og:title" th:content="${seoTitle}" content="Updates"/>
+    <meta property="og:description" th:content="${seoDescription}" content="What is new in The Hadith Database."/>
+    <meta property="og:url" th:content="${canonicalUrl}" content="https://hadith.academyofislam.com/updates.html"/>
     <meta property="og:image" content="https://hadith.academyofislam.com/img/share-card.png"/>
     <meta property="og:image:width" content="1200"/>
     <meta property="og:image:height" content="630"/>
     <meta property="og:image:alt" content="Rewayaat — a searchable database of Shia hadith in Arabic and English"/>
     <meta name="twitter:card" content="summary_large_image"/>
-    <meta name="twitter:title" content="Updates — Rewayaat Hadith Database"/>
-    <meta name="twitter:description" content="See what's new in Rewayaat. Feature releases, collection expansions, and improvements to the hadith search experience."/>
+    <meta name="twitter:title" th:content="${seoTitle}" content="Updates"/>
+    <meta name="twitter:description" th:content="${seoDescription}" content="What is new in The Hadith Database."/>
     <meta name="twitter:image" content="https://hadith.academyofislam.com/img/share-card.png"/>
     <meta name="twitter:image:alt" content="Rewayaat — a searchable database of Shia hadith in Arabic and English"/>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link th:if="${isArabic}" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet"/>
+    <link th:unless="${isArabic}" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600;700&display=swap"
           rel="stylesheet"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
@@ -94,7 +99,7 @@
             <div class="ms-auto d-flex align-items-center gap-2 top-actions flex-nowrap">
                 <a class="btn btn-dark btn-sm top-action auth-action" id="authSignInBtn" href="/signin.html?mode=login&return=%2Fupdates.html">
                     <i class="fa fa-right-to-bracket" aria-hidden="true"></i>
-                    Sign In
+                    <span th:text="#{nav.signin}">Sign In</span>
                 </a>
             </div>
         </div>
@@ -102,9 +107,9 @@
 </nav>
 
 <div class="updates-page">
-    <a href="/" class="updates-back"><i class="fa fa-arrow-left" aria-hidden="true"></i> Back to search</a>
-    <h1 class="updates-page__title">What's New</h1>
-    <p class="updates-page__subtitle">Feature releases, collection expansions, and improvements to the hadith search experience.</p>
+    <a href="/" th:href="@{${arPrefix} ?: '' } + '/'" class="updates-back"><i class="fa fa-arrow-left" aria-hidden="true"></i> <span th:text="#{updates.backToSearch}">Back to search</span></a>
+    <h1 class="updates-page__title" th:text="#{updates.title}">What's New</h1>
+    <p class="updates-page__subtitle" th:text="#{updates.subtitle}">Feature releases, collection expansions, and improvements to the hadith search experience.</p>
     <div class="updates-timeline" id="updatesTimeline"></div>
 </div>
 
@@ -124,7 +129,26 @@
     </div>
 </footer>
 
+<th:block th:replace="~{fragments/i18n-js :: i18n}"></th:block>
 <script>
+
+        /**
+         * An entry's field in the page's language.
+         *
+         * The entries come from /recent_updates.json, fetched here rather than rendered by
+         * the server, so their prose cannot come from the message bundle. The Arabic
+         * travels in the same file under an _ar suffix - the pattern announcement.json and
+         * book_blurbs.json already use - and each field falls back to English on its own,
+         * so a half-translated entry shows Arabic where it has it.
+         */
+        function pick(entry, field) {
+            var arabic = (window.I18N_LOCALE || 'en') === 'ar';
+            if (arabic && entry && entry[field + '_ar'] !== undefined && entry[field + '_ar'] !== null) {
+                var value = entry[field + '_ar'];
+                if (typeof value !== 'string' || value.length) { return value; }
+            }
+            return entry ? entry[field] : undefined;
+        }
 fetch('/recent_updates.json')
     .then(function(r) { return r.json(); })
     .then(function(updates) {
@@ -137,9 +161,9 @@ fetch('/recent_updates.json')
             }
             var dateStr = new Date(u.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
             var highlights = '';
-            if (u.highlights && u.highlights.length) {
+            if (pick(u, 'highlights') && pick(u, 'highlights').length) {
                 highlights = '<ul class="update-entry__highlights">' +
-                    u.highlights.map(function(h) { return '<li>' + h + '</li>'; }).join('') +
+                    pick(u, 'highlights').map(function(h) { return '<li>' + h + '</li>'; }).join('') +
                     '</ul>';
             }
             var video = '';
@@ -152,15 +176,15 @@ fetch('/recent_updates.json')
                     '<div class="update-entry__video" style="aspect-ratio: ' +
                     (u.videoAspect || '16 / 9') + '">' +
                     '<iframe src="' + src + '" title="' +
-                    (u.videoTitle || u.title) + '" frameborder="0" loading="lazy"' +
+                    (pick(u, 'videoTitle') || pick(u, 'title')) + '" frameborder="0" loading="lazy"' +
                     ' allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>' +
                     '</div>';
             }
             entry.innerHTML =
                 '<div class="update-entry__dot"></div>' +
                 '<div class="update-entry__date">' + dateStr + '</div>' +
-                '<div class="update-entry__title">' + u.title + '</div>' +
-                '<div class="update-entry__summary">' + u.summary + '</div>' +
+                '<div class="update-entry__title">' + pick(u, 'title') + '</div>' +
+                '<div class="update-entry__summary">' + pick(u, 'summary') + '</div>' +
                 ctaHtml(u) +
                 whyHtml(u) +
                 highlights +
@@ -189,7 +213,7 @@ fetch('/recent_updates.json')
  * guides themselves, so a third client is a JSON edit, not a markup change.
  */
 function ctaHtml(u) {
-    var linked = (u.guides || []).filter(function (g) { return g.id; });
+    var linked = (pick(u, 'guides') || []).filter(function (g) { return g.id; });
     if (!linked.length) {
         return '';
     }
@@ -206,7 +230,7 @@ function ctaHtml(u) {
  * about what an assistant does on its own goes stale as the assistants change.
  */
 function whyHtml(u) {
-    var w = u.why;
+    var w = pick(u, 'why');
     if (!w) {
         return '';
     }
@@ -240,7 +264,7 @@ function whyHtml(u) {
  * someone follows, and the loop is there to show where each control actually is.
  */
 function guidesHtml(u) {
-    if (!u.guides || !u.guides.length) {
+    if (!pick(u, 'guides') || !pick(u, 'guides').length) {
         return '';
     }
     var url = u.connectorUrl
@@ -249,7 +273,7 @@ function guidesHtml(u) {
           '<button type="button" class="connector-url__copy" data-copy="' + u.connectorUrl +
           '">Copy</button></div>'
         : '';
-    return '<div class="update-entry__guides">' + url + u.guides.map(function (g) {
+    return '<div class="update-entry__guides">' + url + pick(u, 'guides').map(function (g) {
         return '<section class="guide"' + (g.id ? ' id="' + g.id + '"' : '') + '>' +
             '<h2 class="guide__title">' + g.name + '</h2>' +
             '<ol class="guide__steps">' +
