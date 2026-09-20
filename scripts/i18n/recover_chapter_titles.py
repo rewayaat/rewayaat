@@ -94,8 +94,15 @@ SOURCES = {
         "author": "0381IbnBabawayhSaduq",
         "work": "0381IbnBabawayhSaduq.ThawabAcmal",
         "version": "0381IbnBabawayhSaduq.ThawabAcmal.Shia001138BK1-ara1.completed",
+        # The title is Thawāb al-Aʿmāl *wa ʿIqāb al-Aʿmāl* and OpenITI keeps the two
+        # halves in separate files. The index splits them the same way, into a Rewards
+        # division of 461 chapters and a Punishments division of 132, against 467 and 133
+        # headings. Read as one flat sequence they mis-join, which is how "Punishment of
+        # Qadiris" came back as a ثواب heading.
+        "also": [("0381IbnBabawayhSaduq.CiqabAcmal",
+                  "0381IbnBabawayhSaduq.CiqabAcmal.Shia001138BK2-ara1.completed")],
         "level": 2,
-        "nested": False,
+        "nested": True,
     },
     "fadail-al-shia": {
         "book": "Faḍaʾil al-Shīʿa",
@@ -130,6 +137,34 @@ SOURCES = {
 # The counts are the check, not the key: every pair below agrees to within two abwāb
 # except where noted. Each line is a claim about a printed book and can be read as one.
 KITAB_ALIASES = {
+    "nahj-al-balagha": {
+        "Sermons": "باب المختار من خطب أمير",
+        "Letters": "باب المختار من كتب مولانا",
+        "Sayings": "باب المختار من حكم أمير",
+    },
+    "al-khisal": {
+        "Part 1: On One-Numbered Characteristics": "باب الواحد",
+        "Part 2: On Two-Numbered Characteristics": "باب الاثنين",
+        "Part 3: On Three-Numbered Characteristics": "باب الثلاثة",
+        "Part 4: On Four-Numbered Characteristics": "باب الأربعة",
+        "Part 5: On Five-Numbered Characteristics": "باب الخمسة",
+        "Part 6: On Six-Numbered Characteristics": "باب الستة",
+        "Part 7: On Seven-Numbered Characteristics": "باب السبعة",
+        "Part 8: On Eight-Numbered Characteristics": "باب الثمانية",
+        "Part 9: On Nine-Numbered Characteristics": "باب التسعة",
+        "Part 10: On Ten-Numbered Characteristics": "باب العشرة",
+    },
+    "man-la-yahduruh": {
+        "Book of Livelihood": "كتاب المعيشة",
+        "Book of Marriage (nikah)": "كتاب النكاح",
+        "Book of Divorce (talaq)": "كتاب الطلاق",
+        "Book of Zakat": "أبواب الزكاة",
+        "Chapters on Legal Cases and Rulings": "أبواب القضايا والأحكام",
+    },
+    "thawab-al-amal": {
+        "Rewards": "كتاب ثواب الأعمال",
+        "Punishments": "كتاب عقاب الأعمال",
+    },
     "al-kafi": {
         "The Book of Belief and Disbelief": "كتاب الايمان والكفر",
         "The Book of Haj": "كتاب الحج",
@@ -168,6 +203,10 @@ KITAB_ALIASES = {
 # Divisions with no bāb structure to align against, and why. Left alone rather than
 # guessed at: a heading invented for these would be indistinguishable from a recovered one.
 NO_STRUCTURE = {
+    "thawab-al-amal": {
+        # A preface, not a division with numbered abwāb.
+        "Introduction": "not a kitāb",
+    },
     "al-kafi": {
         # The book runs straight through in the printed text; it has no abwāb to number.
         "The Book of Intelligence and Ignorance": "undivided in the source",
@@ -250,10 +289,17 @@ def fetch(key):
     if target.exists():
         print(f"  cached: {target}")
         return target
-    url = RAW.format(**spec)
-    print(f"  fetching {url}")
-    with urllib.request.urlopen(url, timeout=300) as resp:
-        target.write_bytes(resp.read())
+    parts = [RAW.format(**spec)]
+    for work, version in spec.get("also", []):
+        parts.append(RAW.format(repo=spec["repo"], author=spec["author"],
+                                work=work, version=version))
+    chunks = []
+    for url in parts:
+        print(f"  fetching {url}")
+        with urllib.request.urlopen(url, timeout=300) as resp:
+            chunks.append(resp.read())
+    # Concatenated, so each file's own "### |" stays a kitāb of its own.
+    target.write_bytes(b"\n".join(chunks))
     print(f"  wrote {target} ({target.stat().st_size:,} bytes)")
     return target
 
