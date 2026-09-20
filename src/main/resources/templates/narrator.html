@@ -76,25 +76,43 @@
         <div class="chrono" th:if="${placement != null and placement.hasAnything()}"
              aria-label="Where this narrator stands against the Prophet and the Imams">
             <span class="chrono__ground" aria-hidden="true"></span>
+
+            <!-- A band of ornament along the head, as an illuminated page carries above a
+                 ruled table: the motif repeats, the corners are turned with a rosette. -->
+            <div class="chrono__frieze" aria-hidden="true">
+                <span class="chrono__frieze-end">۞</span>
+                <span class="chrono__frieze-run"></span>
+                <span class="chrono__frieze-end">۞</span>
+            </div>
+
             <div class="chrono__rule">
                 <span class="chrono__year chrono__year--from">١ هـ</span>
                 <span class="chrono__year chrono__year--to">٥٠٠ هـ</span>
-                <!-- the illuminated span: one ribbon per imamate he lived under, meeting
-                     where the imamates meet, so a life of three reigns reads as one stretch -->
+
+                <!-- the years he lived through, laid over the rule as gold leaf -->
                 <span class="chrono__ribbon" th:each="era : ${placement.eras}"
                       th:if="${era.highlighted}"
                       th:style="|inset-inline-start:${era.leftPercent}%; width:${era.widthPercent}%|"></span>
 
-                <!-- every era, marked; the unlit ones are lozenges on the rule -->
-                <span class="chrono__tick" th:each="era : ${placement.eras}"
-                      th:unless="${era.highlighted}"
-                      th:style="|inset-inline-start:${era.centerPercent()}%|"
-                      th:title="${era.nameEn} + ' · ' + ${era.fromAh} + '–' + ${era.toAh} + ' AH'"></span>
+                <!-- Every era, named. A dot nobody can read is not a chronology: each carries
+                     a stem down to its name, and the names alternate depth so that al-Ḥasan's
+                     ten years and al-Ḥusayn's eleven do not write over each other. -->
+                <th:block th:each="era, it : ${placement.eras}">
+                    <!-- The state classes carry no «__»: that is Thymeleaf's preprocessing
+                         delimiter, and a BEM name inside an expression is parsed as one. -->
+                    <span class="chrono__mark"
+                          th:classappend="${(era.highlighted ? 'is-on ' : '')
+                                          + (it.index % 2 == 1 ? 'is-low' : '')}"
+                          th:style="|inset-inline-start:${era.centerPercent()}%|"
+                          th:title="${era.nameEn} + ' · ' + ${era.fromAh} + '–' + ${era.toAh} + ' AH'">
+                        <span class="chrono__stem"></span>
+                        <span class="chrono__name" dir="rtl" lang="ar" th:text="${era.shortAr}">الصادق</span>
+                    </span>
+                </th:block>
 
-                <!-- the ones he lived under, raised into medallions -->
+                <!-- the ones he lived under, raised into medallions on the rule itself -->
                 <span class="chrono__medal" th:each="era : ${placement.eras}"
                       th:if="${era.highlighted}"
-                      th:classappend="${era.isProphet()} ? 'chrono__medal--prophet' : ''"
                       th:style="|inset-inline-start:${era.centerPercent()}%|"
                       th:title="${era.nameEn} + ' · ' + ${era.fromAh} + '–' + ${era.toAh} + ' AH'">
                     <span class="chrono__medal-glyph"
@@ -104,23 +122,30 @@
                 <span class="chrono__death"
                       th:if="${placement.deathPercent != null and !placement.deathOutsideScale}"
                       th:style="|inset-inline-start:${placement.deathPercent}%|"
-                      th:title="'Died ' + ${placement.deathAh} + ' AH'">۞</span>
+                      th:title="'Died ' + ${placement.deathAh} + ' AH'">
+                    <span class="chrono__death-glyph">۞</span>
+                    <span class="chrono__death-label" th:text="${placement.deathAh} + ' هـ'">١٥٠ هـ</span>
+                </span>
             </div>
 
-            <p class="chrono__caption">
-                <th:block th:if="${!#lists.isEmpty(placement.highlightedNames)}">
-                    <span class="chrono__caption-label">Lived under</span>
-                    <span th:text="${#strings.listJoin(placement.highlightedNames, ' · ')}">the Imams</span>
-                </th:block>
-                <th:block th:unless="${!#lists.isEmpty(placement.highlightedNames)}">
-                    <span class="chrono__caption-label">No Imam the books name</span>
-                </th:block>
-                <th:block th:if="${placement.deathAh != null}">
-                    <span class="chrono__caption-sep">۞</span>
-                    <span th:text="'died ' + ${placement.deathAh} + ' AH'">died 150 AH</span>
-                    <!-- Two books disagreeing about a year is the ordinary case, not a fault. -->
-                    <span class="chrono__caption-note" th:if="${placement.disputedDeath}">the books differ</span>
-                </th:block>
+            <!-- The reading, in a cartouche: the shape a manuscript puts a title in. -->
+            <p class="chrono__cartouche">
+                <span class="chrono__cartouche-wing" aria-hidden="true">❧</span>
+                <span class="chrono__cartouche-text">
+                    <th:block th:if="${!#lists.isEmpty(placement.highlightedNames)}">
+                        <span class="chrono__caption-label">Lived under</span>
+                        <span th:text="${#strings.listJoin(placement.highlightedNames, ' · ')}">the Imams</span>
+                    </th:block>
+                    <th:block th:unless="${!#lists.isEmpty(placement.highlightedNames)}">
+                        <span class="chrono__caption-label">No Imam the books name</span>
+                    </th:block>
+                    <th:block th:if="${placement.deathAh != null}">
+                        <span class="chrono__caption-sep">۞</span>
+                        <span th:text="'died ' + ${placement.deathAh} + ' AH'">died 150 AH</span>
+                        <span class="chrono__caption-note" th:if="${placement.disputedDeath}">the books differ</span>
+                    </th:block>
+                </span>
+                <span class="chrono__cartouche-wing" aria-hidden="true">❧</span>
             </p>
         </div>
     </header>
