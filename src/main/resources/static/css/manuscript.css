@@ -13588,3 +13588,68 @@ html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
         margin-left: 0;
     }
 }
+
+/* The narrator search: one field, because a name is all a reader has. */
+
+.narrator-search__lead {
+    max-width: 52ch;
+    margin: 0.6rem auto 0;
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 0.88rem;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.78);
+}
+
+.narrator-search {
+    display: flex;
+    gap: 0.5rem;
+    max-width: 34rem;
+    margin: 1.2rem auto 0;
+}
+
+.narrator-search__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0.6rem 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.95);
+    font-size: 0.92rem;
+    color: var(--text);
+}
+
+.narrator-search__button {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 5px;
+    background: var(--gold);
+    color: #23180a;
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.narrator-search__button:hover {
+    background: var(--gold-dark);
+    color: #fff;
+}
+
+.narrator-results {
+    margin-bottom: 2rem;
+}
+
+.narrator-result__name {
+    font-family: var(--font-arabic);
+    font-size: 1.28rem;
+    line-height: 1.6;
+    color: var(--text);
+}
+
+.narrator-result__name-en {
+    margin-top: 0.15rem;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+}

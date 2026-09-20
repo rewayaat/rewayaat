@@ -7,8 +7,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -24,9 +27,48 @@ import java.util.Map;
 public class NarratorPageController {
 
     private static final String BASE_URL = HomeController.BASE_URL;
+    private static final int PER_PAGE = 20;
 
     @Autowired
     private NarratorService narratorService;
+
+    /**
+     * The way in: a name, and the men the books head under it.
+     *
+     * Most searches for a narrator are searches for a name several men carry, so the list
+     * shows how many entries each holds — the measure of how much the books actually say
+     * about him — rather than pretending the first hit is the man meant.
+     */
+    @GetMapping("/narrators")
+    public String narratorSearch(@RequestParam(value = "q", defaultValue = "") String query,
+                                 @RequestParam(value = "page", defaultValue = "1") int page,
+                                 Model model) {
+        String text = query == null ? "" : query.trim();
+        Map<String, Object> found = text.isEmpty() ? Map.of("total", 0, "narrators", List.of())
+                : narratorService.search(text, page, PER_PAGE);
+        long total = ((Number) found.getOrDefault("total", 0)).longValue();
+
+        model.addAttribute("query", text);
+        model.addAttribute("results", found.get("narrators"));
+        model.addAttribute("total", total);
+        model.addAttribute("page", Math.max(page, 1));
+        model.addAttribute("hasMore", (long) Math.max(page, 1) * PER_PAGE < total);
+        model.addAttribute("nextUrl", "/narrators?q=" + encode(text) + "&page=" + (Math.max(page, 1) + 1));
+        model.addAttribute("prevUrl", "/narrators?q=" + encode(text) + "&page=" + (Math.max(page, 1) - 1));
+        model.addAttribute("seoTitle", text.isEmpty() ? "Narrators of the Shia hadith corpus"
+                : "Narrators named " + text);
+        model.addAttribute("seoDescription", "Look up a narrator and read what each of the eight "
+                + "Shia Rijal books says about him, with the page it is written on.");
+        model.addAttribute("canonicalUrl", BASE_URL + "/narrators");
+        model.addAttribute("breadcrumbs", List.of(
+                Map.of("name", "Home", "url", "/"),
+                Map.of("name", "Narrators", "url", "/narrators")));
+        return "narrators";
+    }
+
+    private String encode(String text) {
+        return URLEncoder.encode(text, StandardCharsets.UTF_8);
+    }
 
     @GetMapping("/narrator/{id}")
     public String narratorPage(@PathVariable("id") String id, Model model,
