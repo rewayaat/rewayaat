@@ -38,11 +38,6 @@
                  «al-Jawād, al-Hādī, al-ʿAskarī», «Rayy» and «10 entries in 7 books», and
                  nothing on the page said which was a lifetime and which a birthplace. -->
             <div class="hub-hero__stats">
-                <span class="hub-stat" th:if="${!#lists.isEmpty(narrator.life.imams)}">
-                    <span class="hub-stat__label">Companion of</span>
-                    <span class="hub-stat__value"
-                          th:text="${#strings.listJoin(narrator.life.imams, ', ')}">al-Sadiq</span>
-                </span>
                 <span class="hub-stat" th:if="${narrator.life.city != null}">
                     <span class="hub-stat__label">From</span>
                     <span class="hub-stat__value" th:text="${narrator.life.city}">Kufa</span>

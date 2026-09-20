@@ -44,7 +44,8 @@
              with eleven entries is written about, one with a single chain mention is a name. -->
         <div class="hub-grid narrator-results" th:if="${total > 0}">
             <a class="hub-card narrator-result" th:each="found : ${results}"
-               th:href="'/narrator/' + ${found.person_id}">
+               th:href="'/narrator/' + ${found.person_id}
+                        + (${found.slug} != null and !${#strings.isEmpty(found.slug)} ? '/' + ${found.slug} : '')">
                 <div class="narrator-result__name" dir="rtl" lang="ar"
                      th:text="${found.display_ar}">اسم الراوي</div>
                 <div class="narrator-result__name-en" th:if="${found.display_en != null}"

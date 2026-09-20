@@ -166,7 +166,7 @@
             </div>
             <div class="narrator-strip__cards">
                 <a class="narrator-strip__card" v-for="narrator in narratorMatches"
-                   :key="narrator.person_id" :href="'/narrator/' + narrator.person_id">
+                   :key="narrator.person_id" :href="narratorUrl(narrator)">
                     <div class="narrator-strip__name" dir="rtl" lang="ar">{{ narrator.display_ar }}</div>
                     <div class="narrator-strip__name-en" v-if="narrator.display_en">{{ narrator.display_en }}</div>
                     <div class="narrator-strip__meta">

@@ -27,7 +27,9 @@ import argparse
 from collections import Counter, defaultdict
 import json
 import os
+import re
 import sys
+import unicodedata
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from build_people import MAIN_BOOKS, is_entry, not_entries  # noqa: E402
@@ -72,6 +74,19 @@ IMAM_NAMES = ["the Prophet", "ʿAlī", "al-Ḥasan", "al-Ḥusayn", "al-Sajjād"
               "the Mahdī"]
 BOOK_NOTE = {"duafa": "The ascription of this book to Ibn al-Ghaḍāʾirī is disputed; al-Khoei "
                       "held it unproven («الكتاب المنسوب إلى ابن الغضائري… لم يثبت»)."}
+
+
+def slugify(name):
+    """«Sahl ibn Ziyād» -> «sahl-ibn-ziyad», for a URL that says who it is about.
+
+    The permanent id stays the authority — it survives two people becoming one — so the slug
+    is only the readable half of the URL and nothing resolves by it.
+    """
+    folded = unicodedata.normalize("NFKD", name or "")
+    plain = "".join(c for c in folded if not unicodedata.combining(c)).lower()
+    # an apostrophe stands for a letter, not a word break: «Saʿīd» is sa'id, not «sa-id»
+    plain = re.sub(r"['’ʿʾ`ʻ]", "", plain)
+    return re.sub(r"(^-|-$)", "", re.sub(r"[^a-z0-9]+", "-", plain))[:60]
 
 
 def join_names(names):
@@ -273,6 +288,8 @@ def document(person, source, headless):
         "display_ar": anchor.get("primary_arabic_name") or person.get("primary_arabic_name"),
         "display_en": anchor.get("primary_english_name") or person.get("primary_english_name"),
         "anchor_key": person.get("anchor"),
+        "slug": slugify(anchor.get("primary_english_name") or person.get("primary_english_name")
+                        or ""),
         "names_ar": sorted(set(names_ar)),
         "names_en": sorted(set(names_en)),
         "normalized_ar": sorted({normalize_arabic(n) for n in names_ar}),

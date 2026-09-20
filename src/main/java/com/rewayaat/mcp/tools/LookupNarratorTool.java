@@ -130,7 +130,7 @@ public class LookupNarratorTool implements McpTool {
             other.put("name_ar", row.get("display_ar"));
             other.put("name_en", row.get("display_en"));
             other.put("entries", row.get("entry_count"));
-            other.put("url", url(row.get("person_id")));
+            other.put("url", url(row.get("person_id"), row.get("slug")));
             others.add(other);
         }
         Map<String, Object> best = narrators.getNarrator(String.valueOf(rows.get(0).get("person_id")));
@@ -151,7 +151,7 @@ public class LookupNarratorTool implements McpTool {
         out.put("id", narrator.get("person_id"));
         out.put("name_ar", narrator.get("display_ar"));
         out.put("name_en", narrator.get("display_en"));
-        out.put("url", url(narrator.get("person_id")));
+        out.put("url", url(narrator.get("person_id"), narrator.get("slug")));
         out.put("also_named", narrator.get("names_ar"));
 
         List<Map<String, Object>> verdicts = new ArrayList<>();
@@ -205,7 +205,8 @@ public class LookupNarratorTool implements McpTool {
         return value instanceof List<?> list ? (List<Map<String, Object>>) list : List.of();
     }
 
-    private String url(Object personId) {
-        return baseUrl + "/narrator/" + personId;
+    private String url(Object personId, Object slug) {
+        String name = slug == null ? "" : slug.toString();
+        return baseUrl + "/narrator/" + personId + (name.isEmpty() ? "" : "/" + name);
     }
 }

@@ -5834,6 +5834,13 @@ function setupVue(query, page, sortFields) {
              * weakly — one whose entry count is low and whose name only half-matches — is not
              * worth a strip above the narrations either.
              */
+            /** «/narrator/n000515/sahl-ibn-ziyad» — the id resolves it, the name reads. */
+            narratorUrl: function(narrator) {
+                if (!narrator || !narrator.person_id) {
+                    return '#';
+                }
+                return '/narrator/' + narrator.person_id + (narrator.slug ? '/' + narrator.slug : '');
+            },
             fetchNarratorMatches: function(query) {
                 var self = this;
                 var text = (query || '').trim();
