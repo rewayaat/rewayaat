@@ -21,6 +21,24 @@ function t(key, fallback) {
  * narration, the announcement bar - dropped the reader back onto the English site without
  * anything appearing to go wrong.
  */
+/**
+ * A recent-update field in the reader's language.
+ *
+ * The home page lists these from /recent_updates.json, the same file the updates page
+ * reads, so the Arabic travels with the data under an _ar suffix rather than through the
+ * message bundle. Falls back per field, so a half-translated entry still shows what it has.
+ */
+function entryText(entry, field) {
+    if (!entry) { return ''; }
+    if (window.I18N_LOCALE === 'ar') {
+        var arabic = entry[field + '_ar'];
+        if (typeof arabic === 'string' && arabic.length) { return arabic; }
+        if (Array.isArray(arabic) && arabic.length) { return arabic; }
+    }
+    return entry[field];
+}
+
+
 function localeHref(path) {
     var prefix = (window.I18N_LOCALE === 'ar') ? '/ar' : '';
     if (!path) { return prefix + '/'; }
@@ -3372,14 +3390,17 @@ function loadRecentUpdates() {
                 // press play would navigate away instead.
                 var card = document.createElement('article');
                 card.className = 'recent-update-card';
-                var highlights = Array.isArray(update.highlights) ? update.highlights : [];
+                var localised = entryText(update, 'highlights');
+                var highlights = Array.isArray(localised) ? localised : [];
                 var link = document.createElement('a');
                 link.className = 'recent-update-card__link';
                 link.href = localeHref('/updates.html');
                 link.innerHTML =
                     '<div class="recent-update-date">' + escapeHtml(update.date || '') + '</div>' +
-                    '<h3 class="recent-update-title">' + escapeHtml(update.title || 'Update') + '</h3>' +
-                    '<p class="recent-update-summary">' + escapeHtml(update.summary || '') + '</p>';
+                    '<h3 class="recent-update-title">'
+                        + escapeHtml(entryText(update, 'title') || t('js.update', 'Update')) + '</h3>' +
+                    '<p class="recent-update-summary">'
+                        + escapeHtml(entryText(update, 'summary') || '') + '</p>';
                 if (highlights.length) {
                     var list = document.createElement('ul');
                     list.className = 'recent-update-list';
@@ -4715,6 +4736,15 @@ function setupVue(query, page, sortFields) {
              * the global t() is not reachable from a {{ }} expression. This is the same
              * lookup under a name the template can see.
              */
+            /**
+             * The badge on a similar-hadith row. The values are wording, conceptual and
+             * thematic, produced by the judging pass and stored in the index in English,
+             * so they are labels to translate rather than data to change.
+             */
+            matchTypeLabel: function(kind) {
+                if (!kind) { return ''; }
+                return t('match.' + kind, kind);
+            },
             tr: function(key, fallback) {
                 return t(key, fallback);
             },

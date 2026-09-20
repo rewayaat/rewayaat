@@ -1,3 +1,10 @@
+/** A UI string in the page's language. See rewayaat.js. */
+function t(key, fallback) {
+    var table = window.I18N || {};
+    var value = table[key];
+    return (typeof value === 'string' && value.length) ? value : fallback;
+}
+
 /**
  * The announcement in the page's language.
  *
@@ -101,7 +108,7 @@ function announcementText(data, field) {
 
         var close = element('button', 'site-announcement__close');
         close.type = 'button';
-        close.setAttribute('aria-label', 'Dismiss announcement');
+        close.setAttribute('aria-label', t('announcement.dismiss', 'Dismiss announcement'));
         close.innerHTML = '&times;';
         close.addEventListener('click', function () {
             remember(data.id);

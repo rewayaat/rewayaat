@@ -56,7 +56,7 @@
             <div class="d-none d-md-flex home-nav-links">
                 <a href="#welcome" class="home-nav-link"><i class="fa fa-magnifying-glass" aria-hidden="true"></i><span th:text="#{nav.search}">Search</span></a>
                 <a href="#browse" class="home-nav-link"><i class="fa fa-layer-group" aria-hidden="true"></i><span th:text="#{nav.browse}">Browse</span></a>
-                <a href="/updates.html" class="home-nav-link"><i class="fa fa-bolt" aria-hidden="true"></i><span th:text="#{nav.updates}">Updates</span></a>
+                <a href="/updates.html" th:href="@{${arPrefix} ?: '' } + '/updates.html'" class="home-nav-link"><i class="fa fa-bolt" aria-hidden="true"></i><span th:text="#{nav.updates}">Updates</span></a>
             </div>
 	        <div id="queryBar" class="navbar-search">
 	            <div class="navbar-search__input">
@@ -174,8 +174,8 @@
                                         data-bs-toggle="dropdown"
                                         data-bs-auto-close="true"
                                         aria-expanded="false"
-                                        aria-label="Export options"
-                                        title="Export">
+                                        aria-label="Export options" th:aria-label="#{collection.exportOptions}"
+                                        title="Export" th:title="#{collection.export}">
                                     <i class="fa fa-download" aria-hidden="true"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end hadith-copy-menu">
@@ -200,8 +200,8 @@
                                     data-bs-toggle="dropdown"
                                     data-bs-auto-close="true"
                                     aria-expanded="false"
-                                    aria-label="Export options"
-                                    title="Export">
+                                    aria-label="Export options" th:aria-label="#{collection.exportOptions}"
+                                    title="Export" th:title="#{collection.export}">
                                 <i class="fa fa-download" aria-hidden="true"></i>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end hadith-copy-menu">
@@ -341,7 +341,7 @@
                                             class="hadith-sidecar__rail-btn"
                                             v-bind:class="{'is-active': isNarrationSidecarTabActive(narration, 'similar')}"
                                             v-bind:aria-selected="isNarrationSidecarTabActive(narration, 'similar') ? 'true' : 'false'"
-                                            aria-label="Open similar hadith panel"
+                                            aria-label="Open similar hadith panel" th:aria-label="#{sidecar.openSimilar}"
                                             title="Similar Hadith" th:title="#{sidecar.similarHadith}"
                                             v-bind:disabled="isNarrationSidecarTabDisabled(narration, 'similar')"
                                             v-on:click="setNarrationSidecarTab(narration, 'similar')">
@@ -357,7 +357,7 @@
                                             class="hadith-sidecar__rail-btn"
                                             v-bind:class="{'is-active': isNarrationSidecarTabActive(narration, 'quran')}"
                                             v-bind:aria-selected="isNarrationSidecarTabActive(narration, 'quran') ? 'true' : 'false'"
-                                            aria-label="Open Quranic insights panel"
+                                            aria-label="Open Quranic insights panel" th:aria-label="#{sidecar.openQuranic}"
                                             title="Quranic Insights" th:title="#{card.quranicInsights}"
                                             v-bind:disabled="isNarrationSidecarTabDisabled(narration, 'quran')"
                                             v-on:click="setNarrationSidecarTab(narration, 'quran')">
@@ -422,14 +422,14 @@
                                                                 <span class="hadith-sidecar__list-separator" aria-hidden="true">•</span>
                                                                 <span class="hadith-sidecar__list-meta match-type-badge"
                                                                       v-bind:class="'match-type--' + similar.matchType">
-                                                                    {{ similar.matchType }}
+                                                                    {{ matchTypeLabel(similar.matchType) }}
                                                                 </span>
                                                             </template>
                                                         </span>
                                                     </button>
                                                     <div class="hadith-sidecar__accordion-body hadith-sidecar__accordion-body--similar"
                                                          v-if="sidx === narration.similarActiveIndex && similar.matchReason">
-                                                        <div class="similar-reason-text"><span class="similar-reason-label">Why this matched:</span> {{ similar.matchReason }}</div>
+                                                        <div class="similar-reason-text"><span class="similar-reason-label" th:text="#{sidecar.whyMatched}">Why this matched:</span> {{ similar.matchReason }}</div>
                                                     </div>
                                                 </div>
                                                 <button type="button" class="hadith-sidecar__show-more"
@@ -530,7 +530,7 @@
                             <div class="hadith-card__resizer"
                                  role="separator"
                                  aria-orientation="vertical"
-                                 aria-label="Resize hadith context panel"
+                                 aria-label="Resize hadith context panel" th:aria-label="#{sidecar.resize}"
                                  v-on:pointerdown.prevent="startSidecarResize"
                                  v-on:dblclick.prevent="resetSidecarWidth"></div>
                             <section class="hadith-card__main">
@@ -738,8 +738,8 @@
                                                         data-bs-toggle="dropdown"
                                                         data-bs-auto-close="true"
                                                         aria-expanded="false"
-                                                        aria-label="Copy hadith text"
-                                                        title="Copy hadith text">
+                                                        aria-label="Copy hadith text" th:aria-label="#{card.copy}"
+                                                        title="Copy hadith text" th:title="#{card.copy}">
                                                     <i class="fa fa-copy" aria-hidden="true"></i>
                                                 </button>
                                                 <ul class="dropdown-menu dropdown-menu-end hadith-copy-menu">
@@ -761,7 +761,7 @@
                                             </div>
                                             <button class="icon-action icon-action--save" type="button"
                                                     v-on:click.stop.prevent="saveNarrationToCollection(narration)"
-                                                    aria-label="Save hadith" title="Save to collection">
+                                                    aria-label="Save hadith" th:aria-label="#{card.save}" title="Save to collection" th:title="#{card.saveToCollection}">
                                                 <i class="fa fa-bookmark" aria-hidden="true"></i>
                                             </button>
                                             <button class="icon-action icon-action--edit" type="button"
@@ -779,7 +779,7 @@
                                             <a class="icon-action icon-action--report" target="_blank"
                                                v-bind:href="reportNarrationHref(narration)"
                                                v-on:click.stop
-                                               aria-label="Report hadith" title="Report">
+                                               aria-label="Report hadith" th:aria-label="#{card.report}" title="Report" th:title="#{card.reportShort}">
                                                 <i class="fa fa-flag" aria-hidden="true"></i>
                                             </a>
                                             <div class="dropdown hadith-share-dropdown">
@@ -788,8 +788,8 @@
                                                         data-bs-toggle="dropdown"
                                                         data-bs-auto-close="true"
                                                         aria-expanded="false"
-                                                        aria-label="Share hadith"
-                                                        title="Share">
+                                                        aria-label="Share hadith" th:aria-label="#{card.share}"
+                                                        title="Share" th:title="#{card.share}">
                                                     <i class="fa fa-share-from-square" aria-hidden="true"></i>
                                                 </button>
                                                 <ul class="dropdown-menu dropdown-menu-end hadith-copy-menu">
@@ -832,7 +832,7 @@
         <div v-if="!collectionMode && hasMoreNarrationsToReveal"
              ref="scrollSentinel"
              class="search-reveal-sentinel">
-            Loading more results...
+            <span th:text="#{js.loadingMore}">Loading more results...</span>
         </div>
 
         <div class="mt-4" v-if="collectionMode">
@@ -855,7 +855,7 @@
             <div>
                 <div class="site-footer__label" th:text="#{footer.explore}">Explore</div>
                 <div class="site-footer__links">
-                    <a href="/updates.html">Updates</a>
+                    <a href="/updates.html" th:href="@{${arPrefix} ?: '' } + '/updates.html'" th:text="#{footer.updates}">Updates</a>
                     <a href="/search_tips.html" th:text="#{footer.searchTips}">Search Tips</a>
                     <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer" th:text="#{footer.apiDocs}">API Documentation</a>
                 </div>
@@ -874,7 +874,7 @@
             <div class="site-footer__social">
                 <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer" title="GitHub"><i class="fa-brands fa-github"></i></a>
                 <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer" title="REST API"><i class="fa fa-code"></i></a>
-                <a href="mailto:rewayaat.org@gmail.com" title="Email"><i class="fa fa-envelope"></i></a>
+                <a href="mailto:rewayaat.org@gmail.com" title="Email" th:title="#{footer.email}"><i class="fa fa-envelope"></i></a>
             </div>
             <span th:text="#{footer.disclaimer}">Content and translations remain the responsibility of their original sources.</span>
         </div>

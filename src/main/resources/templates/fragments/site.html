@@ -82,6 +82,9 @@
     <!-- In the shared head rather than in each of books/book/chapter/volume, which is the
          only thing those four pages have in common. The script waits for DOMContentLoaded,
          so running from the head is safe. -->
+    <!-- Before the scripts below: they read window.I18N as they run, and without it the
+         announcement bar fell back to English on every page that uses this head. -->
+    <th:block th:replace="~{fragments/i18n-js :: i18n}"></th:block>
     <script src="/js/site-announcement.js" th:src="@{/js/site-announcement.js}" defer></script>
 </head>
 
