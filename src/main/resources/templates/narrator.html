@@ -161,55 +161,70 @@
       on a great deal of al-Kafi.
     -->
     <section class="ledger" aria-label="The narrator in numbers">
-        <div class="ledger__cell">
+        <!-- Each figure is the way into the tab that explains it: a number a reader cannot
+             open is a number he has to take on trust. -->
+        <a class="ledger__cell" th:href="${chainsUrl}">
             <div class="ledger__value" th:text="${narrator.teacher_count}">37</div>
             <div class="ledger__label">Narrates from</div>
-            <div class="ledger__note">men the books name</div>
-        </div>
-        <div class="ledger__cell">
+            <div class="ledger__note">men the books name →</div>
+        </a>
+        <a class="ledger__cell" th:href="${chainsUrl}">
             <div class="ledger__value" th:text="${narrator.student_count}">26</div>
             <div class="ledger__label">Narrated to</div>
-            <div class="ledger__note">men who take from him</div>
-        </div>
-        <div class="ledger__cell">
+            <div class="ledger__note">men who take from him →</div>
+        </a>
+        <a class="ledger__cell" th:href="${booksUrl}">
             <div class="ledger__value">
                 <span class="ledger__for" th:text="${#lists.size(narrator.for_him)}">2</span>
                 <span class="ledger__slash">/</span>
                 <span class="ledger__against" th:text="${#lists.size(narrator.against_him)}">5</span>
             </div>
             <div class="ledger__label">Reliable / weak</div>
-            <div class="ledger__note">books that grade him</div>
-        </div>
-        <div class="ledger__cell">
+            <div class="ledger__note">read the entries →</div>
+        </a>
+        <a class="ledger__cell" th:href="${narrationsUrl}">
             <div class="ledger__value"
                  th:text="${#numbers.formatInteger(narrationTotal, 0, 'COMMA')}">1,504</div>
             <div class="ledger__label">Narrations</div>
             <div class="ledger__note" th:if="${!#lists.isEmpty(narrationBooks)}"
-                 th:text="${narrationBooks[0].share} + '% in ' + ${narrationBooks[0].book}">93% in Al-Kāfi</div>
-        </div>
-        <div class="ledger__cell" th:if="${narrator.span_from != null}">
+                 th:text="${narrationBooks[0].share} + '% in ' + ${narrationBooks[0].book} + ' →'">93% in Al-Kāfi →</div>
+        </a>
+        <a class="ledger__cell" th:href="${overviewUrl}" th:if="${narrator.span_from != null}">
             <div class="ledger__value">
                 <span th:text="${narrator.span_from}">203</span>–<span th:text="${narrator.span_to}">260</span>
             </div>
             <div class="ledger__label">Active, AH</div>
             <div class="ledger__note"
                  th:text="${#lists.size(narrator.life.imams)} + ' imamates'">3 imamates</div>
-        </div>
+        </a>
     </section>
 
     <!-- Two tabs, in the URL rather than in script: what the books say of him is one reading,
          the narrations he stands in another, and a reader wants one at a time. -->
     <nav class="narrator-tabs" aria-label="Sections">
+        <a class="narrator-tab" th:href="${overviewUrl}"
+           th:classappend="${view == 'overview'} ? 'is-active' : ''">Overview</a>
         <a class="narrator-tab" th:href="${booksUrl}"
-           th:classappend="${view == 'books'} ? 'narrator-tab--active' : ''">
+           th:classappend="${view == 'books'} ? 'is-active' : ''">
             What the books say
             <span class="narrator-tab__count" th:text="${narrator.entry_count}">10</span>
         </a>
+        <a class="narrator-tab" th:href="${chainsUrl}"
+           th:classappend="${view == 'chains'} ? 'is-active' : ''">
+            Teachers &amp; students
+            <span class="narrator-tab__count"
+                  th:text="${narrator.teacher_count + narrator.student_count}">63</span>
+        </a>
         <a class="narrator-tab" th:href="${narrationsUrl}"
-           th:classappend="${view == 'narrations'} ? 'narrator-tab--active' : ''">
-            Narrations naming him
+           th:classappend="${view == 'narrations'} ? 'is-active' : ''">
+            Narrations
             <span class="narrator-tab__count"
                   th:text="${#numbers.formatInteger(narrationTotal, 0, 'COMMA')}">1,504</span>
+        </a>
+        <a class="narrator-tab" th:href="${namesUrl}"
+           th:classappend="${view == 'names'} ? 'is-active' : ''">
+            Names
+            <span class="narrator-tab__count" th:text="${#lists.size(narrator.names_ar)}">20</span>
         </a>
     </nav>
 
@@ -217,7 +232,7 @@
          its verdict three times over; here each book states its position once, and a book that
          takes two — Mamaqani quotes al-Najashi's «weak» before concluding «thiqa» himself — is
          marked as divided rather than shown twice as if it were two books. -->
-    <div th:if="${view == 'books'}">
+    <div th:if="${view == 'overview'}">
     <section class="narrator-stands" th:if="${!#lists.isEmpty(narrator.where_books_stand)}">
         <h2 class="hub-group__label">Where each book stands</h2>
         <table class="narrator-stands__table">
@@ -245,6 +260,9 @@
     </section>
 
 
+    </div>
+
+    <div th:if="${view == 'books'}">
     <!-- One block per entry, in the order the tradition reads the books. Each carries the
          book's own words: a verdict is never paraphrased here, and never shown without the
          page it stands on. -->
@@ -288,6 +306,9 @@
         </article>
     </section>
 
+    </div>
+
+    <div th:if="${view == 'overview'}">
     <!-- Where he came from and when he lived, each statement under the book that makes it.
          Two books often disagree here too, and both are shown. -->
     <section class="narrator-facts"
@@ -319,6 +340,9 @@
         </dl>
     </section>
 
+    </div>
+
+    <div th:if="${view == 'names'}">
     <!-- The names he is headed under, so a reader who came looking for one of them can see
          that this is the same man, and why the page answered to it. One chip each: run
          together with separators they read as one long unbroken name. -->
@@ -334,6 +358,52 @@
                 th:text="${name}">A name</li>
         </ul>
     </section>
+    </div>
+
+    <!--
+      Whom he takes from and who takes from him. This is the evidence a rijali argument about
+      a man's generation actually runs on — two men of one name are told apart by the company
+      they keep — and until now the page carried the counts with no way to read them. Each
+      name shows which books record the link, because a teacher four books name is better
+      evidence than one named in a single chain note.
+    -->
+    <div th:if="${view == 'chains'}">
+        <section class="chains">
+            <div class="chains__side">
+                <h2 class="hub-group__label">
+                    Narrates from
+                    <span class="hub-group__note" th:text="${narrator.teacher_count}">37</span>
+                </h2>
+                <p class="chains__note" th:if="${#lists.isEmpty(narrator.narrated_from)}">
+                    No book names anyone he narrates from.
+                </p>
+                <ul class="chains__list">
+                    <li class="chains__row" th:each="man : ${narrator.narrated_from}">
+                        <span class="chains__name" th:text="${man.name}">Ibn Abī ʿUmayr</span>
+                        <span class="chains__books" th:text="${#strings.listJoin(man.books, ' · ')}">al-Najāshī</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="chains__side">
+                <h2 class="hub-group__label">
+                    Narrated to
+                    <span class="hub-group__note" th:text="${narrator.student_count}">26</span>
+                </h2>
+                <p class="chains__note" th:if="${#lists.isEmpty(narrator.narrated_to)}">
+                    No book names anyone who takes from him.
+                </p>
+                <ul class="chains__list">
+                    <li class="chains__row" th:each="man : ${narrator.narrated_to}">
+                        <span class="chains__name" th:text="${man.name}">al-Kulaynī</span>
+                        <span class="chains__books" th:text="${#strings.listJoin(man.books, ' · ')}">Khoei</span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+        <p class="chains__caveat">
+            These are the links the Rijal books state in words. The chains themselves are not
+            yet resolved to people, so this is what the books say, not a count of the isnads.
+        </p>
     </div>
 
     <!-- The narrations that name him, in the same card the search results and chapter pages
@@ -353,6 +423,23 @@
                 <li class="narrator-names__chip" th:each="name : ${searchedNames}"
                     dir="rtl" lang="ar" th:text="${name}">اسم</li>
             </ul>
+        </div>
+
+        <!-- Where his narrations sit, made clickable: «93% in al-Kāfi» is a fact a reader
+             should be able to open rather than only read. -->
+        <div class="tag-filter-bar tag-filter-bar--results mb-3" th:if="${!#lists.isEmpty(bookFacets)}">
+            <div class="tag-filter-bar__head">
+                <span class="tag-filter-bar__label">Filter by Book</span>
+                <a class="tag-filter-bar__clear" th:if="${activeBook != null}" th:href="${clearBookUrl}">Clear</a>
+            </div>
+            <div class="tag-filter-bar__pills">
+                <a class="topic-pill tag-filter-bar__pill" th:each="facet : ${bookFacets}"
+                   th:href="${facet.active} ? ${clearBookUrl} : ${facet.url}"
+                   th:classappend="${facet.active} ? 'topic-pill--active' : ''">
+                    <span class="tag-filter-bar__pill-label" th:text="${facet.label}">Al-Kāfi</span>
+                    <span class="tag-filter-bar__pill-count" th:text="${facet.count}">1396</span>
+                </a>
+            </div>
         </div>
 
         <div class="tag-filter-bar tag-filter-bar--results mb-3" th:if="${!#lists.isEmpty(tagFacets)}">

@@ -92,6 +92,24 @@ def slugify(name):
     return re.sub(r"(^-|-$)", "", re.sub(r"[^a-z0-9]+", "-", plain))[:60]
 
 
+def sources_by_name(statements):
+    """«Ibn Abi 'Umayr → [al-Najashi, Khoei]»: each man once, with who records the link.
+
+    A teacher named by four books is better evidence than one named in a single chain note,
+    and the page cannot show that unless the books travel with the name.
+    """
+    found = {}
+    for item in statements:
+        name = (item.get("value") or "").strip()
+        if not name:
+            continue
+        held = found.setdefault(name, {"name": name, "books": []})
+        title = BOOK_TITLE.get(item.get("source_book"), item.get("source_book"))
+        if title and title not in held["books"]:
+            held["books"].append(title)
+    return sorted(found.values(), key=lambda x: (-len(x["books"]), x["name"]))[:200]
+
+
 def join_names(names):
     """«A, B and C» — a list as a sentence reads it."""
     names = list(names)
@@ -327,8 +345,9 @@ def document(person, source, headless):
         # Whom he takes from and who takes from him: the evidence a rijali argument about
         # his generation actually runs on, so the counts are kept whole even where the
         # lists shown are trimmed.
-        "narrated_from": [n.get("value") for n in values(person, "narrated_from") if n.get("value")][:60],
-        "narrated_to": [n.get("value") for n in values(person, "narrated_to") if n.get("value")][:60],
+        # each name once, with the books that record the link, so the tab can show who says it
+        "narrated_from": sources_by_name(values(person, "narrated_from")),
+        "narrated_to": sources_by_name(values(person, "narrated_to")),
         "teacher_count": len({n.get("value") for n in values(person, "narrated_from") if n.get("value")}),
         "student_count": len({n.get("value") for n in values(person, "narrated_to") if n.get("value")}),
         # the years his imamates cover, first to last
@@ -366,6 +385,12 @@ MAPPING = {
             "text_ar": {"type": "text", "analyzer": "arabic_names"},
             "text_en": {"type": "text"}, "grade": {"type": "keyword"},
             "page_first": {"type": "integer"}}},
+        "narrated_from": {"type": "object", "properties": {
+            "name": {"type": "text", "analyzer": "arabic_names"}}},
+        "narrated_to": {"type": "object", "properties": {
+            "name": {"type": "text", "analyzer": "arabic_names"}}},
+        "teacher_count": {"type": "integer"},
+        "student_count": {"type": "integer"},
         "verdicts": {"type": "object", "properties": {
             "grade": {"type": "keyword"}, "book": {"type": "keyword"},
             "source_key": {"type": "keyword"}}},
@@ -380,6 +405,10 @@ def main():
     parser.add_argument("--dry-run", action="store_true", help="build the documents only")
     parser.add_argument("--all", action="store_true", help="index people holding no entry too")
     parser.add_argument("--show", help="print one person's document")
+    parser.add_argument("--recreate", action="store_true",
+                        help="drop the index first: needed when a field changes shape, since "
+                             "a mapping inferred once (narrated_from as text) rejects the new "
+                             "shape (an object) for every document")
     parser.add_argument("--es-host", default="http://localhost:9200")
     parser.add_argument("--index", default=INDEX)
     args = parser.parse_args()
@@ -410,6 +439,9 @@ def main():
 
     from elasticsearch import Elasticsearch, helpers
     es = Elasticsearch(args.es_host, request_timeout=120)
+    if args.recreate and es.indices.exists(index=args.index):
+        es.indices.delete(index=args.index)
+        print(f"dropped {args.index}")
     if es.indices.exists(index=args.index):
         print(f"{args.index} exists; replacing its documents")
     else:

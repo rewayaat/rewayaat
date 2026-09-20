@@ -157,7 +157,7 @@ public class NarratorService {
      *
      * @return the hits, the total, and the topic tags they carry, for the filter bar
      */
-    public Map<String, Object> narrationsNaming(List<String> nameForms, String tag,
+    public Map<String, Object> narrationsNaming(List<String> nameForms, String tag, String book,
                                                 int page, int pageSize) {
         Map<String, Object> empty = new LinkedHashMap<>();
         empty.put("total", 0L);
@@ -170,6 +170,7 @@ public class NarratorService {
         int size = Math.min(Math.max(pageSize, 1), 50);
         int from = Math.max(page - 1, 0) * size;
         String wanted = tag == null ? "" : tag.trim();
+        String wantedBook = book == null ? "" : book.trim();
         try (ESClientProvider provider = new ESClientProvider()) {
             ElasticsearchClient client = provider.client();
             SearchResponse<Map> response = client.search(s -> s
@@ -188,9 +189,13 @@ public class NarratorService {
                         if (!wanted.isEmpty()) {
                             b.filter(f -> f.term(t -> t.field("topic_tags").value(wanted)));
                         }
+                        if (!wantedBook.isEmpty()) {
+                            b.filter(f -> f.term(t -> t.field("book").value(wantedBook)));
+                        }
                         return b;
                     }))
-                    .aggregations("tags", a -> a.terms(t -> t.field("topic_tags").size(18))),
+                    .aggregations("tags", a -> a.terms(t -> t.field("topic_tags").size(18)))
+                    .aggregations("books", a -> a.terms(t -> t.field("book").size(8))),
                     Map.class);
 
             List<Map<String, Object>> hits = new ArrayList<>();
@@ -209,11 +214,20 @@ public class NarratorService {
                             "count", bucket.docCount()));
                 }
             }
+            List<Map<String, Object>> books = new ArrayList<>();
+            if (response.aggregations().get("books") != null) {
+                for (StringTermsBucket bucket : response.aggregations().get("books")
+                        .sterms().buckets().array()) {
+                    books.add(Map.of("book", bucket.key().stringValue(),
+                            "count", bucket.docCount(), "share", 0));
+                }
+            }
             Map<String, Object> out = new LinkedHashMap<>();
             out.put("total", response.hits().total() == null ? hits.size()
                     : response.hits().total().value());
             out.put("hits", hits);
             out.put("tags", tags);
+            out.put("books", books);
             out.put("searched_for", forms);
             return out;
         } catch (Exception e) {

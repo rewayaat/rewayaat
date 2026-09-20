@@ -98,8 +98,9 @@ public class NarratorPageController {
     @GetMapping({"/narrator/{id}", "/narrator/{id}/{slug}"})
     public Object narratorPage(@PathVariable("id") String id,
                                @PathVariable(value = "slug", required = false) String slug,
-                               @RequestParam(value = "tab", defaultValue = "books") String tab,
+                               @RequestParam(value = "tab", defaultValue = "overview") String tab,
                                @RequestParam(value = "tag", required = false) String tag,
+                               @RequestParam(value = "book", required = false) String book,
                                @RequestParam(value = "page", defaultValue = "1") int page,
                                Model model, HttpServletRequest request,
                                HttpServletResponse response) throws IOException {
@@ -155,9 +156,16 @@ public class NarratorPageController {
         // Two tabs, because the page had become a scroll: what the books say of him, and the
         // narrations he stands in. The tab is in the URL, so each is a page that can be sent to
         // someone, and the narrations are fetched only when they are the tab being read.
-        String view = "narrations".equals(tab) ? "narrations" : "books";
+        // One tab set over the whole page. Everything used to sit in a column — the standing,
+        // the entries, the names, the narrations — so a reader scrolled past three sections to
+        // reach the one he came for, and the counters above led nowhere. Each tab is a URL, and
+        // each figure in the ledger is a link into the tab that explains it.
+        String view = switch (tab == null ? "" : tab) {
+            case "books", "chains", "narrations", "names" -> tab;
+            default -> "overview";
+        };
         Map<String, Object> naming = "narrations".equals(view)
-                ? narratorService.narrationsNaming(names, tag, page, PER_PAGE)
+                ? narratorService.narrationsNaming(names, tag, book, page, PER_PAGE)
                 : summaryOf(names);
         List<Map<String, Object>> narrations = new ArrayList<>();
         for (Object row : (List<?>) naming.getOrDefault("hits", List.of())) {
@@ -174,20 +182,32 @@ public class NarratorPageController {
         long narrationTotal = ((Number) naming.getOrDefault("total", 0)).longValue();
         String narrationsBase = base + "?tab=narrations";
         String withTag = tag == null || tag.isBlank() ? "" : "&tag=" + encode(tag);
+        String withBook = book == null || book.isBlank() ? "" : "&book=" + encode(book);
 
         model.addAttribute("narrations", narrations);
         model.addAttribute("narrationTotal", narrationTotal);
         model.addAttribute("searchedNames", naming.get("searched_for"));
         model.addAttribute("narrationBooks", naming.getOrDefault("books", List.of()));
+        String filters = (tag == null || tag.isBlank() ? "" : "&tag=" + encode(tag))
+                + (book == null || book.isBlank() ? "" : "&book=" + encode(book));
         model.addAttribute("view", view);
-        model.addAttribute("booksUrl", base);
+        model.addAttribute("overviewUrl", base);
+        model.addAttribute("booksUrl", base + "?tab=books");
+        model.addAttribute("chainsUrl", base + "?tab=chains");
+        model.addAttribute("namesUrl", base + "?tab=names");
         model.addAttribute("narrationsUrl", narrationsBase);
-        model.addAttribute("tagFacets", tagFacets(naming.get("tags"), narrationsBase, tag));
+        model.addAttribute("activeBook", book == null || book.isBlank() ? null : book);
+        model.addAttribute("clearBookUrl", narrationsBase
+                + (tag == null || tag.isBlank() ? "" : "&tag=" + encode(tag)));
+        model.addAttribute("bookFacets", bookFacets(naming.get("books"), narrationsBase, tag, book));
+        model.addAttribute("tagFacets", tagFacets(naming.get("tags"), narrationsBase, tag, book));
         model.addAttribute("activeTag", tag == null || tag.isBlank() ? null : tag);
         model.addAttribute("clearTagUrl", narrationsBase);
         model.addAttribute("narrationsPage", page);
-        model.addAttribute("narrationsNextUrl", narrationsBase + withTag + "&page=" + (page + 1));
-        model.addAttribute("narrationsPrevUrl", narrationsBase + withTag + "&page=" + (page - 1));
+        model.addAttribute("narrationsNextUrl",
+                narrationsBase + withTag + withBook + "&page=" + (page + 1));
+        model.addAttribute("narrationsPrevUrl",
+                narrationsBase + withTag + withBook + "&page=" + (page - 1));
         model.addAttribute("narrationsHasMore", (long) page * PER_PAGE < narrationTotal);
         return "narrator";
     }
@@ -202,15 +222,34 @@ public class NarratorPageController {
         return out;
     }
 
-    /** The tag bar's pills: the tags these narrations carry, each a link that filters them. */
-    private List<Map<String, Object>> tagFacets(Object buckets, String base, String active) {
+    /** The tag pills: each a link that filters these narrations, keeping the book filter. */
+    private List<Map<String, Object>> tagFacets(Object buckets, String base, String active,
+                                                String book) {
+        String keep = book == null || book.isBlank() ? "" : "&book=" + encode(book);
         List<Map<String, Object>> facets = new ArrayList<>();
         for (Object row : buckets instanceof List<?> list ? list : List.of()) {
             Map<?, ?> bucket = (Map<?, ?>) row;
             String label = String.valueOf(bucket.get("label"));
             facets.add(Map.of("label", label,
                     "count", bucket.get("count"),
-                    "url", base + "&tag=" + encode(label),
+                    "url", base + keep + "&tag=" + encode(label),
+                    "active", label.equals(active)));
+        }
+        return facets;
+    }
+
+    /** The same, for the books his narrations sit in: «93% in al-Kafi» made clickable. */
+    private List<Map<String, Object>> bookFacets(Object buckets, String base, String tag,
+                                                 String active) {
+        String keep = tag == null || tag.isBlank() ? "" : "&tag=" + encode(tag);
+        List<Map<String, Object>> facets = new ArrayList<>();
+        for (Object row : buckets instanceof List<?> list ? list : List.of()) {
+            Map<?, ?> bucket = (Map<?, ?>) row;
+            String label = String.valueOf(bucket.get("book"));
+            facets.add(Map.of("label", label,
+                    "count", bucket.get("count"),
+                    "share", bucket.get("share") == null ? 0 : bucket.get("share"),
+                    "url", base + keep + "&book=" + encode(label),
                     "active", label.equals(active)));
         }
         return facets;

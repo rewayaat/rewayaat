@@ -14375,3 +14375,88 @@ html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
 @media (max-width: 575.98px) {
     .ledger__value { font-size: 1.4rem; }
 }
+
+/* Teachers and students, side by side: the two directions of a chain read against
+   each other, not one list after the other. */
+
+.chains {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2.5rem;
+    margin-bottom: 1.2rem;
+}
+
+.chains__side {
+    flex: 1 1 22rem;
+    min-width: 0;
+}
+
+.chains__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--border);
+}
+
+.chains__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem 0.2rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.chains__name {
+    font-size: 0.92rem;
+    color: var(--text);
+}
+
+/* Which books record the link — the weight behind the name. */
+.chains__books {
+    flex: 0 0 auto;
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-align: end;
+}
+
+.chains__note,
+.chains__caveat {
+    max-width: 72ch;
+    font-size: 0.8rem;
+    line-height: 1.65;
+    color: var(--text-muted);
+}
+
+.chains__caveat {
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--border);
+    margin-bottom: 2.5rem;
+}
+
+/* The ledger's cells are links now. */
+a.ledger__cell {
+    text-decoration: none;
+    color: inherit;
+    transition: background 160ms ease;
+}
+
+a.ledger__cell:hover {
+    background: var(--gold-bg);
+}
+
+a.ledger__cell:hover .ledger__note {
+    color: var(--gold-dark);
+}
+
+.narrator-tab.is-active {
+    border-color: var(--border);
+    background: var(--surface);
+    color: var(--primary);
+}
+
+.narrator-tab.is-active .narrator-tab__count {
+    background: var(--gold-bg);
+    color: var(--gold-dark);
+}
