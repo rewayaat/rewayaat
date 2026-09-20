@@ -40,6 +40,80 @@ SOURCES = {
         "author": "0329IbnYacqubKulayni",
         "work": "0329IbnYacqubKulayni.Kafi",
         "version": "0329IbnYacqubKulayni.Kafi.Shia001122Vols-ara1.mARkdown",
+        "level": 2,
+        "nested": True,
+    },
+    "man-la-yahduruh": {
+        "book": "Man Lā Yaḥḍuruh al-Faqīh",
+        "repo": "0400AH",
+        "author": "0381IbnBabawayhSaduq",
+        "work": "0381IbnBabawayhSaduq.ManLaYahduruhuFaqih",
+        "version": "0381IbnBabawayhSaduq.ManLaYahduruhuFaqih.Shia001149Vols-ara1.mARkdown",
+        "level": 2,
+        "nested": True,
+    },
+    "al-khisal": {
+        "book": "Al-Khiṣāl",
+        "repo": "0400AH",
+        "author": "0381IbnBabawayhSaduq",
+        "work": "0381IbnBabawayhSaduq.Khisal",
+        "version": "0381IbnBabawayhSaduq.Khisal.Shia001137-ara1.completed",
+        "level": 2,
+        "nested": True,
+    },
+    "uyun-akhbar": {
+        "book": "ʿUyūn akhbār al-Riḍā",
+        "repo": "0400AH",
+        "author": "0381IbnBabawayhSaduq",
+        "work": "0381IbnBabawayhSaduq.CuyunAkhbarRida",
+        "version": "0381IbnBabawayhSaduq.CuyunAkhbarRida.Shia001142Vols-ara1.completed",
+        "level": 1,
+        "nested": False,
+    },
+    "maani-al-akhbar": {
+        "book": "Maʿānī al-ʾAkhbār",
+        "repo": "0400AH",
+        "author": "0381IbnBabawayhSaduq",
+        "work": "0381IbnBabawayhSaduq.MacaniAkhbar",
+        "version": "0381IbnBabawayhSaduq.MacaniAkhbar.Shia001148-ara1.completed",
+        "level": 1,
+        "nested": False,
+    },
+    "al-tawhid": {
+        "book": "Al-Tawḥīd",
+        "repo": "0400AH",
+        "author": "0381IbnBabawayhSaduq",
+        "work": "0381IbnBabawayhSaduq.Tawhid",
+        "version": "0381IbnBabawayhSaduq.Tawhid.Shia001136-ara1.completed",
+        "level": 1,
+        "nested": False,
+    },
+    "thawab-al-amal": {
+        "book": "Thawāb al-Aʿmāl wa ʿiqāb al-Aʿmāl",
+        "repo": "0400AH",
+        "author": "0381IbnBabawayhSaduq",
+        "work": "0381IbnBabawayhSaduq.ThawabAcmal",
+        "version": "0381IbnBabawayhSaduq.ThawabAcmal.Shia001138BK1-ara1.completed",
+        "level": 2,
+        "nested": False,
+    },
+    "fadail-al-shia": {
+        "book": "Faḍaʾil al-Shīʿa",
+        "repo": "0400AH",
+        "author": "0381IbnBabawayhSaduq",
+        "work": "0381IbnBabawayhSaduq.FadailShica",
+        "version": "0381IbnBabawayhSaduq.FadailShica.Shia001145-ara1.completed",
+        "level": 1,
+        "nested": False,
+    },
+    "nahj-al-balagha": {
+        "book": "Nahj al-Balāgha",
+        "repo": "0425AH",
+        "author": "0406SharifRadi",
+        "work": "0406SharifRadi.NahjBalagha",
+        "version": "0406SharifRadi.NahjBalagha.Shia20200618-ara1.mARkdown",
+        "level": 2,
+        "nested": True,
     },
 }
 
@@ -109,6 +183,30 @@ NO_STRUCTURE = {
 RAW = "https://raw.githubusercontent.com/OpenITI/{repo}/master/data/{author}/{work}/{version}"
 
 
+
+ARABIC_DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
+
+
+def numbered(title):
+    """Split a heading into the ordinal it states and the heading itself.
+
+    Several of these texts number their own abwāb - "9 - باب القدرة", "١٢ - باب تفسير..." -
+    in either set of digits. Where they do, that number is the join rather than the
+    heading's position in the file, which is the safer key: a stray heading near the front
+    of al-Tawḥīd shifted every chapter by one and produced titles that were plausible,
+    adjacent, and wrong.
+    """
+    text = title.strip()
+    match = re.match(r"^\s*([0-9\u0660-\u0669]{1,4})\s*[-–—.]\s*(.+)$", text)
+    if not match:
+        return None, text
+    number = match.group(1).translate(ARABIC_DIGITS)
+    try:
+        return int(number), match.group(2).strip()
+    except ValueError:
+        return None, text
+
+
 def normalise(text):
     """Fold the spellings that differ between editions but not in meaning."""
     text = re.sub(r"[\[\]()]", "", text or "")
@@ -126,7 +224,7 @@ def bare(title):
 def fetch(key):
     spec = SOURCES[key]
     CACHE.mkdir(parents=True, exist_ok=True)
-    target = CACHE / f"{key}.mARkdown"
+    target = CACHE / f"{key}.txt"
     if target.exists():
         print(f"  cached: {target}")
         return target
@@ -138,8 +236,15 @@ def fetch(key):
     return target
 
 
-def parse_structure(path):
-    """The text's own table of contents: each kitāb with its abwāb in order."""
+def parse_structure(path, level=2):
+    """The text's own table of contents: each kitāb with its abwāb in order.
+
+    Books mark their chapters at different depths. al-Kāfī and al-Khiṣāl nest abwāb under
+    kutub, so the chapters are at ``### ||``; al-Tawḥīd and Maʿānī al-ʾAkhbār have no kitāb
+    layer and put their abwāb at ``### |``. Reading the wrong depth silently yields a
+    handful of headings instead of hundreds, so the level is configured per book and
+    checked against the index's own chapter count.
+    """
     def clean(line):
         line = re.sub(r"^\s*#+\s*\|+\s*", "", line)
         line = line.replace("*", " ")
@@ -151,6 +256,17 @@ def parse_structure(path):
         return re.sub(r"\s+", " ", line).strip()
 
     kutub, current = [], None
+    if level == 1:
+        # Flat: every top-level heading is a chapter, gathered under one pseudo-kitāb.
+        current = {"kitab": "", "abwab": []}
+        kutub.append(current)
+        for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+            if re.match(r"^### \|[^|]", line):
+                title = clean(line)
+                if title:
+                    current["abwab"].append(title)
+        return kutub
+
     for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
         if re.match(r"^### \|[^|]", line) or line.strip() == "### |":
             title = clean(line)
@@ -181,7 +297,7 @@ def index_chapters(es_host, book):
         return json.load(resp)["aggregations"]["p"]["buckets"]
 
 
-def align(kutub, parts, part_ar, book_key):
+def align(kutub, parts, part_ar, book_key, nested=True):
     """Join the index to the text on kitāb and bāb ordinal."""
     by_name = [(normalise(k["kitab"]), k["abwab"]) for k in kutub]
 
@@ -198,6 +314,37 @@ def align(kutub, parts, part_ar, book_key):
             if target and abwab and (target in name or name in target):
                 return abwab
         return None
+
+    if not nested:
+        # No kitāb layer in the text, so the ordinal runs across the book. Every division
+        # the index shows is a view of the same sequence.
+        raw = kutub[0]["abwab"] if kutub else []
+        # Where the text numbers its own abwāb, index them by that number; the file's
+        # order is only a fallback for texts that do not.
+        by_number, positional = {}, []
+        for entry in raw:
+            stated, heading = numbered(entry)
+            positional.append(heading)
+            if stated is not None and stated not in by_number:
+                by_number[stated] = heading
+        stated_share = len(by_number) / max(len(raw), 1)
+
+        recovered = {}
+        for part in parts:
+            for section in part["s"]["buckets"]:
+                try:
+                    ordinal = int(section["key"])
+                except (TypeError, ValueError):
+                    continue
+                chapters = section["c"]["buckets"]
+                if not chapters:
+                    continue
+                if stated_share > 0.5:
+                    if ordinal in by_number:
+                        recovered[chapters[0]["key"]] = by_number[ordinal]
+                elif 1 <= ordinal <= len(positional):
+                    recovered[chapters[0]["key"]] = positional[ordinal - 1]
+        return recovered, [], []
 
     aliases = KITAB_ALIASES.get(book_key, {})
     skip = NO_STRUCTURE.get(book_key, {})
@@ -217,8 +364,18 @@ def align(kutub, parts, part_ar, book_key):
             except (TypeError, ValueError):
                 continue
             chapters = section["c"]["buckets"]
-            if chapters and 1 <= ordinal <= len(abwab):
-                recovered[chapters[0]["key"]] = abwab[ordinal - 1]
+            if not chapters:
+                continue
+            stated = {}
+            for entry in abwab:
+                n, heading = numbered(entry)
+                if n is not None and n not in stated:
+                    stated[n] = heading
+            if len(stated) > len(abwab) / 2:
+                if ordinal in stated:
+                    recovered[chapters[0]["key"]] = stated[ordinal]
+            elif 1 <= ordinal <= len(abwab):
+                recovered[chapters[0]["key"]] = numbered(abwab[ordinal - 1])[1]
     return recovered, unmatched, skipped
 
 
@@ -238,12 +395,13 @@ def main():
     if not args.align:
         return 0
 
-    kutub = parse_structure(path)
+    kutub = parse_structure(path, spec.get("level", 2))
     print(f"  {len(kutub)} kutub, {sum(len(k['abwab']) for k in kutub)} abwāb")
 
     part_ar = json.loads((MAPPING_DIR / "part_ar_mapping.json").read_text(encoding="utf-8"))
     parts = index_chapters(args.es_host, spec["book"])
-    recovered, unmatched, skipped = align(kutub, parts, part_ar, args.book)
+    recovered, unmatched, skipped = align(kutub, parts, part_ar, args.book,
+                                          spec.get("nested", True))
     print(f"  recovered {len(recovered)} chapter titles; {len(unmatched)} kutub unmatched")
     for name in unmatched:
         print(f"    unmatched kitāb: {name}")
