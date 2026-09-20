@@ -9,6 +9,16 @@
 
     <header class="hub-hero hub-hero--split">
         <div class="hub-hero__identity">
+            <!--
+              His name in a roundel. Deliberately not a portrait: no likeness of these
+              people exists, there are more than sixteen thousand of them, and for the
+              Prophet and the Imams a depiction is prohibited outright. Calligraphy in an
+              ornamental frame is the tradition's own answer and needs no exceptions.
+            -->
+            <div class="narrator-seal" th:if="${seal != null}"
+                 th:classappend="'narrator-seal--v' + ${sealVariant}" aria-hidden="true">
+                <span class="narrator-seal__mark" dir="rtl" lang="ar" th:text="${seal}">زرارة</span>
+            </div>
             <div class="hub-hero__eyebrow">Narrator</div>
             <h1 class="hub-hero__title narrator-name-ar" dir="rtl" lang="ar"
                 th:text="${displayAr}">اسم الراوي</h1>
@@ -53,6 +63,40 @@
 
         <div class="hub-hero__intro" th:if="${!#strings.isEmpty(narrator.blurb)}">
             <p class="hub-hero__intro-text" th:text="${narrator.blurb}">A sentence about him.</p>
+        </div>
+
+        <!--
+          Where he stands. The rijal books say "a companion of al-Sadiq" and leave the
+          reader to know what that means; this says it in a picture. Both inputs are
+          routinely absent, and the band does not render at all when neither is recorded.
+        -->
+        <div class="hub-chrono" th:if="${placement != null and placement.hasAnything()}"
+             aria-label="Where this narrator stands against the Prophet and the Imams">
+            <div class="hub-chrono__track">
+                <span class="hub-chrono__era" th:each="era : ${placement.eras}"
+                      th:style="'inset-inline-start:' + ${era.leftPercent} + '%; width:' + ${era.widthPercent} + '%'"
+                      th:classappend="${era.cssClass()}"
+                      th:title="${era.nameEn} + ' · ' + ${era.fromAh} + '–' + ${era.toAh} + ' AH'">
+                    <span class="hub-chrono__era-label"
+                          th:text="${era.isProphet() ? '۞' : era.order}">1</span>
+                </span>
+
+                <span class="hub-chrono__marker" th:if="${placement.deathPercent != null and !placement.deathOutsideScale}"
+                      th:style="'inset-inline-start:' + ${placement.deathPercent} + '%'"
+                      th:title="'Died ' + ${placement.deathAh} + ' AH'"></span>
+            </div>
+
+            <div class="hub-chrono__axis">
+                <span th:if="${!#lists.isEmpty(placement.highlightedNames)}"
+                      th:text="'Contemporary of ' + ${#strings.listJoin(placement.highlightedNames, ', ')}">Contemporary of</span>
+                <span th:unless="${!#lists.isEmpty(placement.highlightedNames)}">No generation recorded</span>
+
+                <span class="hub-chrono__here" th:if="${placement.deathAh != null}">
+                    <span th:text="'Died ' + ${placement.deathAh} + ' AH'">Died 148 AH</span>
+                    <!-- Two books disagreeing is the normal case, not an error. -->
+                    <span th:if="${placement.disputedDeath}" class="hub-chrono__disputed">· books disagree</span>
+                </span>
+            </div>
         </div>
     </header>
 

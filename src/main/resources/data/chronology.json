@@ -1,0 +1,23 @@
+{
+  "_note": "Curated. Ordinal 0 is the Prophet, matching the imam_ordinals field on a narrator record; 1-12 are the Imams. Spans are the conventional Twelver dates in AH. Corrections belong here rather than in the templates.",
+
+  "axis": { "fromAh": 1, "toAh": 500 },
+
+  "occultation": { "nameEn": "The Minor Occultation", "nameAr": "الغيبة الصغرى", "fromAh": 260, "toAh": 329 },
+
+  "eras": [
+    { "order": 0,  "fromAh": 1,   "toAh": 11,  "nameEn": "The Prophet",               "nameAr": "النبي (ص)",              "shortEn": "Prophet",      "shortAr": "النبي" },
+    { "order": 1,  "fromAh": 11,  "toAh": 40,  "nameEn": "Imam ʿAlī b. Abī Ṭālib",    "nameAr": "الإمام علي (ع)",          "shortEn": "ʿAlī",         "shortAr": "علي" },
+    { "order": 2,  "fromAh": 40,  "toAh": 50,  "nameEn": "Imam al-Ḥasan",             "nameAr": "الإمام الحسن (ع)",        "shortEn": "al-Ḥasan",     "shortAr": "الحسن" },
+    { "order": 3,  "fromAh": 50,  "toAh": 61,  "nameEn": "Imam al-Ḥusayn",            "nameAr": "الإمام الحسين (ع)",       "shortEn": "al-Ḥusayn",    "shortAr": "الحسين" },
+    { "order": 4,  "fromAh": 61,  "toAh": 95,  "nameEn": "Imam Zayn al-ʿĀbidīn",      "nameAr": "الإمام السجاد (ع)",       "shortEn": "al-Sajjād",    "shortAr": "السجاد" },
+    { "order": 5,  "fromAh": 95,  "toAh": 114, "nameEn": "Imam Muḥammad al-Bāqir",    "nameAr": "الإمام الباقر (ع)",       "shortEn": "al-Bāqir",     "shortAr": "الباقر" },
+    { "order": 6,  "fromAh": 114, "toAh": 148, "nameEn": "Imam Jaʿfar al-Ṣādiq",      "nameAr": "الإمام الصادق (ع)",       "shortEn": "al-Ṣādiq",     "shortAr": "الصادق" },
+    { "order": 7,  "fromAh": 148, "toAh": 183, "nameEn": "Imam Mūsā al-Kāẓim",        "nameAr": "الإمام الكاظم (ع)",       "shortEn": "al-Kāẓim",     "shortAr": "الكاظم" },
+    { "order": 8,  "fromAh": 183, "toAh": 203, "nameEn": "Imam ʿAlī al-Riḍā",         "nameAr": "الإمام الرضا (ع)",        "shortEn": "al-Riḍā",      "shortAr": "الرضا" },
+    { "order": 9,  "fromAh": 203, "toAh": 220, "nameEn": "Imam Muḥammad al-Jawād",    "nameAr": "الإمام الجواد (ع)",       "shortEn": "al-Jawād",     "shortAr": "الجواد" },
+    { "order": 10, "fromAh": 220, "toAh": 254, "nameEn": "Imam ʿAlī al-Hādī",         "nameAr": "الإمام الهادي (ع)",       "shortEn": "al-Hādī",      "shortAr": "الهادي" },
+    { "order": 11, "fromAh": 254, "toAh": 260, "nameEn": "Imam al-Ḥasan al-ʿAskarī",  "nameAr": "الإمام العسكري (ع)",      "shortEn": "al-ʿAskarī",   "shortAr": "العسكري" },
+    { "order": 12, "fromAh": 260, "toAh": 329, "nameEn": "Imam al-Mahdī",             "nameAr": "الإمام المهدي (عج)",      "shortEn": "al-Mahdī",     "shortAr": "المهدي" }
+  ]
+}

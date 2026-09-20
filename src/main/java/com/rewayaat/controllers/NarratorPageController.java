@@ -2,13 +2,18 @@ package com.rewayaat.controllers;
 
 import com.rewayaat.service.HadithCardFactory;
 import com.rewayaat.service.QuranicInsightsService;
+import com.rewayaat.service.Chronology;
+import com.rewayaat.service.NarratorSeal;
 import com.rewayaat.service.NarratorService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
@@ -33,6 +38,9 @@ public class NarratorPageController {
 
     @Autowired
     private NarratorService narratorService;
+
+    @Autowired
+    private Chronology chronology;
 
     @Autowired
     private HadithCardFactory cards;
@@ -78,19 +86,52 @@ public class NarratorPageController {
         return URLEncoder.encode(text, StandardCharsets.UTF_8);
     }
 
-    @GetMapping("/narrator/{id}")
-    public String narratorPage(@PathVariable("id") String id,
+    /**
+     * A narrator's page, at «/narrator/n000515/sahl-ibn-ziyad».
+     *
+     * The permanent id stays the authority — it is what survives two people becoming one, and
+     * what every recorded decision keys on — so the name in the URL is the readable half and
+     * nothing resolves by it. A bare «/narrator/n000515», or one carrying a name he no longer
+     * goes by, is moved permanently to the canonical form rather than serving the page twice.
+     */
+    @GetMapping({"/narrator/{id}", "/narrator/{id}/{slug}"})
+    public Object narratorPage(@PathVariable("id") String id,
+                               @PathVariable(value = "slug", required = false) String slug,
                                @RequestParam(value = "tab", defaultValue = "books") String tab,
                                @RequestParam(value = "tag", required = false) String tag,
                                @RequestParam(value = "page", defaultValue = "1") int page,
-                               Model model, HttpServletResponse response) throws IOException {
+                               Model model, HttpServletRequest request,
+                               HttpServletResponse response) throws IOException {
         Map<String, Object> narrator = narratorService.getNarrator(id);
         if (narrator == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
             return null;
         }
+        String canonicalSlug = text(narrator.get("slug"));
+        if (!canonicalSlug.isEmpty() && !canonicalSlug.equals(slug)) {
+            String query = request.getQueryString();
+            // 301, not 302: the canonical address of a narrator does not change from request to
+            // request, and a link that has been shared should end up pointing at the right one.
+            RedirectView moved = new RedirectView("/narrator/" + id + "/" + canonicalSlug
+                    + (query == null || query.isBlank() ? "" : "?" + query));
+            moved.setStatusCode(HttpStatus.MOVED_PERMANENTLY);
+            return moved;
+        }
+
+        String base = "/narrator/" + id + (canonicalSlug.isEmpty() ? "" : "/" + canonicalSlug);
         String arabic = text(narrator.get("display_ar"));
         String english = text(narrator.get("display_en"));
+
+        // Where he stands against the Prophet and the Imams. The rijal books say "a
+        // companion of al-Sadiq" and leave the reader to know what that means; the band
+        // says it in a picture. Both inputs are routinely absent and the band simply does
+        // not render then.
+        model.addAttribute("placement",
+                chronology.place(ordinals(narrator), statedDeathYears(narrator)));
+
+        // A name in a roundel, never a face - see NarratorSeal.
+        model.addAttribute("seal", NarratorSeal.monogram(arabicNames(narrator), arabic));
+        model.addAttribute("sealVariant", NarratorSeal.variant(text(narrator.get("person_id"))));
         String title = !english.isEmpty() ? english : arabic;
 
         model.addAttribute("narrator", narrator);
@@ -100,11 +141,11 @@ public class NarratorPageController {
         model.addAttribute("books", booksNamed(narrator));
         model.addAttribute("seoTitle", title + " — a narrator in the Shia Rijal books");
         model.addAttribute("seoDescription", summary(title, narrator));
-        model.addAttribute("canonicalUrl", BASE_URL + "/narrator/" + id);
+        model.addAttribute("canonicalUrl", BASE_URL + base);
         model.addAttribute("breadcrumbs", List.of(
                 Map.of("name", "Home", "url", "/"),
                 Map.of("name", "Narrators", "url", "/narrators"),
-                Map.of("name", title, "url", "/narrator/" + id)));
+                Map.of("name", title, "url", base)));
 
         // The narrations that name him, as the same card the rest of the site renders. They
         // are found by his name, not by a resolved chain, so the section says so plainly.
@@ -123,8 +164,7 @@ public class NarratorPageController {
             Map<?, ?> hit = (Map<?, ?>) row;
             @SuppressWarnings("unchecked")
             Map<String, Object> source = (Map<String, Object>) hit.get("source");
-            narrations.add(cards.build(String.valueOf(hit.get("id")), source,
-                    "/narrator/" + id, BASE_URL));
+            narrations.add(cards.build(String.valueOf(hit.get("id")), source, base, BASE_URL));
         }
         // the card shows a Quranic-insight count, so it has to be fetched as the other pages do
         Map<String, Integer> insightCounts = quranicInsights.insightCounts(
@@ -132,7 +172,6 @@ public class NarratorPageController {
         narrations.forEach(card -> card.put("quranCount",
                 insightCounts.getOrDefault(String.valueOf(card.get("id")), 0)));
         long narrationTotal = ((Number) naming.getOrDefault("total", 0)).longValue();
-        String base = "/narrator/" + id;
         String narrationsBase = base + "?tab=narrations";
         String withTag = tag == null || tag.isBlank() ? "" : "&tag=" + encode(tag);
 
@@ -192,5 +231,56 @@ public class NarratorPageController {
 
     private String text(Object value) {
         return value == null ? "" : value.toString();
+    }
+
+    /** {@code imam_ordinals}: 0 for the Prophet, 1-12 for the Imams. Often absent. */
+    @SuppressWarnings("unchecked")
+    private static List<Integer> ordinals(Map<String, Object> narrator) {
+        Object raw = narrator.get("imam_ordinals");
+        if (!(raw instanceof List<?> list)) {
+            return List.of();
+        }
+        List<Integer> out = new ArrayList<>();
+        for (Object item : list) {
+            if (item instanceof Number number) {
+                out.add(number.intValue());
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Every death year any book states. The books disagree often enough that this is a
+     * list rather than a value, and the page says so when it holds more than one.
+     */
+    @SuppressWarnings("unchecked")
+    private static List<Integer> statedDeathYears(Map<String, Object> narrator) {
+        Object raw = narrator.get("death_years");
+        if (!(raw instanceof List<?> list)) {
+            return List.of();
+        }
+        List<Integer> out = new ArrayList<>();
+        for (Object item : list) {
+            if (item instanceof Map<?, ?> entry && entry.get("value") instanceof Number number) {
+                out.add(number.intValue());
+            }
+        }
+        return out;
+    }
+
+    /** The Arabic names the books record for him, shortest of which becomes the seal. */
+    @SuppressWarnings("unchecked")
+    private static List<String> arabicNames(Map<String, Object> narrator) {
+        Object raw = narrator.get("names_ar");
+        if (!(raw instanceof List<?> list)) {
+            return List.of();
+        }
+        List<String> out = new ArrayList<>();
+        for (Object item : list) {
+            if (item instanceof String name) {
+                out.add(name);
+            }
+        }
+        return out;
     }
 }

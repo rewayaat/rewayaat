@@ -13928,3 +13928,141 @@ html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
     font-size: 0.78rem;
     color: var(--text-secondary);
 }
+
+/* ==========================================================================
+   The narrator's seal and the chronology band
+   ==========================================================================
+   Both sit in the blue hero on a narrator page.
+
+   The seal is the man's name in a roundel and never a portrait. No likeness of
+   any of these people exists, there are more than sixteen thousand of them, and
+   for the Prophet and the Imams a depiction is prohibited outright. Calligraphy
+   inside an ornamental frame is the tradition's own answer, and because it is
+   text rather than an image it needs no exception for any entry.
+
+   The band answers "when was he". A rijal entry says "a companion of al-Sadiq"
+   and leaves the reader to know what that means; the band shades that imamate
+   and marks the death year on the same axis, so an entry whose generation and
+   whose death year disagree shows it rather than hiding it. */
+
+.narrator-seal {
+    float: inline-end;
+    display: grid;
+    place-items: center;
+    width: 4rem;
+    height: 4rem;
+    margin-inline-start: 1rem;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 35%, rgba(255, 255, 255, 0.10), rgba(0, 0, 0, 0.20));
+    border: 1px solid rgba(200, 162, 61, 0.55);
+    box-shadow: inset 0 0 0 3px rgba(200, 162, 61, 0.12);
+}
+
+.narrator-seal__mark {
+    font-family: "Scheherazade New", "Amiri", serif;
+    /* The mark is one or two words and the roundel is fixed, so the type gives way
+       rather than the frame: أبو رافع has to sit where زرارة does. */
+    font-size: clamp(0.66rem, 1.4vw, 1.05rem);
+    line-height: 1.1;
+    max-width: 3.2rem;
+    text-align: center;
+    color: var(--gold, #c8a23d);
+    overflow: hidden;
+}
+
+/* Six ring treatments, picked by the person's id, so two seals side by side in a
+   list of narrators are told apart by more than the word inside them. */
+.narrator-seal--v0 { box-shadow: inset 0 0 0 3px rgba(200, 162, 61, 0.12); }
+.narrator-seal--v1 { box-shadow: inset 0 0 0 1px rgba(200, 162, 61, 0.45); }
+.narrator-seal--v2 { box-shadow: inset 0 0 0 5px rgba(200, 162, 61, 0.10); }
+.narrator-seal--v3 { box-shadow: inset 0 0 0 2px rgba(200, 162, 61, 0.30), inset 0 0 0 6px rgba(200, 162, 61, 0.10); }
+.narrator-seal--v4 { border-style: double; border-width: 3px; }
+.narrator-seal--v5 { box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.10); }
+
+.hub-chrono {
+    margin-top: 1.25rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid rgba(200, 162, 61, 0.22);
+    grid-column: 1 / -1;
+    clear: both;
+}
+
+.hub-chrono__track {
+    position: relative;
+    height: 1.5rem;
+    border-radius: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+}
+
+.hub-chrono__era {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, 0.04);
+    border-inline-end: 1px solid rgba(11, 23, 40, 0.55);
+    transition: background 180ms ease;
+}
+
+/* The imamates he is actually placed in. Everything else stays quiet so that the
+   shading is the thing the eye lands on. */
+.hub-chrono__era--on {
+    background: rgba(200, 162, 61, 0.42);
+}
+
+.hub-chrono__era--on .hub-chrono__era-label {
+    color: #0b1728;
+    font-weight: 600;
+}
+
+.hub-chrono__era--prophet {
+    background: rgba(255, 255, 255, 0.10);
+}
+
+.hub-chrono__era--prophet.hub-chrono__era--on {
+    background: rgba(200, 162, 61, 0.55);
+}
+
+.hub-chrono__era:hover {
+    filter: brightness(1.25);
+}
+
+.hub-chrono__era-label {
+    font-size: 0.6rem;
+    color: rgba(255, 255, 255, 0.7);
+    pointer-events: none;
+}
+
+.hub-chrono__marker {
+    position: absolute;
+    top: -0.25rem;
+    bottom: -0.25rem;
+    width: 2px;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25);
+}
+
+.hub-chrono__axis {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 0.45rem;
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.hub-chrono__here {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.hub-chrono__disputed {
+    color: rgba(255, 255, 255, 0.45);
+}
+
+@media (max-width: 575.98px) {
+    .hub-chrono__era-label { display: none; }
+    .hub-chrono__axis { flex-direction: column; gap: 0.2rem; }
+    .narrator-seal { width: 3rem; height: 3rem; }
+}
