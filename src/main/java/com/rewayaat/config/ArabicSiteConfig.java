@@ -41,13 +41,22 @@ public class ArabicSiteConfig {
                 return;
             }
 
+            String target = PageLocale.stripArabicPrefix(uri);
+            if (!PageLocale.hasArabicVersion(target)) {
+                // Not a page that exists in Arabic. 404 rather than render the English
+                // page under an Arabic URL, which would be a duplicate competing with it.
+                ((jakarta.servlet.http.HttpServletResponse) response)
+                        .sendError(jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND);
+                return;
+            }
+
             // Survives the forward: a forward reuses the request object, so the handler
             // and every controller downstream read the locale from here rather than from
             // a URI that no longer mentions it.
             http.setAttribute(PageLocale.REQUEST_ATTRIBUTE, PageLocale.ARABIC);
 
             // Query parameters survive a forward, so ?q= and ?page= are not lost here.
-            http.getRequestDispatcher(PageLocale.stripArabicPrefix(uri)).forward(request, response);
+            http.getRequestDispatcher(target).forward(request, response);
         };
 
         FilterRegistrationBean<Filter> registration = new FilterRegistrationBean<>(filter);

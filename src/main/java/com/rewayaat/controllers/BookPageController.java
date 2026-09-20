@@ -11,6 +11,8 @@ import com.rewayaat.service.HadithCardFactory;
 import com.rewayaat.service.QuranicInsightsService;
 import com.rewayaat.service.TopicLabelSource;
 import io.swagger.v3.oas.annotations.Hidden;
+import com.rewayaat.service.PageLocale;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +69,7 @@ public class BookPageController {
     }
 
     @GetMapping("/books")
-    public String booksIndex(Model model) {
+    public String booksIndex(Model model, HttpServletRequest request) {
         List<BookCatalog.Book> books = catalog.books();
 
         model.addAttribute("books", books);
@@ -76,14 +78,15 @@ public class BookPageController {
         model.addAttribute("seoDescription",
                 "Browse the primary Shia hadith collections: Al-Kafi, Nahj al-Balagha, "
                 + "Man La Yahduruh al-Faqih, Al-Khisal, Al-Amali and more, in Arabic and English.");
-        model.addAttribute("canonicalUrl", BASE_URL + "/books");
+        PageLocale.of(request).applyTo(model, "/books");
         model.addAttribute("jsonLd", booksIndexJsonLd(books));
         addBreadcrumbs(model, new LinkedHashMap<>());
         return "books";
     }
 
     @GetMapping("/books/{bookSlug}")
-    public String bookPage(@PathVariable String bookSlug, Model model, HttpServletResponse response)
+    public String bookPage(@PathVariable String bookSlug, Model model, HttpServletResponse response,
+                           HttpServletRequest request)
             throws IOException {
         Optional<BookCatalog.Book> found = catalog.book(bookSlug);
         if (found.isEmpty()) {
@@ -117,7 +120,7 @@ public class BookPageController {
                 "Read %s in Arabic and English: %,d narrations across %,d chapters, "
                 + "with similar narrations and Quranic insights for each hadith.",
                 book.name(), book.count(), book.chapters().size()));
-        model.addAttribute("canonicalUrl", BASE_URL + "/books/" + bookSlug);
+        PageLocale.of(request).applyTo(model, "/books/" + bookSlug);
         model.addAttribute("shareImageUrl", BASE_URL + "/books/" + bookSlug + "/card.png");
         model.addAttribute("jsonLd", bookJsonLd(book));
         LinkedHashMap<String, String> trail = new LinkedHashMap<>();
@@ -128,7 +131,8 @@ public class BookPageController {
 
     @GetMapping("/books/{bookSlug}/volume/{volume}")
     public String volumePage(@PathVariable String bookSlug, @PathVariable String volume,
-                             Model model, HttpServletResponse response) throws IOException {
+                             Model model, HttpServletResponse response,
+                             HttpServletRequest request) throws IOException {
         Optional<BookCatalog.Book> found = catalog.book(bookSlug);
         if (found.isEmpty()) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -161,7 +165,7 @@ public class BookPageController {
         model.addAttribute("seoDescription", String.format(
                 "%s, %s: %,d narrations across %,d chapters, in Arabic and English.",
                 book.name(), label, narrations, chapters.size()));
-        model.addAttribute("canonicalUrl", BASE_URL + "/books/" + bookSlug + "/volume/" + encode(volume));
+        PageLocale.of(request).applyTo(model, "/books/" + bookSlug + "/volume/" + encode(volume));
         model.addAttribute("sectionSummary",
                 blurbs.sectionSummaryForPath("books/" + bookSlug + "/volume/" + volume));
         model.addAttribute("shareImageUrl", BASE_URL + "/books/" + bookSlug + "/volume/" + encode(volume) + "/card.png");
@@ -176,7 +180,8 @@ public class BookPageController {
 
     @GetMapping("/books/{bookSlug}/part/{partSlug}")
     public String partPage(@PathVariable String bookSlug, @PathVariable String partSlug,
-                           Model model, HttpServletResponse response) throws IOException {
+                           Model model, HttpServletResponse response,
+                           HttpServletRequest request) throws IOException {
         Optional<BookCatalog.Book> foundBook = catalog.book(bookSlug);
         Optional<BookCatalog.Part> foundPart = catalog.part(bookSlug, partSlug);
         if (foundBook.isEmpty() || foundPart.isEmpty()) {
@@ -203,7 +208,7 @@ public class BookPageController {
         model.addAttribute("seoDescription", String.format(
                 "%s, %s: %,d narrations across %,d chapters, in Arabic and English.",
                 book.name(), part.title(), narrations, chapters.size()));
-        model.addAttribute("canonicalUrl", BASE_URL + part.url());
+        PageLocale.of(request).applyTo(model, part.url());
         model.addAttribute("sectionSummary", blurbs.sectionSummaryForPath(part.url()));
         model.addAttribute("shareImageUrl", BASE_URL + part.url() + "/card.png");
         model.addAttribute("jsonLd", bookJsonLd(book));
@@ -221,7 +226,8 @@ public class BookPageController {
     @GetMapping("/books/{bookSlug}/{chapterSlug}")
     public String chapterPage(@PathVariable String bookSlug, @PathVariable String chapterSlug,
                               @RequestParam(value = "tag", required = false) String tag,
-                              Model model, HttpServletResponse response) throws IOException {
+                              Model model, HttpServletResponse response,
+                              HttpServletRequest request) throws IOException {
         Optional<BookCatalog.Chapter> found = catalog.chapter(bookSlug, chapterSlug);
         if (found.isEmpty()) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -272,7 +278,7 @@ public class BookPageController {
         // the harmless way round.
         String canonicalPath = chapter.holdsSingleNarration() && all.size() == 1
                 ? str(all.get(0).get("url")) : chapter.url();
-        model.addAttribute("canonicalUrl", BASE_URL + canonicalPath);
+        PageLocale.of(request).applyTo(model, canonicalPath);
         model.addAttribute("shareImageUrl", BASE_URL + chapter.url() + "/card.png");
         model.addAttribute("jsonLd", chapterJsonLd(chapter, narrations));
 

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${htmlLang} ?: 'en'" th:dir="${htmlDir} ?: 'ltr'" lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/site :: sitehead}"></head>
 <body>
 <nav th:replace="~{fragments/site :: sitenav}"></nav>

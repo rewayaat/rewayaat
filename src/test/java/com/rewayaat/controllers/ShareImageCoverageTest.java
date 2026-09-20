@@ -32,21 +32,25 @@ class ShareImageCoverageTest {
      * The books index is a list of books, not a thing with a text of its own, so the site
      * mark is the honest image for it.
      */
-    private static final Set<String> SITE_MARK_IS_CORRECT = Set.of("/books");
+    private static final Set<String> SITE_MARK_IS_CORRECT = Set.of("\"/books\"");
 
     @Test
     void everyBookTreePageAdvertisesACardOfItsOwn() throws IOException {
         String source = Files.readString(CONTROLLER, StandardCharsets.UTF_8);
 
-        // Each page method sets exactly one canonicalUrl; the card should follow it.
+        // Each page method publishes exactly one canonical, through PageLocale so that the
+        // Arabic URL is canonical to itself; the card should follow it.
         Matcher m = Pattern.compile(
-                "model\\.addAttribute\\(\"canonicalUrl\",(.*?)\\);", Pattern.DOTALL).matcher(source);
+                "PageLocale\\.of\\(request\\)\\.applyTo\\(model,(.*?)\\);", Pattern.DOTALL)
+                .matcher(source);
         Set<String> missing = new LinkedHashSet<>();
         int pages = 0;
         while (m.find()) {
             pages++;
             String canonical = m.group(1).trim();
-            if (SITE_MARK_IS_CORRECT.stream().anyMatch(canonical::contains)) {
+            // Matched exactly. "contains" also exempted "/books/" + bookSlug and the
+            // volume path, so two of the four pages this test names were never checked.
+            if (SITE_MARK_IS_CORRECT.contains(canonical)) {
                 continue;
             }
             // The next 200 characters cover the rest of that page's model attributes.

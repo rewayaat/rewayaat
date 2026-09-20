@@ -106,6 +106,29 @@ public enum PageLocale {
     }
 
     /**
+     * Whether a page exists in Arabic at all.
+     *
+     * <p>The Arabic site is the home page and the book hub tree: the pages that answer
+     * the phrases someone types in Arabic, and the ones whose text is drawn from the
+     * translated labels. The 32,519 narration pages are deliberately not included. Their
+     * body is the narration, which is already Arabic on the English page, so an Arabic
+     * version would be the same text at a second URL - and it would double a URL count
+     * that Search Console is already reporting as more than it will index.
+     *
+     * <p>Anything else under the prefix answers 404 rather than rendering half-translated:
+     * a page that does not exist should say so, not enter the index and dilute the pages
+     * that do.
+     */
+    public static boolean hasArabicVersion(String strippedPath) {
+        if (strippedPath == null) {
+            return false;
+        }
+        return strippedPath.equals("/")
+                || strippedPath.equals("/books")
+                || strippedPath.startsWith("/books/");
+    }
+
+    /**
      * {@code uri} with the Arabic prefix removed, for forwarding to the real handler.
      * {@code /ar} and {@code /ar/} both become {@code /}.
      */

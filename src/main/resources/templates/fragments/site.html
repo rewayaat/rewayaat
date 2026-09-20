@@ -18,9 +18,19 @@
     <meta name="description" th:content="${seoDescription}"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <link rel="canonical" th:href="${canonicalUrl}"/>
+    <!--
+      Both languages name each other and themselves. Google reads an hreflang pair only
+      when it is reciprocal, so the same set is emitted on the English and the Arabic
+      page; a page with no Arabic version sets no alternates and is simply English.
+    -->
+    <th:block th:if="${hreflangAlternates != null}">
+        <link th:each="alt : ${hreflangAlternates}" rel="alternate"
+              th:hreflang="${alt.key}" th:href="${alt.value}"/>
+    </th:block>
     <!-- A tag-filtered chapter is a slice of a page that is already indexed. -->
     <meta th:if="${robotsDirective != null}" name="robots" th:content="${robotsDirective}"/>
 
+    <meta property="og:locale" th:content="${isArabic} ? 'ar_AR' : 'en_US'" content="en_US"/>
     <meta property="og:type" content="website"/>
     <meta property="og:site_name" content="The Hadith Database"/>
     <meta property="og:title" th:content="${seoTitle}"/>

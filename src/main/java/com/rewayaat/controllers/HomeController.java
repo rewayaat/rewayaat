@@ -14,6 +14,7 @@ import java.util.List;
 
 import com.rewayaat.service.BookCatalog;
 
+import com.rewayaat.service.PageLocale;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
@@ -110,7 +111,7 @@ public class HomeController {
 
         model.addAttribute("seoTitle", HOME_TITLE);
         model.addAttribute("seoDescription", HOME_DESCRIPTION);
-        model.addAttribute("canonicalUrl", BASE_URL + "/");
+        PageLocale.of(request).applyTo(model, "/");
         model.addAttribute("jsonLd", HOME_JSON_LD);
 
         // A search result page is thin, unbounded and duplicates the narration pages it
