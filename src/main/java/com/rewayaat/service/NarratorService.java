@@ -1,10 +1,13 @@
 package com.rewayaat.service;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
 import co.elastic.clients.elasticsearch._types.query_dsl.FieldValueFactorModifier;
 import co.elastic.clients.elasticsearch._types.query_dsl.FunctionBoostMode;
 import co.elastic.clients.elasticsearch.core.GetResponse;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import com.rewayaat.core.data.HadithObject;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.rewayaat.config.ESClientProvider;
@@ -140,5 +143,101 @@ public class NarratorService {
             LOGGER.warn("Narrator search failed for «{}»: {}", text, e.getMessage());
             return empty;
         }
+    }
+
+    /**
+     * The narrations whose chain names this man.
+     *
+     * <p>This is a search by name, not a resolved chain: the chains are not yet linked to
+     * people, so a narration is here because its text carries one of the forms the Rijal books
+     * head him under. For a man with a distinctive name that is exactly right; for «Muhammad b.
+     * Isa» it will gather more than one man, and the page says so rather than implying the
+     * identity work is done. Only forms of three words or more are searched — a bare «Zurara»
+     * would drag in every Zurara there is.
+     *
+     * @return the hits, the total, and the topic tags they carry, for the filter bar
+     */
+    public Map<String, Object> narrationsNaming(List<String> nameForms, String tag,
+                                                int page, int pageSize) {
+        Map<String, Object> empty = new LinkedHashMap<>();
+        empty.put("total", 0L);
+        empty.put("hits", new ArrayList<>());
+        empty.put("tags", new ArrayList<>());
+        List<String> forms = distinctive(nameForms);
+        if (forms.isEmpty()) {
+            return empty;
+        }
+        int size = Math.min(Math.max(pageSize, 1), 50);
+        int from = Math.max(page - 1, 0) * size;
+        String wanted = tag == null ? "" : tag.trim();
+        try (ESClientProvider provider = new ESClientProvider()) {
+            ElasticsearchClient client = provider.client();
+            SearchResponse<Map> response = client.search(s -> s
+                    .index(ESClientProvider.INDEX)
+                    .from(from)
+                    .size(size)
+                    .source(src -> src.filter(f -> f.includes(
+                            "book", "number", "english", "arabic", "notes", "volume", "part",
+                            "section", "chapter", "source", "edition", "publisher",
+                            "topic_tags", "llm_similar")))
+                    .query(q -> q.bool(b -> {
+                        for (String form : forms) {
+                            b.should(sh -> sh.matchPhrase(m -> m.field("arabic").query(form)));
+                        }
+                        b.minimumShouldMatch("1");
+                        if (!wanted.isEmpty()) {
+                            b.filter(f -> f.term(t -> t.field("topic_tags").value(wanted)));
+                        }
+                        return b;
+                    }))
+                    .aggregations("tags", a -> a.terms(t -> t.field("topic_tags").size(18))),
+                    Map.class);
+
+            List<Map<String, Object>> hits = new ArrayList<>();
+            for (Hit<Map> hit : response.hits().hits()) {
+                if (hit.source() != null) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> source = (Map<String, Object>) hit.source();
+                    hits.add(Map.of("id", hit.id(), "source", source));
+                }
+            }
+            List<Map<String, Object>> tags = new ArrayList<>();
+            if (response.aggregations().get("tags") != null) {
+                for (StringTermsBucket bucket : response.aggregations().get("tags")
+                        .sterms().buckets().array()) {
+                    tags.add(Map.of("label", bucket.key().stringValue(),
+                            "count", bucket.docCount()));
+                }
+            }
+            Map<String, Object> out = new LinkedHashMap<>();
+            out.put("total", response.hits().total() == null ? hits.size()
+                    : response.hits().total().value());
+            out.put("hits", hits);
+            out.put("tags", tags);
+            out.put("searched_for", forms);
+            return out;
+        } catch (Exception e) {
+            LOGGER.warn("Could not read narrations naming {}: {}", nameForms, e.getMessage());
+            return empty;
+        }
+    }
+
+    /**
+     * The name forms worth searching a chain for.
+     *
+     * <p>Shortest first, and «X b. Y» at the least. A chain names a man the short way —
+     * «سهل بن زياد» stands in 1,500 of them — while the Rijal books head him with his kunyah,
+     * his nisbah and his city, and searching for those full headings found eight. A single
+     * word is still too little: «Zurara» alone would gather every Zurara there is.
+     */
+    private List<String> distinctive(List<String> nameForms) {
+        List<String> forms = new ArrayList<>();
+        for (String form : nameForms == null ? List.<String>of() : nameForms) {
+            if (form != null && form.trim().split("\\s+").length >= 3) {
+                forms.add(form.trim());
+            }
+        }
+        forms.sort((a, b) -> a.length() - b.length());
+        return forms.size() > 6 ? forms.subList(0, 6) : forms;
     }
 }

@@ -165,6 +165,65 @@
            th:text="${#strings.listJoin(narrator.names_ar, ' · ')}">أسماء أخرى</p>
     </section>
 
+    <!-- The narrations that name him, in the same card the search results and chapter pages
+         use, with the same tag filter bar. They are gathered by his name: the chains are not
+         yet resolved to people, so a distinctive name gathers his narrations exactly and a
+         common one gathers his namesakes' too. Saying which names were searched is the least
+         a reader needs to judge that. -->
+    <section class="narrator-narrations" th:if="${narrationTotal > 0}">
+        <h2 class="hub-group__label">
+            Narrations naming him
+            <span class="hub-group__note"
+                  th:text="${#numbers.formatInteger(narrationTotal, 0, 'COMMA')}">1,500</span>
+        </h2>
+
+        <p class="narrator-narrations__caveat">
+            Found by searching the chains for
+            <span th:text="${#strings.listJoin(searchedNames, '، ')}" dir="rtl" lang="ar">الاسم</span>.
+            The chains are not yet linked to people, so where a name is shared these will
+            include his namesakes.
+        </p>
+
+        <div class="tag-filter-bar tag-filter-bar--results mb-3" th:if="${!#lists.isEmpty(tagFacets)}">
+            <div class="tag-filter-bar__head">
+                <span class="tag-filter-bar__label">Filter by Tag</span>
+                <a class="tag-filter-bar__clear" th:if="${activeTag != null}" th:href="${clearTagUrl}">Clear</a>
+            </div>
+            <div class="tag-filter-bar__pills">
+                <a class="topic-pill tag-filter-bar__pill" th:each="facet : ${tagFacets}"
+                   th:href="${facet.active} ? ${clearTagUrl} : ${facet.url}"
+                   th:classappend="${facet.active} ? 'topic-pill--active' : ''">
+                    <span class="tag-filter-bar__pill-label" th:text="${facet.label}">Tag</span>
+                    <span class="tag-filter-bar__pill-count" th:text="${facet.count}">2</span>
+                </a>
+            </div>
+        </div>
+
+        <div id="hadithView" class="hadith-static-list">
+            <div class="hadith-layout">
+                <div class="hadith-content">
+                    <div class="hadith-entry" th:each="narration : ${narrations}">
+                        <div th:replace="~{fragments/hadith-card :: card(${narration}, ${narration.number})}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <nav class="hub-pager" th:if="${narrationsPage > 1 or narrationsHasMore}"
+             aria-label="Narration pages">
+            <a class="hub-pager__link hub-pager__link--prev" th:if="${narrationsPage > 1}"
+               th:href="${narrationsPrevUrl}">
+                <i class="fa fa-arrow-left" aria-hidden="true"></i>
+                <span class="hub-pager__meta"><span class="hub-pager__title">Previous</span></span>
+            </a>
+            <a class="hub-pager__link hub-pager__link--next" th:if="${narrationsHasMore}"
+               th:href="${narrationsNextUrl}">
+                <span class="hub-pager__meta"><span class="hub-pager__title">More narrations</span></span>
+                <i class="fa fa-arrow-right" aria-hidden="true"></i>
+            </a>
+        </nav>
+    </section>
+
     <p class="narrator-provenance">
         This page is assembled from <span th:text="${narrator.entry_count}">5</span>
         entries<span th:if="${narrator.mention_count > 0}"> and
@@ -175,6 +234,9 @@
 </main>
 
 <footer th:replace="~{fragments/site :: sitefooter}"></footer>
+<!-- Folds al-Khoei's longer entries, and the narrations below them, with the same control
+     the chapter pages use. Without it the page is long but whole. -->
+<script src="/js/narration-collapse.js" th:src="@{/js/narration-collapse.js}"></script>
 <th:block th:replace="~{fragments/site :: analytics}"></th:block>
 </body>
 </html>

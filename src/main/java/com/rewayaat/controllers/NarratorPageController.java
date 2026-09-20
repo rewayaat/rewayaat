@@ -1,5 +1,7 @@
 package com.rewayaat.controllers;
 
+import com.rewayaat.service.HadithCardFactory;
+import com.rewayaat.service.QuranicInsightsService;
 import com.rewayaat.service.NarratorService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +33,12 @@ public class NarratorPageController {
 
     @Autowired
     private NarratorService narratorService;
+
+    @Autowired
+    private HadithCardFactory cards;
+
+    @Autowired
+    private QuranicInsightsService quranicInsights;
 
     /**
      * The way in: a name, and the men the books head under it.
@@ -71,8 +79,10 @@ public class NarratorPageController {
     }
 
     @GetMapping("/narrator/{id}")
-    public String narratorPage(@PathVariable("id") String id, Model model,
-                               HttpServletResponse response) throws IOException {
+    public String narratorPage(@PathVariable("id") String id,
+                               @RequestParam(value = "tag", required = false) String tag,
+                               @RequestParam(value = "page", defaultValue = "1") int page,
+                               Model model, HttpServletResponse response) throws IOException {
         Map<String, Object> narrator = narratorService.getNarrator(id);
         if (narrator == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -94,7 +104,56 @@ public class NarratorPageController {
                 Map.of("name", "Home", "url", "/"),
                 Map.of("name", "Narrators", "url", "/narrators"),
                 Map.of("name", title, "url", "/narrator/" + id)));
+
+        // The narrations that name him, as the same card the rest of the site renders. They
+        // are found by his name, not by a resolved chain, so the section says so plainly.
+        @SuppressWarnings("unchecked")
+        List<String> names = (List<String>) narrator.getOrDefault("names_ar", List.of());
+        Map<String, Object> naming = narratorService.narrationsNaming(names, tag, page, PER_PAGE);
+        List<Map<String, Object>> narrations = new ArrayList<>();
+        for (Object row : (List<?>) naming.getOrDefault("hits", List.of())) {
+            Map<?, ?> hit = (Map<?, ?>) row;
+            @SuppressWarnings("unchecked")
+            Map<String, Object> source = (Map<String, Object>) hit.get("source");
+            narrations.add(cards.build(String.valueOf(hit.get("id")), source,
+                    "/narrator/" + id, BASE_URL));
+        }
+        // the card shows a Quranic-insight count, so it has to be fetched as the other pages do
+        Map<String, Integer> insightCounts = quranicInsights.insightCounts(
+                narrations.stream().map(card -> String.valueOf(card.get("id"))).toList());
+        narrations.forEach(card -> card.put("quranCount",
+                insightCounts.getOrDefault(String.valueOf(card.get("id")), 0)));
+        long narrationTotal = ((Number) naming.getOrDefault("total", 0)).longValue();
+        String base = "/narrator/" + id;
+        String withTag = tag == null || tag.isBlank() ? "" : "?tag=" + encode(tag);
+
+        model.addAttribute("narrations", narrations);
+        model.addAttribute("narrationTotal", narrationTotal);
+        model.addAttribute("searchedNames", naming.get("searched_for"));
+        model.addAttribute("tagFacets", tagFacets(naming.get("tags"), base, tag));
+        model.addAttribute("activeTag", tag == null || tag.isBlank() ? null : tag);
+        model.addAttribute("clearTagUrl", base);
+        model.addAttribute("narrationsPage", page);
+        model.addAttribute("narrationsNextUrl", base + (withTag.isEmpty() ? "?" : withTag + "&")
+                + "page=" + (page + 1));
+        model.addAttribute("narrationsPrevUrl", base + (withTag.isEmpty() ? "?" : withTag + "&")
+                + "page=" + (page - 1));
+        model.addAttribute("narrationsHasMore", (long) page * PER_PAGE < narrationTotal);
         return "narrator";
+    }
+
+    /** The tag bar's pills: the tags these narrations carry, each a link that filters them. */
+    private List<Map<String, Object>> tagFacets(Object buckets, String base, String active) {
+        List<Map<String, Object>> facets = new ArrayList<>();
+        for (Object row : buckets instanceof List<?> list ? list : List.of()) {
+            Map<?, ?> bucket = (Map<?, ?>) row;
+            String label = String.valueOf(bucket.get("label"));
+            facets.add(Map.of("label", label,
+                    "count", bucket.get("count"),
+                    "url", base + "?tag=" + encode(label),
+                    "active", label.equals(active)));
+        }
+        return facets;
     }
 
     /** The books that head this man, as they are named on the page. */

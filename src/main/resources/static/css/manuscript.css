@@ -13806,3 +13806,23 @@ html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
 .narrator-strip__standing--disputed { background: var(--gold-bg); color: var(--gold-dark); }
 .narrator-strip__standing--trusted  { background: rgba(120, 190, 140, 0.22); color: #2f6b45; }
 .narrator-strip__standing--weakened { background: rgba(220, 120, 110, 0.18); color: #8d3a32; }
+
+.narrator-narrations {
+    margin-bottom: 2.5rem;
+}
+
+.narrator-narrations__caveat {
+    max-width: 68ch;
+    margin: -0.4rem 0 1rem;
+    font-size: 0.8rem;
+    line-height: 1.65;
+    color: var(--text-muted);
+}
+
+/* A Rijal entry folded to a readable height, with the same control a long narration uses. */
+.narrator-entry__text--clamped {
+    max-height: 15rem;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
+}
