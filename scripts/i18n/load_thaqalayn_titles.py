@@ -16,7 +16,6 @@ be what a broken join looks like.
 """
 
 import argparse
-import glob
 import json
 import pathlib
 import re
@@ -24,7 +23,7 @@ import sys
 import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
-CACHE = ROOT / "tmp" / "thaqalayn"
+SCRAPE = ROOT / "scripts" / "data" / "thaqalayn_chapter_titles.json"
 SOURCE_TAG = "thaqalayn.com/ar"
 
 
@@ -38,13 +37,50 @@ def flatten(text):
     return re.sub(r"\s+", " ", text).strip()
 
 
+def display(text):
+    """Strip vocalisation so headings read consistently across books.
+
+    Some of thaqalayn's books are fully vocalised and most are not, so taking
+    their titles verbatim leaves a fifth of the index wearing tashkeel and the
+    rest bare. Headings on the site are shown unvocalised, and the scrape file
+    keeps the marks if they are ever wanted back.
+    """
+    text = re.sub(r"[\u064B-\u0652\u0670\u0640]", "", text or "")
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def key(english):
+    """Fold the English title to what identifies the chapter across the two pages."""
+    text = re.sub(r"\s+", " ", (english or "").strip().lower())
+    text = re.sub(r"^\d+\.\s*", "", text)
+    text = re.sub(r"^chapter\s+(on\s+)?", "", text)
+    return text.strip(" .:-")
+
+
 def scraped():
-    titles = {}
-    for path in sorted(glob.glob(str(CACHE / "*.json"))):
-        for english, record in json.loads(pathlib.Path(path).read_text(encoding="utf-8")).items():
-            arabic = (record or {}).get("chapter_ar")
-            if english and arabic:
-                titles[english.strip()] = arabic
+    """English title -> Arabic title, from thaqalayn's own book index pages.
+
+    Both language versions of a book index list the same chapters in the same
+    (category, chapter) slots, so the pair is the site's own, not a guess of
+    ours. A title that resolves to more than one distinct Arabic reading is
+    dropped rather than guessed at.
+    """
+    data = json.loads(SCRAPE.read_text(encoding="utf-8"))
+    rows = list(data["chapters"])
+    rows += [{"en": c["en"], "ar": c["ar"]} for c in data["categories"]]
+    candidates = {}
+    for row in rows:
+        english, arabic = key(row["en"]), (row["ar"] or "").strip()
+        if english and arabic:
+            candidates.setdefault(english, set()).add(display(arabic))
+    titles, ambiguous = {}, 0
+    for english, readings in candidates.items():
+        if len({flatten(r) for r in readings}) == 1:
+            titles[english] = sorted(readings)[0]
+        else:
+            ambiguous += 1
+    if ambiguous:
+        print(f"  dropped {ambiguous} English titles with conflicting Arabic readings")
     return titles
 
 
@@ -65,7 +101,8 @@ def current_titles(es_host, index):
     held = {}
     for bucket in post(f"{es_host}/{index}/_search", body)["aggregations"]["c"]["buckets"]:
         arabic = bucket["ar"]["buckets"]
-        held[bucket["key"]] = arabic[0]["key"] if arabic else None
+        held[key(bucket["key"])] = (bucket["key"],
+                                    arabic[0]["key"] if arabic else None)
     return held
 
 
@@ -87,13 +124,13 @@ def main():
     for english, arabic in titles.items():
         if english not in held:
             continue
-        existing = held[english]
+        raw, existing = held[english]
         if existing is None:
-            new.append((english, arabic))
+            new.append((raw, arabic))
         elif flatten(existing) == flatten(arabic):
-            agree.append(english)
+            agree.append(raw)
         else:
-            differ.append((english, existing, arabic))
+            differ.append((raw, existing, arabic))
 
     covered = len(agree) + len(differ)
     rate = len(agree) * 100 // max(covered, 1)
@@ -109,7 +146,7 @@ def main():
         print("\n  report only; nothing written")
         return 0
 
-    writes = [(e, a) for e, a in titles.items() if e in held]
+    writes = [(held[e][0], a) for e, a in titles.items() if e in held]
     sent = 0
     for start in range(0, len(writes), 200):
         lines = []

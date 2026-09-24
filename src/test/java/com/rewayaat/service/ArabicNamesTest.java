@@ -15,10 +15,11 @@ class ArabicNamesTest {
     void translationsAreOnTheClasspath() {
         // The files live in src/main/resources/i18n and are also what the Elasticsearch
         // loader reads, so a packaging mistake shows up here rather than as empty pages.
-        // 6,812 of the 7,708 chapter titles are translated. The rest are present in the
-        // file with an empty value and are skipped on load, which is what makes the
+        // 7,704 of the 7,710 chapter titles are translated, taken from thaqalayn's own
+        // Arabic pages. The handful left out are rows whose stored Arabic was English or
+        // machine-translation debris; they carry no entry, which is what makes the
         // fallback below the normal case rather than an error path.
-        assertEquals(6812, ArabicNames.coverage().get("chapters"));
+        assertEquals(7704, ArabicNames.coverage().get("chapters"));
         assertTrue(ArabicNames.coverage().get("books") >= 10,
                 "every book a hub page exists for needs a name: " + ArabicNames.coverage());
     }
@@ -27,7 +28,8 @@ class ArabicNamesTest {
     @DisplayName("books and chapters resolve to Arabic")
     void namesResolve() {
         assertEquals("الكافي", ArabicNames.book("Al-Kāfi"));
-        assertEquals("روايات عن الرضا (ع)", ArabicNames.chapter("Traditions about Ar-Ridha (a.s.)"));
+        assertEquals("أخبار عن الرضا عليه السلام",
+                ArabicNames.chapter("Traditions about Ar-Ridha (a.s.)"));
     }
 
     @Test
