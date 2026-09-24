@@ -26,5 +26,30 @@
     gtag('js', new Date());
     gtag('config', 'G-3HSRTQD7GM', { page_title: 'Error 401' });
 </script>
+
+<script>
+  /*
+   * These pages are static files served by the container's error dispatch, so they
+   * cannot reach the message bundle the rest of the site uses. The dispatch is a
+   * forward rather than a redirect, so the address bar still holds the URL that was
+   * asked for - /ar/... for a reader on the Arabic site - and that is enough to know
+   * which language to show. Without this an Arabic reader following a dead link got an
+   * English page laid out left to right.
+   */
+  (function errorLocale() {
+    var path = window.location.pathname || '';
+    if (path !== '/ar' && path.indexOf('/ar/') !== 0) { return; }
+    var html = document.documentElement;
+    html.setAttribute('lang', 'ar');
+    html.setAttribute('dir', 'rtl');
+    var heading = document.querySelector('h1');
+    if (heading) { heading.textContent = 'غير مصرّح'; }
+    var body = document.querySelector('p.text-muted');
+    if (body) { body.textContent = 'ليس لديك وصول إلى هذه الصفحة. سجّل الدخول أو تواصل مع المشرف.'; }
+    var back = document.querySelector('a.btn');
+    if (back) { back.textContent = 'العودة إلى الرئيسية'; back.setAttribute('href', '/ar/'); }
+    document.title = '401 ' + 'غير مصرّح';
+  })();
+</script>
 </body>
 </html>
