@@ -1188,9 +1188,11 @@ function applyAuthState() {
         profileBtn.setAttribute('aria-expanded', 'false');
     }
     if (profileName) {
+        // The template renders this through the bundle; rewriting it here with a
+        // literal put English back on the Arabic page as soon as auth state settled.
         profileName.textContent = isAuthed
-            ? ((authState.user && authState.user.displayName) || 'Account')
-            : 'Account';
+            ? ((authState.user && authState.user.displayName) || t('nav.account', 'Account'))
+            : t('nav.account', 'Account');
     }
     if (profileInitial) {
         var source = isAuthed
@@ -1275,7 +1277,7 @@ function renderUserProfileMenu(collections) {
     header.className = 'profile-dropdown__header';
     header.innerHTML =
         '<div class="profile-dropdown__eyebrow">Signed in</div>' +
-        '<div class="profile-dropdown__title">' + escapeHtml((authState.user && (authState.user.displayName || authState.user.email)) || 'Account') + '</div>' +
+        '<div class="profile-dropdown__title">' + escapeHtml((authState.user && (authState.user.displayName || authState.user.email)) || t('nav.account', 'Account')) + '</div>' +
         '<div class="profile-dropdown__subtitle">' + escapeHtml((authState.user && authState.user.email) || '') + '</div>';
     panel.appendChild(header);
 
@@ -1658,7 +1660,7 @@ function openCollectionPickerModal(hadithId, collections) {
     // Add placeholder option
     var placeholderOption = document.createElement('option');
     placeholderOption.value = '';
-    placeholderOption.textContent = 'Select a collection\u2026';
+    placeholderOption.textContent = t('js.selectCollection', 'Select a collection\u2026');
     placeholderOption.disabled = true;
     placeholderOption.selected = true;
     select.appendChild(placeholderOption);
@@ -1669,7 +1671,7 @@ function openCollectionPickerModal(hadithId, collections) {
         var option = document.createElement('option');
         option.value = collection.name || 'Collection';
         var count = Array.isArray(collection.hadith_ids) ? collection.hadith_ids.length : 0;
-        option.textContent = (collection.name || 'Collection') + ' (' + count + ' hadith)';
+        option.textContent = (collection.name || 'Collection') + ' (' + formatHadithCount(count) + ')';
         select.appendChild(option);
     });
 
@@ -3134,7 +3136,7 @@ function formatFacetDisplay(key, value) {
 
 function formatHadithCount(count) {
     var num = Number(count) || 0;
-    return num + ' hadith';
+    return localeDigits(num) + ' ' + t('common.hadith', 'hadith');
 }
 
 function buildQueryFromFilters(filters) {
@@ -4073,8 +4075,8 @@ function populateBrowseBooks(books) {
     if (!heroBookSelect && !bookSelect) {
         return;
     }
-    populateBookSelect(heroBookSelect, books, 'All Books');
-    populateBookSelect(bookSelect, books, 'Select a book');
+    populateBookSelect(heroBookSelect, books, t('filter.allBooks', 'All Books'));
+    populateBookSelect(bookSelect, books, t('filter.selectBook', 'Select a book'));
     if (bookList) {
         bookList.innerHTML = '';
     }
@@ -4139,8 +4141,10 @@ function populateBookSelect(select, books, placeholder) {
         }
         var count = item.count || 0;
         var option = document.createElement('option');
+        // The value stays the English name: it is the key the browse endpoint filters
+        // on. Only what the reader sees changes.
         option.value = name;
-        option.textContent = name + ' (' + formatHadithCount(count) + ')';
+        option.textContent = displayName + ' (' + formatHadithCount(count) + ')';
         select.appendChild(option);
     });
 }

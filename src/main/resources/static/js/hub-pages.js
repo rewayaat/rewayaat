@@ -60,7 +60,8 @@ function localeHref(path) {
         if (authed && authState.user) {
             // The payload from /v1/auth/me calls it displayName, the same field the
             // search app reads. Reading `name` here left every editor labelled by email.
-            var label = authState.user.displayName || authState.user.email || 'Account';
+            var label = authState.user.displayName || authState.user.email
+                || t('nav.account', 'Account');
             if (name) { name.textContent = label; }
             if (initial) { initial.textContent = label.charAt(0).toUpperCase(); }
         }

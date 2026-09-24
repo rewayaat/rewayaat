@@ -161,15 +161,13 @@
                             <ul class="dropdown-menu dropdown-menu-end hadith-copy-menu" data-hub-menu>
                                 <li>
                                     <button class="dropdown-item" type="button"
-                                            th:attr="data-copy-target=${narration.id}" data-copy-field="english">
-                                        Copy English
-                                    </button>
+                                            th:attr="data-copy-target=${narration.id}" data-copy-field="english"
+                                            th:text="#{card.copyEnglish}">Copy English</button>
                                 </li>
                                 <li>
                                     <button class="dropdown-item" type="button"
-                                            th:attr="data-copy-target=${narration.id}" data-copy-field="arabic">
-                                        Copy Arabic
-                                    </button>
+                                            th:attr="data-copy-target=${narration.id}" data-copy-field="arabic"
+                                            th:text="#{card.copyArabic}">Copy Arabic</button>
                                 </li>
                             </ul>
                         </div>
@@ -209,9 +207,8 @@
                             <ul class="dropdown-menu dropdown-menu-end hadith-copy-menu" data-hub-menu>
                                 <li>
                                     <button class="dropdown-item" type="button"
-                                            th:attr="data-copy-url=${narration.shareUrl}">
-                                        Copy link
-                                    </button>
+                                            th:attr="data-copy-url=${narration.shareUrl}"
+                                            th:text="#{card.copyLink}">Copy link</button>
                                 </li>
                                 <!-- One entry, not two: the dialog behind it shows the card
                                      and lets you switch theme there, where you can see what
@@ -221,9 +218,8 @@
                                 <li>
                                     <button class="dropdown-item" type="button"
                                             th:attr="data-share-card=${narration.id},
-                                                     data-share-card-label=${narration.label}">
-                                        Share as image
-                                    </button>
+                                                     data-share-card-label=${narration.label}"
+                                            th:text="#{card.shareImage}">Share as image</button>
                                 </li>
                             </ul>
                         </div>
