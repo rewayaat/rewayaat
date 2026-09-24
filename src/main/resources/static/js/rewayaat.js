@@ -53,15 +53,33 @@ function localeHref(path) {
  * labelled in Arabic and filled in English. Coverage is partial by design - chapter_ar
  * reaches 88% - so each field falls back on its own.
  */
+/**
+ * A number in the digits the page is set in.
+ *
+ * The server formats its numbers through the locale, so a page could show ١٨٩ in its
+ * heading and 189 in a card rendered here. Applied to the value rather than the whole
+ * string, so "al-qism 10" keeps its words and converts only the 10.
+ */
+function localeDigits(value) {
+    if (value === null || value === undefined) { return value; }
+    if (window.I18N_LOCALE !== 'ar') { return value; }
+    return String(value).replace(/[0-9]/g, function(digit) {
+        return String.fromCharCode(0x0660 + Number(digit));
+    });
+}
+
 function localeField(narration, field) {
     if (!narration) { return undefined; }
     if (window.I18N_LOCALE === 'ar') {
         var arabic = narration[field + '_ar'];
-        if (typeof arabic === 'string' && arabic.length) { return arabic; }
+        if (typeof arabic === 'string' && arabic.length) { return localeDigits(arabic); }
         var extra = narration.additionalProperties;
         if (extra && typeof extra[field + '_ar'] === 'string' && extra[field + '_ar'].length) {
-            return extra[field + '_ar'];
+            return localeDigits(extra[field + '_ar']);
         }
+        // Reached when the row has no Arabic reading. The English is still worth
+        // showing, and a number in it is still worth writing in Arabic digits.
+        return localeDigits(narration[field]);
     }
     return narration[field];
 }
@@ -4747,6 +4765,9 @@ function setupVue(query, page, sortFields) {
             },
             tr: function(key, fallback) {
                 return t(key, fallback);
+            },
+            num: function(value) {
+                return localeDigits(value);
             },
             taxonomyLabel: function(slug) {
                 // taxonomy.json carries both: {"slug":"prayer","en":"Prayer","ar":"صلاة"}.

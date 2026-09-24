@@ -146,7 +146,7 @@
                                 key: 'hadith-number',
                                 icon: 'fa fa-hashtag',
                                 label: t('js.hadith', 'Hadith') + ' #',
-                                html: this.escapeHtml(this.hadithNumber),
+                                html: this.escapeHtml(localeDigits(this.hadithNumber)),
                                 clickable: false
                             });
                         }

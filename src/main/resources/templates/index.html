@@ -248,7 +248,7 @@
                         v-bind:class="{'topic-pill--active': activeTopicTags.includes(option.slug)}"
                         v-on:click="applyTagFilter(option.slug)">
                     <span class="tag-filter-bar__pill-label">{{ option.label }}</span>
-                    <span class="tag-filter-bar__pill-count">{{ option.count }}</span>
+                    <span class="tag-filter-bar__pill-count">{{ num(option.count) }}</span>
                 </button>
             </div>
         </div>
@@ -321,7 +321,7 @@
                          v-bind:class="'hadith-card--' + activeNarrationSidecarTab(narration)"
                          v-bind:style="sidecarStyleVars"
                          v-bind:id="narrationDomId(narration)">
-                    <div class="hadith-card__result-num">{{ collectionMode ? tr('js.hadith', 'Hadith') : tr('js.result', 'Result') }} {{ resultOrdinal(narration, index) }}/{{ totalHits }}</div>
+                    <div class="hadith-card__result-num">{{ collectionMode ? tr('js.hadith', 'Hadith') : tr('js.result', 'Result') }} {{ num(resultOrdinal(narration, index)) }}/{{ num(totalHits) }}</div>
                     <div class="card-body">
                         <div class="row g-4 hadith-card__layout">
                             <aside class="hadith-sidecar hadith-card__meta">
@@ -511,7 +511,7 @@
                                                                     <span class="hadith-sidecar__source-node-icon" aria-hidden="true"><i class="fa fa-file-lines"></i></span>
                                                                     <span class="hadith-sidecar__source-name">{{ source.label }}</span>
                                                                     <span class="hadith-sidecar__source-count"
-                                                                          v-if="source.count > 0">{{ source.count }}</span>
+                                                                          v-if="source.count > 0">{{ num(source.count) }}</span>
                                                                 </button>
                                                             </div>
                                                         </div>
