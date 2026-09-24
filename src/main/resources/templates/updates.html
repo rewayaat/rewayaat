@@ -159,7 +159,7 @@ fetch('/recent_updates.json')
             if (u.id) {
                 entry.id = u.id;
             }
-            var dateStr = new Date(u.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            var dateStr = new Date(u.date).toLocaleDateString((window.I18N_LOCALE === 'ar') ? 'ar-EG' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' });
             var highlights = '';
             if (pick(u, 'highlights') && pick(u, 'highlights').length) {
                 highlights = '<ul class="update-entry__highlights">' +
@@ -268,10 +268,10 @@ function guidesHtml(u) {
         return '';
     }
     var url = u.connectorUrl
-        ? '<div class="connector-url"><span class="connector-url__label">Connector URL</span>' +
+        ? '<div class="connector-url"><span class="connector-url__label" th:text="#{updates.connectorUrl}">Connector URL</span>' +
           '<code>' + u.connectorUrl + '</code>' +
           '<button type="button" class="connector-url__copy" data-copy="' + u.connectorUrl +
-          '">Copy</button></div>'
+          '" th:text="#{updates.copy}">Copy</button></div>'
         : '';
     return '<div class="update-entry__guides">' + url + pick(u, 'guides').map(function (g) {
         return '<section class="guide"' + (g.id ? ' id="' + g.id + '"' : '') + '>' +

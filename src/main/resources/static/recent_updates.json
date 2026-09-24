@@ -74,10 +74,10 @@
         "id": "connector-claude",
         "name": "أضفه إلى Claude",
         "steps": [
-          "In claude.ai, open <strong>Customize → Connectors</strong>.",
-          "Click <strong>+</strong>, then <strong>Add custom connector</strong>.",
-          "Name it <strong>Hadith</strong> and paste the connector URL above. Leave <strong>Advanced settings</strong> empty — there is nothing to sign in to.",
-          "In a chat, open <strong>+ → Connectors</strong> and switch <strong>Hadith</strong> on, then ask your question."
+          "في claude.ai، افتح <strong>Customize → Connectors</strong>.",
+          "انقر <strong>+</strong>، ثم <strong>Add custom connector</strong>.",
+          "سمّه <strong>Hadith</strong> والصق رابط الموصل أعلاه. واترك <strong>Advanced settings</strong> فارغة — فليس هناك ما تسجّل الدخول إليه.",
+          "في المحادثة، افتح <strong>+ → Connectors</strong> وفعّل <strong>Hadith</strong>، ثم اطرح سؤالك."
         ],
         "note": "Works on every Claude plan; the free plan allows one custom connector. On Team and Enterprise, an owner adds it once under Organization settings → Connectors.",
         "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v1.mp4",
@@ -89,10 +89,10 @@
         "id": "connector-chatgpt",
         "name": "أضفه إلى ChatGPT",
         "steps": [
-          "In chatgpt.com, open <strong>Settings → Apps → Advanced settings</strong> and turn on <strong>Developer mode</strong>.",
-          "Click <strong>Create app</strong>. Name it <strong>Hadith</strong>, paste the connector URL above, and set <strong>Authentication</strong> to <strong>No Auth</strong>.",
-          "Confirm that you trust the app, then click <strong>Create</strong>.",
-          "In a chat, open <strong>+</strong> and choose <strong>Hadith</strong>, then ask your question."
+          "في chatgpt.com، افتح <strong>Settings → Apps → Advanced settings</strong> وفعّل <strong>Developer mode</strong>.",
+          "انقر <strong>Create app</strong>. سمّه <strong>Hadith</strong>، والصق رابط الموصل أعلاه، واضبط <strong>Authentication</strong> على <strong>No Auth</strong>.",
+          "أكّد أنك تثق بالتطبيق، ثم انقر <strong>Create</strong>.",
+          "في المحادثة، افتح <strong>+</strong> واختر <strong>Hadith</strong>، ثم اطرح سؤالك."
         ],
         "note": "Developer mode is available on the web for Plus, Pro, Business, Enterprise and Edu plans.",
         "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/chatgpt-v1.mp4",
