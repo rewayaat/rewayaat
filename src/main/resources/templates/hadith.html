@@ -88,14 +88,14 @@
 <nav class="navbar navbar-expand-lg sticky-top site-nav">
     <div class="container">
         <div class="navbar-top w-100 d-flex align-items-center flex-wrap gap-3">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="/">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="/" th:href="@{${arPrefix} ?: '' } + '/'">
                 <img src="/img/Alilogov2-transparent.png" th:src="@{/img/Alilogov2-transparent.png}" class="brand-logo--full brand-logo--full-v2 d-none d-md-block" alt="ALI Logo"/>
                 <img src="/img/ali_icon.png" th:src="@{/img/ali_icon.png}" class="brand-logo--icon d-md-none" alt="ALI"/>
             </a>
             <div class="d-flex home-nav-links">
-                <a href="/" class="home-nav-link"><i class="fa fa-magnifying-glass" aria-hidden="true"></i><span th:text="#{nav.search}">Search</span></a>
-                <a href="/books" class="home-nav-link is-current"><i class="fa fa-book-open" aria-hidden="true"></i><span th:text="#{nav.books}">Books</span></a>
-                <a href="/updates.html" class="home-nav-link"><i class="fa fa-bolt" aria-hidden="true"></i><span>Updates</span></a>
+                <a href="/" th:href="@{${arPrefix} ?: '' } + '/'" class="home-nav-link"><i class="fa fa-magnifying-glass" aria-hidden="true"></i><span th:text="#{nav.search}">Search</span></a>
+                <a href="/books" th:href="@{${arPrefix} ?: '' } + '/books'" class="home-nav-link is-current"><i class="fa fa-book-open" aria-hidden="true"></i><span th:text="#{nav.books}">Books</span></a>
+                <a href="/updates.html" th:href="@{${arPrefix} ?: '' } + '/updates.html'" class="home-nav-link"><i class="fa fa-bolt" aria-hidden="true"></i><span th:text="#{nav.updates}">Updates</span></a>
             </div>
 
             <div class="menu-context-row ms-auto">
@@ -148,11 +148,11 @@
                 <i class="fa fa-list" aria-hidden="true"></i>
                 <span th:text="#{hadith.allInChapterNamed(${hadith.chapter})}">All narrations in this chapter</span>
             </a>
-            <a href="/books" class="hp-back">
-                <i class="fa fa-book" aria-hidden="true"></i> Browse all books
+            <a href="/books" th:href="@{${arPrefix} ?: '' } + '/books'" class="hp-back">
+                <i class="fa fa-book" aria-hidden="true"></i> <span th:text="#{hadith.browseAllBooks}">Browse all books</span>
             </a>
-            <a href="/" class="hp-back">
-                <i class="fa fa-arrow-left" aria-hidden="true"></i> Search more hadith
+            <a href="/" th:href="@{${arPrefix} ?: '' } + '/'" class="hp-back">
+                <i class="fa fa-arrow-left" aria-hidden="true"></i> <span th:text="#{hadith.searchMore}">Search more hadith</span>
             </a>
         </div>
     </article>
@@ -164,14 +164,16 @@
             <div>
                 <div class="site-footer__title" th:text="#{site.name}">Rewayaat</div>
                 <p class="site-footer__text">
-                    A project of the <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" class="site-footer__link">Academy for Learning Islam</a>. Search, browse, and study Shi'i narrations in Arabic and English.
+                    <span th:text="#{footer.projectOf}">A project of the</span>
+                    <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" class="site-footer__link" th:text="#{footer.academyFull}">Academy for Learning Islam</a>
+                    <span th:text="#{footer.blurb}">Search, browse, and study Shi'i narrations in Arabic and English.</span>
                 </p>
             </div>
             <div>
                 <div class="site-footer__label" th:text="#{footer.explore}">Explore</div>
                 <div class="site-footer__links">
-                    <a href="/updates.html">Updates</a>
-                    <a href="/search_tips.html" th:text="#{footer.searchTips}">Search Tips</a>
+                    <a href="/updates.html" th:href="@{${arPrefix} ?: '' } + '/updates.html'" th:text="#{footer.updates}">Updates</a>
+                    <a href="/search_tips.html" th:href="@{${arPrefix} ?: '' } + '/search_tips.html'" th:text="#{footer.searchTips}">Search Tips</a>
                     <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer" th:text="#{footer.apiDocs}">API Documentation</a>
                 </div>
             </div>
@@ -185,13 +187,13 @@
             </div>
         </div>
         <div class="site-footer__bottom">
-            <span>&copy; 2026 Academy for Learning Islam (A.L.I.)</span>
+            <span th:utext="#{footer.rights}">&copy; 2026 Academy for Learning Islam (A.L.I.)</span>
             <div class="site-footer__social">
                 <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer" title="GitHub"><i class="fa fa-github"></i></a>
                 <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer" title="REST API" th:title="#{footer.restApi}"><i class="fa fa-code"></i></a>
                 <a href="mailto:rewayaat.org@gmail.com" title="Email" th:title="#{footer.email}"><i class="fa fa-envelope"></i></a>
             </div>
-            <span>Content and translations remain the responsibility of their original sources.</span>
+            <span th:text="#{footer.disclaimer}">Content and translations remain the responsibility of their original sources.</span>
         </div>
     </div>
 </footer>

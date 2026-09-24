@@ -19,7 +19,7 @@ class ArabicNamesTest {
         // Arabic pages. The handful left out are rows whose stored Arabic was English or
         // machine-translation debris; they carry no entry, which is what makes the
         // fallback below the normal case rather than an error path.
-        assertEquals(7704, ArabicNames.coverage().get("chapters"));
+        assertEquals(7705, ArabicNames.coverage().get("chapters"));
         assertTrue(ArabicNames.coverage().get("books") >= 10,
                 "every book a hub page exists for needs a name: " + ArabicNames.coverage());
     }

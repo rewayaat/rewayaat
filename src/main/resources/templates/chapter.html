@@ -12,14 +12,16 @@
         <h1 class="hub-hero__title" th:text="${chapterTitle} ?: ${chapter.title}">Chapter title</h1>
         <div class="hub-hero__stats">
             <a class="hub-stat" th:if="${volumeUrl != null}" th:href="${volumeUrl}">
-                Volume <span class="hub-stat__value" th:text="${chapter.volume}">1</span>
+                <span th:text="#{chapter.volume}">Volume</span>
+                <span class="hub-stat__value" th:text="${chapter.volume}">1</span>
             </a>
             <span class="hub-stat" th:if="${!#strings.isEmpty(chapter.section)}">
-                Section <span class="hub-stat__value" th:text="${chapter.section}">20</span>
+                <span th:text="#{chapter.section}">Section</span>
+                <span class="hub-stat__value" th:text="${chapter.section}">20</span>
             </span>
             <span class="hub-stat">
                 <span class="hub-stat__value" th:text="${#numbers.formatInteger(chapter.count, 0, 'COMMA')}">12</span>
-                narrations
+                <span th:text="#{books.stat.narrations}">narrations</span>
             </span>
         </div>
     </header>
@@ -58,14 +60,13 @@
     </div>
 
     <h2 class="hub-group__label">
-        In this chapter
+        <span th:text="#{chapter.inThisChapter}">In this chapter</span>
         <span class="hub-group__note" th:if="${activeTag != null}"
               th:text="#{chapter.filteredBy(${activeTagLabel})}">filtered</span>
     </h2>
 
-    <p class="text-muted" th:if="${#lists.isEmpty(narrations)}">
-        No narrations in this chapter carry that tag.
-    </p>
+    <p class="text-muted" th:if="${#lists.isEmpty(narrations)}"
+       th:text="#{chapter.noneWithTag}">No narrations in this chapter carry that tag.</p>
 
     <!-- The same card the search results render, from the same fragment and the same
          CSS classes, so moving between the two never feels like changing product. -->

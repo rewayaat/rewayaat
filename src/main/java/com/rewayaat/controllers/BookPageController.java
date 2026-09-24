@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -113,7 +114,7 @@ public class BookPageController {
         model.addAttribute("book", book);
         model.addAttribute("volumes", useVolumes ? volumes.stream()
                 .map(v -> Map.of(
-                        "label", msg(locale, "book.volumeNumber", v),
+                        "label", msg(locale, "book.volumeNumber", digits(locale, v)),
                         "url", "/books/" + bookSlug + "/volume/" + encode(v),
                         "chapterCount", book.chaptersInVolume(v).size()))
                 .toList() : List.of());
@@ -125,7 +126,7 @@ public class BookPageController {
         model.addAttribute("bookTitle", bookName);
         model.addAttribute("seoTitle", msg(locale, "seo.book.title", bookName));
         model.addAttribute("seoDescription", msg(locale, "seo.book.description",
-                bookName, count(book.count()), count(book.chapters().size())));
+                bookName, count(locale, book.count()), count(locale, book.chapters().size())));
         locale.applyTo(model, "/books/" + bookSlug);
         model.addAttribute("shareImageUrl", BASE_URL + "/books/" + bookSlug + "/card.png");
         model.addAttribute("jsonLd", bookJsonLd(book));
@@ -169,12 +170,13 @@ public class BookPageController {
         model.addAttribute("chapterCount", chapters.size());
         PageLocale locale = PageLocale.of(request);
         String bookName = named(locale, book.name(), book.nameAr());
-        String volumeLabel = locale.isArabic() ? msg(locale, "book.volumeNumber", volume) : label;
+        String volumeLabel = locale.isArabic()
+                ? msg(locale, "book.volumeNumber", digits(locale, volume)) : label;
         model.addAttribute("bookTitle", bookName);
         model.addAttribute("volumeLabel", volumeLabel);
         model.addAttribute("seoTitle", msg(locale, "seo.volume.title", bookName, volumeLabel));
         model.addAttribute("seoDescription", msg(locale, "seo.volume.description",
-                bookName, volumeLabel, count(narrations), count(chapters.size())));
+                bookName, volumeLabel, count(locale, narrations), count(locale, chapters.size())));
         locale.applyTo(model, "/books/" + bookSlug + "/volume/" + encode(volume));
         model.addAttribute("sectionSummary",
                 blurbs.sectionSummaryForPath("books/" + bookSlug + "/volume/" + volume, locale.isArabic()));
@@ -222,7 +224,7 @@ public class BookPageController {
         model.addAttribute("partTitle", partTitle);
         model.addAttribute("seoTitle", msg(locale, "seo.part.title", partTitle, bookName));
         model.addAttribute("seoDescription", msg(locale, "seo.part.description",
-                bookName, partTitle, count(narrations), count(chapters.size())));
+                bookName, partTitle, count(locale, narrations), count(locale, chapters.size())));
         locale.applyTo(model, part.url());
         model.addAttribute("sectionSummary", blurbs.sectionSummaryForPath(part.url(), locale.isArabic()));
         model.addAttribute("shareImageUrl", BASE_URL + part.url() + "/card.png");
@@ -231,7 +233,7 @@ public class BookPageController {
         LinkedHashMap<String, String> trail = new LinkedHashMap<>();
         trail.put(bookName, "/books/" + bookSlug);
         if (part.volume() != null && !part.volume().isBlank() && book.volumes().size() > 1) {
-            trail.put(msg(locale, "book.volumeNumber", part.volume()),
+            trail.put(msg(locale, "book.volumeNumber", digits(locale, part.volume())),
                     "/books/" + bookSlug + "/volume/" + encode(part.volume()));
         }
         trail.put(partTitle, part.url());
@@ -282,7 +284,7 @@ public class BookPageController {
         model.addAttribute("bookTitle", chapterBook);
         model.addAttribute("seoTitle", msg(locale, "seo.chapter.title", chapterTitle, chapterBook));
         model.addAttribute("seoDescription", msg(locale, "seo.chapter.description",
-                chapterTitle, count(chapter.count()), chapterBook));
+                chapterTitle, count(locale, chapter.count()), chapterBook));
         // A chapter holding a single narration *is* that narration: the two pages carry
         // the same text, both were self-canonical, and both sat in a sitemap, so roughly
         // 4,000 pairs competed with each other and Search Console reported the whole
@@ -472,8 +474,29 @@ public class BookPageController {
     }
 
     /** Thousands-separated, in Latin digits, because these land in titles a crawler reads. */
-    private static String count(long value) {
-        return String.format("%,d", value);
+    /**
+     * A number written in the digits the page is set in.
+     *
+     * <p>The templates format their counts through Thymeleaf, which already follows the
+     * locale, so an Arabic page showed its chapter count as ١٨٩ while the meta
+     * description built here read 189 for the same page. The mismatch is visible in the
+     * one place it matters most, the search result.
+     */
+    private static String count(PageLocale locale, long value) {
+        return NumberFormat.getIntegerInstance(locale.locale()).format(value);
+    }
+
+    /** The same, for a number that reaches us as text, such as a volume's name. */
+    private static String digits(PageLocale locale, String value) {
+        if (!locale.isArabic() || value == null) {
+            return value;
+        }
+        StringBuilder out = new StringBuilder(value.length());
+        for (char character : value.toCharArray()) {
+            out.append(character >= '0' && character <= '9'
+                    ? (char) ('\u0660' + (character - '0')) : character);
+        }
+        return out.toString();
     }
 
     /**

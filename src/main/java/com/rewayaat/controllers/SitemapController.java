@@ -18,12 +18,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.PathVariable;
 import com.rewayaat.service.BookCatalog;
+import com.rewayaat.service.PageLocale;
 
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Generates dynamic XML sitemaps for search engine crawlers.
@@ -32,7 +34,11 @@ import java.util.List;
 public class SitemapController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SitemapController.class);
-    private static final String BASE_URL = "https://hadith.academyofislam.com";
+    // One authority for the host, shared with the canonical and hreflang tags the
+    // pages carry. A sitemap that names a different host than the canonical is a
+    // sitemap crawlers ignore.
+    private static final String BASE_URL = PageLocale.BASE_URL;
+    private static final String XHTML_NS = "http://www.w3.org/1999/xhtml";
     private static final int PAGE_SIZE = 10000;
     private static final String PIT_KEEP_ALIVE = "2m";
     private static final Duration CACHE_TTL = Duration.ofHours(6);
@@ -100,12 +106,13 @@ public class SitemapController {
     public ResponseEntity<String> staticSitemap() {
         StringBuilder xml = new StringBuilder();
         xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        xml.append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n");
+        xml.append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"\n");
+        xml.append("        xmlns:xhtml=\"").append(XHTML_NS).append("\">\n");
 
-        appendUrl(xml, "/", "1.0", "weekly");
-        appendUrl(xml, "/books", "0.9", "weekly");
-        appendUrl(xml, "/updates.html", "0.6", "weekly");
-        appendUrl(xml, "/search_tips.html", "0.5", "monthly");
+        appendLocalisedUrl(xml, "/", "1.0", "weekly");
+        appendLocalisedUrl(xml, "/books", "0.9", "weekly");
+        appendLocalisedUrl(xml, "/updates.html", "0.6", "weekly");
+        appendLocalisedUrl(xml, "/search_tips.html", "0.5", "monthly");
 
         xml.append("</urlset>");
         return ResponseEntity.ok()
@@ -128,20 +135,21 @@ public class SitemapController {
     public ResponseEntity<String> booksSitemap() {
         StringBuilder xml = new StringBuilder();
         xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        xml.append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n");
+        xml.append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"\n");
+        xml.append("        xmlns:xhtml=\"").append(XHTML_NS).append("\">\n");
 
         try {
-            appendUrl(xml, "/books", "0.9", "weekly");
+            appendLocalisedUrl(xml, "/books", "0.9", "weekly");
             for (BookCatalog.Book book : catalog.books()) {
-                appendUrl(xml, "/books/" + escapeXml(book.slug()), "0.9", "weekly");
+                appendLocalisedUrl(xml, "/books/" + escapeXml(book.slug()), "0.9", "weekly");
                 for (String volume : book.volumes()) {
-                    appendUrl(xml, "/books/" + escapeXml(book.slug()) + "/volume/"
+                    appendLocalisedUrl(xml, "/books/" + escapeXml(book.slug()) + "/volume/"
                             + escapeXml(urlEncode(volume)), "0.8", "monthly");
                 }
                 // Thirteen of the eighteen books divide into parts, and for some the part
                 // is the organising principle rather than the volume.
                 for (BookCatalog.Part part : book.parts()) {
-                    appendUrl(xml, escapeXml(part.url()), "0.8", "monthly");
+                    appendLocalisedUrl(xml, escapeXml(part.url()), "0.8", "monthly");
                 }
                 for (BookCatalog.Chapter chapter : book.chapters()) {
                     // A chapter holding one narration canonicalises to that narration
@@ -152,7 +160,7 @@ public class SitemapController {
                     if (chapter.holdsSingleNarration()) {
                         continue;
                     }
-                    appendUrl(xml, escapeXml(chapter.url()), "0.7", "monthly");
+                    appendLocalisedUrl(xml, escapeXml(chapter.url()), "0.7", "monthly");
                 }
             }
         } catch (Exception e) {
@@ -335,8 +343,41 @@ public class SitemapController {
      * updated-at field is ever added to the index, it belongs here.
      */
     private void appendUrl(StringBuilder xml, String path, String priority, String changefreq) {
+        appendEntry(xml, BASE_URL + path, priority, changefreq, null);
+    }
+
+    /**
+     * The page and its Arabic counterpart, each annotated with the pair.
+     *
+     * <p>Both entries carry the same set of alternates, because hreflang has to be
+     * reciprocal: a page that names a translation the translation does not name back
+     * is discarded rather than followed. Declaring it here rather than only in the
+     * markup means a crawler learns the pair from the sitemap, without having to
+     * fetch both pages first to find out they are the same page in two languages.
+     *
+     * <p>Pages with no Arabic version fall through to a single, unannotated entry.
+     */
+    private void appendLocalisedUrl(StringBuilder xml, String path, String priority, String changefreq) {
+        if (!PageLocale.hasArabicVersion(path)) {
+            appendUrl(xml, path, priority, changefreq);
+            return;
+        }
+        Map<String, String> alternates = PageLocale.alternatesFor(path);
+        appendEntry(xml, PageLocale.ENGLISH.urlFor(path), priority, changefreq, alternates);
+        appendEntry(xml, PageLocale.ARABIC.urlFor(path), priority, changefreq, alternates);
+    }
+
+    private void appendEntry(StringBuilder xml, String loc, String priority, String changefreq,
+                             Map<String, String> alternates) {
         xml.append("  <url>\n");
-        xml.append("    <loc>").append(BASE_URL).append(path).append("</loc>\n");
+        xml.append("    <loc>").append(loc).append("</loc>\n");
+        if (alternates != null) {
+            for (Map.Entry<String, String> alternate : alternates.entrySet()) {
+                xml.append("    <xhtml:link rel=\"alternate\" hreflang=\"")
+                        .append(escapeXml(alternate.getKey()))
+                        .append("\" href=\"").append(escapeXml(alternate.getValue())).append("\"/>\n");
+            }
+        }
         xml.append("    <changefreq>").append(changefreq).append("</changefreq>\n");
         xml.append("    <priority>").append(priority).append("</priority>\n");
         xml.append("  </url>\n");

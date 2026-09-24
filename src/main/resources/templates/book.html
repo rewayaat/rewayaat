@@ -75,13 +75,14 @@
         <ul class="hub-chapters">
             <li class="hub-chapter-row" th:each="chapter, it : ${chapters}">
                 <a class="hub-chapter" th:href="${arPrefix} + ${chapter.url}">
-                    <span class="hub-chapter__index" th:text="${it.count} + '.'">1.</span>
+                    <span class="hub-chapter__index"
+                          th:text="${isArabic} ? ${#numbers.formatInteger(it.count, 0)} : (${it.count} + '.')">1.</span>
                     <span class="hub-chapter__title" th:text="${isArabic} ? (${chapter.titleAr} ?: ${chapter.title}) : ${chapter.title}">Chapter title</span>
                     <!-- Labelled, not a bare number: the ordinal on the left is also a
                          bare number, and across two or three columns the two were
                          indistinguishable. -->
                     <span class="hub-chapter__count">
-                        <span th:text="${chapter.count}">12</span>
+                        <span th:text="${#numbers.formatInteger(chapter.count, 0)}">12</span>
                         <span class="hub-chapter__count-unit"
                               th:text="#{common.hadith}">hadith</span>
                     </span>

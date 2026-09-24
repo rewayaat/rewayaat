@@ -243,4 +243,46 @@ class SitemapIntegrationTest extends ElasticsearchTestSupport {
         final long lastSeen = indexed;
         assertEquals(expected, lastSeen, "Seeded documents never became searchable");
     }
+
+    @Test
+    void staticSitemapPairsEachPageWithItsArabicVersion() {
+        ResponseEntity<String> response = restTemplate.getForEntity("/sitemap-static.xml", String.class);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        String xml = response.getBody();
+        assertNotNull(xml);
+
+        assertTrue(xml.contains("xmlns:xhtml=\"http://www.w3.org/1999/xhtml\""),
+                "hreflang annotations need the xhtml namespace declared or the file will not parse");
+
+        List<String> locations = locations(xml);
+        assertTrue(locations.contains(BASE_URL + "/"), "the English home page is still listed");
+        assertTrue(locations.contains(BASE_URL + "/ar/"), "the Arabic home page is listed too");
+        assertTrue(locations.contains(BASE_URL + "/ar/books"), locations.toString());
+
+        // A page with no Arabic version gets one entry and no annotation, rather than an
+        // alternate pointing at a URL that 404s.
+        assertTrue(locations.contains(BASE_URL + "/search_tips.html"));
+        assertFalse(locations.contains(BASE_URL + "/ar/search_tips.html"),
+                "search tips has no Arabic version, so it must not claim one");
+    }
+
+    @Test
+    void everyAnnotatedPageIsNamedBackByItsAlternate() {
+        // hreflang is only honoured when it is reciprocal. Emitting the pair from one
+        // place is what makes that true here, so this is the assertion that the pair
+        // cannot drift: every href that appears as an alternate must itself be a <loc>.
+        ResponseEntity<String> response = restTemplate.getForEntity("/sitemap-static.xml", String.class);
+        String xml = response.getBody();
+        assertNotNull(xml);
+
+        Set<String> located = new HashSet<>(locations(xml));
+        Matcher alternate = Pattern.compile("hreflang=\"([^\"]+)\" href=\"([^\"]+)\"").matcher(xml);
+        int seen = 0;
+        while (alternate.find()) {
+            seen++;
+            assertTrue(located.contains(alternate.group(2)),
+                    "alternate " + alternate.group(2) + " is not listed as a page of its own");
+        }
+        assertTrue(seen > 0, "expected the static sitemap to carry hreflang annotations");
+    }
 }
