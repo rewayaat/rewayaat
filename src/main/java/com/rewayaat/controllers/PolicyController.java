@@ -1,6 +1,8 @@
 package com.rewayaat.controllers;
 
 import io.swagger.v3.oas.annotations.Hidden;
+import com.rewayaat.service.PageLocale;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,12 +25,15 @@ public class PolicyController {
     private static final String BASE_URL = "https://hadith.academyofislam.com";
 
     @GetMapping("/privacy")
-    public String privacy(Model model) {
+    public String privacy(Model model, HttpServletRequest request) {
         model.addAttribute("seoTitle", "Privacy — Rewayaat");
         model.addAttribute("seoDescription",
                 "What Rewayaat records and who else sees it. Reading and searching need no "
                 + "account; the MCP connector is read-only and unauthenticated.");
-        model.addAttribute("canonicalUrl", BASE_URL + "/privacy");
+        // Thymeleaf resolves #{...} from the locale resolver, so this page rendered its
+        // Arabic text without ever going through PageLocale - and so carried dir="ltr",
+        // the English canonical and no hreflang. Arabic prose in a left-to-right page.
+        PageLocale.of(request).applyTo(model, "/privacy");
         return "privacy";
     }
 }
