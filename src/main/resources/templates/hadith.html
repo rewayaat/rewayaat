@@ -146,7 +146,7 @@
         <div class="hp-onward">
             <a th:if="${chapterUrl != null}" th:href="${chapterUrl}" class="hp-back">
                 <i class="fa fa-list" aria-hidden="true"></i>
-                <span th:text="#{hadith.allInChapterNamed(${hadith.chapter})}">All narrations in this chapter</span>
+                <span th:text="#{hadith.allInChapterNamed(${chapterName})}">All narrations in this chapter</span>
             </a>
             <a href="/books" th:href="@{${arPrefix} ?: '' } + '/books'" class="hp-back">
                 <i class="fa fa-book" aria-hidden="true"></i> <span th:text="#{hadith.browseAllBooks}">Browse all books</span>

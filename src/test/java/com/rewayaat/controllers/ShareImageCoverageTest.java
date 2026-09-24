@@ -116,7 +116,10 @@ class ShareImageCoverageTest {
             assertTrue(factory.contains(level),
                     "HadithCardFactory builds no " + level + ", so that metadata row cannot link");
         }
-        assertTrue(factory.contains("\"Part\", partTitle, partUrl"),
+        // Matched as a shape rather than a literal: the row's label became a message
+        // lookup when the card learned to render in Arabic, and what matters here is
+        // still that the part row is handed partUrl rather than null.
+        assertTrue(Pattern.compile("filter\\.part[\\s\\S]{0,240}?partUrl").matcher(factory).find(),
                 "the Part row is not wired to partUrl, so it renders as plain text");
 
         // The search card resolves the same levels through the browse endpoint.

@@ -252,7 +252,7 @@ public class BookPageController {
             return null;
         }
         BookCatalog.Chapter chapter = found.get();
-        List<Map<String, Object>> all = narrationsIn(chapter);
+        List<Map<String, Object>> all = narrationsIn(chapter, PageLocale.of(request));
 
         // The tag facet, counted over the whole chapter so the counts do not change as
         // you filter — the same behaviour the search page's tag bar has.
@@ -327,7 +327,8 @@ public class BookPageController {
      * <p>Filtered on the same tuple the catalog is keyed by — a chapter title alone is
      * not unique, the same title recurs across volumes of the same book.
      */
-    private List<Map<String, Object>> narrationsIn(BookCatalog.Chapter chapter) throws IOException {
+    private List<Map<String, Object>> narrationsIn(BookCatalog.Chapter chapter, PageLocale locale)
+            throws IOException {
         List<Map<String, Object>> results = new ArrayList<>();
         try (ESClientProvider provider = new ESClientProvider()) {
             ElasticsearchClient client = provider.client();
@@ -354,7 +355,7 @@ public class BookPageController {
                 if (source == null) {
                     continue;
                 }
-                results.add(cards.build(hit.id(), source, chapter.url(), BASE_URL));
+                results.add(cards.build(hit.id(), source, chapter.url(), BASE_URL, locale));
             }
         }
         results.sort((a, b) -> compareNumbers(str(a.get("number")), str(b.get("number"))));

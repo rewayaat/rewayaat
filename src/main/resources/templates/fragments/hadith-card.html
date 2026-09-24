@@ -19,7 +19,8 @@
          th:attr="data-hadith-id=${narration.id}">
     <script type="application/json" class="hub-card-data" th:utext="${narration.copyJson}">{}</script>
     <div class="hadith-card__result-num" th:if="${ordinal != null}">
-        Hadith <span th:text="${ordinal}">1</span>
+        <span th:text="#{common.hadith}">Hadith</span>
+        <span th:text="${#numbers.formatInteger(ordinal, 0)}">1</span>
     </div>
 
     <!-- .card-body carries the three-column grid (sidecar | resizer | main) and the
@@ -93,7 +94,10 @@
 
                 <div class="hadith-reading-scroll">
                     <div class="row g-4 hadith-reading-row">
-                        <div class="col-12 col-lg-6">
+                        <!-- The Arabic site is read by people who read Arabic; showing the
+                             translation beside the matn there halves the width of the text
+                             they came for and says the Arabic is the gloss. -->
+                        <div class="col-12 col-lg-6" th:unless="${isArabic}">
                             <div class="hadith-text-block hadith-text-block--primary">
                                 <div class="hadith-chain"
                                      th:if="${!#strings.isEmpty(narration.englishChain)}"
@@ -101,7 +105,7 @@
                                 <div class="hadith-english" th:utext="${narration.english}" th:text="#{lang.english}">English</div>
                             </div>
                         </div>
-                        <div class="col-12 col-lg-6">
+                        <div th:class="${isArabic} ? 'col-12' : 'col-12 col-lg-6'" class="col-12 col-lg-6">
                             <div class="hadith-text-block hadith-text-block--primary hadith-text-block--arabic">
                                 <div class="hadith-chain hadith-chain--arabic arabic-text"
                                      th:if="${!#strings.isEmpty(narration.arabicChain)}"
