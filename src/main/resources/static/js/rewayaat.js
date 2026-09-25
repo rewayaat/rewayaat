@@ -4789,6 +4789,28 @@ function setupVue(query, page, sortFields) {
             num: function(value) {
                 return localeDigits(value);
             },
+            // A Vue template resolves a call against the instance, not the window, so the
+            // helpers the related list needs get their own door here.
+            localeField: function(record, field) {
+                return localeField(record, field);
+            },
+            localeHref: function(path) {
+                return localeHref(path);
+            },
+            /**
+             * A related narration's number, as the reader's script writes it.
+             *
+             * No hash in Arabic: it is a Latin convention, and a right-to-left line puts
+             * it after the numeral, so "#1" comes out reading "1#".
+             */
+            similarNumberLabel: function(similar) {
+                if (!similar || !similar.number) {
+                    return '';
+                }
+                return window.I18N_LOCALE === 'ar'
+                    ? localeDigits(similar.number)
+                    : '#' + similar.number;
+            },
             taxonomyLabel: function(slug) {
                 // taxonomy.json carries both: {"slug":"prayer","en":"Prayer","ar":"صلاة"}.
                 // Only the English was ever read, so the Arabic site showed English tags.
@@ -6309,27 +6331,30 @@ function setupVue(query, page, sortFields) {
                 return segments;
             },
             similarTabTitle: function(similar, index) {
-                if (similar && similar.book && similar.number) {
-                    return similar.book + ' #' + similar.number;
+                var book = localeField(similar, 'book');
+                var number = similar && similar.number
+                    ? t('crumb.hadithNumber', 'Hadith {0}').replace('{0}', localeDigits(similar.number))
+                    : '';
+                if (book && number) {
+                    return book + ' · ' + number;
                 }
-                if (similar && similar.book) {
-                    return similar.book;
-                }
-                if (similar && similar.number) {
-                    return 'Hadith #' + similar.number;
-                }
-                return 'Similar hadith #' + (index + 1);
+                return book || number
+                    || t('crumb.hadithNumber', 'Hadith {0}').replace('{0}', localeDigits(index + 1));
             },
             similarMainTitle: function(similar) {
                 if (!similar) {
-                    return 'Similar hadith';
+                    return t('sidecar.similarHadith', 'Similar hadith');
                 }
                 var parts = [];
-                if (similar.book) {
-                    parts.push(similar.book);
+                var book = localeField(similar, 'book');
+                if (book) {
+                    parts.push(book);
                 }
                 if (similar.number) {
-                    parts.push('Hadith #' + similar.number);
+                    // The reader's own word and digits: "Hadith #12" put both the English
+                    // noun and a Latin convention into an otherwise Arabic heading.
+                    parts.push(t('crumb.hadithNumber', 'Hadith {0}')
+                        .replace('{0}', localeDigits(similar.number)));
                 }
                 return parts.length ? parts.join(' · ') : this.similarTabTitle(similar, 0);
             },
@@ -6348,11 +6373,14 @@ function setupVue(query, page, sortFields) {
                         clickable: clickable !== false
                     });
                 }
-                pushSegment(similar.volume, 'volume');
-                pushSegment(similar.part, 'part');
-                pushSegment(similar.section, 'section');
-                pushSegment(similar.chapter, 'chapter');
-                pushSegment(similar.source, 'source');
+                // Each level in the reader's language. These were the English columns,
+                // so an Arabic card named the related narration's part and chapter in
+                // English underneath an Arabic heading.
+                pushSegment(localeDigits(similar.volume), 'volume');
+                pushSegment(localeField(similar, 'part'), 'part');
+                pushSegment(localeField(similar, 'section'), 'section');
+                pushSegment(localeField(similar, 'chapter'), 'chapter');
+                pushSegment(localeField(similar, 'source'), 'source');
                 return segments;
             },
             jumpLevelForSimilar: function(similar) {

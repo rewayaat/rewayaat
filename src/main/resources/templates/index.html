@@ -421,45 +421,49 @@
                                             {{narration.similarError}}
                                         </div>
                                         <div class="text-muted py-2"
-                                             v-else-if="narration.similarItems.length === 0">
+                                             v-else-if="narration.similarItems.length === 0"
+                                             th:text="#{sidecar.noSimilar}">
                                             No similar hadith were found for this narration.
                                         </div>
                                         <div v-else-if="activeSimilar(narration)">
-                                            <div class="hadith-sidecar__list hadith-sidecar__accordion"
-                                                 role="listbox"
-                                                 aria-label="Similar hadith list">
-                                                <div class="hadith-sidecar__accordion-item"
-                                                     v-for="(similar, sidx) in narration.similarItems.slice(0, narration.similarShowAll ? narration.similarItems.length : 10)"
-                                                    v-bind:key="'similar-' + sidx"
-                                                    v-bind:class="{'is-active': sidx === narration.similarActiveIndex}">
-                                                    <button type="button"
-                                                            class="hadith-sidecar__list-item hadith-sidecar__accordion-toggle hadith-sidecar__list-item--similar"
-                                                            v-bind:class="{'is-active': sidx === narration.similarActiveIndex}"
-                                                            v-bind:aria-expanded="sidx === narration.similarActiveIndex ? 'true' : 'false'"
-                                                            v-on:click="selectSimilarTab(narration, sidx)">
-                                                        <span class="hadith-sidecar__list-line">
-                                                            <span class="hadith-sidecar__list-eyebrow">{{ similar.book || ('Similar hadith ' + (sidx + 1)) }}</span>
+                                            <!-- A list, not an accordion. Clicking a row loads
+                                                 that narration into the pane below, which is
+                                                 where it was already shown; the disclosure only
+                                                 ever held the match reason. The hub pages have
+                                                 no such pane, so there the row is a link. -->
+                                            <div class="hadith-sidecar__list"
+                                                 aria-label="Similar hadith list" th:aria-label="#{sidecar.related}">
+                                                <button type="button"
+                                                        class="hadith-sidecar__list-item hadith-sidecar__list-item--similar"
+                                                        v-for="(similar, sidx) in narration.similarItems.slice(0, narration.similarShowAll ? narration.similarItems.length : 10)"
+                                                        v-bind:key="'similar-' + sidx"
+                                                        v-bind:class="{'is-active': sidx === narration.similarActiveIndex}"
+                                                        v-on:click="selectSimilarTab(narration, sidx)">
+                                                    <span class="hadith-sidecar__list-line">
+                                                        <span class="hadith-sidecar__list-eyebrow">{{ localeField(similar, 'book') }}</span>
+                                                        <span class="hadith-sidecar__list-separator" aria-hidden="true">•</span>
+                                                        <span class="hadith-sidecar__list-text">{{ similarNumberLabel(similar) }}</span>
+                                                        <template v-if="similar.matchType">
                                                             <span class="hadith-sidecar__list-separator" aria-hidden="true">•</span>
-                                                            <span class="hadith-sidecar__list-text">{{ similar.number ? ('#' + similar.number) : similarTabTitle(similar, sidx) }}</span>
-                                                            <template v-if="similar.matchType">
-                                                                <span class="hadith-sidecar__list-separator" aria-hidden="true">•</span>
-                                                                <span class="hadith-sidecar__list-meta match-type-badge"
-                                                                      v-bind:class="'match-type--' + similar.matchType">
-                                                                    {{ matchTypeLabel(similar.matchType) }}
-                                                                </span>
-                                                            </template>
-                                                        </span>
-                                                    </button>
-                                                    <div class="hadith-sidecar__accordion-body hadith-sidecar__accordion-body--similar"
-                                                         th:if="${!isArabic}"
-                                                         v-if="sidx === narration.similarActiveIndex && similar.matchReason">
-                                                        <div class="similar-reason-text"><span class="similar-reason-label" th:text="#{sidecar.whyMatched}">Why this matched:</span> {{ similar.matchReason }}</div>
-                                                    </div>
-                                                </div>
+                                                            <span class="hadith-sidecar__list-meta match-type-badge"
+                                                                  v-bind:class="'match-type--' + similar.matchType">
+                                                                {{ matchTypeLabel(similar.matchType) }}
+                                                            </span>
+                                                        </template>
+                                                    </span>
+                                                    <span class="hadith-sidecar__list-sub"
+                                                          v-if="localeField(similar, 'chapter')">{{ localeField(similar, 'chapter') }}</span>
+                                                    <!-- The reason the pair was judged similar was written in
+                                                         English by the model that judged it, and has no Arabic. -->
+                                                    <span class="hadith-sidecar__list-sub"
+                                                          th:if="${!isArabic}"
+                                                          v-if="similar.matchReason">{{ similar.matchReason }}</span>
+                                                </button>
                                                 <button type="button" class="hadith-sidecar__show-more"
                                                         v-if="narration.similarItems.length > 10 && !narration.similarShowAll"
                                                         v-on:click="$set(narration, 'similarShowAll', true)">
-                                                    Show all {{ narration.similarItems.length }} similar hadith <i class="fa fa-chevron-down" aria-hidden="true"></i>
+                                                    {{ tr('js.showAllCount', 'Show all {0}').replace('{0}', num(narration.similarItems.length)) }}
+                                                    <i class="fa fa-chevron-down" aria-hidden="true"></i>
                                                 </button>
                                             </div>
                                         </div>
@@ -658,7 +662,10 @@
                                         </div>
                                         <div class="hadith-inline-context__scroll">
                                             <div class="row g-4 hadith-inline-context__row">
-                                                <div class="col-12 col-lg-6">
+                                                <!-- The Arabic site does not show the translation
+                                                     here either: the same rule the narration card
+                                                     follows, for the same reason. -->
+                                                <div class="col-12 col-lg-6" th:unless="${isArabic}">
                                                     <div class="hadith-inline-context__panel hadith-inline-context__panel--similar">
                                                         <div class="hadith-inline-context__body">
                                                             <div class="hadith-chain"
@@ -670,7 +677,7 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="col-12 col-lg-6">
+                                                <div th:class="${isArabic} ? 'col-12' : 'col-12 col-lg-6'" class="col-12 col-lg-6">
                                                     <div class="hadith-inline-context__panel hadith-inline-context__panel--similar">
                                                         <div class="hadith-inline-context__body hadith-inline-context__body--arabic">
                                                             <div class="hadith-chain hadith-chain--arabic arabic-text"
