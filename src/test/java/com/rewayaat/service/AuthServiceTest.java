@@ -3,6 +3,7 @@ package com.rewayaat.service;
 import com.rewayaat.core.data.UserAccount;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Map;
@@ -39,6 +40,66 @@ class AuthServiceTest {
                 "allowedEmails",
                 java.util.Set.of("test@example.com"));
         ReflectionTestUtils.setField(service, "hadithEditorAccessService", hadithEditorAccessService);
+
+        // The real bundle, not a stub: what is being checked is that the Arabic strings
+        // exist and are reached, which a stub would hide.
+        ResourceBundleMessageSource messages = new ResourceBundleMessageSource();
+        messages.setBasename("messages");
+        messages.setDefaultEncoding("UTF-8");
+        ReflectionTestUtils.setField(service, "messages", messages);
+    }
+
+    private static UserAccount account(String locale) {
+        UserAccount user = new UserAccount();
+        user.setEmail("test@example.com");
+        user.setDisplayName("Tester");
+        user.setVerified(true);
+        user.setLocale(locale);
+        return user;
+    }
+
+    // ---- the language an account is written to in ----
+
+    @Test
+    void accountEmail_isWrittenInTheAccountsLanguage() {
+        Map<String, String> arabic =
+                service.accountEmail(account("ar"), "verify", "https://example.test/v", 48L);
+
+        assertTrue(arabic.get("subject").matches(".*[\\u0600-\\u06FF].*"),
+                "an Arabic account should be sent an Arabic subject, got: " + arabic.get("subject"));
+        assertFalse(arabic.get("body").contains("Assalamu alaykum"),
+                "the English greeting leaked into an Arabic mail: " + arabic.get("body"));
+        assertTrue(arabic.get("body").contains("https://example.test/v"),
+                "the link has to survive translation");
+    }
+
+    @Test
+    void accountEmail_fallsBackToEnglishForAccountsWithNoPreference() {
+        // Every account created before the preference existed holds no tag, and English
+        // is what those accounts have been receiving all along.
+        Map<String, String> mail =
+                service.accountEmail(account(null), "reset", "https://example.test/r", 2L);
+
+        assertTrue(mail.get("subject").startsWith("Reset your"), mail.get("subject"));
+        assertTrue(mail.get("body").contains("Assalamu alaykum Tester"), mail.get("body"));
+    }
+
+    @Test
+    void accountEmail_namesTheSiteAsReadersKnowIt() {
+        for (String locale : new String[]{null, "ar"}) {
+            Map<String, String> mail =
+                    service.accountEmail(account(locale), "verify", "https://example.test/v", 48L);
+            assertFalse(mail.get("subject").contains("Rewayaat"),
+                    "the repository's name is not the site's name: " + mail.get("subject"));
+        }
+    }
+
+    @Test
+    void publicUser_reportsTheStoredLanguage() {
+        // The client needs to know which way the toggle is currently set for the account,
+        // not merely which page it happens to be on.
+        assertEquals("ar", service.publicUser(account("ar")).get("locale"));
+        assertEquals("en", service.publicUser(account(null)).get("locale"));
     }
 
     // ---- publicUser ----

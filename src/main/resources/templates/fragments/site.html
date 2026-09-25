@@ -86,6 +86,7 @@
          announcement bar fell back to English on every page that uses this head. -->
     <th:block th:replace="~{fragments/i18n-js :: i18n}"></th:block>
     <script src="/js/site-announcement.js" th:src="@{/js/site-announcement.js}" defer></script>
+    <script src="/js/locale-preference.js" th:src="@{/js/locale-preference.js}" defer></script>
 </head>
 
 <body>
@@ -106,10 +107,13 @@
                   The toggle is the other language's URL, not a switch that changes state:
                   the language is the URL, so switching is navigation. It appears only on
                   the pages that exist in both, which is exactly where alternates are set.
+                  For a signed-in reader it also records the choice on the account, which
+                  is what decides the language of the mail we send them.
                 -->
                 <a th:if="${switchLocalePath != null}" class="home-nav-link home-nav-link--lang"
                    th:href="@{${switchLocalePath}}"
                    th:hreflang="${switchLocaleTag}"
+                   th:attr="data-set-locale=${switchLocaleTag}"
                    th:text="${isArabic} ? #{lang.switchToEnglish} : #{lang.switchToArabic}">العربية</a>
             </div>
 

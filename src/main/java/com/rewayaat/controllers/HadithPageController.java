@@ -133,6 +133,11 @@ public class HadithPageController {
         model.addAttribute("htmlDir", locale.direction());
         model.addAttribute("isArabic", locale.isArabic());
         model.addAttribute("arPrefix", locale.prefix());
+        // This page sets its own canonical and robots rules, so it does not go through
+        // PageLocale.applyTo — which is why it had no language toggle at all until now.
+        PageLocale other = locale.isArabic() ? PageLocale.ENGLISH : PageLocale.ARABIC;
+        model.addAttribute("switchLocalePath", other.prefix() + "/hadith/" + id);
+        model.addAttribute("switchLocaleTag", other.tag());
 
         // JSON-LD structured data
         String jsonLd = buildJsonLd(hadith, canonicalUrl);

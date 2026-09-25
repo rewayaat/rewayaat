@@ -107,4 +107,21 @@ class PageLocaleTest {
         assertEquals("/ar/books/al-kafi", english.getAttribute("switchLocalePath"));
         assertEquals("ar", english.getAttribute("switchLocaleTag"));
     }
+
+    @Test
+    @DisplayName("a stored language tag resolves, and anything unrecognised reads as English")
+    void ofTagResolvesStoredPreferences() {
+        assertEquals(PageLocale.ARABIC, PageLocale.ofTag("ar"));
+        assertEquals(PageLocale.ARABIC, PageLocale.ofTag(" AR "));
+        assertEquals(PageLocale.ENGLISH, PageLocale.ofTag("en"));
+
+        // Accounts predate the preference, so absent has to mean English rather than
+        // throwing or returning null into a mail-sending path.
+        assertEquals(PageLocale.ENGLISH, PageLocale.ofTag(null));
+        assertEquals(PageLocale.ENGLISH, PageLocale.ofTag(""));
+
+        // A caller that needs to reject an unknown tag compares the round trip, which is
+        // what stops "fr" being silently stored as English.
+        assertNotEquals("fr", PageLocale.ofTag("fr").tag());
+    }
 }

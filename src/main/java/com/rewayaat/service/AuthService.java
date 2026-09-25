@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -73,6 +74,25 @@ public class AuthService {
     @Autowired
     private HadithEditorAccessService hadithEditorAccessService;
 
+    @Autowired
+    private MessageSource messages;
+
+    /**
+     * The language to write to this account in.
+     *
+     * <p>The account's own preference, not the language of whatever page triggered the
+     * mail. A password reset is requested from a signed-out form that may be on either
+     * site, and someone who set their account to Arabic should not get an English mail
+     * because they happened to follow an English link.
+     */
+    private PageLocale localeOf(UserAccount user) {
+        return PageLocale.ofTag(user == null ? null : user.getLocale());
+    }
+
+    private String msg(PageLocale locale, String key, Object... args) {
+        return messages.getMessage(key, args, locale.locale());
+    }
+
     private long verifyTtlMs() {
         return verifyTokenHours * 60L * 60L * 1000L;
     }
@@ -86,6 +106,16 @@ public class AuthService {
     }
 
     public Map<String, Object> register(String displayName, String email, String password) throws Exception {
+        return register(displayName, email, password, PageLocale.ENGLISH);
+    }
+
+    /**
+     * @param signedUpIn the site the registration form was on, which seeds the account's
+     *                   language. It is only a seed: the preference is theirs to change
+     *                   afterwards, and {@link #updateLocale} is what changes it.
+     */
+    public Map<String, Object> register(String displayName, String email, String password,
+                                        PageLocale signedUpIn) throws Exception {
         String normalizedEmail = normalizeEmail(email);
         if (normalizedEmail.isEmpty()) {
             return error("Invalid registration payload. Use a valid email.");
@@ -106,6 +136,7 @@ public class AuthService {
         user.setEmail(normalizedEmail);
         user.setDisplayName(safeDisplayName(displayName, normalizedEmail));
         user.setPasswordHash(passwordEncoder.encode(password));
+        user.setLocale((signedUpIn == null ? PageLocale.ENGLISH : signedUpIn).tag());
         user.setVerified(false);
         user.setVerificationTokenHash(hashToken(rawVerificationToken));
         user.setVerificationTokenExpiry(now + verifyTtlMs());
@@ -119,7 +150,7 @@ public class AuthService {
         user.setUpdatedAt(now);
         saveUser(user);
 
-        sendVerificationEmail(user.getEmail(), user.getDisplayName(), rawVerificationToken);
+        sendVerificationEmail(user, rawVerificationToken);
         Map<String, Object> payload = new HashMap<>();
         payload.put("ok", true);
         payload.put("message", "Registration successful. Check your email to verify your account.");
@@ -208,7 +239,7 @@ public class AuthService {
                 user.setResetTokenExpiry(now + resetTtlMs());
                 user.setUpdatedAt(now);
                 saveUser(user);
-                sendPasswordResetEmail(user.getEmail(), user.getDisplayName(), rawResetToken);
+                sendPasswordResetEmail(user, rawResetToken);
             }
         }
         Map<String, Object> payload = new HashMap<>();
@@ -278,6 +309,7 @@ public class AuthService {
         payload.put("email", user.getEmail());
         payload.put("displayName", user.getDisplayName());
         payload.put("verified", Boolean.TRUE.equals(user.getVerified()));
+        payload.put("locale", localeOf(user).tag());
         payload.put("canEditHadith", hadithEditorAccessService != null
                 && hadithEditorAccessService.canEdit(user.getEmail()));
         return payload;
@@ -346,26 +378,59 @@ public class AuthService {
         }
     }
 
-    private void sendVerificationEmail(String to, String displayName, String rawToken) {
-        String subject = "Verify your Rewayaat account";
-        // Use a path-based URL to avoid tokens leaking via Referer headers
-        String verifyUrl = buildVerifyUrl(rawToken);
-        String body = "Assalamu alaykum " + displayName + ",\n\n"
-                + "Please verify your account by opening this link:\n"
-                + verifyUrl + "\n\n"
-                + "This link expires in " + verifyTokenHours + " hours.";
-        sendEmail(to, subject, body, verifyUrl);
+    /**
+     * The subject and body of one account mail, in the account's language.
+     *
+     * <p>Separate from sending so it can be read back in a test: the language of a mail
+     * is not something the send path can be asked about afterwards.
+     */
+    Map<String, String> accountEmail(UserAccount user, String kind, String link, long hours) {
+        PageLocale locale = localeOf(user);
+        return Map.of(
+                "subject", msg(locale, "email." + kind + ".subject"),
+                "body", msg(locale, "email.greeting", user.getDisplayName()) + "\n\n"
+                        + msg(locale, "email." + kind + ".body") + "\n"
+                        + link + "\n\n"
+                        + msg(locale, "email.expires", hours));
     }
 
-    private void sendPasswordResetEmail(String to, String displayName, String rawToken) {
-        String subject = "Reset your Rewayaat password";
+    private void sendVerificationEmail(UserAccount user, String rawToken) {
+        // Use a path-based URL to avoid tokens leaking via Referer headers
+        String verifyUrl = buildVerifyUrl(rawToken);
+        Map<String, String> mail = accountEmail(user, "verify", verifyUrl, verifyTokenHours);
+        sendEmail(user.getEmail(), mail.get("subject"), mail.get("body"), verifyUrl);
+    }
+
+    private void sendPasswordResetEmail(UserAccount user, String rawToken) {
         // Use a path-based URL to avoid tokens leaking via Referer headers
         String resetUrl = buildResetUrl(rawToken);
-        String body = "Assalamu alaykum " + displayName + ",\n\n"
-                + "Reset your password using this link:\n"
-                + resetUrl + "\n\n"
-                + "This link expires in " + resetTokenHours + " hours.";
-        sendEmail(to, subject, body, resetUrl);
+        Map<String, String> mail = accountEmail(user, "reset", resetUrl, resetTokenHours);
+        sendEmail(user.getEmail(), mail.get("subject"), mail.get("body"), resetUrl);
+    }
+
+    /**
+     * Changes the language this account is written to in.
+     *
+     * <p>Reached both from the settings control and from the language switcher, so that
+     * a reader who moves to the Arabic site while signed in is not then sent English
+     * mail by an account preference they never knew they had.
+     */
+    public Map<String, Object> updateLocale(String sessionToken, String tag) throws Exception {
+        UserAccount user = authenticatedUser(sessionToken);
+        if (user == null) {
+            return error("Sign in to change your language.");
+        }
+        PageLocale chosen = PageLocale.ofTag(tag);
+        if (!chosen.tag().equals(tag)) {
+            return error("Unsupported language: " + tag);
+        }
+        user.setLocale(chosen.tag());
+        user.setUpdatedAt(System.currentTimeMillis());
+        saveUser(user);
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("ok", true);
+        payload.put("locale", chosen.tag());
+        return payload;
     }
 
     String buildVerifyUrl(String rawToken) {
@@ -388,7 +453,9 @@ public class AuthService {
 
     private void sendEmail(String to, String subject, String body, String fallbackLink) {
         if (resendApiKey == null || resendApiKey.isBlank()) {
-            LOGGER.warn("Resend API key not configured. Email link for {}: {}", to, fallbackLink);
+            // The subject as well as the link: without it there is no way to tell locally
+            // which language an account is being written to in.
+            LOGGER.warn("Resend API key not configured. Email for {} [{}]: {}", to, subject, fallbackLink);
             return;
         }
         try {

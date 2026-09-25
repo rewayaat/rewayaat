@@ -967,6 +967,12 @@ function buildAuthPageUrl(mode, extraParams, options) {
     if (mode) {
         url.searchParams.set('mode', mode);
     }
+    // The sign-in page is a static file with no /ar twin, so the language it was reached
+    // from has to travel in the query. It is what seeds the new account's preference,
+    // which in turn is the language we write to that account in.
+    if (window.I18N_LOCALE && window.I18N_LOCALE !== 'en') {
+        url.searchParams.set('lang', window.I18N_LOCALE);
+    }
     var opts = options || {};
     if (!opts.skipReturn) {
         var returnPath = window.location.pathname + window.location.search + window.location.hash;

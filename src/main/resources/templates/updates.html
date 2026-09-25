@@ -97,7 +97,17 @@
                 <img src="/img/ali_icon.png" class="brand-logo--icon d-md-none" alt="ALI"/>
             </a>
             <div class="ms-auto d-flex align-items-center gap-2 top-actions flex-nowrap">
-                <a class="btn btn-dark btn-sm top-action auth-action" id="authSignInBtn" href="/signin.html?mode=login&return=%2Fupdates.html">
+                <!-- This page has its own nav, so it had no language toggle at all: a
+                     reader on /ar/updates.html could not get back without editing the URL. -->
+                <a th:if="${switchLocalePath != null}" class="home-nav-link home-nav-link--lang"
+                   th:href="@{${switchLocalePath}}"
+                   th:hreflang="${switchLocaleTag}"
+                   th:attr="data-set-locale=${switchLocaleTag}"
+                   th:text="${isArabic} ? #{lang.switchToEnglish} : #{lang.switchToArabic}">العربية</a>
+                <a class="btn btn-dark btn-sm top-action auth-action" id="authSignInBtn" href="/signin.html?mode=login&amp;return=%2Fupdates.html"
+                   th:href="${isArabic}
+                       ? '/signin.html?mode=login&amp;lang=ar&amp;return=%2Far%2Fupdates.html'
+                       : '/signin.html?mode=login&amp;return=%2Fupdates.html'">
                     <i class="fa fa-right-to-bracket" aria-hidden="true"></i>
                     <span th:text="#{nav.signin}">Sign In</span>
                 </a>
@@ -411,6 +421,7 @@ function loopWhileIgnored(frame, src, seconds) {
 </script>
 
 <script src="/js/site-announcement.js"></script>
+<script src="/js/locale-preference.js"></script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-3HSRTQD7GM"></script>
 <script>
     window.dataLayer = window.dataLayer || [];

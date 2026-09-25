@@ -57,6 +57,19 @@
         return decoded;
     }
 
+    /**
+     * The language the reader came here from, as ?lang.
+     *
+     * This page is a static file served outside the /ar tree, so the server cannot tell
+     * which site sent the reader. The tag seeds the new account's preference, which is
+     * what decides the language of the mail it receives; the reader can change it later
+     * from the language toggle.
+     */
+    function signupLocale() {
+        var tag = new URLSearchParams(window.location.search).get('lang');
+        return tag === 'ar' ? 'ar' : 'en';
+    }
+
     function byId(id) {
         return document.getElementById(id);
     }
@@ -217,7 +230,8 @@
                 body: JSON.stringify({
                     displayName: displayName,
                     email: email,
-                    password: password
+                    password: password,
+                    locale: signupLocale()
                 })
             }).then(function(resp) {
                 if (!resp.ok || !resp.data.ok) {

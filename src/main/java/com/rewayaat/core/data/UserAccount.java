@@ -41,6 +41,16 @@ public class UserAccount {
     @JsonProperty("session_token_expiry")
     private Long sessionTokenExpiry;
 
+    /**
+     * The language this account is written to in, as a BCP 47 tag.
+     *
+     * <p>Seeded from the site the person registered on and changed from their settings
+     * afterwards. Null on every account created before this existed, which reads as
+     * English — the language those accounts have been receiving all along.
+     */
+    @JsonProperty("locale")
+    private String locale;
+
     @JsonProperty("created_at")
     private Long createdAt;
 
@@ -125,6 +135,14 @@ public class UserAccount {
 
     public void setSessionTokenExpiry(Long sessionTokenExpiry) {
         this.sessionTokenExpiry = sessionTokenExpiry;
+    }
+
+    public String getLocale() {
+        return locale;
+    }
+
+    public void setLocale(String locale) {
+        this.locale = locale;
     }
 
     public Long getCreatedAt() {

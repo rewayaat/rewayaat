@@ -6,6 +6,20 @@ function t(key, fallback) {
 }
 
 /** The current language's URL for an internal path. See rewayaat.js. */
+/**
+ * The sign-in page, told which language the reader came from.
+ *
+ * The page is a static file with no Arabic twin, so without this a reader who signs up
+ * from the Arabic site would have an English account and be sent English mail.
+ */
+function signInUrl() {
+    var url = '/signin.html?returnTo=' + encodeURIComponent(window.location.pathname);
+    if (window.I18N_LOCALE && window.I18N_LOCALE !== 'en') {
+        url += '&lang=' + encodeURIComponent(window.I18N_LOCALE);
+    }
+    return url;
+}
+
 function localeHref(path) {
     var prefix = (window.I18N_LOCALE === 'ar') ? '/ar' : '';
     return prefix + (path.charAt(0) === '/' ? path : '/' + path);
@@ -93,7 +107,7 @@ function localeHref(path) {
         if (signIn) {
             signIn.addEventListener('click', function () {
                 // Come back to the page the reader was actually on.
-                window.location.href = '/signin.html?returnTo=' + encodeURIComponent(window.location.pathname);
+                window.location.href = signInUrl();
             });
         }
 
@@ -231,7 +245,7 @@ function localeHref(path) {
             if (!trigger) { return; }
             event.preventDefault();
             if (!authState.authenticated) {
-                window.location.href = '/signin.html?returnTo=' + encodeURIComponent(window.location.pathname);
+                window.location.href = signInUrl();
                 return;
             }
             openSaveModal(trigger.getAttribute('data-save-hadith'), trigger.getAttribute('data-save-label'));

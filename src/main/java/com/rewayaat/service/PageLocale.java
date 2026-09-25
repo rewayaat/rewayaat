@@ -100,6 +100,27 @@ public enum PageLocale {
         return marked instanceof PageLocale value ? value : ENGLISH;
     }
 
+    /**
+     * The locale a stored language tag names, English for anything else.
+     *
+     * <p>Accounts created before the preference existed hold no tag, and English is the
+     * language they have been written to all along, so null reads as English rather
+     * than as "unset". Callers that need to know whether a tag was understood compare
+     * the result's {@link #tag()} with what they passed.
+     */
+    public static PageLocale ofTag(String tag) {
+        if (tag == null) {
+            return ENGLISH;
+        }
+        String trimmed = tag.trim().toLowerCase(Locale.ROOT);
+        for (PageLocale candidate : values()) {
+            if (candidate.tag.equals(trimmed)) {
+                return candidate;
+            }
+        }
+        return ENGLISH;
+    }
+
     /** Whether {@code uri} is under the Arabic prefix. */
     public static boolean isArabicPath(String uri) {
         return uri != null && (uri.equals(ARABIC_PREFIX) || uri.startsWith(ARABIC_PREFIX + "/"));
