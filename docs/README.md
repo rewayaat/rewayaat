@@ -8,6 +8,7 @@
 | [architecture/](architecture/) | Decision records: why the system is this and not something else, with the checkable rules enforced by `ArchitectureRulesTest` |
 | [search.md](search.md) | How search, similar narrations and Quranic insights actually work at query time |
 | [seo.md](seo.md) | The crawler-facing surface, and the invariants that quietly cost traffic if broken |
+| [i18n.md](i18n.md) | Where every reader-facing string lives, which language it resolves in, and what stops that drifting |
 | [data-pipeline.md](data-pipeline.md) | How every piece of data gets into Elasticsearch |
 | [deployment.md](deployment.md) | Docker, CI/CD, Kubernetes, monitoring, secrets |
 | [mcp-connector.md](mcp-connector.md) | The MCP server: tools, the ChatGPT and Claude contracts, response shaping |

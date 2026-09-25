@@ -4,6 +4,7 @@ import com.rewayaat.core.HadithObjectCollection;
 import com.rewayaat.core.data.UserAccount;
 import com.rewayaat.core.data.UserCollection;
 import com.rewayaat.service.AuthService;
+import com.rewayaat.service.UiMessages;
 import com.rewayaat.service.UserCollectionService;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,6 +43,9 @@ public class CollectionController {
     @Autowired
     private UserCollectionService userCollectionService;
 
+    @Autowired
+    private UiMessages ui;
+
     @CrossOrigin(origins = {"*"}, allowCredentials = "false")
     @Operation(summary = "List collections for the logged-in user.")
     @ApiResponses(value = {
@@ -78,7 +82,7 @@ public class CollectionController {
         Map<String, Object> payload = new HashMap<>();
         if (collection == null) {
             payload.put("ok", false);
-            payload.put("message", "Collection not found.");
+            payload.put("message", ui.say("api.collection.notFound"));
             return new ResponseEntity<>(payload, HttpStatus.NOT_FOUND);
         }
         payload.put("ok", true);
@@ -119,7 +123,7 @@ public class CollectionController {
         if (hadithId.isEmpty()) {
             Map<String, Object> error = new HashMap<>();
             error.put("ok", false);
-            error.put("message", "hadithId is required.");
+            error.put("message", ui.say("api.collection.hadithIdRequired"));
             return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
         }
         UserCollection collection = userCollectionService.quickSaveHadith(
@@ -147,7 +151,7 @@ public class CollectionController {
         if (hadithIds.isEmpty()) {
             Map<String, Object> error = new HashMap<>();
             error.put("ok", false);
-            error.put("message", "hadithIds is required.");
+            error.put("message", ui.say("api.collection.hadithIdsRequired"));
             return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
         }
         UserCollection collection = userCollectionService.quickSaveHadithBatch(
@@ -176,7 +180,7 @@ public class CollectionController {
         Map<String, Object> response = new HashMap<>();
         response.put("ok", deleted);
         if (!deleted) {
-            response.put("message", "Collection not found.");
+            response.put("message", ui.say("api.collection.notFound"));
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(response, HttpStatus.OK);
@@ -198,14 +202,14 @@ public class CollectionController {
         if (newName.isEmpty()) {
             Map<String, Object> error = new HashMap<>();
             error.put("ok", false);
-            error.put("message", "name is required.");
+            error.put("message", ui.say("api.collection.nameRequired"));
             return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
         }
         UserCollection updated = userCollectionService.updateCollectionName(user.getEmail(), collectionId, newName);
         Map<String, Object> response = new HashMap<>();
         if (updated == null) {
             response.put("ok", false);
-            response.put("message", "Collection not found.");
+            response.put("message", ui.say("api.collection.notFound"));
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }
         response.put("ok", true);
@@ -229,7 +233,7 @@ public class CollectionController {
         Map<String, Object> response = new HashMap<>();
         if (collection == null) {
             response.put("ok", false);
-            response.put("message", "Collection not found.");
+            response.put("message", ui.say("api.collection.notFound"));
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }
         response.put("ok", true);
@@ -268,7 +272,7 @@ public class CollectionController {
     private ResponseEntity<Map<String, Object>> unauthorized() {
         Map<String, Object> payload = new HashMap<>();
         payload.put("ok", false);
-        payload.put("message", "Authentication required.");
+        payload.put("message", ui.say("api.auth.required"));
         return new ResponseEntity<>(payload, HttpStatus.UNAUTHORIZED);
     }
 

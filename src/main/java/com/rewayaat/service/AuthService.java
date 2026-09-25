@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.MessageSource;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -75,7 +74,7 @@ public class AuthService {
     private HadithEditorAccessService hadithEditorAccessService;
 
     @Autowired
-    private MessageSource messages;
+    private UiMessages ui;
 
     /**
      * The language to write to this account in.
@@ -89,8 +88,18 @@ public class AuthService {
         return PageLocale.ofTag(user == null ? null : user.getLocale());
     }
 
+    /**
+     * A message for the caller to show, in the language of the request.
+     *
+     * <p>Distinct from {@link #msg}, which writes in the account's own language. A
+     * message follows the click; mail follows the reader.
+     */
+    private String say(String key, Object... args) {
+        return ui.say(key, args);
+    }
+
     private String msg(PageLocale locale, String key, Object... args) {
-        return messages.getMessage(key, args, locale.locale());
+        return ui.in(locale, key, args);
     }
 
     private long verifyTtlMs() {
@@ -118,7 +127,7 @@ public class AuthService {
                                         PageLocale signedUpIn) throws Exception {
         String normalizedEmail = normalizeEmail(email);
         if (normalizedEmail.isEmpty()) {
-            return error("Invalid registration payload. Use a valid email.");
+            return error(say("api.auth.invalidRegistration"));
         }
         String passwordIssue = validatePasswordPolicy(password);
         if (!passwordIssue.isEmpty()) {
@@ -127,7 +136,7 @@ public class AuthService {
 
         UserAccount existing = findByEmail(normalizedEmail);
         if (existing != null && Boolean.TRUE.equals(existing.getVerified())) {
-            return error("An account with this email already exists.");
+            return error(say("api.auth.emailTaken"));
         }
 
         long now = System.currentTimeMillis();
@@ -153,7 +162,7 @@ public class AuthService {
         sendVerificationEmail(user, rawVerificationToken);
         Map<String, Object> payload = new HashMap<>();
         payload.put("ok", true);
-        payload.put("message", "Registration successful. Check your email to verify your account.");
+        payload.put("message", say("api.auth.registered"));
         Map<String, String> debug = debugTokenPayload(
                 "verificationToken",
                 "verificationUrl",
@@ -167,15 +176,15 @@ public class AuthService {
 
     public Map<String, Object> verifyEmailToken(String rawToken) throws Exception {
         if (rawToken == null || rawToken.trim().isEmpty()) {
-            return error("Verification token is missing.");
+            return error(say("api.auth.verifyMissing"));
         }
         UserAccount user = findByTokenHashField("verification_token_hash", hashToken(rawToken.trim()));
         if (user == null) {
-            return error("Verification token is invalid.");
+            return error(say("api.auth.verifyInvalid"));
         }
         long now = System.currentTimeMillis();
         if (user.getVerificationTokenExpiry() == null || user.getVerificationTokenExpiry() < now) {
-            return error("Verification token has expired.");
+            return error(say("api.auth.verifyExpired"));
         }
         user.setVerified(true);
         user.setVerificationTokenHash(null);
@@ -184,22 +193,22 @@ public class AuthService {
         saveUser(user);
         Map<String, Object> payload = new HashMap<>();
         payload.put("ok", true);
-        payload.put("message", "Email verified successfully. You can now log in.");
+        payload.put("message", say("api.auth.verified"));
         return payload;
     }
 
     public Map<String, Object> login(String email, String password) throws Exception {
         String normalizedEmail = normalizeEmail(email);
         if (normalizedEmail.isEmpty() || password == null || password.isEmpty()) {
-            return error("Email and password are required.");
+            return error(say("api.auth.credentialsRequired"));
         }
 
         UserAccount user = findByEmail(normalizedEmail);
         if (user == null || user.getPasswordHash() == null || !passwordEncoder.matches(password, user.getPasswordHash())) {
-            return error("Invalid email or password.");
+            return error(say("api.auth.credentialsInvalid"));
         }
         if (!Boolean.TRUE.equals(user.getVerified())) {
-            return error("Please verify your email before logging in.");
+            return error(say("api.auth.verifyFirst"));
         }
 
         long now = System.currentTimeMillis();
@@ -244,7 +253,7 @@ public class AuthService {
         }
         Map<String, Object> payload = new HashMap<>();
         payload.put("ok", true);
-        payload.put("message", "If an account exists, a reset email has been sent.");
+        payload.put("message", say("api.auth.resetSent"));
         Map<String, String> debug = debugTokenPayload(
                 "resetToken",
                 "resetUrl",
@@ -258,7 +267,7 @@ public class AuthService {
 
     public Map<String, Object> confirmPasswordReset(String rawToken, String newPassword) throws Exception {
         if (rawToken == null || rawToken.trim().isEmpty()) {
-            return error("Reset token is missing.");
+            return error(say("api.auth.resetMissing"));
         }
         String passwordIssue = validatePasswordPolicy(newPassword);
         if (!passwordIssue.isEmpty()) {
@@ -266,11 +275,11 @@ public class AuthService {
         }
         UserAccount user = findByTokenHashField("reset_token_hash", hashToken(rawToken.trim()));
         if (user == null) {
-            return error("Reset token is invalid.");
+            return error(say("api.auth.resetInvalid"));
         }
         long now = System.currentTimeMillis();
         if (user.getResetTokenExpiry() == null || user.getResetTokenExpiry() < now) {
-            return error("Reset token has expired.");
+            return error(say("api.auth.resetExpired"));
         }
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         user.setResetTokenHash(null);
@@ -281,7 +290,7 @@ public class AuthService {
         saveUser(user);
         Map<String, Object> payload = new HashMap<>();
         payload.put("ok", true);
-        payload.put("message", "Password updated. Please log in with your new password.");
+        payload.put("message", say("api.auth.passwordUpdated"));
         return payload;
     }
 
@@ -418,11 +427,11 @@ public class AuthService {
     public Map<String, Object> updateLocale(String sessionToken, String tag) throws Exception {
         UserAccount user = authenticatedUser(sessionToken);
         if (user == null) {
-            return error("Sign in to change your language.");
+            return error(say("api.auth.signInToChangeLanguage"));
         }
         PageLocale chosen = PageLocale.ofTag(tag);
         if (!chosen.tag().equals(tag)) {
-            return error("Unsupported language: " + tag);
+            return error(say("api.auth.unsupportedLanguage", tag));
         }
         user.setLocale(chosen.tag());
         user.setUpdatedAt(System.currentTimeMillis());

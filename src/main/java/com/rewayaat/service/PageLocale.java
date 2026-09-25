@@ -121,6 +121,30 @@ public enum PageLocale {
         return ENGLISH;
     }
 
+    /**
+     * Whether a referrer names a page on the Arabic site.
+     *
+     * <p>Used to give an API call the language of the page that made it. Only a
+     * same-origin referrer counts: another site linking to ours says nothing about which
+     * language our reader is in, and a header from anywhere else is not evidence.
+     * Anything unparseable reads as English rather than throwing into a request path.
+     */
+    public static boolean isArabicReferrer(String referrer, HttpServletRequest request) {
+        if (referrer == null || referrer.isBlank() || request == null) {
+            return false;
+        }
+        try {
+            java.net.URI referred = java.net.URI.create(referrer);
+            String host = referred.getHost();
+            if (host != null && !host.equalsIgnoreCase(request.getServerName())) {
+                return false;
+            }
+            return isArabicPath(referred.getPath());
+        } catch (IllegalArgumentException malformed) {
+            return false;
+        }
+    }
+
     /** Whether {@code uri} is under the Arabic prefix. */
     public static boolean isArabicPath(String uri) {
         return uri != null && (uri.equals(ARABIC_PREFIX) || uri.startsWith(ARABIC_PREFIX + "/"));

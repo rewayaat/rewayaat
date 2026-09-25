@@ -6,6 +6,8 @@ import com.rewayaat.service.HadithEditorAccessService;
 import com.rewayaat.service.HadithQueryService;
 import com.rewayaat.service.QuranicInsightsService;
 import com.rewayaat.service.SimilarHadithService;
+import com.rewayaat.service.UiMessages;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -103,6 +105,13 @@ class HadithControllerTest {
     @Test
     void globalExceptionHandler_returnsOkFalseForGenericException() {
         GlobalExceptionHandlerWrapper handler = new GlobalExceptionHandlerWrapper();
+        // The message the reader sees comes from the catalogue now, so the handler needs
+        // the accessor it reads through.
+        ResourceBundleMessageSource bundle = new ResourceBundleMessageSource();
+        bundle.setBasename("messages");
+        bundle.setDefaultEncoding("UTF-8");
+        ReflectionTestUtils.setField(handler, "ui", new UiMessages(bundle));
+
         var response = handler.handleGeneral(new RuntimeException("unexpected"));
         assertEquals(500, response.getStatusCode().value());
         @SuppressWarnings("unchecked")

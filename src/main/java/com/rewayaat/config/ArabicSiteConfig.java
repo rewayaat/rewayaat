@@ -65,6 +65,41 @@ public class ArabicSiteConfig {
     }
 
     /**
+     * Marks JSON requests with the language of the page that made them.
+     *
+     * <p>The API lives outside the {@code /ar} tree — a page at {@code /ar/books/al-kafi}
+     * posts to {@code /v1/...}, not to {@code /ar/v1/...} — so the prefix filter never
+     * sees these and every message they return came back in English however the reader
+     * was browsing.
+     *
+     * <p>The referrer is the page that made the call, and for a same-origin fetch the
+     * browser sends it in full. It is a hint rather than an identity: a reader whose
+     * browser withholds it gets English, which is the same answer they got before.
+     * Nothing is trusted from it beyond the path prefix, and it is only read for
+     * requests that are already same-origin.
+     *
+     * <p>The caching worry that keeps the page locale in the URL does not apply in the
+     * same way here, because these responses are per-reader rather than shared, but the
+     * ones this marks say so anyway.
+     */
+    @Bean
+    public FilterRegistrationBean<Filter> apiLocaleFilter() {
+        Filter filter = (request, response, chain) -> {
+            HttpServletRequest http = (HttpServletRequest) request;
+            if (http.getAttribute(PageLocale.REQUEST_ATTRIBUTE) == null
+                    && PageLocale.isArabicReferrer(http.getHeader("Referer"), http)) {
+                http.setAttribute(PageLocale.REQUEST_ATTRIBUTE, PageLocale.ARABIC);
+                ((jakarta.servlet.http.HttpServletResponse) response).addHeader("Vary", "Referer");
+            }
+            chain.doFilter(request, response);
+        };
+
+        FilterRegistrationBean<Filter> registration = new FilterRegistrationBean<>(filter);
+        registration.addUrlPatterns("/v1/*");
+        return registration;
+    }
+
+    /**
      * Resolves the locale from the URL and nothing else.
      *
      * <p>Spring Boot's default is a {@code AcceptHeaderLocaleResolver}, and the usual

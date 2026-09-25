@@ -43,10 +43,10 @@ class AuthServiceTest {
 
         // The real bundle, not a stub: what is being checked is that the Arabic strings
         // exist and are reached, which a stub would hide.
-        ResourceBundleMessageSource messages = new ResourceBundleMessageSource();
-        messages.setBasename("messages");
-        messages.setDefaultEncoding("UTF-8");
-        ReflectionTestUtils.setField(service, "messages", messages);
+        ResourceBundleMessageSource bundle = new ResourceBundleMessageSource();
+        bundle.setBasename("messages");
+        bundle.setDefaultEncoding("UTF-8");
+        ReflectionTestUtils.setField(service, "ui", new UiMessages(bundle));
     }
 
     private static UserAccount account(String locale) {

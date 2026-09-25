@@ -124,4 +124,30 @@ class PageLocaleTest {
         // what stops "fr" being silently stored as English.
         assertNotEquals("fr", PageLocale.ofTag("fr").tag());
     }
+
+    @Test
+    @DisplayName("an API call is given the language of the page that made it, and only that")
+    void arabicReferrerIsReadFromOurOwnPagesOnly() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setServerName("hadith.academyofislam.com");
+
+        assertTrue(PageLocale.isArabicReferrer(
+                "https://hadith.academyofislam.com/ar/books/al-kafi", request));
+        assertFalse(PageLocale.isArabicReferrer(
+                "https://hadith.academyofislam.com/books/al-kafi", request));
+
+        // Another site linking to ours says nothing about which language our reader is
+        // in, so a referrer from anywhere else is not evidence of anything.
+        assertFalse(PageLocale.isArabicReferrer("https://evil.example/ar/anything", request));
+
+        // A reader whose browser withholds the header, or sends something unparseable,
+        // gets English rather than an exception thrown inside a request.
+        assertFalse(PageLocale.isArabicReferrer(null, request));
+        assertFalse(PageLocale.isArabicReferrer("", request));
+        assertFalse(PageLocale.isArabicReferrer("not a url at all", request));
+
+        // A path that merely starts with the letters is not the prefix.
+        assertFalse(PageLocale.isArabicReferrer(
+                "https://hadith.academyofislam.com/archive", request));
+    }
 }
