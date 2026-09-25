@@ -388,11 +388,10 @@ a:hover {
     margin-inline-start: -30px;
 }
 
-/* The Arabic lockup stacks its two lines against a mark of the same height, so it is a
-   squarer block than the English one — about 1.55 wide to its 3. Matching on height
-   alone would leave it looking half the size, so it gets a little more of it. */
+/* The Arabic lockup is a squarer block than the English one, but it is cropped tight
+   rather than carrying the English asset's margins, so it reads at the same height and
+   does not need to make the bar taller. */
 [dir="rtl"] .brand-logo--full-v2 {
-    height: 52px;
     margin-inline-start: -12px;
 }
 
@@ -6606,12 +6605,16 @@ body.is-resizing-sidecar * {
     display: flex;
     flex-direction: column;
     gap: 0;
-    padding: 0.58rem 1.6rem 0.58rem 0.72rem;
+    /* Logical: the wide side holds the chevron, which is on the reader's trailing
+       side, and the text starts where their line starts. */
+    padding-block: 0.58rem;
+    padding-inline: 0.72rem 1.6rem;
     border: 0;
     border-radius: 10px;
     background: transparent;
     color: rgba(255, 255, 255, 0.86);
-    text-align: left;
+    text-align: start;
+    text-decoration: none;
     transition: background 150ms ease, border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
     cursor: pointer;
 }
@@ -6627,6 +6630,17 @@ body.is-resizing-sidecar * {
     border-bottom: 2px solid rgba(241, 246, 253, 0.58);
     transform: translateY(-60%) rotate(45deg);
     transition: transform 150ms ease, border-color 150ms ease;
+}
+
+/* The second line of a related-narration row: the chapter it sits in, and on the English
+   card the reason the pair was judged similar. The row is a link now rather than an
+   accordion, so this is read in place instead of behind a disclosure. */
+.hadith-sidecar__list-sub {
+    display: block;
+    margin-top: 0.18rem;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.62);
 }
 
 .hadith-sidecar__list-item:hover {

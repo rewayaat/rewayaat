@@ -337,7 +337,11 @@
                             .then(function(resp) { return resp.json(); })
                             .then(function(data) {
                                 if (data && data.ok && data.url) {
-                                    window.location.href = data.url;
+                                    // The endpoint answers with the page's path; which
+                                    // language of it the reader gets is this side's to
+                                    // decide, and a card on the Arabic site sends them to
+                                    // the Arabic book, volume, part or chapter.
+                                    window.location.href = localeHref(data.url);
                                     return;
                                 }
                                 runSearch();

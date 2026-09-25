@@ -12,6 +12,32 @@ function signInUrl() {
         + encodeURIComponent(window.location.pathname);
 }
 
+/**
+ * A number in the digits the page is set in.
+ *
+ * The twin of the one in rewayaat.js. The two files are separate bundles loaded by
+ * different pages — hub pages take this one, the search app the other — which is why
+ * t(), escapeHtml() and localeHref() are each written twice here as well.
+ */
+function localeDigits(value) {
+    if (value === null || value === undefined) { return value; }
+    if (window.I18N_LOCALE !== 'ar') { return value; }
+    return String(value).replace(/[0-9]/g, function (digit) {
+        return String.fromCharCode(0x0660 + Number(digit));
+    });
+}
+
+/** A record's field in the reader's language, falling back to the English. */
+function localeField(record, field) {
+    if (!record) { return undefined; }
+    if (window.I18N_LOCALE === 'ar') {
+        var arabic = record[field + '_ar'];
+        if (typeof arabic === 'string' && arabic.length) { return localeDigits(arabic); }
+        return localeDigits(record[field]);
+    }
+    return record[field];
+}
+
 function localeHref(path) {
     var prefix = (window.I18N_LOCALE === 'ar') ? '/ar' : '';
     return prefix + (path.charAt(0) === '/' ? path : '/' + path);
@@ -446,7 +472,8 @@ function localeHref(path) {
             }).join('');
         if (items.length > 10) {
             html += '<button type="button" class="hadith-sidecar__show-more" data-hub-show-all>'
-                + 'Show all ' + items.length + ' <i class="fa fa-chevron-down" aria-hidden="true"></i></button>';
+                + escapeHtml(t('js.showAllCount', 'Show all {0}').replace('{0}', localeDigits(items.length)))
+                + ' <i class="fa fa-chevron-down" aria-hidden="true"></i></button>';
         }
         return html + '</div>';
     }
@@ -455,40 +482,58 @@ function localeHref(path) {
         return '<span class="hadith-sidecar__list-separator" aria-hidden="true">\u2022</span>';
     }
 
+    /**
+     * Related narrations, as a plain list of links.
+     *
+     * <p>It used to be an accordion whose open panel held a "read this narration" link,
+     * which is two clicks and a disclosure to reach a page the row already names. The row
+     * is the link now.
+     *
+     * <p>Every part of it is named in the reader's language: the endpoint returns book_ar
+     * and chapter_ar beside the English, and the match type has a key of its own. Only
+     * the reason the pair was judged similar has no Arabic, and the Arabic card does not
+     * show it.
+     */
     function renderSimilar(body, data) {
         var items = (data && data.collection) || [];
-        var rows = items.map(function (item, idx) {
-            var book = item.book || ('Similar hadith ' + (idx + 1));
-            var num = item.number ? '#' + item.number : ('Similar hadith ' + (idx + 1));
-            var line = '<span class="hadith-sidecar__list-line">'
-                + '<span class="hadith-sidecar__list-eyebrow">' + escapeHtml(book) + '</span>'
-                + sep()
-                + '<span class="hadith-sidecar__list-text">' + escapeHtml(num) + '</span>'
-                + (item.matchType
-                    ? sep() + '<span class="hadith-sidecar__list-meta match-type-badge match-type--'
-                      + escapeHtml(item.matchType) + '">' + escapeHtml(item.matchType) + '</span>'
-                    : '')
-                + '</span>';
-            return {line: line, raw: item};
-        });
+        if (!items.length) {
+            body.innerHTML = '<div class="text-muted py-2">'
+                + t('sidecar.noSimilar', 'No similar hadith were found for this narration.')
+                + '</div>';
+            return;
+        }
         var arabic = window.I18N_LOCALE === 'ar';
-        body.innerHTML = accordion(t('sidecar.noSimilar', 'No similar hadith were found for this narration.'), rows,
-            function (item) {
+        body.innerHTML = '<div class="hadith-sidecar__list">'
+            + items.map(function (item) {
                 var id = item._id || item.id || '';
-                // The reason each pair was judged similar was written in English by the
-                // model that judged them, and the Arabic renderings are not loaded. An
-                // English paragraph is the one thing on an Arabic card that cannot be
-                // skimmed past, so the Arabic site shows the match without the argument.
-                return (item.matchReason && !arabic
-                        ? '<div class="similar-reason-text">'
-                          + '<span class="similar-reason-label">'
-                          + t('sidecar.whyMatched', 'Why this matched:') + '</span> '
-                          + escapeHtml(item.matchReason) + '</div>'
+                var book = localeField(item, 'book') || '';
+                var chapter = localeField(item, 'chapter') || '';
+                // No hash in Arabic: it is a Latin convention, and in a right-to-left
+                // line the browser puts it after the numeral, which reads as "1#".
+                var num = item.number
+                    ? (arabic ? localeDigits(item.number) : '#' + item.number)
+                    : '';
+                var type = item.matchType
+                    ? '<span class="hadith-sidecar__list-meta match-type-badge match-type--'
+                      + escapeHtml(item.matchType) + '">'
+                      + escapeHtml(t('match.' + item.matchType, item.matchType)) + '</span>'
+                    : '';
+                return '<a class="hadith-sidecar__list-item hadith-sidecar__list-item--similar"'
+                    + ' href="' + localeHref('/hadith/' + encodeURIComponent(id)) + '">'
+                    + '<span class="hadith-sidecar__list-line">'
+                    + '<span class="hadith-sidecar__list-eyebrow">' + escapeHtml(book) + '</span>'
+                    + (num ? sep() + '<span class="hadith-sidecar__list-text">' + escapeHtml(num) + '</span>' : '')
+                    + (type ? sep() + type : '')
+                    + '</span>'
+                    + (chapter
+                        ? '<span class="hadith-sidecar__list-sub">' + escapeHtml(chapter) + '</span>'
                         : '')
-                    + '<a class="quranic-verse-link" href="' + localeHref('/hadith/' + encodeURIComponent(id)) + '">'
-                    + t('sidecar.readNarration', 'Read this narration')
-                    + ' <i class="fa fa-external-link-alt fa-xs"></i></a>';
-            }, 'similar');
+                    + (item.matchReason && !arabic
+                        ? '<span class="hadith-sidecar__list-sub">' + escapeHtml(item.matchReason) + '</span>'
+                        : '')
+                    + '</a>';
+            }).join('')
+            + '</div>';
     }
 
     function alIslamSurahSlug(item) {
@@ -804,7 +849,7 @@ function localeHref(path) {
                 .catch(function () {
                     body.dataset.loaded = '';
                     body.innerHTML = '<div class="alert alert-warning py-2 my-2" role="alert">'
-                        + 'Could not load this panel.</div>';
+                        + escapeHtml(t('sidecar.loadFailed', 'Could not load this panel.')) + '</div>';
                 });
         });
     }
