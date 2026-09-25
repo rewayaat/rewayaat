@@ -102,7 +102,7 @@
                         </button>
                         <div class="auth-mobile-dropdown" id="authMobileDropdown" aria-hidden="true">
                             <a href="/signin.html"
-                               th:href="${isArabic} ? '/signin.html?lang=ar' : '/signin.html'"
+                               th:href="@{${arPrefix} ?: '' } + '/signin.html'"
                                class="auth-mobile-dropdown__item">
                                 <i class="fa fa-right-to-bracket" aria-hidden="true"></i>
                                 <span th:text="#{nav.signin}">Sign In</span>

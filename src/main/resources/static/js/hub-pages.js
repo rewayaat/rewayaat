@@ -6,18 +6,10 @@ function t(key, fallback) {
 }
 
 /** The current language's URL for an internal path. See rewayaat.js. */
-/**
- * The sign-in page, told which language the reader came from.
- *
- * The page is a static file with no Arabic twin, so without this a reader who signs up
- * from the Arabic site would have an English account and be sent English mail.
- */
+/** The sign-in page, in the language of the page sending the reader there. */
 function signInUrl() {
-    var url = '/signin.html?returnTo=' + encodeURIComponent(window.location.pathname);
-    if (window.I18N_LOCALE && window.I18N_LOCALE !== 'en') {
-        url += '&lang=' + encodeURIComponent(window.I18N_LOCALE);
-    }
-    return url;
+    return localeHref('/signin.html') + '?returnTo='
+        + encodeURIComponent(window.location.pathname);
 }
 
 function localeHref(path) {

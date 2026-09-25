@@ -963,15 +963,10 @@ function setContainerValueText(container, className, text) {
 }
 
 function buildAuthPageUrl(mode, extraParams, options) {
-    var url = new URL('/signin.html', window.location.origin);
+    // The sign-in page has an Arabic twin now, so the language is the URL here too.
+    var url = new URL(localeHref('/signin.html'), window.location.origin);
     if (mode) {
         url.searchParams.set('mode', mode);
-    }
-    // The sign-in page is a static file with no /ar twin, so the language it was reached
-    // from has to travel in the query. It is what seeds the new account's preference,
-    // which in turn is the language we write to that account in.
-    if (window.I18N_LOCALE && window.I18N_LOCALE !== 'en') {
-        url.searchParams.set('lang', window.I18N_LOCALE);
     }
     var opts = options || {};
     if (!opts.skipReturn) {

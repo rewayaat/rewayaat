@@ -104,7 +104,9 @@ class MessageCatalogueTest {
             // that language, so a reader who cannot read the current one can still find
             // it. That is the whole point of them, so both bundles hold the same word.
             "lang.switchToEnglish",
-            "lang.switchToArabic");
+            "lang.switchToArabic",
+            // A sample email address. Latin either way, because an address is.
+            "signin.ph.email");
 
     @Test
     @DisplayName("browser code only asks for strings the catalogue actually has")

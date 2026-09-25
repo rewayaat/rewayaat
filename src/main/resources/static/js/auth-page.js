@@ -1,4 +1,10 @@
 (function() {
+    /** A UI string from the catalogue the page publishes. */
+    function t(key, fallback) {
+        var value = (window.I18N || {})[key];
+        return (typeof value === 'string' && value.length) ? value : fallback;
+    }
+
     function apiJSON(url, options) {
         var opts = options || {};
         opts.credentials = 'same-origin';
@@ -66,8 +72,12 @@
      * from the language toggle.
      */
     function signupLocale() {
-        var tag = new URLSearchParams(window.location.search).get('lang');
-        return tag === 'ar' ? 'ar' : 'en';
+        // The page is served under /ar now, so it knows its own language. The query
+        // parameter is still honoured for links made before that was true.
+        if (window.I18N_LOCALE === 'ar') {
+            return 'ar';
+        }
+        return new URLSearchParams(window.location.search).get('lang') === 'ar' ? 'ar' : 'en';
     }
 
     function byId(id) {
@@ -100,10 +110,10 @@
         var value = password || '';
         var issues = [];
         if (value.length < 6) {
-            issues.push('at least 6 characters');
+            issues.push(t('signin.policy.length', 'at least 6 characters'));
         }
         if (/\s/.test(value)) {
-            issues.push('no spaces');
+            issues.push(t('signin.policy.spaces', 'no spaces'));
         }
         return issues;
     }
@@ -181,7 +191,7 @@
         var email = (byId('authLoginEmail').value || '').trim();
         var password = byId('authLoginPassword').value || '';
         if (!email || !password) {
-            setAlert('Email and password are required.', 'warning');
+            setAlert(t('signin.err.credentialsRequired', 'Email and password are required.'), 'warning');
             return;
         }
         withSubmitLock(forms.login, function() {
@@ -199,7 +209,7 @@
                 var nextPath = normalizeReturnPath(qs('return'));
                 window.location.href = nextPath || '/';
             }).catch(function() {
-                setAlert('Unable to sign in right now.', 'danger');
+                setAlert(t('signin.err.signIn', 'Unable to sign in right now.'), 'danger');
             });
         });
     }
@@ -212,16 +222,16 @@
         var password = byId('authRegisterPassword').value || '';
         var confirmPassword = byId('authRegisterPasswordConfirm').value || '';
         if (!email) {
-            setAlert('Email is required.', 'warning');
+            setAlert(t('signin.err.emailRequired', 'Email is required.'), 'warning');
             return;
         }
         if (password !== confirmPassword) {
-            setAlert('Passwords do not match.', 'warning');
+            setAlert(t('signin.err.passwordsDiffer', 'Passwords do not match.'), 'warning');
             return;
         }
         var issues = passwordIssues(password);
         if (issues.length) {
-            setAlert('Password must include ' + issues.join(', ') + '.', 'warning');
+            setAlert(t('signin.err.passwordMust', 'Password must include {0}.').replace('{0}', issues.join('، ')), 'warning');
             return;
         }
         withSubmitLock(forms.register, function() {
@@ -235,17 +245,17 @@
                 })
             }).then(function(resp) {
                 if (!resp.ok || !resp.data.ok) {
-                    setAlert(resp.data.message || 'Unable to create account.', 'danger');
+                    setAlert(resp.data.message || t('signin.err.createAccount', 'Unable to create account.'), 'danger');
                     return;
                 }
-                var message = resp.data.message || 'Registration successful. Please verify your email.';
+                var message = resp.data.message || t('signin.ok.registered', 'Registration successful. Please verify your email.');
                 var debugUrl = resp.data && resp.data.debug ? resp.data.debug.verificationUrl : '';
                 setAlert(appendDebugUrl(message, debugUrl), 'success');
                 byId('authLoginEmail').value = email;
                 byId('authLoginPassword').value = '';
                 showMode('login');
             }).catch(function() {
-                setAlert('Unable to register right now.', 'danger');
+                setAlert(t('signin.err.register', 'Unable to register right now.'), 'danger');
             });
         });
     }
@@ -255,7 +265,7 @@
         setAlert('', '');
         var email = (byId('authResetEmail').value || '').trim();
         if (!email) {
-            setAlert('Email is required.', 'warning');
+            setAlert(t('signin.err.emailRequired', 'Email is required.'), 'warning');
             return;
         }
         withSubmitLock(forms.resetRequest, function() {
@@ -267,7 +277,7 @@
                 var debugUrl = resp.data && resp.data.debug ? resp.data.debug.resetUrl : '';
                 setAlert(appendDebugUrl(message, debugUrl), 'success');
             }).catch(function() {
-                setAlert('Unable to send reset link right now.', 'danger');
+                setAlert(t('signin.err.resetLink', 'Unable to send reset link right now.'), 'danger');
             });
         });
     }
@@ -277,18 +287,18 @@
         setAlert('', '');
         var token = (byId('authResetToken').value || '').trim();
         if (!token) {
-            setAlert('Reset token is missing.', 'warning');
+            setAlert(t('signin.err.tokenMissing', 'Reset token is missing.'), 'warning');
             return;
         }
         var password = byId('authResetPassword').value || '';
         var confirmPassword = byId('authResetPasswordConfirm').value || '';
         if (password !== confirmPassword) {
-            setAlert('Passwords do not match.', 'warning');
+            setAlert(t('signin.err.passwordsDiffer', 'Passwords do not match.'), 'warning');
             return;
         }
         var issues = passwordIssues(password);
         if (issues.length) {
-            setAlert('Password must include ' + issues.join(', ') + '.', 'warning');
+            setAlert(t('signin.err.passwordMust', 'Password must include {0}.').replace('{0}', issues.join('، ')), 'warning');
             return;
         }
         withSubmitLock(forms.resetConfirm, function() {
@@ -309,7 +319,7 @@
                 byId('authResetPasswordConfirm').value = '';
                 showMode('login');
             }).catch(function() {
-                setAlert('Unable to reset password right now.', 'danger');
+                setAlert(t('signin.err.resetPassword', 'Unable to reset password right now.'), 'danger');
             });
         });
     }
@@ -348,7 +358,7 @@
                 removeQueryParam('verify_token');
             })
             .catch(function() {
-                setAlert('Unable to verify token right now.', 'danger');
+                setAlert(t('signin.err.verifyToken', 'Unable to verify token right now.'), 'danger');
             });
     }
 
@@ -380,11 +390,11 @@
         logoutBtn.addEventListener('click', function() {
             apiJSON('/v1/auth/logout', { method: 'POST' })
                 .then(function() {
-                    setAlert('You have been signed out.', 'success');
+                    setAlert(t('signin.ok.signedOut', 'You have been signed out.'), 'success');
                     byId('authSessionState').classList.add('d-none');
                 })
                 .catch(function() {
-                    setAlert('Unable to sign out right now.', 'danger');
+                    setAlert(t('signin.err.signOut', 'Unable to sign out right now.'), 'danger');
                 });
         });
     }
