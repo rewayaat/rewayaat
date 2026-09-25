@@ -79,7 +79,7 @@
           "سمّه <strong>Hadith</strong> والصق رابط الموصل أعلاه. واترك <strong>Advanced settings</strong> فارغة — فليس هناك ما تسجّل الدخول إليه.",
           "في المحادثة، افتح <strong>+ → Connectors</strong> وفعّل <strong>Hadith</strong>، ثم اطرح سؤالك."
         ],
-        "note": "Works on every Claude plan; the free plan allows one custom connector. On Team and Enterprise, an owner adds it once under Organization settings → Connectors.",
+        "note": "يعمل مع كل خطط Claude؛ الخطة المجانية تتيح موصلاً مخصصاً واحداً.",
         "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v1.mp4",
         "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v1.jpg",
         "videoTitle": "Adding the Hadith connector in Claude",
@@ -94,7 +94,7 @@
           "أكّد أنك تثق بالتطبيق، ثم انقر <strong>Create</strong>.",
           "في المحادثة، افتح <strong>+</strong> واختر <strong>Hadith</strong>، ثم اطرح سؤالك."
         ],
-        "note": "Developer mode is available on the web for Plus, Pro, Business, Enterprise and Edu plans.",
+        "note": "وضع المطوّر متاح على الويب لخطط Plus وPro وBusiness وEnterprise وEdu.",
         "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/chatgpt-v1.mp4",
         "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/chatgpt-v1.jpg",
         "videoTitle": "Adding the Hadith connector in ChatGPT",

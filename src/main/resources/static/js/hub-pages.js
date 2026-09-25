@@ -100,11 +100,15 @@ function localeHref(path) {
         var profileBtn = el('authProfileBtn');
         var menu = el('authProfileMenu');
         if (profileBtn && menu) {
+            // Built as a string here rather than in the template, which is why these
+            // two stayed English on the Arabic hub pages.
             menu.innerHTML =
-                '<a class="profile-dropdown__item" href="/#collections">' +
-                '<i class="fa fa-bookmark" aria-hidden="true"></i> My Collections</a>' +
+                '<a class="profile-dropdown__item" href="' + localeHref('/#collections') + '">' +
+                '<i class="fa fa-bookmark" aria-hidden="true"></i> ' +
+                t('home.myCollections', 'My Collections') + '</a>' +
                 '<button class="profile-dropdown__item" type="button" id="hubSignOut">' +
-                '<i class="fa fa-right-from-bracket" aria-hidden="true"></i> Sign Out</button>';
+                '<i class="fa fa-right-from-bracket" aria-hidden="true"></i> ' +
+                t('js.signOut', 'Sign Out') + '</button>';
 
             profileBtn.addEventListener('click', function (event) {
                 event.stopPropagation();

@@ -117,7 +117,7 @@
     <div class="container">
         <div class="site-footer__grid">
             <div>
-                <div class="site-footer__title">Rewayaat</div>
+                <div class="site-footer__title" th:text="#{site.name}">Rewayaat</div>
                 <p class="site-footer__text">
                     <span th:text="#{footer.projectOf}">A project of the</span>
                     <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" class="site-footer__link" th:text="#{footer.academyFull}">Academy for Learning Islam</a>
@@ -265,15 +265,24 @@ function whyHtml(u) {
  * connector, today. Written steps come first and the walkthrough second: the steps are what
  * someone follows, and the loop is there to show where each control actually is.
  */
+/** A UI string from the bundle the i18n fragment publishes. */
+function t(key, fallback) {
+    var value = (window.I18N || {})[key];
+    return (typeof value === 'string' && value.length) ? value : fallback;
+}
+
 function guidesHtml(u) {
     if (!pick(u, 'guides') || !pick(u, 'guides').length) {
         return '';
     }
+    // These two are built into a string, so the th:text they used to carry was never
+    // processed: it shipped as a literal attribute and the English fallback showed.
     var url = u.connectorUrl
-        ? '<div class="connector-url"><span class="connector-url__label" th:text="#{updates.connectorUrl}">Connector URL</span>' +
+        ? '<div class="connector-url"><span class="connector-url__label">'
+          + t('updates.connectorUrl', 'Connector URL') + '</span>' +
           '<code>' + u.connectorUrl + '</code>' +
           '<button type="button" class="connector-url__copy" data-copy="' + u.connectorUrl +
-          '" th:text="#{updates.copy}">Copy</button></div>'
+          '">' + t('updates.copy', 'Copy') + '</button></div>'
         : '';
     return '<div class="update-entry__guides">' + url + pick(u, 'guides').map(function (g) {
         return '<section class="guide"' + (g.id ? ' id="' + g.id + '"' : '') + '>' +

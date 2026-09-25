@@ -211,7 +211,19 @@ class HadithCardParityTest {
                         + "SEARCH_ONLY_MENU_ITEMS with a reason.");
     }
 
-    /** The visible labels of every dropdown item inside a hadith-copy-menu. */
+    /**
+     * What every dropdown item inside a hadith-copy-menu offers.
+     *
+     * <p>Identified by its message key rather than its English label, now that both
+     * cards render these through the bundle — one as {@code th:text="#{key}"} and one
+     * as {@code tr('key', ...)}. The key is the stronger comparison anyway: two items
+     * that read the same in English but resolve differently are not the same item.
+     * An item with no key falls back to its text, so a literal added to one card and
+     * not the other is still caught.
+     */
+    private static final Pattern MESSAGE_KEY =
+            Pattern.compile("#\\{([a-zA-Z0-9_.]+)\\}|tr\\(\\s*'([a-zA-Z0-9_.]+)'");
+
     private static Set<String> copyMenuItems(String html) {
         Set<String> found = new LinkedHashSet<>();
         Matcher menu = Pattern.compile(
@@ -221,6 +233,11 @@ class HadithCardParityTest {
                     "<button[^>]*class=\"dropdown-item\"[^>]*>(.*?)</button>",
                     Pattern.DOTALL).matcher(menu.group(1));
             while (item.find()) {
+                Matcher key = MESSAGE_KEY.matcher(item.group());
+                if (key.find()) {
+                    found.add(key.group(1) != null ? key.group(1) : key.group(2));
+                    continue;
+                }
                 String label = item.group(1).replaceAll("<[^>]*>", " ")
                         .replaceAll("\\s+", " ").trim();
                 if (!label.isEmpty()) {
