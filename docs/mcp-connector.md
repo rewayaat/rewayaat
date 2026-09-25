@@ -416,9 +416,9 @@ Two things are measured, both in the site's GA4 property (`G-3HSRTQD7GM`):
 - **Off the request path.** The event goes out with `HttpClient.sendAsync` and a five-second
   timeout; a failure is logged at debug and dropped, never retried. The site's chatbot calls
   `invoke` and never passes through it.
-- **Disabled unless `GA4_API_SECRET` is set**, so local runs and the tests never talk to
+- **Disabled unless `REWAYAAT_GA4_API_SECRET` is set**, so local runs and the tests never talk to
   Google. The secret is created in GA4 under Admin → Data streams → (web stream) →
-  Measurement Protocol API secrets, stored as the GitHub secret `GA4_API_SECRET`, synced by CI
+  Measurement Protocol API secrets, stored as the GitHub secret `REWAYAAT_GA4_API_SECRET`, synced by CI
   into the `rewayaat-v2-ga4` Kubernetes secret, and read only by the MCP pod.
 
 To report on it, register `client`, `tool` and `outcome` as event-scoped custom dimensions

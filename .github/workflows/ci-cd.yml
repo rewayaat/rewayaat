@@ -110,7 +110,7 @@ jobs:
             --dry-run=client -o yaml | kubectl apply -f -
 
           kubectl create secret generic rewayaat-v2-ga4 \
-            --from-literal=GA4_API_SECRET="${{ secrets.GA4_API_SECRET }}" \
+            --from-literal=REWAYAAT_GA4_API_SECRET="${{ secrets.REWAYAAT_GA4_API_SECRET }}" \
             --namespace=rewayaat-v2 \
             --dry-run=client -o yaml | kubectl apply -f -
 
