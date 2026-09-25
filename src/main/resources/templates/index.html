@@ -369,7 +369,10 @@
                                             {{ narrationRailCountLabel(narration, 'similar') }}
                                         </span>
                                     </button>
+                                    <!-- No Arabic tafsir to show, so the Arabic site does
+                                         not offer the panel. -->
                                     <button type="button"
+                                            th:unless="${isArabic}"
                                             class="hadith-sidecar__rail-btn"
                                             v-bind:class="{'is-active': isNarrationSidecarTabActive(narration, 'quran')}"
                                             v-bind:aria-selected="isNarrationSidecarTabActive(narration, 'quran') ? 'true' : 'false'"
@@ -444,6 +447,7 @@
                                                         </span>
                                                     </button>
                                                     <div class="hadith-sidecar__accordion-body hadith-sidecar__accordion-body--similar"
+                                                         th:if="${!isArabic}"
                                                          v-if="sidx === narration.similarActiveIndex && similar.matchReason">
                                                         <div class="similar-reason-text"><span class="similar-reason-label" th:text="#{sidecar.whyMatched}">Why this matched:</span> {{ similar.matchReason }}</div>
                                                     </div>

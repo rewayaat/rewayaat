@@ -2,8 +2,8 @@
   {
     "id": "connector",
     "date": "2026-09-13",
-    "title": "Answers You Can Check: The Hadith Database Inside Claude and ChatGPT",
-    "summary": "For students and researchers who need to know where a narration comes from. Connect The Hadith Database and Claude or ChatGPT stops relying on memory and the open web: it searches all 32,519 narrations in 18 books, in Arabic or English, tells you how many it found, and links every narration it quotes to its full text on this site.",
+    "title": "Answers You Can Check, Inside Claude and ChatGPT",
+    "summary": "Claude and ChatGPT can now search all 32,519 narrations directly, and link every answer back to its source.",
     "previewVideo": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v1.mp4",
     "previewPoster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v1.jpg",
     "previewAspect": "1600 / 1088",
@@ -57,8 +57,8 @@
         "videoAspect": "1600 / 1088"
       }
     ],
-    "title_ar": "إجابات يمكنك التحقّق منها: قاعدة بيانات الحديث داخل Claude وChatGPT",
-    "summary_ar": "لطلبة العلم والباحثين ممّن يحتاجون معرفة مصدر الرواية. بربط قاعدة بيانات الحديث، يتوقّف Claude أو ChatGPT عن الاعتماد على الذاكرة والبحث المفتوح: فيبحث في ٣٢٬٥١٩ رواية في ١٨ كتاباً، بالعربية أو الإنجليزية، ويخبرك بعدد ما وجد، ويربط كل رواية يقتبسها بنصّها الكامل على هذا الموقع.",
+    "title_ar": "إجابات يمكنك التحقّق منها، داخل Claude وChatGPT",
+    "summary_ar": "صار بإمكان Claude وChatGPT البحث في ٣٢٬٥١٩ رواية مباشرة، مع ربط كل إجابة بمصدرها.",
     "videoTitle_ar": "إضافة موصل قاعدة بيانات الحديث في Claude",
     "why_ar": {
       "title": "ولمَ لا أسأل Claude أو ChatGPT مباشرة؟",

@@ -24,7 +24,7 @@
                 <span th:text="#{books.card.chapters}">chapters</span>
             </span>
             <a class="hub-stat" th:if="${!#lists.isEmpty(volumes)}" href="#volumes">
-                <span class="hub-stat__value" th:text="${#lists.size(volumes)}">8</span>
+                <span class="hub-stat__value" th:text="${#numbers.formatInteger(#lists.size(volumes), 0)}">8</span>
                 <span th:text="#{book.volumes}">volumes</span>
             </a>
         </div>

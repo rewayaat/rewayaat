@@ -21,7 +21,7 @@
                 <span th:text="#{books.stat.narrations}">narrations</span>
             </span>
             <span class="hub-stat">
-                <span class="hub-stat__value" th:text="${#lists.size(books)}">18</span>
+                <span class="hub-stat__value" th:text="${#numbers.formatInteger(#lists.size(books), 0)}">18</span>
                 <span th:text="#{books.stat.collections}">collections</span>
             </span>
         </div>

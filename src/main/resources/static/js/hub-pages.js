@@ -222,11 +222,11 @@ function localeHref(path) {
                 body: JSON.stringify({ hadithId: hadithId, collectionName: name })
             }).then(function (resp) {
                 if (!resp.ok || !resp.data || !resp.data.ok) {
-                    toast((resp.data && resp.data.message) || 'Could not save the narration.', 'error');
+                    toast((resp.data && resp.data.message) || t('toast.saveFailed', 'Could not save the narration.'), 'error');
                     return;
                 }
                 closeModal();
-                toast('Saved to ' + name + '.');
+                toast(t('toast.savedTo', 'Saved to {0}.').replace('{0}', name));
             });
         });
     }
@@ -321,12 +321,21 @@ function localeHref(path) {
         try { return JSON.parse(script.textContent || '{}'); } catch (e) { return {}; }
     }
 
+    /**
+     * "X copied." — the noun is a key rather than a word, because a sentence assembled
+     * from an English noun and a translated frame is still half English.
+     */
+    function copied(what) {
+        var noun = t('toast.what.' + what, what);
+        return t('toast.copied', '{0} copied.').replace('{0}', noun);
+    }
+
     function copyText(text, label) {
-        if (!text) { toast('Nothing to copy.', 'error'); return; }
+        if (!text) { toast(t('toast.nothingToCopy', 'Nothing to copy.'), 'error'); return; }
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(text)
-                .then(function () { toast(label + ' copied.'); })
-                .catch(function () { toast('Could not copy.', 'error'); });
+                .then(function () { toast(copied(label)); })
+                .catch(function () { toast(t('toast.copyFailed', 'Could not copy.'), 'error'); });
             return;
         }
         var ta = document.createElement('textarea');
@@ -334,8 +343,8 @@ function localeHref(path) {
         ta.style.cssText = 'position:fixed;left:-9999px';
         document.body.appendChild(ta);
         ta.select();
-        try { document.execCommand('copy'); toast(label + ' copied.'); }
-        catch (e) { toast('Could not copy.', 'error'); }
+        try { document.execCommand('copy'); toast(copied(label)); }
+        catch (e) { toast(t('toast.copyFailed', 'Could not copy.'), 'error'); }
         document.body.removeChild(ta);
     }
 
@@ -370,14 +379,14 @@ function localeHref(path) {
             if (copyField) {
                 var field = copyField.getAttribute('data-copy-field');
                 var data = cardData(copyField);
-                copyText(data[field], field === 'arabic' ? 'Arabic' : 'English');
+                copyText(data[field], field === 'arabic' ? 'arabic' : 'english');
                 closeMenus();
                 return;
             }
 
             var copyUrl = event.target.closest('[data-copy-url]');
             if (copyUrl) {
-                copyText(copyUrl.getAttribute('data-copy-url'), 'Link');
+                copyText(copyUrl.getAttribute('data-copy-url'), 'link');
                 closeMenus();
                 return;
             }
@@ -462,16 +471,23 @@ function localeHref(path) {
                 + '</span>';
             return {line: line, raw: item};
         });
-        body.innerHTML = accordion('No similar hadith were found for this narration.', rows,
+        var arabic = window.I18N_LOCALE === 'ar';
+        body.innerHTML = accordion(t('sidecar.noSimilar', 'No similar hadith were found for this narration.'), rows,
             function (item) {
                 var id = item._id || item.id || '';
-                return (item.matchReason
+                // The reason each pair was judged similar was written in English by the
+                // model that judged them, and the Arabic renderings are not loaded. An
+                // English paragraph is the one thing on an Arabic card that cannot be
+                // skimmed past, so the Arabic site shows the match without the argument.
+                return (item.matchReason && !arabic
                         ? '<div class="similar-reason-text">'
-                          + '<span class="similar-reason-label">Why this matched:</span> '
+                          + '<span class="similar-reason-label">'
+                          + t('sidecar.whyMatched', 'Why this matched:') + '</span> '
                           + escapeHtml(item.matchReason) + '</div>'
                         : '')
                     + '<a class="quranic-verse-link" href="' + localeHref('/hadith/' + encodeURIComponent(id)) + '">'
-                    + 'Read this narration <i class="fa fa-external-link-alt fa-xs"></i></a>';
+                    + t('sidecar.readNarration', 'Read this narration')
+                    + ' <i class="fa fa-external-link-alt fa-xs"></i></a>';
             }, 'similar');
     }
 

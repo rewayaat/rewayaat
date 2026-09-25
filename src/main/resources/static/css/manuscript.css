@@ -872,7 +872,28 @@ a:hover {
 .home-nav-links {
     align-items: center;
     gap: 0.15rem;
-    margin-left: 0.75rem;
+    /* Logical: a physical margin-left put the gap on the far side of the group in RTL,
+       so the Arabic links sat hard against the logo with a gap trailing into space. */
+    margin-inline-start: 0.75rem;
+}
+
+/* Arabic script carries no case and its letterforms are finer, so the treatment that
+   makes the English links read as a nav — small, uppercase, widely tracked — makes the
+   Arabic ones read as fine print. Tracking an Arabic word also breaks the joins between
+   its letters, which is why letter-spacing goes to zero rather than down. */
+[dir="rtl"] .home-nav-link {
+    font-size: 0.92rem;
+    letter-spacing: 0;
+    text-transform: none;
+    padding-inline: 0.85rem;
+}
+[dir="rtl"] .home-nav-links {
+    gap: 0.35rem;
+    margin-inline-start: 1.5rem;
+}
+[dir="rtl"] .lang-toggle__label {
+    font-size: 0.8rem;
+    letter-spacing: 0;
 }
 
 .home-nav-link {
@@ -1063,7 +1084,7 @@ body.is-search-mode .home-nav-links {
 
 .profile-chip .fa-angle-down {
     font-size: 0.85rem;
-    margin-left: 0.05rem;
+    margin-inline-start: 0.05rem;
     transition: transform 150ms ease;
     color: rgba(26,26,46,0.5);
 }
@@ -1077,10 +1098,22 @@ body.is-search-mode .home-nav-links {
 
 /* ── Profile Dropdown ───────────────────────────────────────────────────── */
 .profile-dropdown {
-    position: fixed;
-    top: 5rem;
-    left: 1rem;
-    width: 320px;
+    /* Anchored to the chip that opens it. It was position:fixed at a hardcoded
+       left:1rem, which pinned it to the corner of the window wherever the chip
+       actually was — on the English site that put it clean across the page from its
+       own trigger, and on the Arabic site, where the chip is on the left, it landed
+       beside the chip as a wide pale slab that read as a stray bar.
+       .profile-menu is already position:relative, which is what this was written for. */
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    inset-inline-end: 0;
+    /* Sized to what is in it. The fixed 320px was cut for the rich panel the search app
+       builds — header, stats, the lot — but the hub pages inject two links into the same
+       container, which left most of it empty and reading as a stray pale bar under the
+       chip. */
+    width: max-content;
+    min-width: 11rem;
+    max-width: min(320px, 92vw);
     max-height: calc(100vh - 6rem);
     z-index: 2200;
     background: var(--surface);
@@ -1089,6 +1122,37 @@ body.is-search-mode .home-nav-links {
     box-shadow: var(--shadow-xl);
     padding: 1rem;
     overflow-y: auto;
+}
+
+/* The two-item menu the hub pages build. It had no styles of its own at all, so the
+   links sat as bare inline text inside a panel's padding. */
+.profile-dropdown__item {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    width: 100%;
+    padding: 0.5rem 0.65rem;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1a1a2e;
+    text-align: start;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 150ms ease;
+}
+.profile-dropdown__item:hover,
+.profile-dropdown__item:focus-visible {
+    background: rgba(11, 23, 40, 0.06);
+    color: #0b1728;
+}
+.profile-dropdown__item i {
+    width: 1rem;
+    text-align: center;
+    opacity: 0.7;
 }
 
 .profile-dropdown__panel {

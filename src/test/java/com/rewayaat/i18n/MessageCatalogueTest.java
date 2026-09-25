@@ -160,6 +160,34 @@ class MessageCatalogueTest {
                         + "UiMessages.say(key).");
     }
 
+    @Test
+    @DisplayName("no toast or alert is raised with English written into the script")
+    void transientMessagesComeFromTheCatalogue() throws IOException {
+        // Toasts and alert strips are the messages a reader is most likely to be reading
+        // closely — something just happened — and the least likely to be caught by a
+        // sweep, because they appear only after an action and vanish. Thirty of them sat
+        // in English on the Arabic site behind clicks nobody had made while looking.
+        //
+        // Matches a literal first argument that contains two or more English words. Icon
+        // markup passed as a prefix is not prose and does not count.
+        Pattern raised = Pattern.compile(
+                "\\b(?:showToast|toast|setAlert|hubToast)\\(\\s*'([^']{3,})'");
+
+        Set<String> found = new TreeSet<>();
+        for (Path file : sources()) {
+            Matcher matcher = raised.matcher(Files.readString(file, StandardCharsets.UTF_8));
+            while (matcher.find()) {
+                String literal = matcher.group(1).replaceAll("<[^>]*>", "").trim();
+                if (literal.matches(".*\\b[A-Za-z]{2,}\\b.*\\b[A-Za-z]{2,}\\b.*")) {
+                    found.add(file.getFileName() + ": \"" + literal + "\"");
+                }
+            }
+        }
+        assertEquals(Set.of(), found,
+                "these are shown to the reader but written into the script:\n" + found
+                        + "\nRead them with t('key', 'English fallback') instead.");
+    }
+
     private static List<Path> sources() throws IOException {
         List<Path> files = new ArrayList<>();
         for (String dir : new String[]{"src/main/resources/static/js", "src/main/resources/templates"}) {

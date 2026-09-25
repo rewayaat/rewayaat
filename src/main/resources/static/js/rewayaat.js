@@ -1337,9 +1337,9 @@ function renderUserProfileMenu(collections) {
                     apiJSON('/v1/collections/' + collection.id, { method: 'DELETE' }).then(function(resp) {
                         if (resp.ok && resp.data.ok) {
                             loadAndRenderCollections(false);
-                            showToast('Collection deleted.', 'success');
+                            showToast(t('toast.collectionDeleted', 'Collection deleted.'), 'success');
                         } else {
-                            showToast('Could not delete collection.', 'error');
+                            showToast(t('toast.collectionDeleteFailed', 'Could not delete collection.'), 'error');
                         }
                     });
                 }
@@ -1387,7 +1387,7 @@ function renderUserProfileMenu(collections) {
         apiJSON('/v1/auth/logout', { method: 'POST' }).then(function() {
             closeUserProfileMenu();
             refreshAuthState();
-            showToast('You have been signed out.', 'information');
+            showToast(t('toast.signedOut', 'You have been signed out.'), 'information');
         });
     });
     footer.appendChild(signOutBtn);
@@ -1749,7 +1749,10 @@ function openCollectionPickerModal(hadithId, collections) {
             swal.close();
             loadAndRenderCollections(false);
             refreshAuthState();
-            showToast('<i class="fa fa-circle-check" style="margin-right:6px;"></i>Saved to ' + (((resp.data.collection && resp.data.collection.name) || collectionName)) + '.', 'success');
+            showToast('<i class="fa fa-circle-check" style="margin-right:6px;"></i>'
+                + t('toast.savedTo', 'Saved to {0}.').replace('{0}',
+                    (resp.data.collection && resp.data.collection.name) || collectionName),
+                'success');
         });
     });
     footer.appendChild(submitBtn);
@@ -1827,7 +1830,10 @@ function openCreateCollectionModal() {
                 swal.close();
                 loadAndRenderCollections(false);
                 refreshAuthState();
-                showToast('<i class="fa fa-circle-check" style="margin-right:6px;"></i>Collection created! You can now save hadith to it using the <i class="fa fa-bookmark"></i> button on any narration.', 'success');
+                showToast('<i class="fa fa-circle-check" style="margin-right:6px;"></i>'
+                    + t('toast.collectionCreated',
+                        'Collection created! You can now save hadith to it using the bookmark button on any narration.'),
+                    'success');
             });
         }
     });
@@ -1835,7 +1841,7 @@ function openCreateCollectionModal() {
 
 function openSaveHadithModal(hadithId) {
     if (!authState.authenticated) {
-        showToast('Sign in to save hadith to your collections.', 'information');
+        showToast(t('toast.signInToSave', 'Sign in to save hadith to your collections.'), 'information');
         openLoginModal();
         return;
     }
@@ -5330,10 +5336,10 @@ function setupVue(query, page, sortFields) {
                 if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
                     navigator.clipboard.writeText(text)
                         .then(function() {
-                            showToast('Copied ' + (field === 'arabic' ? 'Arabic' : 'English') + ' text.', 'information');
+                            showToast(t('toast.copiedText', 'Copied {0} text.').replace('{0}', t('toast.what.' + (field === 'arabic' ? 'arabic' : 'english'), field === 'arabic' ? 'Arabic' : 'English')), 'information');
                         })
                         .catch(function() {
-                            showToast('Unable to copy text.', 'warning');
+                            showToast(t('toast.copyTextFailed', 'Unable to copy text.'), 'warning');
                         });
                     return;
                 }
@@ -5346,9 +5352,9 @@ function setupVue(query, page, sortFields) {
                     textArea.select();
                     document.execCommand('copy');
                     document.body.removeChild(textArea);
-                    showToast('Copied ' + (field === 'arabic' ? 'Arabic' : 'English') + ' text.', 'information');
+                    showToast(t('toast.copiedText', 'Copied {0} text.').replace('{0}', t('toast.what.' + (field === 'arabic' ? 'arabic' : 'english'), field === 'arabic' ? 'Arabic' : 'English')), 'information');
                 } catch (err) {
-                    showToast('Unable to copy text.', 'warning');
+                    showToast(t('toast.copyTextFailed', 'Unable to copy text.'), 'warning');
                 }
             },
             copyHadithStaticUrl: function(id) {
@@ -5358,16 +5364,16 @@ function setupVue(query, page, sortFields) {
                 }
                 this.resolveHadithShareUrl(hadithId).then(function(url) {
                     if (!url) {
-                        showToast('Unable to build link.', 'warning');
+                        showToast(t('toast.linkBuildFailed', 'Unable to build link.'), 'warning');
                         return;
                     }
                     if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
                         navigator.clipboard.writeText(url)
                             .then(function() {
-                                showToast('Link copied.', 'information');
+                                showToast(t('toast.linkCopied', 'Link copied.'), 'information');
                             })
                             .catch(function() {
-                                showToast('Unable to copy link.', 'warning');
+                                showToast(t('toast.linkCopyFailed', 'Unable to copy link.'), 'warning');
                             });
                         return;
                     }
@@ -5380,12 +5386,12 @@ function setupVue(query, page, sortFields) {
                         textArea.select();
                         document.execCommand('copy');
                         document.body.removeChild(textArea);
-                        showToast('Link copied.', 'information');
+                        showToast(t('toast.linkCopied', 'Link copied.'), 'information');
                     } catch (err) {
-                        showToast('Unable to copy link.', 'warning');
+                        showToast(t('toast.linkCopyFailed', 'Unable to copy link.'), 'warning');
                     }
                 }).catch(function() {
-                    showToast('Unable to build link.', 'warning');
+                    showToast(t('toast.linkBuildFailed', 'Unable to build link.'), 'warning');
                 });
             },
             /**
@@ -5542,7 +5548,7 @@ function setupVue(query, page, sortFields) {
                     apiJSON('/v1/collections/' + encodeURIComponent(this.collectionId), { method: 'GET' })
                         .then(function(metaResp) {
                             if (metaResp.status === 401) {
-                                showToast('Sign in to view your collection.', 'information');
+                                showToast(t('toast.signInToView', 'Sign in to view your collection.'), 'information');
                                 openLoginModal();
                                 return null;
                             }
@@ -6496,7 +6502,7 @@ function setupVue(query, page, sortFields) {
                     self.collectionMeta = collection;
                     self.collectionTitle = (collection && collection.name) || self.collectionTitle;
                     loadAndRenderCollections(false);
-                    showToast('Removed from collection.', 'success');
+                    showToast(t('toast.removedFromCollection', 'Removed from collection.'), 'success');
                     var maxPage = Math.max(1, Math.ceil(Math.max(0, totalRemaining) / self.pageSize));
                     var targetPage = Math.min(self.page, maxPage);
                     if (targetPage !== self.page) {
@@ -6521,7 +6527,7 @@ function setupVue(query, page, sortFields) {
             saveCollectionTitle: function() {
                 var newName = (this.editingCollectionTitle || '').trim();
                 if (!newName) {
-                    showToast('Collection name cannot be empty.', 'error');
+                    showToast(t('toast.collectionNameEmpty', 'Collection name cannot be empty.'), 'error');
                     return;
                 }
                 if (newName === this.collectionTitle) {
@@ -6542,7 +6548,7 @@ function setupVue(query, page, sortFields) {
                     self.collectionMeta = resp.data.collection || self.collectionMeta;
                     self.isEditingCollectionTitle = false;
                     loadAndRenderCollections(false);
-                    showToast('Collection name updated.', 'success');
+                    showToast(t('toast.collectionRenamed', 'Collection name updated.'), 'success');
                 });
             },
             cancelEditCollectionTitle: function() {
@@ -6665,7 +6671,7 @@ function setupVue(query, page, sortFields) {
                     if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
                         navigator.clipboard.writeText(url).then(function() {
                             copyBtn.innerHTML = '<i class="fa fa-check" aria-hidden="true"></i>';
-                            showToast('Link copied.', 'information');
+                            showToast(t('toast.linkCopied', 'Link copied.'), 'information');
                         }).catch(function() {});
                     } else {
                         var textArea = document.createElement("textarea");
@@ -6677,7 +6683,7 @@ function setupVue(query, page, sortFields) {
                         try {
                             document.execCommand("copy");
                             copyBtn.innerHTML = '<i class="fa fa-check" aria-hidden="true"></i>';
-                            showToast('Link copied.', 'information');
+                            showToast(t('toast.linkCopied', 'Link copied.'), 'information');
                         } catch (err) {}
                         document.body.removeChild(textArea);
                     }
