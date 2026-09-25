@@ -35,6 +35,9 @@ import java.util.Map;
  * <p>Links in an MCP result are tagged for analytics by {@link ConnectorLinks} on the way
  * out, before either representation is built, so both carry the same URL. {@link #invoke}
  * does not tag: the site's chatbot is not connector traffic.
+ *
+ * <p>Each MCP tool call is also reported to GA4 by {@link ConnectorAnalytics}. {@link #invoke}
+ * does not report, for the same reason.
  */
 @Component
 public class McpToolCatalog {
@@ -43,11 +46,13 @@ public class McpToolCatalog {
 
     private final Map<String, McpTool> tools = new LinkedHashMap<>();
     private final ObjectMapper mapper;
+    private final ConnectorAnalytics analytics;
     private final String baseUrl;
 
-    public McpToolCatalog(List<McpTool> tools, ObjectMapper mapper,
+    public McpToolCatalog(List<McpTool> tools, ObjectMapper mapper, ConnectorAnalytics analytics,
                           @Value("${rewayaat.canonical-url:https://hadith.academyofislam.com}") String baseUrl) {
         this.mapper = mapper;
+        this.analytics = analytics;
         this.baseUrl = baseUrl;
         for (McpTool tool : tools) {
             this.tools.put(tool.name(), tool);
@@ -106,30 +111,39 @@ public class McpToolCatalog {
             builder.outputSchema(outputSchema);
         }
         return new McpServerFeatures.SyncToolSpecification(builder.build(),
-                (exchange, request) -> execute(tool, request, ConnectorLinks.source(
+                (exchange, request) -> execute(tool, request, exchange.sessionId(), ConnectorLinks.source(
                         exchange.getClientInfo() == null ? null : exchange.getClientInfo().name())));
     }
 
     private McpSchema.CallToolResult execute(McpTool tool, McpSchema.CallToolRequest request,
-                                             String source) {
+                                             String sessionId, String source) {
+        long start = System.nanoTime();
         try {
             Map<String, Object> result = ConnectorLinks.tag(tool.call(request.arguments() == null
                     ? Map.of()
                     : request.arguments()), baseUrl, source, tool.name());
-            return McpSchema.CallToolResult.builder()
+            McpSchema.CallToolResult callResult = McpSchema.CallToolResult.builder()
                     .structuredContent(result)
                     .addTextContent(mapper.writeValueAsString(result))
                     .build();
+            analytics.toolCall(sessionId, source, tool.name(), "ok", millisSince(start));
+            return callResult;
         } catch (IllegalArgumentException ex) {
             // A bad argument is the caller's to fix, so it comes back as a tool error the
             // model can read and retry from, not as a transport-level failure.
             LOGGER.debug("MCP tool {} rejected arguments: {}", tool.name(), ex.getMessage());
+            analytics.toolCall(sessionId, source, tool.name(), "bad_arguments", millisSince(start));
             return error(ex.getMessage());
         } catch (Exception ex) {
             LOGGER.error("MCP tool {} failed.", tool.name(), ex);
+            analytics.toolCall(sessionId, source, tool.name(), "error", millisSince(start));
             return error("The " + tool.name() + " tool failed. This is a server-side error, "
                     + "not a statement about the corpus - do not report it as 'not found'.");
         }
+    }
+
+    private static long millisSince(long startNanos) {
+        return (System.nanoTime() - startNanos) / 1_000_000;
     }
 
     private McpSchema.CallToolResult error(String message) {

@@ -162,7 +162,8 @@ cites a link, and a visit through a link with its tags removed arrives looking l
 
 | File | Role |
 |---|---|
-| `mcp/McpServerConfig.java` | Both transports, server instructions, keepalive |
+| `mcp/McpServerConfig.java` | Both transports, server instructions, keepalive (SSE only) |
+| `mcp/ConnectorAnalytics.java` | Sends one GA4 event per tool call |
 | `mcp/McpToolCatalog.java` | Adapts tools to MCP; also the entry point for the site's own chatbot |
 | `mcp/ConnectorLinks.java` | Tags this site's links in MCP results with UTM parameters |
 | `mcp/McpTool.java` | What a tool implements |
@@ -278,7 +279,9 @@ catches up.
 - **`proxy-buffering: off`.** Streamable HTTP answers as a one-event SSE stream; with
   buffering on, nginx holds the response until the upstream closes.
 - **`proxy-read-timeout: 300`** to match Claude's own timeout, so a held-open client stream
-  is not dropped every minute. The transports also send a keepalive every 30s.
+  is not dropped every minute. The legacy SSE transport also sends a keepalive every 30s.
+  Streamable HTTP does not: SDK 2.0.1 never expires its sessions, and pinging every one ever
+  created filled the logs with failures (see `KEEP_ALIVE` in `McpServerConfig`).
 
 ## Testing
 
@@ -387,45 +390,47 @@ review takes.
 Paying for ChatGPT Business or Claude Team to *distribute* the connector does not work:
 workspace connectors reach that workspace's members only.
 
-## Analytics (designed, not built)
+## Analytics
 
-The question to answer is whether the connector is used, from which client, for what, and
-whether it finds anything. GA4 is where the website's traffic already lives
-(`G-3HSRTQD7GM`), so connector usage goes to the same property through the **Measurement
-Protocol**: a server-side `POST` to `https://www.google-analytics.com/mp/collect` with the
-measurement id and an API secret created under the web data stream (Admin → Data streams →
-Measurement Protocol API secrets).
+Two things are measured, both in the site's GA4 property (`G-3HSRTQD7GM`):
 
-| Event | When | Parameters |
-|---|---|---|
-| `mcp_session_start` | `initialize` | `client_name`, `client_version`, `protocol_version` |
-| `mcp_tool_call` | every `tools/call` | `tool`, `client_name`, `outcome`, `result_count`, `total_matches`, `latency_ms`, `book`, `match_mode` |
+- **Click-throughs** from an answer to a narration page, through the UTM tags above.
+- **Use itself**, through `mcp/ConnectorAnalytics.java`: every MCP `tools/call` sends one
+  `mcp_tool_call` event through the **Measurement Protocol**, a server-side `POST` to
+  `https://www.google-analytics.com/mp/collect`.
 
-- **`client_name`** is `exchange.getClientInfo().name()` normalised to `claude`, `chatgpt` or
-  `other`, with the raw value kept in `client_version`'s neighbour only if it proves useful.
-- **`outcome`** is `results`, `empty`, `invalid` (an `IllegalArgumentException`, which the
-  model can retry) or `error`. `empty` is the one worth watching: it is where the corpus boundary
-  or the BM25 wording advice is doing its job, or failing to.
-- **`book` and `match_mode`** are closed vocabularies, so they are safe to send.
+| Parameter | Value |
+|---|---|
+| `client` | `claude`, `chatgpt` or `other`, from `ConnectorLinks.source` |
+| `tool` | the tool's name |
+| `outcome` | `ok`, `bad_arguments` (an `IllegalArgumentException` the model can retry) or `error` |
+| `latency_ms` | time spent in the tool |
+
+- **`client_id` is `exchange.sessionId()`.** The server is unauthenticated and every user of a
+  hosted client arrives from that vendor's egress addresses, so there is no person to
+  identify. A GA4 "user" in these reports is one MCP session, roughly one conversation, and
+  no `user_id` is ever sent.
 - **No query text.** A free-text query can contain anything a person types, and GA4's terms
   forbid personal data. If query analysis is wanted later, it belongs in our own logs with a
   retention limit, not in GA4.
-- **`client_id` is a hash of `exchange.sessionId()`.** The server is unauthenticated and every
-  user of a hosted client arrives from that vendor's egress addresses, so there is no person
-  to identify. GA4 "users" in these reports are MCP sessions, and no `user_id` is ever sent.
+- **Off the request path.** The event goes out with `HttpClient.sendAsync` and a five-second
+  timeout; a failure is logged at debug and dropped, never retried. The site's chatbot calls
+  `invoke` and never passes through it.
+- **Disabled unless `GA4_API_SECRET` is set**, so local runs and the tests never talk to
+  Google. The secret is created in GA4 under Admin → Data streams → (web stream) →
+  Measurement Protocol API secrets, stored as the GitHub secret `GA4_API_SECRET`, synced by CI
+  into the `rewayaat-v2-ga4` Kubernetes secret, and read only by the MCP pod.
 
-The hook is the handler in `McpToolCatalog.specification`, which already receives the
-exchange: time `execute`, classify the result, hand the event to a sender. The site's chatbot
-calls `invoke` and never passes through it, so it stays out of the counts unless it is tagged
-deliberately.
+To report on it, register `client`, `tool` and `outcome` as event-scoped custom dimensions
+(Admin → Custom definitions) and `latency_ms` as a custom metric; GA4 only shows parameters
+that are registered, and only from the day they are. Then Reports → Engagement → Events →
+`mcp_tool_call`, or an Exploration broken down by `client` and `tool`, gives calls per day,
+and its *Total users* is sessions.
 
-Delivery is off the request path: a bounded queue drained by one background thread, batches
-of up to 25 events (the protocol's limit), a two-second timeout, and events dropped rather
-than retried when GA4 is unreachable. It is disabled unless `GA4_API_SECRET` is set, so the
-build and the tests never talk to Google. On the GA4 side, `tool`, `client_name`, `outcome`,
-`book` and `match_mode` are registered as event-scoped custom dimensions and `latency_ms`,
-`result_count` as custom metrics; the `/debug/mp/collect` endpoint validates payloads before
-anything is switched on.
+Not built from the original design: an `empty` outcome (tools shape their results
+differently, so "found nothing" needs a per-tool rule), `result_count`, `book`, `match_mode`,
+and a separate `mcp_session_start` event, which would need per-session state the tool
+handler does not have.
 
 ## Where this deviates from the spec, deliberately
 

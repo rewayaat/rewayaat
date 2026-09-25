@@ -76,6 +76,13 @@ spec:
                 secretKeyRef:
                   name: rewayaat-v2-sentry
                   key: SENTRY_DSN
+            # Optional: without it the connector runs and simply reports nothing to GA4.
+            - name: GA4_API_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: rewayaat-v2-ga4
+                  key: GA4_API_SECRET
+                  optional: true
           # Stop taking new work before shutting down, so nothing is cut mid-request.
           #
           # Removing a pod from its Service and telling the container to stop are not
