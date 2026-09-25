@@ -116,7 +116,7 @@ public class BookPageController {
         model.addAttribute("volumes", useVolumes ? volumes.stream()
                 .map(v -> Map.of(
                         "label", msg(locale, "book.volumeNumber", LocaleDigits.in(locale, v)),
-                        "url", "/books/" + bookSlug + "/volume/" + encode(v),
+                        "url", locale.prefix() + "/books/" + bookSlug + "/volume/" + encode(v),
                         "chapterCount", book.chaptersInVolume(v).size()))
                 .toList() : List.of());
         model.addAttribute("parts", useParts ? parts : List.of());
@@ -457,7 +457,7 @@ public class BookPageController {
                         "label", topicLabels.label(e.getKey(), locale),
                         "count", e.getValue(),
                         "active", e.getKey().equals(activeTag),
-                        "url", chapter.url() + "?tag=" + encode(e.getKey())))
+                        "url", locale.prefix() + chapter.url() + "?tag=" + encode(e.getKey())))
                 .toList();
     }
 

@@ -384,7 +384,16 @@ a:hover {
     width: auto;
     max-width: min(18vw, 220px);
     object-fit: contain;
-    margin-left: -30px;
+    /* Logical: a physical -30px pulled the mark the wrong way in RTL, into the links. */
+    margin-inline-start: -30px;
+}
+
+/* The Arabic lockup stacks its two lines against a mark of the same height, so it is a
+   squarer block than the English one — about 1.55 wide to its 3. Matching on height
+   alone would leave it looking half the size, so it gets a little more of it. */
+[dir="rtl"] .brand-logo--full-v2 {
+    height: 52px;
+    margin-inline-start: -12px;
 }
 
 .brand-logo--icon {
@@ -8883,6 +8892,14 @@ body.is-resizing-sidecar * {
     --search-shell-height: 45px;
     --search-action-height: 35px;
     --search-entry-side-pad: 6.5rem;
+}
+
+/* Arabic sets a taller line box than Latin at the same font size — its letters carry
+   marks above and tails below the baseline. At 45px the typed term did not fit, and
+   .ts-control, which scrolls so that several selected terms can wrap, answered with a
+   scrollbar inside the search field. A few pixels of room is all it wanted. */
+[dir="rtl"] {
+    --search-shell-height: 52px;
 }
 
 .navbar-search__input {

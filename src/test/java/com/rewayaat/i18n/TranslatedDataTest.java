@@ -95,7 +95,7 @@ class TranslatedDataTest {
         List<String> missing = new ArrayList<>();
         int index = 0;
         for (JsonNode entry : entries) {
-            for (String field : new String[]{"title", "summary"}) {
+            for (String field : new String[]{"title", "summary", "videoTitle"}) {
                 if (!entry.path(field).asText("").isBlank()
                         && entry.path(field + "_ar").asText("").isBlank()) {
                     missing.add("entry " + index + ": " + field);

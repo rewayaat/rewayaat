@@ -1316,7 +1316,7 @@ function renderUserProfileMenu(collections) {
             item.className = 'profile-dropdown__submenu-item';
             var count = Array.isArray(collection.hadith_ids) ? collection.hadith_ids.length : 0;
             item.innerHTML =
-                '<span class="profile-dropdown__collection-name">' + escapeHtml(collection.name || 'Collection') + '</span>' +
+                '<span class="profile-dropdown__collection-name">' + escapeHtml(collection.name || t('js.collection', 'Collection')) + '</span>' +
                 '<span class="profile-dropdown__collection-meta">' + count + ' hadith</span>' +
                 '<button class="profile-dropdown__delete-btn" type="button" aria-label="Delete collection"><i class="fa fa-trash-can"></i></button>';
 
@@ -1333,7 +1333,8 @@ function renderUserProfileMenu(collections) {
             deleteBtn.addEventListener('click', function(event) {
                 event.preventDefault();
                 event.stopPropagation();
-                if (confirm('Delete "' + (collection.name || 'Collection') + '"? This cannot be undone.')) {
+                if (confirm(t('js.confirmDeleteCollection', 'Delete "{0}"? This cannot be undone.')
+                        .replace('{0}', collection.name || t('js.collection', 'Collection')))) {
                     apiJSON('/v1/collections/' + collection.id, { method: 'DELETE' }).then(function(resp) {
                         if (resp.ok && resp.data.ok) {
                             loadAndRenderCollections(false);
@@ -1451,7 +1452,7 @@ function openFormModal(title, fields, submitLabel, onSubmit, secondaryAction) {
     var closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.className = 'auth-modal-close';
-    closeBtn.setAttribute('aria-label', 'Close');
+    closeBtn.setAttribute('aria-label', t('js.close', 'Close'));
     closeBtn.innerHTML = '&times;';
     closeBtn.addEventListener('click', function() {
         swal.close();
@@ -1486,7 +1487,7 @@ function openFormModal(title, fields, submitLabel, onSubmit, secondaryAction) {
         var secondaryBtn = document.createElement('button');
         secondaryBtn.type = 'button';
         secondaryBtn.className = 'btn btn-link btn-sm px-0';
-        secondaryBtn.textContent = action.label || 'More';
+        secondaryBtn.textContent = action.label || t('js.more', 'More');
         secondaryBtn.addEventListener('click', function() {
             swal.close();
             action.onClick();
@@ -1586,7 +1587,7 @@ function createCollectionModalShell(title, subtitle) {
     var closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.className = 'auth-modal-close';
-    closeBtn.setAttribute('aria-label', 'Close');
+    closeBtn.setAttribute('aria-label', t('js.close', 'Close'));
     closeBtn.innerHTML = '&times;';
     closeBtn.addEventListener('click', function() {
         swal.close();
@@ -1610,11 +1611,11 @@ function createCollectionModalShell(title, subtitle) {
 
 function openCollectionNameModal(options) {
     var opts = options || {};
-    var wrapper = createCollectionModalShell(opts.title || 'Create Collection', opts.subtitle || '');
+    var wrapper = createCollectionModalShell(opts.title || t('js.createCollection', 'Create Collection'), opts.subtitle || '');
     var input = document.createElement('input');
     input.className = 'form-control auth-modal-input collection-picker-modal__input';
     input.type = 'text';
-    input.placeholder = opts.placeholder || 'Collection name';
+    input.placeholder = opts.placeholder || t('js.collectionName', 'Collection name');
     input.value = opts.defaultValue || '';
     input.id = 'collectionModalNameInput';
     wrapper.appendChild(input);
@@ -1625,7 +1626,7 @@ function openCollectionNameModal(options) {
     var submitBtn = document.createElement('button');
     submitBtn.type = 'button';
     submitBtn.className = 'btn btn-primary btn-sm collection-picker-modal__submit';
-    submitBtn.textContent = opts.submitLabel || 'Save';
+    submitBtn.textContent = opts.submitLabel || t('js.save', 'Save');
     submitBtn.addEventListener('click', function() {
         opts.onSubmit((input.value || '').trim());
     });
@@ -1643,8 +1644,8 @@ function openCollectionNameModal(options) {
 
 function openCollectionPickerModal(hadithId, collections) {
     var wrapper = createCollectionModalShell(
-        'Save Hadith',
-        'Choose an existing collection or create a new one.'
+        t('js.saveHadith', 'Save Hadith'),
+        t('js.chooseCollection', 'Choose an existing collection or create a new one.')
     );
 
     var label = document.createElement('label');
@@ -1672,7 +1673,7 @@ function openCollectionPickerModal(hadithId, collections) {
         var option = document.createElement('option');
         option.value = collection.name || 'Collection';
         var count = Array.isArray(collection.hadith_ids) ? collection.hadith_ids.length : 0;
-        option.textContent = (collection.name || 'Collection') + ' (' + formatHadithCount(count) + ')';
+        option.textContent = (collection.name || t('js.collection', 'Collection')) + ' (' + formatHadithCount(count) + ')';
         select.appendChild(option);
     });
 
@@ -1692,14 +1693,14 @@ function openCollectionPickerModal(hadithId, collections) {
 
     var newLabel = document.createElement('label');
     newLabel.className = 'auth-modal-label';
-    newLabel.textContent = t('js.newCollectionName', 'New Collection Name');
+    newLabel.textContent = t('js.newCollectionName', t('js.newCollectionName', 'New Collection Name'));
     newLabel.style.fontSize = '0.85rem';
     newCollectionContainer.appendChild(newLabel);
 
     var newInput = document.createElement('input');
     newInput.className = 'form-control auth-modal-input collection-picker-modal__input';
     newInput.type = 'text';
-    newInput.placeholder = 'New Collection';
+    newInput.placeholder = t('js.newCollection', '+ New Collection').replace(/^\+\s*/, '');
     newInput.id = 'newCollectionInput';
     newCollectionContainer.appendChild(newInput);
     wrapper.appendChild(newCollectionContainer);
@@ -1710,7 +1711,7 @@ function openCollectionPickerModal(hadithId, collections) {
     var manageBtn = document.createElement('button');
     manageBtn.type = 'button';
     manageBtn.className = 'btn btn-link btn-sm px-0';
-    manageBtn.textContent = t('js.manageCollections', 'Manage collections');
+    manageBtn.textContent = t('js.manageCollections', t('js.manageCollections', 'Manage collections'));
     manageBtn.addEventListener('click', function() {
         swal.close();
         openUserProfileModal();
@@ -1743,7 +1744,7 @@ function openCollectionPickerModal(hadithId, collections) {
             body: JSON.stringify({ hadithId: hadithId, collectionName: collectionName })
         }).then(function(resp) {
             if (!resp.ok || !resp.data.ok) {
-                swal('Save failed', (resp.data && resp.data.message) || 'Could not save hadith.', 'error');
+                swal(t('js.saveFailedTitle', 'Save failed'), (resp.data && resp.data.message) || t('js.saveFailedBody', 'Could not save hadith.'), 'error');
                 return;
             }
             swal.close();
@@ -2381,7 +2382,7 @@ function renderCollectionsSection(collections) {
         var count = (collection.hadith_ids && collection.hadith_ids.length) ? collection.hadith_ids.length : 0;
         var updatedText = collection.updatedAt ? new Date(collection.updatedAt).toLocaleDateString() : '';
         card.innerHTML =
-            '<div class="collection-title">' + escapeHtml(collection.name || 'Collection') + '</div>' +
+            '<div class="collection-title">' + escapeHtml(collection.name || t('js.collection', 'Collection')) + '</div>' +
             '<div class="collection-meta">' + count + ' hadith · updated ' + escapeHtml(updatedText) + '</div>';
 
         var actions = document.createElement('div');
@@ -4556,14 +4557,18 @@ function setupVue(query, page, sortFields) {
             resultsHeadingText: function() {
                 if (this.collectionMode) {
                     if (this.activeTopicTags.length > 0) {
-                        return 'Showing ' + this.matchingNarrationsCount + '/' + this.filteredNarrationTotal + ' saved hadith';
+                        return t('js.showingSaved', 'Showing {0}/{1} saved hadith')
+                            .replace('{0}', localeDigits(this.matchingNarrationsCount))
+                            .replace('{1}', localeDigits(this.filteredNarrationTotal));
                     }
-                    return this.collectionTitle || 'Saved Hadith';
+                    return this.collectionTitle || t('js.savedHadith', 'Saved Hadith');
                 }
                 if (this.activeTopicTags.length > 0) {
                     var tagTotal = this.topicTagTotalForActive;
                     var totalCount = Number(this.baseNarrationTotal) || Number(this.totalHits) || 0;
-                    return 'Showing ' + (tagTotal || this.matchingNarrationsCount) + '/' + totalCount + ' results';
+                    return t('js.showingResults', 'Showing {0}/{1} results')
+                        .replace('{0}', localeDigits(tagTotal || this.matchingNarrationsCount))
+                        .replace('{1}', localeDigits(totalCount));
                 }
                 var total = (Number(this.totalHits) || 0);
                 return t('js.resultsFound', '{0} results found.')
@@ -4616,7 +4621,9 @@ function setupVue(query, page, sortFields) {
             resultsStatusText: function() {
                 var visibleCount = Array.isArray(this.narrations) ? this.narrations.length : 0;
                 if (this.collectionMode) {
-                    return 'Showing ' + visibleCount + ' / ' + this.filteredNarrationTotal + ' saved hadith';
+                    return t('js.showingSaved', 'Showing {0}/{1} saved hadith')
+                        .replace('{0}', localeDigits(visibleCount))
+                        .replace('{1}', localeDigits(this.filteredNarrationTotal));
                 }
                 return '';
             },

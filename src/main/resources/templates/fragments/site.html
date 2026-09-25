@@ -104,8 +104,8 @@
             <div class="d-flex home-nav-links">
                 <a href="/" th:href="@{${arPrefix} ?: '' } + '/'" class="home-nav-link"><i class="fa fa-magnifying-glass" aria-hidden="true"></i><span th:text="#{nav.search}">Search</span></a>
                 <a href="/books" th:href="@{${arPrefix} ?: '' } + '/books'" class="home-nav-link is-current"><i class="fa fa-book-open" aria-hidden="true"></i><span th:text="#{nav.books}">Books</span></a>
-                <!-- No Arabic version of the updates page, so this link stays English. -->
-                <a href="/updates.html" class="home-nav-link"><i class="fa fa-bolt" aria-hidden="true"></i><span th:text="#{nav.updates}">Updates</span></a>
+                <a href="/updates.html" th:href="@{${arPrefix} ?: '' } + '/updates.html'"
+                   class="home-nav-link"><i class="fa fa-bolt" aria-hidden="true"></i><span th:text="#{nav.updates}">Updates</span></a>
             </div>
 
             <!-- The same auth block the home page carries, down to the element ids, so a
@@ -188,9 +188,11 @@
                 <div class="site-footer__label" th:text="#{footer.explore}">Explore</div>
                 <div class="site-footer__links">
                     <a href="/books" th:href="@{${arPrefix} ?: '' } + '/books'" th:text="#{footer.allBooks}">All Books</a>
-                    <a href="/updates.html" th:text="#{footer.updates}">Updates</a>
+                    <a href="/updates.html" th:href="@{${arPrefix} ?: '' } + '/updates.html'"
+                       th:text="#{footer.updates}">Updates</a>
                     <a href="/search_tips.html" th:text="#{footer.searchTips}">Search Tips</a>
-                    <a href="/privacy" th:text="#{footer.privacy}">Privacy</a>
+                    <a href="/privacy" th:href="@{${arPrefix} ?: '' } + '/privacy'"
+                       th:text="#{footer.privacy}">Privacy</a>
                 </div>
             </div>
             <div>

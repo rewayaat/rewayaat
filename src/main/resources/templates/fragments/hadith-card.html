@@ -36,7 +36,7 @@
                     <span class="hadith-sidecar__rail-icon"><i class="fa fa-info-circle" aria-hidden="true"></i></span>
                 </button>
                 <button type="button" class="hadith-sidecar__rail-btn" data-hub-panel="similar"
-                        aria-selected="false" title="Similar narrations">
+                        aria-selected="false" title="Similar narrations" th:title="#{sidecar.related}">
                     <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
                     <span class="hadith-sidecar__rail-label" th:text="#{sidecar.related}">RELATED</span>
                     <span class="hadith-sidecar__rail-icon"><i class="fa fa-clone" aria-hidden="true"></i></span>
@@ -206,7 +206,7 @@
                             <button class="icon-action icon-action--share hadith-share-trigger"
                                     type="button" data-hub-menu-trigger
                                     aria-expanded="false"
-                                    aria-label="Share hadith" th:aria-label="#{card.share}" title="Share">
+                                    aria-label="Share hadith" th:aria-label="#{card.share}" title="Share" th:title="#{card.share}">
                                 <i class="fa fa-share-from-square" aria-hidden="true"></i>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end hadith-copy-menu" data-hub-menu>

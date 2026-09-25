@@ -194,7 +194,9 @@ public class HadithCardFactory {
                 continue;
             }
             tags.add(Map.of("label", topicLabels.label(value, locale),
-                    "url", tagBase + "?tag=" + encode(value)));
+                    // Prefixed like every other link the card carries: a tag pill on an
+                    // Arabic page filters the Arabic chapter, not the English one.
+                    "url", locale.prefix() + tagBase + "?tag=" + encode(value)));
         }
         return tags;
     }

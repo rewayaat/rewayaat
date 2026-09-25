@@ -83,7 +83,7 @@
 
     <!-- Sibling chapters, so a book can be read straight through without going up and
          back down for every chapter. Also threads the hub pages together for a crawler. -->
-    <nav class="hub-pager" th:if="${prevUrl != null or nextUrl != null}" aria-label="Chapter navigation">
+    <nav class="hub-pager" th:if="${prevUrl != null or nextUrl != null}" aria-label="Chapter navigation" th:aria-label="#{chapter.pagerNav}">
         <a class="hub-pager__link hub-pager__link--prev" th:if="${prevUrl != null}" th:href="${prevUrl}">
             <i class="fa fa-arrow-left" aria-hidden="true"></i>
             <span class="hub-pager__meta">

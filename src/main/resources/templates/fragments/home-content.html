@@ -174,7 +174,7 @@
         <div>
             <h2 class="home-section-title" th:text="#{home.recentUpdates}">Recent Updates</h2>
             <p class="home-section-subtitle"
-               th:with="more=|<a href=&quot;/updates.html&quot; class=&quot;recent-updates-more&quot;>${#messages.msg('home.viewAllUpdates')}</a>|"
+               th:with="more=|<a href=&quot;${arPrefix}/updates.html&quot; class=&quot;recent-updates-more&quot;>${#messages.msg('home.viewAllUpdates')}</a>|"
                th:utext="#{home.recentSubtitle(${more})}">What changed recently in the experience.</p>
         </div>
     </div>
