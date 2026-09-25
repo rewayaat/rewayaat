@@ -95,7 +95,10 @@
         <div class="navbar-top w-100 d-flex align-items-center flex-wrap gap-3">
             <a class="navbar-brand d-flex align-items-center gap-2" href="/"
                th:href="@{${arPrefix} ?: '' } + '/'">
-                <img src="/img/Alilogov2-transparent.png" th:src="@{/img/Alilogov2-transparent.png}" class="brand-logo--full brand-logo--full-v2 d-none d-md-block" alt="ALI Logo"/>
+                <img src="/img/Alilogov2-transparent.png"
+                     th:src="${isArabic} ? @{/img/Alilogov2-ar-transparent.png} : @{/img/Alilogov2-transparent.png}"
+                     class="brand-logo--full brand-logo--full-v2 d-none d-md-block"
+                     alt="ALI Logo" th:alt="#{footer.academyFull}"/>
                 <img src="/img/ali_icon.png" th:src="@{/img/ali_icon.png}" class="brand-logo--icon d-md-none" alt="ALI"/>
             </a>
             <div class="d-flex home-nav-links">
