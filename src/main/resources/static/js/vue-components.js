@@ -115,7 +115,7 @@
                                v-if="hasCollapsedMobileMetadata"
                                v-bind:aria-expanded="mobileExpanded ? 'true' : 'false'"
                                v-on:click="mobileExpanded = !mobileExpanded">
-                          <span>{{ mobileExpanded ? 'Show fewer details' : 'Show all details' }}</span>
+                          <span>{{ mobileExpanded ? t('js.showFewerDetails', 'Show fewer details') : t('js.showAllDetails', 'Show all details') }}</span>
                           <i class="fa"
                              v-bind:class="mobileExpanded ? 'fa-angle-up' : 'fa-angle-down'"
                              aria-hidden="true"></i>
@@ -259,6 +259,11 @@
                     }
                 },
                 methods: {
+                    // Vue resolves a template call against the instance, not the window,
+                    // so the component needs its own door to the catalogue.
+                    t: function(key, fallback) {
+                        return t(key, fallback);
+                    },
                     isRealValue: function(val) {
                         if (!val) return false;
                         var s = String(val).replace(/<[^>]*>/g, '').trim().toLowerCase();

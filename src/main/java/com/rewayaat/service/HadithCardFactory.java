@@ -83,7 +83,7 @@ public class HadithCardFactory {
         row.put("arabic", firstNonBlank(str(segmented.get("arabicContent")), str(source.get("arabic"))));
         row.put("notes", str(source.get("notes")));
         row.put("metadata", metadataRows(source, number, locale));
-        row.put("tags", topicTags(source, tagBase));
+        row.put("tags", topicTags(source, tagBase, locale));
         row.put("tagSlugs", tagSlugs(source));
         row.put("similarCount", source.get("llm_similar") instanceof List<?> l ? l.size() : 0);
         row.put("shareUrl", baseUrl + "/hadith/" + id);
@@ -175,27 +175,15 @@ public class HadithCardFactory {
         row.put("label", label);
         // Values carrying a number -- the hadith number, the volume, a section written
         // as "al-qism 1" -- were the last Latin left on an otherwise Arabic panel.
-        row.put("value", digits(locale, value));
+        row.put("value", LocaleDigits.in(locale, value));
         if (url != null) {
             row.put("url", locale.prefix() + url);
         }
         rows.add(row);
     }
 
-    /** A number in the digits the page is set in. */
-    private static String digits(PageLocale locale, String value) {
-        if (!locale.isArabic() || value == null) {
-            return value;
-        }
-        StringBuilder out = new StringBuilder(value.length());
-        for (char character : value.toCharArray()) {
-            out.append(character >= '0' && character <= '9'
-                    ? (char) ('\u0660' + (character - '0')) : character);
-        }
-        return out.toString();
-    }
-
-    private List<Map<String, String>> topicTags(Map<String, Object> source, String tagBase) {
+    private List<Map<String, String>> topicTags(Map<String, Object> source, String tagBase,
+                                               PageLocale locale) {
         List<Map<String, String>> tags = new ArrayList<>();
         if (!(source.get("topic_tags") instanceof List<?> raw) || tagBase == null) {
             return tags;
@@ -205,7 +193,7 @@ public class HadithCardFactory {
             if (value.isBlank()) {
                 continue;
             }
-            tags.add(Map.of("label", topicLabels.label(value),
+            tags.add(Map.of("label", topicLabels.label(value, locale),
                     "url", tagBase + "?tag=" + encode(value)));
         }
         return tags;

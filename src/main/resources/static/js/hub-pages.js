@@ -814,8 +814,8 @@ function localeHref(path) {
      */
     var VISIBLE_TAGS = 2;
     var TAG_COLLAPSE_MAX_WIDTH = 768;
-    var TAG_TOGGLE_MORE = 'Show more';
-    var TAG_TOGGLE_LESS = 'Show less';
+    var TAG_TOGGLE_MORE = t('js.showMore', 'Show more');
+    var TAG_TOGGLE_LESS = t('js.showLess', 'Show less');
 
     /**
      * A narration with many tags pushed the card's footer into a wall of pills on a

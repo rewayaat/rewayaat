@@ -103,18 +103,6 @@
                 <a href="/books" th:href="@{${arPrefix} ?: '' } + '/books'" class="home-nav-link is-current"><i class="fa fa-book-open" aria-hidden="true"></i><span th:text="#{nav.books}">Books</span></a>
                 <!-- No Arabic version of the updates page, so this link stays English. -->
                 <a href="/updates.html" class="home-nav-link"><i class="fa fa-bolt" aria-hidden="true"></i><span th:text="#{nav.updates}">Updates</span></a>
-                <!--
-                  The toggle is the other language's URL, not a switch that changes state:
-                  the language is the URL, so switching is navigation. It appears only on
-                  the pages that exist in both, which is exactly where alternates are set.
-                  For a signed-in reader it also records the choice on the account, which
-                  is what decides the language of the mail we send them.
-                -->
-                <a th:if="${switchLocalePath != null}" class="home-nav-link home-nav-link--lang"
-                   th:href="@{${switchLocalePath}}"
-                   th:hreflang="${switchLocaleTag}"
-                   th:attr="data-set-locale=${switchLocaleTag}"
-                   th:text="${isArabic} ? #{lang.switchToEnglish} : #{lang.switchToArabic}">العربية</a>
             </div>
 
             <!-- The same auth block the home page carries, down to the element ids, so a
@@ -137,6 +125,27 @@
                         </button>
                         <div class="profile-dropdown d-none" id="authProfileMenu" aria-hidden="true"></div>
                     </div>
+                    <!--
+                      The language toggle. A globe rather than a word, because the icon
+                      is read the same in both languages, and last in the row so it sits
+                      on the outer edge of the bar - which mirrors on its own, since the
+                      row is laid out with logical properties.
+
+                      Still a link, not a switch: the language is the URL, so changing it
+                      is navigation. For a signed-in reader the click is also recorded
+                      against the account, which is what decides the language of the mail
+                      we send them.
+                    -->
+                    <a th:if="${switchLocalePath != null}" class="top-action lang-toggle"
+                       th:href="@{${switchLocalePath}}"
+                       th:hreflang="${switchLocaleTag}"
+                       th:attr="data-set-locale=${switchLocaleTag}"
+                       th:title="${isArabic} ? #{lang.switchToEnglish} : #{lang.switchToArabic}"
+                       th:aria-label="${isArabic} ? #{lang.switchToEnglish} : #{lang.switchToArabic}">
+                        <i class="fa fa-globe" aria-hidden="true"></i>
+                        <span class="lang-toggle__label"
+                              th:text="${isArabic} ? #{lang.switchToEnglish} : #{lang.switchToArabic}">العربية</span>
+                    </a>
                 </div>
             </div>
         </div>

@@ -12,6 +12,7 @@ import com.rewayaat.service.QuranicInsightsService;
 import com.rewayaat.service.TopicLabelSource;
 import io.swagger.v3.oas.annotations.Hidden;
 import com.rewayaat.service.ArabicNames;
+import com.rewayaat.service.LocaleDigits;
 import com.rewayaat.service.PageLocale;
 import org.springframework.context.MessageSource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -114,7 +115,7 @@ public class BookPageController {
         model.addAttribute("book", book);
         model.addAttribute("volumes", useVolumes ? volumes.stream()
                 .map(v -> Map.of(
-                        "label", msg(locale, "book.volumeNumber", digits(locale, v)),
+                        "label", msg(locale, "book.volumeNumber", LocaleDigits.in(locale, v)),
                         "url", "/books/" + bookSlug + "/volume/" + encode(v),
                         "chapterCount", book.chaptersInVolume(v).size()))
                 .toList() : List.of());
@@ -171,7 +172,7 @@ public class BookPageController {
         PageLocale locale = PageLocale.of(request);
         String bookName = named(locale, book.name(), book.nameAr());
         String volumeLabel = locale.isArabic()
-                ? msg(locale, "book.volumeNumber", digits(locale, volume)) : label;
+                ? msg(locale, "book.volumeNumber", LocaleDigits.in(locale, volume)) : label;
         model.addAttribute("bookTitle", bookName);
         model.addAttribute("volumeLabel", volumeLabel);
         model.addAttribute("seoTitle", msg(locale, "seo.volume.title", bookName, volumeLabel));
@@ -233,7 +234,7 @@ public class BookPageController {
         LinkedHashMap<String, String> trail = new LinkedHashMap<>();
         trail.put(bookName, "/books/" + bookSlug);
         if (part.volume() != null && !part.volume().isBlank() && book.volumes().size() > 1) {
-            trail.put(msg(locale, "book.volumeNumber", digits(locale, part.volume())),
+            trail.put(msg(locale, "book.volumeNumber", LocaleDigits.in(locale, part.volume())),
                     "/books/" + bookSlug + "/volume/" + encode(part.volume()));
         }
         trail.put(partTitle, part.url());
@@ -252,11 +253,14 @@ public class BookPageController {
             return null;
         }
         BookCatalog.Chapter chapter = found.get();
-        List<Map<String, Object>> all = narrationsIn(chapter, PageLocale.of(request));
+        // Resolved first: the narrations, their tags and the facet bar are all named
+        // in this language, and the tags were still being named in English here.
+        PageLocale locale = PageLocale.of(request);
+        List<Map<String, Object>> all = narrationsIn(chapter, locale);
 
         // The tag facet, counted over the whole chapter so the counts do not change as
         // you filter — the same behaviour the search page's tag bar has.
-        List<Map<String, Object>> facets = tagFacets(all, tag, chapter);
+        List<Map<String, Object>> facets = tagFacets(all, tag, chapter, locale);
         String activeTag = tag == null || tag.isBlank() ? null : tag.trim();
         List<Map<String, Object>> narrations = activeTag == null ? all : all.stream()
                 .filter(n -> hasTag(n, activeTag))
@@ -264,8 +268,8 @@ public class BookPageController {
 
         model.addAttribute("tagFacets", facets);
         model.addAttribute("activeTag", activeTag);
-        model.addAttribute("activeTagLabel", activeTag == null ? null : topicLabels.label(activeTag));
-        PageLocale locale = PageLocale.of(request);
+        model.addAttribute("activeTagLabel",
+                activeTag == null ? null : topicLabels.label(activeTag, locale));
         model.addAttribute("clearTagUrl", locale.prefix() + chapter.url());
         // A filtered view is a slice of a page that is already indexed, so it points its
         // canonical back at the whole chapter rather than competing with it.
@@ -327,6 +331,26 @@ public class BookPageController {
      * <p>Filtered on the same tuple the catalog is keyed by — a chapter title alone is
      * not unique, the same title recurs across volumes of the same book.
      */
+    /**
+     * What a narration card needs, in both languages.
+     *
+     * <p>Built rather than listed so the Arabic twin of a field cannot be forgotten when
+     * a field is added.
+     */
+    private static final List<String> CARD_FIELDS = buildCardFields();
+
+    private static List<String> buildCardFields() {
+        List<String> translated = List.of("book", "part", "section", "chapter", "source",
+                "edition", "publisher");
+        List<String> fields = new ArrayList<>(List.of(
+                "number", "english", "arabic", "notes", "volume", "topic_tags", "llm_similar"));
+        for (String field : translated) {
+            fields.add(field);
+            fields.add(field + "_ar");
+        }
+        return List.copyOf(fields);
+    }
+
     private List<Map<String, Object>> narrationsIn(BookCatalog.Chapter chapter, PageLocale locale)
             throws IOException {
         List<Map<String, Object>> results = new ArrayList<>();
@@ -336,10 +360,12 @@ public class BookPageController {
                     .index(ESClientProvider.INDEX)
                     .size(MAX_CHAPTER_NARRATIONS)
                     .trackTotalHits(t -> t.enabled(false))
-                    .source(src -> src.filter(f -> f.includes(
-                            "book", "number", "english", "arabic", "notes", "volume", "part",
-                            "section", "chapter", "source", "edition", "publisher",
-                            "topic_tags", "llm_similar")))
+                    // The _ar twins travel with their fields. Leaving them out is what
+                    // made an Arabic chapter page cite "Al-Kāfi" and "The Book on Virtue
+                    // of Knowledge": the card asks for the Arabic reading and falls back
+                    // to the English when there is none, and a field that was never
+                    // fetched looks exactly like a field with no translation.
+                    .source(src -> src.filter(f -> f.includes(CARD_FIELDS)))
                     .query(q -> q.bool(b -> {
                         b.filter(f -> f.term(t -> t.field("book").value(chapter.bookName())));
                         b.filter(f -> f.term(t -> t.field("chapter.keyword").value(chapter.title())));
@@ -416,7 +442,8 @@ public class BookPageController {
 
     /** Topic tags present in this chapter, with counts, most common first. */
     private List<Map<String, Object>> tagFacets(List<Map<String, Object>> narrations,
-                                                String activeTag, BookCatalog.Chapter chapter) {
+                                                String activeTag, BookCatalog.Chapter chapter,
+                                                PageLocale locale) {
         Map<String, Long> counts = new LinkedHashMap<>();
         for (Map<String, Object> narration : narrations) {
             for (String slug : slugsOf(narration)) {
@@ -427,7 +454,7 @@ public class BookPageController {
                 .sorted((a, b) -> Long.compare(b.getValue(), a.getValue()))
                 .map(e -> Map.<String, Object>of(
                         "slug", e.getKey(),
-                        "label", topicLabels.label(e.getKey()),
+                        "label", topicLabels.label(e.getKey(), locale),
                         "count", e.getValue(),
                         "active", e.getKey().equals(activeTag),
                         "url", chapter.url() + "?tag=" + encode(e.getKey())))
@@ -485,19 +512,6 @@ public class BookPageController {
      */
     private static String count(PageLocale locale, long value) {
         return NumberFormat.getIntegerInstance(locale.locale()).format(value);
-    }
-
-    /** The same, for a number that reaches us as text, such as a volume's name. */
-    private static String digits(PageLocale locale, String value) {
-        if (!locale.isArabic() || value == null) {
-            return value;
-        }
-        StringBuilder out = new StringBuilder(value.length());
-        for (char character : value.toCharArray()) {
-            out.append(character >= '0' && character <= '9'
-                    ? (char) ('\u0660' + (character - '0')) : character);
-        }
-        return out.toString();
     }
 
     /**

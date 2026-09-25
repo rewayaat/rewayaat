@@ -96,17 +96,6 @@
                 <a href="/" th:href="@{${arPrefix} ?: '' } + '/'" class="home-nav-link"><i class="fa fa-magnifying-glass" aria-hidden="true"></i><span th:text="#{nav.search}">Search</span></a>
                 <a href="/books" th:href="@{${arPrefix} ?: '' } + '/books'" class="home-nav-link is-current"><i class="fa fa-book-open" aria-hidden="true"></i><span th:text="#{nav.books}">Books</span></a>
                 <a href="/updates.html" th:href="@{${arPrefix} ?: '' } + '/updates.html'" class="home-nav-link"><i class="fa fa-bolt" aria-hidden="true"></i><span th:text="#{nav.updates}">Updates</span></a>
-                <!--
-                  The toggle is the other language's URL, not a switch that changes state:
-                  the language is the URL, so switching is navigation. For a signed-in
-                  reader it also records the choice on the account, which is what decides
-                  the language of the mail we send them.
-                -->
-                <a th:if="${switchLocalePath != null}" class="home-nav-link home-nav-link--lang"
-                   th:href="@{${switchLocalePath}}"
-                   th:hreflang="${switchLocaleTag}"
-                   th:attr="data-set-locale=${switchLocaleTag}"
-                   th:text="${isArabic} ? #{lang.switchToEnglish} : #{lang.switchToArabic}">العربية</a>
             </div>
 
             <div class="menu-context-row ms-auto">
@@ -126,6 +115,19 @@
                         </button>
                         <div class="profile-dropdown d-none" id="authProfileMenu" aria-hidden="true"></div>
                     </div>
+                    <!-- Globe rather than a word: the icon reads the same in both
+                         languages, and last in the row so it sits on the outer edge,
+                         which mirrors on its own. -->
+                    <a th:if="${switchLocalePath != null}" class="top-action lang-toggle"
+                       th:href="@{${switchLocalePath}}"
+                       th:hreflang="${switchLocaleTag}"
+                       th:attr="data-set-locale=${switchLocaleTag}"
+                       th:title="${isArabic} ? #{lang.switchToEnglish} : #{lang.switchToArabic}"
+                       th:aria-label="${isArabic} ? #{lang.switchToEnglish} : #{lang.switchToArabic}">
+                        <i class="fa fa-globe" aria-hidden="true"></i>
+                        <span class="lang-toggle__label"
+                              th:text="${isArabic} ? #{lang.switchToEnglish} : #{lang.switchToArabic}">العربية</span>
+                    </a>
                 </div>
             </div>
         </div>
@@ -252,7 +254,9 @@
         if (!body || !btn) return;
         var clamped = body.classList.toggle('hadith-notes__body--clamped');
         btn.setAttribute('aria-expanded', clamped ? 'false' : 'true');
-        btn.textContent = clamped ? 'Show more' : 'Show less';
+        btn.textContent = clamped
+            ? ((window.I18N || {})['js.showMore'] || 'Show more')
+            : ((window.I18N || {})['js.showLess'] || 'Show less');
     }
     function showShareToast() {
         var toast = document.getElementById('shareToast');

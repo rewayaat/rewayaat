@@ -13,11 +13,11 @@
         <div class="hub-hero__stats">
             <a class="hub-stat" th:if="${volumeUrl != null}" th:href="${volumeUrl}">
                 <span th:text="#{chapter.volume}">Volume</span>
-                <span class="hub-stat__value" th:text="${chapter.volume}">1</span>
+                <span class="hub-stat__value" th:text="${@localeDigits.of(chapter.volume)}">1</span>
             </a>
             <span class="hub-stat" th:if="${!#strings.isEmpty(chapter.section)}">
                 <span th:text="#{chapter.section}">Section</span>
-                <span class="hub-stat__value" th:text="${chapter.section}">20</span>
+                <span class="hub-stat__value" th:text="${@localeDigits.of(chapter.section)}">20</span>
             </span>
             <span class="hub-stat">
                 <span class="hub-stat__value" th:text="${#numbers.formatInteger(chapter.count, 0, 'COMMA')}">12</span>

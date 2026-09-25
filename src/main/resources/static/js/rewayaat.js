@@ -4126,7 +4126,9 @@ function populateBrowseBooks(books) {
         toggle.textContent = t('js.showAllBooks', 'Show all {0} books').replace('{0}', books.length);
         toggle.addEventListener('click', function() {
             var expanded = bookList.classList.toggle('is-expanded');
-            toggle.textContent = expanded ? 'Show fewer books' : 'Show all ' + books.length + ' books';
+            toggle.textContent = expanded
+                ? t('js.showFewerBooks', 'Show fewer books')
+                : t('js.showAllBooks', 'Show all {0} books').replace('{0}', localeDigits(books.length));
         });
         bookList.appendChild(toggle);
     }

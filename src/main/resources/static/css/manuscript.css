@@ -779,7 +779,41 @@ a:hover {
 .top-actions .top-action i {
     color: inherit;
     font-size: 0.85rem;
-    margin-right: 0.25rem;
+    margin-inline-end: 0.25rem;
+}
+
+/* ── Language toggle ────────────────────────────────────────────────────────
+   A globe, because the icon reads the same whichever language you arrive in,
+   and the word beside it names the language you are switching TO, written in
+   that language — so a reader who cannot read the current one still recognises
+   it. Outlined rather than gold: it sits next to Sign In and must not compete
+   with it for the eye.
+
+   Last in the row, so it lands on the outer edge of the bar. Nothing here is
+   side-specific, so the mirror is the browser's job, not a second rule. */
+.top-actions .lang-toggle,
+.top-actions .lang-toggle:hover {
+    background: transparent !important;
+    border-color: rgba(255, 255, 255, 0.35) !important;
+    color: rgba(255, 255, 255, 0.92) !important;
+    box-shadow: none;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
+.top-actions .lang-toggle:hover {
+    border-color: var(--gold) !important;
+    color: #fff !important;
+    transform: translateY(-1px);
+}
+.lang-toggle__label {
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+}
+/* Below the point where the bar gets crowded the globe speaks for itself. */
+@media (max-width: 991.98px) {
+    .lang-toggle__label { display: none; }
+    .top-actions .lang-toggle i { margin-inline-end: 0; }
 }
 
 .auth-mobile-menu-wrapper { position: relative; }
@@ -819,8 +853,12 @@ a:hover {
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    margin-left: auto;
-    padding-left: 0.3rem;
+    /* Logical, not margin-left. A physical margin-left:auto does not flip, so on the
+       Arabic site it fought the RTL build's margin-right:auto and the pair resolved to
+       margin:auto - which centres. The sign-in button sat in the middle of the bar
+       instead of against the edge, and the whole nav read as badly spaced. */
+    margin-inline-start: auto;
+    padding-inline-start: 0.3rem;
     min-width: 0;
     flex: 0 1 auto;
     flex-wrap: nowrap;
@@ -1683,7 +1721,7 @@ body.is-search-mode .home-nav-links {
     border-color: var(--primary);
 }
 
-body.is-collection-mode .top-actions { margin-left: auto !important; }
+body.is-collection-mode .top-actions { margin-inline-start: auto !important; }
 body.is-collection-mode .menu-context-row { flex: 1 1 auto; min-width: 0; max-width: 100%; }
 
 /* ========================================================================
@@ -3401,7 +3439,7 @@ main.container::before {
 }
 
 .quranic-snippet__expand {
-    margin-left: auto;
+    margin-inline-start: auto;
     border: 1px solid rgba(16, 35, 63, 0.15);
     border-radius: 4px;
     background: rgba(16, 35, 63, 0.04);
@@ -4551,7 +4589,7 @@ main.container::before {
 .site-footer__social {
     display: flex;
     gap: 0.5rem;
-    margin-left: auto;
+    margin-inline-start: auto;
 }
 
 .site-footer__social a {
@@ -4722,7 +4760,7 @@ code.welcome {
     }
     .menu-context-row {
         order: 0;
-        margin-left: auto;
+        margin-inline-start: auto;
     }
     .search-inline-btn--outer {
         order: 3;
@@ -5280,6 +5318,21 @@ body::after {
     background: #fff !important;
     border-color: #fff !important;
     color: #0b1728 !important;
+}
+
+/* The ornament pass repaints .top-action, so the language toggle is restated here to
+   stay outlined. It sits beside Sign In and must not read as a second primary action. */
+.top-actions .lang-toggle {
+    background: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    color: rgba(255, 255, 255, 0.92) !important;
+    box-shadow: none;
+    font-weight: 600;
+}
+.top-actions .lang-toggle:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border-color: var(--gold-light) !important;
+    color: #fff !important;
 }
 
 .profile-chip {
@@ -7284,7 +7337,7 @@ body.is-resizing-sidecar * {
 }
 
 .hadith-card__actions {
-    margin-left: auto;
+    margin-inline-start: auto;
     justify-content: flex-end;
 }
 
@@ -9969,7 +10022,7 @@ body.is-search-mode .site-nav .search-entry-shell {
     }
 
     .quranic-snippet__expand {
-        margin-left: auto;
+        margin-inline-start: auto;
         align-self: flex-start;
         white-space: nowrap;
         padding: 0.22rem 0.5rem;
@@ -10343,7 +10396,7 @@ body.is-search-mode .site-nav .search-entry-shell {
    grows, so the control a reader just clicked is still under the cursor. */
 .text-toggle {
     flex: 0 0 auto;
-    margin-left: auto;
+    margin-inline-start: auto;
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
@@ -11501,7 +11554,7 @@ a.hub-hero__eyebrow:hover {
 .hub-pager__link--next {
     justify-content: flex-end;
     text-align: right;
-    margin-left: auto;
+    margin-inline-start: auto;
 }
 
 .hub-pager__link:hover {

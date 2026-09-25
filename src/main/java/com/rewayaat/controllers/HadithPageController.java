@@ -5,6 +5,7 @@ import com.rewayaat.core.HadithDisplaySegmenter;
 import com.rewayaat.core.HadithObjectCollection;
 import com.rewayaat.service.ArabicNames;
 import com.rewayaat.service.BookCatalog;
+import com.rewayaat.service.LocaleDigits;
 import com.rewayaat.service.PageLocale;
 import com.rewayaat.service.HadithCardFactory;
 import com.rewayaat.service.QuranicInsightsService;
@@ -64,19 +65,6 @@ public class HadithPageController {
 
     private String msg(PageLocale locale, String key, Object... args) {
         return messages.getMessage(key, args, locale.locale());
-    }
-
-    /** A number in the digits the page is set in, for labels assembled here. */
-    private static String digits(PageLocale locale, String value) {
-        if (!locale.isArabic() || value == null) {
-            return value;
-        }
-        StringBuilder out = new StringBuilder(value.length());
-        for (char character : value.toCharArray()) {
-            out.append(character >= '0' && character <= '9'
-                    ? (char) ('\u0660' + (character - '0')) : character);
-        }
-        return out.toString();
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
@@ -161,7 +149,7 @@ public class HadithPageController {
             crumbs.add(Map.of("name", name, "url", prefix + "/books/" + b.slug()));
             if (hadith.getVolume() != null && !hadith.getVolume().isBlank()) {
                 String label = locale.isArabic()
-                        ? msg(locale, "book.volumeNumber", digits(locale, hadith.getVolume()))
+                        ? msg(locale, "book.volumeNumber", LocaleDigits.in(locale, hadith.getVolume()))
                         : "Volume " + hadith.getVolume();
                 crumbs.add(Map.of("name", label,
                         "url", prefix + "/books/" + b.slug() + "/volume/" + encode(hadith.getVolume())));
@@ -173,7 +161,7 @@ public class HadithPageController {
             crumbs.add(Map.of("name", title, "url", prefix + c.url()));
         });
         String number = hadith.getNumber() == null ? id : hadith.getNumber();
-        crumbs.add(Map.of("name", msg(locale, "crumb.hadithNumber", digits(locale, number)),
+        crumbs.add(Map.of("name", msg(locale, "crumb.hadithNumber", LocaleDigits.in(locale, number)),
                 "url", prefix + "/hadith/" + id));
 
         // The narration renders through the same card as a chapter page and the search
@@ -255,7 +243,7 @@ public class HadithPageController {
         }
         if (hadith.getNumber() != null && !hadith.getNumber().isBlank()) {
             if (!sb.isEmpty()) sb.append(" ");
-            sb.append("#").append(digits(locale, hadith.getNumber()));
+            sb.append("#").append(LocaleDigits.in(locale, hadith.getNumber()));
         }
         return sb.toString();
     }

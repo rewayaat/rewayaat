@@ -57,17 +57,6 @@
                 <a href="#welcome" class="home-nav-link"><i class="fa fa-magnifying-glass" aria-hidden="true"></i><span th:text="#{nav.search}">Search</span></a>
                 <a href="#browse" class="home-nav-link"><i class="fa fa-layer-group" aria-hidden="true"></i><span th:text="#{nav.browse}">Browse</span></a>
                 <a href="/updates.html" th:href="@{${arPrefix} ?: '' } + '/updates.html'" class="home-nav-link"><i class="fa fa-bolt" aria-hidden="true"></i><span th:text="#{nav.updates}">Updates</span></a>
-                <!--
-                  The toggle is the other language's URL, not a switch that changes state:
-                  the language is the URL, so switching is navigation. For a signed-in
-                  reader it also records the choice on the account, which is what decides
-                  the language of the mail we send them.
-                -->
-                <a th:if="${switchLocalePath != null}" class="home-nav-link home-nav-link--lang"
-                   th:href="@{${switchLocalePath}}"
-                   th:hreflang="${switchLocaleTag}"
-                   th:attr="data-set-locale=${switchLocaleTag}"
-                   th:text="${isArabic} ? #{lang.switchToEnglish} : #{lang.switchToArabic}">العربية</a>
             </div>
 	        <div id="queryBar" class="navbar-search">
 	            <div class="navbar-search__input">
@@ -130,6 +119,19 @@
                         </button>
                         <div class="profile-dropdown d-none" id="authProfileMenu" aria-hidden="true"></div>
                     </div>
+                    <!-- Globe rather than a word: the icon reads the same in both
+                         languages, and last in the row so it sits on the outer edge,
+                         which mirrors on its own. -->
+                    <a th:if="${switchLocalePath != null}" class="top-action lang-toggle"
+                       th:href="@{${switchLocalePath}}"
+                       th:hreflang="${switchLocaleTag}"
+                       th:attr="data-set-locale=${switchLocaleTag}"
+                       th:title="${isArabic} ? #{lang.switchToEnglish} : #{lang.switchToArabic}"
+                       th:aria-label="${isArabic} ? #{lang.switchToEnglish} : #{lang.switchToArabic}">
+                        <i class="fa fa-globe" aria-hidden="true"></i>
+                        <span class="lang-toggle__label"
+                              th:text="${isArabic} ? #{lang.switchToEnglish} : #{lang.switchToArabic}">العربية</span>
+                    </a>
                 </div>
             </div>
         </div>
