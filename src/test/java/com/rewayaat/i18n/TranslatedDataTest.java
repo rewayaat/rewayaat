@@ -121,4 +121,31 @@ class TranslatedDataTest {
         }
         assertTrue(missing.isEmpty(), "announcement fields missing Arabic: " + missing);
     }
+
+    @Test
+    @DisplayName("every volume and part summary has an Arabic twin")
+    void everySectionSummaryIsTranslated() throws IOException {
+        // These sit in the hero of a volume or part page. They were English only, and the
+        // Arabic page showed nothing at all rather than English prose under an Arabic
+        // heading — which was right, and also left the Arabic hubs looking emptier than
+        // the English ones. Now that they are translated, the thing to guard is that a
+        // new one cannot arrive with only half of it written.
+        JsonNode summaries = read("src/main/resources/static/section_summaries.json");
+        List<String> missing = new ArrayList<>();
+        summaries.fieldNames().forEachRemaining(path -> {
+            if (path.startsWith("_")) {
+                return;
+            }
+            JsonNode entry = summaries.path(path);
+            if (!entry.isObject()) {
+                missing.add(path + " (still a bare string, so it has no Arabic at all)");
+            } else if (entry.path("ar").asText("").isBlank()) {
+                missing.add(path);
+            }
+        });
+        assertTrue(missing.isEmpty(),
+                "section summaries with no Arabic: " + missing
+                        + "\nEach entry is {\"en\": ..., \"ar\": ...}; the page shows nothing "
+                        + "in Arabic without the second half.");
+    }
 }

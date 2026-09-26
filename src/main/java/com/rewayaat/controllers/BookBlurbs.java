@@ -29,12 +29,14 @@ class BookBlurbs {
     private final Map<String, String> bySlugAr;
     private final Map<String, String> summaries;
     private final Map<String, String> sectionSummaries;
+    private final Map<String, String> sectionSummariesAr;
 
     BookBlurbs() {
         this.bySlug = load("blurb");
         this.bySlugAr = load("blurb_ar");
         this.summaries = loadSummaries("static/book_summaries.json");
         this.sectionSummaries = loadSummaries("static/section_summaries.json");
+        this.sectionSummariesAr = loadSummaries("static/section_summaries.json", "ar");
     }
 
     String forSlug(String slug) {
@@ -113,12 +115,19 @@ class BookBlurbs {
      * nothing here, exactly as a book with no summary does.
      */
     /**
-     * The same rule as {@link #summaryForSlug(String, boolean)}: section_summaries.json is
-     * English only, and English prose under an Arabic heading works against the one thing
-     * an Arabic page is for. The hero falls back to its centred layout without one.
+     * A volume or part's opening note, in the reader's language.
+     *
+     * <p>These were English only, and the Arabic page showed nothing rather than English
+     * prose under an Arabic heading — right while nothing was translated, but it left the
+     * Arabic hubs looking emptier than the English ones for no reason a reader could see.
+     * All 47 carry an Arabic twin now. A page with no Arabic note still shows none.
      */
     String sectionSummaryForPath(String path, boolean arabic) {
-        return arabic ? null : sectionSummaryForPath(path);
+        if (!arabic) {
+            return sectionSummaryForPath(path);
+        }
+        return path == null || path.isBlank() ? null
+                : sectionSummariesAr.get(path.startsWith("/") ? path.substring(1) : path);
     }
 
     String sectionSummaryForPath(String path) {
@@ -129,13 +138,31 @@ class BookBlurbs {
     }
 
     private static Map<String, String> loadSummaries(String resource) {
+        return loadSummaries(resource, "en");
+    }
+
+    /**
+     * Summaries for one language.
+     *
+     * <p>An entry is either a bare string, which is English, or an object carrying both
+     * languages as en and ar — the shape taxonomy.json uses, so the translation sits
+     * beside the English rather than in a file of its own. Section summaries carry both;
+     * book summaries are still bare, and the Arabic book hero draws its opening paragraph
+     * from the Arabic blurb instead.
+     */
+    private static Map<String, String> loadSummaries(String resource, String language) {
         Map<String, String> loaded = new LinkedHashMap<>();
         try (InputStream in = new ClassPathResource(resource).getInputStream()) {
             JsonNode root = new ObjectMapper().readTree(in);
             root.fields().forEachRemaining(entry -> {
                 // A leading underscore marks the file's own note to the reader, not a book.
-                if (!entry.getKey().startsWith("_") && !entry.getValue().asText("").isBlank()) {
-                    loaded.put(entry.getKey(), entry.getValue().asText());
+                if (entry.getKey().startsWith("_")) {
+                    return;
+                }
+                JsonNode value = entry.getValue();
+                String text = value.isObject() ? value.path(language).asText("") : value.asText("");
+                if (!text.isBlank()) {
+                    loaded.put(entry.getKey(), text);
                 }
             });
         } catch (Exception e) {

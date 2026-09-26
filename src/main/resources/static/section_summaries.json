@@ -1,50 +1,191 @@
 {
-  "_comment": "Short notes for volume and part pages, keyed by page path without the leading slash. Deliberately partial. A description is only worth writing where the title does not already say the whole thing: Al-Kāfi's volumes map onto the Uṣūl/Furūʿ/Rawḍa division and its parts are the classical kitāb headings, and Man Lā Yaḥḍuruh's parts are the same. Al-Amālī's parts are numbered assemblies, Kitāb al-Ḍuʿafāʾ's are alphabetical groupings of narrators, and Al-Khiṣāl's are literally 'On Three-Numbered Characteristics' - nothing to add. Volumes of ʿUyūn and Man Lā Yaḥḍuruh are left out because their contents aggregate only as 'Content' in the index, so their composition could not be verified here.",
-  "books/al-kafi/volume/1": "The opening of the Uṣūl. Reason and ignorance, the merit of knowledge, divine unity, and the longest section — the proofs of the imamate and the lives of the Imams.",
-  "books/al-kafi/volume/2": "The second half of the Uṣūl, turning from doctrine to the believer: faith and unbelief and what lies between them, conduct toward others, the Qur'an, and supplication.",
-  "books/al-kafi/volume/3": "The Furūʿ begins. Ritual purity, menstruation, the washing and burial of the dead, the prayer in all its forms, and the beginning of zakāt.",
-  "books/al-kafi/volume/4": "Zakāt completed, then fasting, then the pilgrimage — the largest of the three, covering the rites at Mecca, the visit to Medina, and the questions that arise when something goes wrong.",
-  "books/al-kafi/volume/5": "Livelihood and its limits: what may be traded and how, then marriage, then jihād and the conduct required in it.",
-  "books/al-kafi/volume/6": "The domestic volume. Divorce and its consequences, the birth of a child and the ʿaqīqa, then food, drink, dress, hunting, slaughter and the keeping of animals.",
-  "books/al-kafi/volume/7": "What is settled after a life or a dispute: wills, inheritance, oaths and their expiations, testimony, and the rules of judgement between people.",
-  "books/al-kafi/volume/8": "Al-Rawḍa, the 'garden' — the volume that belongs to neither the Uṣūl nor the Furūʿ. Sermons, letters, historical reports and long narrations gathered without a subject order.",
-  "books/al-kafi/part/the-book-of-intelligence-and-ignorance": "The book al-Kulaynī chose to open with: reason as the faculty by which God is served, set against ignorance as its opposite.",
-  "books/al-kafi/part/the-book-on-virtue-of-knowledge": "On seeking, transmitting and acting on knowledge — the standing of the scholar, the duty to ask, and the warnings against speaking without it.",
-  "books/al-kafi/part/the-book-on-oneness-of-allah-god": "Divine unity: God's attributes and names, the limits of what may be said of Him, and the rejection of likening Him to anything created.",
-  "books/al-kafi/part/the-book-about-people-with-divine-authority": "Kitāb al-Ḥujja, the longest part of the Uṣūl. The necessity of a divinely appointed guide, the proofs of the imamate, and reports on each of the Imams in turn.",
-  "books/al-kafi/part/the-book-of-belief-and-disbelief": "The largest part of the second volume: what faith consists of, its degrees, the acts that strengthen or destroy it, and the character it should produce.",
-  "books/al-kafi/part/the-book-of-supplication": "The etiquette and times of duʿāʾ, and a large collection of the supplications themselves as transmitted from the Prophet and the Imams.",
-  "books/al-kafi/part/the-book-of-the-excellence-of-the-holy-quran": "On the standing of the Qur'an, its recitation and memorisation, and the merit attached to particular chapters.",
-  "books/al-kafi/part/the-book-of-social-manners": "ʿIshrat al-nās — how a believer is to live among others: greeting, visiting, speech, anger, and the rights of neighbours and companions.",
-  "books/al-kafi/part/the-book-of-taharat-cleansing": "The opening of the Furūʿ: the purity required before worship, water and what invalidates it, ablution, the ritual bath, and dry ablution.",
-  "books/al-kafi/part/the-book-of-hayd-menses": "The rulings attaching to menstruation and related states, and their effect on prayer, fasting and other acts of worship.",
-  "books/al-kafi/part/the-book-on-dying-people": "The dying and the dead: what is done at the bedside, the washing, shrouding, prayer and burial, and the reports on what follows.",
-  "books/al-kafi/part/the-book-of-prayer": "The largest part of volume three. The times and conditions of the prayer, its parts and its faults, and the prayers beyond the obligatory ones.",
-  "books/al-kafi/part/the-book-of-al-zakat": "Obligatory almsgiving: what it is due on, at what threshold, to whom it may be given, and the consequences of withholding it.",
-  "books/al-kafi/part/the-book-of-zakat": "The continuation of zakāt into volume four, including the alms of the fast-breaking and the questions of distribution.",
-  "books/al-kafi/part/the-book-of-fasting": "The fast of Ramaḍān and beyond it: what breaks it, what is owed when it is broken, and the voluntary fasts and their merit.",
-  "books/al-kafi/part/the-book-of-haj": "The pilgrimage, and the longest part of the Furūʿ. The rites in order, the state of iḥrām and its prohibitions, the visit to Medina, and what is owed when a rite is missed.",
-  "books/al-kafi/part/the-book-of-jihad-serving-in-the-army": "The conditions of fighting and the conduct required within it, the treatment of captives and enemies, and the standing of those who defend a frontier.",
-  "books/al-kafi/part/the-book-of-commerce": "Al-Maʿīsha — earning a living. Lawful and unlawful trade, usury, debt, partnership, hire, and the ethics expected in the market.",
-  "books/al-kafi/part/the-book-of-marriage": "Marriage from proposal to household: who may be married, the contract and dower, the rights of each spouse, and the conduct of family life.",
-  "books/al-kafi/part/the-book-of-aqiqah-offering-animal-sacrifice-for-a-newborn-child": "Birth and what follows it: the naming of a child, the sacrifice offered on their behalf, nursing, and the upbringing owed to them.",
-  "books/al-kafi/part/the-book-of-talaq-divorces": "Divorce and its procedure, the waiting period, revocation and its limits, and the arrangements owed to a woman and her children afterwards.",
-  "books/al-kafi/part/the-book-of-food": "What may be eaten and what may not, the manners of eating, and reports on particular foods and their properties.",
-  "books/al-kafi/part/the-book-of-drinks": "Lawful and unlawful drink, the prohibition of intoxicants and its severity, and the vessels and manners associated with drinking.",
-  "books/al-kafi/part/the-book-of-dresses-beautification-and-kindness": "Dress and adornment — what may be worn, by whom, and in what spirit — together with reports on cleanliness, perfume and grooming.",
-  "books/al-kafi/part/the-book-of-hunting": "The conditions under which hunted game is lawful, the use of trained animals and weapons, and what invalidates a catch.",
-  "books/al-kafi/part/the-book-of-slaughtering-animals-for-food": "The requirements of lawful slaughter — the manner, the words said, and who may perform it — and the cases in which meat becomes forbidden.",
-  "books/al-kafi/part/the-book-of-domestic-animals": "The keeping of livestock and riding animals: their treatment, the rights they hold over an owner, and rulings arising from their use.",
-  "books/al-kafi/part/the-book-of-wills": "The making of a bequest, its limits against the estate, the appointment and duties of an executor, and disputes over what was intended.",
-  "books/al-kafi/part/the-book-of-inheritance": "The fixed shares and their order, inheritance by relation and by cause, and the cases where a portion is excluded or returned.",
-  "books/al-kafi/part/the-book-of-oaths-vows-and-expiations": "Oaths, vows and pledges — when they bind, when they do not, and what must be given in expiation when one is broken.",
-  "books/al-kafi/part/the-book-of-testimony": "Who may bear witness and who may not, how many witnesses a claim requires, and the consequences of false testimony.",
-  "books/al-kafi/part/the-book-of-adjudication-and-rules": "Al-Qaḍāʾ: the qualifications and conduct of a judge, the burden of proof, and the prescribed penalties and the caution urged in applying them.",
-  "books/man-la-yahduruh-al-faqih/part/book-of-pilgrimage-and-its-virtues": "The rites of ḥajj and ʿumra as al-Ṣadūq settled them, together with the merit attached to the pilgrimage and to visiting the Prophet and the Imams.",
-  "books/man-la-yahduruh-al-faqih/part/book-of-fasting": "The obligatory fast and the voluntary ones: what invalidates a fast, what is owed in compensation, and the observances of Ramaḍān.",
-  "books/man-la-yahduruh-al-faqih/part/book-of-zakat": "Obligatory almsgiving and the alms of the fast-breaking — the thresholds, the categories of recipient, and the rulings on payment.",
-  "books/man-la-yahduruh-al-faqih/part/book-of-livelihood": "Earning and spending: lawful and unlawful trade, debt and its repayment, hire, partnership, and the conduct expected in dealings.",
-  "books/man-la-yahduruh-al-faqih/part/book-of-marriage-nikah": "The contract and its conditions, the rights of each spouse, and the rulings governing the household.",
-  "books/man-la-yahduruh-al-faqih/part/book-of-divorce-talaq": "Divorce and its forms, the waiting period, and the entitlements of a woman and her children once a marriage ends.",
-  "books/man-la-yahduruh-al-faqih/part/chapters-on-legal-cases-and-rulings": "Judgements and disputed cases: evidence and testimony, the duties of a judge, penalties, and the settlements applied where a matter is contested."
+  "_comment": "Short notes for volume and part pages, keyed by page path without the leading slash. Deliberately partial. A description is only worth writing where the title does not already say the whole thing: Al-Kāfi's volumes map onto the Uṣūl/Furūʿ/Rawḍa division and its parts are the classical kitāb headings, and Man Lā Yaḥḍuruh's parts are the same. Al-Amālī's parts are numbered assemblies, Kitāb al-Ḍuʿafāʾ's are alphabetical groupings of narrators, and Al-Khiṣāl's are literally 'On Three-Numbered Characteristics' - nothing to add. Volumes of ʿUyūn and Man Lā Yaḥḍuruh are left out because their contents aggregate only as 'Content' in the index, so their composition could not be verified here. Each entry carries both languages, en and ar, the way taxonomy.json does — the translation lives beside the English so adding one cannot forget the other.",
+  "books/al-kafi/volume/1": {
+    "en": "The opening of the Uṣūl. Reason and ignorance, the merit of knowledge, divine unity, and the longest section — the proofs of the imamate and the lives of the Imams.",
+    "ar": "مفتتح الأصول. العقل والجهل، وفضل العلم، والتوحيد، ثم أطول أقسامه: الحجة وسير الأئمة."
+  },
+  "books/al-kafi/volume/2": {
+    "en": "The second half of the Uṣūl, turning from doctrine to the believer: faith and unbelief and what lies between them, conduct toward others, the Qur'an, and supplication.",
+    "ar": "النصف الثاني من الأصول، ينتقل من العقيدة إلى المؤمن نفسه: الإيمان والكفر وما بينهما، ومعاشرة الناس، والقرآن، والدعاء."
+  },
+  "books/al-kafi/volume/3": {
+    "en": "The Furūʿ begins. Ritual purity, menstruation, the washing and burial of the dead, the prayer in all its forms, and the beginning of zakāt.",
+    "ar": "بداية الفروع. الطهارة، والحيض، وغسل الموتى ودفنهم، والصلاة بجميع صورها، ومطلع الزكاة."
+  },
+  "books/al-kafi/volume/4": {
+    "en": "Zakāt completed, then fasting, then the pilgrimage — the largest of the three, covering the rites at Mecca, the visit to Medina, and the questions that arise when something goes wrong.",
+    "ar": "تمام الزكاة، ثم الصوم، ثم الحج — وهو أكبرها — يشمل المناسك بمكة، وزيارة المدينة، وما يعرض من مسائل عند الخلل."
+  },
+  "books/al-kafi/volume/5": {
+    "en": "Livelihood and its limits: what may be traded and how, then marriage, then jihād and the conduct required in it.",
+    "ar": "المعيشة وحدودها: ما يجوز الاتجار به وكيف، ثم النكاح، ثم الجهاد وما يلزم فيه من آداب."
+  },
+  "books/al-kafi/volume/6": {
+    "en": "The domestic volume. Divorce and its consequences, the birth of a child and the ʿaqīqa, then food, drink, dress, hunting, slaughter and the keeping of animals.",
+    "ar": "جزء البيت. الطلاق وأحكامه، وولادة المولود والعقيقة، ثم الأطعمة والأشربة واللباس والصيد والذبائح والدواجن."
+  },
+  "books/al-kafi/volume/7": {
+    "en": "What is settled after a life or a dispute: wills, inheritance, oaths and their expiations, testimony, and the rules of judgement between people.",
+    "ar": "ما يُقضى به بعد العمر أو الخصومة: الوصايا، والمواريث، والأيمان وكفاراتها، والشهادات، وأحكام القضاء بين الناس."
+  },
+  "books/al-kafi/volume/8": {
+    "en": "Al-Rawḍa, the 'garden' — the volume that belongs to neither the Uṣūl nor the Furūʿ. Sermons, letters, historical reports and long narrations gathered without a subject order.",
+    "ar": "الروضة — الجزء الذي لا ينتمي إلى الأصول ولا إلى الفروع. خطب ورسائل وأخبار تاريخية وروايات مطوّلة جُمعت على غير ترتيب موضوعي."
+  },
+  "books/al-kafi/part/the-book-of-intelligence-and-ignorance": {
+    "en": "The book al-Kulaynī chose to open with: reason as the faculty by which God is served, set against ignorance as its opposite.",
+    "ar": "الكتاب الذي افتتح به الكليني كتابه: العقل بوصفه ما يُعبد الله به، في مقابل الجهل ضدّه."
+  },
+  "books/al-kafi/part/the-book-on-virtue-of-knowledge": {
+    "en": "On seeking, transmitting and acting on knowledge — the standing of the scholar, the duty to ask, and the warnings against speaking without it.",
+    "ar": "في طلب العلم وروايته والعمل به — منزلة العالم، ووجوب السؤال، والتحذير من القول بغير علم."
+  },
+  "books/al-kafi/part/the-book-on-oneness-of-allah-god": {
+    "en": "Divine unity: God's attributes and names, the limits of what may be said of Him, and the rejection of likening Him to anything created.",
+    "ar": "التوحيد: صفات الله وأسماؤه، وحدود ما يقال فيه، ونفي تشبيهه بشيء من خلقه."
+  },
+  "books/al-kafi/part/the-book-about-people-with-divine-authority": {
+    "en": "Kitāb al-Ḥujja, the longest part of the Uṣūl. The necessity of a divinely appointed guide, the proofs of the imamate, and reports on each of the Imams in turn.",
+    "ar": "كتاب الحجة، أطول أقسام الأصول. ضرورة الإمام المنصوب من الله، وأدلة الإمامة، والأخبار في كل إمام على ترتيبهم."
+  },
+  "books/al-kafi/part/the-book-of-belief-and-disbelief": {
+    "en": "The largest part of the second volume: what faith consists of, its degrees, the acts that strengthen or destroy it, and the character it should produce.",
+    "ar": "أكبر أقسام الجزء الثاني: حقيقة الإيمان ودرجاته، وما يقوّيه أو يهدمه من الأعمال، والخُلق الذي ينبغي أن يثمره."
+  },
+  "books/al-kafi/part/the-book-of-supplication": {
+    "en": "The etiquette and times of duʿāʾ, and a large collection of the supplications themselves as transmitted from the Prophet and the Imams.",
+    "ar": "آداب الدعاء وأوقاته، ومجموعة كبيرة من الأدعية المأثورة عن النبي والأئمة."
+  },
+  "books/al-kafi/part/the-book-of-the-excellence-of-the-holy-quran": {
+    "en": "On the standing of the Qur'an, its recitation and memorisation, and the merit attached to particular chapters.",
+    "ar": "في منزلة القرآن وتلاوته وحفظه، وما ورد في فضل سور بعينها."
+  },
+  "books/al-kafi/part/the-book-of-social-manners": {
+    "en": "ʿIshrat al-nās — how a believer is to live among others: greeting, visiting, speech, anger, and the rights of neighbours and companions.",
+    "ar": "عشرة الناس — كيف يعيش المؤمن بين الناس: السلام، والزيارة، والكلام، والغضب، وحقوق الجار والصاحب."
+  },
+  "books/al-kafi/part/the-book-of-taharat-cleansing": {
+    "en": "The opening of the Furūʿ: the purity required before worship, water and what invalidates it, ablution, the ritual bath, and dry ablution.",
+    "ar": "مفتتح الفروع: الطهارة اللازمة للعبادة، والمياه وما ينجّسها، والوضوء والغسل والتيمّم."
+  },
+  "books/al-kafi/part/the-book-of-hayd-menses": {
+    "en": "The rulings attaching to menstruation and related states, and their effect on prayer, fasting and other acts of worship.",
+    "ar": "أحكام الحيض وما يلحق به من الحالات، وأثرها في الصلاة والصوم وسائر العبادات."
+  },
+  "books/al-kafi/part/the-book-on-dying-people": {
+    "en": "The dying and the dead: what is done at the bedside, the washing, shrouding, prayer and burial, and the reports on what follows.",
+    "ar": "المحتضر والميت: ما يُصنع عند الاحتضار، والغسل والتكفين والصلاة والدفن، وما ورد فيما بعد ذلك."
+  },
+  "books/al-kafi/part/the-book-of-prayer": {
+    "en": "The largest part of volume three. The times and conditions of the prayer, its parts and its faults, and the prayers beyond the obligatory ones.",
+    "ar": "أكبر أقسام الجزء الثالث. أوقات الصلاة وشروطها، وأجزاؤها وخللها، والصلوات غير الواجبة."
+  },
+  "books/al-kafi/part/the-book-of-al-zakat": {
+    "en": "Obligatory almsgiving: what it is due on, at what threshold, to whom it may be given, and the consequences of withholding it.",
+    "ar": "الزكاة الواجبة: فيمَ تجب، وعند أي نصاب، ولمن تُدفع، وما يترتب على منعها."
+  },
+  "books/al-kafi/part/the-book-of-zakat": {
+    "en": "The continuation of zakāt into volume four, including the alms of the fast-breaking and the questions of distribution.",
+    "ar": "تتمة الزكاة في الجزء الرابع، وفيها زكاة الفطرة ومسائل التوزيع."
+  },
+  "books/al-kafi/part/the-book-of-fasting": {
+    "en": "The fast of Ramaḍān and beyond it: what breaks it, what is owed when it is broken, and the voluntary fasts and their merit.",
+    "ar": "صوم رمضان وما سواه: ما يفطّر، وما يجب عند الإفطار، والصوم المستحب وفضله."
+  },
+  "books/al-kafi/part/the-book-of-haj": {
+    "en": "The pilgrimage, and the longest part of the Furūʿ. The rites in order, the state of iḥrām and its prohibitions, the visit to Medina, and what is owed when a rite is missed.",
+    "ar": "الحج، وهو أطول أقسام الفروع. المناسك على ترتيبها، والإحرام ومحظوراته، وزيارة المدينة، وما يلزم عند ترك نسك."
+  },
+  "books/al-kafi/part/the-book-of-jihad-serving-in-the-army": {
+    "en": "The conditions of fighting and the conduct required within it, the treatment of captives and enemies, and the standing of those who defend a frontier.",
+    "ar": "شروط القتال وآدابه، ومعاملة الأسرى والأعداء، ومنزلة المرابط على الثغر."
+  },
+  "books/al-kafi/part/the-book-of-commerce": {
+    "en": "Al-Maʿīsha — earning a living. Lawful and unlawful trade, usury, debt, partnership, hire, and the ethics expected in the market.",
+    "ar": "المعيشة — طلب الرزق. الحلال والحرام من التجارة، والربا، والدين، والشركة، والإجارة، وما يُتوقّع من أخلاق في السوق."
+  },
+  "books/al-kafi/part/the-book-of-marriage": {
+    "en": "Marriage from proposal to household: who may be married, the contract and dower, the rights of each spouse, and the conduct of family life.",
+    "ar": "النكاح من الخطبة إلى البيت: من تحلّ مناكحته، والعقد والمهر، وحقوق كل من الزوجين، وسيرة الحياة الأسرية."
+  },
+  "books/al-kafi/part/the-book-of-aqiqah-offering-animal-sacrifice-for-a-newborn-child": {
+    "en": "Birth and what follows it: the naming of a child, the sacrifice offered on their behalf, nursing, and the upbringing owed to them.",
+    "ar": "الولادة وما يتبعها: تسمية المولود، والعقيقة عنه، والرضاع، وما له من حق التربية."
+  },
+  "books/al-kafi/part/the-book-of-talaq-divorces": {
+    "en": "Divorce and its procedure, the waiting period, revocation and its limits, and the arrangements owed to a woman and her children afterwards.",
+    "ar": "الطلاق وإجراؤه، والعدّة، والرجعة وحدودها، وما يُستحق للمرأة وولدها بعده."
+  },
+  "books/al-kafi/part/the-book-of-food": {
+    "en": "What may be eaten and what may not, the manners of eating, and reports on particular foods and their properties.",
+    "ar": "ما يحلّ أكله وما لا يحلّ، وآداب الطعام، وما ورد في أطعمة بعينها وخواصّها."
+  },
+  "books/al-kafi/part/the-book-of-drinks": {
+    "en": "Lawful and unlawful drink, the prohibition of intoxicants and its severity, and the vessels and manners associated with drinking.",
+    "ar": "الحلال والحرام من الشراب، وتحريم المسكر وشدّته، والأواني وآداب الشرب."
+  },
+  "books/al-kafi/part/the-book-of-dresses-beautification-and-kindness": {
+    "en": "Dress and adornment — what may be worn, by whom, and in what spirit — together with reports on cleanliness, perfume and grooming.",
+    "ar": "اللباس والزينة — ما يُلبس، ولمن، وبأي نيّة — ومعه ما ورد في النظافة والطيب والترجّل."
+  },
+  "books/al-kafi/part/the-book-of-hunting": {
+    "en": "The conditions under which hunted game is lawful, the use of trained animals and weapons, and what invalidates a catch.",
+    "ar": "شروط حلّ الصيد، واستعمال الجوارح المعلَّمة والسلاح، وما يفسد الصيد."
+  },
+  "books/al-kafi/part/the-book-of-slaughtering-animals-for-food": {
+    "en": "The requirements of lawful slaughter — the manner, the words said, and who may perform it — and the cases in which meat becomes forbidden.",
+    "ar": "شروط الذكاة — هيئتها، وما يُقال عندها، ومن تصحّ منه — والمواضع التي يحرم فيها اللحم."
+  },
+  "books/al-kafi/part/the-book-of-domestic-animals": {
+    "en": "The keeping of livestock and riding animals: their treatment, the rights they hold over an owner, and rulings arising from their use.",
+    "ar": "اقتناء الأنعام والدوابّ: معاملتها، وما لها على صاحبها من حق، والأحكام الناشئة عن استعمالها."
+  },
+  "books/al-kafi/part/the-book-of-wills": {
+    "en": "The making of a bequest, its limits against the estate, the appointment and duties of an executor, and disputes over what was intended.",
+    "ar": "عقد الوصية، وحدّها من التركة، وتعيين الوصيّ وواجباته، والخلاف فيما قُصد بها."
+  },
+  "books/al-kafi/part/the-book-of-inheritance": {
+    "en": "The fixed shares and their order, inheritance by relation and by cause, and the cases where a portion is excluded or returned.",
+    "ar": "السهام المقدّرة وترتيبها، والإرث بالنسب وبالسبب، ومواضع الحجب والردّ."
+  },
+  "books/al-kafi/part/the-book-of-oaths-vows-and-expiations": {
+    "en": "Oaths, vows and pledges — when they bind, when they do not, and what must be given in expiation when one is broken.",
+    "ar": "الأيمان والنذور والعهود — متى تنعقد ومتى لا تنعقد، وما يجب من الكفارة عند الحنث."
+  },
+  "books/al-kafi/part/the-book-of-testimony": {
+    "en": "Who may bear witness and who may not, how many witnesses a claim requires, and the consequences of false testimony.",
+    "ar": "من تُقبل شهادته ومن لا تُقبل، وكم شاهداً تحتاج الدعوى، وما يترتب على شهادة الزور."
+  },
+  "books/al-kafi/part/the-book-of-adjudication-and-rules": {
+    "en": "Al-Qaḍāʾ: the qualifications and conduct of a judge, the burden of proof, and the prescribed penalties and the caution urged in applying them.",
+    "ar": "القضاء: شروط القاضي وآدابه، وعبء الإثبات، والحدود وما وردت من الدعوة إلى التوقّي في إقامتها."
+  },
+  "books/man-la-yahduruh-al-faqih/part/book-of-pilgrimage-and-its-virtues": {
+    "en": "The rites of ḥajj and ʿumra as al-Ṣadūq settled them, together with the merit attached to the pilgrimage and to visiting the Prophet and the Imams.",
+    "ar": "مناسك الحج والعمرة كما قرّرها الصدوق، ومعها فضل الحج وزيارة النبي والأئمة."
+  },
+  "books/man-la-yahduruh-al-faqih/part/book-of-fasting": {
+    "en": "The obligatory fast and the voluntary ones: what invalidates a fast, what is owed in compensation, and the observances of Ramaḍān.",
+    "ar": "الصوم الواجب والمستحب: ما يفسد الصوم، وما يجب من القضاء والكفارة، وأعمال شهر رمضان."
+  },
+  "books/man-la-yahduruh-al-faqih/part/book-of-zakat": {
+    "en": "Obligatory almsgiving and the alms of the fast-breaking — the thresholds, the categories of recipient, and the rulings on payment.",
+    "ar": "الزكاة الواجبة وزكاة الفطرة — النُّصُب، وأصناف المستحقّين، وأحكام الأداء."
+  },
+  "books/man-la-yahduruh-al-faqih/part/book-of-livelihood": {
+    "en": "Earning and spending: lawful and unlawful trade, debt and its repayment, hire, partnership, and the conduct expected in dealings.",
+    "ar": "الكسب والإنفاق: الحلال والحرام من التجارة، والدين ووفاؤه، والإجارة، والشركة، وما يُتوقّع من أخلاق في المعاملة."
+  },
+  "books/man-la-yahduruh-al-faqih/part/book-of-marriage-nikah": {
+    "en": "The contract and its conditions, the rights of each spouse, and the rulings governing the household.",
+    "ar": "العقد وشروطه، وحقوق كل من الزوجين، والأحكام التي ينتظم بها البيت."
+  },
+  "books/man-la-yahduruh-al-faqih/part/book-of-divorce-talaq": {
+    "en": "Divorce and its forms, the waiting period, and the entitlements of a woman and her children once a marriage ends.",
+    "ar": "الطلاق وصوره، والعدّة، وما تستحقه المرأة وولدها عند انتهاء الزواج."
+  },
+  "books/man-la-yahduruh-al-faqih/part/chapters-on-legal-cases-and-rulings": {
+    "en": "Judgements and disputed cases: evidence and testimony, the duties of a judge, penalties, and the settlements applied where a matter is contested.",
+    "ar": "القضايا والأحكام المتنازع فيها: البيّنة والشهادة، وواجبات القاضي، والحدود، وما يُصار إليه من الصلح عند التنازع."
+  }
 }
