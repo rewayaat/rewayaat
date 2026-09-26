@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -408,4 +409,137 @@ class HadithCardParityTest {
             throw new java.io.UncheckedIOException(e);
         }
     }
+
+    // ── The sidecar panels ──────────────────────────────────────────────────────
+    //
+    // The rail and its panels are the part of the card that has drifted most, because
+    // each renderer builds them differently: the server card declares them as markup
+    // with data-hub-panel, the search card switches on a tab key in Vue. Three bugs in
+    // one day came from a change landing on one of them — the Tafsir rail hidden in
+    // Arabic on one card and not the other, the related list rewritten on one and not
+    // the other, a helper added to one bundle and not the other.
+
+    private static final Pattern SERVER_PANEL =
+            Pattern.compile("data-hub-panel=\"([a-z]+)\"");
+    private static final Pattern SEARCH_PANEL =
+            Pattern.compile("setNarrationSidecarTab\\(narration, '([a-z]+)'\\)");
+
+    @Test
+    void bothCardsOfferTheSameSidecarPanels() throws IOException {
+        Set<String> server = matches(SERVER_PANEL, read(SERVER_CARD));
+        Set<String> search = matches(SEARCH_PANEL, readSearchCard());
+
+        assertEquals(server, search,
+                "the two cards offer different sidecar panels.\n"
+                        + "  server card: " + server + "\n"
+                        + "  search card: " + search
+                        + "\nA panel added to one is invisible on the other's pages.");
+    }
+
+    /**
+     * A rule about language has to hold on both cards or on neither.
+     *
+     * <p>Each of these hides something on the Arabic site because there is no Arabic
+     * version of it to show. Landing the rule on one renderer leaves the other showing
+     * English on a page with no other English on it, which is only visible to someone
+     * reading that page in Arabic — so it is found late, by a reader, rather than here.
+     */
+    @Test
+    void everyArabicRuleHoldsOnBothCards() throws IOException {
+        String server = read(SERVER_CARD);
+        String search = readSearchCard();
+
+        // marker -> what it is, for the failure message
+        record Rule(String server, String search, String what) { }
+        List<Rule> rules = List.of(
+                new Rule("data-hub-panel=\"quran\"",
+                         "setNarrationSidecarTab(narration, 'quran')",
+                         "the Tafsir panel, whose commentary is English-only"),
+                new Rule("hadith-english",
+                         "similar-full-english",
+                         "the English translation column"));
+
+        List<String> broken = new ArrayList<>();
+        for (Rule rule : rules) {
+            boolean onServer = gatedOnArabic(server, rule.server());
+            boolean onSearch = gatedOnArabic(search, rule.search());
+            if (onServer != onSearch) {
+                broken.add(rule.what() + " — hidden in Arabic on the "
+                        + (onServer ? "server" : "search") + " card only");
+            }
+        }
+        assertTrue(broken.isEmpty(),
+                "a language rule landed on one card and not the other:\n  "
+                        + String.join("\n  ", broken)
+                        + "\nGate it in both, with th:unless=\"${isArabic}\" or th:if=\"${!isArabic}\".");
+    }
+
+    /**
+     * Whether the element carrying {@code marker} is hidden on the Arabic site.
+     *
+     * <p>Read from the opening tag the marker sits in, so a gate on some unrelated
+     * element further up the file does not count as gating this one.
+     */
+    private static boolean gatedOnArabic(String html, String marker) {
+        int at = html.indexOf(marker);
+        while (at >= 0) {
+            int open = html.lastIndexOf('<', at);
+            int close = html.indexOf('>', at);
+            if (open >= 0 && close > open) {
+                String tag = html.substring(open, close);
+                if (tag.contains("th:unless=\"${isArabic}\"") || tag.contains("th:if=\"${!isArabic}\"")) {
+                    return true;
+                }
+            }
+            at = html.indexOf(marker, at + 1);
+        }
+        return false;
+    }
+
+    /**
+     * The two script bundles carry the same i18n helpers.
+     *
+     * <p>hub-pages.js and rewayaat.js are loaded by different pages and neither can see
+     * the other, so each writes its own t(), escapeHtml() and localeHref(). That is
+     * survivable until a new one is added to just the first: the related panel on the
+     * narration page rendered "Could not load this panel" for a day because
+     * localeField() and localeDigits() existed only in rewayaat.js, and the failure was
+     * silent everywhere except the Arabic pages hub-pages.js serves.
+     */
+    @Test
+    void bothScriptBundlesCarryTheSameLocaleHelpers() throws IOException {
+        Path hub = Path.of("src/main/resources/static/js/hub-pages.js");
+        Path app = Path.of("src/main/resources/static/js/rewayaat.js");
+        String hubJs = read(hub);
+        String appJs = read(app);
+
+        for (String helper : List.of("t", "escapeHtml", "localeHref", "localeField", "localeDigits")) {
+            assertTrue(defines(hubJs, helper), "hub-pages.js does not define " + helper + "()");
+            assertTrue(defines(appJs, helper), "rewayaat.js does not define " + helper + "()");
+        }
+
+        // Anything else named locale* has to exist in both too, so the next one added is
+        // not a fourth copy of this bug.
+        Set<String> hubLocale = matches(Pattern.compile("function (locale[A-Za-z]+)\\("), hubJs);
+        Set<String> appLocale = matches(Pattern.compile("function (locale[A-Za-z]+)\\("), appJs);
+        assertEquals(appLocale, hubLocale,
+                "the two bundles define different locale helpers.\n"
+                        + "  hub-pages.js: " + hubLocale + "\n"
+                        + "  rewayaat.js:  " + appLocale
+                        + "\nA page loading the bundle without it throws on the first call.");
+    }
+
+    private static boolean defines(String js, String name) {
+        return Pattern.compile("function " + Pattern.quote(name) + "\\(").matcher(js).find();
+    }
+
+    private static Set<String> matches(Pattern pattern, String text) {
+        Set<String> found = new java.util.TreeSet<>();
+        Matcher matcher = pattern.matcher(text);
+        while (matcher.find()) {
+            found.add(matcher.group(1));
+        }
+        return found;
+    }
+
 }
