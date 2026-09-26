@@ -607,14 +607,14 @@
 
                                     <!-- Notes gloss the narration itself, so they sit with the text,
                                          above the similar/tafsir panels which are separate corpora. -->
-                                    <div class="hadith-notes mt-3" v-if="narration.notes">
+                                    <div class="hadith-notes mt-3" v-if="notesFor(narration)">
                                         <div class="hadith-notes__head">
                                             <span class="hadith-notes__label" th:text="#{sidecar.notes}">Notes</span>
                                         </div>
                                         <div class="hadith-notes__body"
                                              v-bind:id="narrationDomId(narration) + '-notes'"
                                              v-bind:class="{'hadith-notes__body--clamped': isNotesCollapsible(narration) && !isNotesExpanded(narration)}"
-                                             v-html="narration.notes"></div>
+                                             v-html="notesFor(narration)"></div>
                                         <button type="button"
                                                 class="text-toggle text-toggle--start"
                                                 v-if="isNotesCollapsible(narration)"

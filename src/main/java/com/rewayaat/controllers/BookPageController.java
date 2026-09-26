@@ -422,9 +422,9 @@ public class BookPageController {
 
     private static List<String> buildCardFields() {
         List<String> translated = List.of("book", "part", "section", "chapter", "source",
-                "edition", "publisher");
+                "edition", "publisher", "notes");
         List<String> fields = new ArrayList<>(List.of(
-                "number", "english", "arabic", "notes", "volume", "topic_tags", "llm_similar"));
+                "number", "english", "arabic", "volume", "topic_tags", "llm_similar"));
         for (String field : translated) {
             fields.add(field);
             fields.add(field + "_ar");

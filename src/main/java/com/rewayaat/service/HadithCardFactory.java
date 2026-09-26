@@ -81,7 +81,7 @@ public class HadithCardFactory {
         row.put("english", firstNonBlank(str(segmented.get("englishContent")), str(source.get("english"))));
         row.put("arabicChain", str(segmented.get("arabicChain")));
         row.put("arabic", firstNonBlank(str(segmented.get("arabicContent")), str(source.get("arabic"))));
-        row.put("notes", str(source.get("notes")));
+        row.put("notes", notesFor(source, locale));
         row.put("metadata", metadataRows(source, number, locale));
         row.put("tags", topicTags(source, tagBase, locale));
         row.put("tagSlugs", tagSlugs(source));
@@ -148,6 +148,25 @@ public class HadithCardFactory {
 
     private String label(String key, PageLocale locale) {
         return messages.getMessage(key, null, key, locale.locale());
+    }
+
+    /**
+     * A narration's notes, which follow a stricter rule than the rest.
+     *
+     * <p>Every other field falls back to its English when there is no Arabic: a chapter
+     * named in English is still a usable citation. A note is not a name, it is an essay —
+     * the fifteen that exist run to 3,680 characters of translator's commentary — and
+     * dropping one of those into an Arabic page is not a citation the reader can still
+     * use, it is a wall of English. So the Arabic site shows a note only when the note
+     * itself has been translated.
+     *
+     * <p>The pair is notes/notes_ar, like every other translated field on the document.
+     */
+    private static String notesFor(Map<String, Object> source, PageLocale locale) {
+        if (!locale.isArabic()) {
+            return str(source.get("notes"));
+        }
+        return str(source.get("notes_ar"));
     }
 
     /**

@@ -134,7 +134,10 @@
                     <div class="hadith-notes__head">
                         <span class="hadith-notes__label" th:text="#{sidecar.notes}">Notes</span>
                     </div>
-                    <div class="hadith-notes__body" th:utext="${narration.notes}" th:text="#{sidecar.notes}">Notes</div>
+                    <!-- th:utext only. It carried a th:text as well, and two text attributes on one
+                         element is what truncated a response mid-render earlier in this project;
+                         it was harmless only because no narration had a note to print. -->
+                    <div class="hadith-notes__body" th:utext="${narration.notes}">Notes</div>
                 </div>
 
                 <div class="hadith-card__footer">

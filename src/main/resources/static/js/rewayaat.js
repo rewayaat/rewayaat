@@ -6301,8 +6301,24 @@ function setupVue(query, page, sortFields) {
             // Long notes are previewed rather than shown in full: the reading
             // card is height-capped, so an unbounded note squeezes the
             // narration text out of the layout entirely.
+            /**
+             * A narration's notes, in the reader's language or not at all.
+             *
+             * Unlike a book or chapter name, a note does not fall back to its English: it
+             * is translator's commentary running to thousands of characters, and an
+             * untranslated one is a wall of English on an Arabic page rather than a
+             * citation the reader can still use. The pair is notes/notes_ar.
+             */
+            notesFor: function(narration) {
+                if (!narration) {
+                    return '';
+                }
+                return window.I18N_LOCALE === 'ar'
+                    ? (narration.notes_ar || '')
+                    : (narration.notes || '');
+            },
             isNotesCollapsible: function(narration) {
-                var notes = (narration && narration.notes) || '';
+                var notes = this.notesFor(narration);
                 return notes.replace(/<[^>]*>/g, '').trim().length > NOTES_COLLAPSE_THRESHOLD;
             },
             isNotesExpanded: function(narration) {

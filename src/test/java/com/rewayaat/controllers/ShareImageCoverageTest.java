@@ -157,4 +157,36 @@ class ShareImageCoverageTest {
                         List.of(Map.of("url", "/hadith/Al-Khisal-Saduq:1"))),
                 "an English card's url is already bare and must come back unchanged");
     }
+
+    @Test
+    @DisplayName("an untranslated note is not shown on the Arabic card")
+    void notesAppearOnlyInTheReadersLanguage() throws Exception {
+        // Fifteen narrations carry a note in production, all of them English translator's
+        // commentary, some of it thousands of characters long. Every other field falls
+        // back to its English when there is no Arabic, because a chapter named in English
+        // is still a usable citation; a note is not a name, and an untranslated one is a
+        // wall of English rather than something a reader can still use.
+        String card = Files.readString(
+                Path.of("src/main/java/com/rewayaat/service/HadithCardFactory.java"),
+                StandardCharsets.UTF_8);
+
+        String body = card.substring(card.indexOf("private static String notesFor("));
+        body = body.substring(0, body.indexOf("\n    }"));
+
+        assertTrue(body.contains("locale.isArabic()"),
+                "notesFor does not look at the language at all");
+        assertTrue(body.contains("notes_ar"),
+                "notesFor never reads notes_ar, so a translated note could never be shown");
+        assertFalse(body.replace("notes_ar", "").contains("source.get(\"notes\")\n"),
+                "notesFor still falls back to the English note on the Arabic card");
+
+        // And the query has to fetch the twin, or the card asks for a field it never got.
+        String pages = Files.readString(
+                Path.of("src/main/java/com/rewayaat/controllers/BookPageController.java"),
+                StandardCharsets.UTF_8);
+        String fields = pages.substring(pages.indexOf("buildCardFields()"));
+        fields = fields.substring(0, fields.indexOf("return List.copyOf"));
+        assertTrue(fields.contains("\"notes\""),
+                "the chapter query no longer fetches notes, so no card can show one");
+    }
 }
