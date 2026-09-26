@@ -231,7 +231,7 @@
         }
         var issues = passwordIssues(password);
         if (issues.length) {
-            setAlert(t('signin.err.passwordMust', 'Password must include {0}.').replace('{0}', issues.join('، ')), 'warning');
+            setAlert(t('signin.err.passwordMust', 'Password must include {0}.').replace('{0}', issues.join(t('list.separator', ', '))), 'warning');
             return;
         }
         withSubmitLock(forms.register, function() {
@@ -298,7 +298,7 @@
         }
         var issues = passwordIssues(password);
         if (issues.length) {
-            setAlert(t('signin.err.passwordMust', 'Password must include {0}.').replace('{0}', issues.join('، ')), 'warning');
+            setAlert(t('signin.err.passwordMust', 'Password must include {0}.').replace('{0}', issues.join(t('list.separator', ', '))), 'warning');
             return;
         }
         withSubmitLock(forms.resetConfirm, function() {

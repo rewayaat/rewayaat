@@ -430,7 +430,9 @@ public class AuthService {
             return error(say("api.auth.signInToChangeLanguage"));
         }
         PageLocale chosen = PageLocale.ofTag(tag);
-        if (!chosen.tag().equals(tag)) {
+        // ofTag trims and lowercases before matching, so the check has to compare the same
+        // form: "AR" is a language this site speaks, not an unsupported one.
+        if (tag == null || !chosen.tag().equals(tag.trim().toLowerCase(java.util.Locale.ROOT))) {
             return error(say("api.auth.unsupportedLanguage", tag));
         }
         user.setLocale(chosen.tag());
@@ -544,10 +546,10 @@ public class AuthService {
 
     private String validatePasswordPolicy(String password) {
         if (password == null || password.length() < passwordMinLength) {
-            return "Password must be at least " + passwordMinLength + " characters.";
+            return say("api.auth.passwordTooShort", passwordMinLength);
         }
         if (password.matches(".*\\s+.*")) {
-            return "Password cannot contain spaces.";
+            return say("api.auth.passwordHasSpaces");
         }
         return "";
     }

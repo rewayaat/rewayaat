@@ -1693,7 +1693,7 @@ function openCollectionPickerModal(hadithId, collections) {
 
     var newLabel = document.createElement('label');
     newLabel.className = 'auth-modal-label';
-    newLabel.textContent = t('js.newCollectionName', t('js.newCollectionName', 'New Collection Name'));
+    newLabel.textContent = t('js.newCollectionName', 'New Collection Name');
     newLabel.style.fontSize = '0.85rem';
     newCollectionContainer.appendChild(newLabel);
 
@@ -1711,7 +1711,7 @@ function openCollectionPickerModal(hadithId, collections) {
     var manageBtn = document.createElement('button');
     manageBtn.type = 'button';
     manageBtn.className = 'btn btn-link btn-sm px-0';
-    manageBtn.textContent = t('js.manageCollections', t('js.manageCollections', 'Manage collections'));
+    manageBtn.textContent = t('js.manageCollections', 'Manage collections');
     manageBtn.addEventListener('click', function() {
         swal.close();
         openUserProfileModal();

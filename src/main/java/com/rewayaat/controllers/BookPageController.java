@@ -249,7 +249,15 @@ public class BookPageController {
         String canonicalPath = part.url();
         if (part.holdsSingleChapter()) {
             if (chapters.size() == 1) {
-                canonicalPath = canonicalPathFor(chapters.get(0), narrationsIn(chapters.get(0), locale));
+                // The one live lookup on this page. Everything else comes from the catalog's
+                // snapshot, which survives an index outage on purpose; a canonical hint is
+                // not worth a 500, so a failed lookup leaves the part self-canonical.
+                try {
+                    canonicalPath = canonicalPathFor(chapters.get(0), narrationsIn(chapters.get(0), locale));
+                } catch (IOException | RuntimeException e) {
+                    LOGGER.warn("Could not resolve the canonical for part '{}' of {}: {}",
+                            partTitle, bookName, e.toString());
+                }
             }
         } else if (!book.partIsItsOwnPage(part)) {
             // The only part dividing its parent covers the parent whole, so the parent is
