@@ -102,4 +102,38 @@ class ArabicLinksStayArabicTest extends ElasticsearchTestSupport {
                     page + " did not render as an Arabic page");
         }
     }
+
+    @Test
+    @DisplayName("a canonical carries the language exactly once")
+    void canonicalsAreNotDoublePrefixed() {
+        // A page whose canonical folds elsewhere builds it from two sources — a bare
+        // catalogue path, or a card's url, which carries the prefix already. Getting that
+        // wrong publishes /ar/ar/..., which resolves to nothing and tells a crawler the
+        // Arabic page should not be indexed at all. Neither the link sweep nor the
+        // catalogue tests see it, because it lives in a <link>, not in an <a>.
+        Set<String> wrong = new TreeSet<>();
+        int seen = 0;
+        for (String page : List.of(
+                "/ar/", "/ar/books", "/ar/books/al-kafi", "/ar/books/al-khisal",
+                "/ar/books/al-khisal/part/introduction",
+                "/ar/books/al-kafi/part/the-book-on-virtue-of-knowledge",
+                "/ar/privacy", "/ar/updates.html", "/ar/signin.html")) {
+            String html = restTemplate.getForObject(page, String.class);
+            if (html == null) {
+                continue;
+            }
+            Matcher canonical = Pattern.compile(
+                    "rel=\"canonical\"\\s+href=\"([^\"]*)\"").matcher(html);
+            while (canonical.find()) {
+                seen++;
+                String href = canonical.group(1);
+                if (href.contains("/ar/ar/") || href.endsWith("/ar/ar")) {
+                    wrong.add(page + "  ->  " + href);
+                }
+            }
+        }
+        assertTrue(seen > 0, "no canonical was found on any Arabic page, so this checked nothing");
+        assertEquals(Set.of(), wrong,
+                "these canonicals carry the language twice:\n" + String.join("\n", wrong));
+    }
 }

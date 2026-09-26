@@ -191,6 +191,67 @@ card's action rail were enough to index the URLs anyway. They are in
 
 The rule `/error/*` already followed: **`Disallow` hides the instruction, not the page.**
 
+### 13. A part wrapping one chapter is not a third page
+
+The same shape as invariant 10, one level up. Eighteen of the 166 `/part/` pages hold a
+single chapter that carries the part's own title, so the part page is a heading, a blurb
+and one link to a page saying the same thing — about a hundred words, most of it chrome.
+`/books/al-kafi/part/the-book-of-intelligence-and-ignorance` and
+`/books/al-kafi/the-book-of-intelligence-and-ignorance` were both self-canonical and both
+in the sitemap.
+
+`BookCatalog.Part.holdsSingleChapter()` is the only place the rule is decided, and
+`booksSitemap` excludes by exactly the predicate `partPage` canonicalises on.
+
+**The canonical goes where the chapter's own canonical goes**, not to the chapter URL. If
+that one chapter also holds a single narration, the chapter has already folded into the
+narration (invariant 10), and pointing the part at the chapter would declare a canonical
+that is not itself canonical — `part → chapter → narration`. Both routes call
+`BookPageController.canonicalPathFor`, so the chain is always one hop. That costs the part
+page one extra Elasticsearch query, on at most eighteen rarely-requested pages.
+
+`IndexingSignalsTest` pins both sides and the chain.
+
+### 14. A part that divides nothing is not a page
+
+Fifteen part pages duplicated their parent whole. They came in two shapes.
+
+Four parents are filed as one part named "Content" holding everything plus an
+"Introduction" holding a single chapter: Al-Tawḥīd (68 chapters), Kāmil al-Ziyārāt (109),
+Kitāb al-Zuhd (21) and volume 1 of ʿUyūn akhbār al-Riḍā (29). The hub's entire outbound
+link list was those two URLs, and every chapter sat two hops down behind a page that
+divided nothing.
+
+The other eleven were worse and invisible. A volume holding exactly one part rendered its
+chapters directly — the old `useParts` needed `parts.size() > 1` — so the part was linked
+from nowhere, while `booksSitemap` advertised it anyway out of `book.parts()`.
+`/books/al-kafi/part/the-book-garden-of-flowers` carried all 594 chapters of volume 8: a
+complete clone of `/books/al-kafi/volume/8`, in the sitemap, reachable only from the
+sitemap. **A hub-link audit cannot find these** — walking the site's own links is exactly
+what misses a page nothing links to. Diff the sitemap against the link graph instead.
+
+A part earns a URL only when it is **one of several parts that actually divide its
+parent** — `BookCatalog.Book.isOwnPage`, reached through `pageParts()`, `pagePartsIn()`
+and `partIsItsOwnPage()`. The sitemap advertises `pageParts()`; `partPage` canonicalises
+to the parent for anything it excludes.
+
+Two things about it are load-bearing:
+
+- **The hubs decide on `pageParts()` but still render every part.** Al-Khisāl has three
+  one-chapter parts among 29; the layer stays, and those three are still the only link to
+  their chapters. Rendering `pageParts()` would orphan them, which invariant 5 forbids.
+  The rule governs *canonicals and sitemaps*, never what a page links to.
+- **`pageParts()` builds `parts()` once.** `parts()` counts each part's chapters by walking
+  the whole chapter list, so asking per part rebuilt that 166 times inside the sitemap —
+  the one response a crawler abandons when it is slow (see the 24-second
+  `/sitemap-hadith-4.xml`).
+
+Largest hub this collapses is Kāmil al-Ziyārāt at 109 chapters, well inside what invariant
+6 protects: Al-Kāfi volume 8 already lists 594. Nothing is orphaned by the collapse — the
+parent now lists the chapters the part used to, and the eleven unlinked clones were never
+in the link graph to begin with. `IndexingSignalsTest` builds real catalogs
+and pins both the rule and the fact that the hubs still link everything.
+
 ## Page inventory
 
 | Surface | Indexable | Rendered by |
@@ -200,7 +261,7 @@ The rule `/error/*` already followed: **`Disallow` hides the instruction, not th
 | `/books` | yes | Server |
 | `/books/{book}` | yes | Server |
 | `/books/{book}/volume/{n}` | yes | Server |
-| `/books/{book}/part/{part}` | yes | Server |
+| `/books/{book}/part/{part}` | yes — **unless it holds one chapter** (canonical to that chapter, or to its narration) **or is the only part dividing its parent** (canonical to the book or volume) | Server |
 | `/books/{book}/{chapter}` | yes — **unless it holds one narration**, then canonical to `/hadith/{id}` | Server |
 | `/books/{book}/{chapter}?tag=` | **no** — `noindex, follow`, and the links are `rel="nofollow"` | Server |
 | `/hadith/{id}` | yes | Server |
@@ -214,7 +275,7 @@ The rule `/error/*` already followed: **`Disallow` hides the instruction, not th
 | Sitemap | Contents |
 |---------|----------|
 | `/sitemap-static.xml` | `/`, `/books`, `/updates.html`, `/search_tips.html` |
-| `/sitemap-books.xml` | ~4,000 URLs — `/books`, 18 books, 30 volumes, 166 parts, and the ~3,800 chapters holding more than one narration |
+| `/sitemap-books.xml` | ~3,900 URLs — `/books`, 18 books, 30 volumes, the 133 parts that are pages in their own right (of 166: 18 wrap one chapter, 15 duplicate their parent), and the ~3,700 chapters holding more than one narration |
 | `/sitemap-hadith-{1..4}.xml` | 32,519 narrations, 10,000 per page |
 
 Two things learned the hard way, both pinned by `SitemapIntegrationTest`:

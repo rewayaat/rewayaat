@@ -109,7 +109,12 @@ public class BookPageController {
         List<String> volumes = book.volumes();
         List<BookCatalog.Part> parts = book.parts();
         boolean useVolumes = volumes.size() > 1;
-        boolean useParts = !useVolumes && parts.size() > 1;
+        // A part layer only earns its place when more than one part actually divides the
+        // book. Three books are filed as one part named "Content" holding everything plus
+        // an "Introduction" holding a single chapter, and this page's whole link list was
+        // those two. The full part list is still what gets rendered when the layer stays:
+        // a part that is not a page of its own is still the only link to its chapters.
+        boolean useParts = !useVolumes && !book.pageParts().isEmpty();
 
         PageLocale locale = PageLocale.of(request);
         model.addAttribute("book", book);
@@ -155,7 +160,9 @@ public class BookPageController {
         String label = "Volume " + volume;
         long narrations = chapters.stream().mapToLong(BookCatalog.Chapter::count).sum();
         List<BookCatalog.Part> parts = book.partsInVolume(volume);
-        boolean useParts = parts.size() > 1;
+        // As on the book page: volume 1 of Uyun akhbar al-Rida splits into "Content" and a
+        // one-chapter "Introduction", which divides nothing.
+        boolean useParts = !book.pagePartsIn(volume).isEmpty();
 
         model.addAttribute("book", book);
         model.addAttribute("volumeLabel", label);
@@ -226,9 +233,38 @@ public class BookPageController {
         model.addAttribute("seoTitle", msg(locale, "seo.part.title", partTitle, bookName));
         model.addAttribute("seoDescription", msg(locale, "seo.part.description",
                 bookName, partTitle, count(locale, narrations), count(locale, chapters.size())));
+
+        // A part is a page of its own only when it is one of several parts that divide its
+        // parent. A part wrapping one chapter *is* that chapter: same title, same narration
+        // count, and the page's whole body is a single link to it. A part that is the only
+        // one dividing its parent *is* that parent. Invariants 13 and 14.
+        //
+        // It points at the chapter's own canonical rather than at the chapter URL, because
+        // a chapter holding one narration has already folded into that narration and a
+        // part -> chapter -> narration chain is a signal Google follows but discounts.
+        // Gated on the catalog's predicate, the one booksSitemap excludes by, and checked
+        // against the chapters the page actually loaded: if the index and the catalog
+        // briefly disagree the part stays self-canonical and merely unlisted, which is the
+        // harmless way round.
+        String canonicalPath = part.url();
+        if (part.holdsSingleChapter()) {
+            if (chapters.size() == 1) {
+                canonicalPath = canonicalPathFor(chapters.get(0), narrationsIn(chapters.get(0), locale));
+            }
+        } else if (!book.partIsItsOwnPage(part)) {
+            // The only part dividing its parent covers the parent whole, so the parent is
+            // the page: the hub lists those chapters itself now, and this URL says the same
+            // thing one hop further down.
+            canonicalPath = parentPathOf(bookSlug, book, part);
+        }
+        // The pair and the toggle describe *this* page, so they are built from the part's
+        // own URL; the canonical then points wherever the fold sends it. Both have to carry
+        // the language: an Arabic page whose canonical names the English URL is telling a
+        // crawler the Arabic one should not be indexed at all.
         locale.applyTo(model, part.url());
-        model.addAttribute("sectionSummary", blurbs.sectionSummaryForPath(part.url(), locale.isArabic()));
         model.addAttribute("shareImageUrl", BASE_URL + part.url() + "/card.png");
+        model.addAttribute("canonicalUrl", locale.urlFor(canonicalPath));
+        model.addAttribute("sectionSummary", blurbs.sectionSummaryForPath(part.url(), locale.isArabic()));
         model.addAttribute("jsonLd", bookJsonLd(book));
 
         LinkedHashMap<String, String> trail = new LinkedHashMap<>();
@@ -302,9 +338,9 @@ public class BookPageController {
         // confirms the page really shows that one narration: if the index and the catalog
         // briefly disagree, the chapter stays self-canonical and merely unlisted, which is
         // the harmless way round.
-        String canonicalPath = chapter.holdsSingleNarration() && all.size() == 1
-                ? str(all.get(0).get("url")) : chapter.url();
-        locale.applyTo(model, canonicalPath);
+        // master extracted this fold into canonicalPathFor; applyTo carries it into the
+        // reader's language along with the hreflang pair.
+        locale.applyTo(model, canonicalPathFor(chapter, all));
         model.addAttribute("shareImageUrl", BASE_URL + chapter.url() + "/card.png");
         model.addAttribute("jsonLd", chapterJsonLd(chapter, narrations));
 
@@ -323,6 +359,43 @@ public class BookPageController {
 
         addBreadcrumbs(model, trail, locale);
         return "chapter";
+    }
+
+    /**
+     * The hub a part hangs from: its volume when the book has more than one, else the book.
+     *
+     * <p>The same choice the breadcrumb trail makes, so a part that folds into its parent
+     * folds into the page the trail says it came from.
+     */
+    private String parentPathOf(String bookSlug, BookCatalog.Book book, BookCatalog.Part part) {
+        return part.volume() != null && !part.volume().isBlank() && book.volumes().size() > 1
+                ? "/books/" + bookSlug + "/volume/" + encode(part.volume())
+                : "/books/" + bookSlug;
+    }
+
+    /**
+     * Where a chapter's page declares its canonical: itself, or the narration it folds
+     * into when it holds exactly one.
+     *
+     * <p>Shared with {@code partPage} so a part wrapping that chapter lands on the same
+     * URL the chapter does instead of on a URL that is itself non-canonical. The size
+     * check confirms the page really loaded that one narration, so a momentary
+     * disagreement between the index and the catalog leaves the page self-canonical
+     * rather than pointing somewhere wrong.
+     */
+    /**
+     * The path a chapter canonicalises to, in neither language.
+     *
+     * <p>Returned bare, because the caller adds the language. Its two arms did not agree
+     * about that: chapter.url() is a bare path, while a card's url has carried the /ar
+     * prefix since the cards learned to link within the reader's language — so an Arabic
+     * page whose chapter folds into its single narration published a canonical of
+     * /ar/ar/hadith/..., which resolves to nothing.
+     */
+    static String canonicalPathFor(BookCatalog.Chapter chapter, List<Map<String, Object>> narrations) {
+        String path = chapter.holdsSingleNarration() && narrations.size() == 1
+                ? str(narrations.get(0).get("url")) : chapter.url();
+        return PageLocale.stripArabicPrefix(path);
     }
 
     /**

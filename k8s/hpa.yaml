@@ -9,7 +9,11 @@ spec:
     kind: Deployment
     name: rewayaat-v2
   minReplicas: 2
-  maxReplicas: 4
+  # Pinned to 2 on 2026-09-26: no budget for extra capacity, so the HPA is deliberately
+  # inert (min == max). Raise maxReplicas when there is money for it. Note that
+  # deployment.yaml also hardcodes replicas: 2 and Argo selfHeal reverts any HPA
+  # scale-out within minutes, so a higher max needs that fixed too.
+  maxReplicas: 2
   metrics:
     - type: Resource
       resource:
@@ -24,9 +28,9 @@ spec:
   # enough to break connector sessions while they were still being used: 16 of 62 /mcp
   # requests were session-not-found during one such window.
   #
-  # Scaling up is left responsive because adding a pod harms nothing. Scaling down waits
-  # half an hour of genuinely low CPU and then removes one pod at a time, which is slower
-  # than any reasonable conversation and costs at most a couple of idle pods.
+  # The behavior block is kept for when maxReplicas is raised again: scaling up stays
+  # responsive, scaling down waits half an hour of genuinely low CPU and then removes one
+  # pod at a time, slower than any reasonable conversation.
   behavior:
     scaleUp:
       stabilizationWindowSeconds: 60

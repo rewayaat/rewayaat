@@ -1,5 +1,10 @@
 package com.rewayaat.controllers;
 
+import com.rewayaat.service.BookCatalog;
+import java.util.List;
+import java.util.Map;
+import org.junit.jupiter.api.DisplayName;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -127,5 +132,29 @@ class ShareImageCoverageTest {
                 "the search card does not route part to its page");
         assertTrue(resolver.contains("partUrl"),
                 "the browse resolver cannot answer with a part page");
+    }
+
+    @Test
+    @DisplayName("a folded canonical comes back without a language on it")
+    void canonicalPathIsLanguageNeutral() {
+        // canonicalPathFor has two arms and they disagreed about this. chapter.url() is a
+        // bare path; a card's url has carried the /ar prefix since the cards learned to
+        // link within the reader's language. The caller adds the language, so an already
+        // prefixed path came out as /ar/ar/hadith/... — a canonical that resolves to
+        // nothing, which tells a crawler the Arabic page should not be indexed at all.
+        // count == 1 is what makes the chapter fold into its narration.
+        BookCatalog.Chapter single = new BookCatalog.Chapter(
+                "Al-Khiṣāl", "al-khisal", "introduction", "Introduction",
+                null, null, null, 1L);
+
+        assertEquals("/hadith/Al-Khisal-Saduq:1",
+                BookPageController.canonicalPathFor(single,
+                        List.of(Map.of("url", "/ar/hadith/Al-Khisal-Saduq:1"))),
+                "an Arabic card's url already carries the prefix; the canonical must not add a second");
+
+        assertEquals("/hadith/Al-Khisal-Saduq:1",
+                BookPageController.canonicalPathFor(single,
+                        List.of(Map.of("url", "/hadith/Al-Khisal-Saduq:1"))),
+                "an English card's url is already bare and must come back unchanged");
     }
 }

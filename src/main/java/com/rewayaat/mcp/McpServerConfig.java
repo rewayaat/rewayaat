@@ -74,10 +74,18 @@ public class McpServerConfig {
             """.formatted(CorpusScope.BOOK_COUNT, 32519, CorpusScope.SCOPE_SENTENCE);
 
     /**
-     * Keeps an idle server-to-client stream from being closed underneath us. A client holds a
-     * GET open to receive messages, and both nginx in front of this and whatever sits in front
-     * of that will drop a connection that goes quiet - our own ingress at 300s. A comment
-     * frame every 30s is cheap and keeps the path open.
+     * Keeps an idle legacy SSE stream from being closed underneath us. That transport holds a
+     * GET open for every session, and both nginx in front of this and whatever sits in front
+     * of that will drop a connection that goes quiet - our own ingress at 300s. The SDK's
+     * keep-alive is a JSON-RPC ping down that stream, and a failed ping ends the session.
+     *
+     * <p>The Streamable HTTP transport gets none. Claude and ChatGPT only POST to it and never
+     * send the DELETE that ends a session, and SDK 2.0.1 has no idle timeout, so its sessions
+     * stay in memory until the pod is replaced. A keep-alive there pinged every one of them
+     * every 30s, and each ping to a session with no open stream failed with a WARN and
+     * removed nothing - 94 sessions after four days was 270,000 log lines a day, growing
+     * until the next deploy. Without the ping, an idle stream a client does hold open is
+     * closed by the ingress and the client reconnects, which the protocol expects.
      */
     private static final Duration KEEP_ALIVE = Duration.ofSeconds(30);
 
@@ -104,7 +112,6 @@ public class McpServerConfig {
                 // reject the remote clients we exist to serve, whose Host is our own
                 // ingress hostname and whose Origin we do not control.
                 .securityValidator(ServerTransportSecurityValidator.NOOP)
-                .keepAliveInterval(KEEP_ALIVE)
                 .build();
     }
 

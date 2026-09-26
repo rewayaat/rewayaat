@@ -48,15 +48,83 @@ spec:
           annotations:
             summary: "rewayaat-v2 p95 latency above 10s"
 
+        # Summed per pod: the per-id form compared each G1 pool to its own max, and
+        # Eden/Survivor report max = -1, so the alert only ever fired for Old Gen.
         - alert: RewayaatV2HeapPressure
           expr: |
-            jvm_memory_used_bytes{area="heap",job="rewayaat-v2"}
-            / jvm_memory_max_bytes{area="heap",job="rewayaat-v2"} > 0.90
+            sum by (pod) (jvm_memory_used_bytes{area="heap",job="rewayaat-v2"})
+            / sum by (pod) (jvm_memory_max_bytes{area="heap",job="rewayaat-v2",id!~".*(Eden|Survivor).*"})
+            > 0.90
           for: 10m
           labels:
             severity: warning
           annotations:
             summary: "JVM heap above 90%"
+            description: "{{ $labels.pod }} heap is {{ $value | humanizePercentage }} of max for 10 minutes. On 2026-09-25 this preceded an OutOfMemoryError under a scrape burst."
+
+        # Container-level pressure. The HPA is pinned at 2 pods (no budget), so these are
+        # the signal that the fixed capacity is not enough, rather than a scale-out trigger.
+        - alert: RewayaatV2CpuPressure
+          expr: |
+            sum by (pod) (rate(container_cpu_usage_seconds_total{namespace="rewayaat-v2",container="rewayaat-v2"}[5m]))
+            / sum by (pod) (kube_pod_container_resource_limits{namespace="rewayaat-v2",container="rewayaat-v2",resource="cpu"})
+            > 0.80
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "rewayaat-v2 CPU above 80% of limit"
+            description: "{{ $labels.pod }} is using {{ $value | humanizePercentage }} of its CPU limit for 10 minutes; requests are being throttled."
+
+        - alert: RewayaatV2CpuThrottling
+          expr: |
+            sum by (pod) (rate(container_cpu_cfs_throttled_periods_total{namespace="rewayaat-v2",container="rewayaat-v2"}[5m]))
+            / sum by (pod) (rate(container_cpu_cfs_periods_total{namespace="rewayaat-v2",container="rewayaat-v2"}[5m]))
+            > 0.25
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "rewayaat-v2 CPU throttled more than 25% of the time"
+            description: "{{ $labels.pod }} hit its CPU quota in {{ $value | humanizePercentage }} of scheduler periods for 10 minutes."
+
+        - alert: RewayaatV2MemoryPressure
+          expr: |
+            sum by (pod) (container_memory_working_set_bytes{namespace="rewayaat-v2",container="rewayaat-v2"})
+            / sum by (pod) (kube_pod_container_resource_limits{namespace="rewayaat-v2",container="rewayaat-v2",resource="memory"})
+            > 0.85
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "rewayaat-v2 memory above 85% of limit"
+            description: "{{ $labels.pod }} working set is {{ $value | humanizePercentage }} of its memory limit; the next step is an OOM kill."
+
+        - alert: RewayaatV2TrafficSurge
+          expr: |
+            sum(rate(nginx_ingress_controller_requests{exported_namespace="rewayaat-v2"}[5m])) > 15
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "rewayaat-v2 ingress above 15 req/s for 5 minutes"
+            description: "Normal load is 1 to 2 req/s. The 2026-09-25 scrape burst from Tencent SG (43.172.0.0/16, 43.173.0.0/16) ran at 40 to 60 req/s and took the site down."
+
+        - alert: RewayaatV2AutoscalerMaxedOut
+          expr: |
+            kube_horizontalpodautoscaler_status_desired_replicas{namespace="rewayaat-v2",horizontalpodautoscaler="rewayaat-v2"}
+            >= kube_horizontalpodautoscaler_spec_max_replicas{namespace="rewayaat-v2",horizontalpodautoscaler="rewayaat-v2"}
+            and
+            kube_horizontalpodautoscaler_status_desired_replicas{namespace="rewayaat-v2",horizontalpodautoscaler="rewayaat-v2"} > 0
+            and on ()
+            max(rate(container_cpu_usage_seconds_total{namespace="rewayaat-v2",container="rewayaat-v2"}[5m])) > 0.35
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "rewayaat-v2 wants more pods than the budget allows"
+            description: "The HPA is at its maximum and CPU is above the 70% target for 15 minutes. Capacity is the limit, not a bug."
+
 
         - alert: RewayaatV2Unreachable
           expr: up{job="rewayaat-v2"} == 0
@@ -65,3 +133,25 @@ spec:
             severity: critical
           annotations:
             summary: "Prometheus cannot scrape rewayaat-v2"
+
+    - name: node.rules
+      rules:
+        - alert: NodeCpuPressure
+          expr: |
+            100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[10m]))) > 80
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Node CPU above 80%"
+            description: "{{ $labels.instance }} has averaged {{ $value | printf \"%.0f\" }}% CPU for 15 minutes."
+
+        - alert: NodeMemoryPressure
+          expr: |
+            100 * (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) > 85
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Node memory above 85%"
+            description: "{{ $labels.instance }} has {{ $value | printf \"%.0f\" }}% memory in use for 15 minutes; the kubelet will start evicting pods around 90%."

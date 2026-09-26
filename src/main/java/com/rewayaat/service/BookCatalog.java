@@ -124,6 +124,56 @@ public class BookCatalog {
                     .toList();
         }
 
+        /**
+         * The parts of this book that are pages in their own right.
+         *
+         * <p>Computed from a single {@link #parts()} build, because {@code parts()} counts
+         * the chapters of every part by walking the whole chapter list. Asking the question
+         * once per part instead rebuilt that for each one, and the books sitemap — which a
+         * crawler abandons if it is slow — asks it about all 166.
+         */
+        public List<Part> pageParts() {
+            List<Part> all = parts();
+            return all.stream().filter(p -> isOwnPage(p, all)).toList();
+        }
+
+        /** The same, scoped to one volume, for a book whose parts sit under volumes. */
+        public List<Part> pagePartsIn(String volume) {
+            List<Part> all = partsInVolume(volume);
+            return all.stream().filter(p -> isOwnPage(p, all)).toList();
+        }
+
+        public boolean partIsItsOwnPage(Part part) {
+            return isOwnPage(part, parts());
+        }
+
+        /**
+         * Whether a part earns a URL of its own — the one place the rule is decided.
+         *
+         * <p>Two ways it does not. A part wrapping one chapter duplicates that chapter
+         * ({@link Part#holdsSingleChapter()}). And a part that is the only one dividing its
+         * parent covers the parent whole: Al-Tawḥīd, Kāmil al-Ziyārāt, Kitāb al-Zuhd and
+         * volume 1 of ʿUyūn akhbār al-Riḍā are each filed as one part named "Content"
+         * holding everything plus an "Introduction" holding a single chapter, so the book
+         * page's entire link list was those two, and every chapter sat two hops down behind
+         * a page that divided nothing.
+         *
+         * <p>{@code partPage} canonicalises away from a part this returns false for and
+         * {@code booksSitemap} leaves it out, so the two can never disagree. The hub pages
+         * ask the same question to decide whether to render a part layer at all — but they
+         * still list every part when they do, because a part that is not its own page is
+         * still the only link to its chapters (invariant 5).
+         */
+        private static boolean isOwnPage(Part part, List<Part> siblings) {
+            if (part.holdsSingleChapter()) {
+                return false;
+            }
+            return siblings.stream()
+                    .filter(p -> sameFacet(p.volume(), part.volume()))
+                    .filter(p -> !p.holdsSingleChapter())
+                    .count() > 1;
+        }
+
         public List<Chapter> chaptersInPart(String volume, String partTitle) {
             return chapters.stream()
                     .filter(c -> sameFacet(c.volume(), volume) && sameFacet(c.part(), partTitle))
@@ -160,6 +210,23 @@ public class BookCatalog {
 
         public String url() {
             return "/books/" + bookSlug + "/part/" + slug;
+        }
+
+        /**
+         * Whether this part holds exactly one chapter, and so duplicates that chapter's
+         * own page rather than being a page in its own right.
+         *
+         * <p>Invariant 10 one level up the hierarchy. Eighteen of the 166 parts wrap a
+         * single chapter that carries the part's own title, so the part page is a heading,
+         * a blurb and one link to a page of the same name — about a hundred words, most of
+         * it chrome.
+         *
+         * <p>The one place this is decided, exactly as {@link Chapter#holdsSingleNarration()}
+         * is: {@code partPage} canonicalises such a part to its chapter and
+         * {@code booksSitemap} leaves it out, and the two must never disagree.
+         */
+        public boolean holdsSingleChapter() {
+            return chapterCount == 1;
         }
     }
 
