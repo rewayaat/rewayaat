@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rewayaat.service.BookCatalog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Element;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.InputStream;
@@ -28,6 +26,7 @@ class BookBlurbs {
     private final Map<String, String> bySlug;
     private final Map<String, String> bySlugAr;
     private final Map<String, String> summaries;
+    private final Map<String, String> summariesAr;
     private final Map<String, String> sectionSummaries;
     private final Map<String, String> sectionSummariesAr;
 
@@ -35,6 +34,7 @@ class BookBlurbs {
         this.bySlug = load("blurb");
         this.bySlugAr = load("blurb_ar");
         this.summaries = loadSummaries("static/book_summaries.json");
+        this.summariesAr = loadSummaries("static/book_summaries.json", "ar");
         this.sectionSummaries = loadSummaries("static/section_summaries.json");
         this.sectionSummariesAr = loadSummaries("static/section_summaries.json", "ar");
     }
@@ -76,32 +76,18 @@ class BookBlurbs {
     /**
      * A plain-text opening paragraph for the hero, in the page's language.
      *
-     * <p>book_summaries.json is English only. The Arabic blurb is a written introduction
-     * in its own right, so the Arabic hero draws its first paragraph from there instead of
-     * showing English prose under an Arabic heading.
+     * <p>All eighteen books carry both halves now, and the Arabic is written rather than
+     * salvaged. It used to be taken from the first paragraph of the Arabic blurb, which
+     * only five books have — so thirteen Arabic book pages opened with nothing at all
+     * while their English twins opened with a paragraph. That is invisible from the
+     * English site, which is why it survived as long as it did.
      *
-     * <p>The blurb is HTML - the About section renders it with {@code th:utext} - while the
-     * hero is plain text in a {@code th:text}. Handing the markup straight over printed the
-     * tags to the reader, so the paragraph is parsed out and unwrapped here.
+     * <p>Still no English fallback. The hero collapses to its centred layout when there is
+     * no intro, whereas an English paragraph under an Arabic heading is mixed-language body
+     * text on a page whose whole purpose is to rank for Arabic queries.
      */
     String summaryForSlug(String slug, boolean arabic) {
-        if (!arabic) {
-            return summaries.get(slug);
-        }
-        String arabicBlurb = bySlugAr.get(slug);
-        if (arabicBlurb == null || arabicBlurb.isBlank()) {
-            // Deliberately no English fallback. The hero already collapses to its centred
-            // layout when there is no intro, whereas an English paragraph under an Arabic
-            // heading is mixed-language body text on a page whose whole purpose is to rank
-            // for Arabic queries. Eight of the eighteen books are in that state today.
-            return null;
-        }
-        Element paragraph = Jsoup.parseBodyFragment(arabicBlurb).body().selectFirst("p");
-        if (paragraph == null) {
-            return null;
-        }
-        String text = paragraph.text().trim();
-        return text.isEmpty() ? null : text;
+        return arabic ? summariesAr.get(slug) : summaries.get(slug);
     }
 
     /**
@@ -146,9 +132,9 @@ class BookBlurbs {
      *
      * <p>An entry is either a bare string, which is English, or an object carrying both
      * languages as en and ar — the shape taxonomy.json uses, so the translation sits
-     * beside the English rather than in a file of its own. Section summaries carry both;
-     * book summaries are still bare, and the Arabic book hero draws its opening paragraph
-     * from the Arabic blurb instead.
+     * beside the English rather than in a file of its own. Both files carry both halves;
+     * the bare-string form is still read because it is what a hand-added entry looks like
+     * before anyone translates it, and TranslatedDataTest is what catches that.
      */
     private static Map<String, String> loadSummaries(String resource, String language) {
         Map<String, String> loaded = new LinkedHashMap<>();

@@ -4,6 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -34,10 +35,27 @@ class BookBlurbsTest {
     }
 
     @Test
-    @DisplayName("a book with no Arabic blurb shows no intro rather than an English one")
-    void untranslatedBooksGetNoIntro() {
-        assertNull(blurbs.summaryForSlug("kitab-al-ghayba", true));
-        assertNotNull(blurbs.summaryForSlug("al-kafi", true), "al-kafi does have one");
+    @DisplayName("an Arabic book page opens with Arabic, never with the English intro")
+    void theArabicIntroIsArabic() {
+        // This used to draw on the Arabic blurb, which only five of the eighteen books
+        // have, so thirteen Arabic book pages opened with nothing while their English
+        // twins opened with a paragraph. Kitab al-Ghayba was one of them.
+        for (String slug : new String[]{"kitab-al-ghayba", "al-tawhid", "risalat-al-huquq",
+                "kitab-al-du-afa", "al-kafi"}) {
+            String arabic = blurbs.summaryForSlug(slug, true);
+            assertNotNull(arabic, slug + " has no Arabic intro");
+            assertNotEquals(blurbs.summaryForSlug(slug, false), arabic,
+                    slug + " is showing the English intro on its Arabic page");
+            assertTrue(arabic.codePoints().anyMatch(c -> c >= 0x0600 && c <= 0x06FF),
+                    slug + " intro is not in Arabic script: " + arabic);
+        }
+    }
+
+    @Test
+    @DisplayName("a slug nobody has written about gets no intro at all")
+    void anUnknownBookGetsNoIntro() {
+        assertNull(blurbs.summaryForSlug("no-such-book", true));
+        assertNull(blurbs.summaryForSlug("no-such-book", false));
     }
 
     @Test

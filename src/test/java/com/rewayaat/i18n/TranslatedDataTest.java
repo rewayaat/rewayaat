@@ -123,6 +123,16 @@ class TranslatedDataTest {
     }
 
     @Test
+    @DisplayName("every book's hero introduction has an Arabic twin")
+    void everyBookSummaryIsTranslated() throws IOException {
+        // The intro at the top of a book page. It was English only, and the Arabic hero
+        // fell back to the first paragraph of the Arabic blurb — which five of eighteen
+        // books have, so thirteen Arabic book pages opened blank against an English page
+        // that opened with a paragraph. Nothing said so from the English site.
+        assertBothLanguages("src/main/resources/static/book_summaries.json", "book summaries");
+    }
+
+    @Test
     @DisplayName("every volume and part summary has an Arabic twin")
     void everySectionSummaryIsTranslated() throws IOException {
         // These sit in the hero of a volume or part page. They were English only, and the
@@ -130,21 +140,33 @@ class TranslatedDataTest {
         // heading — which was right, and also left the Arabic hubs looking emptier than
         // the English ones. Now that they are translated, the thing to guard is that a
         // new one cannot arrive with only half of it written.
-        JsonNode summaries = read("src/main/resources/static/section_summaries.json");
+        assertBothLanguages("src/main/resources/static/section_summaries.json",
+                "section summaries");
+    }
+
+    /** Both halves present in a {@code {key: {en, ar}}} file, for every key it holds. */
+    private static void assertBothLanguages(String path, String what) throws IOException {
+        JsonNode summaries = read(path);
         List<String> missing = new ArrayList<>();
-        summaries.fieldNames().forEachRemaining(path -> {
-            if (path.startsWith("_")) {
-                return;
+        int seen = 0;
+        for (String key : (Iterable<String>) summaries::fieldNames) {
+            if (key.startsWith("_")) {
+                continue;
             }
-            JsonNode entry = summaries.path(path);
+            seen++;
+            JsonNode entry = summaries.path(key);
             if (!entry.isObject()) {
-                missing.add(path + " (still a bare string, so it has no Arabic at all)");
+                missing.add(key + " (still a bare string, so it has no Arabic at all)");
+            } else if (entry.path("en").asText("").isBlank()) {
+                missing.add(key + " (no English)");
             } else if (entry.path("ar").asText("").isBlank()) {
-                missing.add(path);
+                missing.add(key);
             }
-        });
+        }
+        // Without this the check passes just as well against a file that failed to parse.
+        assertTrue(seen > 0, path + " held no entries, so this checked nothing");
         assertTrue(missing.isEmpty(),
-                "section summaries with no Arabic: " + missing
+                what + " with no Arabic: " + missing
                         + "\nEach entry is {\"en\": ..., \"ar\": ...}; the page shows nothing "
                         + "in Arabic without the second half.");
     }
