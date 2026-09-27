@@ -8909,11 +8909,26 @@ body.is-resizing-sidecar * {
 }
 
 /* Arabic sets a taller line box than Latin at the same font size — its letters carry
-   marks above and tails below the baseline. At 45px the typed term did not fit, and
-   .ts-control, which scrolls so that several selected terms can wrap, answered with a
-   scrollbar inside the search field. A few pixels of room is all it wanted. */
-[dir="rtl"] {
-    --search-shell-height: 52px;
+   marks above and tails below the baseline — so a term token that is 22px in English
+   grows to 26px in Arabic, and .ts-control, which scrolls so several terms can wrap,
+   answered with a scrollbar inside the search field.
+ 
+   That was fixed by raising the whole shell to 52px, which bought the four pixels the
+   token needed by making the field seven pixels taller than the English one everywhere
+   it appears — 76px of navbar against 69px on the search page, and a home page hero
+   field of 54px against 47px. The extra height went almost entirely into padding.
+ 
+   Take it out of the padding instead. The shell matches English again and the wrapper
+   gives back the four pixels the token actually wanted.
+
+   Unscoped, because English has the same defect and was simply never reported: a token
+   there measures 26px too, against 27px of content, so the field has been scrolling by
+   one pixel all along. The padding is the thing that was wrong in both, and the outer
+   height does not move — an English field is 45px before this change and after it. */
+.search-entry-shell .ts-wrapper,
+.search-entry-shell .ts-wrapper.form-control {
+    padding-top: 4px;
+    padding-bottom: 4px;
 }
 
 .navbar-search__input {
@@ -12201,4 +12216,23 @@ a.hub-hero__eyebrow:hover {
 [dir="rtl"] .hadith-chain--arabic.arabic-text { font-size: 1.3rem !important; }
 [dir="rtl"] .hadith-text-block--arabic .hadith-chain--arabic.arabic-text {
     font-size: 1.2rem !important;
+}
+
+
+/* The submit button says what it does; the magnifying glass in front of the word
+   repeats it, and the field already carries one at its other end. Font Awesome's own
+   `.fa { display: … }` loads after this file and matches at the same specificity, which
+   is why the existing `.search-btn__icon-mobile { display: none }` never took effect and
+   the icon has been showing on desktop all along.
+
+   Still shown under 768px, where the rule below it hides the button's text and the icon
+   is the only label the button has. */
+.search-btn-with-border .search-btn__icon-mobile {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .search-btn-with-border .search-btn__icon-mobile {
+        display: inline-block;
+    }
 }

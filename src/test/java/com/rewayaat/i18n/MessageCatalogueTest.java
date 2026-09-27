@@ -163,15 +163,21 @@ class MessageCatalogueTest {
     @Test
     @DisplayName("no toast or alert is raised with English written into the script")
     void transientMessagesComeFromTheCatalogue() throws IOException {
-        // Toasts and alert strips are the messages a reader is most likely to be reading
-        // closely — something just happened — and the least likely to be caught by a
-        // sweep, because they appear only after an action and vanish. Thirty of them sat
-        // in English on the Arabic site behind clicks nobody had made while looking.
+        // Toasts, alert strips and modal dialogs are the messages a reader is most likely
+        // to be reading closely — something just happened — and the least likely to be
+        // caught by a sweep, because they appear only after an action and vanish. Thirty
+        // of them sat in English on the Arabic site behind clicks nobody had made while
+        // looking.
+        //
+        // swal is in this list because it was not, and fifteen modals went on being
+        // raised in English long after the toasts were fixed: the no-results dialog, every
+        // collection failure, the export failure, the search-modes help. They were found
+        // by opening the Arabic site and typing a query that matches nothing.
         //
         // Matches a literal first argument that contains two or more English words. Icon
         // markup passed as a prefix is not prose and does not count.
         Pattern raised = Pattern.compile(
-                "\\b(?:showToast|toast|setAlert|hubToast)\\(\\s*'([^']{3,})'");
+                "\\b(?:showToast|toast|setAlert|hubToast|swal)\\(\\s*'([^']{3,})'");
 
         Set<String> found = new TreeSet<>();
         for (Path file : sources()) {

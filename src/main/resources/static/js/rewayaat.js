@@ -14,6 +14,46 @@ function t(key, fallback) {
 }
 
 /**
+ * The dismiss button on every modal.
+ *
+ * sweetalert ships "OK", and every swal() here uses the shorthand — a title, a body and
+ * an icon — which is the one form that takes no button option. So the button stayed
+ * English on an otherwise translated dialog.
+ *
+ * swal.setDefaults({button}) does not fix it: the shorthand builds its own button list
+ * after the defaults are merged and overwrites them. Wrapping the shorthand does, and it
+ * is one place rather than fifteen call sites that would each have to remember. The
+ * object form is passed through untouched unless it named no buttons of its own.
+ */
+(function localiseModalButton(attempt) {
+    var original = window.swal;
+    if (typeof original !== 'function') {
+        // The library is loaded with defer from a CDN. Normally it is here by
+        // DOMContentLoaded; if it is not, give it a moment rather than give up.
+        if ((attempt || 0) < 20) {
+            setTimeout(function () { localiseModalButton((attempt || 0) + 1); }, 150);
+        }
+        return;
+    }
+    if (original.__buttonLocalised) {
+        return;
+    }
+    var wrapped = function (first, text, icon) {
+        var label = t('js.modalOk', 'OK');
+        if (first && typeof first === 'object') {
+            if (first.button === undefined && first.buttons === undefined) {
+                first.button = label;
+            }
+            return original.call(this, first);
+        }
+        return original.call(this, {title: first, text: text, icon: icon, button: label});
+    };
+    Object.keys(original).forEach(function (key) { wrapped[key] = original[key]; });
+    wrapped.__buttonLocalised = true;
+    window.swal = wrapped;
+}());
+
+/**
  * The current language's URL for an internal path.
  *
  * The Arabic site is the same pages under /ar. Every link the server renders carries that
@@ -247,8 +287,9 @@ function loadQuery(query, page = 1, sortFields, skipBrowseRedirect) {
             //setLatestNewsBarHTML();
         } else {
             swal(
-                "Invalid Query",
-                "Please ensure the entered query is greater than three characters long!",
+                t('js.invalidQueryTitle', 'Invalid Query'),
+                t('js.invalidQueryBody',
+                  'Please ensure the entered query is greater than three characters long!'),
                 "error");
             displayWelcomeContent();
         }
@@ -723,9 +764,10 @@ function setupSearchHelpHint() {
     }
     btn.addEventListener('click', function(e) {
         e.preventDefault();
-        var msg = "Precise: exact words and exact phrases.\n\nFlexible: tolerates spelling variants and partial matches.";
+        var msg = t('js.searchModesBody',
+            "Precise: exact words and exact phrases.\n\nFlexible: tolerates spelling variants and partial matches.");
         if (typeof swal === 'function') {
-            swal('Search Modes', msg, 'info');
+            swal(t('js.searchModesTitle', 'Search Modes'), msg, 'info');
         } else {
             alert(msg);
         }
@@ -1817,7 +1859,10 @@ function openCreateCollectionModal() {
                 return c.name && c.name.trim().toLowerCase() === name.trim().toLowerCase();
             });
             if (duplicate) {
-                swal('Duplicate name', 'You already have a collection named "' + escapeHtml(name.trim()) + '". Please choose a different name.', 'warning');
+                swal(t('js.duplicateNameTitle', 'Duplicate name'),
+                    t('js.duplicateNameBody',
+                      'You already have a collection named "{0}". Please choose a different name.')
+                        .replace('{0}', escapeHtml(name.trim())), 'warning');
                 return;
             }
             apiJSON('/v1/collections', {
@@ -1825,7 +1870,9 @@ function openCreateCollectionModal() {
                 body: JSON.stringify({ name: name })
             }).then(function(resp) {
                 if (!resp.ok || !resp.data.ok) {
-                    swal('Unable to create', (resp.data && resp.data.message) || 'Could not create collection.', 'error');
+                    swal(t('js.createFailedTitle', 'Unable to create'),
+                        (resp.data && resp.data.message)
+                            || t('js.createFailedBody', 'Could not create collection.'), 'error');
                     return;
                 }
                 swal.close();
@@ -1849,7 +1896,8 @@ function openSaveHadithModal(hadithId) {
     ensureCollectionsLoaded().then(function(collections) {
         openCollectionPickerModal(hadithId, collections);
     }).catch(function() {
-        swal('Save unavailable', 'Unable to load your collections right now.', 'error');
+        swal(t('js.saveUnavailableTitle', 'Save unavailable'),
+            t('js.collectionsLoadFailed', 'Unable to load your collections right now.'), 'error');
     });
 }
 
@@ -1866,7 +1914,8 @@ function openCollectionManageModal() {
         // Open the full collections modal
         openUserProfileModal();
     }).catch(function() {
-        swal('Collections unavailable', 'Unable to load your collections right now.', 'error');
+        swal(t('js.collectionsUnavailableTitle', 'Collections unavailable'),
+            t('js.collectionsLoadFailed', 'Unable to load your collections right now.'), 'error');
     });
 }
 
@@ -2418,7 +2467,9 @@ function deleteCollection(collectionId, onSuccess) {
     apiJSON('/v1/collections/' + encodeURIComponent(collectionId), { method: 'DELETE' })
         .then(function(resp) {
             if (!resp.ok || !resp.data.ok) {
-                swal('Delete failed', (resp.data && resp.data.message) || 'Unable to delete collection.', 'error');
+                swal(t('js.deleteFailedTitle', 'Delete failed'),
+                    (resp.data && resp.data.message)
+                        || t('js.deleteFailedBody', 'Unable to delete collection.'), 'error');
                 return;
             }
             loadAndRenderCollections(false);
@@ -3648,7 +3699,9 @@ function openPdfExportWindow(options) {
             iframe.parentNode.removeChild(iframe);
         }
         if (typeof swal === 'function') {
-            swal('Export unavailable', 'Unable to prepare the PDF export in this browser.', 'warning');
+            swal(t('js.exportUnavailableTitle', 'Export unavailable'),
+                t('js.exportUnavailableBody',
+                  'Unable to prepare the PDF export in this browser.'), 'warning');
         }
         return;
     }
@@ -5527,10 +5580,12 @@ function setupVue(query, page, sortFields) {
                 var applyIncomingNarrations = function(respJSON) {
                     if (respJSON.error) {
                         self.dismissArabicSuggestion();
-                        swal("Oops...",
+                        swal(t('js.oops', 'Oops...'),
                             self.collectionMode
-                                ? "Something went wrong while opening this collection."
-                                : "Something went wrong while fetching your hadith, please try a different search.");
+                                ? t('js.collectionOpenFailed',
+                                    'Something went wrong while opening this collection.')
+                                : t('js.searchFailed',
+                                    'Something went wrong while fetching your hadith, please try a different search.'));
                         return;
                     }
                     var items = Array.isArray(respJSON.collection) ? respJSON.collection : [];
@@ -5544,8 +5599,8 @@ function setupVue(query, page, sortFields) {
                             self.topicTagFacets = respJSON.topicTagFacets || {};
                             return;
                         }
-                        swal("Oops...",
-                            "No results seem to match your query!",
+                        swal(t('js.oops', 'Oops...'),
+                            t('js.noResults', 'No results seem to match your query!'),
                             "error");
                         return;
                     }
@@ -5582,7 +5637,9 @@ function setupVue(query, page, sortFields) {
                                 return null;
                             }
                             if (!metaResp.ok || !metaResp.data || !metaResp.data.ok) {
-                                swal('Collection unavailable', (metaResp.data && metaResp.data.message) || 'Unable to load this collection.', 'error');
+                                swal(t('js.collectionUnavailableTitle', 'Collection unavailable'),
+                                    (metaResp.data && metaResp.data.message)
+                                        || t('js.collectionLoadFailed', 'Unable to load this collection.'), 'error');
                                 return null;
                             }
                             self.collectionMeta = metaResp.data.collection || null;
@@ -5601,7 +5658,9 @@ function setupVue(query, page, sortFields) {
                             applyIncomingNarrations(resp.data || {});
                         })
                         .catch(function() {
-                            swal('Collection unavailable', 'Unable to load this collection right now.', 'error');
+                            swal(t('js.collectionUnavailableTitle', 'Collection unavailable'),
+                                t('js.collectionLoadFailedNow',
+                                  'Unable to load this collection right now.'), 'error');
                         })
                         .finally(function() {
                             self.narrationsLoading = false;
@@ -5624,8 +5683,9 @@ function setupVue(query, page, sortFields) {
                 }
                 xhr.onerror = function() {
                     self.dismissArabicSuggestion();
-                    swal("Oops...",
-                        "Something went wrong while fetching your hadith, please try a different search.");
+                    swal(t('js.oops', 'Oops...'),
+                        t('js.searchFailed',
+                          'Something went wrong while fetching your hadith, please try a different search.'));
                 };
                 xhr.onloadend = function() {
                     self.narrationsLoading = false;
@@ -6545,7 +6605,10 @@ function setupVue(query, page, sortFields) {
                     method: 'DELETE'
                 }).then(function(resp) {
                     if (!resp.ok || !resp.data || !resp.data.ok) {
-                        swal('Remove failed', (resp.data && resp.data.message) || 'Unable to remove hadith from this collection.', 'error');
+                        swal(t('js.removeFailedTitle', 'Remove failed'),
+                            (resp.data && resp.data.message)
+                                || t('js.removeFailedBody',
+                                     'Unable to remove hadith from this collection.'), 'error');
                         return;
                     }
                     var collection = resp.data.collection || self.collectionMeta || null;
@@ -6592,7 +6655,10 @@ function setupVue(query, page, sortFields) {
                     body: JSON.stringify({ name: newName })
                 }).then(function(resp) {
                     if (!resp.ok || !resp.data || !resp.data.ok) {
-                        swal('Update failed', (resp.data && resp.data.message) || 'Unable to update collection name.', 'error');
+                        swal(t('js.updateFailedTitle', 'Update failed'),
+                            (resp.data && resp.data.message)
+                                || t('js.updateFailedBody',
+                                     'Unable to update collection name.'), 'error');
                         return;
                     }
                     self.collectionTitle = newName;
