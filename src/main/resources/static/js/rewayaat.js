@@ -1319,13 +1319,34 @@ function closeUserProfileMenu() {
     }
     if (profileMenu) {
         profileMenu.classList.add('d-none');
+        profileMenu.classList.remove('profile-dropdown--above');
         profileMenu.setAttribute('aria-hidden', 'true');
+        profileMenu.style.maxHeight = '';
+        // Cleared too, because a page loaded before this was fixed can still be
+        // holding the inline left/top/width that put the panel off the page.
         profileMenu.style.top = '';
         profileMenu.style.left = '';
-        profileMenu.style.maxHeight = '';
+        profileMenu.style.width = '';
     }
 }
 
+/**
+ * Keeps the profile menu inside the window vertically. Horizontally it is the
+ * stylesheet's job, and this used to fight it.
+ *
+ * The panel is `position: absolute` under `.profile-menu`, anchored with
+ * `inset-inline-end: 0` so it hangs from the chip that opens it and mirrors
+ * itself on the Arabic site for free. This function still computed a `left` in
+ * viewport coordinates, from when the panel was `position: fixed`, and wrote it
+ * inline — where the browser resolved it against `.profile-menu` instead of the
+ * window. On the English site the chip sits about 1100px in, so a `left` of 956
+ * put the panel at 2063 on a 1385px page: off the right edge, with a horizontal
+ * scrollbar under the whole site. Arabic escaped it only because the chip is on
+ * the left there and the clamp bottomed out at 12px.
+ *
+ * So: no left, no top, no width. Only the height is clamped, and a class flips
+ * the panel above the chip when there is no room below it.
+ */
 function positionUserProfileMenu() {
     var profileBtn = document.getElementById('authProfileBtn');
     var profileMenu = document.getElementById('authProfileMenu');
@@ -1333,20 +1354,13 @@ function positionUserProfileMenu() {
         return;
     }
     var rect = profileBtn.getBoundingClientRect();
-    var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
     var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-    var menuWidth = Math.min(300, Math.max(260, viewportWidth - 24));
-    profileMenu.style.width = menuWidth + 'px';
-    var menuRect = profileMenu.getBoundingClientRect();
-    var left = Math.max(12, Math.min(rect.right - menuRect.width, viewportWidth - menuRect.width - 12));
-    var top = rect.bottom + 10;
-    var availableBelow = viewportHeight - top - 12;
-    if (availableBelow < 220) {
-        top = Math.max(12, rect.top - Math.min(menuRect.height || 360, viewportHeight - 24) - 10);
-    }
-    profileMenu.style.left = left + 'px';
-    profileMenu.style.top = top + 'px';
-    profileMenu.style.maxHeight = Math.max(180, viewportHeight - top - 12) + 'px';
+    var gap = 10;
+    var below = viewportHeight - rect.bottom - gap - 12;
+    var above = rect.top - gap - 12;
+    var flip = below < 220 && above > below;
+    profileMenu.classList.toggle('profile-dropdown--above', flip);
+    profileMenu.style.maxHeight = Math.max(180, flip ? above : below) + 'px';
 }
 
 function renderUserProfileMenu(collections) {
@@ -1362,7 +1376,7 @@ function renderUserProfileMenu(collections) {
     var header = document.createElement('div');
     header.className = 'profile-dropdown__header';
     header.innerHTML =
-        '<div class="profile-dropdown__eyebrow">Signed in</div>' +
+        '<div class="profile-dropdown__eyebrow">' + escapeHtml(t('js.signedIn', 'Signed in')) + '</div>' +
         '<div class="profile-dropdown__title">' + escapeHtml((authState.user && (authState.user.displayName || authState.user.email)) || t('nav.account', 'Account')) + '</div>' +
         '<div class="profile-dropdown__subtitle">' + escapeHtml((authState.user && authState.user.email) || '') + '</div>';
     panel.appendChild(header);
@@ -1373,8 +1387,12 @@ function renderUserProfileMenu(collections) {
     var stats = document.createElement('div');
     stats.className = 'profile-dropdown__stats';
     stats.innerHTML =
-        '<div class="profile-dropdown__stat"><span class="profile-dropdown__stat-inline">' + collections.length + ' Collections</span></div>' +
-        '<div class="profile-dropdown__stat"><span class="profile-dropdown__stat-inline">' + totalSaved + ' Saved hadith</span></div>';
+        '<div class="profile-dropdown__stat"><span class="profile-dropdown__stat-inline">'
+            + escapeHtml(t('js.collectionsCount', '{0} Collections').replace('{0}', localeDigits(collections.length)))
+            + '</span></div>' +
+        '<div class="profile-dropdown__stat"><span class="profile-dropdown__stat-inline">'
+            + escapeHtml(t('js.savedCount', '{0} Saved hadith').replace('{0}', localeDigits(totalSaved)))
+            + '</span></div>';
     panel.appendChild(stats);
 
     var list = document.createElement('div');
@@ -1382,7 +1400,8 @@ function renderUserProfileMenu(collections) {
     if (!collections.length) {
         var empty = document.createElement('div');
         empty.className = 'profile-dropdown__empty';
-        empty.textContent = 'No collections yet. Save a hadith to start building your reading lists.';
+        empty.textContent = t('js.noCollections',
+            'No collections yet. Save a hadith to start building your reading lists.');
         list.appendChild(empty);
     } else {
         // Create "View Collections" dropdown item for mobile
@@ -1391,7 +1410,8 @@ function renderUserProfileMenu(collections) {
 
         var collectionsToggle = document.createElement('div');
         collectionsToggle.className = 'profile-dropdown__toggle';
-        collectionsToggle.innerHTML = '<span>View Collection</span><i class="fa fa-angle-down"></i>';
+        collectionsToggle.innerHTML = '<span>' + escapeHtml(t('js.viewCollections', 'View Collections'))
+            + '</span><i class="fa fa-angle-down"></i>';
 
         var collectionsSubmenu = document.createElement('div');
         collectionsSubmenu.className = 'profile-dropdown__submenu';

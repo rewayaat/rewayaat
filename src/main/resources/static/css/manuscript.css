@@ -11023,6 +11023,7 @@ body.is-search-mode .site-nav .search-entry-shell {
     background: var(--bg-subtle);
     font-family: var(--font-ui);
     font-size: 0.68rem;
+    border: 1px solid #0000001f;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
@@ -12420,4 +12421,15 @@ body.is-search-mode .site-nav .search-entry-shell {
     background: transparent !important;
     border: 0 !important;
     box-shadow: none !important;
+}
+
+
+/* The profile menu, flipped above its chip when the window has no room below.
+   Set as a class rather than an inline top, because the panel is anchored by
+   the stylesheet — see positionUserProfileMenu, which used to write a viewport
+   `left` into an absolutely positioned element and pushed the whole page
+   sideways. */
+.profile-dropdown.profile-dropdown--above {
+    top: auto;
+    bottom: calc(100% + 0.5rem);
 }
