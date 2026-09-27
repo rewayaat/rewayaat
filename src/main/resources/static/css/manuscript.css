@@ -12134,3 +12134,71 @@ a.hub-hero__eyebrow:hover {
 [dir="rtl"] .home-browse .home-section-header::after {
     content: "فهرس المجاميع";
 }
+
+
+/* ── Arabic type sizing on the static pages ─────────────────────────────────
+   Arabic reads smaller than Latin at the same font-size. The em box is spent
+   differently: Arabic has no capitals and a small notional x-height, so the
+   letterforms occupy less of the box, and a face set at 0.98rem that reads
+   comfortably in English reads cramped in Arabic. The usual correction is
+   10-20%, and the smaller the text the more it needs, because the deficit is
+   a fixed proportion of a shrinking number.
+
+   Everything here is a size, scoped to the Arabic document. The English pages
+   are untouched, and so is the narration body, which was already set at
+   1.45rem for exactly this reason and is the one thing on these pages that did
+   not need the adjustment.
+
+   letter-spacing is zeroed alongside. The labels it was set on are uppercase
+   Latin tracking - .hub-group__label at 0.16em, .meta-label at 0.12em - and
+   uppercase does nothing to Arabic while the tracking does: it pulls apart
+   letters that are supposed to join, so a word arrives as disconnected pieces
+   with the connecting strokes stretched between them. */
+
+/* Hero */
+[dir="rtl"] .hub-hero__eyebrow { font-size: 0.82rem; letter-spacing: 0.04em; }
+[dir="rtl"] .hub-hero__intro-text { font-size: 1rem; line-height: 1.85; }
+[dir="rtl"] .hub-stat { font-size: 0.9rem; letter-spacing: 0; }
+[dir="rtl"] .hub-stat__value { font-size: 1.04rem; }
+[dir="rtl"] .hub-crumbs { font-size: 0.9rem; }
+
+/* Section headings and cards */
+[dir="rtl"] .hub-group__label { font-size: 0.88rem; letter-spacing: 0.02em; }
+[dir="rtl"] .hub-card__title { font-size: 1.46rem; }
+[dir="rtl"] .hub-card__meta { font-size: 0.85rem; letter-spacing: 0; }
+
+/* Chapter listings. A volume can carry 600 rows, so the title carries the bump
+   and the ordinal and count follow it up rather than being left behind. */
+[dir="rtl"] .hub-chapter__title { font-size: 1.12rem; line-height: 1.6; }
+[dir="rtl"] .hub-chapter__index { font-size: 0.82rem; }
+[dir="rtl"] .hub-chapter__count { font-size: 0.8rem; }
+
+/* Book blurb */
+[dir="rtl"] .hub-blurb { font-size: 1.14rem; line-height: 1.9; }
+[dir="rtl"] .hub-blurb h2 { font-size: 1.62rem; }
+
+/* Pager */
+[dir="rtl"] .hub-pager__eyebrow { font-size: 0.8rem; letter-spacing: 0.04em; }
+[dir="rtl"] .hub-pager__title { font-size: 1.08rem; }
+
+/* Narration cards: the metadata rail, the tag bar and the result number. The
+   narration itself is already sized for Arabic and is deliberately absent. */
+[dir="rtl"] .hadith-sidecar .meta-label { font-size: 0.72rem; letter-spacing: 0.02em; }
+[dir="rtl"] .hadith-sidecar .meta-text,
+[dir="rtl"] .hadith-sidecar .meta-value { font-size: 1.08rem; letter-spacing: 0; }
+[dir="rtl"] .meta-label { font-size: 0.74rem; letter-spacing: 0.02em; }
+[dir="rtl"] .meta-text { font-size: 1rem; }
+[dir="rtl"] .hadith-card__result-num { font-size: 0.8rem; letter-spacing: 0; }
+[dir="rtl"] .tag-filter-bar__label { font-size: 0.82rem; letter-spacing: 0.04em; }
+[dir="rtl"] .tag-filter-bar__clear { font-size: 0.84rem; }
+
+/* Topic pills: the filter bar above a chapter and the tags under a narration. */
+[dir="rtl"] .topic-pill { font-size: 0.92rem; letter-spacing: 0; }
+[dir="rtl"] .topic-tag-pills__label { font-size: 0.8rem; letter-spacing: 0.03em; }
+
+/* The isnad. Set apart from the matn by size, and that gap is what carries the
+   distinction, so it goes up with everything else rather than closing on it. */
+[dir="rtl"] .hadith-chain--arabic.arabic-text { font-size: 1.3rem !important; }
+[dir="rtl"] .hadith-text-block--arabic .hadith-chain--arabic.arabic-text {
+    font-size: 1.2rem !important;
+}
