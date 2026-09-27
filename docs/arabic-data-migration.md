@@ -1,0 +1,164 @@
+# Putting the Arabic data into production
+
+The Arabic site is finished in the code and unfinished in the index. Every Arabic string
+that is *written by us* — labels, buttons, emails, book introductions, tag names — ships
+inside the build and needs no migration. Every Arabic string that belongs to a *narration*
+— its chapter, its part, its section, its book name, its source, its notes — lives in
+Elasticsearch as an `_ar` field beside the English one, and production has none of them.
+
+This is what has to happen before `/ar` is worth linking to, in what order, and how to
+tell it worked.
+
+## Where things actually stand
+
+Measured 2026-09-27, not recalled.
+
+| | local | production |
+|---|---|---|
+| index behind the `rewayaat_hadith` alias | `rewayaat_hadith_20260909` | `rewayaat_hadith_20260909` |
+| documents | 32,519 | 32,519 |
+| `book_ar` | 32,519 | **0** |
+| `chapter_ar` | 32,514 | **0** |
+| `part_ar` | 32,519 | **0** |
+| `section_ar` | 32,519 | **0** |
+| `source_ar` | 32,519 | **0** |
+| `notes` | 0 | 15 |
+| `notes_ar` | 0 | **0** |
+
+Two rows in that table are the ones to read twice.
+
+**Production has every Arabic field at zero.** Not partially loaded, not stale — absent.
+Nothing has ever been written. A deploy today gives readers an Arabic site whose narration
+metadata is entirely English.
+
+**The 15 notes exist only in production.** Local has none, so nothing about them can be
+tested here. They are all on Al-Khiṣāl (`Al-Khisal-Saduq:957` and fourteen others), and
+they are not short labels: they are a translator's scholarly footnotes, several hundred
+words each, citing Lane's Lexicon, Biḥār al-Anwār, Ṣaḥīḥ Muslim and manuscript variants.
+
+## What each field does when its Arabic is missing
+
+Two different behaviours, on purpose, and the difference decides how urgent each one is.
+
+**Metadata falls back to English.** `HadithCardFactory.localised` returns the English when
+the `_ar` twin is blank, so an Arabic page with an unmigrated index shows Arabic chrome
+around English chapter and book names. Wrong, visibly unfinished, but every page works and
+every link resolves.
+
+**Notes do not fall back.** `HadithCardFactory.notesFor` returns the Arabic or nothing at
+all. On the Arabic site those 15 notes are simply not rendered. That is deliberate: a
+chapter name is a label and a note is three paragraphs of English prose under an Arabic
+heading, which is worse than an absence on a page whose purpose is to be Arabic. It does
+mean the Arabic reader of those 15 narrations is missing content the English reader has,
+silently, which is a thing to decide about rather than discover.
+
+## The migration
+
+Every script takes `--es-host`, and the mappings they apply are committed, so this is
+reproducible from a clean checkout. Nothing here copies data out of the local index.
+
+### 0. Reach production
+
+```bash
+kubectl port-forward -n elastic-v2 svc/elasticsearch-v2 9201:9200
+```
+
+Everything below targets `--es-host http://localhost:9201`. Leaving that off writes to
+your laptop and reports success, which is the failure mode this whole document exists to
+prevent. Target the **alias** `rewayaat_hadith`, never a concrete index name and never
+`rewayaat_updated`, which was the pre-v2 index and no longer exists in production.
+
+### 1. Snapshot
+
+There is a snapshot CronJob in `elastic-v2` (`es-v2-snapshot-*`). Confirm one has run
+recently before writing 32,519 documents:
+
+```bash
+kubectl get pods -n elastic-v2 | grep snapshot
+```
+
+### 2. Dry run
+
+```bash
+python3 -m scripts.i18n.translate_tier1 \
+    --es-host http://localhost:9201 --apply --dry-run
+```
+
+This scrolls the index, matches each document's English value against the committed
+mapping, and writes a preview to `scripts/data/<field>_ar_updates.json` without touching
+anything. Read the per-field line it prints: `Updates`, `Already has <field>_ar`, and
+`No mapping`. A large `No mapping` count means the English in production does not match
+the English the mapping was built from, and the run should stop there.
+
+### 3. Apply
+
+```bash
+python3 -m scripts.i18n.translate_tier1 \
+    --es-host http://localhost:9201 --apply
+```
+
+It covers `book`, `chapter`, `section`, `part`, `publisher`, `edition` and `source`. It
+adds each `_ar` field to the index mapping as it goes, writes in batches of 500, and
+checkpoints to `scripts/data/<field>_ar_checkpoint.json`, so an interrupted run resumes
+rather than restarting.
+
+`publisher` and `edition` have no mapping file; the run says so and skips them. Neither
+field is populated in either index today.
+
+### 4. Verify through the public API, not the index
+
+An index count proves a write landed somewhere. It does not prove a reader sees it.
+
+```bash
+curl -s https://hadith.academyofislam.com/ar/books/al-kafi | grep -c 'dir="rtl"'
+curl -s https://hadith.academyofislam.com/ar/books/al-kafi/part/the-book-on-virtue-of-knowledge \
+  | grep -oE '<h1[^>]*>[^<]*</h1>'
+```
+
+The second should print an Arabic chapter title. If it prints English, the write went to
+the wrong place or the deploy has not rolled out yet — check both, in that order.
+
+### Rolling back
+
+```bash
+python3 -m scripts.i18n.rollback_ar_fields \
+    --es-host http://localhost:9201 --fields chapter_ar --dry-run
+```
+
+It removes `_ar` fields from every document that carries them. The English is never
+touched, so a rollback returns the Arabic site to the fallback behaviour described above
+rather than breaking it.
+
+## What this migration does not cover
+
+**`notes_ar` — the 15 Al-Khiṣāl footnotes.** There is no mapping file and no script,
+because translating them is editorial work, not a lookup. They are long, they cite
+sources by volume and page, and several turn on the wording of an Arabic lexicon entry.
+Until somebody writes them, those 15 narrations show no note on the Arabic site. Nothing
+in the build fails; `TranslatedDataTest` guards the files in the repo, and this is in the
+index.
+
+**`llm_similar.reason_ar` — deliberately dropped.** 43,112 reasons were translated in 719
+chunks and never loaded. They are no longer needed: the related-hadith panel does not show
+the match reason on the Arabic site in either of its two implementations
+(`hub-pages.js` gates on `arabic`, `index.html` on `th:if="${!isArabic}"`), because the
+reason is written in English by the model that judged the pair and reads as a machine
+note. The translated chunks are still under
+`scripts/data/llm_similar_reason_batches/` if that decision is ever reversed.
+
+**`gradings`.** The field does not exist in production. Nothing to translate.
+
+**Chapter titles by scrape.** `load_thaqalayn_titles.py` rebuilds the Arabic titles by
+fetching thaqalayn.net, and it needs `scripts/data/thaqalayn_chapter_titles.json` (2 MB),
+which is not committed. Do not reach for it during a migration. The committed
+`chapter_ar_mapping.json` holds 7,705 pairs — the same facts, already reconciled — and
+step 3 applies them without the network.
+
+## Why the mappings are duplicated at all
+
+`src/main/resources/i18n/*_ar_mapping.json` restates what the documents' own `_ar` fields
+hold. Both copies exist because `BookCatalog` names a chapter from a composite aggregation
+that never asked for the Arabic. `docs/i18n.md` sets out how to remove the duplication —
+a sub-aggregation, measured at 80 ms — and why it has not been done in passing. Until
+then the mapping files are what makes this migration reproducible from the repo, which is
+the one thing they are unambiguously good for.

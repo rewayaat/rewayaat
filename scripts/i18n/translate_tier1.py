@@ -46,7 +46,29 @@ from scripts.i18n.translate_utils import (
 # success while writing nothing a reader will ever see.
 ES_INDEX = "rewayaat_hadith"
 
-TIER1_FIELDS = ["chapter", "section", "part", "publisher", "edition", "source"]
+TIER1_FIELDS = ["book", "chapter", "section", "part", "publisher", "edition", "source"]
+
+# book is the odd one out. Its mapping predates this script and lives under a different
+# name in a different shape - {"Al-Kafi": {"ar": "..."}} rather than {"Al-Kafi": "..."} -
+# because it is also read by the Java at startup. It is listed here anyway: it is a field
+# the site translates, and leaving it out is how production came to hold every other _ar
+# field and not that one, with no script in the repo able to put it there.
+MAPPING_FILES = {
+    "book": ("book_names_mapping.json", "ar"),
+}
+
+
+def load_mapping(field):
+    """The {English: Arabic} pairs for a field, or None if the file is not there."""
+    filename, nested_key = MAPPING_FILES.get(field, (f"{field}_ar_mapping.json", None))
+    path = MAPPING_DIR / filename
+    if not path.exists():
+        return None
+    raw = load_json_cache(path)
+    if nested_key is None:
+        return raw
+    return {english: value.get(nested_key, "") if isinstance(value, dict) else value
+            for english, value in raw.items()}
 
 BATCH_SIZE = 500
 
@@ -147,12 +169,10 @@ def apply_mappings(es, index, fields=None, dry_run=False):
     fields = fields or TIER1_FIELDS
 
     for field in fields:
-        mapping_file = MAPPING_DIR / f"{field}_ar_mapping.json"
-        if not mapping_file.exists():
-            print(f"  {field}: mapping file not found ({mapping_file}), skipping")
+        mapping = load_mapping(field)
+        if mapping is None:
+            print(f"  {field}: mapping file not found in {MAPPING_DIR}, skipping")
             continue
-
-        mapping = load_json_cache(mapping_file)
 
         # Check how many are actually translated
         filled = {k: v for k, v in mapping.items() if v}
