@@ -12236,3 +12236,147 @@ a.hub-hero__eyebrow:hover {
         display: inline-block;
     }
 }
+
+
+/* ── The search field: one size, one surface ────────────────────────────────
+   There are two of these — the hero field on the home page and the one in the
+   navbar on every other page — and they were the same height already, 45px
+   both, while looking nothing alike: a white pill in the hero, a translucent
+   white slab in the navbar. Same size, different surface, which reads as a
+   size difference. So they are unified here rather than tuned apart.
+
+   Compact, because the field is the tallest thing in the navbar row and so
+   sets the navbar's height: at 45px the bar came to 69px before the first
+   result. The floor is not the field, it is the logo at 40px, so the row stops
+   there and the saving comes from the field plus the navbar's own padding —
+   69px to 52px.
+
+   The field's own floor is the term tokens. Each is 20px here, the control
+   pads 2px either side, so 24px of content must fit or .ts-control
+   (overflow-y: auto) puts a scrollbar inside the field. 36px of shell over 3px
+   of wrapper padding leaves 30px. Measured against three long Arabic terms,
+   which are the worst case: Arabic tokens run taller than Latin ones. */
+:root {
+    --search-shell-height: 36px;
+    --search-action-height: 28px;
+}
+
+.site-nav {
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+.search-entry-shell .ts-wrapper,
+.search-entry-shell .ts-wrapper.form-control {
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+.site-nav .ts-control .item,
+.home-search .ts-control .item,
+.navbar-search .ts-control .item {
+    min-height: 20px !important;
+    padding: 1px 7px !important;
+    font-size: 0.8rem !important;
+}
+
+.navbar-search .search-entry-shell .ts-control input,
+.site-nav .search-entry-shell .ts-control input,
+.home-search .search-entry-shell .ts-control input {
+    font-size: 1.02rem !important;
+    line-height: 18px !important;
+}
+
+/* Glass. Both fields sit on navy — the navbar's gradient and the hero's panel —
+   so the surface can be the backdrop itself, blurred, with a gold rule around
+   it and bright type inside. That also settles what the two fields have in
+   common: not a shared colour but a shared absence of one. */
+.search-entry-shell,
+.site-nav .search-entry-shell,
+.home-search .search-entry-shell,
+body.is-search-mode .site-nav .search-entry-shell {
+    background: rgba(255, 255, 255, 0.08);
+    -webkit-backdrop-filter: blur(10px) saturate(140%);
+    backdrop-filter: blur(10px) saturate(140%);
+    border: 1px solid rgba(243, 229, 184, 0.42);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.14),
+        0 6px 18px rgba(4, 12, 24, 0.22);
+}
+
+/* Focus brightens the rule rather than adding a second ring, so the field does
+   not grow by two pixels the moment it is clicked. */
+.search-entry-shell:focus-within,
+.site-nav .search-entry-shell:focus-within,
+.home-search .search-entry-shell:focus-within {
+    border-color: rgba(243, 229, 184, 0.78);
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.navbar-search .search-entry-shell .ts-control input,
+.site-nav .search-entry-shell .ts-control input,
+.home-search .search-entry-shell .ts-control input {
+    color: #f8f1df !important;
+    caret-color: var(--gold-light) !important;
+}
+
+.search-entry-shell .ts-control input::placeholder,
+.site-nav .ts-control input::placeholder,
+.home-search .ts-control input::placeholder {
+    color: rgba(245, 236, 214, 0.55) !important;
+}
+
+.search-entry-shell .search-magnifier,
+.site-nav .search-entry-shell .search-magnifier,
+.home-search .search-entry-shell .search-magnifier {
+    color: rgba(243, 229, 184, 0.82);
+}
+
+.search-ghost-text,
+.site-nav .search-ghost-text {
+    color: rgba(245, 236, 214, 0.5);
+}
+
+.home-search .search-ghost-text.is-visible::before {
+    background: var(--gold-light);
+}
+
+/* The chosen terms. Gold-tinted glass on glass, so they read as part of the
+   field rather than as chips dropped into it. */
+.site-nav .ts-control .item,
+.home-search .ts-control .item,
+.navbar-search .ts-control .item,
+.site-nav .ts-wrapper.multi .ts-control > div,
+.navbar-search .ts-wrapper.multi .ts-control > div,
+.home-search .ts-wrapper.multi .ts-control > div {
+    background: rgba(243, 229, 184, 0.16) !important;
+    border: 1px solid rgba(243, 229, 184, 0.36) !important;
+    color: #f8f1df !important;
+}
+
+.site-nav .ts-control .item .remove,
+.home-search .ts-control .item .remove,
+.navbar-search .ts-control .item .remove {
+    color: rgba(248, 241, 223, 0.65) !important;
+    border-inline-start-color: rgba(243, 229, 184, 0.28) !important;
+}
+
+.site-nav .ts-control .item .remove:hover,
+.home-search .ts-control .item .remove:hover,
+.navbar-search .ts-control .item .remove:hover {
+    color: var(--gold-light) !important;
+    background: transparent !important;
+}
+
+/* The submit button keeps its navy fill: that was chosen for contrast — 9.29:1
+   for gold-light on navy — and it is what keeps the button reading as the
+   action rather than as more of the field. Only its rule changes, to the same
+   gold as the field's, so the two belong to one object. */
+.search-btn-with-border {
+    border-color: rgba(243, 229, 184, 0.5) !important;
+}
+
+.search-btn-with-border:hover,
+.search-btn-with-border:focus-visible {
+    border-color: var(--gold-light) !important;
+}
