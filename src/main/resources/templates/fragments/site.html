@@ -90,6 +90,28 @@
 </head>
 
 <body>
+<!--
+  The three links in the header, as one fragment.
+
+  They lived inside sitenav, which most pages use — but updates.html and the search
+  page build their own header, because their sign-in control is a different thing
+  (an anchor carrying a return URL on one, a script-driven button on the other).
+  So updates.html had a copy of the header with the links quietly missing, and the
+  page shipped for months with no way back to Search or Books from its own navbar.
+
+  The links are the part that is genuinely the same everywhere, so they are the part
+  that is shared. `current` names the page, so the right one is marked; anything
+  unrecognised simply marks none, which is correct for the sign-in page.
+-->
+<div th:fragment="navlinks(current)" class="d-flex home-nav-links">
+    <a href="/" th:href="@{${arPrefix} ?: '' } + '/'" class="home-nav-link"
+       th:classappend="${current == 'search'} ? ' is-current' : ''"><i class="fa fa-magnifying-glass" aria-hidden="true"></i><span th:text="#{nav.search}">Search</span></a>
+    <a href="/books" th:href="@{${arPrefix} ?: '' } + '/books'" class="home-nav-link"
+       th:classappend="${current == 'books'} ? ' is-current' : ''"><i class="fa fa-book-open" aria-hidden="true"></i><span th:text="#{nav.books}">Books</span></a>
+    <a href="/updates.html" th:href="@{${arPrefix} ?: '' } + '/updates.html'" class="home-nav-link"
+       th:classappend="${current == 'updates'} ? ' is-current' : ''"><i class="fa fa-bolt" aria-hidden="true"></i><span th:text="#{nav.updates}">Updates</span></a>
+</div>
+
 <nav th:fragment="sitenav" class="navbar navbar-expand-lg sticky-top site-nav">
     <div class="container">
         <div class="navbar-top w-100 d-flex align-items-center flex-wrap gap-3">
@@ -101,12 +123,7 @@
                      alt="ALI Logo" th:alt="#{footer.academyFull}"/>
                 <img src="/img/ali_icon.png" th:src="@{/img/ali_icon.png}" class="brand-logo--icon d-md-none" alt="ALI"/>
             </a>
-            <div class="d-flex home-nav-links">
-                <a href="/" th:href="@{${arPrefix} ?: '' } + '/'" class="home-nav-link"><i class="fa fa-magnifying-glass" aria-hidden="true"></i><span th:text="#{nav.search}">Search</span></a>
-                <a href="/books" th:href="@{${arPrefix} ?: '' } + '/books'" class="home-nav-link is-current"><i class="fa fa-book-open" aria-hidden="true"></i><span th:text="#{nav.books}">Books</span></a>
-                <a href="/updates.html" th:href="@{${arPrefix} ?: '' } + '/updates.html'"
-                   class="home-nav-link"><i class="fa fa-bolt" aria-hidden="true"></i><span th:text="#{nav.updates}">Updates</span></a>
-            </div>
+            <div th:replace="~{fragments/site :: navlinks('books')}"></div>
 
             <!-- The same auth block the home page carries, down to the element ids, so a
                  reader signed in on the search page sees the same chip in the same place

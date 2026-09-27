@@ -12433,3 +12433,98 @@ body.is-search-mode .site-nav .search-entry-shell {
     top: auto;
     bottom: calc(100% + 0.5rem);
 }
+
+
+/* ── The navbar is one row, at every width ──────────────────────────────────
+   It was one row below 992px and one row above about 1150, and two rows in
+   between: at 1024 the three children measured 1106px inside a 960px
+   container, so the sign-in and language controls dropped underneath and the
+   bar doubled to 102px.
+
+   Two things caused it, and neither applied under 992px because the mobile
+   block below already overrides both. The row carries Bootstrap's .flex-wrap
+   from the template, so it is allowed to wrap; and the search field is
+   flex: 1 1 70% with a 900px cap, so it claims a share of the row rather than
+   taking what is left of it. Between 992 and 1150 the container is 960px —
+   Bootstrap's lg step — which is the one range where 70% plus the logo plus
+   the actions does not fit.
+
+   So the row never wraps, and the search field shrinks instead. min-width: 0
+   is the part that makes that work: a flex item will not shrink below its
+   content without it, and the field's content is a text input, which reports a
+   default intrinsic width. */
+.navbar-top {
+    flex-wrap: nowrap !important;
+}
+
+#queryBar,
+.navbar-search {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* The sign-in and language controls are buttons: they are as wide as their
+   labels and there is nothing in them to give up. They were shrinking anyway —
+   flex-shrink defaults to 1 — so at 320px the group was squeezed to 81px while
+   the buttons inside it still measured 97 and spilled 9px past the window,
+   which is where the horizontal scrollbar on a small phone came from. The
+   search field is the one thing in the row that can give, so it is the only
+   thing that does. */
+.menu-context-row {
+    flex: 0 0 auto;
+}
+
+
+/* On a phone the header links are their icons.
+ 
+   The hub and updates headers carry Search / Books / Updates at every width,
+   and at 320px that put the row 39px past the window in English and 66px in
+   Arabic, whose labels are longer. The search page does not have the problem
+   because it hides the same links under 768px — but it can afford to: it has a
+   mobile menu behind the bars button, and these headers have none, so hiding
+   the links here would leave a phone with no way out of the page.
+ 
+   The icons are already in the markup and they are distinct — a magnifier, an
+   open book, a bolt. Dropping the labels under 576px keeps every destination
+   reachable and gives back far more room than the overflow needed. */
+@media (max-width: 575.98px) {
+    /* The swap, both halves. An earlier rule in this file already hides the icons
+       at this width, because the labels were the thing being kept; hiding the
+       labels without putting the icons back leaves three links with nothing in
+       them, which is what happened first time round. */
+    .home-nav-link span {
+        display: none;
+    }
+
+    .home-nav-link i {
+        display: inline-block;
+        font-size: 1rem;
+        opacity: 1;
+    }
+
+    .home-nav-link {
+        padding-inline: 0.5rem;
+    }
+
+    .home-nav-links,
+    [dir="rtl"] .home-nav-links {
+        margin-inline-start: 0.35rem;
+        gap: 0.1rem;
+    }
+}
+
+/* Prose from the data files can carry a run with nothing to break on — a bare
+   URL in a references line, or sources joined by semicolons with no spaces. At
+   320px al-Kafi's ":al-islam.org;en.wikishia.net;en.wikipedia.org;" measured
+   270px inside a 246px column and pushed the whole document to 359px, giving
+   the page a horizontal scrollbar with no element visibly out of place — the
+   run is inside a paragraph whose own box stays put.
+ 
+   `anywhere` rather than `break-word` on purpose: only `anywhere` lowers the
+   element's min-content width, and it is the min-content width that was
+   forcing the column, the section and the page wider. */
+.hub-blurb__body,
+.hub-hero__intro-text,
+.hub-hero__lede {
+    overflow-wrap: anywhere;
+}
