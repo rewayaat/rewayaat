@@ -46,9 +46,10 @@ class BookBlurbs {
     /**
      * The blurb in the page's language, falling back to English.
      *
-     * <p>All ten books carry a {@code blurb_ar}. The fallback is for a book added later
-     * without one: an English paragraph on an Arabic page is worse than an Arabic one and
-     * better than a blank hero.
+     * <p>Every entry carries a {@code blurb_ar}, and {@code TranslatedDataTest} keeps it
+     * that way. The fallback is for one added later without one: this is the About
+     * section rather than the hero, and a reader who has scrolled to it is better served
+     * by an English paragraph than by a section that is not there.
      */
     String forSlug(String slug, boolean arabic) {
         if (arabic) {
@@ -158,15 +159,33 @@ class BookBlurbs {
         return Map.copyOf(loaded);
     }
 
+    /**
+     * Blurbs for one language, keyed by the slug of the page that shows them.
+     *
+     * <p>An entry names its own slug. It used to be guessed by slugifying the book name
+     * the entry carries, and the guess was wrong twice: the entry titled "Kitab
+     * Al-Tawhid" keyed itself to a page called al-tawhid, and the one titled "A
+     * COMPREHENSIVE COMPILATION OF RELIABLE NARRATIONS" to a page called
+     * mu-jam-al-ahadith-al-mu-tabara. Both blurbs existed in both languages and neither
+     * had ever rendered. Nothing failed, so nothing said so.
+     *
+     * <p>The fallback stays for the three entries that describe books this corpus does
+     * not hold — Mizan al-Hikmah, Ghurar al-Hikam, Mishkat al-Anwar — which have no
+     * catalogue slug to name and so can key only to themselves.
+     */
     private static Map<String, String> load(String field) {
         Map<String, String> loaded = new LinkedHashMap<>();
         try (InputStream in = new ClassPathResource("static/book_blurbs.json").getInputStream()) {
             JsonNode root = new ObjectMapper().readTree(in);
             for (JsonNode entry : root) {
                 String book = entry.path("book").asText("");
+                String slug = entry.path("slug").asText("");
                 String blurb = entry.path(field).asText("");
-                if (!book.isBlank() && !blurb.isBlank()) {
-                    loaded.put(BookCatalog.slugify(book), blurb);
+                if (slug.isBlank()) {
+                    slug = book.isBlank() ? "" : BookCatalog.slugify(book);
+                }
+                if (!slug.isBlank() && !blurb.isBlank()) {
+                    loaded.put(slug, blurb);
                 }
             }
         } catch (Exception e) {

@@ -10,7 +10,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -68,18 +71,59 @@ class TranslatedDataTest {
             }
         });
 
-        JsonNode blurbs = read("src/main/resources/static/book_blurbs.json");
-        blurbs.fieldNames().forEachRemaining(slug -> {
-            JsonNode entry = blurbs.path(slug);
+        for (JsonNode entry : read("src/main/resources/static/book_blurbs.json")) {
             if (!entry.has("blurb")) {
-                return;
+                continue;
             }
+            String name = entry.path("slug").asText(entry.path("book").asText("?"));
             if (entry.path("blurb_ar").asText("").isBlank()) {
-                missing.add("blurb: " + slug);
+                missing.add("blurb: " + name);
             }
-        });
+        }
 
         assertTrue(missing.isEmpty(), "untranslated book content: " + missing);
+    }
+
+    @Test
+    @DisplayName("every book page has an About section, and it names its own page")
+    void everyBookHasABlurbKeyedToItsPage() throws IOException {
+        // book_summaries.json is keyed by page slug and covers all eighteen books, so it
+        // is the list of pages that exist. Two blurbs used to key themselves to pages that
+        // did not, by slugifying the book name the entry carried and guessing wrong; both
+        // existed in both languages and neither had ever rendered. An entry now names its
+        // slug outright, and this checks the name against a real page.
+        Set<String> pages = new TreeSet<>();
+        read("src/main/resources/static/book_summaries.json").fieldNames()
+                .forEachRemaining(slug -> {
+                    if (!slug.startsWith("_")) {
+                        pages.add(slug);
+                    }
+                });
+        assertFalse(pages.isEmpty(), "no book pages found, so this checked nothing");
+
+        Set<String> covered = new TreeSet<>();
+        List<String> wrong = new ArrayList<>();
+        for (JsonNode entry : read("src/main/resources/static/book_blurbs.json")) {
+            String slug = entry.path("slug").asText("");
+            if (slug.isBlank()) {
+                // The three entries describing books this corpus does not hold.
+                continue;
+            }
+            if (!pages.contains(slug)) {
+                wrong.add(slug);
+            }
+            covered.add(slug);
+        }
+        assertTrue(wrong.isEmpty(),
+                "these blurbs name a page that does not exist, so they render nowhere: "
+                        + wrong + "\nThe slug must be one of " + pages);
+
+        Set<String> uncovered = new TreeSet<>(pages);
+        uncovered.removeAll(covered);
+        assertTrue(uncovered.isEmpty(),
+                "these book pages have no About section: " + uncovered
+                        + "\nAdd an entry to book_blurbs.json with \"slug\", \"blurb\" and "
+                        + "\"blurb_ar\".");
     }
 
     @Test
