@@ -374,6 +374,49 @@ $(document).ready(function() {
 
 var searchSelectControl = null;
 
+/**
+ * The suggestion list, on the side the reader is typing on.
+ *
+ * Tom Select appends the dropdown to <body> — dropdownParent: 'body' — and positions it
+ * with an inline `left` taken from the field's left edge, stretched to the field's full
+ * width. Our CSS narrows it to its content (width: auto, min 180px), and with only
+ * `left` set it collapses against that left edge. In English that is under the caret and
+ * right. In Arabic the caret is at the other end of the field, so the list opened a
+ * clear 700px away from the word being typed and read as belonging to something else.
+ *
+ * This cannot be done in CSS. The dropdown is not a descendant of the field, so nothing
+ * scoped under .search-entry-shell matches it, and the `left` it would have to beat is
+ * an inline style rewritten every time the list opens. So mirror the inset in script,
+ * and only for Arabic: English is already correct and is left alone.
+ */
+function alignSuggestionDropdown(control) {
+    if (!control || !control.dropdown || window.I18N_LOCALE !== 'ar') {
+        return;
+    }
+    var shell = document.querySelector('.search-entry-shell');
+    if (!shell) {
+        return;
+    }
+    var apply = function() {
+        var dropdown = control.dropdown;
+        if (!dropdown || dropdown.style.display === 'none') {
+            return;
+        }
+        var width = dropdown.getBoundingClientRect().width;
+        if (!width) {
+            return;
+        }
+        // 13px is the inset English gets on its side: the shell's 1px border plus the
+        // wrapper's 12px of horizontal padding. Mirrored, the two sites match.
+        var edge = shell.getBoundingClientRect().right + window.scrollX;
+        dropdown.style.setProperty('left', Math.round(edge - width - 13) + 'px', 'important');
+    };
+    // Twice: once on the next frame, and once after Tom Select's own positioning pass,
+    // which runs on a timeout of its own and would otherwise put `left` back.
+    requestAnimationFrame(apply);
+    setTimeout(apply, 0);
+}
+
 function resetSearchSuggestionDropdown(control) {
     if (!control) {
         return;
@@ -2500,6 +2543,19 @@ function initSelect2(select2_id) {
         closeAfterSelect: true,
         dropdownParent: 'body',
         hidePlaceholder: true,
+        // Tom Select writes both of these itself, in English. They are the only two
+        // strings in the suggestion list that are not the reader's own search terms.
+        render: {
+            option_create: function(data, escape) {
+                return '<div class="create">'
+                    + t('js.addTerm', 'Add {0}\u2026').replace('{0}', '<strong>' + escape(data.input) + '</strong>')
+                    + '</div>';
+            },
+            no_results: function() {
+                return '<div class="no-results">'
+                    + escapeHtml(t('js.noSuggestions', 'No results found')) + '</div>';
+            }
+        },
         maxItems: null,
         placeholder: SEARCH_PLACEHOLDER_DEFAULT,
         loadThrottle: 250,
@@ -2549,6 +2605,14 @@ function initSelect2(select2_id) {
                 updateSearchPlaceholder(this);
             }
         },
+        onDropdownOpen: function() {
+            alignSuggestionDropdown(this);
+        },
+        onType: function() {
+            // The list is rebuilt as the reader types, and its width changes with the
+            // longest suggestion in it, so the offset has to be recomputed.
+            alignSuggestionDropdown(this);
+        },
         onInitialize: function() {
             updateSearchPlaceholder(this);
             if (this.dropdown) {
@@ -2558,6 +2622,9 @@ function initSelect2(select2_id) {
             setTimeout(function() {
                 updateSearchPlaceholder(self);
             }, 180);
+            window.addEventListener('resize', function() {
+                alignSuggestionDropdown(self);
+            });
         }
     });
     return searchSelectControl;
