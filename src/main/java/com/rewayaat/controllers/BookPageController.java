@@ -121,7 +121,12 @@ public class BookPageController {
         model.addAttribute("volumes", useVolumes ? volumes.stream()
                 .map(v -> Map.of(
                         "label", msg(locale, "book.volumeNumber", LocaleDigits.in(locale, v)),
-                        "url", locale.prefix() + "/books/" + bookSlug + "/volume/" + encode(v),
+                        // Bare, like every other url handed to a template: book.html adds
+                        // the language with ${arPrefix}. This one carried the prefix as
+                        // well, so every volume card on an Arabic book page pointed at
+                        // /ar/ar/books/..., which resolves to nothing. The parts beside
+                        // them were already bare, which is why only the volumes broke.
+                        "url", "/books/" + bookSlug + "/volume/" + encode(v),
                         "chapterCount", book.chaptersInVolume(v).size()))
                 .toList() : List.of());
         model.addAttribute("parts", useParts ? parts : List.of());

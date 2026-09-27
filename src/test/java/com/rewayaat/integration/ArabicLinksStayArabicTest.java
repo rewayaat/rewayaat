@@ -46,6 +46,7 @@ class ArabicLinksStayArabicTest extends ElasticsearchTestSupport {
     @Autowired
     private TestRestTemplate restTemplate;
 
+
     @Test
     @DisplayName("no link on an Arabic page drops the reader onto the English site")
     void everyInternalLinkKeepsThePrefix() {
@@ -101,6 +102,35 @@ class ArabicLinksStayArabicTest extends ElasticsearchTestSupport {
             assertTrue(html != null && html.contains("dir=\"rtl\""),
                     page + " did not render as an Arabic page");
         }
+    }
+
+    @Test
+    @DisplayName("no link carries the language twice")
+    void noLinkIsDoublePrefixed() {
+        // The mirror of the sweep above. That one catches a link that forgot the prefix;
+        // this catches one that got it twice, which is the same mistake made from the
+        // other side and fails just as quietly — the href looks plausible, and nothing
+        // reports it until a reader clicks and gets a 404.
+        Set<String> doubled = new TreeSet<>();
+        int seen = 0;
+        for (String page : PAGES) {
+            String html = restTemplate.getForObject(page, String.class);
+            if (html == null) {
+                continue;
+            }
+            for (String href : internalLinks(html)) {
+                seen++;
+                if (href.equals("/ar/ar") || href.startsWith("/ar/ar/")) {
+                    doubled.add(page + "  ->  " + href);
+                }
+            }
+        }
+        assertTrue(seen > 0, "no links were found on any Arabic page, so this checked nothing");
+        assertEquals(Set.of(), doubled,
+                "these links carry the language twice and resolve to nothing:\n"
+                        + String.join("\n", doubled)
+                        + "\nA url in the model is bare and the template adds ${arPrefix}; "
+                        + "one of the two did it and the other did it again.");
     }
 
     @Test
