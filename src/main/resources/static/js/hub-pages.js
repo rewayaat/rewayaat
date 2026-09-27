@@ -494,45 +494,88 @@ function localeHref(path) {
      * the reason the pair was judged similar has no Arabic, and the Arabic card does not
      * show it.
      */
+    /**
+     * The Related list.
+     *
+     * <p>A row is a control, never a link. Clicking one renders that narration inline
+     * below the primary hadith — which is the whole point of the panel, and what makes
+     * it worth having over a search. It was briefly an <a href="/hadith/{id}">, which
+     * navigated away from the narration the reader was reading: the one thing the panel
+     * exists not to do.
+     *
+     * <p>Two shapes, one behaviour. English keeps the accordion, whose open row carries
+     * why the pair was judged similar and a link to the narration's own page. Arabic has
+     * neither — the reason was written in English by the model that judged the pair, and
+     * an English paragraph is the one thing on an Arabic card a reader cannot skim past —
+     * so there is nothing left to expand and the rows are a plain list. Both emit
+     * data-hub-acc-toggle, so both go through bindAccordions to showInline.
+     */
     function renderSimilar(body, data) {
         var items = (data && data.collection) || [];
+        var empty = t('sidecar.noSimilar', 'No similar hadith were found for this narration.');
         if (!items.length) {
-            body.innerHTML = '<div class="text-muted py-2">'
-                + t('sidecar.noSimilar', 'No similar hadith were found for this narration.')
-                + '</div>';
+            body.innerHTML = '<div class="text-muted py-2">' + empty + '</div>';
             return;
         }
         var arabic = window.I18N_LOCALE === 'ar';
-        body.innerHTML = '<div class="hadith-sidecar__list">'
-            + items.map(function (item) {
+
+        var rows = items.map(function (item, idx) {
+            var book = localeField(item, 'book') || '';
+            var chapter = localeField(item, 'chapter') || '';
+            // No hash in Arabic: it is a Latin convention, and in a right-to-left
+            // line the browser puts it after the numeral, which reads as "1#".
+            var num = item.number
+                ? (arabic ? localeDigits(item.number) : '#' + item.number)
+                : '';
+            var type = item.matchType
+                ? '<span class="hadith-sidecar__list-meta match-type-badge match-type--'
+                  + escapeHtml(item.matchType) + '">'
+                  + escapeHtml(t('match.' + item.matchType, item.matchType)) + '</span>'
+                : '';
+            var line = '<span class="hadith-sidecar__list-line">'
+                + '<span class="hadith-sidecar__list-eyebrow">' + escapeHtml(book) + '</span>'
+                + (num ? sep() + '<span class="hadith-sidecar__list-text">' + escapeHtml(num) + '</span>' : '')
+                + (type ? sep() + type : '')
+                + '</span>'
+                + (chapter
+                    ? '<span class="hadith-sidecar__list-sub">' + escapeHtml(chapter) + '</span>'
+                    : '');
+            return {line: line, raw: item};
+        });
+
+        if (!arabic) {
+            body.innerHTML = accordion(empty, rows, function (item) {
                 var id = item._id || item.id || '';
-                var book = localeField(item, 'book') || '';
-                var chapter = localeField(item, 'chapter') || '';
-                // No hash in Arabic: it is a Latin convention, and in a right-to-left
-                // line the browser puts it after the numeral, which reads as "1#".
-                var num = item.number
-                    ? (arabic ? localeDigits(item.number) : '#' + item.number)
-                    : '';
-                var type = item.matchType
-                    ? '<span class="hadith-sidecar__list-meta match-type-badge match-type--'
-                      + escapeHtml(item.matchType) + '">'
-                      + escapeHtml(t('match.' + item.matchType, item.matchType)) + '</span>'
-                    : '';
-                return '<a class="hadith-sidecar__list-item hadith-sidecar__list-item--similar"'
-                    + ' href="' + localeHref('/hadith/' + encodeURIComponent(id)) + '">'
-                    + '<span class="hadith-sidecar__list-line">'
-                    + '<span class="hadith-sidecar__list-eyebrow">' + escapeHtml(book) + '</span>'
-                    + (num ? sep() + '<span class="hadith-sidecar__list-text">' + escapeHtml(num) + '</span>' : '')
-                    + (type ? sep() + type : '')
-                    + '</span>'
-                    + (chapter
-                        ? '<span class="hadith-sidecar__list-sub">' + escapeHtml(chapter) + '</span>'
+                return (item.matchReason
+                        ? '<div class="similar-reason-text">'
+                          + '<span class="similar-reason-label">'
+                          + t('sidecar.whyMatched', 'Why this matched:') + '</span> '
+                          + escapeHtml(item.matchReason) + '</div>'
                         : '')
-                    + (item.matchReason && !arabic
-                        ? '<span class="hadith-sidecar__list-sub">' + escapeHtml(item.matchReason) + '</span>'
-                        : '')
-                    + '</a>';
+                    + '<a class="quranic-verse-link" href="' + localeHref('/hadith/' + encodeURIComponent(id)) + '">'
+                    + t('sidecar.readNarration', 'Read this narration')
+                    + ' <i class="fa fa-external-link-alt fa-xs"></i></a>';
+            }, 'similar');
+            return;
+        }
+
+        var shown = rows.slice(0, 10);
+        body.innerHTML = '<div class="hadith-sidecar__list hadith-sidecar__accordion" role="listbox">'
+            + shown.map(function (row, idx) {
+                return '<div class="hadith-sidecar__accordion-item' + (idx === 0 ? ' is-active' : '') + '"'
+                    + ' data-hub-acc-item="' + idx + '">'
+                    + '<button type="button" class="hadith-sidecar__list-item '
+                    + 'hadith-sidecar__accordion-toggle hadith-sidecar__list-item--similar'
+                    + (idx === 0 ? ' is-active' : '') + '"'
+                    + ' aria-expanded="' + (idx === 0) + '" data-hub-acc-toggle="' + idx + '">'
+                    + row.line
+                    + '</button></div>';
             }).join('')
+            + (rows.length > 10
+                ? '<button type="button" class="hadith-sidecar__show-more" data-hub-show-all>'
+                  + escapeHtml(t('js.showAllCount', 'Show all {0}').replace('{0}', localeDigits(rows.length)))
+                  + ' <i class="fa fa-chevron-down" aria-hidden="true"></i></button>'
+                : '')
             + '</div>';
     }
 
@@ -587,24 +630,54 @@ function localeHref(path) {
             }, 'quran');
     }
 
-    /** Renders the chosen Related narration into the main column. */
+    /**
+     * Renders the chosen Related narration into the main column.
+     *
+     * <p>Localised throughout. This is the narration the reader asked to see, rendered
+     * at full length, so English leaking into it on the Arabic site is not a stray label
+     * — it is the body of what they clicked. The English column goes with it: a reader
+     * who chose Arabic did not ask for a parallel translation, and the primary card two
+     * inches above already hides it.
+     */
     function inlineSimilar(item) {
-        var title = [item.book, item.number ? '#' + item.number : ''].filter(Boolean).join(' ');
+        var arabic = window.I18N_LOCALE === 'ar';
+        var book = localeField(item, 'book') || '';
+        var number = item.number
+            ? (arabic ? localeDigits(item.number) : '#' + item.number)
+            : '';
+        var title = [book, number].filter(Boolean).join(' ');
         // Book, volume and chapter each have a page; the URLs are filled in by
         // linkMetaSegments once the server has resolved them, so the slugs stay
         // server-side. Section has no page and stays plain text.
         var meta = [
-            {level: 'book', text: item.book || ''},
-            {level: 'volume', text: item.volume ? t('book.volumeNumber', 'Volume {0}').replace('{0}', item.volume) : ''},
-            {level: 'section', text: item.section ? 'Section ' + item.section : ''},
-            {level: 'chapter', text: item.chapter || ''}
+            {level: 'book', text: book},
+            {level: 'volume', text: item.volume
+                ? t('book.volumeNumber', 'Volume {0}').replace('{0}', localeDigits(item.volume)) : ''},
+            {level: 'section', text: item.section
+                ? t('chapter.section', 'Section') + ' ' + localeDigits(item.section) : ''},
+            {level: 'chapter', text: localeField(item, 'chapter') || ''}
         ].filter(function (seg) { return seg.text; });
         var id = item._id || item.id || '';
+
+        var english = '<div class="col-12 col-lg-6">'
+            + '<div class="hadith-inline-context__panel hadith-inline-context__panel--similar">'
+            + '<div class="hadith-inline-context__body">'
+            + (item.englishChain ? '<div class="hadith-chain">' + item.englishChain + '</div>' : '')
+            + '<div class="similar-full-english">' + (item.englishContent || item.english || '') + '</div>'
+            + '</div></div></div>';
+        var arabicColumn = '<div class="' + (arabic ? 'col-12' : 'col-12 col-lg-6') + '">'
+            + '<div class="hadith-inline-context__panel hadith-inline-context__panel--similar">'
+            + '<div class="hadith-inline-context__body arabic-text">'
+            + (item.arabicChain ? '<div class="hadith-chain hadith-chain--arabic">' + item.arabicChain + '</div>' : '')
+            + '<div class="similar-full-arabic">' + (item.arabicContent || item.arabic || '') + '</div>'
+            + '</div></div></div>';
+
         return '<div class="hadith-inline-context__meta-band hadith-inline-context__meta-band--compact">'
             + '<div class="hadith-inline-context__title-block">'
-            + '<div class="hadith-inline-context__eyebrow">Similar Hadith</div>'
+            + '<div class="hadith-inline-context__eyebrow">'
+            + escapeHtml(t('sidecar.similarHadith', 'Similar Hadith')) + '</div>'
             + '<a class="hadith-inline-context__title-link" href="' + localeHref('/hadith/' + encodeURIComponent(id)) + '">'
-            + escapeHtml(title || 'Similar narration') + '</a>'
+            + escapeHtml(title || t('sidecar.similarHadith', 'Similar Hadith')) + '</a>'
             + (meta.length ? '<div class="hadith-inline-context__meta-line" data-hub-meta-line>'
                 + meta.map(function (seg, i) {
                     return (i ? '<span class="hadith-inline-context__meta-separator" aria-hidden="true">\u2022</span>' : '')
@@ -614,16 +687,8 @@ function localeHref(path) {
             + '</div></div>'
             + '<div class="hadith-inline-context__scroll">'
             + '<div class="row g-4 hadith-inline-context__row">'
-            + '<div class="col-12 col-lg-6"><div class="hadith-inline-context__panel hadith-inline-context__panel--similar">'
-            + '<div class="hadith-inline-context__body">'
-            + (item.englishChain ? '<div class="hadith-chain">' + item.englishChain + '</div>' : '')
-            + '<div class="similar-full-english">' + (item.englishContent || item.english || '') + '</div>'
-            + '</div></div></div>'
-            + '<div class="col-12 col-lg-6"><div class="hadith-inline-context__panel hadith-inline-context__panel--similar">'
-            + '<div class="hadith-inline-context__body arabic-text">'
-            + (item.arabicChain ? '<div class="hadith-chain hadith-chain--arabic">' + item.arabicChain + '</div>' : '')
-            + '<div class="similar-full-arabic">' + (item.arabicContent || item.arabic || '') + '</div>'
-            + '</div></div></div>'
+            + (arabic ? '' : english)
+            + arabicColumn
             + '</div></div>';
     }
 
@@ -774,10 +839,16 @@ function localeHref(path) {
             list.querySelectorAll('.hadith-sidecar__accordion-item').forEach(function (node) {
                 var active = node === item;
                 node.classList.toggle('is-active', active);
-                node.querySelector('.hadith-sidecar__accordion-toggle').classList.toggle('is-active', active);
-                node.querySelector('.hadith-sidecar__accordion-toggle')
-                    .setAttribute('aria-expanded', active ? 'true' : 'false');
-                node.querySelector('.hadith-sidecar__accordion-body').hidden = !active;
+                var itemToggle = node.querySelector('.hadith-sidecar__accordion-toggle');
+                if (itemToggle) {
+                    itemToggle.classList.toggle('is-active', active);
+                    itemToggle.setAttribute('aria-expanded', active ? 'true' : 'false');
+                }
+                // The Arabic Related list has no body to open; its rows only select.
+                var itemBody = node.querySelector('.hadith-sidecar__accordion-body');
+                if (itemBody) {
+                    itemBody.hidden = !active;
+                }
             });
         });
     }

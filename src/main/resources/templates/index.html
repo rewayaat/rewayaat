@@ -429,8 +429,14 @@
                                             <!-- A list, not an accordion. Clicking a row loads
                                                  that narration into the pane below, which is
                                                  where it was already shown; the disclosure only
-                                                 ever held the match reason. The hub pages have
-                                                 no such pane, so there the row is a link. -->
+                                                 ever held the match reason.
+
+                                                 A row is a control, not a link, here and in
+                                                 hub-pages.js both. Making it a link there sent
+                                                 the reader to the related narration's own page
+                                                 instead of opening it under the one they were
+                                                 reading, which is the one thing this panel
+                                                 exists not to do. -->
                                             <div class="hadith-sidecar__list"
                                                  aria-label="Similar hadith list" th:aria-label="#{sidecar.related}">
                                                 <button type="button"
