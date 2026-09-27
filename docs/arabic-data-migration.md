@@ -93,17 +93,19 @@ the English the mapping was built from, and the run should stop there.
 Run against production on 2026-09-27, four of the fields came back clean:
 
 ```
-book:     18 translations in mapping — Updates: 32519, Already has: 0, No mapping: 0
-source:   11 translations in mapping — Updates: 32519, Already has: 0, No mapping: 0
-part:    145 translations in mapping — Updates: 32519, Already has: 0, No mapping: 0
-section: 596 translations in mapping — Updates: 32519, Already has: 0, No mapping: 0
+book:      18 translations in mapping — Updates: 32519, Already has: 0, No mapping: 0
+source:    11 translations in mapping — Updates: 32519, Already has: 0, No mapping: 0
+part:     145 translations in mapping — Updates: 32519, Already has: 0, No mapping: 0
+section:  596 translations in mapping — Updates: 32519, Already has: 0, No mapping: 0
+chapter: 7724 translations in mapping — Updates: 32516, Already has: 0, No mapping: 3
 ```
 
-Every document matched. That is the shape to expect; anything else wants investigating
-before step 3.
+That is the shape to expect. The three are named at the bottom of this document and are
+the same three the development index lacks, so production ends up with exactly the
+coverage local has. Anything else wants investigating before step 3.
 
-`chapter` needed that investigating. It came back with 272 unmatched, which turned out to
-be two separate things. Most of it was capitalisation, now handled by a casefold pass in
+`chapter` needed that investigating. It came back with 272 unmatched — now 3 — which
+turned out to be two separate things. Most of it was capitalisation, now handled by a casefold pass in
 the applier. The rest was real: **production and development carry different English for
 19 Al-Khiṣāl chapter titles** — production says "A believer does not posses Intellect
 until he has ten qualities", development says "A Believer without Ten Characteristics Is
