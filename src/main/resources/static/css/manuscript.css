@@ -12288,20 +12288,25 @@ a.hub-hero__eyebrow:hover {
 }
 
 /* Glass. Both fields sit on navy — the navbar's gradient and the hero's panel —
-   so the surface can be the backdrop itself, blurred, with a gold rule around
-   it and bright type inside. That also settles what the two fields have in
-   common: not a shared colour but a shared absence of one. */
+   so the surface can be the backdrop itself, barely lifted and lightly blurred,
+   inside a thin silver rule. That also settles what the two fields have in
+   common: not a shared colour but a shared absence of one.
+
+   Three things are deliberately restrained. The fill is 4% white, not 8: at 8
+   it stopped reading as glass and started reading as a lighter panel laid on
+   the navy. There is no saturate() in the filter — it was at 140%, and since
+   everything behind the field is navy, all it did was deepen the blue coming
+   through, so the "glass" had a colour of its own. And the blur is 4px, enough
+   to soften the pattern behind the field without smearing it into a haze. */
 .search-entry-shell,
 .site-nav .search-entry-shell,
 .home-search .search-entry-shell,
 body.is-search-mode .site-nav .search-entry-shell {
-    background: rgba(255, 255, 255, 0.08);
-    -webkit-backdrop-filter: blur(10px) saturate(140%);
-    backdrop-filter: blur(10px) saturate(140%);
-    border: 1px solid rgba(243, 229, 184, 0.42);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.14),
-        0 6px 18px rgba(4, 12, 24, 0.22);
+    background: rgba(255, 255, 255, 0.04);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(226, 232, 240, 0.38);
+    box-shadow: 0 6px 18px rgba(4, 12, 24, 0.18);
 }
 
 /* Focus brightens the rule rather than adding a second ring, so the field does
@@ -12309,36 +12314,36 @@ body.is-search-mode .site-nav .search-entry-shell {
 .search-entry-shell:focus-within,
 .site-nav .search-entry-shell:focus-within,
 .home-search .search-entry-shell:focus-within {
-    border-color: rgba(243, 229, 184, 0.78);
-    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(241, 245, 249, 0.68);
+    background: rgba(255, 255, 255, 0.07);
 }
 
 .navbar-search .search-entry-shell .ts-control input,
 .site-nav .search-entry-shell .ts-control input,
 .home-search .search-entry-shell .ts-control input {
-    color: #f8f1df !important;
-    caret-color: var(--gold-light) !important;
+    color: #f1f5f9 !important;
+    caret-color: #e2e8f0 !important;
 }
 
 .search-entry-shell .ts-control input::placeholder,
 .site-nav .ts-control input::placeholder,
 .home-search .ts-control input::placeholder {
-    color: rgba(245, 236, 214, 0.55) !important;
+    color: rgba(226, 232, 240, 0.52) !important;
 }
 
 .search-entry-shell .search-magnifier,
 .site-nav .search-entry-shell .search-magnifier,
 .home-search .search-entry-shell .search-magnifier {
-    color: rgba(243, 229, 184, 0.82);
+    color: rgba(226, 232, 240, 0.78);
 }
 
 .search-ghost-text,
 .site-nav .search-ghost-text {
-    color: rgba(245, 236, 214, 0.5);
+    color: rgba(226, 232, 240, 0.46);
 }
 
 .home-search .search-ghost-text.is-visible::before {
-    background: var(--gold-light);
+    background: #e2e8f0;
 }
 
 /* The chosen terms. Gold-tinted glass on glass, so they read as part of the
@@ -12349,34 +12354,70 @@ body.is-search-mode .site-nav .search-entry-shell {
 .site-nav .ts-wrapper.multi .ts-control > div,
 .navbar-search .ts-wrapper.multi .ts-control > div,
 .home-search .ts-wrapper.multi .ts-control > div {
-    background: rgba(243, 229, 184, 0.16) !important;
-    border: 1px solid rgba(243, 229, 184, 0.36) !important;
-    color: #f8f1df !important;
+    background: rgba(255, 255, 255, 0.10) !important;
+    border: 1px solid rgba(226, 232, 240, 0.30) !important;
+    color: #f1f5f9 !important;
 }
 
 .site-nav .ts-control .item .remove,
 .home-search .ts-control .item .remove,
 .navbar-search .ts-control .item .remove {
-    color: rgba(248, 241, 223, 0.65) !important;
-    border-inline-start-color: rgba(243, 229, 184, 0.28) !important;
+    color: rgba(241, 245, 249, 0.62) !important;
+    border-inline-start-color: rgba(226, 232, 240, 0.24) !important;
 }
 
 .site-nav .ts-control .item .remove:hover,
 .home-search .ts-control .item .remove:hover,
 .navbar-search .ts-control .item .remove:hover {
-    color: var(--gold-light) !important;
+    color: #ffffff !important;
     background: transparent !important;
 }
 
-/* The submit button keeps its navy fill: that was chosen for contrast — 9.29:1
-   for gold-light on navy — and it is what keeps the button reading as the
-   action rather than as more of the field. Only its rule changes, to the same
-   gold as the field's, so the two belong to one object. */
+/* The submit button keeps its navy fill and its gold-light text: that pairing
+   was chosen for contrast — 9.29:1 — and it is what keeps the button reading as
+   the action rather than as more of the field. Its rule follows the field's to
+   silver, so the gold is carried by the word alone and there is one warm thing
+   in the bar rather than two. */
 .search-btn-with-border {
-    border-color: rgba(243, 229, 184, 0.5) !important;
+    border-color: rgba(226, 232, 240, 0.34) !important;
 }
 
 .search-btn-with-border:hover,
 .search-btn-with-border:focus-visible {
-    border-color: var(--gold-light) !important;
+    border-color: rgba(241, 245, 249, 0.6) !important;
+}
+
+
+/* One rule around the field, not two.
+ 
+   .ts-control — Tom Select's inner box, which holds the tokens and the caret —
+   carries a gold border and a translucent white fill of its own, in .site-nav
+   and .home-search both. Those are an earlier, partial run at this same glass
+   idea, from when the shell around them was opaque white and hid them entirely.
+   With the shell now transparent they showed through, half a pixel inside the
+   shell's own rule, and the field had two bright outlines a hairsbreadth apart.
+ 
+   The shell is the surface. The control inside it is just a box for the text. */
+.search-entry-shell .ts-control,
+.site-nav .ts-control,
+.site-nav .ts-wrapper .ts-control,
+.site-nav .ts-wrapper.form-control .ts-control,
+.site-nav .navbar-search .ts-control,
+.site-nav .form-control.ts-control,
+.home-search .ts-control,
+.navbar-search .ts-control {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+
+.search-entry-shell .ts-control:focus-within,
+.site-nav .ts-control:focus-within,
+.site-nav .ts-wrapper.focus .ts-control,
+.site-nav .form-control.ts-control:focus-within,
+.home-search .ts-control:focus-within,
+.home-search .ts-wrapper.focus .ts-control {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
 }
