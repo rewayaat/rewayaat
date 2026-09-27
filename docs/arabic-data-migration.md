@@ -102,6 +102,26 @@ section: 596 translations in mapping — Updates: 32519, Already has: 0, No mapp
 Every document matched. That is the shape to expect; anything else wants investigating
 before step 3.
 
+`chapter` needed that investigating. It came back with 272 unmatched, which turned out to
+be two separate things. Most of it was capitalisation, now handled by a casefold pass in
+the applier. The rest was real: **production and development carry different English for
+19 Al-Khiṣāl chapter titles** — production says "A believer does not posses Intellect
+until he has ten qualities", development says "A Believer without Ten Characteristics Is
+Not Intelligent". Same narration, same Arabic, two English renderings, and the mapping had
+only ever seen one of them.
+
+No script caused that. Nothing in `scripts/i18n/` writes an English field; `bulk()` writes
+`{field}_ar` and nothing else. The two indexes are separate clusters that took different
+chapter-title passes at some point, and the development copy is the one the mapping was
+built from. The 19 production spellings are now keys in
+`chapter_ar_mapping.json` too, resolved by document id — whatever a narration's English
+says, it has one Arabic title — so the mapping matches both indexes.
+
+The lesson generalises past this field: **a mapping keyed on English is only as good as
+the English it was keyed against, and the index it will run on is not the one it was built
+from.** Dry-run every field against production, and read `No mapping` as a question rather
+than a rounding error.
+
 ### 3. Apply
 
 ```bash
@@ -172,8 +192,9 @@ are untranslatable because their *English* is corrupt in the corpus:
 
 The first two are ingest damage — a swallowed "C", a doubled prefix and a trailing "ar" —
 and they are wrong on the English site too, independently of anything here. None of the
-three is in the mapping, so no run will pick them up until the English is repaired or the
-Arabic is written by hand.
+three is in the mapping, and the same three are the only gaps in the development index, so
+they are genuinely untranslated rather than unmatched. No run will pick them up until the
+English is repaired or the Arabic is written by hand.
 
 **Chapter titles by scrape.** `load_thaqalayn_titles.py` rebuilds the Arabic titles by
 fetching thaqalayn.net, and it needs `scripts/data/thaqalayn_chapter_titles.json` (2 MB),

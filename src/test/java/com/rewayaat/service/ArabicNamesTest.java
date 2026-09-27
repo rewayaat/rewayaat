@@ -15,11 +15,16 @@ class ArabicNamesTest {
     void translationsAreOnTheClasspath() {
         // The files live in src/main/resources/i18n and are also what the Elasticsearch
         // loader reads, so a packaging mistake shows up here rather than as empty pages.
-        // 7,704 of the 7,710 chapter titles are translated, taken from thaqalayn's own
-        // Arabic pages. The handful left out are rows whose stored Arabic was English or
-        // machine-translation debris; they carry no entry, which is what makes the
-        // fallback below the normal case rather than an error path.
-        assertEquals(7705, ArabicNames.coverage().get("chapters"));
+        // The chapter titles are taken from thaqalayn's own Arabic pages. A few rows carry
+        // no entry — their stored Arabic was English or machine-translation debris — which
+        // is what makes the fallback below the normal case rather than an error path.
+        //
+        // A floor, not an exact count. The point of the assertion is that the resource
+        // loaded at all; pinning the number meant every legitimate addition failed the
+        // build, which is what happened when production turned out to spell nineteen
+        // Al-Khisal chapters differently and needed keys of its own.
+        assertTrue(ArabicNames.coverage().get("chapters") >= 7724,
+                "chapter titles did not load: " + ArabicNames.coverage());
         assertTrue(ArabicNames.coverage().get("books") >= 10,
                 "every book a hub page exists for needs a name: " + ArabicNames.coverage());
     }
