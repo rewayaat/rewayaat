@@ -18,7 +18,7 @@ Measured 2026-09-27, not recalled.
 | index behind the `rewayaat_hadith` alias | `rewayaat_hadith_20260909` | `rewayaat_hadith_20260909` |
 | documents | 32,519 | 32,519 |
 | `book_ar` | 32,519 | **0** |
-| `chapter_ar` | 32,514 | **0** |
+| `chapter_ar` | 32,516 | **0** |
 | `part_ar` | 32,519 | **0** |
 | `section_ar` | 32,519 | **0** |
 | `source_ar` | 32,519 | **0** |
@@ -90,6 +90,18 @@ anything. Read the per-field line it prints: `Updates`, `Already has <field>_ar`
 `No mapping`. A large `No mapping` count means the English in production does not match
 the English the mapping was built from, and the run should stop there.
 
+Run against production on 2026-09-27, four of the fields came back clean:
+
+```
+book:     18 translations in mapping — Updates: 32519, Already has: 0, No mapping: 0
+source:   11 translations in mapping — Updates: 32519, Already has: 0, No mapping: 0
+part:    145 translations in mapping — Updates: 32519, Already has: 0, No mapping: 0
+section: 596 translations in mapping — Updates: 32519, Already has: 0, No mapping: 0
+```
+
+Every document matched. That is the shape to expect; anything else wants investigating
+before step 3.
+
 ### 3. Apply
 
 ```bash
@@ -147,6 +159,21 @@ note. The translated chunks are still under
 `scripts/data/llm_similar_reason_batches/` if that decision is ever reversed.
 
 **`gradings`.** The field does not exist in production. Nothing to translate.
+
+**Three chapter titles.** 32,516 of 32,519 narrations have an Arabic chapter name. The
+three that do not fall back to English, which is the designed behaviour, and two of them
+are untranslatable because their *English* is corrupt in the corpus:
+
+| id | English chapter |
+|---|---|
+| `Man-La-Yahduruh-al-Faqih-Volume-2-Saduq:71` | `Hapter 9 - Chapter on the Specified Right and the Assistance` |
+| `Man-La-Yahduruh-al-Faqih-Volume-4-Saduq:398` | `Techapter 59 - Chapter on Umm Al-Walad Killing Her Master by Mistake or Intentionar` |
+| `Al-Khisal-Saduq:976` | `God has reinforced the intellect with ten things` |
+
+The first two are ingest damage — a swallowed "C", a doubled prefix and a trailing "ar" —
+and they are wrong on the English site too, independently of anything here. None of the
+three is in the mapping, so no run will pick them up until the English is repaired or the
+Arabic is written by hand.
 
 **Chapter titles by scrape.** `load_thaqalayn_titles.py` rebuilds the Arabic titles by
 fetching thaqalayn.net, and it needs `scripts/data/thaqalayn_chapter_titles.json` (2 MB),

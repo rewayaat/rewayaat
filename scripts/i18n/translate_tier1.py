@@ -176,6 +176,21 @@ def apply_mappings(es, index, fields=None, dry_run=False):
 
         # Check how many are actually translated
         filled = {k: v for k, v in mapping.items() if v}
+
+        # A title that differs from a mapped one only in capitalisation should still
+        # match. Five chapters had no Arabic locally and three of them were this: "They
+        # pleaded with Allah for victory..." against "...for Victory...". The fold is only
+        # trusted where it is unambiguous — six chapter titles casefold together onto
+        # different Arabic ("rare ahadith" is both باب نادر and باب النوادر), and those
+        # are left to the exact match rather than guessed between.
+        folded = {}
+        for english, arabic in filled.items():
+            key = english.strip().casefold()
+            if key in folded and folded[key] != arabic:
+                folded[key] = None
+            else:
+                folded.setdefault(key, arabic)
+        folded = {k: v for k, v in folded.items() if v}
         if not filled:
             print(f"  {field}: no translations in mapping file, skipping")
             continue
@@ -197,7 +212,7 @@ def apply_mappings(es, index, fields=None, dry_run=False):
                 skipped_ar += 1
                 continue
 
-            ar_val = filled.get(str(val).strip())
+            ar_val = filled.get(str(val).strip()) or folded.get(str(val).strip().casefold())
             if not ar_val:
                 skipped_no_match += 1
                 continue
