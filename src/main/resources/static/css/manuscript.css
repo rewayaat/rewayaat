@@ -12650,3 +12650,184 @@ body.is-search-mode .site-nav .search-entry-shell {
     text-transform: uppercase;
     gap: 0.4rem;
 }
+
+
+/* ── The field: warmer light, squarer chips, a visible button, and a mirror ──
+   Everything below is the search field, in the order it was asked for. */
+
+/* 1. The glow is yellow now rather than a warm white. The rule carries a little
+      of it too, so the light looks like it comes from the edge rather than
+      hovering around a grey one. */
+.search-entry-shell,
+.site-nav .search-entry-shell,
+.home-search .search-entry-shell,
+body.is-search-mode .site-nav .search-entry-shell {
+    background: rgba(6, 14, 28, 0.58);
+    border: 1px solid rgba(247, 213, 110, 0.38);
+    box-shadow:
+        0 0 0 1px rgba(247, 213, 110, 0.16),
+        0 0 14px rgba(247, 213, 110, 0.22),
+        inset 0 0 12px rgba(247, 213, 110, 0.055);
+}
+
+.search-entry-shell:focus-within,
+.site-nav .search-entry-shell:focus-within,
+.home-search .search-entry-shell:focus-within {
+    background: rgba(6, 14, 28, 0.64);
+    border-color: rgba(247, 213, 110, 0.6);
+    box-shadow:
+        0 0 0 1px rgba(247, 213, 110, 0.26),
+        0 0 18px rgba(247, 213, 110, 0.3),
+        inset 0 0 14px rgba(247, 213, 110, 0.07);
+}
+
+/* 2. Squarer. A pill made every term look like a tag to be dismissed; a chip
+      with a small radius reads as a word you put there. */
+.ts-control .item,
+.ts-wrapper.multi .ts-control > div {
+    border-radius: 5px !important;
+}
+
+/* 3. The submit button. Navy with gold text was chosen when the field behind it
+      was near-white, and on dark glass it disappeared. Gold fixed the contrast
+      and created a different problem: gold on navy is what the term chips are,
+      so the button read as one more chip — the only one you could not remove.
+
+      White, then. It is the only solid light mass in the bar that is not gold,
+      so it separates from the chips by hue rather than by brightness, and dark
+      navy on white is the strongest contrast available here. It matches Sign In
+      at the other end of the row, which is the other thing in the header that
+      does something rather than describes something. */
+.search-btn-with-border {
+    background: #f4f7fb !important;
+    border: 1px solid rgba(255, 255, 255, 0.92) !important;
+    color: #0b1728 !important;
+    font-weight: 700 !important;
+    box-shadow: 0 1px 3px rgba(4, 12, 24, 0.35) !important;
+}
+
+.search-btn-with-border:hover,
+.search-btn-with-border:focus-visible {
+    background: #ffffff !important;
+    border-color: #ffffff !important;
+    color: #0b1728 !important;
+}
+
+.search-btn-with-border i {
+    color: inherit !important;
+}
+
+/* 4. Arabic reads right to left, so the field starts on the right and ends on
+      the left: the magnifier belongs at the right edge and the submit at the
+      left. The Tom Select field had both pinned with physical properties — the
+      actions absolutely placed at right: 5px, the control reserving its room
+      with padding-right — so in Arabic the button sat at the start of the line,
+      on the right, while the plain field in the header put it on the left. Same
+      bar, two different sides depending on the page. Mirrored here. */
+[dir="rtl"] .search-entry-actions {
+    right: auto;
+    left: 5px;
+}
+
+[dir="rtl"] .navbar-search .search-entry-shell .ts-control,
+[dir="rtl"] .site-nav .search-entry-shell .ts-control,
+[dir="rtl"] .home-search .search-entry-shell .ts-control {
+    padding-left: var(--search-entry-side-pad) !important;
+    padding-right: 1.92rem !important;
+}
+
+[dir="rtl"] .search-entry-shell .search-magnifier,
+[dir="rtl"] .site-nav .search-entry-shell .search-magnifier,
+[dir="rtl"] .home-search .search-entry-shell .search-magnifier {
+    left: auto;
+    right: 0.72rem;
+}
+
+[dir="rtl"] .search-ghost-text,
+[dir="rtl"] .site-nav .search-ghost-text {
+    left: var(--search-entry-side-pad);
+    right: 1.92rem;
+    text-align: right;
+}
+
+/* 4b. The mode menu opens into the page, not off the side of it.
+      .search-mode-menu is anchored right: 0 to the submit button and opens
+      leftward. That was fine while the button sat at the right of the field;
+      with the button mirrored to the left in Arabic it put a 324px panel 179px
+      past the left edge and gave the Arabic home page a horizontal scrollbar
+      between 820 and 1366px. Anchored to the other edge, it opens inward. */
+[dir="rtl"] .search-mode-menu {
+    right: auto;
+    left: 0;
+}
+
+/* 5. The white shimmer. A fade strip sits at the end of the term list so a
+      chip scrolling under the button is not sliced mid-word, and it was painted
+      in the old field's near-white — an opaque rgb(225,226,228) smear across a
+      field that is now dark glass. It fades to the field's own colour instead,
+      and moves to the other end in Arabic with everything else. */
+.site-nav .search-entry-shell::after,
+.home-search .search-entry-shell::after {
+    background: linear-gradient(90deg, rgba(8, 17, 33, 0), rgba(8, 17, 33, 0.92)) !important;
+}
+
+[dir="rtl"] .site-nav .search-entry-shell::after,
+[dir="rtl"] .home-search .search-entry-shell::after {
+    right: auto !important;
+    left: var(--search-entry-side-pad) !important;
+    background: linear-gradient(270deg, rgba(8, 17, 33, 0), rgba(8, 17, 33, 0.92)) !important;
+}
+
+/* 6. Arabic has no capitals and finer strokes, so a weight that reads as
+      medium in Latin reads as light in Arabic. The chips carry the reader's own
+      words and should be the firmest thing in the field. */
+[dir="rtl"] .ts-control .item,
+[dir="rtl"] .ts-wrapper.multi .ts-control > div {
+    font-weight: 700 !important;
+}
+
+
+/* ── The announcement bar is one line ───────────────────────────────────────
+   It wrapped: .site-announcement__inner was flex-wrap: wrap, so on a narrow
+   window the sentence took two rows and the bar doubled in height, pushing the
+   whole page down. It runs off the end with an ellipsis instead.
+
+   The text is what truncates, not the row. The link at the end — "See how" —
+   keeps its own nowrap and stays whole, because a call to action cut to "See
+   h…" is worse than a sentence cut short: the sentence still reads, and the
+   link is the thing the bar exists for. */
+.site-announcement {
+    overflow: hidden;
+}
+
+.site-announcement__inner {
+    /* display too. A rule under 576px turns this back into a block so the icon,
+       sentence and link flow as one paragraph — which is what used to keep them
+       off three separate rows, back when this wrapped. It also undoes the flex
+       layout the truncation depends on, so the sentence went inline again and
+       the bar grew to 60px on a phone. Nowrap flex does the same job in one
+       line at every width. */
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    min-width: 0;
+    max-width: 100%;
+}
+
+/* display: block matters. The sentence is a <span>, and text-overflow does
+   nothing to an inline box — nowrap alone just pushed it off the side of the
+   page and gave the document a horizontal scrollbar. As a block flex item that
+   is allowed to shrink, it clips and shows the ellipsis. */
+.site-announcement__text {
+    display: block;
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.site-announcement__icon,
+.site-announcement__link {
+    flex: 0 0 auto;
+}
