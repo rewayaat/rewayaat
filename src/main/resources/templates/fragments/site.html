@@ -282,7 +282,8 @@
                     <a href="/books" th:href="@{${arPrefix} ?: '' } + '/books'" th:text="#{footer.allBooks}">All Books</a>
                     <a href="/updates.html" th:href="@{${arPrefix} ?: '' } + '/updates.html'"
                        th:text="#{footer.updates}">Updates</a>
-                    <a href="/search_tips.html" th:text="#{footer.searchTips}">Search Tips</a>
+                    <a href="/search_tips.html" th:href="@{${arPrefix} ?: '' } + '/search_tips.html'"
+                       th:text="#{footer.searchTips}">Search Tips</a>
                     <a href="/privacy" th:href="@{${arPrefix} ?: '' } + '/privacy'"
                        th:text="#{footer.privacy}">Privacy</a>
                 </div>

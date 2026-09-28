@@ -897,7 +897,8 @@
                 <div class="site-footer__label" th:text="#{footer.explore}">Explore</div>
                 <div class="site-footer__links">
                     <a href="/updates.html" th:href="@{${arPrefix} ?: '' } + '/updates.html'" th:text="#{footer.updates}">Updates</a>
-                    <a href="/search_tips.html" th:text="#{footer.searchTips}">Search Tips</a>
+                    <a href="/search_tips.html" th:href="@{${arPrefix} ?: '' } + '/search_tips.html'"
+                       th:text="#{footer.searchTips}">Search Tips</a>
                     <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer" th:text="#{footer.apiDocs}">API Documentation</a>
                 </div>
             </div>

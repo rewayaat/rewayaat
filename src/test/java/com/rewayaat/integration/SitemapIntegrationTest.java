@@ -25,6 +25,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rewayaat.config.ESClientProvider;
 import com.rewayaat.controllers.SitemapController;
+import com.rewayaat.service.PageLocale;
 
 import co.elastic.clients.elasticsearch._types.Refresh;
 import co.elastic.clients.elasticsearch.core.BulkResponse;
@@ -265,10 +266,21 @@ class SitemapIntegrationTest extends ElasticsearchTestSupport {
         assertTrue(locations.contains(BASE_URL + "/ar/books"), locations.toString());
 
         // A page with no Arabic version gets one entry and no annotation, rather than an
-        // alternate pointing at a URL that 404s.
+        // alternate pointing at a URL that 404s. Asked of PageLocale rather than of a
+        // named example: /search_tips.html was the example, and when it gained an Arabic
+        // version the assertion became a statement that the new page must not be listed.
         assertTrue(locations.contains(BASE_URL + "/search_tips.html"));
-        assertFalse(locations.contains(BASE_URL + "/ar/search_tips.html"),
-                "search tips has no Arabic version, so it must not claim one");
+        for (String loc : locations) {
+            if (loc.startsWith(BASE_URL + "/ar")) {
+                continue;
+            }
+            String path = loc.substring(BASE_URL.length());
+            boolean listedInArabic = locations.contains(PageLocale.ARABIC.urlFor(path));
+            assertEquals(PageLocale.hasArabicVersion(path), listedInArabic,
+                    path + ": the sitemap and PageLocale disagree about whether this page "
+                            + "exists in Arabic. A listed URL that 404s is worse than an "
+                            + "unlisted one.");
+        }
     }
 
     @Test

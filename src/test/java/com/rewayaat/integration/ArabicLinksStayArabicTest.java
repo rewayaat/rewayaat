@@ -34,11 +34,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ArabicLinksStayArabicTest extends ElasticsearchTestSupport {
 
     private static final List<String> PAGES = List.of(
-            "/ar/", "/ar/books", "/ar/signin.html", "/ar/privacy", "/ar/updates.html");
+            "/ar/", "/ar/books", "/ar/signin.html", "/ar/privacy", "/ar/updates.html",
+            "/ar/search_tips.html");
 
     /** Paths with no Arabic twin, where an English link is the right answer. */
     private static final Pattern NO_ARABIC_VERSION = Pattern.compile(
-            "^/(search_tips\\.html|swagger-ui|v1/|api/|img/|css/|js/|auth/|mcp|sitemap|robots)");
+            "^/(swagger-ui|v1/|api/|img/|css/|js/|auth/|mcp|sitemap|robots)");
 
     private static final Pattern ANCHOR = Pattern.compile("<a\\b([^>]*)>", Pattern.CASE_INSENSITIVE);
     private static final Pattern HREF = Pattern.compile("href=\"([^\"]*)\"", Pattern.CASE_INSENSITIVE);

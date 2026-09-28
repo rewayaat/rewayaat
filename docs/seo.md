@@ -274,9 +274,20 @@ and pins both the rule and the fact that the hubs still link everything.
 
 | Sitemap | Contents |
 |---------|----------|
-| `/sitemap-static.xml` | `/`, `/books`, `/updates.html`, `/search_tips.html` |
-| `/sitemap-books.xml` | ~3,900 URLs — `/books`, 18 books, 30 volumes, the 133 parts that are pages in their own right (of 166: 18 wrap one chapter, 15 duplicate their parent), and the ~3,700 chapters holding more than one narration |
+| `/sitemap-static.xml` | `/`, `/books`, `/updates.html`, `/search_tips.html`, `/privacy` |
+| `/sitemap-books.xml` | ~7,800 URLs — `/books`, 18 books, 30 volumes, the 133 parts that are pages in their own right (of 166: 18 wrap one chapter, 15 duplicate their parent), and the ~3,700 chapters holding more than one narration, each of them twice |
 | `/sitemap-hadith-{1..4}.xml` | 32,519 narrations, 10,000 per page |
+
+Every page that exists in both languages is listed twice, each entry carrying the same
+reciprocal `hreflang` set — a one-sided pair is discarded rather than followed. Which
+pages those are is `PageLocale.hasArabicVersion`, and the static sitemap is checked
+against it rather than against a list written here: `/privacy` had been missing from
+every sitemap, both halves of it, for as long as the Arabic site had existed.
+
+The narrations are the exception. `/ar/hadith/{id}` renders, but it is `noindex, follow`
+— the body of a narration page is the Arabic text, which is already on the English page,
+so the Arabic copy is the same content at a second URL. All 32,519 of them would double a
+URL count Search Console already reports as more than it will crawl.
 
 Two things learned the hard way, both pinned by `SitemapIntegrationTest`:
 

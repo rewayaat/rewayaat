@@ -177,6 +177,7 @@ public enum PageLocale {
                 || strippedPath.startsWith("/books/")
                 || strippedPath.startsWith("/hadith/")
                 || strippedPath.equals("/privacy")
+                || strippedPath.equals("/search_tips.html")
                 || strippedPath.equals("/signin.html")
                 || strippedPath.equals("/updates.html");
     }
