@@ -87,6 +87,7 @@
     <th:block th:replace="~{fragments/i18n-js :: i18n}"></th:block>
     <script src="/js/site-announcement.js" th:src="@{/js/site-announcement.js}" defer></script>
     <script src="/js/locale-preference.js" th:src="@{/js/locale-preference.js}" defer></script>
+    <script src="/js/nav-menu.js" th:src="@{/js/nav-menu.js}" defer></script>
 </head>
 
 <body>
@@ -103,6 +104,47 @@
   that is shared. `current` names the page, so the right one is marked; anything
   unrecognised simply marks none, which is correct for the sign-in page.
 -->
+<!--
+  The header's menu on a phone.
+
+  It replaces the globe, which is the only one of these controls that had a place in
+  the row at that width: Browse and Updates are the header links, which become icons
+  and then run out of room, and the language switch was a button of its own. One
+  button, three destinations, and Sign In when there is nobody signed in.
+
+  The sign-in item is hidden by a body class the auth scripts already set rather than
+  by anything in here, so it agrees with the chip at the other end of the row instead
+  of racing it.
+-->
+<div th:fragment="navmenu" class="nav-menu" data-nav-menu>
+    <button type="button" class="top-action nav-menu__toggle" data-nav-menu-toggle
+            aria-expanded="false" aria-label="Menu" th:aria-label="#{nav.menu}">
+        <i class="fa fa-bars" aria-hidden="true"></i>
+    </button>
+    <div class="nav-menu__panel" data-nav-menu-panel hidden>
+        <a class="nav-menu__item nav-menu__item--signin"
+           href="/signin.html" th:href="@{${arPrefix} ?: '' } + '/signin.html'">
+            <i class="fa fa-right-to-bracket" aria-hidden="true"></i>
+            <span th:text="#{nav.signin}">Sign In</span>
+        </a>
+        <a class="nav-menu__item" href="/books" th:href="@{${arPrefix} ?: '' } + '/books'">
+            <i class="fa fa-book-open" aria-hidden="true"></i>
+            <span th:text="#{nav.browse}">Browse</span>
+        </a>
+        <a class="nav-menu__item" href="/updates.html"
+           th:href="@{${arPrefix} ?: '' } + '/updates.html'">
+            <i class="fa fa-bolt" aria-hidden="true"></i>
+            <span th:text="#{nav.updates}">Updates</span>
+        </a>
+        <a th:if="${switchLocalePath != null}" class="nav-menu__item"
+           th:href="@{${switchLocalePath}}" th:hreflang="${switchLocaleTag}"
+           th:attr="data-set-locale=${switchLocaleTag}">
+            <i class="fa fa-globe" aria-hidden="true"></i>
+            <span th:text="${isArabic} ? #{lang.switchToEnglish} : #{lang.switchToArabic}">العربية</span>
+        </a>
+    </div>
+</div>
+
 <!--
   The search field for every page that is not the search page itself.
 
@@ -180,6 +222,7 @@
                       against the account, which is what decides the language of the mail
                       we send them.
                     -->
+                    <div th:replace="~{fragments/site :: navmenu}"></div>
                     <a th:if="${switchLocalePath != null}" class="top-action lang-toggle"
                        th:href="@{${switchLocalePath}}"
                        th:hreflang="${switchLocaleTag}"

@@ -12833,3 +12833,127 @@ body.is-search-mode .site-nav .search-entry-shell {
 .site-announcement__link {
     flex: 0 0 auto;
 }
+
+
+/* ── Nothing grey before the field arrives ──────────────────────────────────
+   For the first quarter-second of a page load the search area painted a light
+   grey slab 50px tall, and a native multi-select list box under it, before the
+   script replaced both with the real field.
+
+   Two causes, both of them things that should never have been visible.
+
+   .navbar-search__input is a wrapper around the field, not the field: the
+   surface belongs to .search-entry-shell inside it. It carried a #efefef fill,
+   a border, a shadow and a 50px floor from before the shell existed, and every
+   state that matters already overrode all four to transparent — search mode
+   does, the home hero does. It only ever showed in the gap before the class
+   that hides it was applied, which is exactly the flash.
+
+   And the <select> the field is built from renders as a list box until Tom
+   Select wraps it. It is hidden until then, keyed on the class Tom Select adds
+   when it takes over, so nothing here has to guess when that happened. */
+.navbar-search__input,
+.site-nav .navbar-search__input {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    min-height: 0;
+    /* The padding goes with them. It was 6px, which both real states already
+       set to 0, so all it did was make the wrapper 50px before the script ran
+       and 38px after — a twelve-pixel jolt in the navbar on every load. */
+    padding: 0;
+}
+
+.search-entry-shell > select:not(.ts-hidden-accessible),
+.search-entry-shell > select.form-control:not(.ts-hidden-accessible) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+
+/* ── The header's menu on a phone ───────────────────────────────────────────
+   Hidden on a desktop, where the links and the globe have room to be
+   themselves. Under 768px it is the only one of them left: the links have
+   already become icons, and the globe becomes an item inside this instead of a
+   button of its own. */
+.nav-menu {
+    position: relative;
+    display: none;
+}
+
+/* Size and shape only. The colour is the row's: .top-actions .top-action paints
+   everything in it gold on navy, with !important, and this is one of them — it
+   stands where the globe stood and should look like what stood there. Setting a
+   surface of its own here would only be dead CSS losing to that rule. */
+.nav-menu__toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 9px;
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+
+.nav-menu__panel {
+    position: absolute;
+    top: calc(100% + 0.45rem);
+    /* Anchored to the end of the row, which mirrors on its own: the button sits
+       on the outer edge in both languages and the panel hangs inward from it. */
+    inset-inline-end: 0;
+    z-index: 2200;
+    min-width: 12rem;
+    max-width: min(16rem, 86vw);
+    padding: 0.3rem;
+    border: 1px solid rgba(226, 232, 240, 0.22);
+    border-radius: 10px;
+    background: #0e1c33;
+    box-shadow: 0 14px 30px rgba(4, 12, 24, 0.45);
+}
+
+.nav-menu__item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.7rem;
+    border-radius: 7px;
+    color: rgba(245, 248, 251, 0.92);
+    font-family: var(--font-ui);
+    font-size: 0.86rem;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.nav-menu__item i {
+    width: 1rem;
+    text-align: center;
+    color: var(--gold-light);
+}
+
+.nav-menu__item:hover,
+.nav-menu__item:focus-visible {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+/* Signed in, the sign-in item goes. The class is set by whichever auth script
+   the page runs, so this never has to know which one that is. */
+body.is-authed .nav-menu__item--signin {
+    display: none;
+}
+
+@media (max-width: 767.98px) {
+    .nav-menu {
+        display: inline-flex;
+    }
+
+    /* Its job is now an item in the menu. */
+    .top-action.lang-toggle {
+        display: none !important;
+    }
+}

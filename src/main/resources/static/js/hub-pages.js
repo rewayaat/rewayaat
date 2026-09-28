@@ -87,6 +87,9 @@ function localeHref(path) {
         var initial = el('authProfileInitial');
 
         if (signIn) { signIn.classList.toggle('d-none', authed); }
+        // The phone menu's sign-in item reads this rather than authState, so it
+        // cannot disagree with the chip about who is signed in.
+        document.body.classList.toggle('is-authed', authed);
         if (shell) { shell.classList.toggle('d-none', !authed); }
 
         if (authed && authState.user) {

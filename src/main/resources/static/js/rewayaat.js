@@ -1253,6 +1253,9 @@ function refreshAuthState() {
 
 function applyAuthState() {
     var isAuthed = !!authState.authenticated;
+    // The phone menu's sign-in item reads this rather than authState, so it cannot
+    // disagree with the chip at the other end of the row about who is signed in.
+    document.body.classList.toggle('is-authed', isAuthed);
     var signInBtn = document.getElementById('authSignInBtn');
     var profileShell = document.getElementById('authProfileShell');
     var profileBtn = document.getElementById('authProfileBtn');

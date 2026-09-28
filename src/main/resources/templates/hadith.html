@@ -118,6 +118,7 @@
                     <!-- Globe rather than a word: the icon reads the same in both
                          languages, and last in the row so it sits on the outer edge,
                          which mirrors on its own. -->
+                    <div th:replace="~{fragments/site :: navmenu}"></div>
                     <a th:if="${switchLocalePath != null}" class="top-action lang-toggle"
                        th:href="@{${switchLocalePath}}"
                        th:hreflang="${switchLocaleTag}"
@@ -230,6 +231,7 @@
 <script src="/js/hub-pages.js" th:src="@{/js/hub-pages.js}"></script>
 <script src="/js/site-announcement.js" th:src="@{/js/site-announcement.js}"></script>
 <script src="/js/locale-preference.js" th:src="@{/js/locale-preference.js}"></script>
+    <script src="/js/nav-menu.js" th:src="@{/js/nav-menu.js}" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script th:inline="javascript">
