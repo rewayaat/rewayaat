@@ -599,12 +599,21 @@ function setupSelect2EnterKeyListener(select2_id) {
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
+            // Enter searches. It used to only turn the typed word into a term and
+            // wait for a second Enter, which is a reasonable way to build a
+            // multi-term query and an unreasonable thing to do to someone who has
+            // typed a word into a search box and pressed Enter: nothing they can see
+            // happens, so the box reads as broken.
+            //
+            // Committing and submitting keeps the multi-term flow anyway. The term
+            // just typed becomes a chip and stays in the box on the results page, so
+            // typing a second word and pressing Enter again searches for both — one
+            // key per term either way, with results in between instead of silence.
             var pendingForEnter = (input.value || '').trim();
             if (pendingForEnter) {
                 markKeyboardSearchTermCommit();
                 commitPendingSearchTermsToControl([pendingForEnter]);
                 indicatePendingSearchTerms();
-                return;
             }
             submitSearchQuery();
             return;
