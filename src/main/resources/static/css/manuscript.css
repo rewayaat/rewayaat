@@ -12528,3 +12528,47 @@ body.is-search-mode .site-nav .search-entry-shell {
 .hub-hero__lede {
     overflow-wrap: anywhere;
 }
+
+
+/* ── The chosen search terms ────────────────────────────────────────────────
+   Gold on dark, the same pairing as the signed-in chip at the other end of the
+   bar — var(--gold-light) over #0b1728 — so the two things in the navbar that
+   represent the reader's own state look like each other.
+
+   They also fill the field now. The control's content box is 24px: the shell is
+   36, less 2 of border, less 6 of wrapper padding, less 4 of the control's own.
+   The tokens were 20, which left them floating in a band of empty glass with
+   more space above and below than the text needed. At 24 they sit flush inside
+   the control and the breathing room is the shell's, where it belongs. */
+.site-nav .ts-control .item,
+.home-search .ts-control .item,
+.navbar-search .ts-control .item,
+.site-nav .ts-wrapper.multi .ts-control > div,
+.navbar-search .ts-wrapper.multi .ts-control > div,
+.home-search .ts-wrapper.multi .ts-control > div {
+    min-height: 24px !important;
+    padding: 0 0.55rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    background: var(--gold-light) !important;
+    border: 1px solid transparent !important;
+    color: #0b1728 !important;
+    font-weight: 600 !important;
+    border-radius: 6px !important;
+}
+
+/* The × that drops a term. Dark like the text it sits beside, and only fully
+   dark on hover, so it reads as secondary to the word itself. */
+.site-nav .ts-control .item .remove,
+.home-search .ts-control .item .remove,
+.navbar-search .ts-control .item .remove {
+    color: rgba(11, 23, 40, 0.55) !important;
+    border-inline-start-color: rgba(11, 23, 40, 0.18) !important;
+}
+
+.site-nav .ts-control .item .remove:hover,
+.home-search .ts-control .item .remove:hover,
+.navbar-search .ts-control .item .remove:hover {
+    color: #0b1728 !important;
+    background: transparent !important;
+}
