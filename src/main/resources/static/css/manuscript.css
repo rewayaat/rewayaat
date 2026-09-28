@@ -12663,7 +12663,9 @@ body.is-search-mode .site-nav .search-entry-shell {
 .home-search .search-entry-shell,
 body.is-search-mode .site-nav .search-entry-shell {
     background: rgba(6, 14, 28, 0.58);
-    border: 1px solid rgba(247, 213, 110, 0.38);
+    /* Barely there. The edge is the glow's job now; the border is only what the
+       glow needs something to sit on. */
+    border: 1px solid rgba(247, 213, 110, 0.12);
     box-shadow:
         0 0 0 1px rgba(247, 213, 110, 0.16),
         0 0 14px rgba(247, 213, 110, 0.22),
@@ -12674,7 +12676,7 @@ body.is-search-mode .site-nav .search-entry-shell {
 .site-nav .search-entry-shell:focus-within,
 .home-search .search-entry-shell:focus-within {
     background: rgba(6, 14, 28, 0.64);
-    border-color: rgba(247, 213, 110, 0.6);
+    border-color: rgba(247, 213, 110, 0.26);
     box-shadow:
         0 0 0 1px rgba(247, 213, 110, 0.26),
         0 0 18px rgba(247, 213, 110, 0.3),
