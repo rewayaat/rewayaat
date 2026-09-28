@@ -12371,41 +12371,21 @@ body.is-search-mode .site-nav .search-entry-shell {
 }
 
 
-/* On a phone the header links are their icons.
- 
-   The hub and updates headers carry Search / Books / Updates at every width,
-   and at 320px that put the row 39px past the window in English and 66px in
-   Arabic, whose labels are longer. The search page does not have the problem
-   because it hides the same links under 768px — but it can afford to: it has a
-   mobile menu behind the bars button, and these headers have none, so hiding
-   the links here would leave a phone with no way out of the page.
- 
-   The icons are already in the markup and they are distinct — a magnifier, an
-   open book, a bolt. Dropping the labels under 576px keeps every destination
-   reachable and gives back far more room than the overflow needed. */
-@media (max-width: 575.98px) {
-    /* The swap, both halves. An earlier rule in this file already hides the icons
-       at this width, because the labels were the thing being kept; hiding the
-       labels without putting the icons back leaves three links with nothing in
-       them, which is what happened first time round. */
-    .home-nav-link span {
-        display: none;
-    }
+/* On a phone the header links are in the menu, not in the row.
 
-    .home-nav-link i {
-        display: inline-block;
-        font-size: 1rem;
-        opacity: 1;
-    }
+   They were icons here for a while, and the reason was that the hub and updates
+   headers had no mobile menu of their own: hiding the links would have left a
+   phone with no way out of the page, so they were shrunk to a magnifier, a book
+   and a bolt instead. There is a menu on every page now and Browse and Updates
+   are items in it, so the icons offer the same two destinations a second time —
+   in the one row with no room to spare.
 
-    .home-nav-link {
-        padding-inline: 0.5rem;
-    }
-
-    .home-nav-links,
-    [dir="rtl"] .home-nav-links {
-        margin-inline-start: 0.35rem;
-        gap: 0.1rem;
+   Hidden on the breakpoint the menu appears on, so the two swap exactly rather
+   than both showing across a stretch of widths. !important because the markup
+   carries Bootstrap's .d-flex, which is itself !important. */
+@media (max-width: 767.98px) {
+    .home-nav-links {
+        display: none !important;
     }
 }
 
