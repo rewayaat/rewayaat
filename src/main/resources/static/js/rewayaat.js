@@ -1912,7 +1912,8 @@ function openCreateCollectionModal() {
     }
     openCollectionNameModal({
         title: t('home.createCollection', 'Create Collection'),
-        subtitle: 'Create a reading list you can revisit from your profile or the home page.',
+        subtitle: t('js.createCollectionSubtitle',
+            'Create a reading list you can revisit from your profile or the home page.'),
         placeholder: t('js.collectionPlaceholder', 'e.g. Purification Narrations'),
         submitLabel: t('js.create', 'Create'),
         onSubmit: function(name) {
@@ -2173,8 +2174,9 @@ function openHadithEditorModal(options) {
     var narration = opts.narration || {};
     var taxonomy = opts.taxonomy || {};
     var wrapper = createCollectionModalShell(
-        'Edit Hadith',
-        'Update the narration fields below. Saving replaces the stored document immediately.'
+        t('js.editHadith', 'Edit Hadith'),
+        t('js.editHadithSubtitle',
+            'Update the narration fields below. Saving replaces the stored document immediately.')
     );
     wrapper.classList.add('hadith-editor-modal');
 

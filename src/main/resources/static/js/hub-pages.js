@@ -225,7 +225,7 @@ function localeHref(path) {
             });
             var newOption = document.createElement('option');
             newOption.value = NEW_VALUE;
-            newOption.textContent = '+ New collection';
+            newOption.textContent = t('js.newCollection', '+ New Collection');
             select.appendChild(newOption);
             if (!collections.length) { select.value = NEW_VALUE; }
             syncNewInput();
@@ -588,7 +588,7 @@ function localeHref(path) {
         var items = (data && (data.insights || data.candidates || data.items)) || [];
         var rows = items.map(function (item, idx) {
             var ref = item.verse_key || item.reference || ('Verse ' + (idx + 1));
-            var surah = item.surah_name_english || 'Quranic verse';
+            var surah = item.surah_name_english || t('js.quranicVerse', 'Quranic verse');
             var line = '<span class="hadith-sidecar__list-line">'
                 + '<span class="hadith-sidecar__list-eyebrow">' + escapeHtml(ref) + '</span>'
                 + sep()
@@ -596,7 +596,8 @@ function localeHref(path) {
                 + '</span>';
             return {line: line, raw: item};
         });
-        body.innerHTML = accordion('No Quranic insights were found for this narration.', rows,
+        body.innerHTML = accordion(t('sidecar.noQuranicInsights',
+                'No Quranic insights were found for this narration.'), rows,
             function (item) {
                 var sources = sourceOptions(item);
                 var tree = sources.length

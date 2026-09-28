@@ -1,3 +1,17 @@
+/**
+ * A string in the reader's language, or the English beside it.
+ *
+ * <p>Local, because the editor page loads neither rewayaat.js nor the i18n fragment, so
+ * there is no global t here and no window.I18N either. That is why this returns the
+ * fallback rather than assuming a table: the page keeps working in English today, and
+ * starts translating the day edit.html includes the fragment.
+ */
+function t(key, fallback) {
+    var table = window.I18N || {};
+    var value = table[key];
+    return (typeof value === 'string' && value.length) ? value : fallback;
+}
+
 new Vue({
     el: '.edit-page',
     data: {
@@ -45,14 +59,14 @@ new Vue({
         loadHadith: function() {
             var self = this;
             if (!this.hadithId) {
-                this.error = 'No hadith ID provided';
+                this.error = t('js.noHadithId', 'No hadith ID provided');
                 this.loading = false;
                 return;
             }
             axios.get('/v1/narrations/' + encodeURIComponent(this.hadithId))
                 .then(function(response) {
                     if (!response.data || !response.data.ok || !response.data.narration) {
-                        throw new Error('Failed to load hadith');
+                        throw new Error(t('js.loadHadithFailed', 'Failed to load hadith'));
                     }
                     self.narration = response.data.narration;
                     self.populateForm(response.data.narration);
@@ -64,7 +78,7 @@ new Vue({
                     self.loading = false;
                 })
                 .catch(function(err) {
-                    self.error = err.message || 'Failed to load hadith';
+                    self.error = err.message || t('js.loadHadithFailed', 'Failed to load hadith');
                     self.loading = false;
                 });
         },
@@ -169,7 +183,8 @@ new Vue({
             axios.put('/v1/narrations/' + encodeURIComponent(this.hadithId), payload)
                 .then(function(response) {
                     if (!response.data || !response.data.ok) {
-                        throw new Error((response.data && response.data.message) || 'Failed to save');
+                        throw new Error((response.data && response.data.message)
+                            || t('js.saveHadithFailed', 'Failed to save'));
                     }
                     self.saveSuccess = true;
                     self.narration = response.data.narration;
@@ -183,7 +198,8 @@ new Vue({
                 })
                 .catch(function(err) {
                     self.saveError = true;
-                    self.error = err.response?.data?.message || err.message || 'Failed to save';
+                    self.error = err.response?.data?.message || err.message
+                        || t('js.saveHadithFailed', 'Failed to save');
                     setTimeout(function() {
                         self.saveError = false;
                     }, 3000);

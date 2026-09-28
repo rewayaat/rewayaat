@@ -179,13 +179,25 @@ class MessageCatalogueTest {
         Pattern raised = Pattern.compile(
                 "\\b(?:showToast|toast|setAlert|hubToast|swal)\\(\\s*'([^']{3,})'");
 
+        // The same call with a server message in front of it:
+        //     setAlert(resp.data.message || 'Unable to sign in.', 'danger')
+        // The first argument is an expression, so the pattern above walks past it, and
+        // four of these sat in English on the Arabic sign-in page for exactly that
+        // reason. The fallback is what a reader sees whenever the server sends no
+        // message of its own, which is most of the time.
+        Pattern fallback = Pattern.compile(
+                "\\b(?:showToast|toast|setAlert|hubToast|swal)\\([^;]{0,120}?\\|\\|\\s*'([^']{3,})'");
+
         Set<String> found = new TreeSet<>();
         for (Path file : sources()) {
-            Matcher matcher = raised.matcher(Files.readString(file, StandardCharsets.UTF_8));
-            while (matcher.find()) {
-                String literal = matcher.group(1).replaceAll("<[^>]*>", "").trim();
-                if (literal.matches(".*\\b[A-Za-z]{2,}\\b.*\\b[A-Za-z]{2,}\\b.*")) {
-                    found.add(file.getFileName() + ": \"" + literal + "\"");
+            String source = Files.readString(file, StandardCharsets.UTF_8);
+            for (Pattern pattern : List.of(raised, fallback)) {
+                Matcher matcher = pattern.matcher(source);
+                while (matcher.find()) {
+                    String literal = matcher.group(1).replaceAll("<[^>]*>", "").trim();
+                    if (literal.matches(".*\\b[A-Za-z]{2,}\\b.*\\b[A-Za-z]{2,}\\b.*")) {
+                        found.add(file.getFileName() + ": \"" + literal + "\"");
+                    }
                 }
             }
         }

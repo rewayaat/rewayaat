@@ -2,7 +2,7 @@
     Vue.component(
             'pagination', {
                 template: `
-                    <nav v-if="showList" aria-label="Page navigation">
+                    <nav v-if="showList" :aria-label="t('js.pageNavigation', 'Page navigation')">
                         <ul class="pagination pagination-sm justify-content-center">
                             <li class="page-item pagination__first" :class="{disabled: currentPage <= 1}">
                                 <a class="page-link" href="#" @click.prevent="goToPage(1)" aria-label="First">
@@ -81,6 +81,13 @@
                     }
                 },
                 methods: {
+                    // Each component carries its own: a method on one is not in scope in
+                    // another's template, and the paginator's aria-label needs it here.
+                    t: function(key, fallback) {
+                        var table = window.I18N || {};
+                        var value = table[key];
+                        return (typeof value === 'string' && value.length) ? value : fallback;
+                    },
                     goToPage: function(pageNum) {
                         if (pageNum < 1 || pageNum > this.totalPages || pageNum === this.currentPage) {
                             return;

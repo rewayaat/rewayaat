@@ -203,7 +203,7 @@
                 })
             }).then(function(resp) {
                 if (!resp.ok || !resp.data.ok) {
-                    setAlert(resp.data.message || 'Unable to sign in.', 'danger');
+                    setAlert(resp.data.message || t('js.signInFailed', 'Unable to sign in.'), 'danger');
                     return;
                 }
                 var nextPath = normalizeReturnPath(qs('return'));
@@ -310,10 +310,12 @@
                 })
             }).then(function(resp) {
                 if (!resp.ok || !resp.data.ok) {
-                    setAlert(resp.data.message || 'Could not reset password.', 'danger');
+                    setAlert(resp.data.message || t('js.resetFailed', 'Could not reset password.'), 'danger');
                     return;
                 }
-                setAlert(resp.data.message || 'Password updated. You can now sign in.', 'success');
+                setAlert(resp.data.message
+                        || t('js.passwordUpdated', 'Password updated. You can now sign in.'),
+                    'success');
                 removeQueryParam('reset_token');
                 byId('authResetPassword').value = '';
                 byId('authResetPasswordConfirm').value = '';
@@ -351,9 +353,10 @@
         return apiJSON('/v1/auth/verify?token=' + encodeURIComponent(token), { method: 'GET' })
             .then(function(resp) {
                 if (resp.ok && resp.data.ok) {
-                    setAlert(resp.data.message || 'Email verified successfully. You can now sign in.', 'success');
+                    setAlert(resp.data.message || t('js.emailVerified', 'Email verified successfully. You can now sign in.'), 'success');
                 } else {
-                    setAlert((resp.data && resp.data.message) || 'Unable to verify token.', 'danger');
+                    setAlert((resp.data && resp.data.message)
+                        || t('js.verifyFailed', 'Unable to verify token.'), 'danger');
                 }
                 removeQueryParam('verify_token');
             })

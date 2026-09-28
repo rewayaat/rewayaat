@@ -44,6 +44,18 @@
          options: [[false, t('share.chain.matn', 'Matn only')], [true, t('share.chain.with', 'With isnād')]]}
     ];
 
+    /**
+     * Escaped for innerHTML, including inside an attribute value.
+     *
+     * <p>The strings below are translations, which is data — and two of them land in an
+     * alt= and an aria-label=, where an unescaped quote would end the attribute early.
+     */
+    function esc(value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
     function cardUrl() {
         // A colon is legal in a path segment, and the og:image tag emits it raw. Encoding
         // it here would hand the newsletter a different address for the same image.
@@ -254,31 +266,38 @@
             '<div class="share-card-modal__panel">' +
               '<div class="share-card-modal__head">' +
                 '<div>' +
-                  '<div class="share-card-modal__eyebrow">Share as image</div>' +
+                  '<div class="share-card-modal__eyebrow">'
+                    + esc(t('card.shareImage', 'Share as image')) + '</div>' +
                   '<div class="share-card-modal__title" data-share-label></div>' +
                 '</div>' +
                 '<button type="button" class="share-card-modal__close" data-share-close ' +
-                        'aria-label="Close">&times;</button>' +
+                        'aria-label="' + esc(t('js.close', 'Close')) + '">&times;</button>' +
               '</div>' +
               '<div class="share-card-modal__frame" data-share-frame>' +
-                '<img alt="Preview of the share card for this narration" data-share-image/>' +
+                '<img alt="' + esc(t('share.previewAlt',
+                    'Preview of the share card for this narration')) + '" data-share-image/>' +
               '</div>' +
               controlsMarkup() +
               '<label class="share-card-modal__address">' +
-                '<span>Image address</span>' +
+                '<span>' + esc(t('share.address', 'Image address')) + '</span>' +
                 '<input type="text" readonly data-share-address ' +
-                       'aria-label="Direct address of this image"/>' +
+                       'aria-label="' + esc(t('share.addressAria',
+                           'Direct address of this image')) + '"/>' +
               '</label>' +
-              '<p class="share-card-modal__hint">Paste the address into an email template as ' +
-                 'an image source; copy or download the file to drop it straight into a message.</p>' +
+              '<p class="share-card-modal__hint">' + esc(t('share.hint',
+                 'Paste the address into an email template as an image source; copy or '
+                 + 'download the file to drop it straight into a message.')) + '</p>' +
               '<div class="share-card-modal__actions">' +
                 '<button type="button" class="share-card-modal__btn" data-share-copy-url>' +
-                  '<i class="fa fa-link" aria-hidden="true"></i> Copy address</button>' +
+                  '<i class="fa fa-link" aria-hidden="true"></i> '
+                    + esc(t('share.copyAddress', 'Copy address')) + '</button>' +
                 '<button type="button" class="share-card-modal__btn" data-share-download>' +
-                  '<i class="fa fa-download" aria-hidden="true"></i> Download</button>' +
+                  '<i class="fa fa-download" aria-hidden="true"></i> '
+                    + esc(t('share.download', 'Download')) + '</button>' +
                 '<button type="button" class="share-card-modal__btn share-card-modal__btn--primary" ' +
                         'data-share-copy>' +
-                  '<i class="fa fa-copy" aria-hidden="true"></i> Copy image</button>' +
+                  '<i class="fa fa-copy" aria-hidden="true"></i> '
+                    + esc(t('share.copyImage', 'Copy image')) + '</button>' +
               '</div>' +
               '<div class="share-card-modal__note" data-share-note role="status" aria-live="polite"></div>' +
             '</div>';
