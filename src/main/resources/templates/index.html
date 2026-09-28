@@ -10,6 +10,16 @@
     <!-- Absolute, and always on the canonical host: rewayaat.info mirrors this app, and a
          relative "/" made the mirror declare itself canonical, splitting the site in two. -->
     <link rel="canonical" th:href="${canonicalUrl}" href="https://hadith.academyofislam.com/"/>
+    <!-- The home page's own hreflang pair. Every other page pair declares itself through
+         fragments/site.html, which this template predates and does not use; the home page
+         was the one pair a crawler could only learn from the sitemap. That is the weaker
+         signal of the two, and it was missing from the highest-priority URL on the site.
+         Both entries appear on both pages, each naming the other and itself, because a
+         one-sided pair is discarded. -->
+    <th:block th:if="${hreflangAlternates != null}">
+        <link th:each="alt : ${hreflangAlternates}" rel="alternate"
+              th:hreflang="${alt.key}" th:href="${alt.value}"/>
+    </th:block>
     <!-- Search result pages are thin and unbounded; they consolidate onto the home page. -->
     <meta th:if="${robotsDirective != null}" name="robots" th:content="${robotsDirective}"/>
     <meta property="og:type" content="website"/>

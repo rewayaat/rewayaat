@@ -112,7 +112,13 @@ public class SitemapController {
         appendLocalisedUrl(xml, "/", "1.0", "weekly");
         appendLocalisedUrl(xml, "/books", "0.9", "weekly");
         appendLocalisedUrl(xml, "/updates.html", "0.6", "weekly");
+        // A static file rather than a template, so it exists in English only:
+        // PageLocale.hasArabicVersion says so and this emits the single entry.
         appendLocalisedUrl(xml, "/search_tips.html", "0.5", "monthly");
+        // The privacy policy exists in both languages, is indexable, and was in no
+        // sitemap at all - neither half. Nothing failed; it was simply never listed,
+        // which is the failure mode a sitemap written by hand has.
+        appendLocalisedUrl(xml, "/privacy", "0.3", "yearly");
 
         xml.append("</urlset>");
         return ResponseEntity.ok()

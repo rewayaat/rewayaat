@@ -8,8 +8,13 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -284,5 +289,80 @@ class SitemapIntegrationTest extends ElasticsearchTestSupport {
                     "alternate " + alternate.group(2) + " is not listed as a page of its own");
         }
         assertTrue(seen > 0, "expected the static sitemap to carry hreflang annotations");
+    }
+
+    /**
+     * A page that exists in Arabic and is allowed into the index is in a sitemap.
+     *
+     * <p>The static sitemap is written by hand, one {@code appendLocalisedUrl} per page,
+     * and the failure mode of a hand-written list is omission: nothing breaks, no test
+     * fails, the page simply never appears. {@code /privacy} was missing that way — both
+     * halves of it, from every sitemap, for as long as the Arabic site has existed.
+     *
+     * <p>So the list is checked against the other place that already knows which pages
+     * have an Arabic version. {@link com.rewayaat.service.PageLocale#hasArabicVersion}
+     * names them, a few by exact path and the rest by prefix; the exact ones are the
+     * static pages and are read out of its source here. Two exclusions, both deliberate
+     * and both declared elsewhere rather than repeated: a path carrying
+     * {@code X-Robots-Tag: noindex} is not a sitemap candidate, and the narration pages
+     * are a prefix rather than an exact path, so they never enter this list at all.
+     */
+    @Test
+    void everyIndexableArabicStaticPageIsListed() throws IOException {
+        Set<String> declared = arabicCapableExactPaths();
+        assertFalse(declared.isEmpty(),
+                "no exact paths were read out of PageLocale, so this checked nothing");
+
+        Set<String> noindex = noindexPaths();
+        Set<String> located = new HashSet<>(locations(
+                restTemplate.getForEntity("/sitemap-static.xml", String.class).getBody()));
+
+        List<String> missing = new ArrayList<>();
+        for (String path : declared) {
+            if (noindex.contains(path)) {
+                continue;
+            }
+            if (!located.contains(BASE_URL + path) || !located.contains(BASE_URL + "/ar" + path)) {
+                missing.add(path);
+            }
+        }
+
+        assertTrue(missing.isEmpty(),
+                "these pages exist in both languages and are indexable, but one or both "
+                        + "halves are in no sitemap: " + missing
+                        + "\nAdd an appendLocalisedUrl for each in SitemapController, or "
+                        + "give it a noindex directive if it is not meant to be found.");
+    }
+
+    /** The {@code strippedPath.equals("…")} branches of {@code PageLocale}. */
+    private static Set<String> arabicCapableExactPaths() throws IOException {
+        String source = Files.readString(
+                Path.of("src/main/java/com/rewayaat/service/PageLocale.java"), StandardCharsets.UTF_8);
+        int from = source.indexOf("public static boolean hasArabicVersion");
+        assertTrue(from > 0, "hasArabicVersion has been renamed; this test needs updating");
+        String body = source.substring(from, source.indexOf("\n    }", from));
+
+        Set<String> paths = new LinkedHashSet<>();
+        Matcher exact = Pattern.compile("strippedPath\\.equals\\(\"([^\"]+)\"\\)").matcher(body);
+        while (exact.find()) {
+            paths.add(exact.group(1));
+        }
+        return paths;
+    }
+
+    /** The paths {@code CrawlerDirectivesConfig} keeps out of the index. */
+    private static Set<String> noindexPaths() throws IOException {
+        String source = Files.readString(
+                Path.of("src/main/java/com/rewayaat/config/CrawlerDirectivesConfig.java"),
+                StandardCharsets.UTF_8);
+        Matcher list = Pattern.compile("NOINDEX_PATHS = List\\.of\\(([^)]*)\\)").matcher(source);
+        assertTrue(list.find(), "NOINDEX_PATHS has moved; this test needs updating");
+
+        Set<String> paths = new LinkedHashSet<>();
+        Matcher entry = Pattern.compile("\"([^\"]+)\"").matcher(list.group(1));
+        while (entry.find()) {
+            paths.add(entry.group(1));
+        }
+        return paths;
     }
 }

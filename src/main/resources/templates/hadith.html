@@ -187,7 +187,11 @@
                 <div class="site-footer__label" th:text="#{footer.explore}">Explore</div>
                 <div class="site-footer__links">
                     <a href="/updates.html" th:href="@{${arPrefix} ?: '' } + '/updates.html'" th:text="#{footer.updates}">Updates</a>
-                    <a href="/search_tips.html" th:href="@{${arPrefix} ?: '' } + '/search_tips.html'" th:text="#{footer.searchTips}">Search Tips</a>
+                    <!-- Bare, not prefixed. The tips are a static file with no Arabic
+                         version, so /ar/search_tips.html is a 404 - which is what this
+                         link pointed Arabic readers at. Every other footer on the site
+                         links to it unprefixed; this was the copy that drifted. -->
+                    <a href="/search_tips.html" th:text="#{footer.searchTips}">Search Tips</a>
                     <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer" th:text="#{footer.apiDocs}">API Documentation</a>
                 </div>
             </div>

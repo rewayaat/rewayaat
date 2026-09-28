@@ -166,4 +166,52 @@ class ArabicLinksStayArabicTest extends ElasticsearchTestSupport {
         assertEquals(Set.of(), wrong,
                 "these canonicals carry the language twice:\n" + String.join("\n", wrong));
     }
+
+    @Test
+    @DisplayName("an indexable page names its translation in its own markup")
+    void bothHalvesOfAPairDeclareTheOther() {
+        // The canonical above says which URL this page is. hreflang says which languages
+        // it exists in, and without it a crawler has two pages of near-identical structure
+        // in two languages and no statement that they are the same page - the duplicate
+        // reading the canonical alone does not rule out.
+        //
+        // Most pages get it from the shared head fragment. The home page does not use that
+        // fragment: it is the oldest template on the site and carries its own head, so it
+        // was the one pair - the highest-priority URL on the site, in both languages - that
+        // declared nothing. The sitemap said it, which is the weaker of the two signals and
+        // the only one that was there.
+        Set<String> silent = new TreeSet<>();
+        for (String page : List.of("/", "/ar/", "/books", "/ar/books",
+                "/privacy", "/ar/privacy", "/updates.html", "/ar/updates.html")) {
+            String html = restTemplate.getForObject(page, String.class);
+            if (html == null) {
+                continue;
+            }
+            // Counted, not merely present. The language toggle in the header is an
+            // anchor carrying hreflang too, so "the page mentions hreflang=ar" is true
+            // on every page whether or not it declares anything. Three rel="alternate"
+            // links is the declaration; the toggle is not one of them.
+            int alternates = countOf(html, "rel=\"alternate\"");
+            boolean namesDefault = html.contains("hreflang=\"x-default\"");
+            if (alternates < 3 || !namesDefault) {
+                silent.add(page + "  (rel=alternate x" + alternates
+                        + ", x-default=" + namesDefault + ")");
+            }
+        }
+        assertEquals(Set.of(), silent,
+                "these pages exist in both languages and say so nowhere in their markup:\n"
+                        + String.join("\n", silent)
+                        + "\nThe head fragment in fragments/site.html emits the pair; a "
+                        + "template with a head of its own has to emit it too.");
+    }
+
+    private static int countOf(String haystack, String needle) {
+        int count = 0;
+        int at = haystack.indexOf(needle);
+        while (at >= 0) {
+            count++;
+            at = haystack.indexOf(needle, at + needle.length());
+        }
+        return count;
+    }
 }
