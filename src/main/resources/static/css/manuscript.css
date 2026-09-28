@@ -12635,32 +12635,25 @@ body.is-search-mode .site-nav .search-entry-shell {
 /* ── The field: warmer light, squarer chips, a visible button, and a mirror ──
    Everything below is the search field, in the order it was asked for. */
 
-/* 1. The glow is yellow now rather than a warm white. The rule carries a little
-      of it too, so the light looks like it comes from the edge rather than
-      hovering around a grey one. */
+/* 1. A dark field inside one plain grey rule. No shadow at all: the glow that
+      was here read as light coming off the edge, and the edge is enough. */
 .search-entry-shell,
 .site-nav .search-entry-shell,
 .home-search .search-entry-shell,
 body.is-search-mode .site-nav .search-entry-shell {
     background: rgba(6, 14, 28, 0.58);
-    /* Barely there. The edge is the glow's job now; the border is only what the
-       glow needs something to sit on. */
-    border: 1px solid rgba(247, 213, 110, 0.12);
-    box-shadow:
-        0 0 0 1px rgba(247, 213, 110, 0.16),
-        0 0 14px rgba(247, 213, 110, 0.22),
-        inset 0 0 12px rgba(247, 213, 110, 0.055);
+    border: 1px solid rgba(226, 232, 240, 0.34);
+    box-shadow: none;
 }
 
+/* Focus brightens the same rule rather than adding a ring, so the field does
+   not grow by two pixels the moment it is clicked. */
 .search-entry-shell:focus-within,
 .site-nav .search-entry-shell:focus-within,
 .home-search .search-entry-shell:focus-within {
     background: rgba(6, 14, 28, 0.64);
-    border-color: rgba(247, 213, 110, 0.26);
-    box-shadow:
-        0 0 0 1px rgba(247, 213, 110, 0.26),
-        0 0 18px rgba(247, 213, 110, 0.3),
-        inset 0 0 14px rgba(247, 213, 110, 0.07);
+    border-color: rgba(226, 232, 240, 0.6);
+    box-shadow: none;
 }
 
 /* 2. Squarer. A pill made every term look like a tag to be dismissed; a chip
