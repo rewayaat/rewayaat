@@ -12930,3 +12930,44 @@ body.is-authed .nav-menu__item--signin {
         display: none !important;
     }
 }
+
+
+/* ── The field is the same height on a phone as on a desktop ────────────────
+   A block at 768px sized it for touch before the bar was made compact: 44px of
+   minimum growing to 88px, so the field on a phone was half again the height of
+   the one on a laptop and the hero field came out at 52px against 36.
+
+   The reason it could grow was to let the chosen terms wrap onto a second row.
+   They do not wrap anywhere else — the control scrolls them sideways instead —
+   so the growth bought a taller bar for a behaviour the rest of the site does
+   not have. Same height, same scrolling, everywhere.
+
+   The submit height comes down with it: at 34px inside a 36px shell it was
+   flush against both edges. */
+@media (max-width: 768px) {
+    :root {
+        --search-shell-height: 36px;
+        --search-action-height: 28px;
+    }
+
+    .search-entry-shell {
+        height: var(--search-shell-height);
+        min-height: var(--search-shell-height);
+        max-height: var(--search-shell-height);
+    }
+
+    .search-entry-shell .ts-wrapper,
+    .search-entry-shell .ts-wrapper.form-control {
+        height: 100%;
+        min-height: 0;
+    }
+
+    .navbar-search .search-entry-shell .ts-control,
+    .site-nav .search-entry-shell .ts-control,
+    .home-search .search-entry-shell .ts-control {
+        height: 100% !important;
+        min-height: 0 !important;
+        max-height: 100% !important;
+        flex-wrap: nowrap !important;
+    }
+}
