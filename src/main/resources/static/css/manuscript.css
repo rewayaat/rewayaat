@@ -9117,12 +9117,10 @@ body.is-search-mode .site-nav .search-entry-shell {
     border: 1px solid #0000003b !important;
 }
 
-.home-search .ts-control .item,
-.navbar-search.home-search .ts-control .item {
-    background: rgba(17, 47, 88, 0.08) !important;
-    border: 1px solid #0000003b !important;
-    color: #173964 !important;
-}
+/* The ninth chip skin. The eight removed earlier were all written
+   .home-search .ts-control .item; this one carried a second selector beside it and
+   so survived the sweep, which is why the home page kept its navy chips while the
+   search page went gold. The chip is one rule at the end of this file. */
 
 .site-nav .ts-control .item .remove {
     /* Position and size are the chip block's at the end of this file, which
@@ -12601,4 +12599,54 @@ body.is-search-mode .site-nav .search-entry-shell {
     .nav-search__shell {
         padding-inline-end: 0.5rem;
     }
+}
+
+
+/* ── The field, lit ─────────────────────────────────────────────────────────
+   Darker than the navy it sits on rather than lighter, so the field reads as a
+   recess rather than a panel laid on top, with a soft gold bloom around the
+   rule — enough to look lit, not enough to look like a focus ring. The rule
+   itself stays the cool light grey; the warmth is all in the glow.
+
+   Three shadows, each doing one thing: a hairline gold halo tight to the edge,
+   a wider soft bloom outside it, and a faint inner warmth so the glass looks
+   lit from within rather than outlined. */
+.search-entry-shell,
+.site-nav .search-entry-shell,
+.home-search .search-entry-shell,
+body.is-search-mode .site-nav .search-entry-shell {
+    background: rgba(6, 14, 28, 0.55);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(226, 232, 240, 0.34);
+    box-shadow:
+        0 0 0 1px rgba(247, 225, 166, 0.10),
+        0 0 12px rgba(247, 225, 166, 0.14),
+        inset 0 0 10px rgba(247, 225, 166, 0.045);
+}
+
+.search-entry-shell:focus-within,
+.site-nav .search-entry-shell:focus-within,
+.home-search .search-entry-shell:focus-within {
+    background: rgba(6, 14, 28, 0.62);
+    border-color: rgba(241, 245, 249, 0.6);
+    box-shadow:
+        0 0 0 1px rgba(247, 225, 166, 0.20),
+        0 0 16px rgba(247, 225, 166, 0.24),
+        inset 0 0 12px rgba(247, 225, 166, 0.06);
+}
+
+/* Refine Search sat at 43px and 13.8px beside a Search button of 28px and
+   11.5px — two controls a centimetre apart, one half again the size of the
+   other. The submit button cannot grow, since it lives inside the field, so
+   this comes down to meet it: same height, same type, same tracking. It keeps
+   its pill and its gold, because it is a disclosure and not a submit. */
+.home-hero__refine-toggle {
+    min-height: var(--search-action-height);
+    padding: 0 0.9rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    gap: 0.4rem;
 }
