@@ -12444,7 +12444,7 @@ body.is-search-mode .site-nav .search-entry-shell {
     line-height: 1 !important;
     letter-spacing: 0.005em !important;
     border-radius: 999px !important;
-    box-shadow: 0 1px 2px rgba(4, 12, 24, 0.22) !important;
+    box-shadow: none !important;
     margin: 0 4px 0 0 !important;
 }
 
@@ -12678,7 +12678,7 @@ body.is-search-mode .site-nav .search-entry-shell {
     border: 1px solid rgba(255, 255, 255, 0.92) !important;
     color: #0b1728 !important;
     font-weight: 700 !important;
-    box-shadow: 0 1px 3px rgba(4, 12, 24, 0.35) !important;
+    box-shadow: none !important;
 }
 
 .search-btn-with-border:hover,

@@ -3383,11 +3383,14 @@ function buildFacetsUrl(filters) {
 }
 
 function getBrowseFacetPlaceholder(key) {
+    // The template renders these four from the catalogue on first paint; this is the
+    // same four, for when the panel is repopulated after a book is chosen. They were
+    // English literals, so choosing a book turned the Arabic labels back to English.
     var placeholders = {
-        volume: 'All Volumes',
-        part: 'All Parts',
-        section: 'All Sections',
-        chapter: 'All Chapters'
+        volume: t('filter.allVolumes', 'All Volumes'),
+        part: t('filter.allParts', 'All Parts'),
+        section: t('filter.allSections', 'All Sections'),
+        chapter: t('filter.allChapters', 'All Chapters')
     };
     return placeholders[key] || ('All ' + humanizeFacetLabel(key) + 's');
 }
@@ -3437,9 +3440,22 @@ function updateFacetSelect(config, items, selectedValue, placeholderOverride) {
     var placeholder = placeholderOverride || ((config.selectId.indexOf('browse') === 0 || config.selectId.indexOf('hero') === 0)
         ? getBrowseFacetPlaceholder(config.key)
         : ('Select a ' + humanizeFacetLabel(config.key).toLowerCase()));
+    var arabic = window.I18N_LOCALE === 'ar';
     var normalizedItems = (items || []).map(function(item) {
+        var value = normalizeFacetItemValue(item);
+        // The value is the English the index is filtered by; the label is what the
+        // reader picks from. /v1/browse/facets carries the Arabic beside the English
+        // for the three facets that are names rather than numbers.
+        var label = (arabic && item && item.nameAr) ? String(item.nameAr).trim() : value;
+        // "al-qism 1" is a name with a numeral in it, and a volume is a numeral
+        // outright. Both read in the page's digits on the Arabic site, the way
+        // every other number on it does.
+        if (arabic) {
+            label = localeDigits(label);
+        }
         return {
-            value: normalizeFacetItemValue(item),
+            value: value,
+            label: label,
             count: item && item.count ? item.count : 0
         };
     }).filter(function(item) {
@@ -3450,7 +3466,10 @@ function updateFacetSelect(config, items, selectedValue, placeholderOverride) {
     normalizedItems.forEach(function(item) {
         var option = document.createElement('option');
         option.value = item.value;
-        option.textContent = formatFacetDisplay(config.key, item.value) + ' (' + formatHadithCount(item.count) + ')';
+        option.textContent = (item.label === item.value
+                ? formatFacetDisplay(config.key, item.value)
+                : item.label)
+            + ' (' + formatHadithCount(item.count) + ')';
         select.appendChild(option);
     });
     select.disabled = persistVisible ? false : !hasItems;
@@ -3698,18 +3717,31 @@ function quranicCitationStyleAttr(source) {
 function buildPdfExportMarkup(options) {
     var opts = options || {};
     var narrations = Array.isArray(opts.narrations) ? opts.narrations : [];
-    var title = escapeHtml(opts.title || 'Hadith Export');
+    // Not `arabic`: the map callback below declares its own `arabic` for the
+    // narration's Arabic text, and a var hoists over the whole callback — so the
+    // flag read as undefined exactly where it was asked whether to drop the
+    // English, and every Arabic export carried both columns.
+    var arabicSite = window.I18N_LOCALE === 'ar';
+    var title = escapeHtml(opts.title || t('pdf.exportTitle', 'Hadith Export'));
     var subtitle = escapeHtml(opts.subtitle || '');
     var metaLine = escapeHtml(opts.metaLine || '');
-    var generatedAt = escapeHtml(new Date().toLocaleString());
+    // In the page's language, not the browser's: an Arabic export dated in
+    // en-US because that is what the machine is set to reads as a leak.
+    var generatedAt = escapeHtml(new Date().toLocaleString(arabicSite ? 'ar' : 'en-GB'));
     var cards = narrations.map(function(narration, index) {
-        var number = escapeHtml(String(typeof opts.resultOrdinal === 'function'
+        var ordinal = String(typeof opts.resultOrdinal === 'function'
             ? opts.resultOrdinal(narration, index)
-            : (index + 1)));
+            : (index + 1));
+        // "Hadith 12" in an Arabic export counts in Arabic-Indic digits, the way
+        // every other number on the Arabic site does.
+        var number = escapeHtml(arabicSite ? localeDigits(ordinal) : ordinal);
         var reference = escapeHtml((typeof opts.referenceLine === 'function'
             ? opts.referenceLine(narration)
             : '') || '');
-        var english = (narration && (narration.englishContent || narration.english)) || '';
+        // The Arabic export carries the Arabic. The reader chose a language, and the
+        // card on screen already shows one column rather than two — a PDF that puts
+        // the English back is the one place the choice would not hold.
+        var english = arabicSite ? '' : ((narration && (narration.englishContent || narration.english)) || '');
         var arabic = (narration && (narration.arabicContent || narration.arabic)) || '';
         var tags = Array.isArray(narration && narration.topic_tags) ? narration.topic_tags : [];
         var tagsHtml = tags.length
@@ -3721,7 +3753,9 @@ function buildPdfExportMarkup(options) {
         return '' +
             '<article class="pdf-card">' +
                 '<div class="pdf-card__top">' +
-                    '<div class="pdf-card__index">Hadith ' + number + '</div>' +
+                    '<div class="pdf-card__index">'
+                        + escapeHtml(t('pdf.hadithNumber', 'Hadith {0}').replace('{0}', number))
+                        + '</div>' +
                     (reference ? '<div class="pdf-card__reference">' + reference + '</div>' : '') +
                 '</div>' +
                 '<div class="pdf-card__body">' +
@@ -3733,7 +3767,7 @@ function buildPdfExportMarkup(options) {
     }).join('');
 
     return '<!doctype html>' +
-        '<html><head><meta charset="utf-8">' +
+        '<html lang="' + (arabicSite ? 'ar' : 'en') + '" dir="' + (arabicSite ? 'rtl' : 'ltr') + '"><head><meta charset="utf-8">' +
         '<title>' + title + '</title>' +
         '<link rel="preconnect" href="https://fonts.googleapis.com">' +
         '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
@@ -3758,14 +3792,24 @@ function buildPdfExportMarkup(options) {
         '.pdf-card__arabic{margin-top:18px;padding-top:16px;border-top:1px dashed rgba(64,49,26,.12);font:700 24px/1.9 "Amiri","Scheherazade New",serif;color:#1c2f41;}' +
         '.pdf-card__tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;}' +
         '.pdf-tag{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;background:rgba(23,77,119,.08);border:1px solid rgba(23,77,119,.12);font:700 11px/1.2 "Manrope",sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#1f5c86;}' +
+        (arabicSite ? (
+          '[dir="rtl"] .pdf-card__index,[dir="rtl"] .pdf-meta,[dir="rtl"] .pdf-eyebrow,'
+          + '[dir="rtl"] .pdf-tag{letter-spacing:normal;text-transform:none;}'
+          + '[dir="rtl"] .pdf-card__reference{text-align:left;}'
+          + '[dir="rtl"] .pdf-title{font-family:"Amiri",serif;line-height:1.5;}'
+          + '[dir="rtl"] .pdf-card__arabic{margin-top:0;padding-top:0;border-top:0;}'
+        ) : '') +
         '@page{size:auto;margin:16mm;}@media print{body{padding:0;background:#fff;}body::before{display:none;}.pdf-shell{max-width:none;}.pdf-header{box-shadow:none;border-radius:0;border:0;border-bottom:1px solid #ddd;padding:0 0 16px;background:#fff;}.pdf-grid{margin-top:16px;}.pdf-card{box-shadow:none;background:#fff;}.pdf-card:not(:last-child){break-after:page;page-break-after:always;}}' +
         '</style></head><body>' +
         '<div class="pdf-shell">' +
             '<header class="pdf-header">' +
-                '<div class="pdf-eyebrow">Rewayaat Export</div>' +
+                '<div class="pdf-eyebrow">'
+                    + escapeHtml(t('pdf.eyebrow', 'The Hadith Database')) + '</div>' +
                 '<h1 class="pdf-title">' + title + '</h1>' +
                 (subtitle ? '<div class="pdf-subtitle">' + subtitle + '</div>' : '') +
-                '<div class="pdf-meta">' + metaLine + (metaLine ? ' · ' : '') + 'Generated ' + generatedAt + '</div>' +
+                '<div class="pdf-meta">' + metaLine + (metaLine ? ' · ' : '')
+                    + escapeHtml(t('pdf.generated', 'Generated {0}').replace('{0}', generatedAt))
+                    + '</div>' +
             '</header>' +
             '<section class="pdf-grid">' + cards + '</section>' +
         '</div>' +
@@ -6782,21 +6826,22 @@ function setupVue(query, page, sortFields) {
                 var self = this;
                 var subtitle = '';
                 if (this.collectionMode) {
-                    subtitle = 'Collection: ' + (this.collectionTitle || 'Saved Hadith');
+                    subtitle = t('pdf.collection', 'Collection: {0}')
+                        .replace('{0}', this.collectionTitle || t('js.savedHadith', 'Saved Hadith'));
                 } else if (this.queryStr) {
-                    subtitle = 'Search query: ' + strip(this.queryStr);
+                    subtitle = t('pdf.searchQuery', 'Search query: {0}').replace('{0}', strip(this.queryStr));
                 }
                 var tagSummary = this.activeTopicTags.map(function(tag) {
                     return this.taxonomyLabel(tag);
                 }, this).join(', ');
                 var metaLine = this.resultsStatusText;
                 if (tagSummary) {
-                    metaLine += ' · Tags: ' + tagSummary;
+                    metaLine += ' · ' + t('pdf.tags', 'Tags: {0}').replace('{0}', tagSummary);
                 }
                 openPdfExportWindow({
                     title: this.collectionMode
-                        ? (this.collectionTitle || 'Saved Hadith')
-                        : 'Search Results',
+                        ? (this.collectionTitle || t('js.savedHadith', 'Saved Hadith'))
+                        : t('js.searchResults', 'Search Results'),
                     subtitle: subtitle,
                     metaLine: metaLine,
                     narrations: narrations,

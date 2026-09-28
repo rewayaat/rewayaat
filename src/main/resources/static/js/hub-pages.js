@@ -1062,8 +1062,13 @@ function localeHref(path) {
             var doc = frame.contentWindow && frame.contentWindow.document;
             if (!doc) { frame.remove(); return; }
 
+            // The printed document inherits the page's language. Without it an
+            // Arabic export is a right-to-left page laid out left to right, and the
+            // labels keep the Latin tracking that pulls Arabic letters apart.
+            var arabic = window.I18N_LOCALE === 'ar';
             doc.open();
-            doc.write('<!doctype html><html><head><meta charset="utf-8"><title>'
+            doc.write('<!doctype html><html lang="' + (arabic ? 'ar' : 'en') + '" dir="'
+                + (arabic ? 'rtl' : 'ltr') + '"><head><meta charset="utf-8"><title>'
                 + escapeHtml(title) + '</title><style>'
                 + 'body{font-family:Georgia,serif;line-height:1.6;margin:2rem;color:#1a1a2e}'
                 + 'h1{font-size:1.4rem;margin-bottom:0.25rem}'
@@ -1073,6 +1078,11 @@ function localeHref(path) {
                 + '.chain{font-size:0.85rem;color:#555;margin:0.35rem 0}'
                 + '.en{margin:0.35rem 0}'
                 + '.ar{font-family:"Scheherazade New",serif;font-size:1.25rem;line-height:2;margin-top:0.5rem}'
+                + (arabic
+                    ? '[dir="rtl"] .num{letter-spacing:normal;text-transform:none}'
+                      + '[dir="rtl"] .ar{margin-top:0}'
+                      + '[dir="rtl"] body{font-family:"Scheherazade New",Georgia,serif}'
+                    : '')
                 + '</style></head><body><h1>' + escapeHtml(title) + '</h1>'
                 + '<div class="src">' + escapeHtml(window.location.href) + '</div>'
                 + rows + '</body></html>');
