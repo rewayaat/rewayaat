@@ -95,11 +95,8 @@
                      alt="ALI Logo" th:alt="#{footer.academyFull}"/>
                 <img src="/img/ali_icon.png" th:src="@{/img/ali_icon.png}" class="brand-logo--icon d-md-none" alt="ALI"/>
             </a>
-            <div class="d-flex home-nav-links">
-                <a href="/" th:href="@{${arPrefix} ?: '' } + '/'" class="home-nav-link"><i class="fa fa-magnifying-glass" aria-hidden="true"></i><span th:text="#{nav.search}">Search</span></a>
-                <a href="/books" th:href="@{${arPrefix} ?: '' } + '/books'" class="home-nav-link is-current"><i class="fa fa-book-open" aria-hidden="true"></i><span th:text="#{nav.books}">Books</span></a>
-                <a href="/updates.html" th:href="@{${arPrefix} ?: '' } + '/updates.html'" class="home-nav-link"><i class="fa fa-bolt" aria-hidden="true"></i><span th:text="#{nav.updates}">Updates</span></a>
-            </div>
+            <div th:replace="~{fragments/site :: navlinks('books')}"></div>
+            <div th:replace="~{fragments/site :: navsearch}"></div>
 
             <div class="menu-context-row ms-auto">
                 <div class="d-flex gap-2 top-actions flex-nowrap">

@@ -58,7 +58,9 @@
                 <img src="/img/ali_icon.png" th:src="@{/img/ali_icon.png}" class="brand-logo--icon d-md-none" alt="ALI"/>
             </a>
             <div class="d-none d-md-flex home-nav-links">
-                <a href="#welcome" class="home-nav-link"><i class="fa fa-magnifying-glass" aria-hidden="true"></i><span th:text="#{nav.search}">Search</span></a>
+                <!-- No Search link. On this page the field is the page; everywhere else
+                     the navbar carries the field itself, which is what the link was
+                     standing in for. -->
                 <a href="#browse" class="home-nav-link"><i class="fa fa-layer-group" aria-hidden="true"></i><span th:text="#{nav.browse}">Browse</span></a>
                 <a href="/updates.html" th:href="@{${arPrefix} ?: '' } + '/updates.html'" class="home-nav-link"><i class="fa fa-bolt" aria-hidden="true"></i><span th:text="#{nav.updates}">Updates</span></a>
             </div>

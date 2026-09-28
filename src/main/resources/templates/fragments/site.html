@@ -103,9 +103,32 @@
   that is shared. `current` names the page, so the right one is marked; anything
   unrecognised simply marks none, which is correct for the sign-in page.
 -->
+<!--
+  The search field for every page that is not the search page itself.
+
+  A plain form, not the Tom Select field the search page uses: these pages load
+  neither Tom Select nor rewayaat.js, and pulling both in so a reader can type two
+  words would cost every book and chapter page a bundle it otherwise has no use
+  for. It submits to the same place the real field submits to, so the results are
+  the same; the chips and the suggestions appear once you are there.
+
+  It wears the same glass shell, so moving between a book page and the results does
+  not look like moving between two sites.
+-->
+<form th:fragment="navsearch" class="nav-search" role="search" method="get"
+      th:action="@{${arPrefix} ?: '' } + '/'">
+    <div class="search-entry-shell nav-search__shell">
+        <i class="fa fa-search search-magnifier" aria-hidden="true"></i>
+        <input type="search" name="q" class="nav-search__input"
+               th:placeholder="#{search.navPlaceholder}" placeholder="Search the narrations"
+               th:aria-label="#{search.navPlaceholder}" aria-label="Search the narrations"/>
+        <button type="submit" class="btn btn-primary search-btn-with-border nav-search__btn">
+            <span class="search-btn__text" th:text="#{search.button}">Search</span>
+        </button>
+    </div>
+</form>
+
 <div th:fragment="navlinks(current)" class="d-flex home-nav-links">
-    <a href="/" th:href="@{${arPrefix} ?: '' } + '/'" class="home-nav-link"
-       th:classappend="${current == 'search'} ? ' is-current' : ''"><i class="fa fa-magnifying-glass" aria-hidden="true"></i><span th:text="#{nav.search}">Search</span></a>
     <a href="/books" th:href="@{${arPrefix} ?: '' } + '/books'" class="home-nav-link"
        th:classappend="${current == 'books'} ? ' is-current' : ''"><i class="fa fa-book-open" aria-hidden="true"></i><span th:text="#{nav.books}">Books</span></a>
     <a href="/updates.html" th:href="@{${arPrefix} ?: '' } + '/updates.html'" class="home-nav-link"
@@ -124,6 +147,7 @@
                 <img src="/img/ali_icon.png" th:src="@{/img/ali_icon.png}" class="brand-logo--icon d-md-none" alt="ALI"/>
             </a>
             <div th:replace="~{fragments/site :: navlinks('books')}"></div>
+            <div th:replace="~{fragments/site :: navsearch}"></div>
 
             <!-- The same auth block the home page carries, down to the element ids, so a
                  reader signed in on the search page sees the same chip in the same place

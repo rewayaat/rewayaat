@@ -12221,10 +12221,10 @@ a.hub-hero__eyebrow:hover {
 .site-nav .search-entry-shell,
 .home-search .search-entry-shell,
 body.is-search-mode .site-nav .search-entry-shell {
-    background: rgba(255, 255, 255, 0.04);
+    background: rgb(0 0 0 / 42%);
     -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
-    border: 1px solid rgba(226, 232, 240, 0.38);
+    /* border: 1px solid rgba(226, 232, 240, 0.38); */
     box-shadow: 0 6px 18px rgba(4, 12, 24, 0.18);
 }
 
@@ -12512,4 +12512,93 @@ body.is-search-mode .site-nav .search-entry-shell {
 .ts-control .item.active {
     background: var(--gold) !important;
     color: #0b1728 !important;
+}
+
+
+/* ── The navbar's search field on every page but the search page ────────────
+   A plain input wearing the same glass shell as the Tom Select field, so the
+   header does not change shape as a reader moves between a book page and the
+   results. It sits between the links and the account controls and takes the
+   slack in the row, the way the real field does. */
+.nav-search {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 640px;
+    margin-inline: 0.75rem;
+}
+
+.nav-search__shell {
+    display: flex;
+    align-items: center;
+    padding-inline-start: 1.92rem;
+    padding-inline-end: 3px;
+}
+
+.nav-search .search-magnifier,
+.site-nav .nav-search .search-magnifier {
+    position: absolute;
+    /* Both ends, not just the start. The shared .search-entry-shell rule pins this
+       with a physical `left`, so setting only inset-inline-start left that in place
+       on the Arabic side: left and right both set, and a 15px icon stretched to
+       615px across the whole field. The .site-nav arm of the selector is there for
+       the same reason — the rule that pins it carries that ancestor and so outranks
+       a plain .nav-search one. */
+    inset-inline-start: 0.72rem;
+    inset-inline-end: auto;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+}
+
+.nav-search__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    border: 0;
+    background: transparent;
+    color: #f1f5f9;
+    font-family: var(--font-ui);
+    font-size: 1.02rem;
+    line-height: 1;
+    outline: none;
+}
+
+.nav-search__input::placeholder {
+    color: rgba(226, 232, 240, 0.52);
+}
+
+/* Chrome draws its own clear affordance on a search input, which would be a
+   second × in a bar that already has one idea of how to drop a term. */
+.nav-search__input::-webkit-search-cancel-button,
+.nav-search__input::-webkit-search-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.nav-search__btn {
+    flex: 0 0 auto;
+    height: var(--search-action-height);
+    padding-inline: 0.75rem !important;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* On a phone the field is the whole point of the row; the button's word is not,
+   and the magnifier at the other end already says what the field does. */
+@media (max-width: 575.98px) {
+    .nav-search {
+        margin-inline: 0.4rem;
+    }
+
+    .nav-search__btn {
+        /* !important because .search-btn-with-border carries
+           display: inline-flex !important, which a plain display: none loses to. */
+        display: none !important;
+    }
+
+    .nav-search__shell {
+        padding-inline-end: 0.5rem;
+    }
 }
