@@ -12563,21 +12563,28 @@ body.is-search-mode .site-nav .search-entry-shell {
     white-space: nowrap;
 }
 
-/* On a phone the field is the whole point of the row; the button's word is not,
-   and the magnifier at the other end already says what the field does. */
+/* On a phone the button's word is not the point of the row; the button is. It
+   used to go away entirely under 576px, on the reasoning that the magnifier at
+   the other end of the field already said what the field does — and then the
+   magnifier went too, because the button on every other field is itself a
+   magnifying glass and two of them side by side said the same thing twice. That
+   left this field, on the hub and static pages, with no search affordance at
+   all: no icon, no button, just a dark box.
+
+   So it stays, as the same 34px square the home and search fields shrink to. The
+   padding override has to be undone by name because the rule above sets it with
+   !important, which the square's `padding: 0` would otherwise lose to. */
 @media (max-width: 575.98px) {
     .nav-search {
         margin-inline: 0.4rem;
     }
 
     .nav-search__btn {
-        /* !important because .search-btn-with-border carries
-           display: inline-flex !important, which a plain display: none loses to. */
-        display: none !important;
+        padding-inline: 0 !important;
     }
 
     .nav-search__shell {
-        padding-inline-end: 0.5rem;
+        padding-inline-end: 3px;
     }
 }
 
@@ -12969,5 +12976,60 @@ body.is-authed .nav-menu__item--signin {
         min-height: 0 !important;
         max-height: 100% !important;
         flex-wrap: nowrap !important;
+    }
+}
+
+
+/* ── One magnifying glass on a phone, not two ───────────────────────────────
+   On a desktop the field carries a magnifier at its start and the submit at its
+   end says "Search" in words: an icon and a label, each doing a different job.
+   Under 768px the button loses its label and becomes a magnifying glass itself,
+   so the same field ends up with the same icon at both ends — the left one
+   decoration, the right one the control.
+
+   The decorative one goes, and the room it was holding goes with it. The start
+   padding here is the width of that icon plus its inset; left in place it would
+   read as an unexplained indent with the caret floating in the middle of the
+   field. */
+@media (max-width: 768px) {
+    .search-entry-shell .search-magnifier,
+    .site-nav .search-entry-shell .search-magnifier,
+    .home-search .search-entry-shell .search-magnifier,
+    .nav-search .search-magnifier,
+    .site-nav .nav-search .search-magnifier {
+        display: none !important;
+    }
+
+    .nav-search__shell {
+        padding-inline-start: 0.6rem;
+    }
+
+    /* .ts-wrapper.form-control is in the selector to outrank
+       `.site-nav .ts-wrapper.form-control .ts-control`, a four-class rule from an
+       older pass that also sets padding-left with !important. Written the obvious
+       way, at three classes, this rule matched and lost, and the field kept the
+       old indent with nothing in it. */
+    .navbar-search .search-entry-shell .ts-wrapper.form-control .ts-control,
+    .site-nav .search-entry-shell .ts-wrapper.form-control .ts-control,
+    .home-search .search-entry-shell .ts-wrapper.form-control .ts-control {
+        padding-left: 0.7rem !important;
+    }
+
+    .search-ghost-text,
+    .site-nav .search-ghost-text {
+        left: 0.7rem;
+    }
+
+    [dir="rtl"] .navbar-search .search-entry-shell .ts-wrapper.form-control .ts-control,
+    [dir="rtl"] .site-nav .search-entry-shell .ts-wrapper.form-control .ts-control,
+    [dir="rtl"] .home-search .search-entry-shell .ts-wrapper.form-control .ts-control {
+        padding-left: var(--search-entry-side-pad) !important;
+        padding-right: 0.7rem !important;
+    }
+
+    [dir="rtl"] .search-ghost-text,
+    [dir="rtl"] .site-nav .search-ghost-text {
+        left: var(--search-entry-side-pad);
+        right: 0.7rem;
     }
 }

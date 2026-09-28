@@ -88,6 +88,9 @@
     <script src="/js/site-announcement.js" th:src="@{/js/site-announcement.js}" defer></script>
     <script src="/js/locale-preference.js" th:src="@{/js/locale-preference.js}" defer></script>
     <script src="/js/nav-menu.js" th:src="@{/js/nav-menu.js}" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js" defer></script>
+    <script src="/js/nav-search.js" th:src="@{/js/nav-search.js}" defer></script>
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.css" rel="stylesheet"/>
 </head>
 
 <body>
@@ -157,14 +160,19 @@
   It wears the same glass shell, so moving between a book page and the results does
   not look like moving between two sites.
 -->
-<form th:fragment="navsearch" class="nav-search" role="search" method="get"
+<form th:fragment="navsearch" class="nav-search" role="search" method="get" data-nav-search
       th:action="@{${arPrefix} ?: '' } + '/'">
     <div class="search-entry-shell nav-search__shell">
         <i class="fa fa-search search-magnifier" aria-hidden="true"></i>
-        <input type="search" name="q" class="nav-search__input"
+        <input type="search" name="q" class="nav-search__input" data-nav-search-input
                th:placeholder="#{search.navPlaceholder}" placeholder="Search the narrations"
                th:aria-label="#{search.navPlaceholder}" aria-label="Search the narrations"/>
         <button type="submit" class="btn btn-primary search-btn-with-border nav-search__btn">
+            <!-- Under 768px the word is hidden and this is the button's only label.
+                 Without it the button was a blank 34px square on every hub and static
+                 page, because the rule that hides the text is shared with the home
+                 page's button, which has carried the icon all along. -->
+            <i class="fa fa-search search-btn__icon-mobile" aria-hidden="true"></i>
             <span class="search-btn__text" th:text="#{search.button}">Search</span>
         </button>
     </div>
