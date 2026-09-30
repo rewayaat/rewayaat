@@ -7,6 +7,14 @@ metadata:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/limit-rpm: "50"
     nginx.ingress.kubernetes.io/limit-burst-multiplier: "5"
+    # Scrapers that send a browser's user agent from cloud address space, a request or two
+    # from each address, so the 50-a-minute limit above never sees them. Tencent Cloud
+    # (AS132203) ran the 2026-09-25 burst of 40 to 60 requests a second from these two /16s and
+    # was back on 2026-09-30 with 2,623 requests from 1,239 addresses in two and a half hours;
+    # Alibaba Cloud (AS45102) did the same on a smaller scale from 47.79.0.0/16. Nobody reads
+    # the site from a cloud provider's address range, and the search engines that matter do
+    # not crawl from these. Answered 403 at the ingress, before the application is asked.
+    nginx.ingress.kubernetes.io/denylist-source-range: "43.172.0.0/15,47.79.0.0/16"
     nginx.ingress.kubernetes.io/proxy-body-size: "10m"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
 spec:

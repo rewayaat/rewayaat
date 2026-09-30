@@ -56,6 +56,15 @@ spec:
             - name: management
               containerPort: 8003
           env:
+            # The image starts java with no heap flags, so the JVM took its default of a quarter
+            # of the container: 512 MiB of a 2 GiB limit, with the rest unused. At about three
+            # requests a second from crawlers the heap sat at 95% of that for hours on
+            # 2026-09-30 and RewayaatV2HeapPressure fired all afternoon; on 2026-09-25 the same
+            # pressure ended in an OutOfMemoryError. Half the container is 1 GiB of heap, which
+            # with about 350 MiB outside it keeps the working set near 70% of the limit and
+            # under the 85% RewayaatV2MemoryPressure warns at.
+            - name: JAVA_TOOL_OPTIONS
+              value: "-XX:MaxRAMPercentage=50"
             - name: SPRING_PROFILES_ACTIVE
               value: "prod"
             - name: ELASTIC_HOST
@@ -117,7 +126,9 @@ spec:
           resources:
             requests:
               cpu: "500m"
-              memory: "1Gi"
+              # What the pod uses with a 1 GiB heap, so the scheduler counts it. At 1Gi two of
+              # these and everything else on the node were promised memory that was not there.
+              memory: "1536Mi"
             limits:
               cpu: "2"
               memory: "2Gi"
