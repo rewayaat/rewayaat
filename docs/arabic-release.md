@@ -278,6 +278,20 @@ a phone width and a desktop one:
 
 Take as long as this needs. Nothing is decaying yet.
 
+#### A deploy lands in two steps, and they are not atomic
+
+Worth knowing before the next one. CI pushes the image, then pushes a second commit
+updating the tag in `k8s/kustomization.yaml`. Argo polls, so it can — and on 2026-10-01
+did — sync the merge commit in the gap between those two pushes. The result was one
+rollout applying the new `deployment.yaml` onto pods still running the *old* image,
+followed minutes later by a second rollout once the tag commit was seen.
+
+Harmless here: the new manifest added `ARABIC_INDEXABLE`, which old code ignores, and
+`/ar` simply 404ed until the real image landed. It would not be harmless for a change
+where a manifest and the code that reads it have to arrive together. If that ever comes
+up, watch the image tag rather than `kubectl rollout status`, which reports success for
+the first rollout as readily as the second.
+
 ### Phase 4 — the switch, and the point of no return
 
 Set `ARABIC_INDEXABLE` to `"true"` in `k8s/deployment.yaml`, commit, let Argo sync.
@@ -296,6 +310,31 @@ Then watch, over days: Search Console for `/ar` coverage, hreflang pairing and a
 in duplicates; the ingress rate limit (`limit-rpm: 50`) in case a crawler finds 4,000 new
 URLs faster than that allows; and the Prometheus rules that already alert on CPU, memory
 and traffic pressure.
+
+## Done
+
+The whole sequence ran on 2026-10-01 and 2026-10-02.
+
+| Phase | Outcome |
+|---|---|
+| 1 — data | 32,519 × 5 fields, 0 errors, `No mapping: 0`; no English query changed its result count |
+| 2 — deploy | PR #100, merged held back; 605 tests green with Elasticsearch in CI for the first time |
+| 3 — verify | automated checks passed; the English walk was done by the site's owner |
+| 4 — the switch | `ef4f0d3`, Argo synced; 3,914 Arabic URLs advertised, 0 dangling alternates |
+
+Two bugs were found by a person reading the pages, not by the suite, and both are fixed:
+the feedback toast built its element as `var t` and so invoked a `<div>` every time it
+called the `t()` helper — broken on every page in both languages — and account mail
+pointed at the `rewayaat.info` mirror with an English link for Arabic readers. Both now
+have tests; the first has a guard against the whole class of shadowing.
+
+One thing reported as a mobile bug was not one. The search-mode dropdown measures 37px
+off-screen at 390px and 107px at 320px, but the control that opens it is
+`display: none` below 768px and it lives inside a shell with `overflow: hidden` — an
+unreachable element parked somewhere harmless, with the same rule on master. A fix was
+written and reverted rather than ship dead CSS. The real observation is a product one:
+**a reader on a phone cannot choose Precise or Flexible at all** and always gets the
+default. That predates this release.
 
 ## Decided
 
