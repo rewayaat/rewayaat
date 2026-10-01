@@ -90,7 +90,7 @@ spec:
             # is a sync rather than a build, and is the point of no return.
             # See docs/arabic-release.md.
             - name: ARABIC_INDEXABLE
-              value: "false"
+              value: "true"
             # The domain-verification token from OpenAI's app submission portal, served
             # at /.well-known/openai-apps-challenge. Empty until a submission is started,
             # and the route 404s while it is - see WellKnownController. Kept here rather
