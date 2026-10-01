@@ -13,47 +13,20 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.elasticsearch.ElasticsearchContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.io.StringReader;
-import java.time.Duration;
 
 public abstract class ElasticsearchTestSupport {
 
     protected static final String INDEX = "rewayaat";
-    private static final String ELASTIC_IMAGE = "docker.elastic.co/elasticsearch/elasticsearch:9.2.4";
-
-    private static final boolean USE_TESTCONTAINERS = Boolean.parseBoolean(
-            System.getProperty("testcontainers.enabled", "false"));
-
-    private static ElasticsearchContainer ELASTICSEARCH;
-    protected static String elasticHost = "localhost";
-    protected static int elasticPort = 9200;
-
-    static {
-        if (USE_TESTCONTAINERS) {
-            try {
-                ELASTICSEARCH = new ElasticsearchContainer(ELASTIC_IMAGE)
-                        .withEnv("discovery.type", "single-node")
-                        .withEnv("ES_JAVA_OPTS", "-Xms512m -Xmx512m")
-                        .withEnv("xpack.ml.enabled", "false")
-                        .withEnv("xpack.security.enabled", "false")
-                        .withEnv("xpack.security.transport.ssl.enabled", "false")
-                        .withEnv("xpack.security.http.ssl.enabled", "false")
-                        .waitingFor(Wait.forHttp("/")
-                                .forPort(9200)
-                                .forStatusCode(200))
-                        .withStartupTimeout(Duration.ofMinutes(5));
-                ELASTICSEARCH.start();
-                elasticHost = ELASTICSEARCH.getHost();
-                elasticPort = ELASTICSEARCH.getMappedPort(9200);
-            } catch (Exception e) {
-                System.err.println("Failed to start Testcontainers, falling back to localhost:9200: " + e.getMessage());
-                ELASTICSEARCH = null;
-            }
-        }
-    }
+    /**
+     * Where Elasticsearch is, owned by {@link TestElasticsearch} rather than started
+     * here. It was started in a static block in this class, which made extending it the
+     * only way to get a container — and left the one integration test that cannot extend
+     * it opening a client on localhost:9200 of its own.
+     */
+    protected static final String elasticHost = TestElasticsearch.host();
+    protected static final int elasticPort = TestElasticsearch.port();
 
     @DynamicPropertySource
     static void registerElasticsearchProperties(DynamicPropertyRegistry registry) {

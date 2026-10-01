@@ -2,6 +2,8 @@ package com.rewayaat.controllers;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.rewayaat.service.UiMessages;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -28,6 +30,9 @@ import java.util.Map;
 @RestControllerAdvice(basePackages = "com.rewayaat.controllers.rest")
 public class GlobalExceptionHandler {
 
+    @Autowired
+    private UiMessages ui;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
@@ -49,7 +54,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleGeneral(Exception ex) {
         LOGGER.error("Unhandled exception in controller", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("ok", false, "message", "An internal error occurred. Please try again later."));
+                .body(Map.of("ok", false, "message", ui.say("api.error.internal")));
     }
 
     private ResponseEntity<Map<String, Object>> badRequest(String message) {

@@ -384,7 +384,15 @@ a:hover {
     width: auto;
     max-width: min(18vw, 220px);
     object-fit: contain;
-    margin-left: -30px;
+    /* Logical: a physical -30px pulled the mark the wrong way in RTL, into the links. */
+    margin-inline-start: -30px;
+}
+
+/* The Arabic lockup is a squarer block than the English one, but it is cropped tight
+   rather than carrying the English asset's margins, so it reads at the same height and
+   does not need to make the bar taller. */
+[dir="rtl"] .brand-logo--full-v2 {
+    margin-inline-start: -12px;
 }
 
 .brand-logo--icon {
@@ -779,7 +787,41 @@ a:hover {
 .top-actions .top-action i {
     color: inherit;
     font-size: 0.85rem;
-    margin-right: 0.25rem;
+    margin-inline-end: 0.25rem;
+}
+
+/* ── Language toggle ────────────────────────────────────────────────────────
+   A globe, because the icon reads the same whichever language you arrive in,
+   and the word beside it names the language you are switching TO, written in
+   that language — so a reader who cannot read the current one still recognises
+   it. Outlined rather than gold: it sits next to Sign In and must not compete
+   with it for the eye.
+
+   Last in the row, so it lands on the outer edge of the bar. Nothing here is
+   side-specific, so the mirror is the browser's job, not a second rule. */
+.top-actions .lang-toggle,
+.top-actions .lang-toggle:hover {
+    background: transparent !important;
+    border-color: rgba(255, 255, 255, 0.35) !important;
+    color: rgba(255, 255, 255, 0.92) !important;
+    box-shadow: none;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
+.top-actions .lang-toggle:hover {
+    border-color: var(--gold) !important;
+    color: #fff !important;
+    transform: translateY(-1px);
+}
+.lang-toggle__label {
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+}
+/* Below the point where the bar gets crowded the globe speaks for itself. */
+@media (max-width: 991.98px) {
+    .lang-toggle__label { display: none; }
+    .top-actions .lang-toggle i { margin-inline-end: 0; }
 }
 
 .auth-mobile-menu-wrapper { position: relative; }
@@ -819,8 +861,12 @@ a:hover {
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    margin-left: auto;
-    padding-left: 0.3rem;
+    /* Logical, not margin-left. A physical margin-left:auto does not flip, so on the
+       Arabic site it fought the RTL build's margin-right:auto and the pair resolved to
+       margin:auto - which centres. The sign-in button sat in the middle of the bar
+       instead of against the edge, and the whole nav read as badly spaced. */
+    margin-inline-start: auto;
+    padding-inline-start: 0.3rem;
     min-width: 0;
     flex: 0 1 auto;
     flex-wrap: nowrap;
@@ -834,7 +880,28 @@ a:hover {
 .home-nav-links {
     align-items: center;
     gap: 0.15rem;
-    margin-left: 0.75rem;
+    /* Logical: a physical margin-left put the gap on the far side of the group in RTL,
+       so the Arabic links sat hard against the logo with a gap trailing into space. */
+    margin-inline-start: 0.75rem;
+}
+
+/* Arabic script carries no case and its letterforms are finer, so the treatment that
+   makes the English links read as a nav — small, uppercase, widely tracked — makes the
+   Arabic ones read as fine print. Tracking an Arabic word also breaks the joins between
+   its letters, which is why letter-spacing goes to zero rather than down. */
+[dir="rtl"] .home-nav-link {
+    font-size: 0.92rem;
+    letter-spacing: 0;
+    text-transform: none;
+    padding-inline: 0.85rem;
+}
+[dir="rtl"] .home-nav-links {
+    gap: 0.35rem;
+    margin-inline-start: 1.5rem;
+}
+[dir="rtl"] .lang-toggle__label {
+    font-size: 0.8rem;
+    letter-spacing: 0;
 }
 
 .home-nav-link {
@@ -1025,7 +1092,7 @@ body.is-search-mode .home-nav-links {
 
 .profile-chip .fa-angle-down {
     font-size: 0.85rem;
-    margin-left: 0.05rem;
+    margin-inline-start: 0.05rem;
     transition: transform 150ms ease;
     color: rgba(26,26,46,0.5);
 }
@@ -1039,10 +1106,22 @@ body.is-search-mode .home-nav-links {
 
 /* ── Profile Dropdown ───────────────────────────────────────────────────── */
 .profile-dropdown {
-    position: fixed;
-    top: 5rem;
-    left: 1rem;
-    width: 320px;
+    /* Anchored to the chip that opens it. It was position:fixed at a hardcoded
+       left:1rem, which pinned it to the corner of the window wherever the chip
+       actually was — on the English site that put it clean across the page from its
+       own trigger, and on the Arabic site, where the chip is on the left, it landed
+       beside the chip as a wide pale slab that read as a stray bar.
+       .profile-menu is already position:relative, which is what this was written for. */
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    inset-inline-end: 0;
+    /* Sized to what is in it. The fixed 320px was cut for the rich panel the search app
+       builds — header, stats, the lot — but the hub pages inject two links into the same
+       container, which left most of it empty and reading as a stray pale bar under the
+       chip. */
+    width: max-content;
+    min-width: 11rem;
+    max-width: min(320px, 92vw);
     max-height: calc(100vh - 6rem);
     z-index: 2200;
     background: var(--surface);
@@ -1051,6 +1130,37 @@ body.is-search-mode .home-nav-links {
     box-shadow: var(--shadow-xl);
     padding: 1rem;
     overflow-y: auto;
+}
+
+/* The two-item menu the hub pages build. It had no styles of its own at all, so the
+   links sat as bare inline text inside a panel's padding. */
+.profile-dropdown__item {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    width: 100%;
+    padding: 0.5rem 0.65rem;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    font-family: var(--font-ui);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1a1a2e;
+    text-align: start;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 150ms ease;
+}
+.profile-dropdown__item:hover,
+.profile-dropdown__item:focus-visible {
+    background: rgba(11, 23, 40, 0.06);
+    color: #0b1728;
+}
+.profile-dropdown__item i {
+    width: 1rem;
+    text-align: center;
+    opacity: 0.7;
 }
 
 .profile-dropdown__panel {
@@ -1683,7 +1793,7 @@ body.is-search-mode .home-nav-links {
     border-color: var(--primary);
 }
 
-body.is-collection-mode .top-actions { margin-left: auto !important; }
+body.is-collection-mode .top-actions { margin-inline-start: auto !important; }
 body.is-collection-mode .menu-context-row { flex: 1 1 auto; min-width: 0; max-width: 100%; }
 
 /* ========================================================================
@@ -3401,7 +3511,7 @@ main.container::before {
 }
 
 .quranic-snippet__expand {
-    margin-left: auto;
+    margin-inline-start: auto;
     border: 1px solid rgba(16, 35, 63, 0.15);
     border-radius: 4px;
     background: rgba(16, 35, 63, 0.04);
@@ -3597,15 +3707,9 @@ main.container::before {
 .home-search .ts-control input::placeholder {
     color: rgba(255,255,255,0.4) !important;
 }
-.home-search .ts-control .item {
-    background: rgba(247,225,166,0.1) !important;
-    border: 1px solid rgba(247,225,166,0.3) !important;
-    color: var(--gold-light) !important;
-    border-radius: var(--radius-sm) !important;
-}
-.home-search .ts-control .item .remove {
-    color: var(--gold-light) !important;
-}
+
+/* Colour lives with the chip at the end of this file: the fill is gold now, so
+   a gold glyph on it is invisible. */
 .home-search .ts-dropdown { border-color: var(--border-strong); }
 
 .home-hero__social {
@@ -4551,7 +4655,7 @@ main.container::before {
 .site-footer__social {
     display: flex;
     gap: 0.5rem;
-    margin-left: auto;
+    margin-inline-start: auto;
 }
 
 .site-footer__social a {
@@ -4722,7 +4826,7 @@ code.welcome {
     }
     .menu-context-row {
         order: 0;
-        margin-left: auto;
+        margin-inline-start: auto;
     }
     .search-inline-btn--outer {
         order: 3;
@@ -5135,26 +5239,11 @@ body::after {
     color: rgba(255,255,255,0.35) !important;
 }
 
-.site-nav .ts-control .item {
-    background: rgba(247,225,166,0.1) !important;
-    border: 1px solid rgba(247,225,166,0.3) !important;
-    color: var(--gold-light) !important;
-    border-radius: var(--radius-sm) !important;
-}
 
-.site-nav .ts-control .item .remove {
-    color: var(--gold-light) !important;
-    opacity: 0.7;
-}
 
-.site-nav .ts-control .item .remove:hover {
-    color: #fff !important;
-    opacity: 1;
-}
+/* Colour lives with the chip at the end of this file, for the same reason. */
 
-.site-nav .ts-wrapper.multi .ts-control > div {
-    border: 1px solid rgba(247,225,166,0.25) !important;
-}
+
 
 /* Hidden select shouldn't leak white bg */
 .site-nav select.form-control,
@@ -5280,6 +5369,21 @@ body::after {
     background: #fff !important;
     border-color: #fff !important;
     color: #0b1728 !important;
+}
+
+/* The ornament pass repaints .top-action, so the language toggle is restated here to
+   stay outlined. It sits beside Sign In and must not read as a second primary action. */
+.top-actions .lang-toggle {
+    background: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    color: rgba(255, 255, 255, 0.92) !important;
+    box-shadow: none;
+    font-weight: 600;
+}
+.top-actions .lang-toggle:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border-color: var(--gold-light) !important;
+    color: #fff !important;
 }
 
 .profile-chip {
@@ -5456,12 +5560,7 @@ main.container {
     color: rgba(255,255,255,0.4) !important;
 }
 
-.home-search .ts-control .item {
-    background: rgba(247,225,166,0.1) !important;
-    border: 1px solid rgba(247,225,166,0.3) !important;
-    color: var(--gold-light) !important;
-    border-radius: var(--radius-sm) !important;
-}
+
 
 .home-hero__search .search-inline-btn {
     min-height: 50px;
@@ -6480,12 +6579,16 @@ body.is-resizing-sidecar * {
     display: flex;
     flex-direction: column;
     gap: 0;
-    padding: 0.58rem 1.6rem 0.58rem 0.72rem;
+    /* Logical: the wide side holds the chevron, which is on the reader's trailing
+       side, and the text starts where their line starts. */
+    padding-block: 0.58rem;
+    padding-inline: 0.72rem 1.6rem;
     border: 0;
     border-radius: 10px;
     background: transparent;
     color: rgba(255, 255, 255, 0.86);
-    text-align: left;
+    text-align: start;
+    text-decoration: none;
     transition: background 150ms ease, border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
     cursor: pointer;
 }
@@ -6501,6 +6604,17 @@ body.is-resizing-sidecar * {
     border-bottom: 2px solid rgba(241, 246, 253, 0.58);
     transform: translateY(-60%) rotate(45deg);
     transition: transform 150ms ease, border-color 150ms ease;
+}
+
+/* The second line of a related-narration row: the chapter it sits in, and on the English
+   card the reason the pair was judged similar. The row is a link now rather than an
+   accordion, so this is read in place instead of behind a disclosure. */
+.hadith-sidecar__list-sub {
+    display: block;
+    margin-top: 0.18rem;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.62);
 }
 
 .hadith-sidecar__list-item:hover {
@@ -7284,7 +7398,7 @@ body.is-resizing-sidecar * {
 }
 
 .hadith-card__actions {
-    margin-left: auto;
+    margin-inline-start: auto;
     justify-content: flex-end;
 }
 
@@ -8386,11 +8500,7 @@ body.is-resizing-sidecar * {
     color: #7d8493 !important;
 }
 
-.home-search .ts-control .item {
-    background: rgba(17, 47, 88, 0.08) !important;
-    border: 1px solid rgba(17, 47, 88, 0.12) !important;
-    color: #173964 !important;
-}
+
 
 .search-controls {
     right: 0.8rem;
@@ -8768,6 +8878,29 @@ body.is-resizing-sidecar * {
     --search-entry-side-pad: 6.5rem;
 }
 
+/* Arabic sets a taller line box than Latin at the same font size — its letters carry
+   marks above and tails below the baseline — so a term token that is 22px in English
+   grows to 26px in Arabic, and .ts-control, which scrolls so several terms can wrap,
+   answered with a scrollbar inside the search field.
+ 
+   That was fixed by raising the whole shell to 52px, which bought the four pixels the
+   token needed by making the field seven pixels taller than the English one everywhere
+   it appears — 76px of navbar against 69px on the search page, and a home page hero
+   field of 54px against 47px. The extra height went almost entirely into padding.
+ 
+   Take it out of the padding instead. The shell matches English again and the wrapper
+   gives back the four pixels the token actually wanted.
+
+   Unscoped, because English has the same defect and was simply never reported: a token
+   there measures 26px too, against 27px of content, so the field has been scrolling by
+   one pixel all along. The padding is the thing that was wrong in both, and the outer
+   height does not move — an English field is 45px before this change and after it. */
+.search-entry-shell .ts-wrapper,
+.search-entry-shell .ts-wrapper.form-control {
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
 .navbar-search__input {
     position: relative;
     flex: 1 1 auto;
@@ -8972,34 +9105,11 @@ body.is-search-mode .site-nav .search-entry-shell {
     color: rgba(132, 147, 171, 0.92);
 }
 
-.site-nav .ts-control .item,
-.home-search .ts-control .item,
-.navbar-search .ts-control .item {
-    min-height: 26px !important;
-    padding: 3px 9px !important;
-    border-radius: 5px !important;
-    font-size: 0.84rem !important;
-    line-height: 1 !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    align-self: center !important;
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
-}
 
-.site-nav .ts-control .item {
-    background: rgba(17, 47, 88, 0.08) !important;
-    border: 1px solid #0000003b !important;
-    color: #173964 !important;
-}
 
-.site-nav .ts-wrapper.multi .ts-control > div,
-.navbar-search .ts-wrapper.multi .ts-control > div,
-.home-search .ts-wrapper.multi .ts-control > div {
-    border: 1px solid #0000003b !important;
-    background: rgba(17, 47, 88, 0.08) !important;
-    color: #173964 !important;
-}
+
+
+
 
 .site-nav .ts-control > .item,
 .navbar-search .ts-control > .item,
@@ -9007,62 +9117,31 @@ body.is-search-mode .site-nav .search-entry-shell {
     border: 1px solid #0000003b !important;
 }
 
-.home-search .ts-control .item,
-.navbar-search.home-search .ts-control .item {
-    background: rgba(17, 47, 88, 0.08) !important;
-    border: 1px solid #0000003b !important;
-    color: #173964 !important;
-}
+/* The ninth chip skin. The eight removed earlier were all written
+   .home-search .ts-control .item; this one carried a second selector beside it and
+   so survived the sweep, which is why the home page kept its navy chips while the
+   search page went gold. The chip is one rule at the end of this file. */
 
 .site-nav .ts-control .item .remove {
-    color: #173964 !important;
-    opacity: 0.6 !important;
-    /* Sits at the pill's top-right rather than centred on the text baseline.
-       Kept in normal flow, so it always reserves its own width and can never
-       overlap the label. */
-    align-self: flex-start !important;
-    margin-left: 6px !important;
-    margin-top: -2px !important;
-    min-width: 12px !important;
+    /* Position and size are the chip block's at the end of this file, which
+       centres it. This kept it at the pill's top-right, a 14px glyph riding a
+       pixel above a 24px chip; the chip is a Material chip now and its close
+       sits on the middle of the label. */
     line-height: 1 !important;
-    font-size: 0.78rem !important;
-    background: transparent !important;
-    border-left: 0 !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
-    padding: 2px 4px 0 0 !important;
 }
 
-.site-nav .ts-control .item .remove:hover {
-    color: #0b1728 !important;
-    opacity: 1 !important;
-}
+
 
 .home-search .ts-control .item .remove,
 .navbar-search .ts-control .item .remove {
-    color: #173964 !important;
-    opacity: 0.6 !important;
-    /* Sits at the pill's top-right rather than centred on the text baseline.
-       Kept in normal flow, so it always reserves its own width and can never
-       overlap the label. */
-    align-self: flex-start !important;
-    margin-left: 6px !important;
-    margin-top: -2px !important;
-    min-width: 12px !important;
+    /* Position and size are the chip block's at the end of this file, which
+       centres it. This kept it at the pill's top-right, a 14px glyph riding a
+       pixel above a 24px chip; the chip is a Material chip now and its close
+       sits on the middle of the label. */
     line-height: 1 !important;
-    font-size: 0.78rem !important;
-    background: transparent !important;
-    border-left: 0 !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
-    padding: 2px 4px 0 0 !important;
 }
 
-.home-search .ts-control .item .remove:hover,
-.navbar-search .ts-control .item .remove:hover {
-    color: #0b1728 !important;
-    opacity: 1 !important;
-}
+
 
 .topic-pill {
     transition: background 150ms ease, border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease !important;
@@ -9969,7 +10048,7 @@ body.is-search-mode .site-nav .search-entry-shell {
     }
 
     .quranic-snippet__expand {
-        margin-left: auto;
+        margin-inline-start: auto;
         align-self: flex-start;
         white-space: nowrap;
         padding: 0.22rem 0.5rem;
@@ -10343,7 +10422,7 @@ body.is-search-mode .site-nav .search-entry-shell {
    grows, so the control a reader just clicked is still under the cursor. */
 .text-toggle {
     flex: 0 0 auto;
-    margin-left: auto;
+    margin-inline-start: auto;
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
@@ -10860,6 +10939,7 @@ body.is-search-mode .site-nav .search-entry-shell {
     background: var(--bg-subtle);
     font-family: var(--font-ui);
     font-size: 0.68rem;
+    border: 1px solid #0000001f;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
@@ -11501,7 +11581,7 @@ a.hub-hero__eyebrow:hover {
 .hub-pager__link--next {
     justify-content: flex-end;
     text-align: right;
-    margin-left: auto;
+    margin-inline-start: auto;
 }
 
 .hub-pager__link:hover {
@@ -11925,4 +12005,1031 @@ a.hub-hero__eyebrow:hover {
 .search-mode-option.is-active .search-mode-option__check,
 .search-mode-option[aria-pressed="true"] .search-mode-option__check {
     opacity: 1;
+}
+
+/* ==========================================================================
+   Right-to-left
+   ==========================================================================
+   Appended as its own pass, like the ornament block above it, rather than
+   folded into the rules it corrects.
+
+   Bootstrap's own RTL build handles the layout primitives; what it cannot know
+   about is this file's decorations. Several of them are light sweeps parked off
+   the left edge of their host until a hover animates them across:
+
+       .site-nav::before      left: -40%
+       .hub-card::before      transform: translateX(-190%)
+       .topic-tag-pills::before, the action rail, the share card
+
+   In a left-to-right document a box hanging off the left edge is invisible and
+   costs nothing: the browser does not make leftward overflow scrollable. In a
+   right-to-left document the left edge is the *end* of the inline axis, so the
+   same box becomes scrollable overflow. .site-nav::before is 40% of the navbar
+   wide, which made the document 1,771px in a 1,280px viewport and pushed the
+   whole page sideways, with the content cut off at one edge and 506px of empty
+   space at the other. */
+
+[dir="rtl"] body {
+    /* clip, not hidden: hidden would make the body a scroll container and break
+       position: sticky on the navbar. clip creates no scroll container, so the
+       decorations are trimmed and the sticky header still sticks. */
+    overflow-x: clip;
+}
+
+/* Mirror the sweeps so they enter from the side the reader's eye starts on.
+   The clip above already stops them distorting the page; this is what makes
+   them sweep the right way rather than backwards. */
+[dir="rtl"] .site-nav::before {
+    left: auto;
+    right: -40%;
+}
+
+[dir="rtl"] .hub-card::before {
+    left: auto;
+    right: 0;
+    transform: translateX(190%);
+}
+
+[dir="rtl"] .hub-card:hover::before {
+    transform: translateX(-30%);
+}
+
+/* The ۞ that marks a card sits in the corner the reader ends on. */
+[dir="rtl"] .hub-card::after {
+    left: 12px;
+    right: auto;
+}
+
+/* Text set in CSS cannot reach the message bundle, so the Arabic is stated here.
+   This is the only generated-content string on the site; anything else a reader
+   has to read is rendered by the server. */
+[dir="rtl"] .home-browse .home-section-header::after {
+    content: "فهرس المجاميع";
+}
+
+
+/* ── Arabic type sizing on the static pages ─────────────────────────────────
+   Arabic reads smaller than Latin at the same font-size. The em box is spent
+   differently: Arabic has no capitals and a small notional x-height, so the
+   letterforms occupy less of the box, and a face set at 0.98rem that reads
+   comfortably in English reads cramped in Arabic. The usual correction is
+   10-20%, and the smaller the text the more it needs, because the deficit is
+   a fixed proportion of a shrinking number.
+
+   Everything here is a size, scoped to the Arabic document. The English pages
+   are untouched, and so is the narration body, which was already set at
+   1.45rem for exactly this reason and is the one thing on these pages that did
+   not need the adjustment.
+
+   letter-spacing is zeroed alongside. The labels it was set on are uppercase
+   Latin tracking - .hub-group__label at 0.16em, .meta-label at 0.12em - and
+   uppercase does nothing to Arabic while the tracking does: it pulls apart
+   letters that are supposed to join, so a word arrives as disconnected pieces
+   with the connecting strokes stretched between them. */
+
+/* Hero */
+[dir="rtl"] .hub-hero__eyebrow { font-size: 0.82rem; letter-spacing: 0.04em; }
+[dir="rtl"] .hub-hero__intro-text { font-size: 1rem; line-height: 1.85; }
+[dir="rtl"] .hub-stat { font-size: 0.9rem; letter-spacing: 0; }
+[dir="rtl"] .hub-stat__value { font-size: 1.04rem; }
+[dir="rtl"] .hub-crumbs { font-size: 0.9rem; }
+
+/* Section headings and cards */
+[dir="rtl"] .hub-group__label { font-size: 0.88rem; letter-spacing: 0.02em; }
+[dir="rtl"] .hub-card__title { font-size: 1.46rem; }
+[dir="rtl"] .hub-card__meta { font-size: 0.85rem; letter-spacing: 0; }
+
+/* Chapter listings. A volume can carry 600 rows, so the title carries the bump
+   and the ordinal and count follow it up rather than being left behind. */
+[dir="rtl"] .hub-chapter__title { font-size: 1.12rem; line-height: 1.6; }
+[dir="rtl"] .hub-chapter__index { font-size: 0.82rem; }
+[dir="rtl"] .hub-chapter__count { font-size: 0.8rem; }
+
+/* Book blurb */
+[dir="rtl"] .hub-blurb { font-size: 1.14rem; line-height: 1.9; }
+[dir="rtl"] .hub-blurb h2 { font-size: 1.62rem; }
+
+/* Pager */
+[dir="rtl"] .hub-pager__eyebrow { font-size: 0.8rem; letter-spacing: 0.04em; }
+[dir="rtl"] .hub-pager__title { font-size: 1.08rem; }
+
+/* Narration cards: the metadata rail, the tag bar and the result number. The
+   narration itself is already sized for Arabic and is deliberately absent. */
+[dir="rtl"] .hadith-sidecar .meta-label { font-size: 0.72rem; letter-spacing: 0.02em; }
+[dir="rtl"] .hadith-sidecar .meta-text,
+[dir="rtl"] .hadith-sidecar .meta-value { font-size: 1.08rem; letter-spacing: 0; }
+[dir="rtl"] .meta-label { font-size: 0.74rem; letter-spacing: 0.02em; }
+[dir="rtl"] .meta-text { font-size: 1rem; }
+[dir="rtl"] .hadith-card__result-num { font-size: 0.8rem; letter-spacing: 0; }
+[dir="rtl"] .tag-filter-bar__label { font-size: 0.82rem; letter-spacing: 0.04em; }
+[dir="rtl"] .tag-filter-bar__clear { font-size: 0.84rem; }
+
+/* Topic pills: the filter bar above a chapter and the tags under a narration. */
+[dir="rtl"] .topic-pill { font-size: 0.92rem; letter-spacing: 0; }
+[dir="rtl"] .topic-tag-pills__label { font-size: 0.8rem; letter-spacing: 0.03em; }
+
+/* The isnad. Set apart from the matn by size, and that gap is what carries the
+   distinction, so it goes up with everything else rather than closing on it. */
+[dir="rtl"] .hadith-chain--arabic.arabic-text { font-size: 1.3rem !important; }
+[dir="rtl"] .hadith-text-block--arabic .hadith-chain--arabic.arabic-text {
+    font-size: 1.2rem !important;
+}
+
+
+/* The submit button says what it does; the magnifying glass in front of the word
+   repeats it, and the field already carries one at its other end. Font Awesome's own
+   `.fa { display: … }` loads after this file and matches at the same specificity, which
+   is why the existing `.search-btn__icon-mobile { display: none }` never took effect and
+   the icon has been showing on desktop all along.
+
+   Still shown under 768px, where the rule below it hides the button's text and the icon
+   is the only label the button has. */
+.search-btn-with-border .search-btn__icon-mobile {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .search-btn-with-border .search-btn__icon-mobile {
+        display: inline-block;
+    }
+}
+
+
+/* ── The search field: one size, one surface ────────────────────────────────
+   There are two of these — the hero field on the home page and the one in the
+   navbar on every other page — and they were the same height already, 45px
+   both, while looking nothing alike: a white pill in the hero, a translucent
+   white slab in the navbar. Same size, different surface, which reads as a
+   size difference. So they are unified here rather than tuned apart.
+
+   Compact, because the field is the tallest thing in the navbar row and so
+   sets the navbar's height: at 45px the bar came to 69px before the first
+   result. The floor is not the field, it is the logo at 40px, so the row stops
+   there and the saving comes from the field plus the navbar's own padding —
+   69px to 52px.
+
+   The field's own floor is the term tokens. Each is 20px here, the control
+   pads 2px either side, so 24px of content must fit or .ts-control
+   (overflow-y: auto) puts a scrollbar inside the field. 36px of shell over 3px
+   of wrapper padding leaves 30px. Measured against three long Arabic terms,
+   which are the worst case: Arabic tokens run taller than Latin ones. */
+:root {
+    --search-shell-height: 36px;
+    --search-action-height: 28px;
+}
+
+.site-nav {
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+.search-entry-shell .ts-wrapper,
+.search-entry-shell .ts-wrapper.form-control {
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+.site-nav .ts-control .item,
+.home-search .ts-control .item,
+.navbar-search .ts-control .item {
+    min-height: 20px !important;
+    padding: 1px 7px !important;
+    font-size: 0.8rem !important;
+}
+
+.navbar-search .search-entry-shell .ts-control input,
+.site-nav .search-entry-shell .ts-control input,
+.home-search .search-entry-shell .ts-control input {
+    font-size: 1.02rem !important;
+    line-height: 18px !important;
+}
+
+/* Glass. Both fields sit on navy — the navbar's gradient and the hero's panel —
+   so the surface can be the backdrop itself, barely lifted and lightly blurred,
+   inside a thin silver rule. That also settles what the two fields have in
+   common: not a shared colour but a shared absence of one.
+
+   Three things are deliberately restrained. The fill is 4% white, not 8: at 8
+   it stopped reading as glass and started reading as a lighter panel laid on
+   the navy. There is no saturate() in the filter — it was at 140%, and since
+   everything behind the field is navy, all it did was deepen the blue coming
+   through, so the "glass" had a colour of its own. And the blur is 4px, enough
+   to soften the pattern behind the field without smearing it into a haze. */
+.search-entry-shell,
+.site-nav .search-entry-shell,
+.home-search .search-entry-shell,
+body.is-search-mode .site-nav .search-entry-shell {
+    background: rgb(0 0 0 / 42%);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    /* border: 1px solid rgba(226, 232, 240, 0.38); */
+    box-shadow: 0 6px 18px rgba(4, 12, 24, 0.18);
+}
+
+/* Focus brightens the rule rather than adding a second ring, so the field does
+   not grow by two pixels the moment it is clicked. */
+.search-entry-shell:focus-within,
+.site-nav .search-entry-shell:focus-within,
+.home-search .search-entry-shell:focus-within {
+    border-color: rgba(241, 245, 249, 0.68);
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.navbar-search .search-entry-shell .ts-control input,
+.site-nav .search-entry-shell .ts-control input,
+.home-search .search-entry-shell .ts-control input {
+    color: #f1f5f9 !important;
+    caret-color: #e2e8f0 !important;
+}
+
+.search-entry-shell .ts-control input::placeholder,
+.site-nav .ts-control input::placeholder,
+.home-search .ts-control input::placeholder {
+    color: rgba(226, 232, 240, 0.52) !important;
+}
+
+.search-entry-shell .search-magnifier,
+.site-nav .search-entry-shell .search-magnifier,
+.home-search .search-entry-shell .search-magnifier {
+    color: rgba(226, 232, 240, 0.78);
+}
+
+.search-ghost-text,
+.site-nav .search-ghost-text {
+    color: rgba(226, 232, 240, 0.46);
+}
+
+.home-search .search-ghost-text.is-visible::before {
+    background: #e2e8f0;
+}
+
+/* The chosen terms. Gold-tinted glass on glass, so they read as part of the
+   field rather than as chips dropped into it. */
+/* The chips' own skin went with the glass pass; it is the gold chip at the end
+   of this file now. */
+
+
+
+/* The submit button keeps its navy fill and its gold-light text: that pairing
+   was chosen for contrast — 9.29:1 — and it is what keeps the button reading as
+   the action rather than as more of the field. Its rule follows the field's to
+   silver, so the gold is carried by the word alone and there is one warm thing
+   in the bar rather than two. */
+.search-btn-with-border {
+    border-color: rgba(226, 232, 240, 0.34) !important;
+}
+
+.search-btn-with-border:hover,
+.search-btn-with-border:focus-visible {
+    border-color: rgba(241, 245, 249, 0.6) !important;
+}
+
+
+/* One rule around the field, not two.
+ 
+   .ts-control — Tom Select's inner box, which holds the tokens and the caret —
+   carries a gold border and a translucent white fill of its own, in .site-nav
+   and .home-search both. Those are an earlier, partial run at this same glass
+   idea, from when the shell around them was opaque white and hid them entirely.
+   With the shell now transparent they showed through, half a pixel inside the
+   shell's own rule, and the field had two bright outlines a hairsbreadth apart.
+ 
+   The shell is the surface. The control inside it is just a box for the text. */
+.search-entry-shell .ts-control,
+.site-nav .ts-control,
+.site-nav .ts-wrapper .ts-control,
+.site-nav .ts-wrapper.form-control .ts-control,
+.site-nav .navbar-search .ts-control,
+.site-nav .form-control.ts-control,
+.home-search .ts-control,
+.navbar-search .ts-control {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+
+.search-entry-shell .ts-control:focus-within,
+.site-nav .ts-control:focus-within,
+.site-nav .ts-wrapper.focus .ts-control,
+.site-nav .form-control.ts-control:focus-within,
+.home-search .ts-control:focus-within,
+.home-search .ts-wrapper.focus .ts-control {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+
+
+/* The profile menu, flipped above its chip when the window has no room below.
+   Set as a class rather than an inline top, because the panel is anchored by
+   the stylesheet — see positionUserProfileMenu, which used to write a viewport
+   `left` into an absolutely positioned element and pushed the whole page
+   sideways. */
+.profile-dropdown.profile-dropdown--above {
+    top: auto;
+    bottom: calc(100% + 0.5rem);
+}
+
+
+/* ── The navbar is one row, at every width ──────────────────────────────────
+   It was one row below 992px and one row above about 1150, and two rows in
+   between: at 1024 the three children measured 1106px inside a 960px
+   container, so the sign-in and language controls dropped underneath and the
+   bar doubled to 102px.
+
+   Two things caused it, and neither applied under 992px because the mobile
+   block below already overrides both. The row carries Bootstrap's .flex-wrap
+   from the template, so it is allowed to wrap; and the search field is
+   flex: 1 1 70% with a 900px cap, so it claims a share of the row rather than
+   taking what is left of it. Between 992 and 1150 the container is 960px —
+   Bootstrap's lg step — which is the one range where 70% plus the logo plus
+   the actions does not fit.
+
+   So the row never wraps, and the search field shrinks instead. min-width: 0
+   is the part that makes that work: a flex item will not shrink below its
+   content without it, and the field's content is a text input, which reports a
+   default intrinsic width. */
+.navbar-top {
+    flex-wrap: nowrap !important;
+}
+
+#queryBar,
+.navbar-search {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* The sign-in and language controls are buttons: they are as wide as their
+   labels and there is nothing in them to give up. They were shrinking anyway —
+   flex-shrink defaults to 1 — so at 320px the group was squeezed to 81px while
+   the buttons inside it still measured 97 and spilled 9px past the window,
+   which is where the horizontal scrollbar on a small phone came from. The
+   search field is the one thing in the row that can give, so it is the only
+   thing that does. */
+.menu-context-row {
+    flex: 0 0 auto;
+}
+
+
+/* On a phone the header links are in the menu, not in the row.
+
+   They were icons here for a while, and the reason was that the hub and updates
+   headers had no mobile menu of their own: hiding the links would have left a
+   phone with no way out of the page, so they were shrunk to a magnifier, a book
+   and a bolt instead. There is a menu on every page now and Browse and Updates
+   are items in it, so the icons offer the same two destinations a second time —
+   in the one row with no room to spare.
+
+   Hidden on the breakpoint the menu appears on, so the two swap exactly rather
+   than both showing across a stretch of widths. !important because the markup
+   carries Bootstrap's .d-flex, which is itself !important. */
+@media (max-width: 767.98px) {
+    .home-nav-links {
+        display: none !important;
+    }
+}
+
+/* Prose from the data files can carry a run with nothing to break on — a bare
+   URL in a references line, or sources joined by semicolons with no spaces. At
+   320px al-Kafi's ":al-islam.org;en.wikishia.net;en.wikipedia.org;" measured
+   270px inside a 246px column and pushed the whole document to 359px, giving
+   the page a horizontal scrollbar with no element visibly out of place — the
+   run is inside a paragraph whose own box stays put.
+ 
+   `anywhere` rather than `break-word` on purpose: only `anywhere` lowers the
+   element's min-content width, and it is the min-content width that was
+   forcing the column, the section and the page wider. */
+.hub-blurb__body,
+.hub-hero__intro-text,
+.hub-hero__lede {
+    overflow-wrap: anywhere;
+}
+
+
+/* The chip's skin and size are one rule, at the end of this file. Successive
+   design passes each left one of these behind — gold-on-glass, navy-on-white,
+   two more — and because they are a class more specific than a plain
+   .ts-control .item they quietly outranked it. */
+
+/* ── The chosen search terms ────────────────────────────────────────────────
+   Material-style chips in the navbar's gold — var(--gold-light) over #0b1728,
+   the same pairing as the signed-in chip at the other end of the bar, so the
+   two things that show the reader's own state look like each other.
+
+   Not scoped to .site-nav / .home-search / .navbar-search any more. There is
+   one Tom Select per page and it is always the search field, so scoping it
+   three ways only left room for a fourth to be forgotten.
+
+   They fill the field: the control's content box is 24px — 36 of shell, less 2
+   of border, less 6 of wrapper padding, less 4 of the control's own — and the
+   chip is 24, so it sits flush and the breathing room is the shell's.
+
+   The label is 500, not 600. At 600 in a 13px face on a light fill the words
+   read as shouting, and a chip is a quiet object: it is the thing you typed,
+   not a button. */
+.ts-control .item,
+.ts-wrapper.multi .ts-control > div {
+    height: 24px !important;
+    min-height: 24px !important;
+    padding: 0 2px 0 10px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 2px !important;
+    background: var(--gold-light) !important;
+    border: 0 !important;
+    color: #0b1728 !important;
+    font-family: var(--font-ui) !important;
+    font-size: 0.8125rem !important;
+    font-weight: 500 !important;
+    line-height: 1 !important;
+    letter-spacing: 0.005em !important;
+    border-radius: 999px !important;
+    box-shadow: none !important;
+    margin: 0 4px 0 0 !important;
+}
+
+[dir="rtl"] .ts-control .item,
+[dir="rtl"] .ts-wrapper.multi .ts-control > div {
+    padding: 0 10px 0 2px !important;
+    margin: 0 0 0 4px !important;
+}
+
+/* The × that drops a term.
+ 
+   Tom Select ships it with a negative top margin and one-sided padding, which
+   is what had it sitting a pixel above the chip's own top edge and two-thirds
+   of the way up — a 14px glyph floating in a 24px chip. Those are cleared and
+   it becomes what it looks like: a round 18px target, centred by the chip's
+   own flex, dark like the label but quieter until you reach for it. */
+.ts-control .item .remove {
+    width: 18px !important;
+    height: 18px !important;
+    flex: 0 0 18px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    font-size: 0.875rem !important;
+    line-height: 1 !important;
+    text-decoration: none !important;
+    color: rgba(11, 23, 40, 0.5) !important;
+    background: transparent !important;
+    transition: background 120ms ease, color 120ms ease;
+}
+
+.ts-control .item .remove:hover,
+.ts-control .item .remove:focus-visible {
+    color: #0b1728 !important;
+    background: rgba(11, 23, 40, 0.12) !important;
+}
+
+/* Tom Select marks the chip being removed; keep it from flashing its old skin. */
+.ts-control .item.active {
+    background: var(--gold) !important;
+    color: #0b1728 !important;
+}
+
+
+/* ── The navbar's search field on every page but the search page ────────────
+   A plain input wearing the same glass shell as the Tom Select field, so the
+   header does not change shape as a reader moves between a book page and the
+   results. It sits between the links and the account controls and takes the
+   slack in the row, the way the real field does. */
+.nav-search {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 640px;
+    margin-inline: 0.75rem;
+}
+
+.nav-search__shell {
+    display: flex;
+    align-items: center;
+    padding-inline-start: 1.92rem;
+    padding-inline-end: 3px;
+}
+
+.nav-search .search-magnifier,
+.site-nav .nav-search .search-magnifier {
+    position: absolute;
+    /* Both ends, not just the start. The shared .search-entry-shell rule pins this
+       with a physical `left`, so setting only inset-inline-start left that in place
+       on the Arabic side: left and right both set, and a 15px icon stretched to
+       615px across the whole field. The .site-nav arm of the selector is there for
+       the same reason — the rule that pins it carries that ancestor and so outranks
+       a plain .nav-search one. */
+    inset-inline-start: 0.72rem;
+    inset-inline-end: auto;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+}
+
+.nav-search__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    border: 0;
+    background: transparent;
+    color: #f1f5f9;
+    font-family: var(--font-ui);
+    font-size: 1.02rem;
+    line-height: 1;
+    outline: none;
+}
+
+.nav-search__input::placeholder {
+    color: rgba(226, 232, 240, 0.52);
+}
+
+/* Chrome draws its own clear affordance on a search input, which would be a
+   second × in a bar that already has one idea of how to drop a term. */
+.nav-search__input::-webkit-search-cancel-button,
+.nav-search__input::-webkit-search-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.nav-search__btn {
+    flex: 0 0 auto;
+    height: var(--search-action-height);
+    padding-inline: 0.75rem !important;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* On a phone the button's word is not the point of the row; the button is. It
+   used to go away entirely under 576px, on the reasoning that the magnifier at
+   the other end of the field already said what the field does — and then the
+   magnifier went too, because the button on every other field is itself a
+   magnifying glass and two of them side by side said the same thing twice. That
+   left this field, on the hub and static pages, with no search affordance at
+   all: no icon, no button, just a dark box.
+
+   So it stays, as the same 34px square the home and search fields shrink to. The
+   padding override has to be undone by name because the rule above sets it with
+   !important, which the square's `padding: 0` would otherwise lose to. */
+@media (max-width: 575.98px) {
+    .nav-search {
+        margin-inline: 0.4rem;
+    }
+
+    .nav-search__btn {
+        padding-inline: 0 !important;
+    }
+
+    .nav-search__shell {
+        padding-inline-end: 3px;
+    }
+}
+
+
+/* ── The field, lit ─────────────────────────────────────────────────────────
+   Darker than the navy it sits on rather than lighter, so the field reads as a
+   recess rather than a panel laid on top, with a soft gold bloom around the
+   rule — enough to look lit, not enough to look like a focus ring. The rule
+   itself stays the cool light grey; the warmth is all in the glow.
+
+   Three shadows, each doing one thing: a hairline gold halo tight to the edge,
+   a wider soft bloom outside it, and a faint inner warmth so the glass looks
+   lit from within rather than outlined. */
+.search-entry-shell,
+.site-nav .search-entry-shell,
+.home-search .search-entry-shell,
+body.is-search-mode .site-nav .search-entry-shell {
+    background: rgba(6, 14, 28, 0.55);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(226, 232, 240, 0.34);
+    box-shadow:
+        0 0 0 1px rgba(247, 225, 166, 0.10),
+        0 0 12px rgba(247, 225, 166, 0.14),
+        inset 0 0 10px rgba(247, 225, 166, 0.045);
+}
+
+.search-entry-shell:focus-within,
+.site-nav .search-entry-shell:focus-within,
+.home-search .search-entry-shell:focus-within {
+    background: rgba(6, 14, 28, 0.62);
+    border-color: rgba(241, 245, 249, 0.6);
+    box-shadow:
+        0 0 0 1px rgba(247, 225, 166, 0.20),
+        0 0 16px rgba(247, 225, 166, 0.24),
+        inset 0 0 12px rgba(247, 225, 166, 0.06);
+}
+
+/* Refine Search sat at 43px and 13.8px beside a Search button of 28px and
+   11.5px — two controls a centimetre apart, one half again the size of the
+   other. The submit button cannot grow, since it lives inside the field, so
+   this comes down to meet it: same height, same type, same tracking. It keeps
+   its pill and its gold, because it is a disclosure and not a submit. */
+.home-hero__refine-toggle {
+    min-height: var(--search-action-height);
+    padding: 0 0.9rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    gap: 0.4rem;
+}
+
+
+/* ── The field: warmer light, squarer chips, a visible button, and a mirror ──
+   Everything below is the search field, in the order it was asked for. */
+
+/* 1. A dark field inside one plain grey rule. No shadow at all: the glow that
+      was here read as light coming off the edge, and the edge is enough. */
+.search-entry-shell,
+.site-nav .search-entry-shell,
+.home-search .search-entry-shell,
+body.is-search-mode .site-nav .search-entry-shell {
+    background: rgba(6, 14, 28, 0.58);
+    border: 1px solid rgba(226, 232, 240, 0.34);
+    box-shadow: none;
+}
+
+/* Focus brightens the same rule rather than adding a ring, so the field does
+   not grow by two pixels the moment it is clicked. */
+.search-entry-shell:focus-within,
+.site-nav .search-entry-shell:focus-within,
+.home-search .search-entry-shell:focus-within {
+    background: rgba(6, 14, 28, 0.64);
+    border-color: rgba(226, 232, 240, 0.6);
+    box-shadow: none;
+}
+
+/* 2. Squarer. A pill made every term look like a tag to be dismissed; a chip
+      with a small radius reads as a word you put there. */
+.ts-control .item,
+.ts-wrapper.multi .ts-control > div {
+    border-radius: 5px !important;
+}
+
+/* 3. The submit button. Navy with gold text was chosen when the field behind it
+      was near-white, and on dark glass it disappeared. Gold fixed the contrast
+      and created a different problem: gold on navy is what the term chips are,
+      so the button read as one more chip — the only one you could not remove.
+
+      White, then. It is the only solid light mass in the bar that is not gold,
+      so it separates from the chips by hue rather than by brightness, and dark
+      navy on white is the strongest contrast available here. It matches Sign In
+      at the other end of the row, which is the other thing in the header that
+      does something rather than describes something. */
+.search-btn-with-border {
+    background: #f4f7fb !important;
+    border: 1px solid rgba(255, 255, 255, 0.92) !important;
+    color: #0b1728 !important;
+    font-weight: 700 !important;
+    box-shadow: none !important;
+}
+
+.search-btn-with-border:hover,
+.search-btn-with-border:focus-visible {
+    background: #ffffff !important;
+    border-color: #ffffff !important;
+    color: #0b1728 !important;
+}
+
+.search-btn-with-border i {
+    color: inherit !important;
+}
+
+/* 4. Arabic reads right to left, so the field starts on the right and ends on
+      the left: the magnifier belongs at the right edge and the submit at the
+      left. The Tom Select field had both pinned with physical properties — the
+      actions absolutely placed at right: 5px, the control reserving its room
+      with padding-right — so in Arabic the button sat at the start of the line,
+      on the right, while the plain field in the header put it on the left. Same
+      bar, two different sides depending on the page. Mirrored here. */
+[dir="rtl"] .search-entry-actions {
+    right: auto;
+    left: 5px;
+}
+
+[dir="rtl"] .navbar-search .search-entry-shell .ts-control,
+[dir="rtl"] .site-nav .search-entry-shell .ts-control,
+[dir="rtl"] .home-search .search-entry-shell .ts-control {
+    padding-left: var(--search-entry-side-pad) !important;
+    padding-right: 1.92rem !important;
+}
+
+[dir="rtl"] .search-entry-shell .search-magnifier,
+[dir="rtl"] .site-nav .search-entry-shell .search-magnifier,
+[dir="rtl"] .home-search .search-entry-shell .search-magnifier {
+    left: auto;
+    right: 0.72rem;
+}
+
+[dir="rtl"] .search-ghost-text,
+[dir="rtl"] .site-nav .search-ghost-text {
+    left: var(--search-entry-side-pad);
+    right: 1.92rem;
+    text-align: right;
+}
+
+/* 4b. The mode menu opens into the page, not off the side of it.
+      .search-mode-menu is anchored right: 0 to the submit button and opens
+      leftward. That was fine while the button sat at the right of the field;
+      with the button mirrored to the left in Arabic it put a 324px panel 179px
+      past the left edge and gave the Arabic home page a horizontal scrollbar
+      between 820 and 1366px. Anchored to the other edge, it opens inward. */
+[dir="rtl"] .search-mode-menu {
+    right: auto;
+    left: 0;
+}
+
+/* 5. The white shimmer. A fade strip sits at the end of the term list so a
+      chip scrolling under the button is not sliced mid-word, and it was painted
+      in the old field's near-white — an opaque rgb(225,226,228) smear across a
+      field that is now dark glass. It fades to the field's own colour instead,
+      and moves to the other end in Arabic with everything else. */
+.site-nav .search-entry-shell::after,
+.home-search .search-entry-shell::after {
+    background: linear-gradient(90deg, rgba(8, 17, 33, 0), rgba(8, 17, 33, 0.92)) !important;
+}
+
+[dir="rtl"] .site-nav .search-entry-shell::after,
+[dir="rtl"] .home-search .search-entry-shell::after {
+    right: auto !important;
+    left: var(--search-entry-side-pad) !important;
+    background: linear-gradient(270deg, rgba(8, 17, 33, 0), rgba(8, 17, 33, 0.92)) !important;
+}
+
+/* 6. Arabic has no capitals and finer strokes, so a weight that reads as
+      medium in Latin reads as light in Arabic. The chips carry the reader's own
+      words and should be the firmest thing in the field. */
+[dir="rtl"] .ts-control .item,
+[dir="rtl"] .ts-wrapper.multi .ts-control > div {
+    font-weight: 700 !important;
+}
+
+
+/* ── The announcement bar is one line ───────────────────────────────────────
+   It wrapped: .site-announcement__inner was flex-wrap: wrap, so on a narrow
+   window the sentence took two rows and the bar doubled in height, pushing the
+   whole page down. It runs off the end with an ellipsis instead.
+
+   The text is what truncates, not the row. The link at the end — "See how" —
+   keeps its own nowrap and stays whole, because a call to action cut to "See
+   h…" is worse than a sentence cut short: the sentence still reads, and the
+   link is the thing the bar exists for. */
+.site-announcement {
+    overflow: hidden;
+}
+
+.site-announcement__inner {
+    /* display too. A rule under 576px turns this back into a block so the icon,
+       sentence and link flow as one paragraph — which is what used to keep them
+       off three separate rows, back when this wrapped. It also undoes the flex
+       layout the truncation depends on, so the sentence went inline again and
+       the bar grew to 60px on a phone. Nowrap flex does the same job in one
+       line at every width. */
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    min-width: 0;
+    max-width: 100%;
+}
+
+/* display: block matters. The sentence is a <span>, and text-overflow does
+   nothing to an inline box — nowrap alone just pushed it off the side of the
+   page and gave the document a horizontal scrollbar. As a block flex item that
+   is allowed to shrink, it clips and shows the ellipsis. */
+.site-announcement__text {
+    display: block;
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.site-announcement__icon,
+.site-announcement__link {
+    flex: 0 0 auto;
+}
+
+
+/* ── Nothing grey before the field arrives ──────────────────────────────────
+   For the first quarter-second of a page load the search area painted a light
+   grey slab 50px tall, and a native multi-select list box under it, before the
+   script replaced both with the real field.
+
+   Two causes, both of them things that should never have been visible.
+
+   .navbar-search__input is a wrapper around the field, not the field: the
+   surface belongs to .search-entry-shell inside it. It carried a #efefef fill,
+   a border, a shadow and a 50px floor from before the shell existed, and every
+   state that matters already overrode all four to transparent — search mode
+   does, the home hero does. It only ever showed in the gap before the class
+   that hides it was applied, which is exactly the flash.
+
+   And the <select> the field is built from renders as a list box until Tom
+   Select wraps it. It is hidden until then, keyed on the class Tom Select adds
+   when it takes over, so nothing here has to guess when that happened. */
+.navbar-search__input,
+.site-nav .navbar-search__input {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    min-height: 0;
+    /* The padding goes with them. It was 6px, which both real states already
+       set to 0, so all it did was make the wrapper 50px before the script ran
+       and 38px after — a twelve-pixel jolt in the navbar on every load. */
+    padding: 0;
+}
+
+.search-entry-shell > select:not(.ts-hidden-accessible),
+.search-entry-shell > select.form-control:not(.ts-hidden-accessible) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+
+/* ── The header's menu on a phone ───────────────────────────────────────────
+   Hidden on a desktop, where the links and the globe have room to be
+   themselves. Under 768px it is the only one of them left: the links have
+   already become icons, and the globe becomes an item inside this instead of a
+   button of its own. */
+.nav-menu {
+    position: relative;
+    display: none;
+}
+
+/* Size and shape only. The colour is the row's: .top-actions .top-action paints
+   everything in it gold on navy, with !important, and this is one of them — it
+   stands where the globe stood and should look like what stood there. Setting a
+   surface of its own here would only be dead CSS losing to that rule. */
+.nav-menu__toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 9px;
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+
+.nav-menu__panel {
+    position: absolute;
+    top: calc(100% + 0.45rem);
+    /* Anchored to the end of the row, which mirrors on its own: the button sits
+       on the outer edge in both languages and the panel hangs inward from it. */
+    inset-inline-end: 0;
+    z-index: 2200;
+    min-width: 12rem;
+    max-width: min(16rem, 86vw);
+    padding: 0.3rem;
+    border: 1px solid rgba(226, 232, 240, 0.22);
+    border-radius: 10px;
+    background: #0e1c33;
+    box-shadow: 0 14px 30px rgba(4, 12, 24, 0.45);
+}
+
+.nav-menu__item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.7rem;
+    border-radius: 7px;
+    color: rgba(245, 248, 251, 0.92);
+    font-family: var(--font-ui);
+    font-size: 0.86rem;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.nav-menu__item i {
+    width: 1rem;
+    text-align: center;
+    color: var(--gold-light);
+}
+
+.nav-menu__item:hover,
+.nav-menu__item:focus-visible {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+/* Signed in, the sign-in item goes. The class is set by whichever auth script
+   the page runs, so this never has to know which one that is. */
+body.is-authed .nav-menu__item--signin {
+    display: none;
+}
+
+@media (max-width: 767.98px) {
+    .nav-menu {
+        display: inline-flex;
+    }
+
+    /* Its job is now an item in the menu. */
+    .top-action.lang-toggle {
+        display: none !important;
+    }
+}
+
+
+/* ── The field is the same height on a phone as on a desktop ────────────────
+   A block at 768px sized it for touch before the bar was made compact: 44px of
+   minimum growing to 88px, so the field on a phone was half again the height of
+   the one on a laptop and the hero field came out at 52px against 36.
+
+   The reason it could grow was to let the chosen terms wrap onto a second row.
+   They do not wrap anywhere else — the control scrolls them sideways instead —
+   so the growth bought a taller bar for a behaviour the rest of the site does
+   not have. Same height, same scrolling, everywhere.
+
+   The submit height comes down with it: at 34px inside a 36px shell it was
+   flush against both edges. */
+@media (max-width: 768px) {
+    :root {
+        --search-shell-height: 36px;
+        --search-action-height: 28px;
+    }
+
+    .search-entry-shell {
+        height: var(--search-shell-height);
+        min-height: var(--search-shell-height);
+        max-height: var(--search-shell-height);
+    }
+
+    .search-entry-shell .ts-wrapper,
+    .search-entry-shell .ts-wrapper.form-control {
+        height: 100%;
+        min-height: 0;
+    }
+
+    .navbar-search .search-entry-shell .ts-control,
+    .site-nav .search-entry-shell .ts-control,
+    .home-search .search-entry-shell .ts-control {
+        height: 100% !important;
+        min-height: 0 !important;
+        max-height: 100% !important;
+        flex-wrap: nowrap !important;
+    }
+}
+
+
+/* ── One magnifying glass on a phone, not two ───────────────────────────────
+   On a desktop the field carries a magnifier at its start and the submit at its
+   end says "Search" in words: an icon and a label, each doing a different job.
+   Under 768px the button loses its label and becomes a magnifying glass itself,
+   so the same field ends up with the same icon at both ends — the left one
+   decoration, the right one the control.
+
+   The decorative one goes, and the room it was holding goes with it. The start
+   padding here is the width of that icon plus its inset; left in place it would
+   read as an unexplained indent with the caret floating in the middle of the
+   field. */
+@media (max-width: 768px) {
+    .search-entry-shell .search-magnifier,
+    .site-nav .search-entry-shell .search-magnifier,
+    .home-search .search-entry-shell .search-magnifier,
+    .nav-search .search-magnifier,
+    .site-nav .nav-search .search-magnifier {
+        display: none !important;
+    }
+
+    .nav-search__shell {
+        padding-inline-start: 0.6rem;
+    }
+
+    /* .ts-wrapper.form-control is in the selector to outrank
+       `.site-nav .ts-wrapper.form-control .ts-control`, a four-class rule from an
+       older pass that also sets padding-left with !important. Written the obvious
+       way, at three classes, this rule matched and lost, and the field kept the
+       old indent with nothing in it. */
+    .navbar-search .search-entry-shell .ts-wrapper.form-control .ts-control,
+    .site-nav .search-entry-shell .ts-wrapper.form-control .ts-control,
+    .home-search .search-entry-shell .ts-wrapper.form-control .ts-control {
+        padding-left: 0.7rem !important;
+    }
+
+    .search-ghost-text,
+    .site-nav .search-ghost-text {
+        left: 0.7rem;
+    }
+
+    [dir="rtl"] .navbar-search .search-entry-shell .ts-wrapper.form-control .ts-control,
+    [dir="rtl"] .site-nav .search-entry-shell .ts-wrapper.form-control .ts-control,
+    [dir="rtl"] .home-search .search-entry-shell .ts-wrapper.form-control .ts-control {
+        padding-left: var(--search-entry-side-pad) !important;
+        padding-right: 0.7rem !important;
+    }
+
+    [dir="rtl"] .search-ghost-text,
+    [dir="rtl"] .site-nav .search-ghost-text {
+        left: var(--search-entry-side-pad);
+        right: 0.7rem;
+    }
 }

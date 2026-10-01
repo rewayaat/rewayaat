@@ -2,6 +2,7 @@ package com.rewayaat.controllers;
 
 import com.rewayaat.service.BookCatalog;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
 
@@ -13,7 +14,12 @@ class HomeControllerTest {
 
     /** The catalog is only read for the rendered book list; an empty one is enough here. */
     private static HomeController controller() {
-        return new HomeController(new BookCatalog());
+        // The real bundle rather than a stub: the title and description assertions below
+        // are then checking the strings the site actually serves.
+        ResourceBundleMessageSource messages = new ResourceBundleMessageSource();
+        messages.setBasename("messages");
+        messages.setDefaultEncoding("UTF-8");
+        return new HomeController(new BookCatalog(), messages);
     }
 
     @Test

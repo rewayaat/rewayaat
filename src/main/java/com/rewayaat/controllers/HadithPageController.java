@@ -3,7 +3,10 @@ package com.rewayaat.controllers;
 import com.rewayaat.config.ESClientProvider;
 import com.rewayaat.core.HadithDisplaySegmenter;
 import com.rewayaat.core.HadithObjectCollection;
+import com.rewayaat.service.ArabicNames;
 import com.rewayaat.service.BookCatalog;
+import com.rewayaat.service.LocaleDigits;
+import com.rewayaat.service.PageLocale;
 import com.rewayaat.service.HadithCardFactory;
 import com.rewayaat.service.QuranicInsightsService;
 import com.rewayaat.service.SimilarHadithService;
@@ -11,9 +14,11 @@ import com.rewayaat.core.HadithSourceFilter;
 import com.rewayaat.core.data.HadithObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Hidden;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -46,17 +51,25 @@ public class HadithPageController {
     private final SimilarHadithService similarHadith;
     private final HadithCardFactory cards;
     private final QuranicInsightsService quranicInsights;
+    private final MessageSource messages;
 
     public HadithPageController(BookCatalog catalog, SimilarHadithService similarHadith,
-                                HadithCardFactory cards, QuranicInsightsService quranicInsights) {
+                                HadithCardFactory cards, QuranicInsightsService quranicInsights,
+                                MessageSource messages) {
         this.catalog = catalog;
         this.similarHadith = similarHadith;
         this.cards = cards;
         this.quranicInsights = quranicInsights;
+        this.messages = messages;
+    }
+
+    private String msg(PageLocale locale, String key, Object... args) {
+        return messages.getMessage(key, args, locale.locale());
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public String hadithPage(@PathVariable("id") String id, Model model, HttpServletResponse response)
+    public String hadithPage(@PathVariable("id") String id, Model model, HttpServletResponse response,
+                             HttpServletRequest request)
             throws IOException {
         HadithObject hadith = loadNarration(id);
         if (hadith == null) {
@@ -66,6 +79,10 @@ public class HadithPageController {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
             return null;
         }
+
+        // Resolved before anything user-visible is built: the title, the description,
+        // the breadcrumbs and the card all differ by language.
+        PageLocale locale = PageLocale.of(request);
 
         // Split chain from matn using the display segmenter
         Map<String, Object> segMap = new LinkedHashMap<>();
@@ -78,15 +95,37 @@ public class HadithPageController {
 
         // "HDP" is an acronym with no search volume, and it was eating the end of every
         // title. The slot goes to words people actually search for instead.
-        String bookRef = buildBookRef(hadith);
+        String bookRef = buildBookRef(hadith, locale);
         String seoTitle = (bookRef.isEmpty() ? truncate(englishFull, 80) : bookRef)
-                + " — Shia Hadith in Arabic & English";
+                + " — " + msg(locale, "seo.hadith.suffix");
 
-        // SEO description: matn text (not chain), first 160 chars
-        String seoDescription = truncate(englishContent.isEmpty() ? englishFull : englishContent, 160);
+        // The description quotes the narration, so on the Arabic page it quotes the
+        // Arabic. Quoting the translation there described the page in a language the
+        // page no longer shows.
+        String arabicFull = stripHtml(hadith.getArabic());
+        String summary = locale.isArabic() && !arabicFull.isBlank()
+                ? arabicFull
+                : (englishContent.isEmpty() ? englishFull : englishContent);
+        String seoDescription = truncate(summary, 160);
 
         // Canonical URL
-        String canonicalUrl = BASE_URL + "/hadith/" + id;
+        // The Arabic narration page is reachable but not indexable, so it is canonical to
+        // itself rather than to the English page - a noindex page pointing its canonical
+        // elsewhere sends two contradictory instructions - and it publishes no hreflang
+        // pair, because hreflang describes pages that are meant to be indexed.
+        String canonicalUrl = locale.urlFor("/hadith/" + id);
+        if (locale.isArabic()) {
+            model.addAttribute("robotsDirective", "noindex, follow");
+        }
+        model.addAttribute("htmlLang", locale.tag());
+        model.addAttribute("htmlDir", locale.direction());
+        model.addAttribute("isArabic", locale.isArabic());
+        model.addAttribute("arPrefix", locale.prefix());
+        // This page sets its own canonical and robots rules, so it does not go through
+        // PageLocale.applyTo — which is why it had no language toggle at all until now.
+        PageLocale other = locale.isArabic() ? PageLocale.ENGLISH : PageLocale.ARABIC;
+        model.addAttribute("switchLocalePath", other.prefix() + "/hadith/" + id);
+        model.addAttribute("switchLocaleTag", other.tag());
 
         // JSON-LD structured data
         String jsonLd = buildJsonLd(hadith, canonicalUrl);
@@ -98,33 +137,53 @@ public class HadithPageController {
         Optional<BookCatalog.Chapter> chapter = catalog.chapterFor(hadith.getBook(), hadith.getVolume(),
                 hadith.getPart(), hadith.getSection(), hadith.getChapter());
 
+        // Every rung was written in English with an unprefixed URL, so the trail at the
+        // top of an Arabic page read Home / Books / Al-Khisal and led back out of it.
+        String prefix = locale.prefix();
         List<Map<String, String>> crumbs = new ArrayList<>();
-        crumbs.add(Map.of("name", "Home", "url", "/"));
-        crumbs.add(Map.of("name", "Books", "url", "/books"));
+        crumbs.add(Map.of("name", msg(locale, "crumb.home"), "url", prefix + "/"));
+        crumbs.add(Map.of("name", msg(locale, "nav.books"), "url", prefix + "/books"));
         book.ifPresent(b -> {
-            crumbs.add(Map.of("name", b.name(), "url", "/books/" + b.slug()));
+            String name = locale.isArabic() && b.nameAr() != null && !b.nameAr().isBlank()
+                    ? b.nameAr() : b.name();
+            crumbs.add(Map.of("name", name, "url", prefix + "/books/" + b.slug()));
             if (hadith.getVolume() != null && !hadith.getVolume().isBlank()) {
-                crumbs.add(Map.of("name", "Volume " + hadith.getVolume(),
-                        "url", "/books/" + b.slug() + "/volume/" + encode(hadith.getVolume())));
+                String label = locale.isArabic()
+                        ? msg(locale, "book.volumeNumber", LocaleDigits.in(locale, hadith.getVolume()))
+                        : "Volume " + hadith.getVolume();
+                crumbs.add(Map.of("name", label,
+                        "url", prefix + "/books/" + b.slug() + "/volume/" + encode(hadith.getVolume())));
             }
         });
-        chapter.ifPresent(c -> crumbs.add(Map.of("name", c.title(), "url", c.url())));
-        crumbs.add(Map.of("name", "Hadith " + (hadith.getNumber() == null ? id : hadith.getNumber()),
-                "url", "/hadith/" + id));
+        chapter.ifPresent(c -> {
+            String title = locale.isArabic() && c.titleAr() != null && !c.titleAr().isBlank()
+                    ? c.titleAr() : c.title();
+            crumbs.add(Map.of("name", title, "url", prefix + c.url()));
+        });
+        String number = hadith.getNumber() == null ? id : hadith.getNumber();
+        crumbs.add(Map.of("name", msg(locale, "crumb.hadithNumber", LocaleDigits.in(locale, number)),
+                "url", prefix + "/hadith/" + id));
 
         // The narration renders through the same card as a chapter page and the search
         // results, rather than the hand-rolled layout this page used to carry. Its tag
         // pills filter the chapter the narration belongs to, since this page has nothing
         // to filter itself.
         Map<String, Object> card = cards.build(id, rawSource(id),
-                chapter.map(BookCatalog.Chapter::url).orElse(null), BASE_URL);
+                chapter.map(BookCatalog.Chapter::url).orElse(null), BASE_URL, locale);
         card.put("quranCount", quranicInsights.insightCounts(List.of(id)).getOrDefault(id, 0));
         model.addAttribute("card", card);
 
         model.addAttribute("breadcrumbs", crumbs);
         model.addAttribute("breadcrumbJsonLd", breadcrumbJsonLd(crumbs));
-        model.addAttribute("chapterUrl", chapter.map(BookCatalog.Chapter::url).orElse(null));
-        model.addAttribute("similar", similarLinks(id));
+        model.addAttribute("chapterUrl",
+                chapter.map(c -> locale.prefix() + c.url()).orElse(null));
+        // The link back up to the chapter named it in English on the Arabic page, the
+        // one string left over once the card and the trail were translated.
+        model.addAttribute("chapterName", chapter
+                .map(c -> locale.isArabic() && c.titleAr() != null && !c.titleAr().isBlank()
+                        ? c.titleAr() : c.title())
+                .orElse(hadith.getChapter()));
+        model.addAttribute("similar", similarLinks(id, locale));
 
         model.addAttribute("hadith", hadith);
         model.addAttribute("hadithId", id);
@@ -176,14 +235,15 @@ public class HadithPageController {
         }
     }
 
-    private String buildBookRef(HadithObject hadith) {
+    private String buildBookRef(HadithObject hadith, PageLocale locale) {
         StringBuilder sb = new StringBuilder();
         if (hadith.getBook() != null && !hadith.getBook().isBlank()) {
-            sb.append(hadith.getBook());
+            String arabic = locale.isArabic() ? ArabicNames.book(hadith.getBook()) : null;
+            sb.append(arabic == null || arabic.isBlank() ? hadith.getBook() : arabic);
         }
         if (hadith.getNumber() != null && !hadith.getNumber().isBlank()) {
             if (!sb.isEmpty()) sb.append(" ");
-            sb.append("#").append(hadith.getNumber());
+            sb.append("#").append(LocaleDigits.in(locale, hadith.getNumber()));
         }
         return sb.toString();
     }
@@ -229,22 +289,26 @@ public class HadithPageController {
      * the strongest signal the corpus has about which narrations belong together into an
      * internal link graph.
      */
-    private List<Map<String, String>> similarLinks(String id) {
+    private List<Map<String, String>> similarLinks(String id, PageLocale locale) {
         List<Map<String, String>> links = new ArrayList<>();
         try {
             HadithObjectCollection related = similarHadith.findSimilar(id, 0, MAX_SIMILAR_LINKS);
             for (HadithObject other : related.getCollection()) {
-                String label = buildBookRef(other);
+                String label = buildBookRef(other, locale);
                 // SimilarHadithService already ran the display segmenter over these, so
                 // the matn is available; excerpting the raw English would open every
                 // entry with its chain of transmission instead.
-                Object segmented = other.getAdditionalProperties().get("englishContent");
+                // On the Arabic page the excerpt is the matn, for the same reason the
+                // card no longer shows the translation there.
+                Object segmented = other.getAdditionalProperties()
+                        .get(locale.isArabic() ? "arabicContent" : "englishContent");
+                String fallback = locale.isArabic() ? other.getArabic() : other.getEnglish();
                 String body = segmented == null || segmented.toString().isBlank()
-                        ? other.getEnglish() : segmented.toString();
+                        ? fallback : segmented.toString();
                 String excerpt = truncate(stripHtml(body), 140);
                 links.add(Map.of(
-                        "url", "/hadith/" + other.getId(),
-                        "label", label.isBlank() ? "Related narration" : label,
+                        "url", locale.prefix() + "/hadith/" + other.getId(),
+                        "label", label.isBlank() ? msg(locale, "hadith.relatedNarration") : label,
                         "excerpt", excerpt));
             }
         } catch (Exception e) {

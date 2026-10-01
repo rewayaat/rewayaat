@@ -1,0 +1,149 @@
+<!doctype html>
+<html th:lang="${htmlLang} ?: 'en'" th:dir="${htmlDir} ?: 'ltr'" lang="en" xmlns:th="http://www.thymeleaf.org">
+<!--
+  How to search, in the reader's language.
+
+  This was a static file, which is why it was the last English-only page on the site: the
+  resource handler serves bytes and never sees a locale, so the Arabic footer linked an
+  Arabic label to an English page. It is a template now, at the same URL.
+
+  The code examples are not translated, and that is not an oversight. A field filter is
+  keyed on the English field name and the English value - book:"الكافي" matches nothing,
+  which was checked against the running index rather than assumed - so an Arabic example
+  would teach a query that does not work. The prose around them is what carries the
+  language; the syntax is the syntax.
+-->
+<head th:replace="~{fragments/site :: sitehead}"></head>
+<body>
+<nav th:replace="~{fragments/site :: sitenav}"></nav>
+
+<main class="container py-3">
+    <nav th:replace="~{fragments/site :: crumbtrail}"></nav>
+
+    <header class="hub-hero hub-hero--split">
+        <div class="hub-hero__identity">
+            <div class="hub-hero__eyebrow" th:text="#{tips.eyebrow}">Guide</div>
+            <h1 class="hub-hero__title" th:text="#{tips.title}">Search Tips</h1>
+            <div class="hub-hero__stats">
+                <span class="hub-stat">
+                    <!-- Counted, not written down. The old page said 32,519 in its markup,
+                         which is a number that goes stale silently. -->
+                    <span class="hub-stat__value"
+                          th:text="${#numbers.formatInteger(totalNarrations, 0, 'COMMA')}">32,519</span>
+                    <span th:text="#{books.stat.narrations}">narrations</span>
+                </span>
+                <span class="hub-stat">
+                    <span class="hub-stat__value"
+                          th:text="${#numbers.formatInteger(totalBooks, 0)}">18</span>
+                    <span th:text="#{books.stat.collections}">collections</span>
+                </span>
+            </div>
+        </div>
+        <div class="hub-hero__intro">
+            <p class="hub-hero__intro-text" th:text="#{tips.intro}">
+                The search bar takes plain words, but it also understands phrases, field
+                filters and two matching modes. A few of these make the difference between
+                finding one narration and finding the chapter it sits in.
+            </p>
+        </div>
+    </header>
+
+    <div th:replace="~{fragments/site :: ornament}"></div>
+
+    <div class="tips-grid">
+        <section class="tips-card">
+            <h2 class="tips-card__title"><i class="fa fa-quote-right" aria-hidden="true"></i>
+                <span th:text="#{tips.phrase.title}">Exact phrases</span></h2>
+            <p th:text="#{tips.phrase.body}">Wrap words in double quotes to match them together, in order.</p>
+            <p class="tips-card__example"><code>"pledge of allegiance"</code></p>
+            <p class="tips-card__note" th:text="#{tips.phrase.note}">Without quotes the words are matched
+            separately and a narration containing only one of them can still rank.</p>
+        </section>
+
+        <section class="tips-card">
+            <h2 class="tips-card__title"><i class="fa fa-filter" aria-hidden="true"></i>
+                <span th:text="#{tips.field.title}">Filter by field</span></h2>
+            <p th:with="syntax='&lt;code&gt;field:&quot;value&quot;&lt;/code&gt;'"
+               th:utext="#{tips.field.body(${syntax})}">Narrow to part of the corpus with
+               <code>field:"value"</code>. Quotes are required.</p>
+            <p class="tips-card__example">
+                <code>book:"Al-Kāfi"</code><br/>
+                <code>chapter:"The meaning of the intellect"</code>
+            </p>
+            <!-- The field names are the query language, not prose, so they stay in the
+                 template rather than being repeated in both bundles. -->
+            <p class="tips-card__note"><span th:text="#{tips.field.fields}">Available fields:</span>
+            <code>book</code>, <code>volume</code>, <code>part</code>,
+            <code>section</code>, <code>chapter</code>, <code>number</code>, <code>source</code>,
+            <code>topic_tags</code>.</p>
+            <p class="tips-card__note" th:text="#{tips.field.english}">Field names and their values are
+            matched against the English metadata, so a filter is written in English on both
+            sites. The narration it finds is shown in the language you are reading.</p>
+        </section>
+
+        <section class="tips-card">
+            <h2 class="tips-card__title"><i class="fa fa-layer-group" aria-hidden="true"></i>
+                <span th:text="#{tips.combine.title}">Combine the two</span></h2>
+            <p th:text="#{tips.combine.body}">A field filter and search terms together search only
+            inside that scope.</p>
+            <p class="tips-card__example"><code>book:"Al-Kāfi" prayer intention</code></p>
+            <p class="tips-card__note" th:text="#{tips.combine.note}">A filter on its own, with no search
+            terms, is a request to browse: it opens the book, volume, part or chapter page
+            instead of returning results.</p>
+        </section>
+
+        <section class="tips-card">
+            <h2 class="tips-card__title"><i class="fa fa-language" aria-hidden="true"></i>
+                <span th:text="#{tips.language.title}">Arabic and English</span></h2>
+            <p th:text="#{tips.language.body}">Search in either language, and type it however is easiest.</p>
+            <p class="tips-card__example">
+                <code>الصوم جنة</code> &mdash; <code>الصَّوْمُ جُنَّةٌ</code><br/>
+                <code>Muhammad</code> &mdash; <code>Muḥammad</code>
+            </p>
+            <p class="tips-card__note" th:text="#{tips.language.same}">Each pair returns the same results.</p>
+            <p class="tips-card__note"
+               th:with="ali='&lt;code&gt;Ali&lt;/code&gt;',                       aliFull='&lt;code&gt;ʿAlī&lt;/code&gt;',                       plural='&lt;code&gt;prayers&lt;/code&gt;',                       singular='&lt;code&gt;prayer&lt;/code&gt;'"
+               th:utext="#{tips.language.note(${ali}, ${aliFull}, ${plural}, ${singular})}">Vowel marks are
+            ignored, so a bare Arabic word finds the fully vowelled text stored here.
+            Transliteration is folded the same way: <code>Ali</code> finds <code>ʿAlī</code>.
+            English plurals are matched with their singular, so <code>prayers</code> finds
+            narrations that say <code>prayer</code>.</p>
+        </section>
+
+        <section class="tips-card">
+            <h2 class="tips-card__title"><i class="fa fa-crosshairs" aria-hidden="true"></i>
+                <span th:text="#{tips.mode.title}">Precise or flexible</span></h2>
+            <p th:text="#{tips.mode.body}">The dropdown beside the search button chooses how strictly
+            your words are read.</p>
+            <p class="tips-card__note"
+               th:with="flexible=|&lt;strong&gt;${#messages.msg('search.mode.flexible')}&lt;/strong&gt;|,                       precise=|&lt;strong&gt;${#messages.msg('search.mode.precise')}&lt;/strong&gt;|"
+               th:utext="#{tips.mode.note(${flexible}, ${precise})}"><strong>Flexible</strong> (the default)
+            forgives a single mistyped letter and does not require every word, which is what
+            you want when you are unsure of a spelling. <strong>Precise</strong> requires every
+            word exactly as typed, which is how you check whether a particular wording occurs
+            at all.</p>
+        </section>
+
+        <section class="tips-card">
+            <h2 class="tips-card__title"><i class="fa fa-tags" aria-hidden="true"></i>
+                <span th:text="#{tips.tags.title}">Topic tags</span></h2>
+            <p th:text="#{tips.tags.body}">Results carry tag pills, and the bar above them lists the tags
+            present in the current results with a count against each.</p>
+            <p class="tips-card__note" th:text="#{tips.tags.note}">Clicking one filters what you already
+            have rather than starting a new search, which is the quickest way to cut a broad
+            query down to a subject.</p>
+        </section>
+    </div>
+
+    <p class="tips-footnote"
+       th:with="browse=|&lt;a href=&quot;${arPrefix}/books&quot;&gt;${#messages.msg('tips.footnote.browse')}&lt;/a&gt;|"
+       th:utext="#{tips.footnote(${browse})}">
+        Still stuck? <a href="/books">Browse by book</a> instead &mdash; every collection, volume,
+        part and chapter has a page of its own.
+    </p>
+</main>
+
+<footer th:replace="~{fragments/site :: sitefooter}"></footer>
+<th:block th:replace="~{fragments/site :: analytics}"></th:block>
+</body>
+</html>

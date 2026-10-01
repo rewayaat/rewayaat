@@ -1,3 +1,48 @@
+/** A UI string in the page's language. See rewayaat.js. */
+function t(key, fallback) {
+    var table = window.I18N || {};
+    var value = table[key];
+    return (typeof value === 'string' && value.length) ? value : fallback;
+}
+
+/** The current language's URL for an internal path. See rewayaat.js. */
+/** The sign-in page, in the language of the page sending the reader there. */
+function signInUrl() {
+    return localeHref('/signin.html') + '?returnTo='
+        + encodeURIComponent(window.location.pathname);
+}
+
+/**
+ * A number in the digits the page is set in.
+ *
+ * The twin of the one in rewayaat.js. The two files are separate bundles loaded by
+ * different pages — hub pages take this one, the search app the other — which is why
+ * t(), escapeHtml() and localeHref() are each written twice here as well.
+ */
+function localeDigits(value) {
+    if (value === null || value === undefined) { return value; }
+    if (window.I18N_LOCALE !== 'ar') { return value; }
+    return String(value).replace(/[0-9]/g, function (digit) {
+        return String.fromCharCode(0x0660 + Number(digit));
+    });
+}
+
+/** A record's field in the reader's language, falling back to the English. */
+function localeField(record, field) {
+    if (!record) { return undefined; }
+    if (window.I18N_LOCALE === 'ar') {
+        var arabic = record[field + '_ar'];
+        if (typeof arabic === 'string' && arabic.length) { return localeDigits(arabic); }
+        return localeDigits(record[field]);
+    }
+    return record[field];
+}
+
+function localeHref(path) {
+    var prefix = (window.I18N_LOCALE === 'ar') ? '/ar' : '';
+    return prefix + (path.charAt(0) === '/' ? path : '/' + path);
+}
+
 /**
  * Auth and save-to-collection for the server-rendered pages (books, book, volume,
  * chapter, hadith).
@@ -42,12 +87,16 @@
         var initial = el('authProfileInitial');
 
         if (signIn) { signIn.classList.toggle('d-none', authed); }
+        // The phone menu's sign-in item reads this rather than authState, so it
+        // cannot disagree with the chip about who is signed in.
+        document.body.classList.toggle('is-authed', authed);
         if (shell) { shell.classList.toggle('d-none', !authed); }
 
         if (authed && authState.user) {
             // The payload from /v1/auth/me calls it displayName, the same field the
             // search app reads. Reading `name` here left every editor labelled by email.
-            var label = authState.user.displayName || authState.user.email || 'Account';
+            var label = authState.user.displayName || authState.user.email
+                || t('nav.account', 'Account');
             if (name) { name.textContent = label; }
             if (initial) { initial.textContent = label.charAt(0).toUpperCase(); }
         }
@@ -79,18 +128,22 @@
         if (signIn) {
             signIn.addEventListener('click', function () {
                 // Come back to the page the reader was actually on.
-                window.location.href = '/signin.html?returnTo=' + encodeURIComponent(window.location.pathname);
+                window.location.href = signInUrl();
             });
         }
 
         var profileBtn = el('authProfileBtn');
         var menu = el('authProfileMenu');
         if (profileBtn && menu) {
+            // Built as a string here rather than in the template, which is why these
+            // two stayed English on the Arabic hub pages.
             menu.innerHTML =
-                '<a class="profile-dropdown__item" href="/#collections">' +
-                '<i class="fa fa-bookmark" aria-hidden="true"></i> My Collections</a>' +
+                '<a class="profile-dropdown__item" href="' + localeHref('/#collections') + '">' +
+                '<i class="fa fa-bookmark" aria-hidden="true"></i> ' +
+                t('home.myCollections', 'My Collections') + '</a>' +
                 '<button class="profile-dropdown__item" type="button" id="hubSignOut">' +
-                '<i class="fa fa-right-from-bracket" aria-hidden="true"></i> Sign Out</button>';
+                '<i class="fa fa-right-from-bracket" aria-hidden="true"></i> ' +
+                t('js.signOut', 'Sign Out') + '</button>';
 
             profileBtn.addEventListener('click', function (event) {
                 event.stopPropagation();
@@ -175,7 +228,7 @@
             });
             var newOption = document.createElement('option');
             newOption.value = NEW_VALUE;
-            newOption.textContent = '+ New collection';
+            newOption.textContent = t('js.newCollection', '+ New Collection');
             select.appendChild(newOption);
             if (!collections.length) { select.value = NEW_VALUE; }
             syncNewInput();
@@ -198,11 +251,11 @@
                 body: JSON.stringify({ hadithId: hadithId, collectionName: name })
             }).then(function (resp) {
                 if (!resp.ok || !resp.data || !resp.data.ok) {
-                    toast((resp.data && resp.data.message) || 'Could not save the narration.', 'error');
+                    toast((resp.data && resp.data.message) || t('toast.saveFailed', 'Could not save the narration.'), 'error');
                     return;
                 }
                 closeModal();
-                toast('Saved to ' + name + '.');
+                toast(t('toast.savedTo', 'Saved to {0}.').replace('{0}', name));
             });
         });
     }
@@ -213,7 +266,7 @@
             if (!trigger) { return; }
             event.preventDefault();
             if (!authState.authenticated) {
-                window.location.href = '/signin.html?returnTo=' + encodeURIComponent(window.location.pathname);
+                window.location.href = signInUrl();
                 return;
             }
             openSaveModal(trigger.getAttribute('data-save-hadith'), trigger.getAttribute('data-save-label'));
@@ -297,12 +350,21 @@
         try { return JSON.parse(script.textContent || '{}'); } catch (e) { return {}; }
     }
 
+    /**
+     * "X copied." — the noun is a key rather than a word, because a sentence assembled
+     * from an English noun and a translated frame is still half English.
+     */
+    function copied(what) {
+        var noun = t('toast.what.' + what, what);
+        return t('toast.copied', '{0} copied.').replace('{0}', noun);
+    }
+
     function copyText(text, label) {
-        if (!text) { toast('Nothing to copy.', 'error'); return; }
+        if (!text) { toast(t('toast.nothingToCopy', 'Nothing to copy.'), 'error'); return; }
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(text)
-                .then(function () { toast(label + ' copied.'); })
-                .catch(function () { toast('Could not copy.', 'error'); });
+                .then(function () { toast(copied(label)); })
+                .catch(function () { toast(t('toast.copyFailed', 'Could not copy.'), 'error'); });
             return;
         }
         var ta = document.createElement('textarea');
@@ -310,8 +372,8 @@
         ta.style.cssText = 'position:fixed;left:-9999px';
         document.body.appendChild(ta);
         ta.select();
-        try { document.execCommand('copy'); toast(label + ' copied.'); }
-        catch (e) { toast('Could not copy.', 'error'); }
+        try { document.execCommand('copy'); toast(copied(label)); }
+        catch (e) { toast(t('toast.copyFailed', 'Could not copy.'), 'error'); }
         document.body.removeChild(ta);
     }
 
@@ -346,14 +408,14 @@
             if (copyField) {
                 var field = copyField.getAttribute('data-copy-field');
                 var data = cardData(copyField);
-                copyText(data[field], field === 'arabic' ? 'Arabic' : 'English');
+                copyText(data[field], field === 'arabic' ? 'arabic' : 'english');
                 closeMenus();
                 return;
             }
 
             var copyUrl = event.target.closest('[data-copy-url]');
             if (copyUrl) {
-                copyText(copyUrl.getAttribute('data-copy-url'), 'Link');
+                copyText(copyUrl.getAttribute('data-copy-url'), 'link');
                 closeMenus();
                 return;
             }
@@ -413,7 +475,8 @@
             }).join('');
         if (items.length > 10) {
             html += '<button type="button" class="hadith-sidecar__show-more" data-hub-show-all>'
-                + 'Show all ' + items.length + ' <i class="fa fa-chevron-down" aria-hidden="true"></i></button>';
+                + escapeHtml(t('js.showAllCount', 'Show all {0}').replace('{0}', localeDigits(items.length)))
+                + ' <i class="fa fa-chevron-down" aria-hidden="true"></i></button>';
         }
         return html + '</div>';
     }
@@ -422,33 +485,101 @@
         return '<span class="hadith-sidecar__list-separator" aria-hidden="true">\u2022</span>';
     }
 
+    /**
+     * Related narrations, as a plain list of links.
+     *
+     * <p>It used to be an accordion whose open panel held a "read this narration" link,
+     * which is two clicks and a disclosure to reach a page the row already names. The row
+     * is the link now.
+     *
+     * <p>Every part of it is named in the reader's language: the endpoint returns book_ar
+     * and chapter_ar beside the English, and the match type has a key of its own. Only
+     * the reason the pair was judged similar has no Arabic, and the Arabic card does not
+     * show it.
+     */
+    /**
+     * The Related list.
+     *
+     * <p>A row is a control, never a link. Clicking one renders that narration inline
+     * below the primary hadith — which is the whole point of the panel, and what makes
+     * it worth having over a search. It was briefly an <a href="/hadith/{id}">, which
+     * navigated away from the narration the reader was reading: the one thing the panel
+     * exists not to do.
+     *
+     * <p>Two shapes, one behaviour. English keeps the accordion, whose open row carries
+     * why the pair was judged similar and a link to the narration's own page. Arabic has
+     * neither — the reason was written in English by the model that judged the pair, and
+     * an English paragraph is the one thing on an Arabic card a reader cannot skim past —
+     * so there is nothing left to expand and the rows are a plain list. Both emit
+     * data-hub-acc-toggle, so both go through bindAccordions to showInline.
+     */
     function renderSimilar(body, data) {
         var items = (data && data.collection) || [];
+        var empty = t('sidecar.noSimilar', 'No similar hadith were found for this narration.');
+        if (!items.length) {
+            body.innerHTML = '<div class="text-muted py-2">' + empty + '</div>';
+            return;
+        }
+        var arabic = window.I18N_LOCALE === 'ar';
+
         var rows = items.map(function (item, idx) {
-            var book = item.book || ('Similar hadith ' + (idx + 1));
-            var num = item.number ? '#' + item.number : ('Similar hadith ' + (idx + 1));
+            var book = localeField(item, 'book') || '';
+            var chapter = localeField(item, 'chapter') || '';
+            // No hash in Arabic: it is a Latin convention, and in a right-to-left
+            // line the browser puts it after the numeral, which reads as "1#".
+            var num = item.number
+                ? (arabic ? localeDigits(item.number) : '#' + item.number)
+                : '';
+            var type = item.matchType
+                ? '<span class="hadith-sidecar__list-meta match-type-badge match-type--'
+                  + escapeHtml(item.matchType) + '">'
+                  + escapeHtml(t('match.' + item.matchType, item.matchType)) + '</span>'
+                : '';
             var line = '<span class="hadith-sidecar__list-line">'
                 + '<span class="hadith-sidecar__list-eyebrow">' + escapeHtml(book) + '</span>'
-                + sep()
-                + '<span class="hadith-sidecar__list-text">' + escapeHtml(num) + '</span>'
-                + (item.matchType
-                    ? sep() + '<span class="hadith-sidecar__list-meta match-type-badge match-type--'
-                      + escapeHtml(item.matchType) + '">' + escapeHtml(item.matchType) + '</span>'
-                    : '')
-                + '</span>';
+                + (num ? sep() + '<span class="hadith-sidecar__list-text">' + escapeHtml(num) + '</span>' : '')
+                + (type ? sep() + type : '')
+                + '</span>'
+                + (chapter
+                    ? '<span class="hadith-sidecar__list-sub">' + escapeHtml(chapter) + '</span>'
+                    : '');
             return {line: line, raw: item};
         });
-        body.innerHTML = accordion('No similar hadith were found for this narration.', rows,
-            function (item) {
+
+        if (!arabic) {
+            body.innerHTML = accordion(empty, rows, function (item) {
                 var id = item._id || item.id || '';
                 return (item.matchReason
                         ? '<div class="similar-reason-text">'
-                          + '<span class="similar-reason-label">Why this matched:</span> '
+                          + '<span class="similar-reason-label">'
+                          + t('sidecar.whyMatched', 'Why this matched:') + '</span> '
                           + escapeHtml(item.matchReason) + '</div>'
                         : '')
-                    + '<a class="quranic-verse-link" href="/hadith/' + encodeURIComponent(id) + '">'
-                    + 'Read this narration <i class="fa fa-external-link-alt fa-xs"></i></a>';
+                    + '<a class="quranic-verse-link" href="' + localeHref('/hadith/' + encodeURIComponent(id)) + '">'
+                    + t('sidecar.readNarration', 'Read this narration')
+                    + ' <i class="fa fa-external-link-alt fa-xs"></i></a>';
             }, 'similar');
+            return;
+        }
+
+        var shown = rows.slice(0, 10);
+        body.innerHTML = '<div class="hadith-sidecar__list hadith-sidecar__accordion" role="listbox">'
+            + shown.map(function (row, idx) {
+                return '<div class="hadith-sidecar__accordion-item' + (idx === 0 ? ' is-active' : '') + '"'
+                    + ' data-hub-acc-item="' + idx + '">'
+                    + '<button type="button" class="hadith-sidecar__list-item '
+                    + 'hadith-sidecar__accordion-toggle hadith-sidecar__list-item--similar'
+                    + (idx === 0 ? ' is-active' : '') + '"'
+                    + ' aria-expanded="' + (idx === 0) + '" data-hub-acc-toggle="' + idx + '">'
+                    + row.line
+                    + '</button></div>';
+            }).join('')
+            + (rows.length > 10
+                ? '<button type="button" class="hadith-sidecar__show-more" data-hub-show-all>'
+                  + escapeHtml(t('js.showAllCount', 'Show all {0}').replace('{0}', localeDigits(rows.length)))
+                  + ' <i class="fa fa-chevron-down" aria-hidden="true"></i></button>'
+                : '')
+            + '</div>';
     }
 
     function alIslamSurahSlug(item) {
@@ -460,7 +591,7 @@
         var items = (data && (data.insights || data.candidates || data.items)) || [];
         var rows = items.map(function (item, idx) {
             var ref = item.verse_key || item.reference || ('Verse ' + (idx + 1));
-            var surah = item.surah_name_english || 'Quranic verse';
+            var surah = item.surah_name_english || t('js.quranicVerse', 'Quranic verse');
             var line = '<span class="hadith-sidecar__list-line">'
                 + '<span class="hadith-sidecar__list-eyebrow">' + escapeHtml(ref) + '</span>'
                 + sep()
@@ -468,7 +599,8 @@
                 + '</span>';
             return {line: line, raw: item};
         });
-        body.innerHTML = accordion('No Quranic insights were found for this narration.', rows,
+        body.innerHTML = accordion(t('sidecar.noQuranicInsights',
+                'No Quranic insights were found for this narration.'), rows,
             function (item) {
                 var sources = sourceOptions(item);
                 var tree = sources.length
@@ -502,24 +634,54 @@
             }, 'quran');
     }
 
-    /** Renders the chosen Related narration into the main column. */
+    /**
+     * Renders the chosen Related narration into the main column.
+     *
+     * <p>Localised throughout. This is the narration the reader asked to see, rendered
+     * at full length, so English leaking into it on the Arabic site is not a stray label
+     * — it is the body of what they clicked. The English column goes with it: a reader
+     * who chose Arabic did not ask for a parallel translation, and the primary card two
+     * inches above already hides it.
+     */
     function inlineSimilar(item) {
-        var title = [item.book, item.number ? '#' + item.number : ''].filter(Boolean).join(' ');
+        var arabic = window.I18N_LOCALE === 'ar';
+        var book = localeField(item, 'book') || '';
+        var number = item.number
+            ? (arabic ? localeDigits(item.number) : '#' + item.number)
+            : '';
+        var title = [book, number].filter(Boolean).join(' ');
         // Book, volume and chapter each have a page; the URLs are filled in by
         // linkMetaSegments once the server has resolved them, so the slugs stay
         // server-side. Section has no page and stays plain text.
         var meta = [
-            {level: 'book', text: item.book || ''},
-            {level: 'volume', text: item.volume ? 'Volume ' + item.volume : ''},
-            {level: 'section', text: item.section ? 'Section ' + item.section : ''},
-            {level: 'chapter', text: item.chapter || ''}
+            {level: 'book', text: book},
+            {level: 'volume', text: item.volume
+                ? t('book.volumeNumber', 'Volume {0}').replace('{0}', localeDigits(item.volume)) : ''},
+            {level: 'section', text: item.section
+                ? t('chapter.section', 'Section') + ' ' + localeDigits(item.section) : ''},
+            {level: 'chapter', text: localeField(item, 'chapter') || ''}
         ].filter(function (seg) { return seg.text; });
         var id = item._id || item.id || '';
+
+        var english = '<div class="col-12 col-lg-6">'
+            + '<div class="hadith-inline-context__panel hadith-inline-context__panel--similar">'
+            + '<div class="hadith-inline-context__body">'
+            + (item.englishChain ? '<div class="hadith-chain">' + item.englishChain + '</div>' : '')
+            + '<div class="similar-full-english">' + (item.englishContent || item.english || '') + '</div>'
+            + '</div></div></div>';
+        var arabicColumn = '<div class="' + (arabic ? 'col-12' : 'col-12 col-lg-6') + '">'
+            + '<div class="hadith-inline-context__panel hadith-inline-context__panel--similar">'
+            + '<div class="hadith-inline-context__body arabic-text">'
+            + (item.arabicChain ? '<div class="hadith-chain hadith-chain--arabic">' + item.arabicChain + '</div>' : '')
+            + '<div class="similar-full-arabic">' + (item.arabicContent || item.arabic || '') + '</div>'
+            + '</div></div></div>';
+
         return '<div class="hadith-inline-context__meta-band hadith-inline-context__meta-band--compact">'
             + '<div class="hadith-inline-context__title-block">'
-            + '<div class="hadith-inline-context__eyebrow">Similar Hadith</div>'
-            + '<a class="hadith-inline-context__title-link" href="/hadith/' + encodeURIComponent(id) + '">'
-            + escapeHtml(title || 'Similar narration') + '</a>'
+            + '<div class="hadith-inline-context__eyebrow">'
+            + escapeHtml(t('sidecar.similarHadith', 'Similar Hadith')) + '</div>'
+            + '<a class="hadith-inline-context__title-link" href="' + localeHref('/hadith/' + encodeURIComponent(id)) + '">'
+            + escapeHtml(title || t('sidecar.similarHadith', 'Similar Hadith')) + '</a>'
             + (meta.length ? '<div class="hadith-inline-context__meta-line" data-hub-meta-line>'
                 + meta.map(function (seg, i) {
                     return (i ? '<span class="hadith-inline-context__meta-separator" aria-hidden="true">\u2022</span>' : '')
@@ -529,16 +691,8 @@
             + '</div></div>'
             + '<div class="hadith-inline-context__scroll">'
             + '<div class="row g-4 hadith-inline-context__row">'
-            + '<div class="col-12 col-lg-6"><div class="hadith-inline-context__panel hadith-inline-context__panel--similar">'
-            + '<div class="hadith-inline-context__body">'
-            + (item.englishChain ? '<div class="hadith-chain">' + item.englishChain + '</div>' : '')
-            + '<div class="similar-full-english">' + (item.englishContent || item.english || '') + '</div>'
-            + '</div></div></div>'
-            + '<div class="col-12 col-lg-6"><div class="hadith-inline-context__panel hadith-inline-context__panel--similar">'
-            + '<div class="hadith-inline-context__body arabic-text">'
-            + (item.arabicChain ? '<div class="hadith-chain hadith-chain--arabic">' + item.arabicChain + '</div>' : '')
-            + '<div class="similar-full-arabic">' + (item.arabicContent || item.arabic || '') + '</div>'
-            + '</div></div></div>'
+            + (arabic ? '' : english)
+            + arabicColumn
             + '</div></div>';
     }
 
@@ -689,10 +843,16 @@
             list.querySelectorAll('.hadith-sidecar__accordion-item').forEach(function (node) {
                 var active = node === item;
                 node.classList.toggle('is-active', active);
-                node.querySelector('.hadith-sidecar__accordion-toggle').classList.toggle('is-active', active);
-                node.querySelector('.hadith-sidecar__accordion-toggle')
-                    .setAttribute('aria-expanded', active ? 'true' : 'false');
-                node.querySelector('.hadith-sidecar__accordion-body').hidden = !active;
+                var itemToggle = node.querySelector('.hadith-sidecar__accordion-toggle');
+                if (itemToggle) {
+                    itemToggle.classList.toggle('is-active', active);
+                    itemToggle.setAttribute('aria-expanded', active ? 'true' : 'false');
+                }
+                // The Arabic Related list has no body to open; its rows only select.
+                var itemBody = node.querySelector('.hadith-sidecar__accordion-body');
+                if (itemBody) {
+                    itemBody.hidden = !active;
+                }
             });
         });
     }
@@ -764,7 +924,7 @@
                 .catch(function () {
                     body.dataset.loaded = '';
                     body.innerHTML = '<div class="alert alert-warning py-2 my-2" role="alert">'
-                        + 'Could not load this panel.</div>';
+                        + escapeHtml(t('sidecar.loadFailed', 'Could not load this panel.')) + '</div>';
                 });
         });
     }
@@ -782,8 +942,8 @@
      */
     var VISIBLE_TAGS = 2;
     var TAG_COLLAPSE_MAX_WIDTH = 768;
-    var TAG_TOGGLE_MORE = 'Show more';
-    var TAG_TOGGLE_LESS = 'Show less';
+    var TAG_TOGGLE_MORE = t('js.showMore', 'Show more');
+    var TAG_TOGGLE_LESS = t('js.showLess', 'Show less');
 
     /**
      * A narration with many tags pushed the card's footer into a wall of pills on a
@@ -902,8 +1062,13 @@
             var doc = frame.contentWindow && frame.contentWindow.document;
             if (!doc) { frame.remove(); return; }
 
+            // The printed document inherits the page's language. Without it an
+            // Arabic export is a right-to-left page laid out left to right, and the
+            // labels keep the Latin tracking that pulls Arabic letters apart.
+            var arabic = window.I18N_LOCALE === 'ar';
             doc.open();
-            doc.write('<!doctype html><html><head><meta charset="utf-8"><title>'
+            doc.write('<!doctype html><html lang="' + (arabic ? 'ar' : 'en') + '" dir="'
+                + (arabic ? 'rtl' : 'ltr') + '"><head><meta charset="utf-8"><title>'
                 + escapeHtml(title) + '</title><style>'
                 + 'body{font-family:Georgia,serif;line-height:1.6;margin:2rem;color:#1a1a2e}'
                 + 'h1{font-size:1.4rem;margin-bottom:0.25rem}'
@@ -913,6 +1078,11 @@
                 + '.chain{font-size:0.85rem;color:#555;margin:0.35rem 0}'
                 + '.en{margin:0.35rem 0}'
                 + '.ar{font-family:"Scheherazade New",serif;font-size:1.25rem;line-height:2;margin-top:0.5rem}'
+                + (arabic
+                    ? '[dir="rtl"] .num{letter-spacing:normal;text-transform:none}'
+                      + '[dir="rtl"] .ar{margin-top:0}'
+                      + '[dir="rtl"] body{font-family:"Scheherazade New",Georgia,serif}'
+                    : '')
                 + '</style></head><body><h1>' + escapeHtml(title) + '</h1>'
                 + '<div class="src">' + escapeHtml(window.location.href) + '</div>'
                 + rows + '</body></html>');

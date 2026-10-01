@@ -36,6 +36,18 @@ public class CrawlerDirectivesConfig {
 
     private static final List<String> NOINDEX_PATHS = List.of("/error/*", "/edit", "/signin.html");
 
+    /** While the Arabic site is being released, its whole tree joins that list. */
+    private static final List<String> ARABIC_PATHS = List.of("/ar", "/ar/*");
+
+    /** Runs before {@code ArabicSiteConfig.arabicPrefixFilter}, which is one higher. */
+    static final int ARABIC_NOINDEX_ORDER = 10;
+
+    private final ArabicIndexing arabicIndexing;
+
+    public CrawlerDirectivesConfig(ArabicIndexing arabicIndexing) {
+        this.arabicIndexing = arabicIndexing;
+    }
+
     @Bean
     public FilterRegistrationBean<Filter> noindexFilter() {
         Filter filter = (request, response, chain) -> {
@@ -43,7 +55,18 @@ public class CrawlerDirectivesConfig {
             chain.doFilter(request, response);
         };
         FilterRegistrationBean<Filter> registration = new FilterRegistrationBean<>(filter);
+        // Ahead of the prefix filter, which answers /ar by forwarding to the English
+        // handler. Both default to the lowest precedence, so without an explicit order
+        // the header would be set, or not, depending on which happened to run first.
+        registration.setOrder(ARABIC_NOINDEX_ORDER);
         NOINDEX_PATHS.forEach(registration::addUrlPatterns);
+        // The release switch. See ArabicIndexing: the Arabic site is reachable and
+        // testable in production before it is indexable, and this is the half of that
+        // which keeps it out of results. Registered on the prefixed paths, so it marks
+        // the response before ArabicSiteConfig's filter forwards to the English handler.
+        if (!arabicIndexing.isIndexable()) {
+            ARABIC_PATHS.forEach(registration::addUrlPatterns);
+        }
         return registration;
     }
 

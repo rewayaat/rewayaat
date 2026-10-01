@@ -247,7 +247,9 @@ class IndexingSignalsTest {
         // it is declared, and matching the call site returned the caller's one line as the
         // helper's body.
         Matcher declaration = Pattern
-                .compile("(?m)^\\s*(?:public|private|protected)\\s+[\\w<>,\\[\\]. ]+?\\s+"
+                // The modifier is optional: a helper may be package-private so that a
+                // test in this package can call it, which canonicalPathFor now is.
+                .compile("(?m)^\\s*(?:(?:public|private|protected)\\s+)?[\\w<>,\\[\\]. ]+?\\s+"
                         + Pattern.quote(name) + "\\s*\\(")
                 .matcher(source);
         assertTrue(declaration.find(), "could not find " + name + " in BookPageController");

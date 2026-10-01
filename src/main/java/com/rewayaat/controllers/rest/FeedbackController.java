@@ -6,6 +6,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.rewayaat.service.UiMessages;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +37,9 @@ public class FeedbackController {
     @Value("${rewayaat.mail-from:no-reply@rewayaat.info}")
     private String mailFrom;
 
+    @Autowired
+    private UiMessages ui;
+
     @PostMapping
     @Operation(summary = "Submit user feedback")
     public ResponseEntity<Map<String, Object>> submit(
@@ -44,7 +49,7 @@ public class FeedbackController {
             int rating = body.get("rating") instanceof Number
                     ? ((Number) body.get("rating")).intValue() : 0;
             if (rating < 1 || rating > 5) {
-                return ResponseEntity.badRequest().body(Map.of("ok", false, "message", "Rating must be 1-5"));
+                return ResponseEntity.badRequest().body(Map.of("ok", false, "message", ui.say("api.feedback.ratingRange")));
             }
 
             String comment = String.valueOf(body.getOrDefault("comment", "")).trim();
@@ -79,7 +84,7 @@ public class FeedbackController {
             return ResponseEntity.ok(Map.of("ok", true));
         } catch (Exception e) {
             LOGGER.error("Error submitting feedback", e);
-            return ResponseEntity.internalServerError().body(Map.of("ok", false, "message", "Failed to submit feedback"));
+            return ResponseEntity.internalServerError().body(Map.of("ok", false, "message", ui.say("api.feedback.failed")));
         }
     }
 

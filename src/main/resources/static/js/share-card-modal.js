@@ -26,14 +26,35 @@
 
     // Each control is a named set of choices, so adding one is a row here rather than a
     // new branch in the URL builder and the render loop.
+    /** A UI string from the catalogue the page publishes. */
+    function t(key, fallback) {
+        var value = (window.I18N || {})[key];
+        return (typeof value === 'string' && value.length) ? value : fallback;
+    }
+
     var CONTROLS = [
-        {key: 'theme', label: 'Theme', options: [['dark', 'Dark'], ['light', 'Light']]},
-        {key: 'lang', label: 'Text', options: [['both', 'Both'], ['ar', 'Arabic'], ['en', 'English']]},
-        {key: 'full', label: 'Length',
-         options: [[false, 'Trimmed'], [true, 'Full']]},
-        {key: 'chain', label: 'Chain',
-         options: [[false, 'Matn only'], [true, 'With isnād']]}
+        {key: 'theme', label: t('share.theme', 'Theme'),
+         options: [['dark', t('share.theme.dark', 'Dark')], ['light', t('share.theme.light', 'Light')]]},
+        {key: 'lang', label: t('share.text', 'Text'),
+         options: [['both', t('share.text.both', 'Both')], ['ar', t('share.text.arabic', 'Arabic')],
+                   ['en', t('share.text.english', 'English')]]},
+        {key: 'full', label: t('share.length', 'Length'),
+         options: [[false, t('share.length.trimmed', 'Trimmed')], [true, t('share.length.full', 'Full')]]},
+        {key: 'chain', label: t('share.chain', 'Chain'),
+         options: [[false, t('share.chain.matn', 'Matn only')], [true, t('share.chain.with', 'With isnād')]]}
     ];
+
+    /**
+     * Escaped for innerHTML, including inside an attribute value.
+     *
+     * <p>The strings below are translations, which is data — and two of them land in an
+     * alt= and an aria-label=, where an unescaped quote would end the attribute early.
+     */
+    function esc(value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
 
     function cardUrl() {
         // A colon is legal in a path segment, and the og:image tag emits it raw. Encoding
@@ -71,7 +92,7 @@
     function copyImage() {
         var url = cardUrl();
         if (!window.ClipboardItem || !navigator.clipboard || !navigator.clipboard.write) {
-            say('This browser cannot copy images; use Download instead.', true);
+            say(t('share.noImageCopy', 'This browser cannot copy images; use Download instead.'), true);
             return;
         }
         // Safari needs the ClipboardItem constructed synchronously with a promise inside,
@@ -84,8 +105,8 @@
                 })
             });
             navigator.clipboard.write([item])
-                .then(function () { say('Image copied.'); })
-                .catch(function () { say('Could not copy the image.', true); });
+                .then(function () { say(t('share.imageCopied', 'Image copied.')); })
+                .catch(function () { say(t('share.imageCopyFailed', 'Could not copy the image.'), true); });
         } catch (e) {
             fetch(url)
                 .then(function (r) { return r.blob(); })
@@ -94,8 +115,8 @@
                     payload[blob.type || 'image/png'] = blob;
                     return navigator.clipboard.write([new window.ClipboardItem(payload)]);
                 })
-                .then(function () { say('Image copied.'); })
-                .catch(function () { say('Could not copy the image.', true); });
+                .then(function () { say(t('share.imageCopied', 'Image copied.')); })
+                .catch(function () { say(t('share.imageCopyFailed', 'Could not copy the image.'), true); });
         }
     }
 
@@ -103,8 +124,8 @@
         var url = absolute(cardUrl());
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(url)
-                .then(function () { say('Image address copied.'); })
-                .catch(function () { say('Could not copy.', true); });
+                .then(function () { say(t('share.addressCopied', 'Image address copied.')); })
+                .catch(function () { say(t('share.copyFailed', 'Could not copy.'), true); });
             return;
         }
         var ta = document.createElement('textarea');
@@ -112,8 +133,8 @@
         ta.style.cssText = 'position:fixed;left:-9999px';
         document.body.appendChild(ta);
         ta.select();
-        try { document.execCommand('copy'); say('Image address copied.'); }
-        catch (e) { say('Could not copy.', true); }
+        try { document.execCommand('copy'); say(t('share.addressCopied', 'Image address copied.')); }
+        catch (e) { say(t('share.copyFailed', 'Could not copy.'), true); }
         document.body.removeChild(ta);
     }
 
@@ -239,37 +260,44 @@
         root.className = 'share-card-modal';
         root.setAttribute('role', 'dialog');
         root.setAttribute('aria-modal', 'true');
-        root.setAttribute('aria-label', 'Share this narration as an image');
+        root.setAttribute('aria-label', t('share.title', 'Share this narration as an image'));
         root.innerHTML =
             '<div class="share-card-modal__backdrop" data-share-close></div>' +
             '<div class="share-card-modal__panel">' +
               '<div class="share-card-modal__head">' +
                 '<div>' +
-                  '<div class="share-card-modal__eyebrow">Share as image</div>' +
+                  '<div class="share-card-modal__eyebrow">'
+                    + esc(t('card.shareImage', 'Share as image')) + '</div>' +
                   '<div class="share-card-modal__title" data-share-label></div>' +
                 '</div>' +
                 '<button type="button" class="share-card-modal__close" data-share-close ' +
-                        'aria-label="Close">&times;</button>' +
+                        'aria-label="' + esc(t('js.close', 'Close')) + '">&times;</button>' +
               '</div>' +
               '<div class="share-card-modal__frame" data-share-frame>' +
-                '<img alt="Preview of the share card for this narration" data-share-image/>' +
+                '<img alt="' + esc(t('share.previewAlt',
+                    'Preview of the share card for this narration')) + '" data-share-image/>' +
               '</div>' +
               controlsMarkup() +
               '<label class="share-card-modal__address">' +
-                '<span>Image address</span>' +
+                '<span>' + esc(t('share.address', 'Image address')) + '</span>' +
                 '<input type="text" readonly data-share-address ' +
-                       'aria-label="Direct address of this image"/>' +
+                       'aria-label="' + esc(t('share.addressAria',
+                           'Direct address of this image')) + '"/>' +
               '</label>' +
-              '<p class="share-card-modal__hint">Paste the address into an email template as ' +
-                 'an image source; copy or download the file to drop it straight into a message.</p>' +
+              '<p class="share-card-modal__hint">' + esc(t('share.hint',
+                 'Paste the address into an email template as an image source; copy or '
+                 + 'download the file to drop it straight into a message.')) + '</p>' +
               '<div class="share-card-modal__actions">' +
                 '<button type="button" class="share-card-modal__btn" data-share-copy-url>' +
-                  '<i class="fa fa-link" aria-hidden="true"></i> Copy address</button>' +
+                  '<i class="fa fa-link" aria-hidden="true"></i> '
+                    + esc(t('share.copyAddress', 'Copy address')) + '</button>' +
                 '<button type="button" class="share-card-modal__btn" data-share-download>' +
-                  '<i class="fa fa-download" aria-hidden="true"></i> Download</button>' +
+                  '<i class="fa fa-download" aria-hidden="true"></i> '
+                    + esc(t('share.download', 'Download')) + '</button>' +
                 '<button type="button" class="share-card-modal__btn share-card-modal__btn--primary" ' +
                         'data-share-copy>' +
-                  '<i class="fa fa-copy" aria-hidden="true"></i> Copy image</button>' +
+                  '<i class="fa fa-copy" aria-hidden="true"></i> '
+                    + esc(t('share.copyImage', 'Copy image')) + '</button>' +
               '</div>' +
               '<div class="share-card-modal__note" data-share-note role="status" aria-live="polite"></div>' +
             '</div>';
@@ -294,7 +322,7 @@
         img.addEventListener('load', function () { frame.classList.remove('is-loading'); });
         img.addEventListener('error', function () {
             frame.classList.remove('is-loading');
-            say('Could not render this card.', true);
+            say(t('share.renderFailed', 'Could not render this card.'), true);
         });
         root.querySelector('[data-share-address]').addEventListener('focus', function () {
             this.select();

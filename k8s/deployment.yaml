@@ -77,6 +77,14 @@ spec:
               value: "rewayaat_hadith"
             - name: APP_BASE_URL
               value: "https://rewayaat.info"
+            # The Arabic release switch, and the only irreversible step in it. While
+            # this is "false" the /ar tree is live and testable here but carries
+            # X-Robots-Tag: noindex and is absent from every sitemap, so a bad release
+            # can be reverted without leaving indexed URLs behind. Flipping it to "true"
+            # is a sync rather than a build, and is the point of no return.
+            # See docs/arabic-release.md.
+            - name: ARABIC_INDEXABLE
+              value: "false"
             # The domain-verification token from OpenAI's app submission portal, served
             # at /.well-known/openai-apps-challenge. Empty until a submission is started,
             # and the route 404s while it is - see WellKnownController. Kept here rather

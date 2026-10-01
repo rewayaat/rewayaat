@@ -1542,96 +1542,505 @@
   {
     "slug": "good-deeds",
     "englishLabel": "Good Deeds",
-    "isTaggable": true
+    "isTaggable": true,
+    "en": "Good Deeds",
+    "ar": "الأعمال الصالحة"
   },
   {
     "slug": "health-hygiene",
     "englishLabel": "Health Hygiene",
-    "isTaggable": true
+    "isTaggable": true,
+    "en": "Health and Hygiene",
+    "ar": "الصحة والنظافة"
   },
   {
     "slug": "etiquette",
     "englishLabel": "Etiquette",
-    "isTaggable": true
+    "isTaggable": true,
+    "en": "Etiquette",
+    "ar": "الآداب"
   },
   {
     "slug": "worship",
     "englishLabel": "Worship",
-    "isTaggable": true
+    "isTaggable": true,
+    "en": "Worship",
+    "ar": "العبادة"
   },
   {
     "slug": "prayer-etiquette",
     "englishLabel": "Prayer Etiquette",
-    "isTaggable": true
+    "isTaggable": true,
+    "en": "Prayer Etiquette",
+    "ar": "آداب الصلاة"
   },
   {
     "slug": "divine-knowledge",
     "englishLabel": "Divine Knowledge",
-    "isTaggable": true
+    "isTaggable": true,
+    "en": "Divine Knowledge",
+    "ar": "المعرفة الإلهية"
   },
   {
     "slug": "liability",
     "englishLabel": "Liability",
-    "isTaggable": true
+    "isTaggable": true,
+    "en": "Liability",
+    "ar": "الضمان"
   },
   {
     "slug": "circumcision",
     "englishLabel": "Circumcision",
-    "isTaggable": true
+    "isTaggable": true,
+    "en": "Circumcision",
+    "ar": "الختان"
   },
   {
     "slug": "guardianship",
     "englishLabel": "Guardianship",
-    "isTaggable": true
+    "isTaggable": true,
+    "en": "Guardianship",
+    "ar": "الولاية"
   },
   {
     "slug": "funeral-prayer",
     "englishLabel": "Funeral Prayer",
-    "isTaggable": true
+    "isTaggable": true,
+    "en": "Funeral Prayer",
+    "ar": "صلاة الجنازة"
   },
   {
     "slug": "major-sins",
     "englishLabel": "Major Sins",
-    "isTaggable": true
+    "isTaggable": true,
+    "en": "Major Sins",
+    "ar": "الكبائر"
   },
   {
     "slug": "debts-loans",
     "englishLabel": "Debts Loans",
-    "isTaggable": true
+    "isTaggable": true,
+    "en": "Debts and Loans",
+    "ar": "الديون والقروض"
   },
   {
     "slug": "measurement",
     "englishLabel": "Measurement",
-    "isTaggable": true
+    "isTaggable": true,
+    "en": "Measurement",
+    "ar": "الكيل والوزن"
   },
   {
     "slug": "ghayrah",
     "englishLabel": "Ghayrah",
-    "isTaggable": true
+    "isTaggable": true,
+    "en": "Ghayrah",
+    "ar": "الغيرة"
   },
   {
     "slug": "good-temper",
     "englishLabel": "Good Temper",
-    "isTaggable": true
+    "isTaggable": true,
+    "en": "Good Temper",
+    "ar": "حسن الخلق"
   },
   {
     "slug": "good-company",
     "englishLabel": "Good Company",
-    "isTaggable": true
+    "isTaggable": true,
+    "en": "Good Company",
+    "ar": "حسن الصحبة"
   },
   {
     "slug": "naming",
     "englishLabel": "Naming",
-    "isTaggable": true
+    "isTaggable": true,
+    "en": "Naming",
+    "ar": "التسمية"
   },
   {
     "slug": "aqiqah",
     "englishLabel": "Aqiqah",
-    "isTaggable": true
+    "isTaggable": true,
+    "en": "Aqiqah",
+    "ar": "العقيقة"
   },
   {
     "slug": "dream-interpretation",
     "englishLabel": "Dream Interpretation",
-    "isTaggable": true
+    "isTaggable": true,
+    "en": "Dream Interpretation",
+    "ar": "تعبير الرؤيا"
+  },
+  {
+    "slug": "jurisprudence",
+    "en": "Jurisprudence",
+    "ar": "الفقه",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "prophetic-medicine",
+    "en": "Prophetic Medicine",
+    "ar": "الطبّ النبوي",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "historical-event",
+    "en": "Historical Event",
+    "ar": "حدث تاريخي",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "martyrdom",
+    "en": "Martyrdom",
+    "ar": "الشهادة",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "breastfeeding",
+    "en": "Breastfeeding",
+    "ar": "الرضاع",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "miracle",
+    "en": "Miracle",
+    "ar": "المعجزة",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "sermons",
+    "en": "Sermons",
+    "ar": "الخطب",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "kindness",
+    "en": "Kindness",
+    "ar": "الإحسان",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "sexual-ethics",
+    "en": "Sexual Ethics",
+    "ar": "آداب المعاشرة",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "travel-preparation",
+    "en": "Travel Preparation",
+    "ar": "آداب السفر",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "animal-welfare",
+    "en": "Animal Welfare",
+    "ar": "الرفق بالحيوان",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "collateral",
+    "en": "Collateral",
+    "ar": "الرهن",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "animals",
+    "en": "Animals",
+    "ar": "الحيوان",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "taxation",
+    "en": "Taxation",
+    "ar": "الخراج",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "family-care",
+    "en": "Family Care",
+    "ar": "رعاية الأهل",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "deception",
+    "en": "Deception",
+    "ar": "الغشّ",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "abrogation",
+    "en": "Abrogation",
+    "ar": "النسخ",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "courage",
+    "en": "Courage",
+    "ar": "الشجاعة",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "puberty",
+    "en": "Puberty",
+    "ar": "البلوغ",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "water-rights",
+    "en": "Water Rights",
+    "ar": "حقّ الماء",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "bad-company",
+    "en": "Bad Company",
+    "ar": "قرين السوء",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "eclipse-prayer",
+    "en": "Eclipse Prayer",
+    "ar": "صلاة الآيات",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "milk-kinship",
+    "en": "Milk Kinship",
+    "ar": "الرضاع المحرّم",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "li-an",
+    "en": "Li'an",
+    "ar": "اللعان",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "vow",
+    "en": "Vow",
+    "ar": "النذر",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "arbitration",
+    "en": "Arbitration",
+    "ar": "التحكيم",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "funeral-procession",
+    "en": "Funeral Procession",
+    "ar": "تشييع الجنازة",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "humor",
+    "en": "Humour",
+    "ar": "المزاح",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "dhimma-protection",
+    "en": "Dhimma Protection",
+    "ar": "أهل الذمّة",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "historical-figure",
+    "en": "Historical Figure",
+    "ar": "شخصية تاريخية",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "analogy",
+    "en": "Analogy",
+    "ar": "القياس",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "images",
+    "en": "Images",
+    "ar": "التصاوير",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "laziness",
+    "en": "Laziness",
+    "ar": "الكسل",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "poverty",
+    "en": "Poverty",
+    "ar": "الفقر",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "respect-elderly",
+    "en": "Respect for Elders",
+    "ar": "توقير الكبير",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "compensatory-prayer",
+    "en": "Compensatory Prayer",
+    "ar": "صلاة القضاء",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "jizyah",
+    "en": "Jizyah",
+    "ar": "الجزية",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "hudud",
+    "en": "Hudud",
+    "ar": "الحدود",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "slavery",
+    "en": "Slavery",
+    "ar": "الرقّ",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "evil-behavior",
+    "en": "Evil Behaviour",
+    "ar": "سوء الخلق",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "salat-jaafar",
+    "en": "Salat Ja'far",
+    "ar": "صلاة جعفر الطيّار",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "waqf",
+    "en": "Waqf",
+    "ar": "الوقف",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "beauty",
+    "en": "Beauty",
+    "ar": "الجمال",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "protection-from-devils",
+    "en": "Protection from Devils",
+    "ar": "التعوّذ من الشياطين",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "honoring",
+    "en": "Honouring",
+    "ar": "الإكرام",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "plague",
+    "en": "Plague",
+    "ar": "الطاعون",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "ulul-azm",
+    "en": "Ulul-'Azm",
+    "ar": "أولو العزم",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "women-obedience",
+    "en": "Obedience in Marriage",
+    "ar": "طاعة الزوج",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "kaaba-garments",
+    "en": "Garments of the Ka'ba",
+    "ar": "كسوة الكعبة",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "diyah",
+    "en": "Diyah",
+    "ar": "الدية",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "jihad",
+    "en": "Jihad",
+    "ar": "الجهاد",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "law",
+    "en": "Law",
+    "ar": "الشريعة",
+    "category": "other",
+    "taggable": false
+  },
+  {
+    "slug": "manhood",
+    "en": "Manhood",
+    "ar": "المروءة",
+    "category": "other",
+    "taggable": false
   }
 ]

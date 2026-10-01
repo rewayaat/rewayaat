@@ -2,7 +2,7 @@
     Vue.component(
             'pagination', {
                 template: `
-                    <nav v-if="showList" aria-label="Page navigation">
+                    <nav v-if="showList" :aria-label="t('js.pageNavigation', 'Page navigation')">
                         <ul class="pagination pagination-sm justify-content-center">
                             <li class="page-item pagination__first" :class="{disabled: currentPage <= 1}">
                                 <a class="page-link" href="#" @click.prevent="goToPage(1)" aria-label="First">
@@ -81,6 +81,13 @@
                     }
                 },
                 methods: {
+                    // Each component carries its own: a method on one is not in scope in
+                    // another's template, and the paginator's aria-label needs it here.
+                    t: function(key, fallback) {
+                        var table = window.I18N || {};
+                        var value = table[key];
+                        return (typeof value === 'string' && value.length) ? value : fallback;
+                    },
                     goToPage: function(pageNum) {
                         if (pageNum < 1 || pageNum > this.totalPages || pageNum === this.currentPage) {
                             return;
@@ -115,7 +122,7 @@
                                v-if="hasCollapsedMobileMetadata"
                                v-bind:aria-expanded="mobileExpanded ? 'true' : 'false'"
                                v-on:click="mobileExpanded = !mobileExpanded">
-                          <span>{{ mobileExpanded ? 'Show fewer details' : 'Show all details' }}</span>
+                          <span>{{ mobileExpanded ? t('js.showFewerDetails', 'Show fewer details') : t('js.showAllDetails', 'Show all details') }}</span>
                           <i class="fa"
                              v-bind:class="mobileExpanded ? 'fa-angle-up' : 'fa-angle-down'"
                              aria-hidden="true"></i>
@@ -145,8 +152,8 @@
                             items.push({
                                 key: 'hadith-number',
                                 icon: 'fa fa-hashtag',
-                                label: 'Hadith #',
-                                html: this.escapeHtml(this.hadithNumber),
+                                label: t('js.hadith', 'Hadith') + ' #',
+                                html: this.escapeHtml(localeDigits(this.hadithNumber)),
                                 clickable: false
                             });
                         }
@@ -154,8 +161,8 @@
                             items.push({
                                 key: 'book',
                                 icon: 'fa fa-book',
-                                label: 'Book',
-                                html: this.narration.book,
+                                label: t('filter.book', 'Book'),
+                                html: localeField(this.narration, 'book'),
                                 clickable: true,
                                 onClick: this.showSpecific.bind(this, this.narration, 'book')
                             });
@@ -164,8 +171,8 @@
                             items.push({
                                 key: 'volume',
                                 icon: 'fa fa-layer-group',
-                                label: 'Volume',
-                                html: this.narration.volume,
+                                label: t('filter.volume', 'Volume'),
+                                html: localeField(this.narration, 'volume'),
                                 clickable: true,
                                 onClick: this.showSpecific.bind(this, this.narration, 'volume')
                             });
@@ -182,8 +189,8 @@
                             items.push({
                                 key: 'section',
                                 icon: 'fa fa-bookmark',
-                                label: 'Section',
-                                html: this.narration.section,
+                                label: t('filter.section', 'Section'),
+                                html: localeField(this.narration, 'section'),
                                 clickable: false
                             });
                         }
@@ -191,8 +198,8 @@
                             items.push({
                                 key: 'part',
                                 icon: 'fa fa-clone',
-                                label: 'Part',
-                                html: this.narration.part,
+                                label: t('filter.part', 'Part'),
+                                html: localeField(this.narration, 'part'),
                                 clickable: true,
                                 onClick: this.showSpecific.bind(this, this.narration, 'part')
                             });
@@ -201,8 +208,8 @@
                             items.push({
                                 key: 'chapter',
                                 icon: 'fa fa-heading',
-                                label: 'Chapter',
-                                html: this.narration.chapter,
+                                label: t('filter.chapter', 'Chapter'),
+                                html: localeField(this.narration, 'chapter'),
                                 clickable: true,
                                 onClick: this.showSpecific.bind(this, this.narration, 'chapter')
                             });
@@ -211,8 +218,8 @@
                             items.push({
                                 key: 'source',
                                 icon: 'fa fa-arrow-right-from-bracket',
-                                label: 'Source',
-                                html: this.narration.source,
+                                label: t('js.source', 'Source'),
+                                html: localeField(this.narration, 'source'),
                                 clickable: false
                             });
                         }
@@ -220,7 +227,7 @@
                             items.push({
                                 key: 'edition',
                                 icon: 'fa fa-pen-to-square',
-                                label: 'Edition',
+                                label: t('js.edition', 'Edition'),
                                 html: this.escapeHtml('(' + this.narration.edition + ')'),
                                 clickable: false
                             });
@@ -229,7 +236,7 @@
                             items.push({
                                 key: 'publisher',
                                 icon: 'fa fa-building',
-                                label: 'Publisher',
+                                label: t('js.publisher', 'Publisher'),
                                 html: this.narration.publisher,
                                 clickable: false
                             });
@@ -259,6 +266,11 @@
                     }
                 },
                 methods: {
+                    // Vue resolves a template call against the instance, not the window,
+                    // so the component needs its own door to the catalogue.
+                    t: function(key, fallback) {
+                        return t(key, fallback);
+                    },
                     isRealValue: function(val) {
                         if (!val) return false;
                         var s = String(val).replace(/<[^>]*>/g, '').trim().toLowerCase();
@@ -332,7 +344,11 @@
                             .then(function(resp) { return resp.json(); })
                             .then(function(data) {
                                 if (data && data.ok && data.url) {
-                                    window.location.href = data.url;
+                                    // The endpoint answers with the page's path; which
+                                    // language of it the reader gets is this side's to
+                                    // decide, and a card on the Arabic site sends them to
+                                    // the Arabic book, volume, part or chapter.
+                                    window.location.href = localeHref(data.url);
                                     return;
                                 }
                                 runSearch();

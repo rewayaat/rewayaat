@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rewayaat.core.HadithDisplaySegmenter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 
 import java.net.URLEncoder;
@@ -30,10 +31,13 @@ public class HadithCardFactory {
 
     private final BookCatalog catalog;
     private final TopicLabelSource topicLabels;
+    private final MessageSource messages;
 
-    public HadithCardFactory(BookCatalog catalog, TopicLabelSource topicLabels) {
+    public HadithCardFactory(BookCatalog catalog, TopicLabelSource topicLabels,
+                             MessageSource messages) {
         this.catalog = catalog;
         this.topicLabels = topicLabels;
+        this.messages = messages;
     }
 
     /**
@@ -42,6 +46,19 @@ public class HadithCardFactory {
      *                backend has no topic_tags field syntax.
      */
     public Map<String, Object> build(String id, Map<String, Object> source, String tagBase, String baseUrl) {
+        return build(id, source, tagBase, baseUrl, PageLocale.ENGLISH);
+    }
+
+    /**
+     * The same card, named and linked in the reader's language.
+     *
+     * <p>An Arabic page was showing this sidecar entirely in English — the labels, the
+     * book and chapter names, and links that took the reader back to the English site
+     * — because the card was built without knowing which language it was being built
+     * for. The share-card renderer draws in English and keeps the shorter signature.
+     */
+    public Map<String, Object> build(String id, Map<String, Object> source, String tagBase,
+                                     String baseUrl, PageLocale locale) {
         Map<String, Object> segmented = new LinkedHashMap<>();
         segmented.put("english", source.get("english"));
         segmented.put("arabic", source.get("arabic"));
@@ -56,16 +73,17 @@ public class HadithCardFactory {
 
         Map<String, Object> row = new LinkedHashMap<>();
         row.put("id", id);
-        row.put("url", "/hadith/" + id);
+        row.put("url", locale.prefix() + "/hadith/" + id);
         row.put("number", number);
-        row.put("label", (book + (number.isBlank() ? "" : " #" + number)).trim());
+        String bookLabel = localised(source, "book", book, locale);
+        row.put("label", (bookLabel + (number.isBlank() ? "" : " #" + number)).trim());
         row.put("englishChain", str(segmented.get("englishChain")));
         row.put("english", firstNonBlank(str(segmented.get("englishContent")), str(source.get("english"))));
         row.put("arabicChain", str(segmented.get("arabicChain")));
         row.put("arabic", firstNonBlank(str(segmented.get("arabicContent")), str(source.get("arabic"))));
-        row.put("notes", str(source.get("notes")));
-        row.put("metadata", metadataRows(source, number));
-        row.put("tags", topicTags(source, tagBase));
+        row.put("notes", notesFor(source, locale));
+        row.put("metadata", metadataRows(source, number, locale));
+        row.put("tags", topicTags(source, tagBase, locale));
         row.put("tagSlugs", tagSlugs(source));
         row.put("similarCount", source.get("llm_similar") instanceof List<?> l ? l.size() : 0);
         row.put("shareUrl", baseUrl + "/hadith/" + id);
@@ -86,7 +104,8 @@ public class HadithCardFactory {
      * no page of its own, so it renders as plain text rather than as a link that leads
      * nowhere. Part was plain text too until part pages existed; it is a link now.
      */
-    private List<Map<String, String>> metadataRows(Map<String, Object> source, String number) {
+    private List<Map<String, String>> metadataRows(Map<String, Object> source, String number,
+                                                   PageLocale locale) {
         String book = str(source.get("book"));
         String volume = str(source.get("volume"));
         String chapter = str(source.get("chapter"));
@@ -108,34 +127,82 @@ public class HadithCardFactory {
                 .orElse(null);
 
         List<Map<String, String>> rows = new ArrayList<>();
-        addRow(rows, "fa fa-hashtag", "Hadith #", number, null);
-        addRow(rows, "fa fa-book", "Book", book, bookUrl);
-        addRow(rows, "fa fa-layer-group", "Volume", volume, volumeUrl);
-        addRow(rows, "fa fa-bookmark", "Section", str(source.get("section")), null);
-        addRow(rows, "fa fa-clone", "Part", partTitle, partUrl);
-        addRow(rows, "fa fa-heading", "Chapter", chapter, chapterUrl);
-        addRow(rows, "fa fa-arrow-right-from-bracket", "Source", str(source.get("source")), null);
-        addRow(rows, "fa fa-pen-to-square", "Edition", str(source.get("edition")), null);
-        addRow(rows, "fa fa-building", "Publisher", str(source.get("publisher")), null);
+        addRow(rows, "fa fa-hashtag", label("card.hadithNumber", locale), number, null, locale);
+        addRow(rows, "fa fa-book", label("filter.book", locale),
+                localised(source, "book", book, locale), bookUrl, locale);
+        addRow(rows, "fa fa-layer-group", label("filter.volume", locale), volume, volumeUrl, locale);
+        addRow(rows, "fa fa-bookmark", label("filter.section", locale),
+                localised(source, "section", str(source.get("section")), locale), null, locale);
+        addRow(rows, "fa fa-clone", label("filter.part", locale),
+                localised(source, "part", partTitle, locale), partUrl, locale);
+        addRow(rows, "fa fa-heading", label("filter.chapter", locale),
+                localised(source, "chapter", chapter, locale), chapterUrl, locale);
+        addRow(rows, "fa fa-arrow-right-from-bracket", label("js.source", locale),
+                localised(source, "source", str(source.get("source")), locale), null, locale);
+        addRow(rows, "fa fa-pen-to-square", label("card.edition", locale),
+                localised(source, "edition", str(source.get("edition")), locale), null, locale);
+        addRow(rows, "fa fa-building", label("card.publisher", locale),
+                localised(source, "publisher", str(source.get("publisher")), locale), null, locale);
         return rows;
     }
 
+    private String label(String key, PageLocale locale) {
+        return messages.getMessage(key, null, key, locale.locale());
+    }
+
+    /**
+     * A narration's notes, which follow a stricter rule than the rest.
+     *
+     * <p>Every other field falls back to its English when there is no Arabic: a chapter
+     * named in English is still a usable citation. A note is not a name, it is an essay —
+     * the fifteen that exist run to 3,680 characters of translator's commentary — and
+     * dropping one of those into an Arabic page is not a citation the reader can still
+     * use, it is a wall of English. So the Arabic site shows a note only when the note
+     * itself has been translated.
+     *
+     * <p>The pair is notes/notes_ar, like every other translated field on the document.
+     */
+    private static String notesFor(Map<String, Object> source, PageLocale locale) {
+        if (!locale.isArabic()) {
+            return str(source.get("notes"));
+        }
+        return str(source.get("notes_ar"));
+    }
+
+    /**
+     * The Arabic reading of a field where the index holds one.
+     *
+     * <p>Falling back to the English is deliberate: a blank row would hide a level of
+     * the citation, and a reader who can see the chapter is in English can still use it.
+     */
+    private static String localised(Map<String, Object> source, String field, String english,
+                                    PageLocale locale) {
+        if (!locale.isArabic()) {
+            return english;
+        }
+        String arabic = str(source.get(field + "_ar"));
+        return arabic.isBlank() ? english : arabic;
+    }
+
     private static void addRow(List<Map<String, String>> rows, String icon, String label,
-                               String value, String url) {
+                               String value, String url, PageLocale locale) {
         if (value == null || value.isBlank()) {
             return;
         }
         Map<String, String> row = new LinkedHashMap<>();
         row.put("icon", icon);
         row.put("label", label);
-        row.put("value", value);
+        // Values carrying a number -- the hadith number, the volume, a section written
+        // as "al-qism 1" -- were the last Latin left on an otherwise Arabic panel.
+        row.put("value", LocaleDigits.in(locale, value));
         if (url != null) {
-            row.put("url", url);
+            row.put("url", locale.prefix() + url);
         }
         rows.add(row);
     }
 
-    private List<Map<String, String>> topicTags(Map<String, Object> source, String tagBase) {
+    private List<Map<String, String>> topicTags(Map<String, Object> source, String tagBase,
+                                               PageLocale locale) {
         List<Map<String, String>> tags = new ArrayList<>();
         if (!(source.get("topic_tags") instanceof List<?> raw) || tagBase == null) {
             return tags;
@@ -145,8 +212,10 @@ public class HadithCardFactory {
             if (value.isBlank()) {
                 continue;
             }
-            tags.add(Map.of("label", topicLabels.label(value),
-                    "url", tagBase + "?tag=" + encode(value)));
+            tags.add(Map.of("label", topicLabels.label(value, locale),
+                    // Prefixed like every other link the card carries: a tag pill on an
+                    // Arabic page filters the Arabic chapter, not the English one.
+                    "url", locale.prefix() + tagBase + "?tag=" + encode(value)));
         }
         return tags;
     }

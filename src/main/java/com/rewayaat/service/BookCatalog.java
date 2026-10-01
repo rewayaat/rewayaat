@@ -67,6 +67,11 @@ public class BookCatalog {
     /** A book, with the chapters that sit under it in reading order. */
     public record Book(String name, String slug, long count, List<Chapter> chapters) {
 
+        /** The Arabic name, or null when this book has no translation. */
+        public String nameAr() {
+            return ArabicNames.book(name);
+        }
+
         /** Volumes present in this book, in reading order, or empty when it has none. */
         public List<String> volumes() {
             return chapters.stream()
@@ -198,6 +203,11 @@ public class BookCatalog {
     public record Part(String bookName, String bookSlug, String slug, String title,
                        String volume, int chapterCount) {
 
+        /** The Arabic title, or null. */
+        public String titleAr() {
+            return ArabicNames.part(title);
+        }
+
         public String url() {
             return "/books/" + bookSlug + "/part/" + slug;
         }
@@ -229,6 +239,16 @@ public class BookCatalog {
      */
     public record Chapter(String bookName, String bookSlug, String slug, String title,
                           String volume, String part, String section, long count) {
+
+        /** The Arabic title, or null. 12% of chapters have none and show the English. */
+        public String titleAr() {
+            return ArabicNames.chapter(title);
+        }
+
+        /** The Arabic name of this chapter's book, or null. */
+        public String bookNameAr() {
+            return ArabicNames.book(bookName);
+        }
 
         public String url() {
             return "/books/" + bookSlug + "/" + slug;

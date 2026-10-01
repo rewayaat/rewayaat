@@ -1,29 +1,34 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${htmlLang} ?: 'en'" th:dir="${htmlDir} ?: 'ltr'" lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <title>Updates — Rewayaat Hadith Database</title>
-    <meta name="description" content="See what's new in Rewayaat. Feature releases, collection expansions, and improvements to the hadith search experience."/>
+    <title th:text="${seoTitle}">Updates — The Hadith Database</title>
+    <meta name="description" th:content="${seoDescription}" content="What is new in The Hadith Database."/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
-    <link rel="canonical" href="https://hadith.academyofislam.com/updates.html"/>
+    <link rel="canonical" th:href="${canonicalUrl}" href="https://hadith.academyofislam.com/updates.html"/>
+    <th:block th:if="${hreflangAlternates != null}">
+        <link th:each="alt : ${hreflangAlternates}" rel="alternate"
+              th:hreflang="${alt.key}" th:href="${alt.value}"/>
+    </th:block>
     <meta property="og:type" content="website"/>
     <meta property="og:site_name" content="Rewayaat — Shia Hadith Database"/>
-    <meta property="og:title" content="Updates — Rewayaat Hadith Database"/>
-    <meta property="og:description" content="See what's new in Rewayaat. Feature releases, collection expansions, and improvements to the hadith search experience."/>
-    <meta property="og:url" content="https://hadith.academyofislam.com/updates.html"/>
+    <meta property="og:title" th:content="${seoTitle}" content="Updates"/>
+    <meta property="og:description" th:content="${seoDescription}" content="What is new in The Hadith Database."/>
+    <meta property="og:url" th:content="${canonicalUrl}" content="https://hadith.academyofislam.com/updates.html"/>
     <meta property="og:image" content="https://hadith.academyofislam.com/img/share-card.png"/>
     <meta property="og:image:width" content="1200"/>
     <meta property="og:image:height" content="630"/>
     <meta property="og:image:alt" content="Rewayaat — a searchable database of Shia hadith in Arabic and English"/>
     <meta name="twitter:card" content="summary_large_image"/>
-    <meta name="twitter:title" content="Updates — Rewayaat Hadith Database"/>
-    <meta name="twitter:description" content="See what's new in Rewayaat. Feature releases, collection expansions, and improvements to the hadith search experience."/>
+    <meta name="twitter:title" th:content="${seoTitle}" content="Updates"/>
+    <meta name="twitter:description" th:content="${seoDescription}" content="What is new in The Hadith Database."/>
     <meta name="twitter:image" content="https://hadith.academyofislam.com/img/share-card.png"/>
     <meta name="twitter:image:alt" content="Rewayaat — a searchable database of Shia hadith in Arabic and English"/>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link th:if="${isArabic}" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet"/>
+    <link th:unless="${isArabic}" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600;700&display=swap"
           rel="stylesheet"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
@@ -35,18 +40,22 @@
         .updates-page { max-width: 760px; margin: 0 auto; padding: 2.5rem 1rem 4rem; }
         .updates-page__title { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 700; color: #0b1728; margin-bottom: 0.25rem; }
         .updates-page__subtitle { font-size: 0.92rem; color: #5a6a7a; margin-bottom: 2.5rem; }
-        .updates-timeline { position: relative; padding-left: 2rem; }
-        .updates-timeline::before { content: ""; position: absolute; left: 7px; top: 8px; bottom: 8px; width: 2px; background: linear-gradient(180deg, #d5aa4d, rgba(26,58,107,0.15)); border-radius: 1px; }
+        /* Logical, not left/right. The rail, the dots and the highlight bullets were
+           pinned with physical properties, so the Arabic page drew its timeline down the
+           left margin with the bullets on the wrong side of their own text - a
+           left-to-right page wearing right-to-left prose. */
+        .updates-timeline { position: relative; padding-inline-start: 2rem; }
+        .updates-timeline::before { content: ""; position: absolute; inset-inline-start: 7px; top: 8px; bottom: 8px; width: 2px; background: linear-gradient(180deg, #d5aa4d, rgba(26,58,107,0.15)); border-radius: 1px; }
         .update-entry { position: relative; margin-bottom: 2.5rem; }
         .update-entry:last-child { margin-bottom: 0; }
-        .update-entry__dot { position: absolute; left: -2rem; top: 6px; width: 16px; height: 16px; border-radius: 50%; background: #fff; border: 2.5px solid #d5aa4d; z-index: 1; }
+        .update-entry__dot { position: absolute; inset-inline-start: -2rem; top: 6px; width: 16px; height: 16px; border-radius: 50%; background: #fff; border: 2.5px solid #d5aa4d; z-index: 1; }
         .update-entry:first-child .update-entry__dot { background: #d5aa4d; }
         .update-entry__date { font-family: 'Inter', sans-serif; font-size: 0.72rem; font-weight: 700; color: #d5aa4d; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.25rem; }
         .update-entry__title { font-family: 'Source Serif 4', serif; font-size: 1.3rem; font-weight: 600; color: #0b1728; margin-bottom: 0.35rem; }
         .update-entry__summary { font-size: 0.92rem; color: #3a4a5c; line-height: 1.6; margin-bottom: 0.65rem; }
         .update-entry__highlights { list-style: none; padding: 0; margin: 0; }
-        .update-entry__highlights li { font-size: 0.85rem; color: #4a5a6c; padding: 0.2rem 0 0.2rem 1.1rem; position: relative; }
-        .update-entry__highlights li::before { content: ""; position: absolute; left: 0; top: 0.6rem; width: 5px; height: 5px; border-radius: 50%; background: rgba(26,58,107,0.25); }
+        .update-entry__highlights li { font-size: 0.85rem; color: #4a5a6c; padding-block: 0.2rem; padding-inline: 1.1rem 0; position: relative; }
+        .update-entry__highlights li::before { content: ""; position: absolute; inset-inline-start: 0; top: 0.6rem; width: 5px; height: 5px; border-radius: 50%; background: rgba(26,58,107,0.25); }
         /* Capped rather than full width: the walkthrough is 4:3, and a 4:3 video allowed to
            fill this column becomes taller than the screen on a phone. */
         .update-entry__video { margin-top: 1rem; max-width: 520px; width: 100%; border-radius: 10px; overflow: hidden; border: 1px solid rgba(26,58,107,0.16); background: #0b1728; box-shadow: 0 2px 10px rgba(11,23,40,0.10); }
@@ -60,13 +69,36 @@
         .why__title { font-family: 'Source Serif 4', serif; font-size: 1.1rem; font-weight: 600; color: #0b1728; margin: 0 0 0.65rem; }
         .why__intro { font-size: 0.92rem; color: #3a4a5c; line-height: 1.6; margin: 0 0 0.9rem; }
         .why__image { display: block; width: 100%; height: auto; border-radius: 10px; box-shadow: 0 2px 12px rgba(11,23,40,0.14); margin-bottom: 0.9rem; }
-        .why__points { padding-left: 1.1rem; margin: 0; }
+        .why__points { padding-inline-start: 1.1rem; margin: 0; }
         .why__points li { font-size: 0.9rem; color: #3a4a5c; line-height: 1.55; padding: 0.25rem 0; }
         .why__points strong { color: #0b1728; }
         .why__source { font-size: 0.78rem; color: #6a7a8a; margin: 0.55rem 0 0; font-style: italic; }
         .update-entry__guides { margin-top: 1.1rem; }
         /* Clear the sticky nav when arriving on #connector or one of its guides. */
         .update-entry, .guide { scroll-margin-top: 5rem; }
+
+        /* The permalink beside a heading. Quiet until the heading is under the pointer,
+           because eleven link glyphs down the page would read as decoration; always
+           there for the keyboard, and always visible where there is no pointer to
+           hover with. */
+        .update-permalink { position: relative; display: inline-flex; align-items: center;
+            margin-inline-start: 0.45rem; font-size: 0.72em; color: #9aa7b6;
+            text-decoration: none; opacity: 0; transition: opacity 120ms ease, color 120ms ease; }
+        .update-entry__title:hover .update-permalink,
+        .guide__title:hover .update-permalink,
+        .update-permalink:focus-visible { opacity: 1; }
+        .update-permalink:hover { color: #1a3a6b; }
+        .update-permalink:focus-visible { outline: 2px solid #d5aa4d; outline-offset: 3px; border-radius: 4px; }
+        @media (hover: none) { .update-permalink { opacity: 0.5; } }
+        /* The confirmation. Drawn from an attribute rather than written here, so it is
+           in the reader's language; the bubble sits above the glyph so it never pushes
+           the heading around. */
+        .update-permalink.is-copied { opacity: 1; color: #1a3a6b; }
+        .update-permalink.is-copied::after { content: attr(data-copied); position: absolute;
+            bottom: calc(100% + 0.4rem); inset-inline-start: 50%; transform: translateX(-50%);
+            white-space: nowrap; font-family: 'Inter', sans-serif; font-size: 0.68rem;
+            font-weight: 600; letter-spacing: 0.02em; color: #fff; background: #0b1728;
+            padding: 0.22rem 0.5rem; border-radius: 6px; pointer-events: none; }
         .connector-url { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem 0.75rem; padding: 0.65rem 0.8rem; border: 1px solid rgba(26,58,107,0.16); border-radius: 10px; background: #fff; }
         .connector-url__label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #5a6a7a; }
         .connector-url code { flex: 1 1 14rem; font-size: 0.88rem; color: #0b1728; word-break: break-all; }
@@ -74,37 +106,61 @@
         .connector-url__copy:hover { background: #eaf0fa; }
         .guide { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid rgba(26,58,107,0.10); }
         .guide__title { font-family: 'Source Serif 4', serif; font-size: 1.1rem; font-weight: 600; color: #0b1728; margin: 0 0 0.5rem; }
-        .guide__steps { padding-left: 1.25rem; margin: 0 0 0.5rem; }
+        .guide__steps { padding-inline-start: 1.25rem; margin: 0 0 0.5rem; }
         .guide__steps li { font-size: 0.9rem; color: #3a4a5c; line-height: 1.55; padding: 0.15rem 0; }
         .guide__note { font-size: 0.82rem; color: #5a6a7a; margin: 0 0 0.85rem; }
         .guide__video { display: block; width: 100%; height: auto; border-radius: 10px; border: 1px solid rgba(26,58,107,0.16); background: #0b1728; box-shadow: 0 2px 10px rgba(11,23,40,0.10); }
         .updates-back { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; color: #3a5a8a; text-decoration: none; margin-bottom: 2rem; }
         .updates-back:hover { color: #0b1728; text-decoration: underline; }
     </style>
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.css" rel="stylesheet"/>
 </head>
 <body>
 
 <nav class="navbar navbar-expand-lg sticky-top site-nav">
     <div class="container">
         <div class="navbar-top w-100 d-flex align-items-center flex-wrap gap-3">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="/">
-                <img src="/img/Alilogov2-transparent.png" class="brand-logo--full brand-logo--full-v2 d-none d-md-block" alt="ALI Logo"/>
+            <a class="navbar-brand d-flex align-items-center gap-2" href="/"
+               th:href="@{${arPrefix} ?: '' } + '/'">
+                <img src="/img/Alilogov2-transparent.png"
+                     th:src="${isArabic} ? @{/img/Alilogov2-ar-transparent.png} : @{/img/Alilogov2-transparent.png}"
+                     class="brand-logo--full brand-logo--full-v2 d-none d-md-block"
+                     alt="ALI Logo" th:alt="#{footer.academyFull}"/>
                 <img src="/img/ali_icon.png" class="brand-logo--icon d-md-none" alt="ALI"/>
             </a>
+            <div th:replace="~{fragments/site :: navlinks('updates')}"></div>
+            <div th:replace="~{fragments/site :: navsearch}"></div>
             <div class="ms-auto d-flex align-items-center gap-2 top-actions flex-nowrap">
-                <a class="btn btn-dark btn-sm top-action auth-action" id="authSignInBtn" href="/signin.html?mode=login&return=%2Fupdates.html">
+                <a class="btn btn-dark btn-sm top-action auth-action" id="authSignInBtn" href="/signin.html?mode=login&amp;return=%2Fupdates.html"
+                   th:href="${isArabic}
+                       ? '/ar/signin.html?mode=login&amp;return=%2Far%2Fupdates.html'
+                       : '/signin.html?mode=login&amp;return=%2Fupdates.html'">
                     <i class="fa fa-right-to-bracket" aria-hidden="true"></i>
-                    Sign In
+                    <span th:text="#{nav.signin}">Sign In</span>
                 </a>
+                    <!-- Globe rather than a word: the icon reads the same in both
+                         languages, and last in the row so it sits on the outer edge,
+                         which mirrors on its own. -->
+                    <div th:replace="~{fragments/site :: navmenu}"></div>
+                    <a th:if="${switchLocalePath != null}" class="top-action lang-toggle"
+                       th:href="@{${switchLocalePath}}"
+                       th:hreflang="${switchLocaleTag}"
+                       th:attr="data-set-locale=${switchLocaleTag}"
+                       th:title="${isArabic} ? #{lang.switchToEnglish} : #{lang.switchToArabic}"
+                       th:aria-label="${isArabic} ? #{lang.switchToEnglish} : #{lang.switchToArabic}">
+                        <i class="fa fa-globe" aria-hidden="true"></i>
+                        <span class="lang-toggle__label"
+                              th:text="${isArabic} ? #{lang.switchToEnglish} : #{lang.switchToArabic}">العربية</span>
+                    </a>
             </div>
         </div>
     </div>
 </nav>
 
 <div class="updates-page">
-    <a href="/" class="updates-back"><i class="fa fa-arrow-left" aria-hidden="true"></i> Back to search</a>
-    <h1 class="updates-page__title">What's New</h1>
-    <p class="updates-page__subtitle">Feature releases, collection expansions, and improvements to the hadith search experience.</p>
+    <a href="/" th:href="@{${arPrefix} ?: '' } + '/'" class="updates-back"><i class="fa fa-arrow-left" aria-hidden="true"></i> <span th:text="#{updates.backToSearch}">Back to search</span></a>
+    <h1 class="updates-page__title" th:text="#{updates.title}">What's New</h1>
+    <p class="updates-page__subtitle" th:text="#{updates.subtitle}">Feature releases, collection expansions, and improvements to the hadith search experience.</p>
     <div class="updates-timeline" id="updatesTimeline"></div>
 </div>
 
@@ -112,34 +168,59 @@
     <div class="container">
         <div class="site-footer__grid">
             <div>
-                <div class="site-footer__title">Rewayaat</div>
+                <div class="site-footer__title" th:text="#{site.name}">Rewayaat</div>
                 <p class="site-footer__text">
-                    A project of the <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" class="site-footer__link">Academy for Learning Islam</a>. Search, browse, and study Shi'i narrations in Arabic and English.
+                    <span th:text="#{footer.projectOf}">A project of the</span>
+                    <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" class="site-footer__link" th:text="#{footer.academyFull}">Academy for Learning Islam</a>
+                    <span th:text="#{footer.blurb}">Search, browse, and study Shi'i narrations in Arabic and English.</span>
                 </p>
             </div>
         </div>
         <div class="site-footer__bottom">
-            <span>&copy; 2026 Academy for Learning Islam (A.L.I.)</span>
+            <span th:utext="#{footer.rights}">&copy; 2026 Academy for Learning Islam (A.L.I.)</span>
         </div>
     </div>
 </footer>
 
+<th:block th:replace="~{fragments/i18n-js :: i18n}"></th:block>
 <script>
+
+        /**
+         * An entry's field in the page's language.
+         *
+         * The entries come from /recent_updates.json, fetched here rather than rendered by
+         * the server, so their prose cannot come from the message bundle. The Arabic
+         * travels in the same file under an _ar suffix - the pattern announcement.json and
+         * book_blurbs.json already use - and each field falls back to English on its own,
+         * so a half-translated entry shows Arabic where it has it.
+         */
+        function pick(entry, field) {
+            var arabic = (window.I18N_LOCALE || 'en') === 'ar';
+            if (arabic && entry && entry[field + '_ar'] !== undefined && entry[field + '_ar'] !== null) {
+                var value = entry[field + '_ar'];
+                if (typeof value !== 'string' || value.length) { return value; }
+            }
+            return entry ? entry[field] : undefined;
+        }
 fetch('/recent_updates.json')
     .then(function(r) { return r.json(); })
     .then(function(updates) {
         var container = document.getElementById('updatesTimeline');
         updates.forEach(function(u) {
-            var entry = document.createElement('div');
+            // A section rather than a div, and an h2 rather than a styled div below,
+            // because each of these is a thing somebody links to on its own. The
+            // heading is what a screen reader lands on when it follows the link, and
+            // what the outline of the page is made of.
+            var entry = document.createElement('section');
             entry.className = 'update-entry';
             if (u.id) {
                 entry.id = u.id;
             }
-            var dateStr = new Date(u.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            var dateStr = new Date(u.date).toLocaleDateString((window.I18N_LOCALE === 'ar') ? 'ar-EG' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' });
             var highlights = '';
-            if (u.highlights && u.highlights.length) {
+            if (pick(u, 'highlights') && pick(u, 'highlights').length) {
                 highlights = '<ul class="update-entry__highlights">' +
-                    u.highlights.map(function(h) { return '<li>' + h + '</li>'; }).join('') +
+                    pick(u, 'highlights').map(function(h) { return '<li>' + h + '</li>'; }).join('') +
                     '</ul>';
             }
             var video = '';
@@ -152,15 +233,16 @@ fetch('/recent_updates.json')
                     '<div class="update-entry__video" style="aspect-ratio: ' +
                     (u.videoAspect || '16 / 9') + '">' +
                     '<iframe src="' + src + '" title="' +
-                    (u.videoTitle || u.title) + '" frameborder="0" loading="lazy"' +
+                    (pick(u, 'videoTitle') || pick(u, 'title')) + '" frameborder="0" loading="lazy"' +
                     ' allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>' +
                     '</div>';
             }
             entry.innerHTML =
                 '<div class="update-entry__dot"></div>' +
                 '<div class="update-entry__date">' + dateStr + '</div>' +
-                '<div class="update-entry__title">' + u.title + '</div>' +
-                '<div class="update-entry__summary">' + u.summary + '</div>' +
+                '<h2 class="update-entry__title">' + pick(u, 'title') +
+                    permalinkHtml(u.id) + '</h2>' +
+                '<div class="update-entry__summary">' + pick(u, 'summary') + '</div>' +
                 ctaHtml(u) +
                 whyHtml(u) +
                 highlights +
@@ -184,12 +266,52 @@ fetch('/recent_updates.json')
     });
 
 /*
+ * The link to one update.
+ *
+ * Every entry has had an address for a while - /updates.html#connector - and the script
+ * already finishes the scroll the browser gives up on, because the timeline is built
+ * after load. What was missing was the visible half: an address nobody can see is an
+ * address nobody sends. This is a link beside the heading that moves the page and puts
+ * the absolute URL on the clipboard in one click.
+ *
+ * An <a> rather than a button, so it is in the tab order, opens in a new tab on
+ * middle-click, and offers "copy link address" in the context menu for anyone whose
+ * browser has no clipboard API. The copied label travels in an attribute because the
+ * bubble is drawn by CSS, which cannot read the message bundle.
+ */
+function permalinkHtml(id) {
+    if (!id) {
+        return '';
+    }
+    var label = t('updates.permalink', 'Copy a link to this update');
+    return '<a class="update-permalink" href="#' + id + '" data-permalink="' + id + '"' +
+        ' data-copied="' + t('updates.linkCopied', 'Link copied') + '"' +
+        ' aria-label="' + label + '" title="' + label + '">' +
+        '<i class="fa fa-link" aria-hidden="true"></i></a>';
+}
+
+document.addEventListener('click', function (e) {
+    var link = e.target.closest && e.target.closest('.update-permalink');
+    if (!link || !navigator.clipboard) {
+        return;
+    }
+    // Built rather than read back from location: the href handles the navigation, and
+    // reading location.href here would race it and copy the previous fragment.
+    var url = location.origin + location.pathname + location.search +
+        '#' + link.getAttribute('data-permalink');
+    navigator.clipboard.writeText(url).then(function () {
+        link.classList.add('is-copied');
+        setTimeout(function () { link.classList.remove('is-copied'); }, 1700);
+    });
+});
+
+/*
  * One button per setup guide, straight under the summary: someone who has already decided
  * should not have to scroll past the argument to reach the instructions. Built from the
  * guides themselves, so a third client is a JSON edit, not a markup change.
  */
 function ctaHtml(u) {
-    var linked = (u.guides || []).filter(function (g) { return g.id; });
+    var linked = (pick(u, 'guides') || []).filter(function (g) { return g.id; });
     if (!linked.length) {
         return '';
     }
@@ -206,7 +328,7 @@ function ctaHtml(u) {
  * about what an assistant does on its own goes stale as the assistants change.
  */
 function whyHtml(u) {
-    var w = u.why;
+    var w = pick(u, 'why');
     if (!w) {
         return '';
     }
@@ -239,19 +361,28 @@ function whyHtml(u) {
  * connector, today. Written steps come first and the walkthrough second: the steps are what
  * someone follows, and the loop is there to show where each control actually is.
  */
+/** A UI string from the bundle the i18n fragment publishes. */
+function t(key, fallback) {
+    var value = (window.I18N || {})[key];
+    return (typeof value === 'string' && value.length) ? value : fallback;
+}
+
 function guidesHtml(u) {
-    if (!u.guides || !u.guides.length) {
+    if (!pick(u, 'guides') || !pick(u, 'guides').length) {
         return '';
     }
+    // These two are built into a string, so the th:text they used to carry was never
+    // processed: it shipped as a literal attribute and the English fallback showed.
     var url = u.connectorUrl
-        ? '<div class="connector-url"><span class="connector-url__label">Connector URL</span>' +
+        ? '<div class="connector-url"><span class="connector-url__label">'
+          + t('updates.connectorUrl', 'Connector URL') + '</span>' +
           '<code>' + u.connectorUrl + '</code>' +
           '<button type="button" class="connector-url__copy" data-copy="' + u.connectorUrl +
-          '">Copy</button></div>'
+          '">' + t('updates.copy', 'Copy') + '</button></div>'
         : '';
-    return '<div class="update-entry__guides">' + url + u.guides.map(function (g) {
+    return '<div class="update-entry__guides">' + url + pick(u, 'guides').map(function (g) {
         return '<section class="guide"' + (g.id ? ' id="' + g.id + '"' : '') + '>' +
-            '<h2 class="guide__title">' + g.name + '</h2>' +
+            '<h3 class="guide__title">' + g.name + permalinkHtml(g.id) + '</h3>' +
             '<ol class="guide__steps">' +
             g.steps.map(function (s) { return '<li>' + s + '</li>'; }).join('') +
             '</ol>' +
@@ -314,10 +445,13 @@ document.addEventListener('click', function (e) {
     if (!button || !navigator.clipboard) {
         return;
     }
+    // Both labels through the catalogue. They were literals, so the Arabic page's
+    // translated button turned into the English word "Copied" the moment it was used
+    // and stayed English afterwards.
     navigator.clipboard.writeText(button.getAttribute('data-copy')).then(function () {
-        button.textContent = 'Copied';
+        button.textContent = t('updates.copied', 'Copied');
         setTimeout(function () {
-            button.textContent = 'Copy';
+            button.textContent = t('updates.copy', 'Copy');
         }, 1600);
     });
 });
@@ -376,6 +510,10 @@ function loopWhileIgnored(frame, src, seconds) {
 </script>
 
 <script src="/js/site-announcement.js"></script>
+<script src="/js/locale-preference.js"></script>
+    <script src="/js/nav-menu.js" th:src="@{/js/nav-menu.js}" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js" defer></script>
+    <script src="/js/nav-search.js" th:src="@{/js/nav-search.js}" defer></script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-3HSRTQD7GM"></script>
 <script>
     window.dataLayer = window.dataLayer || [];

@@ -73,6 +73,35 @@ public class AuthService {
     @Autowired
     private HadithEditorAccessService hadithEditorAccessService;
 
+    @Autowired
+    private UiMessages ui;
+
+    /**
+     * The language to write to this account in.
+     *
+     * <p>The account's own preference, not the language of whatever page triggered the
+     * mail. A password reset is requested from a signed-out form that may be on either
+     * site, and someone who set their account to Arabic should not get an English mail
+     * because they happened to follow an English link.
+     */
+    private PageLocale localeOf(UserAccount user) {
+        return PageLocale.ofTag(user == null ? null : user.getLocale());
+    }
+
+    /**
+     * A message for the caller to show, in the language of the request.
+     *
+     * <p>Distinct from {@link #msg}, which writes in the account's own language. A
+     * message follows the click; mail follows the reader.
+     */
+    private String say(String key, Object... args) {
+        return ui.say(key, args);
+    }
+
+    private String msg(PageLocale locale, String key, Object... args) {
+        return ui.in(locale, key, args);
+    }
+
     private long verifyTtlMs() {
         return verifyTokenHours * 60L * 60L * 1000L;
     }
@@ -86,9 +115,19 @@ public class AuthService {
     }
 
     public Map<String, Object> register(String displayName, String email, String password) throws Exception {
+        return register(displayName, email, password, PageLocale.ENGLISH);
+    }
+
+    /**
+     * @param signedUpIn the site the registration form was on, which seeds the account's
+     *                   language. It is only a seed: the preference is theirs to change
+     *                   afterwards, and {@link #updateLocale} is what changes it.
+     */
+    public Map<String, Object> register(String displayName, String email, String password,
+                                        PageLocale signedUpIn) throws Exception {
         String normalizedEmail = normalizeEmail(email);
         if (normalizedEmail.isEmpty()) {
-            return error("Invalid registration payload. Use a valid email.");
+            return error(say("api.auth.invalidRegistration"));
         }
         String passwordIssue = validatePasswordPolicy(password);
         if (!passwordIssue.isEmpty()) {
@@ -97,7 +136,7 @@ public class AuthService {
 
         UserAccount existing = findByEmail(normalizedEmail);
         if (existing != null && Boolean.TRUE.equals(existing.getVerified())) {
-            return error("An account with this email already exists.");
+            return error(say("api.auth.emailTaken"));
         }
 
         long now = System.currentTimeMillis();
@@ -106,6 +145,7 @@ public class AuthService {
         user.setEmail(normalizedEmail);
         user.setDisplayName(safeDisplayName(displayName, normalizedEmail));
         user.setPasswordHash(passwordEncoder.encode(password));
+        user.setLocale((signedUpIn == null ? PageLocale.ENGLISH : signedUpIn).tag());
         user.setVerified(false);
         user.setVerificationTokenHash(hashToken(rawVerificationToken));
         user.setVerificationTokenExpiry(now + verifyTtlMs());
@@ -119,10 +159,10 @@ public class AuthService {
         user.setUpdatedAt(now);
         saveUser(user);
 
-        sendVerificationEmail(user.getEmail(), user.getDisplayName(), rawVerificationToken);
+        sendVerificationEmail(user, rawVerificationToken);
         Map<String, Object> payload = new HashMap<>();
         payload.put("ok", true);
-        payload.put("message", "Registration successful. Check your email to verify your account.");
+        payload.put("message", say("api.auth.registered"));
         Map<String, String> debug = debugTokenPayload(
                 "verificationToken",
                 "verificationUrl",
@@ -136,15 +176,15 @@ public class AuthService {
 
     public Map<String, Object> verifyEmailToken(String rawToken) throws Exception {
         if (rawToken == null || rawToken.trim().isEmpty()) {
-            return error("Verification token is missing.");
+            return error(say("api.auth.verifyMissing"));
         }
         UserAccount user = findByTokenHashField("verification_token_hash", hashToken(rawToken.trim()));
         if (user == null) {
-            return error("Verification token is invalid.");
+            return error(say("api.auth.verifyInvalid"));
         }
         long now = System.currentTimeMillis();
         if (user.getVerificationTokenExpiry() == null || user.getVerificationTokenExpiry() < now) {
-            return error("Verification token has expired.");
+            return error(say("api.auth.verifyExpired"));
         }
         user.setVerified(true);
         user.setVerificationTokenHash(null);
@@ -153,22 +193,22 @@ public class AuthService {
         saveUser(user);
         Map<String, Object> payload = new HashMap<>();
         payload.put("ok", true);
-        payload.put("message", "Email verified successfully. You can now log in.");
+        payload.put("message", say("api.auth.verified"));
         return payload;
     }
 
     public Map<String, Object> login(String email, String password) throws Exception {
         String normalizedEmail = normalizeEmail(email);
         if (normalizedEmail.isEmpty() || password == null || password.isEmpty()) {
-            return error("Email and password are required.");
+            return error(say("api.auth.credentialsRequired"));
         }
 
         UserAccount user = findByEmail(normalizedEmail);
         if (user == null || user.getPasswordHash() == null || !passwordEncoder.matches(password, user.getPasswordHash())) {
-            return error("Invalid email or password.");
+            return error(say("api.auth.credentialsInvalid"));
         }
         if (!Boolean.TRUE.equals(user.getVerified())) {
-            return error("Please verify your email before logging in.");
+            return error(say("api.auth.verifyFirst"));
         }
 
         long now = System.currentTimeMillis();
@@ -208,12 +248,12 @@ public class AuthService {
                 user.setResetTokenExpiry(now + resetTtlMs());
                 user.setUpdatedAt(now);
                 saveUser(user);
-                sendPasswordResetEmail(user.getEmail(), user.getDisplayName(), rawResetToken);
+                sendPasswordResetEmail(user, rawResetToken);
             }
         }
         Map<String, Object> payload = new HashMap<>();
         payload.put("ok", true);
-        payload.put("message", "If an account exists, a reset email has been sent.");
+        payload.put("message", say("api.auth.resetSent"));
         Map<String, String> debug = debugTokenPayload(
                 "resetToken",
                 "resetUrl",
@@ -227,7 +267,7 @@ public class AuthService {
 
     public Map<String, Object> confirmPasswordReset(String rawToken, String newPassword) throws Exception {
         if (rawToken == null || rawToken.trim().isEmpty()) {
-            return error("Reset token is missing.");
+            return error(say("api.auth.resetMissing"));
         }
         String passwordIssue = validatePasswordPolicy(newPassword);
         if (!passwordIssue.isEmpty()) {
@@ -235,11 +275,11 @@ public class AuthService {
         }
         UserAccount user = findByTokenHashField("reset_token_hash", hashToken(rawToken.trim()));
         if (user == null) {
-            return error("Reset token is invalid.");
+            return error(say("api.auth.resetInvalid"));
         }
         long now = System.currentTimeMillis();
         if (user.getResetTokenExpiry() == null || user.getResetTokenExpiry() < now) {
-            return error("Reset token has expired.");
+            return error(say("api.auth.resetExpired"));
         }
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         user.setResetTokenHash(null);
@@ -250,7 +290,7 @@ public class AuthService {
         saveUser(user);
         Map<String, Object> payload = new HashMap<>();
         payload.put("ok", true);
-        payload.put("message", "Password updated. Please log in with your new password.");
+        payload.put("message", say("api.auth.passwordUpdated"));
         return payload;
     }
 
@@ -278,6 +318,7 @@ public class AuthService {
         payload.put("email", user.getEmail());
         payload.put("displayName", user.getDisplayName());
         payload.put("verified", Boolean.TRUE.equals(user.getVerified()));
+        payload.put("locale", localeOf(user).tag());
         payload.put("canEditHadith", hadithEditorAccessService != null
                 && hadithEditorAccessService.canEdit(user.getEmail()));
         return payload;
@@ -346,26 +387,61 @@ public class AuthService {
         }
     }
 
-    private void sendVerificationEmail(String to, String displayName, String rawToken) {
-        String subject = "Verify your Rewayaat account";
-        // Use a path-based URL to avoid tokens leaking via Referer headers
-        String verifyUrl = buildVerifyUrl(rawToken);
-        String body = "Assalamu alaykum " + displayName + ",\n\n"
-                + "Please verify your account by opening this link:\n"
-                + verifyUrl + "\n\n"
-                + "This link expires in " + verifyTokenHours + " hours.";
-        sendEmail(to, subject, body, verifyUrl);
+    /**
+     * The subject and body of one account mail, in the account's language.
+     *
+     * <p>Separate from sending so it can be read back in a test: the language of a mail
+     * is not something the send path can be asked about afterwards.
+     */
+    Map<String, String> accountEmail(UserAccount user, String kind, String link, long hours) {
+        PageLocale locale = localeOf(user);
+        return Map.of(
+                "subject", msg(locale, "email." + kind + ".subject"),
+                "body", msg(locale, "email.greeting", user.getDisplayName()) + "\n\n"
+                        + msg(locale, "email." + kind + ".body") + "\n"
+                        + link + "\n\n"
+                        + msg(locale, "email.expires", hours));
     }
 
-    private void sendPasswordResetEmail(String to, String displayName, String rawToken) {
-        String subject = "Reset your Rewayaat password";
+    private void sendVerificationEmail(UserAccount user, String rawToken) {
+        // Use a path-based URL to avoid tokens leaking via Referer headers
+        String verifyUrl = buildVerifyUrl(rawToken);
+        Map<String, String> mail = accountEmail(user, "verify", verifyUrl, verifyTokenHours);
+        sendEmail(user.getEmail(), mail.get("subject"), mail.get("body"), verifyUrl);
+    }
+
+    private void sendPasswordResetEmail(UserAccount user, String rawToken) {
         // Use a path-based URL to avoid tokens leaking via Referer headers
         String resetUrl = buildResetUrl(rawToken);
-        String body = "Assalamu alaykum " + displayName + ",\n\n"
-                + "Reset your password using this link:\n"
-                + resetUrl + "\n\n"
-                + "This link expires in " + resetTokenHours + " hours.";
-        sendEmail(to, subject, body, resetUrl);
+        Map<String, String> mail = accountEmail(user, "reset", resetUrl, resetTokenHours);
+        sendEmail(user.getEmail(), mail.get("subject"), mail.get("body"), resetUrl);
+    }
+
+    /**
+     * Changes the language this account is written to in.
+     *
+     * <p>Reached both from the settings control and from the language switcher, so that
+     * a reader who moves to the Arabic site while signed in is not then sent English
+     * mail by an account preference they never knew they had.
+     */
+    public Map<String, Object> updateLocale(String sessionToken, String tag) throws Exception {
+        UserAccount user = authenticatedUser(sessionToken);
+        if (user == null) {
+            return error(say("api.auth.signInToChangeLanguage"));
+        }
+        PageLocale chosen = PageLocale.ofTag(tag);
+        // ofTag trims and lowercases before matching, so the check has to compare the same
+        // form: "AR" is a language this site speaks, not an unsupported one.
+        if (tag == null || !chosen.tag().equals(tag.trim().toLowerCase(java.util.Locale.ROOT))) {
+            return error(say("api.auth.unsupportedLanguage", tag));
+        }
+        user.setLocale(chosen.tag());
+        user.setUpdatedAt(System.currentTimeMillis());
+        saveUser(user);
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("ok", true);
+        payload.put("locale", chosen.tag());
+        return payload;
     }
 
     String buildVerifyUrl(String rawToken) {
@@ -388,7 +464,9 @@ public class AuthService {
 
     private void sendEmail(String to, String subject, String body, String fallbackLink) {
         if (resendApiKey == null || resendApiKey.isBlank()) {
-            LOGGER.warn("Resend API key not configured. Email link for {}: {}", to, fallbackLink);
+            // The subject as well as the link: without it there is no way to tell locally
+            // which language an account is being written to in.
+            LOGGER.warn("Resend API key not configured. Email for {} [{}]: {}", to, subject, fallbackLink);
             return;
         }
         try {
@@ -468,10 +546,10 @@ public class AuthService {
 
     private String validatePasswordPolicy(String password) {
         if (password == null || password.length() < passwordMinLength) {
-            return "Password must be at least " + passwordMinLength + " characters.";
+            return say("api.auth.passwordTooShort", passwordMinLength);
         }
         if (password.matches(".*\\s+.*")) {
-            return "Password cannot contain spaces.";
+            return say("api.auth.passwordHasSpaces");
         }
         return "";
     }

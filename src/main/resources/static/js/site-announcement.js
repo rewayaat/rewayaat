@@ -1,3 +1,26 @@
+/** A UI string in the page's language. See rewayaat.js. */
+function t(key, fallback) {
+    var table = window.I18N || {};
+    var value = table[key];
+    return (typeof value === 'string' && value.length) ? value : fallback;
+}
+
+/**
+ * The announcement in the page's language.
+ *
+ * The bar is built in the browser from /announcement.json, so its text cannot come from
+ * the message bundle like the rest of the chrome. The Arabic copy travels in the same
+ * file under an _ar suffix, the way book_blurbs.json carries blurb_ar, and falls back to
+ * English when a field has not been translated.
+ */
+function announcementText(data, field) {
+    var arabic = (window.I18N_LOCALE || 'en') === 'ar';
+    if (arabic && typeof data[field + '_ar'] === 'string' && data[field + '_ar'].length) {
+        return data[field + '_ar'];
+    }
+    return data[field];
+}
+
 /*
  * The site-wide announcement bar.
  *
@@ -55,19 +78,22 @@
         // The optional label is the only bold part. It shares the text's span so the two
         // wrap as one sentence on a phone instead of the label sitting on a line of its own.
         var text = element('span', 'site-announcement__text');
-        if (data.label) {
-            text.appendChild(element('strong', 'site-announcement__label', data.label));
+        if (announcementText(data, 'label')) {
+            text.appendChild(element('strong', 'site-announcement__label', announcementText(data, 'label')));
             text.appendChild(document.createTextNode(' '));
         }
-        text.appendChild(document.createTextNode(data.text));
+        text.appendChild(document.createTextNode(announcementText(data, 'text')));
         inner.appendChild(text);
 
         // Both links are optional, and the video one is expected to arrive after the
         // announcement itself: leaving videoUrl empty simply omits it, so publishing the
         // recording later is a one-line edit to the JSON rather than a code change.
-        if (data.linkUrl && data.linkText) {
-            var link = element('a', 'site-announcement__link', data.linkText);
-            link.href = data.linkUrl;
+        if (data.linkUrl && announcementText(data, 'linkText')) {
+            var link = element('a', 'site-announcement__link', announcementText(data, 'linkText'));
+            // Keep the reader on the site they are reading: the bar sits on every page,
+            // and an unprefixed link sent an Arabic reader to the English updates page.
+            var prefix = (window.I18N_LOCALE === 'ar') ? '/ar' : '';
+            link.href = (data.linkUrl.charAt(0) === '/') ? prefix + data.linkUrl : data.linkUrl;
             inner.appendChild(link);
         }
         if (data.videoUrl && data.videoText) {
@@ -82,7 +108,7 @@
 
         var close = element('button', 'site-announcement__close');
         close.type = 'button';
-        close.setAttribute('aria-label', 'Dismiss announcement');
+        close.setAttribute('aria-label', t('announcement.dismiss', 'Dismiss announcement'));
         close.innerHTML = '&times;';
         close.addEventListener('click', function () {
             remember(data.id);
@@ -99,7 +125,7 @@
         fetch('/announcement.json', { cache: 'no-cache' })
             .then(function (response) { return response.ok ? response.json() : null; })
             .then(function (data) {
-                if (!data || data.active !== true || !data.text || !data.id) { return; }
+                if (!data || data.active !== true || !announcementText(data, 'text') || !data.id) { return; }
                 if (dismissed(data.id)) { return; }
                 render(data);
             })

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${htmlLang} ?: 'en'" th:dir="${htmlDir} ?: 'ltr'" lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/site :: sitehead}"></head>
 <body>
 <nav th:replace="~{fragments/site :: sitenav}"></nav>
@@ -8,9 +8,9 @@
     <nav th:replace="~{fragments/site :: crumbtrail}"></nav>
 
     <header class="hub-hero">
-        <div class="hub-hero__eyebrow">The Collections</div>
-        <h1 class="hub-hero__title">Shia Hadith Books</h1>
-        <p class="hub-hero__lede">
+        <div class="hub-hero__eyebrow" th:text="#{books.eyebrow}">The Collections</div>
+        <h1 class="hub-hero__title" th:text="#{books.title}">Shia Hadith Books</h1>
+        <p class="hub-hero__lede" th:text="#{books.lede}">
             The primary Shi'i hadith collections, in Arabic with English translation.
             Every narration carries its chain of transmission, and is cross-linked to
             similar narrations and to the Qur'anic verses it draws on.
@@ -18,11 +18,11 @@
         <div class="hub-hero__stats">
             <span class="hub-stat">
                 <span class="hub-stat__value" th:text="${#numbers.formatInteger(totalNarrations, 0, 'COMMA')}">32,519</span>
-                narrations
+                <span th:text="#{books.stat.narrations}">narrations</span>
             </span>
             <span class="hub-stat">
-                <span class="hub-stat__value" th:text="${#lists.size(books)}">18</span>
-                collections
+                <span class="hub-stat__value" th:text="${#numbers.formatInteger(#lists.size(books), 0)}">18</span>
+                <span th:text="#{books.stat.collections}">collections</span>
             </span>
         </div>
     </header>
@@ -30,11 +30,12 @@
     <div th:replace="~{fragments/site :: ornament}"></div>
 
     <div class="hub-grid">
-        <a class="hub-card" th:each="book : ${books}" th:href="@{'/books/' + ${book.slug}}">
-            <div class="hub-card__title" th:text="${book.name}">Book name</div>
+        <a class="hub-card" th:each="book : ${books}"
+           th:href="@{${arPrefix} ?: '' } + '/books/' + ${book.slug}">
+            <div class="hub-card__title" th:text="${isArabic} ? (${book.nameAr} ?: ${book.name}) : ${book.name}">Book name</div>
             <div class="hub-card__meta">
-                <span><strong th:text="${#numbers.formatInteger(book.count, 0, 'COMMA')}">1,000</strong> narrations</span>
-                <span><strong th:text="${#numbers.formatInteger(#lists.size(book.chapters), 0, 'COMMA')}">100</strong> chapters</span>
+                <span><strong th:text="${#numbers.formatInteger(book.count, 0, 'COMMA')}">1,000</strong> <span th:text="#{books.card.narrations}">narrations</span></span>
+                <span><strong th:text="${#numbers.formatInteger(#lists.size(book.chapters), 0, 'COMMA')}">100</strong> <span th:text="#{books.card.chapters}">chapters</span></span>
             </div>
         </a>
     </div>

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${htmlLang} ?: 'en'" th:dir="${htmlDir} ?: 'ltr'" lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/site :: sitehead}"></head>
 <body>
 <nav th:replace="~{fragments/site :: sitenav}"></nav>
@@ -11,16 +11,17 @@
          part titles say the whole thing already, so most of these heroes stay centred. -->
     <header class="hub-hero" th:classappend="${sectionSummary != null} ? 'hub-hero--split' : ''">
       <div class="hub-hero__identity">
-        <a class="hub-hero__eyebrow" th:href="@{'/books/' + ${book.slug}}" th:text="${book.name}">Al-Kafi</a>
+        <a class="hub-hero__eyebrow" th:href="@{${arPrefix} ?: '' } + '/books/' + ${book.slug}"
+           th:text="${bookTitle} ?: ${book.name}">Al-Kafi</a>
         <h1 class="hub-hero__title" th:text="${volumeLabel}">Volume 1</h1>
         <div class="hub-hero__stats">
             <span class="hub-stat">
                 <span class="hub-stat__value" th:text="${#numbers.formatInteger(narrationCount, 0, 'COMMA')}">1,000</span>
-                narrations
+                <span th:text="#{books.stat.narrations}">narrations</span>
             </span>
             <span class="hub-stat">
                 <span class="hub-stat__value" th:text="${#numbers.formatInteger(chapterCount, 0, 'COMMA')}">100</span>
-                chapters
+                <span th:text="#{books.card.chapters}">chapters</span>
             </span>
         </div>
       </div>
@@ -32,35 +33,36 @@
     <div th:replace="~{fragments/site :: ornament}"></div>
 
     <section class="hub-group" th:if="${!#lists.isEmpty(parts)}">
-        <h2 class="hub-group__label">Parts</h2>
+        <h2 class="hub-group__label" th:text="#{book.parts}">Parts</h2>
         <div class="hub-grid">
-            <a class="hub-card" th:each="part : ${parts}" th:href="${part.url}">
-                <div class="hub-card__title" th:text="${part.title}">Part 1</div>
+            <a class="hub-card" th:each="part : ${parts}" th:href="${arPrefix} + ${part.url}">
+                <div class="hub-card__title" th:text="${isArabic} ? (${part.titleAr} ?: ${part.title}) : ${part.title}">Part 1</div>
                 <div class="hub-card__meta">
-                    <span><strong th:text="${#numbers.formatInteger(part.chapterCount, 0, 'COMMA')}">100</strong> chapters</span>
+                    <span><strong th:text="${#numbers.formatInteger(part.chapterCount, 0, 'COMMA')}">100</strong> <span th:text="#{books.card.chapters}">chapters</span></span>
                 </div>
             </a>
         </div>
     </section>
 
     <section class="hub-group" th:if="${!#lists.isEmpty(chapters)}">
-        <h2 class="hub-group__label">Chapters</h2>
+        <h2 class="hub-group__label" th:text="#{book.chapters}">Chapters</h2>
         <!-- Two destinations per row on purpose. The title goes to the chapter's own
              page, which is the crawlable, rankable URL and where a search engine sends
              people; the icon jumps straight into reading mode for someone already here
              and browsing to read. A single link could not serve both. -->
         <ul class="hub-chapters">
             <li class="hub-chapter-row" th:each="chapter, it : ${chapters}">
-                <a class="hub-chapter" th:href="${chapter.url}">
-                    <span class="hub-chapter__index" th:text="${it.count} + '.'">1.</span>
-                    <span class="hub-chapter__title" th:text="${chapter.title}">Chapter title</span>
+                <a class="hub-chapter" th:href="${arPrefix} + ${chapter.url}">
+                    <span class="hub-chapter__index"
+                          th:text="${isArabic} ? ${#numbers.formatInteger(it.count, 0)} : (${it.count} + '.')">1.</span>
+                    <span class="hub-chapter__title" th:text="${isArabic} ? (${chapter.titleAr} ?: ${chapter.title}) : ${chapter.title}">Chapter title</span>
                     <!-- Labelled, not a bare number: the ordinal on the left is also a
                          bare number, and across two or three columns the two were
                          indistinguishable. -->
                     <span class="hub-chapter__count">
-                        <span th:text="${chapter.count}">12</span>
+                        <span th:text="${#numbers.formatInteger(chapter.count, 0)}">12</span>
                         <span class="hub-chapter__count-unit"
-                              th:text="${chapter.count == 1} ? 'hadith' : 'hadith'">hadith</span>
+                              th:text="#{common.hadith}">hadith</span>
                     </span>
                 </a>
             </li>

@@ -19,7 +19,8 @@
          th:attr="data-hadith-id=${narration.id}">
     <script type="application/json" class="hub-card-data" th:utext="${narration.copyJson}">{}</script>
     <div class="hadith-card__result-num" th:if="${ordinal != null}">
-        Hadith <span th:text="${ordinal}">1</span>
+        <span th:text="#{common.hadith}">Hadith</span>
+        <span th:text="${#numbers.formatInteger(ordinal, 0)}">1</span>
     </div>
 
     <!-- .card-body carries the three-column grid (sidecar | resizer | main) and the
@@ -27,26 +28,30 @@
     <div class="card-body">
     <div class="row g-4 hadith-card__layout">
         <aside class="hadith-sidecar hadith-card__meta">
-            <div class="hadith-sidecar__rail" role="tablist" aria-label="Hadith context panels">
+            <div class="hadith-sidecar__rail" role="tablist" aria-label="Hadith context panels" th:aria-label="#{sidecar.aria}">
                 <button type="button" class="hadith-sidecar__rail-btn is-active"
                         data-hub-panel="metadata" aria-selected="true">
                     <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
-                    <span class="hadith-sidecar__rail-label">DETAILS</span>
+                    <span class="hadith-sidecar__rail-label" th:text="#{sidecar.details}">DETAILS</span>
                     <span class="hadith-sidecar__rail-icon"><i class="fa fa-info-circle" aria-hidden="true"></i></span>
                 </button>
                 <button type="button" class="hadith-sidecar__rail-btn" data-hub-panel="similar"
-                        aria-selected="false" title="Similar narrations">
+                        aria-selected="false" title="Similar narrations" th:title="#{sidecar.related}">
                     <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
-                    <span class="hadith-sidecar__rail-label">RELATED</span>
+                    <span class="hadith-sidecar__rail-label" th:text="#{sidecar.related}">RELATED</span>
                     <span class="hadith-sidecar__rail-icon"><i class="fa fa-clone" aria-hidden="true"></i></span>
                     <span class="hadith-sidecar__rail-badge"
                           th:classappend="${narration.similarCount == 0} ? 'is-zero' : ''"
                           th:text="${narration.similarCount}">0</span>
                 </button>
+                <!-- The Qur'anic commentary is drawn from English-language tafsir sources
+                     and has no Arabic rendering, so the Arabic site does not offer the
+                     panel rather than opening one onto English prose. -->
                 <button type="button" class="hadith-sidecar__rail-btn" data-hub-panel="quran"
-                        aria-selected="false" title="Quranic insights">
+                        th:unless="${isArabic}"
+                        aria-selected="false" title="Quranic insights" th:title="#{card.quranicInsights}">
                     <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
-                    <span class="hadith-sidecar__rail-label">TAFSIR</span>
+                    <span class="hadith-sidecar__rail-label" th:text="#{sidecar.tafsir}">TAFSIR</span>
                     <span class="hadith-sidecar__rail-icon"><i class="fa fa-book" aria-hidden="true"></i></span>
                     <span class="hadith-sidecar__rail-badge"
                           th:classappend="${narration.quranCount == 0} ? 'is-zero' : ''"
@@ -76,7 +81,8 @@
                      card uses; rendering them for every narration up front would put two
                      more queries per hadith in front of every crawler. -->
                 <div class="hadith-sidecar__panel-body d-none" data-hub-panel-body="similar"></div>
-                <div class="hadith-sidecar__panel-body d-none" data-hub-panel-body="quran"></div>
+                <div class="hadith-sidecar__panel-body d-none" data-hub-panel-body="quran"
+                     th:unless="${isArabic}"></div>
             </div>
         </aside>
 
@@ -93,20 +99,23 @@
 
                 <div class="hadith-reading-scroll">
                     <div class="row g-4 hadith-reading-row">
-                        <div class="col-12 col-lg-6">
+                        <!-- The Arabic site is read by people who read Arabic; showing the
+                             translation beside the matn there halves the width of the text
+                             they came for and says the Arabic is the gloss. -->
+                        <div class="col-12 col-lg-6" th:unless="${isArabic}">
                             <div class="hadith-text-block hadith-text-block--primary">
                                 <div class="hadith-chain"
                                      th:if="${!#strings.isEmpty(narration.englishChain)}"
-                                     th:utext="${narration.englishChain}">Chain</div>
-                                <div class="hadith-english" th:utext="${narration.english}">English</div>
+                                     th:utext="${narration.englishChain}" th:text="#{card.chain}">Chain</div>
+                                <div class="hadith-english" th:utext="${narration.english}" th:text="#{lang.english}">English</div>
                             </div>
                         </div>
-                        <div class="col-12 col-lg-6">
+                        <div th:class="${isArabic} ? 'col-12' : 'col-12 col-lg-6'" class="col-12 col-lg-6">
                             <div class="hadith-text-block hadith-text-block--primary hadith-text-block--arabic">
                                 <div class="hadith-chain hadith-chain--arabic arabic-text"
                                      th:if="${!#strings.isEmpty(narration.arabicChain)}"
-                                     th:utext="${narration.arabicChain}">Chain</div>
-                                <div class="hadith-arabic arabic-text" th:utext="${narration.arabic}">Arabic</div>
+                                     th:utext="${narration.arabicChain}" th:text="#{card.chain}">Chain</div>
+                                <div class="hadith-arabic arabic-text" th:utext="${narration.arabic}" th:text="#{lang.arabic}">Arabic</div>
                             </div>
                         </div>
                     </div>
@@ -123,15 +132,18 @@
 
                 <div class="hadith-notes mt-3" th:if="${!#strings.isEmpty(narration.notes)}">
                     <div class="hadith-notes__head">
-                        <span class="hadith-notes__label">Notes</span>
+                        <span class="hadith-notes__label" th:text="#{sidecar.notes}">Notes</span>
                     </div>
+                    <!-- th:utext only. It carried a th:text as well, and two text attributes on one
+                         element is what truncated a response mid-render earlier in this project;
+                         it was harmless only because no narration had a note to print. -->
                     <div class="hadith-notes__body" th:utext="${narration.notes}">Notes</div>
                 </div>
 
                 <div class="hadith-card__footer">
                     <div class="topic-tag-pills hadith-card__tags"
                          th:if="${!#lists.isEmpty(narration.tags)}">
-                        <span class="topic-tag-pills__label">Tags</span>
+                        <span class="topic-tag-pills__label" th:text="#{sidecar.tags}">Tags</span>
                         <!-- nofollow: every pill is a ?tag= view of the chapter, which is
                              already noindex and canonical to it. Around 19,600 such URLs
                              exist across the corpus, and following them spent crawl
@@ -151,28 +163,26 @@
                             <button class="icon-action icon-action--copy hadith-copy-trigger"
                                     type="button" data-hub-menu-trigger
                                     aria-expanded="false"
-                                    aria-label="Copy hadith text" title="Copy hadith text">
+                                    aria-label="Copy hadith text" th:aria-label="#{card.copy}" title="Copy hadith text" th:title="#{card.copy}">
                                 <i class="fa fa-copy" aria-hidden="true"></i>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end hadith-copy-menu" data-hub-menu>
                                 <li>
                                     <button class="dropdown-item" type="button"
-                                            th:attr="data-copy-target=${narration.id}" data-copy-field="english">
-                                        Copy English
-                                    </button>
+                                            th:attr="data-copy-target=${narration.id}" data-copy-field="english"
+                                            th:text="#{card.copyEnglish}">Copy English</button>
                                 </li>
                                 <li>
                                     <button class="dropdown-item" type="button"
-                                            th:attr="data-copy-target=${narration.id}" data-copy-field="arabic">
-                                        Copy Arabic
-                                    </button>
+                                            th:attr="data-copy-target=${narration.id}" data-copy-field="arabic"
+                                            th:text="#{card.copyArabic}">Copy Arabic</button>
                                 </li>
                             </ul>
                         </div>
 
                         <button class="icon-action icon-action--save" type="button" data-requires-auth
                                 th:attr="data-save-hadith=${narration.id}, data-save-label=${narration.label}"
-                                aria-label="Save hadith" title="Save to collection">
+                                aria-label="Save hadith" th:aria-label="#{card.save}" title="Save to collection" th:title="#{card.saveToCollection}">
                             <i class="fa fa-bookmark" aria-hidden="true"></i>
                         </button>
 
@@ -185,13 +195,13 @@
                         <a class="icon-action icon-action--edit d-none"
                            th:attr="data-edit-hadith=${narration.id}"
                            role="button" rel="nofollow"
-                           aria-label="Edit hadith" title="Edit hadith">
+                           aria-label="Edit hadith" th:aria-label="#{card.edit}" title="Edit hadith" th:title="#{card.edit}">
                             <i class="fa fa-pencil" aria-hidden="true"></i>
                         </a>
 
                         <a class="icon-action icon-action--report" target="_blank" rel="noopener noreferrer"
                            th:href="${narration.reportHref}"
-                           aria-label="Report hadith" title="Report">
+                           aria-label="Report hadith" th:aria-label="#{card.report}" title="Report" th:title="#{card.reportShort}">
                             <i class="fa fa-flag" aria-hidden="true"></i>
                         </a>
 
@@ -199,15 +209,14 @@
                             <button class="icon-action icon-action--share hadith-share-trigger"
                                     type="button" data-hub-menu-trigger
                                     aria-expanded="false"
-                                    aria-label="Share hadith" title="Share">
+                                    aria-label="Share hadith" th:aria-label="#{card.share}" title="Share" th:title="#{card.share}">
                                 <i class="fa fa-share-from-square" aria-hidden="true"></i>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end hadith-copy-menu" data-hub-menu>
                                 <li>
                                     <button class="dropdown-item" type="button"
-                                            th:attr="data-copy-url=${narration.shareUrl}">
-                                        Copy link
-                                    </button>
+                                            th:attr="data-copy-url=${narration.shareUrl}"
+                                            th:text="#{card.copyLink}">Copy link</button>
                                 </li>
                                 <!-- One entry, not two: the dialog behind it shows the card
                                      and lets you switch theme there, where you can see what
@@ -217,15 +226,14 @@
                                 <li>
                                     <button class="dropdown-item" type="button"
                                             th:attr="data-share-card=${narration.id},
-                                                     data-share-card-label=${narration.label}">
-                                        Share as image
-                                    </button>
+                                                     data-share-card-label=${narration.label}"
+                                            th:text="#{card.shareImage}">Share as image</button>
                                 </li>
                             </ul>
                         </div>
 
                         <a class="icon-action" th:href="${narration.url}"
-                           aria-label="Open this narration" title="Open this narration">
+                           aria-label="Open this narration" th:aria-label="#{card.open}" title="Open this narration" th:title="#{card.open}">
                             <i class="fa fa-arrow-up-right-from-square" aria-hidden="true"></i>
                         </a>
                     </div>

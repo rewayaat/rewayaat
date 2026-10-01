@@ -2,6 +2,8 @@ package com.rewayaat.controllers.rest;
 
 import com.rewayaat.core.data.UserAccount;
 import com.rewayaat.service.AuthService;
+import com.rewayaat.service.PageLocale;
+import jakarta.servlet.http.HttpServletRequest;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -44,11 +46,21 @@ public class AuthController {
     })
     @RequestMapping(value = "/register", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> register(@RequestBody Map<String, String> payload) throws Exception {
+    public ResponseEntity<Map<String, Object>> register(@RequestBody Map<String, String> payload,
+                                                        HttpServletRequest request) throws Exception {
+        // The language the person signed up in seeds their account, so someone who came
+        // from the Arabic site is written to in Arabic without having to go and set it.
+        // The sign-in page is a static file outside the /ar tree and states it in the
+        // payload; pages inside the tree are known from the request itself.
+        String stated = value(payload, "locale");
+        PageLocale signedUpIn = stated == null || stated.isBlank()
+                ? PageLocale.of(request)
+                : PageLocale.ofTag(stated);
         Map<String, Object> response = authService.register(
                 value(payload, "displayName"),
                 value(payload, "email"),
-                rawValue(payload, "password"));
+                rawValue(payload, "password"),
+                signedUpIn);
         HttpStatus status = Boolean.TRUE.equals(response.get("ok")) ? HttpStatus.OK : HttpStatus.BAD_REQUEST;
         return new ResponseEntity<>(response, status);
     }
@@ -120,6 +132,18 @@ public class AuthController {
         response.put("authenticated", true);
         response.put("user", authService.publicUser(user));
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @CrossOrigin(origins = {"*"}, allowCredentials = "false")
+    @Operation(summary = "Set the language this account is written to in.")
+    @RequestMapping(value = "/locale", method = RequestMethod.POST, produces = "application/json")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> setLocale(
+            @CookieValue(value = AuthService.AUTH_COOKIE, required = false) String sessionToken,
+            @RequestBody Map<String, String> payload) throws Exception {
+        Map<String, Object> response = authService.updateLocale(sessionToken, value(payload, "locale"));
+        HttpStatus status = Boolean.TRUE.equals(response.get("ok")) ? HttpStatus.OK : HttpStatus.BAD_REQUEST;
+        return new ResponseEntity<>(response, status);
     }
 
     @CrossOrigin(origins = {"*"}, allowCredentials = "false")

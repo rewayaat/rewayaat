@@ -7,6 +7,7 @@ import co.elastic.clients.elasticsearch._types.aggregations.StringTermsAggregate
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.util.NamedValue;
+import com.rewayaat.service.ArabicNames;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -39,6 +40,13 @@ public class BrowseFacets {
         for (int i = 0; i < books.length(); i++) {
             JSONObject book = books.getJSONObject(i);
             book.put("slug", Slugs.slugify(book.optString("name")));
+            // The browse list is built in the browser, so it cannot reach the message
+            // bundle; without the Arabic name here the Arabic home page listed eighteen
+            // books in English under an Arabic heading.
+            String arabic = ArabicNames.book(book.optString("name"));
+            if (arabic != null) {
+                book.put("nameAr", arabic);
+            }
         }
         return books;
     }
@@ -153,11 +161,43 @@ public class BrowseFacets {
                     }
                     JSONObject item = new JSONObject();
                     item.put("name", key);
+                    // The Arabic name beside the English one, the way the book facet
+                    // has carried it since the Arabic home page listed eighteen books
+                    // in English. Without it the refine panel did the same thing one
+                    // level down: an Arabic reader picking a part of Thawab al-A'mal
+                    // chose from a list of English headings. The value stays English
+                    // because it is what the index is filtered by; only the label
+                    // changes.
+                    // excludeKey is the facet's own key at every call site.
+                    String arabicName = arabicNameFor(excludeKey, key);
+                    if (arabicName != null && !arabicName.isBlank()) {
+                        item.put("nameAr", arabicName);
+                    }
                     item.put("count", bucket.docCount());
                     result.put(item);
                 }
             }
             return result;
+        }
+    }
+
+    /**
+     * The Arabic for one facet value, or null when there is none to give.
+     *
+     * <p>Volume is a number and needs no translation — the browser renders it in the
+     * reader's digits. The other three are names, and ArabicNames already holds them:
+     * it is the same table the book pages read, so a part is spelled the same way in
+     * the filter as it is on the page the filter leads to.
+     */
+    private static String arabicNameFor(String facetKey, String value) {
+        if (facetKey == null) {
+            return null;
+        }
+        switch (facetKey) {
+            case "chapter": return ArabicNames.chapter(value);
+            case "section": return ArabicNames.section(value);
+            case "part":    return ArabicNames.part(value);
+            default:        return null;
         }
     }
 

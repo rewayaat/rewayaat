@@ -11,6 +11,12 @@ elasticsearch:
   port: ${ELASTIC_PORT:9200}
   index: ${REWAYAAT_INDEX:rewayaat_hadith}
 
+# Whether the Arabic site may be advertised and indexed. True is the steady state;
+# production holds it false for the length of the release so that /ar can be verified
+# there before it is discoverable. See ArabicIndexing and docs/arabic-release.md.
+arabic:
+  indexable: ${ARABIC_INDEXABLE:true}
+
 rewayaat:
   users-index: ${REWAYAAT_USERS_INDEX:rewayaat_users}
   app-base-url: ${APP_BASE_URL:http://localhost:8002}

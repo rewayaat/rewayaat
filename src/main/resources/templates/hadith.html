@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${htmlLang} ?: 'en'" th:dir="${htmlDir} ?: 'ltr'" lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="UTF-8"/>
@@ -7,6 +7,9 @@
     <meta name="description" th:content="${seoDescription}"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
     <link rel="canonical" th:href="${canonicalUrl}"/>
+    <!-- The Arabic narration page is reachable but not indexed: its body is the narration,
+         already Arabic on the English page, so indexing both would be the same text twice. -->
+    <meta th:if="${robotsDirective != null}" name="robots" th:content="${robotsDirective}"/>
 
     <!-- Open Graph -->
     <meta property="og:type" content="article"/>
@@ -85,33 +88,47 @@
 <nav class="navbar navbar-expand-lg sticky-top site-nav">
     <div class="container">
         <div class="navbar-top w-100 d-flex align-items-center flex-wrap gap-3">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="/">
-                <img src="/img/Alilogov2-transparent.png" th:src="@{/img/Alilogov2-transparent.png}" class="brand-logo--full brand-logo--full-v2 d-none d-md-block" alt="ALI Logo"/>
+            <a class="navbar-brand d-flex align-items-center gap-2" href="/" th:href="@{${arPrefix} ?: '' } + '/'">
+                <img src="/img/Alilogov2-transparent.png"
+                     th:src="${isArabic} ? @{/img/Alilogov2-ar-transparent.png} : @{/img/Alilogov2-transparent.png}"
+                     class="brand-logo--full brand-logo--full-v2 d-none d-md-block"
+                     alt="ALI Logo" th:alt="#{footer.academyFull}"/>
                 <img src="/img/ali_icon.png" th:src="@{/img/ali_icon.png}" class="brand-logo--icon d-md-none" alt="ALI"/>
             </a>
-            <div class="d-flex home-nav-links">
-                <a href="/" class="home-nav-link"><i class="fa fa-magnifying-glass" aria-hidden="true"></i><span>Search</span></a>
-                <a href="/books" class="home-nav-link is-current"><i class="fa fa-book-open" aria-hidden="true"></i><span>Books</span></a>
-                <a href="/updates.html" class="home-nav-link"><i class="fa fa-bolt" aria-hidden="true"></i><span>Updates</span></a>
-            </div>
+            <div th:replace="~{fragments/site :: navlinks('books')}"></div>
+            <div th:replace="~{fragments/site :: navsearch}"></div>
 
             <div class="menu-context-row ms-auto">
                 <div class="d-flex gap-2 top-actions flex-nowrap">
                     <button class="btn btn-dark btn-sm top-action auth-action" id="authSignInBtn" type="button">
                         <i class="fa fa-right-to-bracket" aria-hidden="true"></i>
-                        <span class="auth-action__label">Sign In</span>
+                        <span class="auth-action__label" th:text="#{nav.signin}">Sign In</span>
                     </button>
                     <div class="profile-menu d-none" id="authProfileShell">
                         <button class="top-action profile-chip" id="authProfileBtn" type="button"
-                                aria-label="Open profile" aria-expanded="false">
+                                aria-label="Open profile" th:aria-label="#{nav.profile.open}" aria-expanded="false">
                             <span class="profile-chip__avatar" id="authProfileInitial">R</span>
                             <span class="profile-chip__meta">
-                                <span class="profile-chip__name" id="authProfileName">Account</span>
+                                <span class="profile-chip__name" id="authProfileName" th:text="#{nav.account}">Account</span>
                             </span>
                             <i class="fa fa-angle-down" aria-hidden="true"></i>
                         </button>
                         <div class="profile-dropdown d-none" id="authProfileMenu" aria-hidden="true"></div>
                     </div>
+                    <!-- Globe rather than a word: the icon reads the same in both
+                         languages, and last in the row so it sits on the outer edge,
+                         which mirrors on its own. -->
+                    <div th:replace="~{fragments/site :: navmenu}"></div>
+                    <a th:if="${switchLocalePath != null}" class="top-action lang-toggle"
+                       th:href="@{${switchLocalePath}}"
+                       th:hreflang="${switchLocaleTag}"
+                       th:attr="data-set-locale=${switchLocaleTag}"
+                       th:title="${isArabic} ? #{lang.switchToEnglish} : #{lang.switchToArabic}"
+                       th:aria-label="${isArabic} ? #{lang.switchToEnglish} : #{lang.switchToArabic}">
+                        <i class="fa fa-globe" aria-hidden="true"></i>
+                        <span class="lang-toggle__label"
+                              th:text="${isArabic} ? #{lang.switchToEnglish} : #{lang.switchToArabic}">العربية</span>
+                    </a>
                 </div>
             </div>
         </div>
@@ -131,7 +148,7 @@
              index and reachable only over an XHR a crawler never makes; rendered here
              they become the internal link graph the corpus never had. -->
         <section class="hp-related" th:if="${!#lists.isEmpty(similar)}">
-            <h2 class="hp-related__title">Similar narrations</h2>
+            <h2 class="hp-related__title" th:text="#{hadith.similarNarrations}">Similar narrations</h2>
             <ul class="hp-related__list">
                 <li th:each="item : ${similar}">
                     <a th:href="${item.url}" th:text="${item.label}">Al-Kafi #1</a>
@@ -143,13 +160,13 @@
         <div class="hp-onward">
             <a th:if="${chapterUrl != null}" th:href="${chapterUrl}" class="hp-back">
                 <i class="fa fa-list" aria-hidden="true"></i>
-                <span th:text="'All narrations in ' + ${hadith.chapter}">All narrations in this chapter</span>
+                <span th:text="#{hadith.allInChapterNamed(${chapterName})}">All narrations in this chapter</span>
             </a>
-            <a href="/books" class="hp-back">
-                <i class="fa fa-book" aria-hidden="true"></i> Browse all books
+            <a href="/books" th:href="@{${arPrefix} ?: '' } + '/books'" class="hp-back">
+                <i class="fa fa-book" aria-hidden="true"></i> <span th:text="#{hadith.browseAllBooks}">Browse all books</span>
             </a>
-            <a href="/" class="hp-back">
-                <i class="fa fa-arrow-left" aria-hidden="true"></i> Search more hadith
+            <a href="/" th:href="@{${arPrefix} ?: '' } + '/'" class="hp-back">
+                <i class="fa fa-arrow-left" aria-hidden="true"></i> <span th:text="#{hadith.searchMore}">Search more hadith</span>
             </a>
         </div>
     </article>
@@ -159,36 +176,39 @@
     <div class="container">
         <div class="site-footer__grid">
             <div>
-                <div class="site-footer__title">Rewayaat</div>
+                <div class="site-footer__title" th:text="#{site.name}">Rewayaat</div>
                 <p class="site-footer__text">
-                    A project of the <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" class="site-footer__link">Academy for Learning Islam</a>. Search, browse, and study Shi'i narrations in Arabic and English.
+                    <span th:text="#{footer.projectOf}">A project of the</span>
+                    <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" class="site-footer__link" th:text="#{footer.academyFull}">Academy for Learning Islam</a>
+                    <span th:text="#{footer.blurb}">Search, browse, and study Shi'i narrations in Arabic and English.</span>
                 </p>
             </div>
             <div>
-                <div class="site-footer__label">Explore</div>
+                <div class="site-footer__label" th:text="#{footer.explore}">Explore</div>
                 <div class="site-footer__links">
-                    <a href="/updates.html">Updates</a>
-                    <a href="/search_tips.html">Search Tips</a>
-                    <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer">API Documentation</a>
+                    <a href="/updates.html" th:href="@{${arPrefix} ?: '' } + '/updates.html'" th:text="#{footer.updates}">Updates</a>
+                    <a href="/search_tips.html" th:href="@{${arPrefix} ?: '' } + '/search_tips.html'"
+                       th:text="#{footer.searchTips}">Search Tips</a>
+                    <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer" th:text="#{footer.apiDocs}">API Documentation</a>
                 </div>
             </div>
             <div>
-                <div class="site-footer__label">Contact</div>
+                <div class="site-footer__label" th:text="#{footer.contact}">Contact</div>
                 <div class="site-footer__links">
                     <a href="mailto:rewayaat.org@gmail.com">rewayaat.org@gmail.com</a>
-                    <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
-                    <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer">Academy of Islam</a>
+                    <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer" th:text="#{footer.github}">GitHub Repository</a>
+                    <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" th:text="#{footer.academy}">Academy of Islam</a>
                 </div>
             </div>
         </div>
         <div class="site-footer__bottom">
-            <span>&copy; 2026 Academy for Learning Islam (A.L.I.)</span>
+            <span th:utext="#{footer.rights}">&copy; 2026 Academy for Learning Islam (A.L.I.)</span>
             <div class="site-footer__social">
                 <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer" title="GitHub"><i class="fa fa-github"></i></a>
-                <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer" title="REST API"><i class="fa fa-code"></i></a>
-                <a href="mailto:rewayaat.org@gmail.com" title="Email"><i class="fa fa-envelope"></i></a>
+                <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer" title="REST API" th:title="#{footer.restApi}"><i class="fa fa-code"></i></a>
+                <a href="mailto:rewayaat.org@gmail.com" title="Email" th:title="#{footer.email}"><i class="fa fa-envelope"></i></a>
             </div>
-            <span>Content and translations remain the responsibility of their original sources.</span>
+            <span th:text="#{footer.disclaimer}">Content and translations remain the responsibility of their original sources.</span>
         </div>
     </div>
 </footer>
@@ -207,9 +227,14 @@
         window.LogRocket && window.LogRocket.init('ctebns/rewyaat');
     }
 </script>
+<th:block th:replace="~{fragments/i18n-js :: i18n}"></th:block>
 <script src="/js/share-card-modal.js" th:src="@{/js/share-card-modal.js}"></script>
 <script src="/js/hub-pages.js" th:src="@{/js/hub-pages.js}"></script>
 <script src="/js/site-announcement.js" th:src="@{/js/site-announcement.js}"></script>
+<script src="/js/locale-preference.js" th:src="@{/js/locale-preference.js}"></script>
+    <script src="/js/nav-menu.js" th:src="@{/js/nav-menu.js}" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js" defer></script>
+    <script src="/js/nav-search.js" th:src="@{/js/nav-search.js}" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script th:inline="javascript">
@@ -234,7 +259,9 @@
         if (!body || !btn) return;
         var clamped = body.classList.toggle('hadith-notes__body--clamped');
         btn.setAttribute('aria-expanded', clamped ? 'false' : 'true');
-        btn.textContent = clamped ? 'Show more' : 'Show less';
+        btn.textContent = clamped
+            ? ((window.I18N || {})['js.showMore'] || 'Show more')
+            : ((window.I18N || {})['js.showLess'] || 'Show less');
     }
     function showShareToast() {
         var toast = document.getElementById('shareToast');

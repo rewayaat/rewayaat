@@ -1,5 +1,10 @@
 package com.rewayaat.controllers;
 
+import com.rewayaat.service.BookCatalog;
+import java.util.List;
+import java.util.Map;
+import org.junit.jupiter.api.DisplayName;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -32,21 +37,25 @@ class ShareImageCoverageTest {
      * The books index is a list of books, not a thing with a text of its own, so the site
      * mark is the honest image for it.
      */
-    private static final Set<String> SITE_MARK_IS_CORRECT = Set.of("/books");
+    private static final Set<String> SITE_MARK_IS_CORRECT = Set.of("\"/books\"");
 
     @Test
     void everyBookTreePageAdvertisesACardOfItsOwn() throws IOException {
         String source = Files.readString(CONTROLLER, StandardCharsets.UTF_8);
 
-        // Each page method sets exactly one canonicalUrl; the card should follow it.
+        // Each page method publishes exactly one canonical, through PageLocale so that the
+        // Arabic URL is canonical to itself; the card should follow it.
         Matcher m = Pattern.compile(
-                "model\\.addAttribute\\(\"canonicalUrl\",(.*?)\\);", Pattern.DOTALL).matcher(source);
+                "\\.applyTo\\(model,(.*?)\\);", Pattern.DOTALL)
+                .matcher(source);
         Set<String> missing = new LinkedHashSet<>();
         int pages = 0;
         while (m.find()) {
             pages++;
             String canonical = m.group(1).trim();
-            if (SITE_MARK_IS_CORRECT.stream().anyMatch(canonical::contains)) {
+            // Matched exactly. "contains" also exempted "/books/" + bookSlug and the
+            // volume path, so two of the four pages this test names were never checked.
+            if (SITE_MARK_IS_CORRECT.contains(canonical)) {
                 continue;
             }
             // The next 200 characters cover the rest of that page's model attributes.
@@ -112,7 +121,10 @@ class ShareImageCoverageTest {
             assertTrue(factory.contains(level),
                     "HadithCardFactory builds no " + level + ", so that metadata row cannot link");
         }
-        assertTrue(factory.contains("\"Part\", partTitle, partUrl"),
+        // Matched as a shape rather than a literal: the row's label became a message
+        // lookup when the card learned to render in Arabic, and what matters here is
+        // still that the part row is handed partUrl rather than null.
+        assertTrue(Pattern.compile("filter\\.part[\\s\\S]{0,240}?partUrl").matcher(factory).find(),
                 "the Part row is not wired to partUrl, so it renders as plain text");
 
         // The search card resolves the same levels through the browse endpoint.
@@ -120,5 +132,61 @@ class ShareImageCoverageTest {
                 "the search card does not route part to its page");
         assertTrue(resolver.contains("partUrl"),
                 "the browse resolver cannot answer with a part page");
+    }
+
+    @Test
+    @DisplayName("a folded canonical comes back without a language on it")
+    void canonicalPathIsLanguageNeutral() {
+        // canonicalPathFor has two arms and they disagreed about this. chapter.url() is a
+        // bare path; a card's url has carried the /ar prefix since the cards learned to
+        // link within the reader's language. The caller adds the language, so an already
+        // prefixed path came out as /ar/ar/hadith/... — a canonical that resolves to
+        // nothing, which tells a crawler the Arabic page should not be indexed at all.
+        // count == 1 is what makes the chapter fold into its narration.
+        BookCatalog.Chapter single = new BookCatalog.Chapter(
+                "Al-Khiṣāl", "al-khisal", "introduction", "Introduction",
+                null, null, null, 1L);
+
+        assertEquals("/hadith/Al-Khisal-Saduq:1",
+                BookPageController.canonicalPathFor(single,
+                        List.of(Map.of("url", "/ar/hadith/Al-Khisal-Saduq:1"))),
+                "an Arabic card's url already carries the prefix; the canonical must not add a second");
+
+        assertEquals("/hadith/Al-Khisal-Saduq:1",
+                BookPageController.canonicalPathFor(single,
+                        List.of(Map.of("url", "/hadith/Al-Khisal-Saduq:1"))),
+                "an English card's url is already bare and must come back unchanged");
+    }
+
+    @Test
+    @DisplayName("an untranslated note is not shown on the Arabic card")
+    void notesAppearOnlyInTheReadersLanguage() throws Exception {
+        // Fifteen narrations carry a note in production, all of them English translator's
+        // commentary, some of it thousands of characters long. Every other field falls
+        // back to its English when there is no Arabic, because a chapter named in English
+        // is still a usable citation; a note is not a name, and an untranslated one is a
+        // wall of English rather than something a reader can still use.
+        String card = Files.readString(
+                Path.of("src/main/java/com/rewayaat/service/HadithCardFactory.java"),
+                StandardCharsets.UTF_8);
+
+        String body = card.substring(card.indexOf("private static String notesFor("));
+        body = body.substring(0, body.indexOf("\n    }"));
+
+        assertTrue(body.contains("locale.isArabic()"),
+                "notesFor does not look at the language at all");
+        assertTrue(body.contains("notes_ar"),
+                "notesFor never reads notes_ar, so a translated note could never be shown");
+        assertFalse(body.replace("notes_ar", "").contains("source.get(\"notes\")\n"),
+                "notesFor still falls back to the English note on the Arabic card");
+
+        // And the query has to fetch the twin, or the card asks for a field it never got.
+        String pages = Files.readString(
+                Path.of("src/main/java/com/rewayaat/controllers/BookPageController.java"),
+                StandardCharsets.UTF_8);
+        String fields = pages.substring(pages.indexOf("buildCardFields()"));
+        fields = fields.substring(0, fields.indexOf("return List.copyOf"));
+        assertTrue(fields.contains("\"notes\""),
+                "the chapter query no longer fetches notes, so no card can show one");
     }
 }

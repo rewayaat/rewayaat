@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en" th:lang="${htmlLang}" th:dir="${htmlDir}">
+<head>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+    <title th:text="#{signin.title} + ' — ' + #{site.name}">Sign In</title>
+    <!-- The page is reachable in both languages now, so it says which is which. -->
+    <link rel="canonical" th:href="${canonicalUrl}" href="https://hadith.academyofislam.com/signin.html"/>
+    <link th:each="alt : ${hreflangAlternates}" rel="alternate"
+          th:hreflang="${alt.key}" th:href="${alt.value}"/>
+    <meta name="robots" content="noindex, follow"/>
+    <!-- The RTL build, or the layout primitives themselves lay the form out backwards. -->
+    <link th:if="${isArabic}" rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css"/>
+    <link th:unless="${isArabic}" href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/materia/bootstrap.min.css" rel="stylesheet"/>
+    <link href="/css/manuscript.css?v=1016" rel="stylesheet"/>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
+    <th:block th:replace="~{fragments/i18n-js :: i18n}"></th:block>
+</head>
+<body class="bg-light">
+<main class="container py-4 auth-page-shell">
+    <div class="auth-page-header d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+            <h1 class="h4 mb-1" th:text="#{signin.title}">Sign In</h1>
+            <div class="text-muted small" th:text="#{signin.lede}">Access collections and manage saved hadith.</div>
+        </div>
+        <a href="/" th:href="@{${arPrefix} ?: '' } + '/'" class="btn btn-outline-dark btn-sm">
+            <i class="fa fa-arrow-left" aria-hidden="true"></i>
+            <span th:text="#{signin.backHome}">Back to Home</span>
+        </a>
+    </div>
+
+    <section class="card shadow-sm border-0 auth-page-card">
+        <div class="card-body p-4">
+            <div id="authAlert" class="alert d-none" role="alert"></div>
+
+            <div id="authSessionState" class="auth-session-state d-none mb-3">
+                <div class="auth-session-copy">
+                    <span th:text="#{signin.alreadySignedIn}">You are already signed in as</span>
+                    <span id="authSessionEmail"></span>.
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <button id="authContinueBtn" type="button" class="btn btn-primary btn-sm" th:text="#{signin.continue}">Continue</button>
+                    <button id="authLogoutBtn" type="button" class="btn btn-outline-dark btn-sm" th:text="#{js.signOut}">Sign Out</button>
+                </div>
+            </div>
+
+            <div class="auth-segment mb-3" role="tablist" aria-label="Authentication mode" th:aria-label="#{signin.mode}">
+                <button id="authModeLogin" type="button" class="auth-segment-btn active" th:text="#{signin.title}">Sign In</button>
+                <button id="authModeRegister" type="button" class="auth-segment-btn" th:text="#{signin.register}">Register</button>
+                <button id="authModeReset" type="button" class="auth-segment-btn" th:text="#{signin.resetPassword}">Reset Password</button>
+            </div>
+
+            <form id="authLoginForm" class="auth-form" novalidate>
+                <label for="authLoginEmail" class="auth-modal-label" th:text="#{signin.email}">Email</label>
+                <input id="authLoginEmail" type="email" class="form-control auth-modal-input mb-2" placeholder="you@example.com" th:placeholder="#{signin.ph.email}" required/>
+                <label for="authLoginPassword" class="auth-modal-label" th:text="#{signin.password}">Password</label>
+                <input id="authLoginPassword" type="password" class="form-control auth-modal-input mb-3" placeholder="Password" th:placeholder="#{signin.ph.password}" required/>
+                <button type="submit" class="btn btn-primary btn-sm" th:text="#{signin.title}">Sign In</button>
+            </form>
+
+            <form id="authRegisterForm" class="auth-form d-none" novalidate>
+                <label for="authRegisterName" class="auth-modal-label" th:text="#{signin.displayName}">Display Name</label>
+                <input id="authRegisterName" type="text" class="form-control auth-modal-input mb-2" placeholder="Your name" th:placeholder="#{signin.ph.name}"/>
+                <label for="authRegisterEmail" class="auth-modal-label" th:text="#{signin.email}">Email</label>
+                <input id="authRegisterEmail" type="email" class="form-control auth-modal-input mb-2" placeholder="you@example.com" th:placeholder="#{signin.ph.email}" required/>
+                <label for="authRegisterPassword" class="auth-modal-label" th:text="#{signin.password}">Password</label>
+                <input id="authRegisterPassword" type="password" class="form-control auth-modal-input mb-2" placeholder="Create password" th:placeholder="#{signin.ph.createPassword}" required/>
+                <label for="authRegisterPasswordConfirm" class="auth-modal-label" th:text="#{signin.confirmPassword}">Confirm Password</label>
+                <input id="authRegisterPasswordConfirm" type="password" class="form-control auth-modal-input mb-2" placeholder="Re-enter password" th:placeholder="#{signin.ph.reenterPassword}" required/>
+                <div class="auth-policy mb-3">
+                    <span th:text="#{signin.policyLead}">Minimum password requirements:</span>
+                    <span th:text="#{signin.policy}">At least 6 characters and no spaces.</span>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm" th:text="#{signin.createAccount}">Create Account</button>
+            </form>
+
+            <form id="authResetRequestForm" class="auth-form d-none" novalidate>
+                <label for="authResetEmail" class="auth-modal-label" th:text="#{signin.accountEmail}">Account Email</label>
+                <input id="authResetEmail" type="email" class="form-control auth-modal-input mb-3" placeholder="you@example.com" th:placeholder="#{signin.ph.email}" required/>
+                <button type="submit" class="btn btn-primary btn-sm" th:text="#{signin.sendResetLink}">Send Reset Link</button>
+            </form>
+
+            <form id="authResetConfirmForm" class="auth-form d-none" novalidate>
+                <input id="authResetToken" type="hidden"/>
+                <label for="authResetPassword" class="auth-modal-label" th:text="#{signin.newPassword}">New Password</label>
+                <input id="authResetPassword" type="password" class="form-control auth-modal-input mb-2" placeholder="Create new password" th:placeholder="#{signin.ph.createNewPassword}" required/>
+                <label for="authResetPasswordConfirm" class="auth-modal-label" th:text="#{signin.confirmNewPassword}">Confirm New Password</label>
+                <input id="authResetPasswordConfirm" type="password" class="form-control auth-modal-input mb-2" placeholder="Re-enter new password" th:placeholder="#{signin.ph.reenterNewPassword}" required/>
+                <div class="auth-policy mb-3">
+                    <span th:text="#{signin.policyLead}">Minimum password requirements:</span>
+                    <span th:text="#{signin.policy}">At least 6 characters and no spaces.</span>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm" th:text="#{signin.updatePassword}">Update Password</button>
+            </form>
+        </div>
+    </section>
+</main>
+<script src="/js/auth-page.js?v=1"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-3HSRTQD7GM"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-3HSRTQD7GM');
+</script>
+</body>
+</html>

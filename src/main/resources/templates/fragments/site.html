@@ -18,9 +18,19 @@
     <meta name="description" th:content="${seoDescription}"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <link rel="canonical" th:href="${canonicalUrl}"/>
+    <!--
+      Both languages name each other and themselves. Google reads an hreflang pair only
+      when it is reciprocal, so the same set is emitted on the English and the Arabic
+      page; a page with no Arabic version sets no alternates and is simply English.
+    -->
+    <th:block th:if="${hreflangAlternates != null}">
+        <link th:each="alt : ${hreflangAlternates}" rel="alternate"
+              th:hreflang="${alt.key}" th:href="${alt.value}"/>
+    </th:block>
     <!-- A tag-filtered chapter is a slice of a page that is already indexed. -->
     <meta th:if="${robotsDirective != null}" name="robots" th:content="${robotsDirective}"/>
 
+    <meta property="og:locale" th:content="${isArabic} ? 'ar_AR' : 'en_US'" content="en_US"/>
     <meta property="og:type" content="website"/>
     <meta property="og:site_name" content="The Hadith Database"/>
     <meta property="og:title" th:content="${seoTitle}"/>
@@ -49,7 +59,19 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <!--
+      Bootstrap ships a separate right-to-left build. The default one hard-codes its
+      margins, padding and grid offsets as left and right rather than start and end, so
+      under dir="rtl" the container is pushed off one edge and the page scrolls
+      sideways. Loading the matching build is the fix; no override in manuscript.css can
+      undo it, because the rules being fought are the layout primitives themselves.
+    -->
+    <link th:if="${isArabic}"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css"
+          rel="stylesheet"/>
+    <link th:unless="${isArabic}"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet"/>
     <link href="/css/manuscript.css" rel="stylesheet" th:href="@{/css/manuscript.css}"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600;700&family=Scheherazade+New:wght@400;700&display=swap"
           rel="stylesheet"/>
@@ -60,22 +82,122 @@
     <!-- In the shared head rather than in each of books/book/chapter/volume, which is the
          only thing those four pages have in common. The script waits for DOMContentLoaded,
          so running from the head is safe. -->
+    <!-- Before the scripts below: they read window.I18N as they run, and without it the
+         announcement bar fell back to English on every page that uses this head. -->
+    <th:block th:replace="~{fragments/i18n-js :: i18n}"></th:block>
     <script src="/js/site-announcement.js" th:src="@{/js/site-announcement.js}" defer></script>
+    <script src="/js/locale-preference.js" th:src="@{/js/locale-preference.js}" defer></script>
+    <script src="/js/nav-menu.js" th:src="@{/js/nav-menu.js}" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js" defer></script>
+    <script src="/js/nav-search.js" th:src="@{/js/nav-search.js}" defer></script>
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.css" rel="stylesheet"/>
 </head>
 
 <body>
+<!--
+  The three links in the header, as one fragment.
+
+  They lived inside sitenav, which most pages use — but updates.html and the search
+  page build their own header, because their sign-in control is a different thing
+  (an anchor carrying a return URL on one, a script-driven button on the other).
+  So updates.html had a copy of the header with the links quietly missing, and the
+  page shipped for months with no way back to Search or Books from its own navbar.
+
+  The links are the part that is genuinely the same everywhere, so they are the part
+  that is shared. `current` names the page, so the right one is marked; anything
+  unrecognised simply marks none, which is correct for the sign-in page.
+-->
+<!--
+  The header's menu on a phone.
+
+  It replaces the globe, which is the only one of these controls that had a place in
+  the row at that width: Browse and Updates are the header links, which become icons
+  and then run out of room, and the language switch was a button of its own. One
+  button, three destinations, and Sign In when there is nobody signed in.
+
+  The sign-in item is hidden by a body class the auth scripts already set rather than
+  by anything in here, so it agrees with the chip at the other end of the row instead
+  of racing it.
+-->
+<div th:fragment="navmenu" class="nav-menu" data-nav-menu>
+    <button type="button" class="top-action nav-menu__toggle" data-nav-menu-toggle
+            aria-expanded="false" aria-label="Menu" th:aria-label="#{nav.menu}">
+        <i class="fa fa-bars" aria-hidden="true"></i>
+    </button>
+    <div class="nav-menu__panel" data-nav-menu-panel hidden>
+        <a class="nav-menu__item nav-menu__item--signin"
+           href="/signin.html" th:href="@{${arPrefix} ?: '' } + '/signin.html'">
+            <i class="fa fa-right-to-bracket" aria-hidden="true"></i>
+            <span th:text="#{nav.signin}">Sign In</span>
+        </a>
+        <a class="nav-menu__item" href="/books" th:href="@{${arPrefix} ?: '' } + '/books'">
+            <i class="fa fa-book-open" aria-hidden="true"></i>
+            <span th:text="#{nav.browse}">Browse</span>
+        </a>
+        <a class="nav-menu__item" href="/updates.html"
+           th:href="@{${arPrefix} ?: '' } + '/updates.html'">
+            <i class="fa fa-bolt" aria-hidden="true"></i>
+            <span th:text="#{nav.updates}">Updates</span>
+        </a>
+        <a th:if="${switchLocalePath != null}" class="nav-menu__item"
+           th:href="@{${switchLocalePath}}" th:hreflang="${switchLocaleTag}"
+           th:attr="data-set-locale=${switchLocaleTag}">
+            <i class="fa fa-globe" aria-hidden="true"></i>
+            <span th:text="${isArabic} ? #{lang.switchToEnglish} : #{lang.switchToArabic}">العربية</span>
+        </a>
+    </div>
+</div>
+
+<!--
+  The search field for every page that is not the search page itself.
+
+  A plain form, not the Tom Select field the search page uses: these pages load
+  neither Tom Select nor rewayaat.js, and pulling both in so a reader can type two
+  words would cost every book and chapter page a bundle it otherwise has no use
+  for. It submits to the same place the real field submits to, so the results are
+  the same; the chips and the suggestions appear once you are there.
+
+  It wears the same glass shell, so moving between a book page and the results does
+  not look like moving between two sites.
+-->
+<form th:fragment="navsearch" class="nav-search" role="search" method="get" data-nav-search
+      th:action="@{${arPrefix} ?: '' } + '/'">
+    <div class="search-entry-shell nav-search__shell">
+        <i class="fa fa-search search-magnifier" aria-hidden="true"></i>
+        <input type="search" name="q" class="nav-search__input" data-nav-search-input
+               th:placeholder="#{search.navPlaceholder}" placeholder="Search the narrations"
+               th:aria-label="#{search.navPlaceholder}" aria-label="Search the narrations"/>
+        <button type="submit" class="btn btn-primary search-btn-with-border nav-search__btn">
+            <!-- Under 768px the word is hidden and this is the button's only label.
+                 Without it the button was a blank 34px square on every hub and static
+                 page, because the rule that hides the text is shared with the home
+                 page's button, which has carried the icon all along. -->
+            <i class="fa fa-search search-btn__icon-mobile" aria-hidden="true"></i>
+            <span class="search-btn__text" th:text="#{search.button}">Search</span>
+        </button>
+    </div>
+</form>
+
+<div th:fragment="navlinks(current)" class="d-flex home-nav-links">
+    <a href="/books" th:href="@{${arPrefix} ?: '' } + '/books'" class="home-nav-link"
+       th:classappend="${current == 'books'} ? ' is-current' : ''"><i class="fa fa-book-open" aria-hidden="true"></i><span th:text="#{nav.books}">Books</span></a>
+    <a href="/updates.html" th:href="@{${arPrefix} ?: '' } + '/updates.html'" class="home-nav-link"
+       th:classappend="${current == 'updates'} ? ' is-current' : ''"><i class="fa fa-bolt" aria-hidden="true"></i><span th:text="#{nav.updates}">Updates</span></a>
+</div>
+
 <nav th:fragment="sitenav" class="navbar navbar-expand-lg sticky-top site-nav">
     <div class="container">
         <div class="navbar-top w-100 d-flex align-items-center flex-wrap gap-3">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="/">
-                <img src="/img/Alilogov2-transparent.png" th:src="@{/img/Alilogov2-transparent.png}" class="brand-logo--full brand-logo--full-v2 d-none d-md-block" alt="ALI Logo"/>
+            <a class="navbar-brand d-flex align-items-center gap-2" href="/"
+               th:href="@{${arPrefix} ?: '' } + '/'">
+                <img src="/img/Alilogov2-transparent.png"
+                     th:src="${isArabic} ? @{/img/Alilogov2-ar-transparent.png} : @{/img/Alilogov2-transparent.png}"
+                     class="brand-logo--full brand-logo--full-v2 d-none d-md-block"
+                     alt="ALI Logo" th:alt="#{footer.academyFull}"/>
                 <img src="/img/ali_icon.png" th:src="@{/img/ali_icon.png}" class="brand-logo--icon d-md-none" alt="ALI"/>
             </a>
-            <div class="d-flex home-nav-links">
-                <a href="/" class="home-nav-link"><i class="fa fa-magnifying-glass" aria-hidden="true"></i><span>Search</span></a>
-                <a href="/books" class="home-nav-link is-current"><i class="fa fa-book-open" aria-hidden="true"></i><span>Books</span></a>
-                <a href="/updates.html" class="home-nav-link"><i class="fa fa-bolt" aria-hidden="true"></i><span>Updates</span></a>
-            </div>
+            <div th:replace="~{fragments/site :: navlinks('books')}"></div>
+            <div th:replace="~{fragments/site :: navsearch}"></div>
 
             <!-- The same auth block the home page carries, down to the element ids, so a
                  reader signed in on the search page sees the same chip in the same place
@@ -84,19 +206,41 @@
                 <div class="d-flex gap-2 top-actions flex-nowrap">
                     <button class="btn btn-dark btn-sm top-action auth-action" id="authSignInBtn" type="button">
                         <i class="fa fa-right-to-bracket" aria-hidden="true"></i>
-                        <span class="auth-action__label">Sign In</span>
+                        <span class="auth-action__label" th:text="#{nav.signin}">Sign In</span>
                     </button>
                     <div class="profile-menu d-none" id="authProfileShell">
                         <button class="top-action profile-chip" id="authProfileBtn" type="button"
-                                aria-label="Open profile" aria-expanded="false">
+                                aria-label="Open profile" th:aria-label="#{nav.profile.open}" aria-expanded="false">
                             <span class="profile-chip__avatar" id="authProfileInitial">R</span>
                             <span class="profile-chip__meta">
-                                <span class="profile-chip__name" id="authProfileName">Account</span>
+                                <span class="profile-chip__name" id="authProfileName" th:text="#{nav.account}">Account</span>
                             </span>
                             <i class="fa fa-angle-down" aria-hidden="true"></i>
                         </button>
                         <div class="profile-dropdown d-none" id="authProfileMenu" aria-hidden="true"></div>
                     </div>
+                    <!--
+                      The language toggle. A globe rather than a word, because the icon
+                      is read the same in both languages, and last in the row so it sits
+                      on the outer edge of the bar - which mirrors on its own, since the
+                      row is laid out with logical properties.
+
+                      Still a link, not a switch: the language is the URL, so changing it
+                      is navigation. For a signed-in reader the click is also recorded
+                      against the account, which is what decides the language of the mail
+                      we send them.
+                    -->
+                    <div th:replace="~{fragments/site :: navmenu}"></div>
+                    <a th:if="${switchLocalePath != null}" class="top-action lang-toggle"
+                       th:href="@{${switchLocalePath}}"
+                       th:hreflang="${switchLocaleTag}"
+                       th:attr="data-set-locale=${switchLocaleTag}"
+                       th:title="${isArabic} ? #{lang.switchToEnglish} : #{lang.switchToArabic}"
+                       th:aria-label="${isArabic} ? #{lang.switchToEnglish} : #{lang.switchToArabic}">
+                        <i class="fa fa-globe" aria-hidden="true"></i>
+                        <span class="lang-toggle__label"
+                              th:text="${isArabic} ? #{lang.switchToEnglish} : #{lang.switchToArabic}">العربية</span>
+                    </a>
                 </div>
             </div>
         </div>
@@ -104,7 +248,7 @@
 </nav>
 
 <!-- The visible trail, rendered from the same list the BreadcrumbList is built from. -->
-<nav th:fragment="crumbtrail" class="hub-crumbs" aria-label="Breadcrumb">
+<nav th:fragment="crumbtrail" class="hub-crumbs" aria-label="Breadcrumb" th:aria-label="#{common.breadcrumb}">
     <th:block th:each="crumb, it : ${breadcrumbs}">
         <span th:if="${!it.first}" class="hub-crumbs__sep">/</span>
         <a th:if="${!it.last}" th:href="${crumb.url}" th:text="${crumb.name}">Crumb</a>
@@ -124,32 +268,38 @@
     <div class="container">
         <div class="site-footer__grid">
             <div>
-                <div class="site-footer__title">Rewayaat</div>
-                <p class="site-footer__text">
-                    A project of the <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" class="site-footer__link">Academy for Learning Islam</a>. Search, browse, and study Shi'i narrations in Arabic and English.
+                <div class="site-footer__title" th:text="#{site.name}">Rewayaat</div>
+                <p class="site-footer__text" th:with="academy=|<a href=&quot;https://academyofislam.com&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; class=&quot;site-footer__link&quot;>${#messages.msg('site.footer.academyName')}</a>|"
+                   th:utext="#{site.footer.text(${academy})}">
+                    <span th:text="#{footer.projectOf}">A project of the</span>
+                    <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" class="site-footer__link" th:text="#{footer.academyFull}">Academy for Learning Islam</a>
+                    <span th:text="#{footer.blurb}">Search, browse, and study Shi'i narrations in Arabic and English.</span>
                 </p>
             </div>
             <div>
-                <div class="site-footer__label">Explore</div>
+                <div class="site-footer__label" th:text="#{footer.explore}">Explore</div>
                 <div class="site-footer__links">
-                    <a href="/books">All Books</a>
-                    <a href="/updates.html">Updates</a>
-                    <a href="/search_tips.html">Search Tips</a>
-                    <a href="/privacy">Privacy</a>
+                    <a href="/books" th:href="@{${arPrefix} ?: '' } + '/books'" th:text="#{footer.allBooks}">All Books</a>
+                    <a href="/updates.html" th:href="@{${arPrefix} ?: '' } + '/updates.html'"
+                       th:text="#{footer.updates}">Updates</a>
+                    <a href="/search_tips.html" th:href="@{${arPrefix} ?: '' } + '/search_tips.html'"
+                       th:text="#{footer.searchTips}">Search Tips</a>
+                    <a href="/privacy" th:href="@{${arPrefix} ?: '' } + '/privacy'"
+                       th:text="#{footer.privacy}">Privacy</a>
                 </div>
             </div>
             <div>
-                <div class="site-footer__label">Contact</div>
+                <div class="site-footer__label" th:text="#{footer.contact}">Contact</div>
                 <div class="site-footer__links">
                     <a href="mailto:rewayaat.org@gmail.com">rewayaat.org@gmail.com</a>
-                    <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
-                    <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer">Academy of Islam</a>
+                    <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer" th:text="#{footer.github}">GitHub Repository</a>
+                    <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" th:text="#{footer.academy}">Academy of Islam</a>
                 </div>
             </div>
         </div>
         <div class="site-footer__bottom">
-            <span>&copy; 2026 Academy for Learning Islam (A.L.I.)</span>
-            <span>Content and translations remain the responsibility of their original sources.</span>
+            <span th:utext="#{footer.rights}">&copy; 2026 Academy for Learning Islam (A.L.I.)</span>
+            <span th:text="#{footer.disclaimer}">Content and translations remain the responsibility of their original sources.</span>
         </div>
     </div>
 </footer>

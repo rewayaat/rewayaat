@@ -1,3 +1,129 @@
+/**
+ * A UI string in the page's language.
+ *
+ * The English text stays at the call site as the fallback, so a key that has not been
+ * added to the bundle yet renders English rather than an empty element, and the file
+ * stays readable without cross-referencing a properties file.
+ *
+ * Interactive chrome only: anything a crawler must read is rendered by the server.
+ */
+function t(key, fallback) {
+    var table = window.I18N || {};
+    var value = table[key];
+    return (typeof value === 'string' && value.length) ? value : fallback;
+}
+
+/**
+ * The dismiss button on every modal.
+ *
+ * sweetalert ships "OK", and every swal() here uses the shorthand — a title, a body and
+ * an icon — which is the one form that takes no button option. So the button stayed
+ * English on an otherwise translated dialog.
+ *
+ * swal.setDefaults({button}) does not fix it: the shorthand builds its own button list
+ * after the defaults are merged and overwrites them. Wrapping the shorthand does, and it
+ * is one place rather than fifteen call sites that would each have to remember. The
+ * object form is passed through untouched unless it named no buttons of its own.
+ */
+(function localiseModalButton(attempt) {
+    var original = window.swal;
+    if (typeof original !== 'function') {
+        // The library is loaded with defer from a CDN. Normally it is here by
+        // DOMContentLoaded; if it is not, give it a moment rather than give up.
+        if ((attempt || 0) < 20) {
+            setTimeout(function () { localiseModalButton((attempt || 0) + 1); }, 150);
+        }
+        return;
+    }
+    if (original.__buttonLocalised) {
+        return;
+    }
+    var wrapped = function (first, text, icon) {
+        var label = t('js.modalOk', 'OK');
+        if (first && typeof first === 'object') {
+            if (first.button === undefined && first.buttons === undefined) {
+                first.button = label;
+            }
+            return original.call(this, first);
+        }
+        return original.call(this, {title: first, text: text, icon: icon, button: label});
+    };
+    Object.keys(original).forEach(function (key) { wrapped[key] = original[key]; });
+    wrapped.__buttonLocalised = true;
+    window.swal = wrapped;
+}());
+
+/**
+ * The current language's URL for an internal path.
+ *
+ * The Arabic site is the same pages under /ar. Every link the server renders carries that
+ * prefix through arPrefix; links built here did not, so following one - a book card, a
+ * narration, the announcement bar - dropped the reader back onto the English site without
+ * anything appearing to go wrong.
+ */
+/**
+ * A recent-update field in the reader's language.
+ *
+ * The home page lists these from /recent_updates.json, the same file the updates page
+ * reads, so the Arabic travels with the data under an _ar suffix rather than through the
+ * message bundle. Falls back per field, so a half-translated entry still shows what it has.
+ */
+function entryText(entry, field) {
+    if (!entry) { return ''; }
+    if (window.I18N_LOCALE === 'ar') {
+        var arabic = entry[field + '_ar'];
+        if (typeof arabic === 'string' && arabic.length) { return arabic; }
+        if (Array.isArray(arabic) && arabic.length) { return arabic; }
+    }
+    return entry[field];
+}
+
+
+function localeHref(path) {
+    var prefix = (window.I18N_LOCALE === 'ar') ? '/ar' : '';
+    if (!path) { return prefix + '/'; }
+    return prefix + (path.charAt(0) === '/' ? path : '/' + path);
+}
+
+/**
+ * A narration's field in the reader's language.
+ *
+ * The index carries book_ar, chapter_ar, section_ar and part_ar beside the English ones
+ * and the API returns them, so metadata on a card can read in Arabic rather than being
+ * labelled in Arabic and filled in English. Coverage is partial by design - chapter_ar
+ * reaches 88% - so each field falls back on its own.
+ */
+/**
+ * A number in the digits the page is set in.
+ *
+ * The server formats its numbers through the locale, so a page could show ١٨٩ in its
+ * heading and 189 in a card rendered here. Applied to the value rather than the whole
+ * string, so "al-qism 10" keeps its words and converts only the 10.
+ */
+function localeDigits(value) {
+    if (value === null || value === undefined) { return value; }
+    if (window.I18N_LOCALE !== 'ar') { return value; }
+    return String(value).replace(/[0-9]/g, function(digit) {
+        return String.fromCharCode(0x0660 + Number(digit));
+    });
+}
+
+function localeField(narration, field) {
+    if (!narration) { return undefined; }
+    if (window.I18N_LOCALE === 'ar') {
+        var arabic = narration[field + '_ar'];
+        if (typeof arabic === 'string' && arabic.length) { return localeDigits(arabic); }
+        var extra = narration.additionalProperties;
+        if (extra && typeof extra[field + '_ar'] === 'string' && extra[field + '_ar'].length) {
+            return localeDigits(extra[field + '_ar']);
+        }
+        // Reached when the row has no Arabic reading. The English is still worth
+        // showing, and a number in it is still worth writing in Arabic digits.
+        return localeDigits(narration[field]);
+    }
+    return narration[field];
+}
+
 var vueApp;
 var currentQueryText = '';
 var bookBlurbs;
@@ -30,7 +156,12 @@ var searchSuggestionNavigationArmed = false;
 var welcomeContentLoading = false;
 var welcomeContentInitialized = false;
 var SEARCH_PLACEHOLDER_DEFAULT = '';
-var SEARCH_PLACEHOLDER_EXAMPLES = ['anger', '"Household of the Prophet"', 'اهل البيت'];
+// The examples type themselves out in the search box, so they are the first thing a
+// visitor reads. On the Arabic site they lead in Arabic; both lists keep one example
+// from the other language, because the corpus is searchable in both either way.
+var SEARCH_PLACEHOLDER_EXAMPLES = (window.I18N_LOCALE === 'ar')
+    ? ['اهل البيت', '"الصلاة"', 'anger']
+    : ['anger', '"Household of the Prophet"', 'اهل البيت'];
 var searchPlaceholderAnimation = {
     timer: null,
     control: null,
@@ -129,7 +260,7 @@ function loadQuery(query, page = 1, sortFields, skipBrowseRedirect) {
         return;
     }
     if (isCollectionMode()) {
-        $.getJSON("book_blurbs.json", function(book_blurbs) {
+        $.getJSON("/book_blurbs.json", function(book_blurbs) {
             bookBlurbs = book_blurbs;
             setupVue(query || '', page, sortFields);
             syncChromeForQuery(query || '', sortFields);
@@ -146,7 +277,7 @@ function loadQuery(query, page = 1, sortFields, skipBrowseRedirect) {
             // display query in search bar
             displayQuery(query);
             // load book blurbs
-            $.getJSON("book_blurbs.json", function(book_blurbs) {
+            $.getJSON("/book_blurbs.json", function(book_blurbs) {
                 bookBlurbs = book_blurbs
                 // load the query
                 setupVue(query, page, sortFields);
@@ -156,8 +287,9 @@ function loadQuery(query, page = 1, sortFields, skipBrowseRedirect) {
             //setLatestNewsBarHTML();
         } else {
             swal(
-                "Invalid Query",
-                "Please ensure the entered query is greater than three characters long!",
+                t('js.invalidQueryTitle', 'Invalid Query'),
+                t('js.invalidQueryBody',
+                  'Please ensure the entered query is greater than three characters long!'),
                 "error");
             displayWelcomeContent();
         }
@@ -166,7 +298,7 @@ function loadQuery(query, page = 1, sortFields, skipBrowseRedirect) {
         // show default mark-down welcome page
         displayWelcomeContent();
         // load book blurbs
-        $.getJSON("book_blurbs.json", function(book_blurbs) {
+        $.getJSON("/book_blurbs.json", function(book_blurbs) {
             bookBlurbs = book_blurbs
         });
     }
@@ -241,6 +373,49 @@ $(document).ready(function() {
 });
 
 var searchSelectControl = null;
+
+/**
+ * The suggestion list, on the side the reader is typing on.
+ *
+ * Tom Select appends the dropdown to <body> — dropdownParent: 'body' — and positions it
+ * with an inline `left` taken from the field's left edge, stretched to the field's full
+ * width. Our CSS narrows it to its content (width: auto, min 180px), and with only
+ * `left` set it collapses against that left edge. In English that is under the caret and
+ * right. In Arabic the caret is at the other end of the field, so the list opened a
+ * clear 700px away from the word being typed and read as belonging to something else.
+ *
+ * This cannot be done in CSS. The dropdown is not a descendant of the field, so nothing
+ * scoped under .search-entry-shell matches it, and the `left` it would have to beat is
+ * an inline style rewritten every time the list opens. So mirror the inset in script,
+ * and only for Arabic: English is already correct and is left alone.
+ */
+function alignSuggestionDropdown(control) {
+    if (!control || !control.dropdown || window.I18N_LOCALE !== 'ar') {
+        return;
+    }
+    var shell = document.querySelector('.search-entry-shell');
+    if (!shell) {
+        return;
+    }
+    var apply = function() {
+        var dropdown = control.dropdown;
+        if (!dropdown || dropdown.style.display === 'none') {
+            return;
+        }
+        var width = dropdown.getBoundingClientRect().width;
+        if (!width) {
+            return;
+        }
+        // 13px is the inset English gets on its side: the shell's 1px border plus the
+        // wrapper's 12px of horizontal padding. Mirrored, the two sites match.
+        var edge = shell.getBoundingClientRect().right + window.scrollX;
+        dropdown.style.setProperty('left', Math.round(edge - width - 13) + 'px', 'important');
+    };
+    // Twice: once on the next frame, and once after Tom Select's own positioning pass,
+    // which runs on a timeout of its own and would otherwise put `left` back.
+    requestAnimationFrame(apply);
+    setTimeout(apply, 0);
+}
 
 function resetSearchSuggestionDropdown(control) {
     if (!control) {
@@ -424,12 +599,21 @@ function setupSelect2EnterKeyListener(select2_id) {
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
+            // Enter searches. It used to only turn the typed word into a term and
+            // wait for a second Enter, which is a reasonable way to build a
+            // multi-term query and an unreasonable thing to do to someone who has
+            // typed a word into a search box and pressed Enter: nothing they can see
+            // happens, so the box reads as broken.
+            //
+            // Committing and submitting keeps the multi-term flow anyway. The term
+            // just typed becomes a chip and stays in the box on the results page, so
+            // typing a second word and pressing Enter again searches for both — one
+            // key per term either way, with results in between instead of silence.
             var pendingForEnter = (input.value || '').trim();
             if (pendingForEnter) {
                 markKeyboardSearchTermCommit();
                 commitPendingSearchTermsToControl([pendingForEnter]);
                 indicatePendingSearchTerms();
-                return;
             }
             submitSearchQuery();
             return;
@@ -632,9 +816,10 @@ function setupSearchHelpHint() {
     }
     btn.addEventListener('click', function(e) {
         e.preventDefault();
-        var msg = "Precise: exact words and exact phrases.\n\nFlexible: tolerates spelling variants and partial matches.";
+        var msg = t('js.searchModesBody',
+            "Precise: exact words and exact phrases.\n\nFlexible: tolerates spelling variants and partial matches.");
         if (typeof swal === 'function') {
-            swal('Search Modes', msg, 'info');
+            swal(t('js.searchModesTitle', 'Search Modes'), msg, 'info');
         } else {
             alert(msg);
         }
@@ -872,7 +1057,8 @@ function setContainerValueText(container, className, text) {
 }
 
 function buildAuthPageUrl(mode, extraParams, options) {
-    var url = new URL('/signin.html', window.location.origin);
+    // The sign-in page has an Arabic twin now, so the language is the URL here too.
+    var url = new URL(localeHref('/signin.html'), window.location.origin);
     if (mode) {
         url.searchParams.set('mode', mode);
     }
@@ -1067,6 +1253,9 @@ function refreshAuthState() {
 
 function applyAuthState() {
     var isAuthed = !!authState.authenticated;
+    // The phone menu's sign-in item reads this rather than authState, so it cannot
+    // disagree with the chip at the other end of the row about who is signed in.
+    document.body.classList.toggle('is-authed', isAuthed);
     var signInBtn = document.getElementById('authSignInBtn');
     var profileShell = document.getElementById('authProfileShell');
     var profileBtn = document.getElementById('authProfileBtn');
@@ -1074,7 +1263,10 @@ function applyAuthState() {
     var profileInitial = document.getElementById('authProfileInitial');
     if (signInBtn) {
         signInBtn.classList.toggle('d-none', isAuthed);
-        signInBtn.innerHTML = '<i class="fa fa-right-to-bracket" aria-hidden="true"></i> Sign In';
+        // The server already rendered this label in the page's language; rebuilding the
+        // button here threw that away and put English back on the Arabic page.
+        signInBtn.innerHTML = '<i class="fa fa-right-to-bracket" aria-hidden="true"></i> '
+            + t('nav.signin', 'Sign In');
     }
     var mobileToggle = document.getElementById('authMobileToggle');
     if (mobileToggle) {
@@ -1094,9 +1286,11 @@ function applyAuthState() {
         profileBtn.setAttribute('aria-expanded', 'false');
     }
     if (profileName) {
+        // The template renders this through the bundle; rewriting it here with a
+        // literal put English back on the Arabic page as soon as auth state settled.
         profileName.textContent = isAuthed
-            ? ((authState.user && authState.user.displayName) || 'Account')
-            : 'Account';
+            ? ((authState.user && authState.user.displayName) || t('nav.account', 'Account'))
+            : t('nav.account', 'Account');
     }
     if (profileInitial) {
         var source = isAuthed
@@ -1137,13 +1331,34 @@ function closeUserProfileMenu() {
     }
     if (profileMenu) {
         profileMenu.classList.add('d-none');
+        profileMenu.classList.remove('profile-dropdown--above');
         profileMenu.setAttribute('aria-hidden', 'true');
+        profileMenu.style.maxHeight = '';
+        // Cleared too, because a page loaded before this was fixed can still be
+        // holding the inline left/top/width that put the panel off the page.
         profileMenu.style.top = '';
         profileMenu.style.left = '';
-        profileMenu.style.maxHeight = '';
+        profileMenu.style.width = '';
     }
 }
 
+/**
+ * Keeps the profile menu inside the window vertically. Horizontally it is the
+ * stylesheet's job, and this used to fight it.
+ *
+ * The panel is `position: absolute` under `.profile-menu`, anchored with
+ * `inset-inline-end: 0` so it hangs from the chip that opens it and mirrors
+ * itself on the Arabic site for free. This function still computed a `left` in
+ * viewport coordinates, from when the panel was `position: fixed`, and wrote it
+ * inline — where the browser resolved it against `.profile-menu` instead of the
+ * window. On the English site the chip sits about 1100px in, so a `left` of 956
+ * put the panel at 2063 on a 1385px page: off the right edge, with a horizontal
+ * scrollbar under the whole site. Arabic escaped it only because the chip is on
+ * the left there and the clamp bottomed out at 12px.
+ *
+ * So: no left, no top, no width. Only the height is clamped, and a class flips
+ * the panel above the chip when there is no room below it.
+ */
 function positionUserProfileMenu() {
     var profileBtn = document.getElementById('authProfileBtn');
     var profileMenu = document.getElementById('authProfileMenu');
@@ -1151,20 +1366,13 @@ function positionUserProfileMenu() {
         return;
     }
     var rect = profileBtn.getBoundingClientRect();
-    var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
     var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-    var menuWidth = Math.min(300, Math.max(260, viewportWidth - 24));
-    profileMenu.style.width = menuWidth + 'px';
-    var menuRect = profileMenu.getBoundingClientRect();
-    var left = Math.max(12, Math.min(rect.right - menuRect.width, viewportWidth - menuRect.width - 12));
-    var top = rect.bottom + 10;
-    var availableBelow = viewportHeight - top - 12;
-    if (availableBelow < 220) {
-        top = Math.max(12, rect.top - Math.min(menuRect.height || 360, viewportHeight - 24) - 10);
-    }
-    profileMenu.style.left = left + 'px';
-    profileMenu.style.top = top + 'px';
-    profileMenu.style.maxHeight = Math.max(180, viewportHeight - top - 12) + 'px';
+    var gap = 10;
+    var below = viewportHeight - rect.bottom - gap - 12;
+    var above = rect.top - gap - 12;
+    var flip = below < 220 && above > below;
+    profileMenu.classList.toggle('profile-dropdown--above', flip);
+    profileMenu.style.maxHeight = Math.max(180, flip ? above : below) + 'px';
 }
 
 function renderUserProfileMenu(collections) {
@@ -1180,8 +1388,8 @@ function renderUserProfileMenu(collections) {
     var header = document.createElement('div');
     header.className = 'profile-dropdown__header';
     header.innerHTML =
-        '<div class="profile-dropdown__eyebrow">Signed in</div>' +
-        '<div class="profile-dropdown__title">' + escapeHtml((authState.user && (authState.user.displayName || authState.user.email)) || 'Account') + '</div>' +
+        '<div class="profile-dropdown__eyebrow">' + escapeHtml(t('js.signedIn', 'Signed in')) + '</div>' +
+        '<div class="profile-dropdown__title">' + escapeHtml((authState.user && (authState.user.displayName || authState.user.email)) || t('nav.account', 'Account')) + '</div>' +
         '<div class="profile-dropdown__subtitle">' + escapeHtml((authState.user && authState.user.email) || '') + '</div>';
     panel.appendChild(header);
 
@@ -1191,8 +1399,12 @@ function renderUserProfileMenu(collections) {
     var stats = document.createElement('div');
     stats.className = 'profile-dropdown__stats';
     stats.innerHTML =
-        '<div class="profile-dropdown__stat"><span class="profile-dropdown__stat-inline">' + collections.length + ' Collections</span></div>' +
-        '<div class="profile-dropdown__stat"><span class="profile-dropdown__stat-inline">' + totalSaved + ' Saved hadith</span></div>';
+        '<div class="profile-dropdown__stat"><span class="profile-dropdown__stat-inline">'
+            + escapeHtml(t('js.collectionsCount', '{0} Collections').replace('{0}', localeDigits(collections.length)))
+            + '</span></div>' +
+        '<div class="profile-dropdown__stat"><span class="profile-dropdown__stat-inline">'
+            + escapeHtml(t('js.savedCount', '{0} Saved hadith').replace('{0}', localeDigits(totalSaved)))
+            + '</span></div>';
     panel.appendChild(stats);
 
     var list = document.createElement('div');
@@ -1200,7 +1412,8 @@ function renderUserProfileMenu(collections) {
     if (!collections.length) {
         var empty = document.createElement('div');
         empty.className = 'profile-dropdown__empty';
-        empty.textContent = 'No collections yet. Save a hadith to start building your reading lists.';
+        empty.textContent = t('js.noCollections',
+            'No collections yet. Save a hadith to start building your reading lists.');
         list.appendChild(empty);
     } else {
         // Create "View Collections" dropdown item for mobile
@@ -1209,7 +1422,8 @@ function renderUserProfileMenu(collections) {
 
         var collectionsToggle = document.createElement('div');
         collectionsToggle.className = 'profile-dropdown__toggle';
-        collectionsToggle.innerHTML = '<span>View Collection</span><i class="fa fa-angle-down"></i>';
+        collectionsToggle.innerHTML = '<span>' + escapeHtml(t('js.viewCollections', 'View Collections'))
+            + '</span><i class="fa fa-angle-down"></i>';
 
         var collectionsSubmenu = document.createElement('div');
         collectionsSubmenu.className = 'profile-dropdown__submenu';
@@ -1219,7 +1433,7 @@ function renderUserProfileMenu(collections) {
             item.className = 'profile-dropdown__submenu-item';
             var count = Array.isArray(collection.hadith_ids) ? collection.hadith_ids.length : 0;
             item.innerHTML =
-                '<span class="profile-dropdown__collection-name">' + escapeHtml(collection.name || 'Collection') + '</span>' +
+                '<span class="profile-dropdown__collection-name">' + escapeHtml(collection.name || t('js.collection', 'Collection')) + '</span>' +
                 '<span class="profile-dropdown__collection-meta">' + count + ' hadith</span>' +
                 '<button class="profile-dropdown__delete-btn" type="button" aria-label="Delete collection"><i class="fa fa-trash-can"></i></button>';
 
@@ -1236,13 +1450,14 @@ function renderUserProfileMenu(collections) {
             deleteBtn.addEventListener('click', function(event) {
                 event.preventDefault();
                 event.stopPropagation();
-                if (confirm('Delete "' + (collection.name || 'Collection') + '"? This cannot be undone.')) {
+                if (confirm(t('js.confirmDeleteCollection', 'Delete "{0}"? This cannot be undone.')
+                        .replace('{0}', collection.name || t('js.collection', 'Collection')))) {
                     apiJSON('/v1/collections/' + collection.id, { method: 'DELETE' }).then(function(resp) {
                         if (resp.ok && resp.data.ok) {
                             loadAndRenderCollections(false);
-                            showToast('Collection deleted.', 'success');
+                            showToast(t('toast.collectionDeleted', 'Collection deleted.'), 'success');
                         } else {
-                            showToast('Could not delete collection.', 'error');
+                            showToast(t('toast.collectionDeleteFailed', 'Could not delete collection.'), 'error');
                         }
                     });
                 }
@@ -1273,7 +1488,7 @@ function renderUserProfileMenu(collections) {
     var createBtn = document.createElement('button');
     createBtn.type = 'button';
     createBtn.className = 'btn btn-link btn-sm px-0';
-    createBtn.innerHTML = '<i class="fa fa-plus"></i> Create collection';
+    createBtn.innerHTML = '<i class="fa fa-plus"></i> ' + t('home.createCollection', 'Create collection');
     createBtn.addEventListener('click', function(event) {
         event.preventDefault();
         closeUserProfileMenu();
@@ -1284,13 +1499,13 @@ function renderUserProfileMenu(collections) {
     var signOutBtn = document.createElement('button');
     signOutBtn.type = 'button';
     signOutBtn.className = 'btn btn-primary btn-sm collection-picker-modal__submit';
-    signOutBtn.textContent = 'Sign Out';
+    signOutBtn.textContent = t('js.signOut', 'Sign Out');
     signOutBtn.addEventListener('click', function(event) {
         event.preventDefault();
         apiJSON('/v1/auth/logout', { method: 'POST' }).then(function() {
             closeUserProfileMenu();
             refreshAuthState();
-            showToast('You have been signed out.', 'information');
+            showToast(t('toast.signedOut', 'You have been signed out.'), 'information');
         });
     });
     footer.appendChild(signOutBtn);
@@ -1354,7 +1569,7 @@ function openFormModal(title, fields, submitLabel, onSubmit, secondaryAction) {
     var closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.className = 'auth-modal-close';
-    closeBtn.setAttribute('aria-label', 'Close');
+    closeBtn.setAttribute('aria-label', t('js.close', 'Close'));
     closeBtn.innerHTML = '&times;';
     closeBtn.addEventListener('click', function() {
         swal.close();
@@ -1389,7 +1604,7 @@ function openFormModal(title, fields, submitLabel, onSubmit, secondaryAction) {
         var secondaryBtn = document.createElement('button');
         secondaryBtn.type = 'button';
         secondaryBtn.className = 'btn btn-link btn-sm px-0';
-        secondaryBtn.textContent = action.label || 'More';
+        secondaryBtn.textContent = action.label || t('js.more', 'More');
         secondaryBtn.addEventListener('click', function() {
             swal.close();
             action.onClick();
@@ -1489,7 +1704,7 @@ function createCollectionModalShell(title, subtitle) {
     var closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.className = 'auth-modal-close';
-    closeBtn.setAttribute('aria-label', 'Close');
+    closeBtn.setAttribute('aria-label', t('js.close', 'Close'));
     closeBtn.innerHTML = '&times;';
     closeBtn.addEventListener('click', function() {
         swal.close();
@@ -1513,11 +1728,11 @@ function createCollectionModalShell(title, subtitle) {
 
 function openCollectionNameModal(options) {
     var opts = options || {};
-    var wrapper = createCollectionModalShell(opts.title || 'Create Collection', opts.subtitle || '');
+    var wrapper = createCollectionModalShell(opts.title || t('js.createCollection', 'Create Collection'), opts.subtitle || '');
     var input = document.createElement('input');
     input.className = 'form-control auth-modal-input collection-picker-modal__input';
     input.type = 'text';
-    input.placeholder = opts.placeholder || 'Collection name';
+    input.placeholder = opts.placeholder || t('js.collectionName', 'Collection name');
     input.value = opts.defaultValue || '';
     input.id = 'collectionModalNameInput';
     wrapper.appendChild(input);
@@ -1528,7 +1743,7 @@ function openCollectionNameModal(options) {
     var submitBtn = document.createElement('button');
     submitBtn.type = 'button';
     submitBtn.className = 'btn btn-primary btn-sm collection-picker-modal__submit';
-    submitBtn.textContent = opts.submitLabel || 'Save';
+    submitBtn.textContent = opts.submitLabel || t('js.save', 'Save');
     submitBtn.addEventListener('click', function() {
         opts.onSubmit((input.value || '').trim());
     });
@@ -1546,13 +1761,13 @@ function openCollectionNameModal(options) {
 
 function openCollectionPickerModal(hadithId, collections) {
     var wrapper = createCollectionModalShell(
-        'Save Hadith',
-        'Choose an existing collection or create a new one.'
+        t('js.saveHadith', 'Save Hadith'),
+        t('js.chooseCollection', 'Choose an existing collection or create a new one.')
     );
 
     var label = document.createElement('label');
     label.className = 'auth-modal-label';
-    label.textContent = 'Collection';
+    label.textContent = t('js.collection', 'Collection');
     wrapper.appendChild(label);
 
     // Create a select dropdown for existing collections
@@ -1564,7 +1779,7 @@ function openCollectionPickerModal(hadithId, collections) {
     // Add placeholder option
     var placeholderOption = document.createElement('option');
     placeholderOption.value = '';
-    placeholderOption.textContent = 'Select a collection\u2026';
+    placeholderOption.textContent = t('js.selectCollection', 'Select a collection\u2026');
     placeholderOption.disabled = true;
     placeholderOption.selected = true;
     select.appendChild(placeholderOption);
@@ -1575,14 +1790,14 @@ function openCollectionPickerModal(hadithId, collections) {
         var option = document.createElement('option');
         option.value = collection.name || 'Collection';
         var count = Array.isArray(collection.hadith_ids) ? collection.hadith_ids.length : 0;
-        option.textContent = (collection.name || 'Collection') + ' (' + count + ' hadith)';
+        option.textContent = (collection.name || t('js.collection', 'Collection')) + ' (' + formatHadithCount(count) + ')';
         select.appendChild(option);
     });
 
     // Add "New Collection" option LAST
     var newOption = document.createElement('option');
     newOption.value = '';
-    newOption.textContent = '+ New Collection';
+    newOption.textContent = t('js.newCollection', '+ New Collection');
     select.appendChild(newOption);
 
     wrapper.appendChild(select);
@@ -1595,14 +1810,14 @@ function openCollectionPickerModal(hadithId, collections) {
 
     var newLabel = document.createElement('label');
     newLabel.className = 'auth-modal-label';
-    newLabel.textContent = 'New Collection Name';
+    newLabel.textContent = t('js.newCollectionName', 'New Collection Name');
     newLabel.style.fontSize = '0.85rem';
     newCollectionContainer.appendChild(newLabel);
 
     var newInput = document.createElement('input');
     newInput.className = 'form-control auth-modal-input collection-picker-modal__input';
     newInput.type = 'text';
-    newInput.placeholder = 'New Collection';
+    newInput.placeholder = t('js.newCollection', '+ New Collection').replace(/^\+\s*/, '');
     newInput.id = 'newCollectionInput';
     newCollectionContainer.appendChild(newInput);
     wrapper.appendChild(newCollectionContainer);
@@ -1613,7 +1828,7 @@ function openCollectionPickerModal(hadithId, collections) {
     var manageBtn = document.createElement('button');
     manageBtn.type = 'button';
     manageBtn.className = 'btn btn-link btn-sm px-0';
-    manageBtn.textContent = 'Manage collections';
+    manageBtn.textContent = t('js.manageCollections', 'Manage collections');
     manageBtn.addEventListener('click', function() {
         swal.close();
         openUserProfileModal();
@@ -1623,7 +1838,7 @@ function openCollectionPickerModal(hadithId, collections) {
     var submitBtn = document.createElement('button');
     submitBtn.type = 'button';
     submitBtn.className = 'btn btn-primary btn-sm collection-picker-modal__submit';
-    submitBtn.textContent = 'Save Hadith';
+    submitBtn.textContent = t('js.saveHadith', 'Save Hadith');
     submitBtn.addEventListener('click', function() {
         var selectedValue = select.value;
         var selectedIndex = select.selectedIndex;
@@ -1646,13 +1861,16 @@ function openCollectionPickerModal(hadithId, collections) {
             body: JSON.stringify({ hadithId: hadithId, collectionName: collectionName })
         }).then(function(resp) {
             if (!resp.ok || !resp.data.ok) {
-                swal('Save failed', (resp.data && resp.data.message) || 'Could not save hadith.', 'error');
+                swal(t('js.saveFailedTitle', 'Save failed'), (resp.data && resp.data.message) || t('js.saveFailedBody', 'Could not save hadith.'), 'error');
                 return;
             }
             swal.close();
             loadAndRenderCollections(false);
             refreshAuthState();
-            showToast('<i class="fa fa-circle-check" style="margin-right:6px;"></i>Saved to ' + (((resp.data.collection && resp.data.collection.name) || collectionName)) + '.', 'success');
+            showToast('<i class="fa fa-circle-check" style="margin-right:6px;"></i>'
+                + t('toast.savedTo', 'Saved to {0}.').replace('{0}',
+                    (resp.data.collection && resp.data.collection.name) || collectionName),
+                'success');
         });
     });
     footer.appendChild(submitBtn);
@@ -1705,10 +1923,11 @@ function openCreateCollectionModal() {
         return;
     }
     openCollectionNameModal({
-        title: 'Create Collection',
-        subtitle: 'Create a reading list you can revisit from your profile or the home page.',
-        placeholder: 'e.g. Purification Narrations',
-        submitLabel: 'Create',
+        title: t('home.createCollection', 'Create Collection'),
+        subtitle: t('js.createCollectionSubtitle',
+            'Create a reading list you can revisit from your profile or the home page.'),
+        placeholder: t('js.collectionPlaceholder', 'e.g. Purification Narrations'),
+        submitLabel: t('js.create', 'Create'),
         onSubmit: function(name) {
             // Check for duplicate name
             var existing = userCollectionsCache || [];
@@ -1716,7 +1935,10 @@ function openCreateCollectionModal() {
                 return c.name && c.name.trim().toLowerCase() === name.trim().toLowerCase();
             });
             if (duplicate) {
-                swal('Duplicate name', 'You already have a collection named "' + escapeHtml(name.trim()) + '". Please choose a different name.', 'warning');
+                swal(t('js.duplicateNameTitle', 'Duplicate name'),
+                    t('js.duplicateNameBody',
+                      'You already have a collection named "{0}". Please choose a different name.')
+                        .replace('{0}', escapeHtml(name.trim())), 'warning');
                 return;
             }
             apiJSON('/v1/collections', {
@@ -1724,13 +1946,18 @@ function openCreateCollectionModal() {
                 body: JSON.stringify({ name: name })
             }).then(function(resp) {
                 if (!resp.ok || !resp.data.ok) {
-                    swal('Unable to create', (resp.data && resp.data.message) || 'Could not create collection.', 'error');
+                    swal(t('js.createFailedTitle', 'Unable to create'),
+                        (resp.data && resp.data.message)
+                            || t('js.createFailedBody', 'Could not create collection.'), 'error');
                     return;
                 }
                 swal.close();
                 loadAndRenderCollections(false);
                 refreshAuthState();
-                showToast('<i class="fa fa-circle-check" style="margin-right:6px;"></i>Collection created! You can now save hadith to it using the <i class="fa fa-bookmark"></i> button on any narration.', 'success');
+                showToast('<i class="fa fa-circle-check" style="margin-right:6px;"></i>'
+                    + t('toast.collectionCreated',
+                        'Collection created! You can now save hadith to it using the bookmark button on any narration.'),
+                    'success');
             });
         }
     });
@@ -1738,14 +1965,15 @@ function openCreateCollectionModal() {
 
 function openSaveHadithModal(hadithId) {
     if (!authState.authenticated) {
-        showToast('Sign in to save hadith to your collections.', 'information');
+        showToast(t('toast.signInToSave', 'Sign in to save hadith to your collections.'), 'information');
         openLoginModal();
         return;
     }
     ensureCollectionsLoaded().then(function(collections) {
         openCollectionPickerModal(hadithId, collections);
     }).catch(function() {
-        swal('Save unavailable', 'Unable to load your collections right now.', 'error');
+        swal(t('js.saveUnavailableTitle', 'Save unavailable'),
+            t('js.collectionsLoadFailed', 'Unable to load your collections right now.'), 'error');
     });
 }
 
@@ -1762,20 +1990,21 @@ function openCollectionManageModal() {
         // Open the full collections modal
         openUserProfileModal();
     }).catch(function() {
-        swal('Collections unavailable', 'Unable to load your collections right now.', 'error');
+        swal(t('js.collectionsUnavailableTitle', 'Collections unavailable'),
+            t('js.collectionsLoadFailed', 'Unable to load your collections right now.'), 'error');
     });
 }
 
 var hadithEditorScalarFields = [
-    { key: 'book', label: 'Book' },
-    { key: 'number', label: 'Number' },
-    { key: 'edition', label: 'Edition' },
-    { key: 'source', label: 'Source' },
-    { key: 'publisher', label: 'Publisher' },
-    { key: 'volume', label: 'Volume' },
-    { key: 'part', label: 'Part' },
-    { key: 'section', label: 'Section' },
-    { key: 'chapter', label: 'Chapter' }
+    { key: 'book', label: t('filter.book', 'Book') },
+    { key: 'number', label: t('js.number', 'Number') },
+    { key: 'edition', label: t('js.edition', 'Edition') },
+    { key: 'source', label: t('js.source', 'Source') },
+    { key: 'publisher', label: t('js.publisher', 'Publisher') },
+    { key: 'volume', label: t('filter.volume', 'Volume') },
+    { key: 'part', label: t('filter.part', 'Part') },
+    { key: 'section', label: t('filter.section', 'Section') },
+    { key: 'chapter', label: t('filter.chapter', 'Chapter') }
 ];
 var hadithEditorKnownKeys = [
     '_id',
@@ -1870,7 +2099,7 @@ function createHadithEditorRowEditor(title, subtitle, fields, items) {
         var removeBtn = document.createElement('button');
         removeBtn.type = 'button';
         removeBtn.className = 'btn btn-outline-danger btn-sm';
-        removeBtn.textContent = 'Remove';
+        removeBtn.textContent = t('js.remove', 'Remove');
         removeBtn.addEventListener('click', function() {
             row.remove();
         });
@@ -1957,8 +2186,9 @@ function openHadithEditorModal(options) {
     var narration = opts.narration || {};
     var taxonomy = opts.taxonomy || {};
     var wrapper = createCollectionModalShell(
-        'Edit Hadith',
-        'Update the narration fields below. Saving replaces the stored document immediately.'
+        t('js.editHadith', 'Edit Hadith'),
+        t('js.editHadithSubtitle',
+            'Update the narration fields below. Saving replaces the stored document immediately.')
     );
     wrapper.classList.add('hadith-editor-modal');
 
@@ -1966,7 +2196,8 @@ function openHadithEditorModal(options) {
     meta.className = 'hadith-editor-modal__meta';
     meta.innerHTML =
         '<span class="hadith-editor-modal__meta-id">ID ' + escapeHtml((narration._id || '').toString()) + '</span>' +
-        '<span>' + escapeHtml(((narration.book || 'Narration') + (narration.number ? (' #' + narration.number) : '')).trim()) + '</span>';
+        '<span>' + escapeHtml(((localeField(narration, 'book') || t('js.narration', 'Narration'))
+            + (narration.number ? (' #' + narration.number) : '')).trim()) + '</span>';
     wrapper.appendChild(meta);
 
     var grid = document.createElement('div');
@@ -2075,9 +2306,9 @@ function openHadithEditorModal(options) {
         'Gradings',
         'Use one row per grading.',
         [
-            { key: 'grader', label: 'Grader' },
-            { key: 'grading', label: 'Grading' },
-            { key: 'rationale', label: 'Rationale', multiline: true, rows: 2 }
+            { key: 'grader', label: t('js.grader', 'Grader') },
+            { key: 'grading', label: t('js.grading', 'Grading') },
+            { key: 'rationale', label: t('js.rationale', 'Rationale'), multiline: true, rows: 2 }
         ],
         narration.gradings
     );
@@ -2087,9 +2318,9 @@ function openHadithEditorModal(options) {
         'Related Links',
         'Optional related resources for this narration.',
         [
-            { key: 'title', label: 'Title' },
+            { key: 'title', label: t('js.title', 'Title') },
             { key: 'url', label: 'URL' },
-            { key: 'description', label: 'Description', multiline: true, rows: 2 }
+            { key: 'description', label: t('js.description', 'Description'), multiline: true, rows: 2 }
         ],
         narration.related
     );
@@ -2121,7 +2352,7 @@ function openHadithEditorModal(options) {
     var cancelBtn = document.createElement('button');
     cancelBtn.type = 'button';
     cancelBtn.className = 'btn btn-link btn-sm px-0';
-    cancelBtn.textContent = 'Cancel';
+    cancelBtn.textContent = t('js.cancel', 'Cancel');
     cancelBtn.addEventListener('click', function() {
         if (!saveBtn.disabled) {
             swal.close();
@@ -2132,7 +2363,7 @@ function openHadithEditorModal(options) {
     var saveBtn = document.createElement('button');
     saveBtn.type = 'button';
     saveBtn.className = 'btn btn-primary btn-sm collection-picker-modal__submit';
-    saveBtn.textContent = 'Save Changes';
+    saveBtn.textContent = t('js.saveChanges', 'Save Changes');
     actions.appendChild(saveBtn);
     wrapper.appendChild(actions);
 
@@ -2148,14 +2379,14 @@ function openHadithEditorModal(options) {
     var topicControl = null;
     if (typeof TomSelect !== 'undefined') {
         tagsControl = new TomSelect(tagsSelect, {
-            plugins: { remove_button: { title: 'Remove' } },
+            plugins: { remove_button: { title: t('js.remove', 'Remove') } },
             persist: false,
             create: true,
             hideSelected: true,
             maxOptions: 200
         });
         topicControl = new TomSelect(topicSelect, {
-            plugins: { remove_button: { title: 'Remove' } },
+            plugins: { remove_button: { title: t('js.remove', 'Remove') } },
             persist: true,
             create: false,
             hideSelected: true,
@@ -2277,7 +2508,7 @@ function renderCollectionsSection(collections) {
         var count = (collection.hadith_ids && collection.hadith_ids.length) ? collection.hadith_ids.length : 0;
         var updatedText = collection.updatedAt ? new Date(collection.updatedAt).toLocaleDateString() : '';
         card.innerHTML =
-            '<div class="collection-title">' + escapeHtml(collection.name || 'Collection') + '</div>' +
+            '<div class="collection-title">' + escapeHtml(collection.name || t('js.collection', 'Collection')) + '</div>' +
             '<div class="collection-meta">' + count + ' hadith · updated ' + escapeHtml(updatedText) + '</div>';
 
         var actions = document.createElement('div');
@@ -2286,7 +2517,7 @@ function renderCollectionsSection(collections) {
         var viewBtn = document.createElement('button');
         viewBtn.type = 'button';
         viewBtn.className = 'btn btn-outline-dark btn-sm';
-        viewBtn.textContent = 'Open';
+        viewBtn.textContent = t('js.open', 'Open');
         viewBtn.addEventListener('click', function() {
             openCollectionPage(collection.id, 1, []);
         });
@@ -2295,7 +2526,7 @@ function renderCollectionsSection(collections) {
         var deleteBtn = document.createElement('button');
         deleteBtn.type = 'button';
         deleteBtn.className = 'btn btn-outline-danger btn-sm';
-        deleteBtn.textContent = 'Delete';
+        deleteBtn.textContent = t('js.delete', 'Delete');
         deleteBtn.addEventListener('click', function() {
             deleteCollection(collection.id);
         });
@@ -2313,7 +2544,9 @@ function deleteCollection(collectionId, onSuccess) {
     apiJSON('/v1/collections/' + encodeURIComponent(collectionId), { method: 'DELETE' })
         .then(function(resp) {
             if (!resp.ok || !resp.data.ok) {
-                swal('Delete failed', (resp.data && resp.data.message) || 'Unable to delete collection.', 'error');
+                swal(t('js.deleteFailedTitle', 'Delete failed'),
+                    (resp.data && resp.data.message)
+                        || t('js.deleteFailedBody', 'Unable to delete collection.'), 'error');
                 return;
             }
             loadAndRenderCollections(false);
@@ -2334,7 +2567,7 @@ function initSelect2(select2_id) {
     searchSelectControl = new TomSelect(selectEl, {
         plugins: {
             remove_button: {
-                title: 'Remove'
+                title: t('js.remove', 'Remove')
             }
         },
         persist: false,
@@ -2344,6 +2577,19 @@ function initSelect2(select2_id) {
         closeAfterSelect: true,
         dropdownParent: 'body',
         hidePlaceholder: true,
+        // Tom Select writes both of these itself, in English. They are the only two
+        // strings in the suggestion list that are not the reader's own search terms.
+        render: {
+            option_create: function(data, escape) {
+                return '<div class="create">'
+                    + t('js.addTerm', 'Add {0}\u2026').replace('{0}', '<strong>' + escape(data.input) + '</strong>')
+                    + '</div>';
+            },
+            no_results: function() {
+                return '<div class="no-results">'
+                    + escapeHtml(t('js.noSuggestions', 'No results found')) + '</div>';
+            }
+        },
         maxItems: null,
         placeholder: SEARCH_PLACEHOLDER_DEFAULT,
         loadThrottle: 250,
@@ -2393,6 +2639,14 @@ function initSelect2(select2_id) {
                 updateSearchPlaceholder(this);
             }
         },
+        onDropdownOpen: function() {
+            alignSuggestionDropdown(this);
+        },
+        onType: function() {
+            // The list is rebuilt as the reader types, and its width changes with the
+            // longest suggestion in it, so the offset has to be recomputed.
+            alignSuggestionDropdown(this);
+        },
         onInitialize: function() {
             updateSearchPlaceholder(this);
             if (this.dropdown) {
@@ -2402,6 +2656,9 @@ function initSelect2(select2_id) {
             setTimeout(function() {
                 updateSearchPlaceholder(self);
             }, 180);
+            window.addEventListener('resize', function() {
+                alignSuggestionDropdown(self);
+            });
         }
     });
     return searchSelectControl;
@@ -3032,14 +3289,14 @@ function formatFacetDisplay(key, value) {
     }
     var label = String(value);
     if (key === 'volume' && label.toLowerCase().indexOf('volume') === -1) {
-        return 'Volume ' + label;
+        return t('book.volumeNumber', 'Volume {0}').replace('{0}', label);
     }
     return label;
 }
 
 function formatHadithCount(count) {
     var num = Number(count) || 0;
-    return num + ' hadith';
+    return localeDigits(num) + ' ' + t('common.hadith', 'hadith');
 }
 
 function buildQueryFromFilters(filters) {
@@ -3126,11 +3383,14 @@ function buildFacetsUrl(filters) {
 }
 
 function getBrowseFacetPlaceholder(key) {
+    // The template renders these four from the catalogue on first paint; this is the
+    // same four, for when the panel is repopulated after a book is chosen. They were
+    // English literals, so choosing a book turned the Arabic labels back to English.
     var placeholders = {
-        volume: 'All Volumes',
-        part: 'All Parts',
-        section: 'All Sections',
-        chapter: 'All Chapters'
+        volume: t('filter.allVolumes', 'All Volumes'),
+        part: t('filter.allParts', 'All Parts'),
+        section: t('filter.allSections', 'All Sections'),
+        chapter: t('filter.allChapters', 'All Chapters')
     };
     return placeholders[key] || ('All ' + humanizeFacetLabel(key) + 's');
 }
@@ -3180,9 +3440,22 @@ function updateFacetSelect(config, items, selectedValue, placeholderOverride) {
     var placeholder = placeholderOverride || ((config.selectId.indexOf('browse') === 0 || config.selectId.indexOf('hero') === 0)
         ? getBrowseFacetPlaceholder(config.key)
         : ('Select a ' + humanizeFacetLabel(config.key).toLowerCase()));
+    var arabic = window.I18N_LOCALE === 'ar';
     var normalizedItems = (items || []).map(function(item) {
+        var value = normalizeFacetItemValue(item);
+        // The value is the English the index is filtered by; the label is what the
+        // reader picks from. /v1/browse/facets carries the Arabic beside the English
+        // for the three facets that are names rather than numbers.
+        var label = (arabic && item && item.nameAr) ? String(item.nameAr).trim() : value;
+        // "al-qism 1" is a name with a numeral in it, and a volume is a numeral
+        // outright. Both read in the page's digits on the Arabic site, the way
+        // every other number on it does.
+        if (arabic) {
+            label = localeDigits(label);
+        }
         return {
-            value: normalizeFacetItemValue(item),
+            value: value,
+            label: label,
             count: item && item.count ? item.count : 0
         };
     }).filter(function(item) {
@@ -3193,7 +3466,10 @@ function updateFacetSelect(config, items, selectedValue, placeholderOverride) {
     normalizedItems.forEach(function(item) {
         var option = document.createElement('option');
         option.value = item.value;
-        option.textContent = formatFacetDisplay(config.key, item.value) + ' (' + formatHadithCount(item.count) + ')';
+        option.textContent = (item.label === item.value
+                ? formatFacetDisplay(config.key, item.value)
+                : item.label)
+            + ' (' + formatHadithCount(item.count) + ')';
         select.appendChild(option);
     });
     select.disabled = persistVisible ? false : !hasItems;
@@ -3313,14 +3589,17 @@ function loadRecentUpdates() {
                 // press play would navigate away instead.
                 var card = document.createElement('article');
                 card.className = 'recent-update-card';
-                var highlights = Array.isArray(update.highlights) ? update.highlights : [];
+                var localised = entryText(update, 'highlights');
+                var highlights = Array.isArray(localised) ? localised : [];
                 var link = document.createElement('a');
                 link.className = 'recent-update-card__link';
-                link.href = '/updates.html';
+                link.href = localeHref('/updates.html');
                 link.innerHTML =
                     '<div class="recent-update-date">' + escapeHtml(update.date || '') + '</div>' +
-                    '<h3 class="recent-update-title">' + escapeHtml(update.title || 'Update') + '</h3>' +
-                    '<p class="recent-update-summary">' + escapeHtml(update.summary || '') + '</p>';
+                    '<h3 class="recent-update-title">'
+                        + escapeHtml(entryText(update, 'title') || t('js.update', 'Update')) + '</h3>' +
+                    '<p class="recent-update-summary">'
+                        + escapeHtml(entryText(update, 'summary') || '') + '</p>';
                 if (highlights.length) {
                     var list = document.createElement('ul');
                     list.className = 'recent-update-list';
@@ -3438,18 +3717,31 @@ function quranicCitationStyleAttr(source) {
 function buildPdfExportMarkup(options) {
     var opts = options || {};
     var narrations = Array.isArray(opts.narrations) ? opts.narrations : [];
-    var title = escapeHtml(opts.title || 'Hadith Export');
+    // Not `arabic`: the map callback below declares its own `arabic` for the
+    // narration's Arabic text, and a var hoists over the whole callback — so the
+    // flag read as undefined exactly where it was asked whether to drop the
+    // English, and every Arabic export carried both columns.
+    var arabicSite = window.I18N_LOCALE === 'ar';
+    var title = escapeHtml(opts.title || t('pdf.exportTitle', 'Hadith Export'));
     var subtitle = escapeHtml(opts.subtitle || '');
     var metaLine = escapeHtml(opts.metaLine || '');
-    var generatedAt = escapeHtml(new Date().toLocaleString());
+    // In the page's language, not the browser's: an Arabic export dated in
+    // en-US because that is what the machine is set to reads as a leak.
+    var generatedAt = escapeHtml(new Date().toLocaleString(arabicSite ? 'ar' : 'en-GB'));
     var cards = narrations.map(function(narration, index) {
-        var number = escapeHtml(String(typeof opts.resultOrdinal === 'function'
+        var ordinal = String(typeof opts.resultOrdinal === 'function'
             ? opts.resultOrdinal(narration, index)
-            : (index + 1)));
+            : (index + 1));
+        // "Hadith 12" in an Arabic export counts in Arabic-Indic digits, the way
+        // every other number on the Arabic site does.
+        var number = escapeHtml(arabicSite ? localeDigits(ordinal) : ordinal);
         var reference = escapeHtml((typeof opts.referenceLine === 'function'
             ? opts.referenceLine(narration)
             : '') || '');
-        var english = (narration && (narration.englishContent || narration.english)) || '';
+        // The Arabic export carries the Arabic. The reader chose a language, and the
+        // card on screen already shows one column rather than two — a PDF that puts
+        // the English back is the one place the choice would not hold.
+        var english = arabicSite ? '' : ((narration && (narration.englishContent || narration.english)) || '');
         var arabic = (narration && (narration.arabicContent || narration.arabic)) || '';
         var tags = Array.isArray(narration && narration.topic_tags) ? narration.topic_tags : [];
         var tagsHtml = tags.length
@@ -3461,7 +3753,9 @@ function buildPdfExportMarkup(options) {
         return '' +
             '<article class="pdf-card">' +
                 '<div class="pdf-card__top">' +
-                    '<div class="pdf-card__index">Hadith ' + number + '</div>' +
+                    '<div class="pdf-card__index">'
+                        + escapeHtml(t('pdf.hadithNumber', 'Hadith {0}').replace('{0}', number))
+                        + '</div>' +
                     (reference ? '<div class="pdf-card__reference">' + reference + '</div>' : '') +
                 '</div>' +
                 '<div class="pdf-card__body">' +
@@ -3473,7 +3767,7 @@ function buildPdfExportMarkup(options) {
     }).join('');
 
     return '<!doctype html>' +
-        '<html><head><meta charset="utf-8">' +
+        '<html lang="' + (arabicSite ? 'ar' : 'en') + '" dir="' + (arabicSite ? 'rtl' : 'ltr') + '"><head><meta charset="utf-8">' +
         '<title>' + title + '</title>' +
         '<link rel="preconnect" href="https://fonts.googleapis.com">' +
         '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
@@ -3498,14 +3792,24 @@ function buildPdfExportMarkup(options) {
         '.pdf-card__arabic{margin-top:18px;padding-top:16px;border-top:1px dashed rgba(64,49,26,.12);font:700 24px/1.9 "Amiri","Scheherazade New",serif;color:#1c2f41;}' +
         '.pdf-card__tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;}' +
         '.pdf-tag{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;background:rgba(23,77,119,.08);border:1px solid rgba(23,77,119,.12);font:700 11px/1.2 "Manrope",sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#1f5c86;}' +
+        (arabicSite ? (
+          '[dir="rtl"] .pdf-card__index,[dir="rtl"] .pdf-meta,[dir="rtl"] .pdf-eyebrow,'
+          + '[dir="rtl"] .pdf-tag{letter-spacing:normal;text-transform:none;}'
+          + '[dir="rtl"] .pdf-card__reference{text-align:left;}'
+          + '[dir="rtl"] .pdf-title{font-family:"Amiri",serif;line-height:1.5;}'
+          + '[dir="rtl"] .pdf-card__arabic{margin-top:0;padding-top:0;border-top:0;}'
+        ) : '') +
         '@page{size:auto;margin:16mm;}@media print{body{padding:0;background:#fff;}body::before{display:none;}.pdf-shell{max-width:none;}.pdf-header{box-shadow:none;border-radius:0;border:0;border-bottom:1px solid #ddd;padding:0 0 16px;background:#fff;}.pdf-grid{margin-top:16px;}.pdf-card{box-shadow:none;background:#fff;}.pdf-card:not(:last-child){break-after:page;page-break-after:always;}}' +
         '</style></head><body>' +
         '<div class="pdf-shell">' +
             '<header class="pdf-header">' +
-                '<div class="pdf-eyebrow">Rewayaat Export</div>' +
+                '<div class="pdf-eyebrow">'
+                    + escapeHtml(t('pdf.eyebrow', 'The Hadith Database')) + '</div>' +
                 '<h1 class="pdf-title">' + title + '</h1>' +
                 (subtitle ? '<div class="pdf-subtitle">' + subtitle + '</div>' : '') +
-                '<div class="pdf-meta">' + metaLine + (metaLine ? ' · ' : '') + 'Generated ' + generatedAt + '</div>' +
+                '<div class="pdf-meta">' + metaLine + (metaLine ? ' · ' : '')
+                    + escapeHtml(t('pdf.generated', 'Generated {0}').replace('{0}', generatedAt))
+                    + '</div>' +
             '</header>' +
             '<section class="pdf-grid">' + cards + '</section>' +
         '</div>' +
@@ -3540,7 +3844,9 @@ function openPdfExportWindow(options) {
             iframe.parentNode.removeChild(iframe);
         }
         if (typeof swal === 'function') {
-            swal('Export unavailable', 'Unable to prepare the PDF export in this browser.', 'warning');
+            swal(t('js.exportUnavailableTitle', 'Export unavailable'),
+                t('js.exportUnavailableBody',
+                  'Unable to prepare the PDF export in this browser.'), 'warning');
         }
         return;
     }
@@ -3874,7 +4180,7 @@ function loadBrowseBooks() {
     }
     var heroMeta = document.getElementById('heroBrowseMeta');
     if (heroMeta) {
-        heroMeta.textContent = 'Choose optional filters to refine your search.';
+        heroMeta.textContent = t('filter.hint', 'Choose optional filters to refine your search.');
     }
     if (heroRefineToggle && heroRefinePanel && !heroRefineToggle.dataset.bound) {
         heroRefineToggle.addEventListener('click', function() {
@@ -3975,14 +4281,17 @@ function populateBrowseBooks(books) {
     if (!heroBookSelect && !bookSelect) {
         return;
     }
-    populateBookSelect(heroBookSelect, books, 'All Books');
-    populateBookSelect(bookSelect, books, 'Select a book');
+    populateBookSelect(heroBookSelect, books, t('filter.allBooks', 'All Books'));
+    populateBookSelect(bookSelect, books, t('filter.selectBook', 'Select a book'));
     if (bookList) {
         bookList.innerHTML = '';
     }
     var MOBILE_BOOK_LIMIT = 4;
     books.forEach(function(item, idx) {
         var name = item.name || item.key || '';
+        // The list is built here, so the Arabic name has to travel with the data;
+        // /v1/browse/books carries it as nameAr.
+        var displayName = (window.I18N_LOCALE === 'ar' && item.nameAr) ? item.nameAr : name;
         if (!name) {
             return;
         }
@@ -3998,12 +4307,14 @@ function populateBrowseBooks(books) {
                 card.className += ' browse-book-card--overflow';
             }
             card.setAttribute('data-book', name);
-            card.setAttribute('href', '/books/' + encodeURIComponent(item.slug || ''));
+            card.setAttribute('href', localeHref('/books/' + encodeURIComponent(item.slug || '')));
             card.innerHTML = '<div class=\"browse-book-head\">' +
                 '<span class=\"browse-book-icon\" aria-hidden=\"true\"><i class=\"fa fa-book\"></i></span>' +
                 '<div class=\"browse-book-copy\">' +
-                '<div class=\"browse-book-title\">' + escapeHtml(name) + '</div>' +
-                '<div class=\"browse-book-count\">' + count.toLocaleString() + ' narrations</div>' +
+                '<div class=\"browse-book-title\">' + escapeHtml(displayName) + '</div>' +
+                '<div class=\"browse-book-count\">'
+                    + count.toLocaleString(window.I18N_LOCALE === 'ar' ? 'ar-EG' : undefined)
+                    + ' ' + t('books.card.narrations', 'narrations') + '</div>' +
                 '</div></div>';
             bookList.appendChild(card);
         }
@@ -4012,10 +4323,12 @@ function populateBrowseBooks(books) {
         var toggle = document.createElement('button');
         toggle.className = 'browse-book-drawer-toggle';
         toggle.type = 'button';
-        toggle.textContent = 'Show all ' + books.length + ' books';
+        toggle.textContent = t('js.showAllBooks', 'Show all {0} books').replace('{0}', books.length);
         toggle.addEventListener('click', function() {
             var expanded = bookList.classList.toggle('is-expanded');
-            toggle.textContent = expanded ? 'Show fewer books' : 'Show all ' + books.length + ' books';
+            toggle.textContent = expanded
+                ? t('js.showFewerBooks', 'Show fewer books')
+                : t('js.showAllBooks', 'Show all {0} books').replace('{0}', localeDigits(books.length));
         });
         bookList.appendChild(toggle);
     }
@@ -4028,13 +4341,18 @@ function populateBookSelect(select, books, placeholder) {
     select.innerHTML = '<option value=\"\">' + placeholder + '</option>';
     (books || []).forEach(function(item) {
         var name = item.name || item.key || '';
+        // The list is built here, so the Arabic name has to travel with the data;
+        // /v1/browse/books carries it as nameAr.
+        var displayName = (window.I18N_LOCALE === 'ar' && item.nameAr) ? item.nameAr : name;
         if (!name) {
             return;
         }
         var count = item.count || 0;
         var option = document.createElement('option');
+        // The value stays the English name: it is the key the browse endpoint filters
+        // on. Only what the reader sees changes.
         option.value = name;
-        option.textContent = name + ' (' + formatHadithCount(count) + ')';
+        option.textContent = displayName + ' (' + formatHadithCount(count) + ')';
         select.appendChild(option);
     });
 }
@@ -4058,7 +4376,7 @@ function handleHeroSelectionChange(resetFacets) {
     if (!selections.book) {
         resetHeroFacetSelects();
         if (meta) {
-            meta.textContent = 'Choose optional filters to refine your search.';
+            meta.textContent = t('filter.hint', 'Choose optional filters to refine your search.');
         }
         return;
     }
@@ -4069,7 +4387,7 @@ function handleHeroSelectionChange(resetFacets) {
         selections.chapter = '';
     }
     if (meta) {
-        meta.textContent = 'Loading filters...';
+        meta.textContent = t('js.loadingFilters', 'Loading filters...');
     }
     fetchHeroFacets(selections);
 }
@@ -4083,7 +4401,7 @@ function handleBrowseSelectionChange(resetFacets) {
         resetBrowseFacetSelects();
         updateBrowseSubmitState(selections);
         if (meta) {
-            meta.textContent = 'Choose a book to unlock volume, part, section, and chapter filters.';
+            meta.textContent = t('js.chooseBookFirst', 'Choose a book to unlock volume, part, section, and chapter filters.');
         }
         return;
     }
@@ -4096,7 +4414,7 @@ function handleBrowseSelectionChange(resetFacets) {
         selections.chapter = '';
     }
     if (meta) {
-        meta.textContent = 'Loading filters...';
+        meta.textContent = t('js.loadingFilters', 'Loading filters...');
     }
     updateBrowseSubmitState(selections);
     fetchBrowseFacets(selections);
@@ -4300,6 +4618,10 @@ function setupVue(query, page, sortFields) {
             pageSize: SEARCH_PAGE_SIZE,
             book_blurbs: bookBlurbs,
             collectionMode: isCollectionMode(),
+            // On the Arabic site the narration shows its Arabic only. The English is a
+            // translation of the same text, and a reader who chose Arabic did not ask for
+            // a parallel column; hiding it also lets the Arabic use the full width.
+            arabicSite: (window.I18N_LOCALE === 'ar'),
             collectionId: resolveCollectionIdParam(),
             collectionTitle: '',
             collectionMeta: null,
@@ -4433,16 +4755,22 @@ function setupVue(query, page, sortFields) {
             resultsHeadingText: function() {
                 if (this.collectionMode) {
                     if (this.activeTopicTags.length > 0) {
-                        return 'Showing ' + this.matchingNarrationsCount + '/' + this.filteredNarrationTotal + ' saved hadith';
+                        return t('js.showingSaved', 'Showing {0}/{1} saved hadith')
+                            .replace('{0}', localeDigits(this.matchingNarrationsCount))
+                            .replace('{1}', localeDigits(this.filteredNarrationTotal));
                     }
-                    return this.collectionTitle || 'Saved Hadith';
+                    return this.collectionTitle || t('js.savedHadith', 'Saved Hadith');
                 }
                 if (this.activeTopicTags.length > 0) {
                     var tagTotal = this.topicTagTotalForActive;
                     var totalCount = Number(this.baseNarrationTotal) || Number(this.totalHits) || 0;
-                    return 'Showing ' + (tagTotal || this.matchingNarrationsCount) + '/' + totalCount + ' results';
+                    return t('js.showingResults', 'Showing {0}/{1} results')
+                        .replace('{0}', localeDigits(tagTotal || this.matchingNarrationsCount))
+                        .replace('{1}', localeDigits(totalCount));
                 }
-                return (Number(this.totalHits) || 0) + ' results found.';
+                var total = (Number(this.totalHits) || 0);
+                return t('js.resultsFound', '{0} results found.')
+                    .replace('{0}', total.toLocaleString(window.I18N_LOCALE === 'ar' ? 'ar-EG' : undefined));
             },
             matchingNarrationsCount: function() {
                 var self = this;
@@ -4491,7 +4819,9 @@ function setupVue(query, page, sortFields) {
             resultsStatusText: function() {
                 var visibleCount = Array.isArray(this.narrations) ? this.narrations.length : 0;
                 if (this.collectionMode) {
-                    return 'Showing ' + visibleCount + ' / ' + this.filteredNarrationTotal + ' saved hadith';
+                    return t('js.showingSaved', 'Showing {0}/{1} saved hadith')
+                        .replace('{0}', localeDigits(visibleCount))
+                        .replace('{1}', localeDigits(this.filteredNarrationTotal));
                 }
                 return '';
             },
@@ -4541,7 +4871,9 @@ function setupVue(query, page, sortFields) {
                 }).map(function(tag) {
                     return {
                         slug: tag,
-                        label: (taxonomy[tag] && taxonomy[tag].en) || tag,
+                        label: (taxonomy[tag]
+                            && ((window.I18N_LOCALE === 'ar' && taxonomy[tag].ar) || taxonomy[tag].en))
+                            || tag,
                         count: counts[tag] || 0
                     };
                 }).sort(function(left, right) {
@@ -4633,8 +4965,57 @@ function setupVue(query, page, sortFields) {
                 }
                 this.$set(narration, 'mobileTagsExpanded', !narration.mobileTagsExpanded);
             },
+            /**
+             * A UI string, for the Vue templates.
+             *
+             * Templates resolve names against the component instance, not the window, so
+             * the global t() is not reachable from a {{ }} expression. This is the same
+             * lookup under a name the template can see.
+             */
+            /**
+             * The badge on a similar-hadith row. The values are wording, conceptual and
+             * thematic, produced by the judging pass and stored in the index in English,
+             * so they are labels to translate rather than data to change.
+             */
+            matchTypeLabel: function(kind) {
+                if (!kind) { return ''; }
+                return t('match.' + kind, kind);
+            },
+            tr: function(key, fallback) {
+                return t(key, fallback);
+            },
+            num: function(value) {
+                return localeDigits(value);
+            },
+            // A Vue template resolves a call against the instance, not the window, so the
+            // helpers the related list needs get their own door here.
+            localeField: function(record, field) {
+                return localeField(record, field);
+            },
+            localeHref: function(path) {
+                return localeHref(path);
+            },
+            /**
+             * A related narration's number, as the reader's script writes it.
+             *
+             * No hash in Arabic: it is a Latin convention, and a right-to-left line puts
+             * it after the numeral, so "#1" comes out reading "1#".
+             */
+            similarNumberLabel: function(similar) {
+                if (!similar || !similar.number) {
+                    return '';
+                }
+                return window.I18N_LOCALE === 'ar'
+                    ? localeDigits(similar.number)
+                    : '#' + similar.number;
+            },
             taxonomyLabel: function(slug) {
-                return (this.taxonomy[slug] && this.taxonomy[slug].en) || slug;
+                // taxonomy.json carries both: {"slug":"prayer","en":"Prayer","ar":"صلاة"}.
+                // Only the English was ever read, so the Arabic site showed English tags.
+                var entry = this.taxonomy[slug];
+                if (!entry) { return slug; }
+                if (window.I18N_LOCALE === 'ar' && entry.ar) { return entry.ar; }
+                return entry.en || slug;
             },
             taxonomyCategory: function(slug) {
                 return (this.taxonomy[slug] && this.taxonomy[slug].category) || 'other';
@@ -4806,22 +5187,25 @@ function setupVue(query, page, sortFields) {
                 if (!narration) {
                     return '';
                 }
+                // Displayed metadata reads from the _ar fields where the index has them.
+                // Only the display: the same values build book:"..." query filters
+                // elsewhere and those must stay in the language the index is keyed on.
                 var parts = [];
                 if (narration.book) {
-                    parts.push(strip(narration.book));
+                    parts.push(strip(localeField(narration, 'book')));
                 }
                 if (narration.volume) {
                     parts.push(strip(narration.volume));
                 }
                 if (narration.chapter) {
-                    parts.push(strip(narration.chapter));
+                    parts.push(strip(localeField(narration, 'chapter')));
                 } else if (narration.section) {
-                    parts.push(strip(narration.section));
+                    parts.push(strip(localeField(narration, 'section')));
                 } else if (narration.part) {
-                    parts.push(strip(narration.part));
+                    parts.push(strip(localeField(narration, 'part')));
                 }
                 if (narration.number) {
-                    parts.push('Hadith #' + strip(narration.number));
+                    parts.push(t('js.hadith', 'Hadith') + ' #' + strip(narration.number));
                 }
                 return parts.join(' · ');
             },
@@ -4979,8 +5363,11 @@ function setupVue(query, page, sortFields) {
                 if (value.notes) {
                     value.notes = marked(value.notes);
                 }
-                if (value.volume && String(value.volume).indexOf('Volume ') !== 0) {
-                    value.volume = "Volume " + value.volume;
+                // The index stores a bare number; the word in front of it is display,
+                // so it comes from the bundle and reads الجزء 4 on the Arabic site.
+                if (value.volume && String(value.volume).indexOf('Volume ') !== 0
+                        && !/^\D/.test(String(value.volume))) {
+                    value.volume = t('book.volumeNumber', 'Volume {0}').replace('{0}', value.volume);
                 }
                 value = socialMediaDecoratedHadith(value);
                 value = decorateNarrationForSimilarity(value);
@@ -5176,10 +5563,10 @@ function setupVue(query, page, sortFields) {
                 if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
                     navigator.clipboard.writeText(text)
                         .then(function() {
-                            showToast('Copied ' + (field === 'arabic' ? 'Arabic' : 'English') + ' text.', 'information');
+                            showToast(t('toast.copiedText', 'Copied {0} text.').replace('{0}', t('toast.what.' + (field === 'arabic' ? 'arabic' : 'english'), field === 'arabic' ? 'Arabic' : 'English')), 'information');
                         })
                         .catch(function() {
-                            showToast('Unable to copy text.', 'warning');
+                            showToast(t('toast.copyTextFailed', 'Unable to copy text.'), 'warning');
                         });
                     return;
                 }
@@ -5192,9 +5579,9 @@ function setupVue(query, page, sortFields) {
                     textArea.select();
                     document.execCommand('copy');
                     document.body.removeChild(textArea);
-                    showToast('Copied ' + (field === 'arabic' ? 'Arabic' : 'English') + ' text.', 'information');
+                    showToast(t('toast.copiedText', 'Copied {0} text.').replace('{0}', t('toast.what.' + (field === 'arabic' ? 'arabic' : 'english'), field === 'arabic' ? 'Arabic' : 'English')), 'information');
                 } catch (err) {
-                    showToast('Unable to copy text.', 'warning');
+                    showToast(t('toast.copyTextFailed', 'Unable to copy text.'), 'warning');
                 }
             },
             copyHadithStaticUrl: function(id) {
@@ -5204,16 +5591,16 @@ function setupVue(query, page, sortFields) {
                 }
                 this.resolveHadithShareUrl(hadithId).then(function(url) {
                     if (!url) {
-                        showToast('Unable to build link.', 'warning');
+                        showToast(t('toast.linkBuildFailed', 'Unable to build link.'), 'warning');
                         return;
                     }
                     if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
                         navigator.clipboard.writeText(url)
                             .then(function() {
-                                showToast('Link copied.', 'information');
+                                showToast(t('toast.linkCopied', 'Link copied.'), 'information');
                             })
                             .catch(function() {
-                                showToast('Unable to copy link.', 'warning');
+                                showToast(t('toast.linkCopyFailed', 'Unable to copy link.'), 'warning');
                             });
                         return;
                     }
@@ -5226,12 +5613,12 @@ function setupVue(query, page, sortFields) {
                         textArea.select();
                         document.execCommand('copy');
                         document.body.removeChild(textArea);
-                        showToast('Link copied.', 'information');
+                        showToast(t('toast.linkCopied', 'Link copied.'), 'information');
                     } catch (err) {
-                        showToast('Unable to copy link.', 'warning');
+                        showToast(t('toast.linkCopyFailed', 'Unable to copy link.'), 'warning');
                     }
                 }).catch(function() {
-                    showToast('Unable to build link.', 'warning');
+                    showToast(t('toast.linkBuildFailed', 'Unable to build link.'), 'warning');
                 });
             },
             /**
@@ -5252,7 +5639,7 @@ function setupVue(query, page, sortFields) {
             },
             narrationShareLabel: function(narration) {
                 if (!narration) { return ''; }
-                var book = narration.book || 'Narration';
+                var book = localeField(narration, 'book') || t('js.narration', 'Narration');
                 return (book + (narration.number ? (' #' + narration.number) : '')).trim();
             },
             requestArabicSuggestion: function(resultNarrations) {
@@ -5338,10 +5725,12 @@ function setupVue(query, page, sortFields) {
                 var applyIncomingNarrations = function(respJSON) {
                     if (respJSON.error) {
                         self.dismissArabicSuggestion();
-                        swal("Oops...",
+                        swal(t('js.oops', 'Oops...'),
                             self.collectionMode
-                                ? "Something went wrong while opening this collection."
-                                : "Something went wrong while fetching your hadith, please try a different search.");
+                                ? t('js.collectionOpenFailed',
+                                    'Something went wrong while opening this collection.')
+                                : t('js.searchFailed',
+                                    'Something went wrong while fetching your hadith, please try a different search.'));
                         return;
                     }
                     var items = Array.isArray(respJSON.collection) ? respJSON.collection : [];
@@ -5355,8 +5744,8 @@ function setupVue(query, page, sortFields) {
                             self.topicTagFacets = respJSON.topicTagFacets || {};
                             return;
                         }
-                        swal("Oops...",
-                            "No results seem to match your query!",
+                        swal(t('js.oops', 'Oops...'),
+                            t('js.noResults', 'No results seem to match your query!'),
                             "error");
                         return;
                     }
@@ -5388,12 +5777,14 @@ function setupVue(query, page, sortFields) {
                     apiJSON('/v1/collections/' + encodeURIComponent(this.collectionId), { method: 'GET' })
                         .then(function(metaResp) {
                             if (metaResp.status === 401) {
-                                showToast('Sign in to view your collection.', 'information');
+                                showToast(t('toast.signInToView', 'Sign in to view your collection.'), 'information');
                                 openLoginModal();
                                 return null;
                             }
                             if (!metaResp.ok || !metaResp.data || !metaResp.data.ok) {
-                                swal('Collection unavailable', (metaResp.data && metaResp.data.message) || 'Unable to load this collection.', 'error');
+                                swal(t('js.collectionUnavailableTitle', 'Collection unavailable'),
+                                    (metaResp.data && metaResp.data.message)
+                                        || t('js.collectionLoadFailed', 'Unable to load this collection.'), 'error');
                                 return null;
                             }
                             self.collectionMeta = metaResp.data.collection || null;
@@ -5412,7 +5803,9 @@ function setupVue(query, page, sortFields) {
                             applyIncomingNarrations(resp.data || {});
                         })
                         .catch(function() {
-                            swal('Collection unavailable', 'Unable to load this collection right now.', 'error');
+                            swal(t('js.collectionUnavailableTitle', 'Collection unavailable'),
+                                t('js.collectionLoadFailedNow',
+                                  'Unable to load this collection right now.'), 'error');
                         })
                         .finally(function() {
                             self.narrationsLoading = false;
@@ -5435,8 +5828,9 @@ function setupVue(query, page, sortFields) {
                 }
                 xhr.onerror = function() {
                     self.dismissArabicSuggestion();
-                    swal("Oops...",
-                        "Something went wrong while fetching your hadith, please try a different search.");
+                    swal(t('js.oops', 'Oops...'),
+                        t('js.searchFailed',
+                          'Something went wrong while fetching your hadith, please try a different search.'));
                 };
                 xhr.onloadend = function() {
                     self.narrationsLoading = false;
@@ -5684,7 +6078,7 @@ function setupVue(query, page, sortFields) {
                         var total = Number(data && data.totalResultSetSize);
                         narration.similarItems = incoming.map(function(item) {
                             if (item.volume && String(item.volume).indexOf('Volume') !== 0) {
-                                item.volume = 'Volume ' + item.volume;
+                                item.volume = t('book.volumeNumber', 'Volume {0}').replace('{0}', item.volume);
                             }
                             return item;
                         });
@@ -6112,8 +6506,24 @@ function setupVue(query, page, sortFields) {
             // Long notes are previewed rather than shown in full: the reading
             // card is height-capped, so an unbounded note squeezes the
             // narration text out of the layout entirely.
+            /**
+             * A narration's notes, in the reader's language or not at all.
+             *
+             * Unlike a book or chapter name, a note does not fall back to its English: it
+             * is translator's commentary running to thousands of characters, and an
+             * untranslated one is a wall of English on an Arabic page rather than a
+             * citation the reader can still use. The pair is notes/notes_ar.
+             */
+            notesFor: function(narration) {
+                if (!narration) {
+                    return '';
+                }
+                return window.I18N_LOCALE === 'ar'
+                    ? (narration.notes_ar || '')
+                    : (narration.notes || '');
+            },
             isNotesCollapsible: function(narration) {
-                var notes = (narration && narration.notes) || '';
+                var notes = this.notesFor(narration);
                 return notes.replace(/<[^>]*>/g, '').trim().length > NOTES_COLLAPSE_THRESHOLD;
             },
             isNotesExpanded: function(narration) {
@@ -6142,27 +6552,30 @@ function setupVue(query, page, sortFields) {
                 return segments;
             },
             similarTabTitle: function(similar, index) {
-                if (similar && similar.book && similar.number) {
-                    return similar.book + ' #' + similar.number;
+                var book = localeField(similar, 'book');
+                var number = similar && similar.number
+                    ? t('crumb.hadithNumber', 'Hadith {0}').replace('{0}', localeDigits(similar.number))
+                    : '';
+                if (book && number) {
+                    return book + ' · ' + number;
                 }
-                if (similar && similar.book) {
-                    return similar.book;
-                }
-                if (similar && similar.number) {
-                    return 'Hadith #' + similar.number;
-                }
-                return 'Similar hadith #' + (index + 1);
+                return book || number
+                    || t('crumb.hadithNumber', 'Hadith {0}').replace('{0}', localeDigits(index + 1));
             },
             similarMainTitle: function(similar) {
                 if (!similar) {
-                    return 'Similar hadith';
+                    return t('sidecar.similarHadith', 'Similar hadith');
                 }
                 var parts = [];
-                if (similar.book) {
-                    parts.push(similar.book);
+                var book = localeField(similar, 'book');
+                if (book) {
+                    parts.push(book);
                 }
                 if (similar.number) {
-                    parts.push('Hadith #' + similar.number);
+                    // The reader's own word and digits: "Hadith #12" put both the English
+                    // noun and a Latin convention into an otherwise Arabic heading.
+                    parts.push(t('crumb.hadithNumber', 'Hadith {0}')
+                        .replace('{0}', localeDigits(similar.number)));
                 }
                 return parts.length ? parts.join(' · ') : this.similarTabTitle(similar, 0);
             },
@@ -6181,11 +6594,14 @@ function setupVue(query, page, sortFields) {
                         clickable: clickable !== false
                     });
                 }
-                pushSegment(similar.volume, 'volume');
-                pushSegment(similar.part, 'part');
-                pushSegment(similar.section, 'section');
-                pushSegment(similar.chapter, 'chapter');
-                pushSegment(similar.source, 'source');
+                // Each level in the reader's language. These were the English columns,
+                // so an Arabic card named the related narration's part and chapter in
+                // English underneath an Arabic heading.
+                pushSegment(localeDigits(similar.volume), 'volume');
+                pushSegment(localeField(similar, 'part'), 'part');
+                pushSegment(localeField(similar, 'section'), 'section');
+                pushSegment(localeField(similar, 'chapter'), 'chapter');
+                pushSegment(localeField(similar, 'source'), 'source');
                 return segments;
             },
             jumpLevelForSimilar: function(similar) {
@@ -6289,10 +6705,10 @@ function setupVue(query, page, sortFields) {
                     parts.push(narration.volume);
                 }
                 if (narration.part) {
-                    parts.push(narration.part);
+                    parts.push(localeField(narration, 'part'));
                 }
                 if (narration.section) {
-                    parts.push(narration.section);
+                    parts.push(localeField(narration, 'section'));
                 }
                 if (narration.chapter) {
                     parts.push(narration.chapter);
@@ -6334,7 +6750,10 @@ function setupVue(query, page, sortFields) {
                     method: 'DELETE'
                 }).then(function(resp) {
                     if (!resp.ok || !resp.data || !resp.data.ok) {
-                        swal('Remove failed', (resp.data && resp.data.message) || 'Unable to remove hadith from this collection.', 'error');
+                        swal(t('js.removeFailedTitle', 'Remove failed'),
+                            (resp.data && resp.data.message)
+                                || t('js.removeFailedBody',
+                                     'Unable to remove hadith from this collection.'), 'error');
                         return;
                     }
                     var collection = resp.data.collection || self.collectionMeta || null;
@@ -6342,7 +6761,7 @@ function setupVue(query, page, sortFields) {
                     self.collectionMeta = collection;
                     self.collectionTitle = (collection && collection.name) || self.collectionTitle;
                     loadAndRenderCollections(false);
-                    showToast('Removed from collection.', 'success');
+                    showToast(t('toast.removedFromCollection', 'Removed from collection.'), 'success');
                     var maxPage = Math.max(1, Math.ceil(Math.max(0, totalRemaining) / self.pageSize));
                     var targetPage = Math.min(self.page, maxPage);
                     if (targetPage !== self.page) {
@@ -6367,7 +6786,7 @@ function setupVue(query, page, sortFields) {
             saveCollectionTitle: function() {
                 var newName = (this.editingCollectionTitle || '').trim();
                 if (!newName) {
-                    showToast('Collection name cannot be empty.', 'error');
+                    showToast(t('toast.collectionNameEmpty', 'Collection name cannot be empty.'), 'error');
                     return;
                 }
                 if (newName === this.collectionTitle) {
@@ -6381,14 +6800,17 @@ function setupVue(query, page, sortFields) {
                     body: JSON.stringify({ name: newName })
                 }).then(function(resp) {
                     if (!resp.ok || !resp.data || !resp.data.ok) {
-                        swal('Update failed', (resp.data && resp.data.message) || 'Unable to update collection name.', 'error');
+                        swal(t('js.updateFailedTitle', 'Update failed'),
+                            (resp.data && resp.data.message)
+                                || t('js.updateFailedBody',
+                                     'Unable to update collection name.'), 'error');
                         return;
                     }
                     self.collectionTitle = newName;
                     self.collectionMeta = resp.data.collection || self.collectionMeta;
                     self.isEditingCollectionTitle = false;
                     loadAndRenderCollections(false);
-                    showToast('Collection name updated.', 'success');
+                    showToast(t('toast.collectionRenamed', 'Collection name updated.'), 'success');
                 });
             },
             cancelEditCollectionTitle: function() {
@@ -6404,21 +6826,22 @@ function setupVue(query, page, sortFields) {
                 var self = this;
                 var subtitle = '';
                 if (this.collectionMode) {
-                    subtitle = 'Collection: ' + (this.collectionTitle || 'Saved Hadith');
+                    subtitle = t('pdf.collection', 'Collection: {0}')
+                        .replace('{0}', this.collectionTitle || t('js.savedHadith', 'Saved Hadith'));
                 } else if (this.queryStr) {
-                    subtitle = 'Search query: ' + strip(this.queryStr);
+                    subtitle = t('pdf.searchQuery', 'Search query: {0}').replace('{0}', strip(this.queryStr));
                 }
                 var tagSummary = this.activeTopicTags.map(function(tag) {
                     return this.taxonomyLabel(tag);
                 }, this).join(', ');
                 var metaLine = this.resultsStatusText;
                 if (tagSummary) {
-                    metaLine += ' · Tags: ' + tagSummary;
+                    metaLine += ' · ' + t('pdf.tags', 'Tags: {0}').replace('{0}', tagSummary);
                 }
                 openPdfExportWindow({
                     title: this.collectionMode
-                        ? (this.collectionTitle || 'Saved Hadith')
-                        : 'Search Results',
+                        ? (this.collectionTitle || t('js.savedHadith', 'Saved Hadith'))
+                        : t('js.searchResults', 'Search Results'),
                     subtitle: subtitle,
                     metaLine: metaLine,
                     narrations: narrations,
@@ -6511,7 +6934,7 @@ function setupVue(query, page, sortFields) {
                     if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
                         navigator.clipboard.writeText(url).then(function() {
                             copyBtn.innerHTML = '<i class="fa fa-check" aria-hidden="true"></i>';
-                            showToast('Link copied.', 'information');
+                            showToast(t('toast.linkCopied', 'Link copied.'), 'information');
                         }).catch(function() {});
                     } else {
                         var textArea = document.createElement("textarea");
@@ -6523,7 +6946,7 @@ function setupVue(query, page, sortFields) {
                         try {
                             document.execCommand("copy");
                             copyBtn.innerHTML = '<i class="fa fa-check" aria-hidden="true"></i>';
-                            showToast('Link copied.', 'information');
+                            showToast(t('toast.linkCopied', 'Link copied.'), 'information');
                         } catch (err) {}
                         document.body.removeChild(textArea);
                     }

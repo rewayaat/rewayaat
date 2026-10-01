@@ -11,6 +11,11 @@ import com.rewayaat.service.HadithCardFactory;
 import com.rewayaat.service.QuranicInsightsService;
 import com.rewayaat.service.TopicLabelSource;
 import io.swagger.v3.oas.annotations.Hidden;
+import com.rewayaat.service.ArabicNames;
+import com.rewayaat.service.LocaleDigits;
+import com.rewayaat.service.PageLocale;
+import org.springframework.context.MessageSource;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -47,6 +53,8 @@ public class BookPageController {
     private static final ObjectMapper JSON = new ObjectMapper();
     private static final String BASE_URL = HomeController.BASE_URL;
 
+    private final MessageSource messages;
+
     /** Enough to be a useful chapter page without turning one into a 500-narration wall. */
     private static final int MAX_CHAPTER_NARRATIONS = 500;
     private static final int EXCERPT_CHARS = 220;
@@ -59,7 +67,9 @@ public class BookPageController {
     private final QuranicInsightsService quranicInsights;
 
     public BookPageController(BookCatalog catalog, HadithCardFactory cards,
-                              TopicLabelSource topicLabels, QuranicInsightsService quranicInsights) {
+                              TopicLabelSource topicLabels, QuranicInsightsService quranicInsights,
+                              MessageSource messages) {
+        this.messages = messages;
         this.catalog = catalog;
         this.cards = cards;
         this.topicLabels = topicLabels;
@@ -67,23 +77,23 @@ public class BookPageController {
     }
 
     @GetMapping("/books")
-    public String booksIndex(Model model) {
+    public String booksIndex(Model model, HttpServletRequest request) {
         List<BookCatalog.Book> books = catalog.books();
 
         model.addAttribute("books", books);
         model.addAttribute("totalNarrations", books.stream().mapToLong(BookCatalog.Book::count).sum());
-        model.addAttribute("seoTitle", "Shia Hadith Books — Al-Kafi, Nahj al-Balagha and More");
-        model.addAttribute("seoDescription",
-                "Browse the primary Shia hadith collections: Al-Kafi, Nahj al-Balagha, "
-                + "Man La Yahduruh al-Faqih, Al-Khisal, Al-Amali and more, in Arabic and English.");
-        model.addAttribute("canonicalUrl", BASE_URL + "/books");
+        PageLocale locale = PageLocale.of(request);
+        model.addAttribute("seoTitle", msg(locale, "seo.books.title"));
+        model.addAttribute("seoDescription", msg(locale, "seo.books.description"));
+        locale.applyTo(model, "/books");
         model.addAttribute("jsonLd", booksIndexJsonLd(books));
-        addBreadcrumbs(model, new LinkedHashMap<>());
+        addBreadcrumbs(model, new LinkedHashMap<>(), locale);
         return "books";
     }
 
     @GetMapping("/books/{bookSlug}")
-    public String bookPage(@PathVariable String bookSlug, Model model, HttpServletResponse response)
+    public String bookPage(@PathVariable String bookSlug, Model model, HttpServletResponse response,
+                           HttpServletRequest request)
             throws IOException {
         Optional<BookCatalog.Book> found = catalog.book(bookSlug);
         if (found.isEmpty()) {
@@ -106,34 +116,41 @@ public class BookPageController {
         // a part that is not a page of its own is still the only link to its chapters.
         boolean useParts = !useVolumes && !book.pageParts().isEmpty();
 
+        PageLocale locale = PageLocale.of(request);
         model.addAttribute("book", book);
         model.addAttribute("volumes", useVolumes ? volumes.stream()
                 .map(v -> Map.of(
-                        "label", "Volume " + v,
+                        "label", msg(locale, "book.volumeNumber", LocaleDigits.in(locale, v)),
+                        // Bare, like every other url handed to a template: book.html adds
+                        // the language with ${arPrefix}. This one carried the prefix as
+                        // well, so every volume card on an Arabic book page pointed at
+                        // /ar/ar/books/..., which resolves to nothing. The parts beside
+                        // them were already bare, which is why only the volumes broke.
                         "url", "/books/" + bookSlug + "/volume/" + encode(v),
                         "chapterCount", book.chaptersInVolume(v).size()))
                 .toList() : List.of());
         model.addAttribute("parts", useParts ? parts : List.of());
         model.addAttribute("chapters", useVolumes || useParts ? List.of() : book.chapters());
-        model.addAttribute("blurb", blurbs.forSlug(bookSlug));
-        model.addAttribute("bookSummary", blurbs.summaryForSlug(bookSlug));
-        model.addAttribute("seoTitle", book.name() + " — Shia Hadith in Arabic & English");
-        model.addAttribute("seoDescription", String.format(
-                "Read %s in Arabic and English: %,d narrations across %,d chapters, "
-                + "with similar narrations and Quranic insights for each hadith.",
-                book.name(), book.count(), book.chapters().size()));
-        model.addAttribute("canonicalUrl", BASE_URL + "/books/" + bookSlug);
+        model.addAttribute("blurb", blurbs.forSlug(bookSlug, locale.isArabic()));
+        model.addAttribute("bookSummary", blurbs.summaryForSlug(bookSlug, locale.isArabic()));
+        String bookName = named(locale, book.name(), book.nameAr());
+        model.addAttribute("bookTitle", bookName);
+        model.addAttribute("seoTitle", msg(locale, "seo.book.title", bookName));
+        model.addAttribute("seoDescription", msg(locale, "seo.book.description",
+                bookName, count(locale, book.count()), count(locale, book.chapters().size())));
+        locale.applyTo(model, "/books/" + bookSlug);
         model.addAttribute("shareImageUrl", BASE_URL + "/books/" + bookSlug + "/card.png");
         model.addAttribute("jsonLd", bookJsonLd(book));
         LinkedHashMap<String, String> trail = new LinkedHashMap<>();
-        trail.put(book.name(), "/books/" + bookSlug);
-        addBreadcrumbs(model, trail);
+        trail.put(bookName, "/books/" + bookSlug);
+        addBreadcrumbs(model, trail, locale);
         return "book";
     }
 
     @GetMapping("/books/{bookSlug}/volume/{volume}")
     public String volumePage(@PathVariable String bookSlug, @PathVariable String volume,
-                             Model model, HttpServletResponse response) throws IOException {
+                             Model model, HttpServletResponse response,
+                             HttpServletRequest request) throws IOException {
         Optional<BookCatalog.Book> found = catalog.book(bookSlug);
         if (found.isEmpty()) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -164,26 +181,32 @@ public class BookPageController {
         // seven of Al-Kafi's eight volume pages read that way, while the meta description
         // built from chapters.size() gave the true figure on the very same page.
         model.addAttribute("chapterCount", chapters.size());
-        model.addAttribute("seoTitle", book.name() + " " + label + " — Shia Hadith in Arabic & English");
-        model.addAttribute("seoDescription", String.format(
-                "%s, %s: %,d narrations across %,d chapters, in Arabic and English.",
-                book.name(), label, narrations, chapters.size()));
-        model.addAttribute("canonicalUrl", BASE_URL + "/books/" + bookSlug + "/volume/" + encode(volume));
+        PageLocale locale = PageLocale.of(request);
+        String bookName = named(locale, book.name(), book.nameAr());
+        String volumeLabel = locale.isArabic()
+                ? msg(locale, "book.volumeNumber", LocaleDigits.in(locale, volume)) : label;
+        model.addAttribute("bookTitle", bookName);
+        model.addAttribute("volumeLabel", volumeLabel);
+        model.addAttribute("seoTitle", msg(locale, "seo.volume.title", bookName, volumeLabel));
+        model.addAttribute("seoDescription", msg(locale, "seo.volume.description",
+                bookName, volumeLabel, count(locale, narrations), count(locale, chapters.size())));
+        locale.applyTo(model, "/books/" + bookSlug + "/volume/" + encode(volume));
         model.addAttribute("sectionSummary",
-                blurbs.sectionSummaryForPath("books/" + bookSlug + "/volume/" + volume));
+                blurbs.sectionSummaryForPath("books/" + bookSlug + "/volume/" + volume, locale.isArabic()));
         model.addAttribute("shareImageUrl", BASE_URL + "/books/" + bookSlug + "/volume/" + encode(volume) + "/card.png");
 
         LinkedHashMap<String, String> trail = new LinkedHashMap<>();
-        trail.put(book.name(), "/books/" + bookSlug);
-        trail.put(label, "/books/" + bookSlug + "/volume/" + encode(volume));
-        addBreadcrumbs(model, trail);
+        trail.put(bookName, "/books/" + bookSlug);
+        trail.put(volumeLabel, "/books/" + bookSlug + "/volume/" + encode(volume));
+        addBreadcrumbs(model, trail, locale);
         model.addAttribute("jsonLd", bookJsonLd(book));
         return "volume";
     }
 
     @GetMapping("/books/{bookSlug}/part/{partSlug}")
     public String partPage(@PathVariable String bookSlug, @PathVariable String partSlug,
-                           Model model, HttpServletResponse response) throws IOException {
+                           Model model, HttpServletResponse response,
+                           HttpServletRequest request) throws IOException {
         Optional<BookCatalog.Book> foundBook = catalog.book(bookSlug);
         Optional<BookCatalog.Part> foundPart = catalog.part(bookSlug, partSlug);
         if (foundBook.isEmpty() || foundPart.isEmpty()) {
@@ -196,7 +219,10 @@ public class BookPageController {
         long narrations = chapters.stream().mapToLong(BookCatalog.Chapter::count).sum();
 
         model.addAttribute("book", book);
-        model.addAttribute("volumeLabel", part.title());
+        // The part page reuses the volume template, whose heading is volumeLabel.
+        PageLocale locale = PageLocale.of(request);
+        String partTitle = named(locale, part.title(), part.titleAr());
+        model.addAttribute("volumeLabel", partTitle);
         model.addAttribute("parts", List.of());
         model.addAttribute("chapters", chapters);
         model.addAttribute("volumes", List.of());
@@ -206,10 +232,13 @@ public class BookPageController {
         // genuinely differ; a template reading one attribute on one route and another on
         // the other is how the "0 chapters" bug survived as long as it did.
         model.addAttribute("chapterCount", chapters.size());
-        model.addAttribute("seoTitle", part.title() + " — " + book.name());
-        model.addAttribute("seoDescription", String.format(
-                "%s, %s: %,d narrations across %,d chapters, in Arabic and English.",
-                book.name(), part.title(), narrations, chapters.size()));
+        String bookName = named(locale, book.name(), book.nameAr());
+        model.addAttribute("bookTitle", bookName);
+        model.addAttribute("partTitle", partTitle);
+        model.addAttribute("seoTitle", msg(locale, "seo.part.title", partTitle, bookName));
+        model.addAttribute("seoDescription", msg(locale, "seo.part.description",
+                bookName, partTitle, count(locale, narrations), count(locale, chapters.size())));
+
         // A part is a page of its own only when it is one of several parts that divide its
         // parent. A part wrapping one chapter *is* that chapter: same title, same narration
         // count, and the page's whole body is a single link to it. A part that is the only
@@ -225,7 +254,15 @@ public class BookPageController {
         String canonicalPath = part.url();
         if (part.holdsSingleChapter()) {
             if (chapters.size() == 1) {
-                canonicalPath = canonicalPathFor(chapters.get(0), narrationsIn(chapters.get(0)));
+                // The one live lookup on this page. Everything else comes from the catalog's
+                // snapshot, which survives an index outage on purpose; a canonical hint is
+                // not worth a 500, so a failed lookup leaves the part self-canonical.
+                try {
+                    canonicalPath = canonicalPathFor(chapters.get(0), narrationsIn(chapters.get(0), locale));
+                } catch (IOException | RuntimeException e) {
+                    LOGGER.warn("Could not resolve the canonical for part '{}' of {}: {}",
+                            partTitle, bookName, e.toString());
+                }
             }
         } else if (!book.partIsItsOwnPage(part)) {
             // The only part dividing its parent covers the parent whole, so the parent is
@@ -233,36 +270,46 @@ public class BookPageController {
             // thing one hop further down.
             canonicalPath = parentPathOf(bookSlug, book, part);
         }
-        model.addAttribute("canonicalUrl", BASE_URL + canonicalPath);
-        model.addAttribute("sectionSummary", blurbs.sectionSummaryForPath(part.url()));
+        // The pair and the toggle describe *this* page, so they are built from the part's
+        // own URL; the canonical then points wherever the fold sends it. Both have to carry
+        // the language: an Arabic page whose canonical names the English URL is telling a
+        // crawler the Arabic one should not be indexed at all.
+        locale.applyTo(model, part.url());
         model.addAttribute("shareImageUrl", BASE_URL + part.url() + "/card.png");
+        model.addAttribute("canonicalUrl", locale.urlFor(canonicalPath));
+        model.addAttribute("sectionSummary", blurbs.sectionSummaryForPath(part.url(), locale.isArabic()));
         model.addAttribute("jsonLd", bookJsonLd(book));
 
         LinkedHashMap<String, String> trail = new LinkedHashMap<>();
-        trail.put(book.name(), "/books/" + bookSlug);
+        trail.put(bookName, "/books/" + bookSlug);
         if (part.volume() != null && !part.volume().isBlank() && book.volumes().size() > 1) {
-            trail.put("Volume " + part.volume(), "/books/" + bookSlug + "/volume/" + encode(part.volume()));
+            trail.put(msg(locale, "book.volumeNumber", LocaleDigits.in(locale, part.volume())),
+                    "/books/" + bookSlug + "/volume/" + encode(part.volume()));
         }
-        trail.put(part.title(), part.url());
-        addBreadcrumbs(model, trail);
+        trail.put(partTitle, part.url());
+        addBreadcrumbs(model, trail, locale);
         return "volume";
     }
 
     @GetMapping("/books/{bookSlug}/{chapterSlug}")
     public String chapterPage(@PathVariable String bookSlug, @PathVariable String chapterSlug,
                               @RequestParam(value = "tag", required = false) String tag,
-                              Model model, HttpServletResponse response) throws IOException {
+                              Model model, HttpServletResponse response,
+                              HttpServletRequest request) throws IOException {
         Optional<BookCatalog.Chapter> found = catalog.chapter(bookSlug, chapterSlug);
         if (found.isEmpty()) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
             return null;
         }
         BookCatalog.Chapter chapter = found.get();
-        List<Map<String, Object>> all = narrationsIn(chapter);
+        // Resolved first: the narrations, their tags and the facet bar are all named
+        // in this language, and the tags were still being named in English here.
+        PageLocale locale = PageLocale.of(request);
+        List<Map<String, Object>> all = narrationsIn(chapter, locale);
 
         // The tag facet, counted over the whole chapter so the counts do not change as
         // you filter — the same behaviour the search page's tag bar has.
-        List<Map<String, Object>> facets = tagFacets(all, tag, chapter);
+        List<Map<String, Object>> facets = tagFacets(all, tag, chapter, locale);
         String activeTag = tag == null || tag.isBlank() ? null : tag.trim();
         List<Map<String, Object>> narrations = activeTag == null ? all : all.stream()
                 .filter(n -> hasTag(n, activeTag))
@@ -270,23 +317,27 @@ public class BookPageController {
 
         model.addAttribute("tagFacets", facets);
         model.addAttribute("activeTag", activeTag);
-        model.addAttribute("activeTagLabel", activeTag == null ? null : topicLabels.label(activeTag));
-        model.addAttribute("clearTagUrl", chapter.url());
+        model.addAttribute("activeTagLabel",
+                activeTag == null ? null : topicLabels.label(activeTag, locale));
+        model.addAttribute("clearTagUrl", locale.prefix() + chapter.url());
         // A filtered view is a slice of a page that is already indexed, so it points its
         // canonical back at the whole chapter rather than competing with it.
         model.addAttribute("robotsDirective", activeTag == null ? null : "noindex, follow");
 
         model.addAttribute("chapter", chapter);
         model.addAttribute("narrations", narrations);
-        model.addAttribute("bookUrl", "/books/" + bookSlug);
+        model.addAttribute("bookUrl", locale.prefix() + "/books/" + bookSlug);
         // The hero chips navigate where a destination exists: the book name and the
         // volume have pages, the section does not.
         model.addAttribute("volumeUrl", chapter.volume() == null || chapter.volume().isBlank()
-                ? null : "/books/" + bookSlug + "/volume/" + encode(chapter.volume()));
-        model.addAttribute("seoTitle", chapter.title() + " — " + chapter.bookName());
-        model.addAttribute("seoDescription", String.format(
-                "%s: %,d narration%s from %s, in Arabic and English with full chains of transmission.",
-                chapter.title(), chapter.count(), chapter.count() == 1 ? "" : "s", chapter.bookName()));
+                ? null : locale.prefix() + "/books/" + bookSlug + "/volume/" + encode(chapter.volume()));
+        String chapterTitle = named(locale, chapter.title(), chapter.titleAr());
+        String chapterBook = named(locale, chapter.bookName(), chapter.bookNameAr());
+        model.addAttribute("chapterTitle", chapterTitle);
+        model.addAttribute("bookTitle", chapterBook);
+        model.addAttribute("seoTitle", msg(locale, "seo.chapter.title", chapterTitle, chapterBook));
+        model.addAttribute("seoDescription", msg(locale, "seo.chapter.description",
+                chapterTitle, count(locale, chapter.count()), chapterBook));
         // A chapter holding a single narration *is* that narration: the two pages carry
         // the same text, both were self-canonical, and both sat in a sitemap, so roughly
         // 4,000 pairs competed with each other and Search Console reported the whole
@@ -300,23 +351,26 @@ public class BookPageController {
         // confirms the page really shows that one narration: if the index and the catalog
         // briefly disagree, the chapter stays self-canonical and merely unlisted, which is
         // the harmless way round.
-        model.addAttribute("canonicalUrl", BASE_URL + canonicalPathFor(chapter, all));
+        // master extracted this fold into canonicalPathFor; applyTo carries it into the
+        // reader's language along with the hreflang pair.
+        locale.applyTo(model, canonicalPathFor(chapter, all));
         model.addAttribute("shareImageUrl", BASE_URL + chapter.url() + "/card.png");
         model.addAttribute("jsonLd", chapterJsonLd(chapter, narrations));
 
         LinkedHashMap<String, String> trail = new LinkedHashMap<>();
-        trail.put(chapter.bookName(), "/books/" + bookSlug);
-        trail.put(chapter.title(), chapter.url());
+        trail.put(chapterBook, "/books/" + bookSlug);
+        trail.put(chapterTitle, chapter.url());
+        // Previous/next stay inside the language the reader is in, title and URL alike.
         catalog.siblingChapter(chapter, -1).ifPresent(prev -> {
-            model.addAttribute("prevUrl", prev.url());
-            model.addAttribute("prevLabel", prev.title());
+            model.addAttribute("prevUrl", locale.prefix() + prev.url());
+            model.addAttribute("prevLabel", named(locale, prev.title(), prev.titleAr()));
         });
         catalog.siblingChapter(chapter, 1).ifPresent(next -> {
-            model.addAttribute("nextUrl", next.url());
-            model.addAttribute("nextLabel", next.title());
+            model.addAttribute("nextUrl", locale.prefix() + next.url());
+            model.addAttribute("nextLabel", named(locale, next.title(), next.titleAr()));
         });
 
-        addBreadcrumbs(model, trail);
+        addBreadcrumbs(model, trail, locale);
         return "chapter";
     }
 
@@ -342,9 +396,19 @@ public class BookPageController {
      * disagreement between the index and the catalog leaves the page self-canonical
      * rather than pointing somewhere wrong.
      */
-    private String canonicalPathFor(BookCatalog.Chapter chapter, List<Map<String, Object>> narrations) {
-        return chapter.holdsSingleNarration() && narrations.size() == 1
+    /**
+     * The path a chapter canonicalises to, in neither language.
+     *
+     * <p>Returned bare, because the caller adds the language. Its two arms did not agree
+     * about that: chapter.url() is a bare path, while a card's url has carried the /ar
+     * prefix since the cards learned to link within the reader's language — so an Arabic
+     * page whose chapter folds into its single narration published a canonical of
+     * /ar/ar/hadith/..., which resolves to nothing.
+     */
+    static String canonicalPathFor(BookCatalog.Chapter chapter, List<Map<String, Object>> narrations) {
+        String path = chapter.holdsSingleNarration() && narrations.size() == 1
                 ? str(narrations.get(0).get("url")) : chapter.url();
+        return PageLocale.stripArabicPrefix(path);
     }
 
     /**
@@ -353,7 +417,28 @@ public class BookPageController {
      * <p>Filtered on the same tuple the catalog is keyed by — a chapter title alone is
      * not unique, the same title recurs across volumes of the same book.
      */
-    private List<Map<String, Object>> narrationsIn(BookCatalog.Chapter chapter) throws IOException {
+    /**
+     * What a narration card needs, in both languages.
+     *
+     * <p>Built rather than listed so the Arabic twin of a field cannot be forgotten when
+     * a field is added.
+     */
+    private static final List<String> CARD_FIELDS = buildCardFields();
+
+    private static List<String> buildCardFields() {
+        List<String> translated = List.of("book", "part", "section", "chapter", "source",
+                "edition", "publisher", "notes");
+        List<String> fields = new ArrayList<>(List.of(
+                "number", "english", "arabic", "volume", "topic_tags", "llm_similar"));
+        for (String field : translated) {
+            fields.add(field);
+            fields.add(field + "_ar");
+        }
+        return List.copyOf(fields);
+    }
+
+    private List<Map<String, Object>> narrationsIn(BookCatalog.Chapter chapter, PageLocale locale)
+            throws IOException {
         List<Map<String, Object>> results = new ArrayList<>();
         try (ESClientProvider provider = new ESClientProvider()) {
             ElasticsearchClient client = provider.client();
@@ -361,10 +446,12 @@ public class BookPageController {
                     .index(ESClientProvider.INDEX)
                     .size(MAX_CHAPTER_NARRATIONS)
                     .trackTotalHits(t -> t.enabled(false))
-                    .source(src -> src.filter(f -> f.includes(
-                            "book", "number", "english", "arabic", "notes", "volume", "part",
-                            "section", "chapter", "source", "edition", "publisher",
-                            "topic_tags", "llm_similar")))
+                    // The _ar twins travel with their fields. Leaving them out is what
+                    // made an Arabic chapter page cite "Al-Kāfi" and "The Book on Virtue
+                    // of Knowledge": the card asks for the Arabic reading and falls back
+                    // to the English when there is none, and a field that was never
+                    // fetched looks exactly like a field with no translation.
+                    .source(src -> src.filter(f -> f.includes(CARD_FIELDS)))
                     .query(q -> q.bool(b -> {
                         b.filter(f -> f.term(t -> t.field("book").value(chapter.bookName())));
                         b.filter(f -> f.term(t -> t.field("chapter.keyword").value(chapter.title())));
@@ -380,7 +467,7 @@ public class BookPageController {
                 if (source == null) {
                     continue;
                 }
-                results.add(cards.build(hit.id(), source, chapter.url(), BASE_URL));
+                results.add(cards.build(hit.id(), source, chapter.url(), BASE_URL, locale));
             }
         }
         results.sort((a, b) -> compareNumbers(str(a.get("number")), str(b.get("number"))));
@@ -441,7 +528,8 @@ public class BookPageController {
 
     /** Topic tags present in this chapter, with counts, most common first. */
     private List<Map<String, Object>> tagFacets(List<Map<String, Object>> narrations,
-                                                String activeTag, BookCatalog.Chapter chapter) {
+                                                String activeTag, BookCatalog.Chapter chapter,
+                                                PageLocale locale) {
         Map<String, Long> counts = new LinkedHashMap<>();
         for (Map<String, Object> narration : narrations) {
             for (String slug : slugsOf(narration)) {
@@ -452,10 +540,10 @@ public class BookPageController {
                 .sorted((a, b) -> Long.compare(b.getValue(), a.getValue()))
                 .map(e -> Map.<String, Object>of(
                         "slug", e.getKey(),
-                        "label", topicLabels.label(e.getKey()),
+                        "label", topicLabels.label(e.getKey(), locale),
                         "count", e.getValue(),
                         "active", e.getKey().equals(activeTag),
-                        "url", chapter.url() + "?tag=" + encode(e.getKey())))
+                        "url", locale.prefix() + chapter.url() + "?tag=" + encode(e.getKey())))
                 .toList();
     }
 
@@ -489,15 +577,41 @@ public class BookPageController {
         return text.substring(0, cut <= 0 ? EXCERPT_CHARS : cut) + "…";
     }
 
+    /** A message in the page's language. Arguments are pre-formatted strings. */
+    private String msg(PageLocale locale, String key, Object... args) {
+        return messages.getMessage(key, args, locale.locale());
+    }
+
+    /** The Arabic name when there is one and the page is Arabic; the English one otherwise. */
+    private static String named(PageLocale locale, String english, String arabic) {
+        return locale.isArabic() && arabic != null && !arabic.isBlank() ? arabic : english;
+    }
+
+    /** Thousands-separated, in Latin digits, because these land in titles a crawler reads. */
+    /**
+     * A number written in the digits the page is set in.
+     *
+     * <p>The templates format their counts through Thymeleaf, which already follows the
+     * locale, so an Arabic page showed its chapter count as ١٨٩ while the meta
+     * description built here read 189 for the same page. The mismatch is visible in the
+     * one place it matters most, the search result.
+     */
+    private static String count(PageLocale locale, long value) {
+        return NumberFormat.getIntegerInstance(locale.locale()).format(value);
+    }
+
     /**
      * The visible breadcrumb trail and its BreadcrumbList, built from one list so the two
      * can never disagree — a mismatch between them is exactly what Google flags.
      */
-    private void addBreadcrumbs(Model model, Map<String, String> trail) {
+    private void addBreadcrumbs(Model model, Map<String, String> trail, PageLocale locale) {
         List<Map<String, String>> crumbs = new ArrayList<>();
-        crumbs.add(Map.of("name", "Home", "url", "/"));
-        crumbs.add(Map.of("name", "Books", "url", "/books"));
-        trail.forEach((name, url) -> crumbs.add(Map.of("name", name, "url", url)));
+        // Every URL in the trail carries the prefix, so a reader following it back up
+        // stays in Arabic, and the BreadcrumbList describes the page it is actually on.
+        String prefix = locale.prefix();
+        crumbs.add(Map.of("name", msg(locale, "crumb.home"), "url", prefix + "/"));
+        crumbs.add(Map.of("name", msg(locale, "nav.books"), "url", prefix + "/books"));
+        trail.forEach((name, url) -> crumbs.add(Map.of("name", name, "url", prefix + url)));
         model.addAttribute("breadcrumbs", crumbs);
         model.addAttribute("breadcrumbJsonLd", breadcrumbJsonLd(crumbs));
     }

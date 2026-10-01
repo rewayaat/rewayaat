@@ -8,6 +8,9 @@
 | [architecture/](architecture/) | Decision records: why the system is this and not something else, with the checkable rules enforced by `ArchitectureRulesTest` |
 | [search.md](search.md) | How search, similar narrations and Quranic insights actually work at query time |
 | [seo.md](seo.md) | The crawler-facing surface, and the invariants that quietly cost traffic if broken |
+| [i18n.md](i18n.md) | Where every reader-facing string lives, which language it resolves in, and what stops that drifting |
+| [arabic-release.md](arabic-release.md) | Shipping `feature/arabic-seo`: why the data goes before the code, what CI does not run, and where rollback stops being cheap |
+| [arabic-data-migration.md](arabic-data-migration.md) | Getting the `_ar` fields into the production index: measured state, the dry run, and what it does not cover |
 | [data-pipeline.md](data-pipeline.md) | How every piece of data gets into Elasticsearch |
 | [deployment.md](deployment.md) | Docker, CI/CD, Kubernetes, monitoring, secrets |
 | [mcp-connector.md](mcp-connector.md) | The MCP server: tools, the ChatGPT and Claude contracts, response shaping |

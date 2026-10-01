@@ -1,3 +1,9 @@
+/** A UI string from the catalogue the i18n fragment publishes. */
+function label(key, fallback) {
+    var value = (window.I18N || {})[key];
+    return (typeof value === 'string' && value.length) ? value : fallback;
+}
+
 /*
  * Folds long narrations on the server-rendered chapter pages.
  *
@@ -43,7 +49,8 @@
         b.className = 'text-toggle';
         b.setAttribute('aria-expanded', expanded ? 'true' : 'false');
         var span = document.createElement('span');
-        span.textContent = expanded ? 'Show less' : 'Show more';
+        span.textContent = expanded ? label('js.showLess', 'Show less')
+                                    : label('js.showMore', 'Show more');
         var icon = document.createElement('i');
         icon.className = 'fa ' + (expanded ? 'fa-chevron-up' : 'fa-chevron-down');
         icon.setAttribute('aria-hidden', 'true');
@@ -76,7 +83,8 @@
 
             scroll.classList.toggle('hadith-reading-scroll--clamped', !expanding);
             b.setAttribute('aria-expanded', expanding ? 'true' : 'false');
-            b.querySelector('span').textContent = expanding ? 'Show less' : 'Show more';
+            b.querySelector('span').textContent = expanding ? label('js.showLess', 'Show less')
+                : label('js.showMore', 'Show more');
             b.querySelector('i').className =
                 'fa ' + (expanding ? 'fa-chevron-up' : 'fa-chevron-down');
 

@@ -24,16 +24,40 @@ class BookBlurbs {
     private static final Logger LOGGER = LoggerFactory.getLogger(BookBlurbs.class);
 
     private final Map<String, String> bySlug;
+    private final Map<String, String> bySlugAr;
     private final Map<String, String> summaries;
+    private final Map<String, String> summariesAr;
     private final Map<String, String> sectionSummaries;
+    private final Map<String, String> sectionSummariesAr;
 
     BookBlurbs() {
-        this.bySlug = load();
+        this.bySlug = load("blurb");
+        this.bySlugAr = load("blurb_ar");
         this.summaries = loadSummaries("static/book_summaries.json");
+        this.summariesAr = loadSummaries("static/book_summaries.json", "ar");
         this.sectionSummaries = loadSummaries("static/section_summaries.json");
+        this.sectionSummariesAr = loadSummaries("static/section_summaries.json", "ar");
     }
 
     String forSlug(String slug) {
+        return bySlug.get(slug);
+    }
+
+    /**
+     * The blurb in the page's language, falling back to English.
+     *
+     * <p>Every entry carries a {@code blurb_ar}, and {@code TranslatedDataTest} keeps it
+     * that way. The fallback is for one added later without one: this is the About
+     * section rather than the hero, and a reader who has scrolled to it is better served
+     * by an English paragraph than by a section that is not there.
+     */
+    String forSlug(String slug, boolean arabic) {
+        if (arabic) {
+            String arabicBlurb = bySlugAr.get(slug);
+            if (arabicBlurb != null && !arabicBlurb.isBlank()) {
+                return arabicBlurb;
+            }
+        }
         return bySlug.get(slug);
     }
 
@@ -51,6 +75,23 @@ class BookBlurbs {
     }
 
     /**
+     * A plain-text opening paragraph for the hero, in the page's language.
+     *
+     * <p>All eighteen books carry both halves now, and the Arabic is written rather than
+     * salvaged. It used to be taken from the first paragraph of the Arabic blurb, which
+     * only five books have — so thirteen Arabic book pages opened with nothing at all
+     * while their English twins opened with a paragraph. That is invisible from the
+     * English site, which is why it survived as long as it did.
+     *
+     * <p>Still no English fallback. The hero collapses to its centred layout when there is
+     * no intro, whereas an English paragraph under an Arabic heading is mixed-language body
+     * text on a page whose whole purpose is to rank for Arabic queries.
+     */
+    String summaryForSlug(String slug, boolean arabic) {
+        return arabic ? summariesAr.get(slug) : summaries.get(slug);
+    }
+
+    /**
      * The note for a volume or part page, keyed by its path without the leading slash.
      *
      * <p>Deliberately partial, and absence is the normal case. A note is only worth
@@ -60,6 +101,22 @@ class BookBlurbs {
      * nothing left to explain. The hero falls back to its centred layout when there is
      * nothing here, exactly as a book with no summary does.
      */
+    /**
+     * A volume or part's opening note, in the reader's language.
+     *
+     * <p>These were English only, and the Arabic page showed nothing rather than English
+     * prose under an Arabic heading — right while nothing was translated, but it left the
+     * Arabic hubs looking emptier than the English ones for no reason a reader could see.
+     * All 47 carry an Arabic twin now. A page with no Arabic note still shows none.
+     */
+    String sectionSummaryForPath(String path, boolean arabic) {
+        if (!arabic) {
+            return sectionSummaryForPath(path);
+        }
+        return path == null || path.isBlank() ? null
+                : sectionSummariesAr.get(path.startsWith("/") ? path.substring(1) : path);
+    }
+
     String sectionSummaryForPath(String path) {
         if (path == null || path.isBlank()) {
             return null;
@@ -68,13 +125,31 @@ class BookBlurbs {
     }
 
     private static Map<String, String> loadSummaries(String resource) {
+        return loadSummaries(resource, "en");
+    }
+
+    /**
+     * Summaries for one language.
+     *
+     * <p>An entry is either a bare string, which is English, or an object carrying both
+     * languages as en and ar — the shape taxonomy.json uses, so the translation sits
+     * beside the English rather than in a file of its own. Both files carry both halves;
+     * the bare-string form is still read because it is what a hand-added entry looks like
+     * before anyone translates it, and TranslatedDataTest is what catches that.
+     */
+    private static Map<String, String> loadSummaries(String resource, String language) {
         Map<String, String> loaded = new LinkedHashMap<>();
         try (InputStream in = new ClassPathResource(resource).getInputStream()) {
             JsonNode root = new ObjectMapper().readTree(in);
             root.fields().forEachRemaining(entry -> {
                 // A leading underscore marks the file's own note to the reader, not a book.
-                if (!entry.getKey().startsWith("_") && !entry.getValue().asText("").isBlank()) {
-                    loaded.put(entry.getKey(), entry.getValue().asText());
+                if (entry.getKey().startsWith("_")) {
+                    return;
+                }
+                JsonNode value = entry.getValue();
+                String text = value.isObject() ? value.path(language).asText("") : value.asText("");
+                if (!text.isBlank()) {
+                    loaded.put(entry.getKey(), text);
                 }
             });
         } catch (Exception e) {
@@ -84,15 +159,33 @@ class BookBlurbs {
         return Map.copyOf(loaded);
     }
 
-    private static Map<String, String> load() {
+    /**
+     * Blurbs for one language, keyed by the slug of the page that shows them.
+     *
+     * <p>An entry names its own slug. It used to be guessed by slugifying the book name
+     * the entry carries, and the guess was wrong twice: the entry titled "Kitab
+     * Al-Tawhid" keyed itself to a page called al-tawhid, and the one titled "A
+     * COMPREHENSIVE COMPILATION OF RELIABLE NARRATIONS" to a page called
+     * mu-jam-al-ahadith-al-mu-tabara. Both blurbs existed in both languages and neither
+     * had ever rendered. Nothing failed, so nothing said so.
+     *
+     * <p>The fallback stays for the three entries that describe books this corpus does
+     * not hold — Mizan al-Hikmah, Ghurar al-Hikam, Mishkat al-Anwar — which have no
+     * catalogue slug to name and so can key only to themselves.
+     */
+    private static Map<String, String> load(String field) {
         Map<String, String> loaded = new LinkedHashMap<>();
         try (InputStream in = new ClassPathResource("static/book_blurbs.json").getInputStream()) {
             JsonNode root = new ObjectMapper().readTree(in);
             for (JsonNode entry : root) {
                 String book = entry.path("book").asText("");
-                String blurb = entry.path("blurb").asText("");
-                if (!book.isBlank() && !blurb.isBlank()) {
-                    loaded.put(BookCatalog.slugify(book), blurb);
+                String slug = entry.path("slug").asText("");
+                String blurb = entry.path(field).asText("");
+                if (slug.isBlank()) {
+                    slug = book.isBlank() ? "" : BookCatalog.slugify(book);
+                }
+                if (!slug.isBlank() && !blurb.isBlank()) {
+                    loaded.put(slug, blurb);
                 }
             }
         } catch (Exception e) {
