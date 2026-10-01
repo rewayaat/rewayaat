@@ -75,8 +75,14 @@ spec:
             # See scripts/search/migrate_index.py.
             - name: REWAYAAT_INDEX
               value: "rewayaat_hadith"
+            # The host account mail links to. It is not the SEO canonical — that is
+            # hardcoded as PageLocale.BASE_URL and must stay identical on every mirror —
+            # but it should name the same site, and it did not: every verification and
+            # reset link went to rewayaat.info while the whole index points at
+            # hadith.academyofislam.com. All three hosts serve this app, so links
+            # already sent keep working.
             - name: APP_BASE_URL
-              value: "https://rewayaat.info"
+              value: "https://hadith.academyofislam.com"
             # The Arabic release switch, and the only irreversible step in it. While
             # this is "false" the /ar tree is live and testable here but carries
             # X-Robots-Tag: noindex and is absent from every sitemap, so a bad release

@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -53,5 +54,40 @@ class AccountEmailLocaleIntegrationTest {
         // would pass every check above except this one.
         assertFalse(arabic.get("subject").equals(english.get("subject")),
                 "both languages produced the same subject, so the Arabic bundle was not reached");
+    }
+
+    @Test
+    @DisplayName("the link in the mail lands on the site the reader signed up to")
+    void theLinkFollowsTheAccountsLanguageToo() {
+        // The prose was translated and the link was not, so an Arabic reader got Arabic
+        // mail and an English page to verify on — and stayed on the English site
+        // afterwards, because that is where the link had put them.
+        String arabic = authService.buildVerifyUrl("tok", PageLocale.ARABIC);
+        String english = authService.buildVerifyUrl("tok", PageLocale.ENGLISH);
+
+        assertTrue(arabic.contains("/ar/auth/verify"),
+                "an Arabic account's verify link must stay on the Arabic site: " + arabic);
+        assertFalse(english.contains("/ar/"),
+                "an English account's link must not acquire a language prefix: " + english);
+
+        assertEquals(arabic, english.replace("/auth/verify", "/ar/auth/verify"),
+                "the two links differ by more than the prefix");
+
+        // And the same for the reset mail, which is the other half nobody looks at.
+        assertTrue(authService.buildResetUrl("tok", PageLocale.ARABIC).contains("/ar/auth/reset"));
+        assertFalse(authService.buildResetUrl("tok", PageLocale.ENGLISH).contains("/ar/"));
+    }
+
+    @Test
+    @DisplayName("both of those paths are reachable in Arabic")
+    void theLinkIsNotAFourOhFour() {
+        // Prefixing the link is only an improvement if the prefixed path exists. It did
+        // not: /ar/auth/verify answered 404 while /auth/verify redirected, so shipping
+        // the prefix on its own would have replaced a wrong-language page with no page.
+        assertTrue(PageLocale.hasArabicVersion("/auth/verify"),
+                "the verify link is prefixed for Arabic accounts, so /ar/auth/verify has "
+                        + "to be a path the prefix filter will serve rather than 404");
+        assertTrue(PageLocale.hasArabicVersion("/auth/reset"),
+                "likewise the reset link");
     }
 }

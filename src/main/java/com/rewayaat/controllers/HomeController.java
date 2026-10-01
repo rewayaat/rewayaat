@@ -131,13 +131,15 @@ public class HomeController {
     }
 
     @RequestMapping(value = "/auth/verify", method = RequestMethod.GET)
-    public String verifyRedirect(@RequestParam(value = "token", required = false, defaultValue = "") String token) {
-        return redirectToSigninWithToken("verify_token", token);
+    public String verifyRedirect(@RequestParam(value = "token", required = false, defaultValue = "") String token,
+                                 HttpServletRequest request) {
+        return redirectToSigninWithToken("verify_token", token, request);
     }
 
     @RequestMapping(value = "/auth/reset", method = RequestMethod.GET)
-    public String resetRedirect(@RequestParam(value = "token", required = false, defaultValue = "") String token) {
-        return redirectToSigninWithToken("reset_token", token);
+    public String resetRedirect(@RequestParam(value = "token", required = false, defaultValue = "") String token,
+                                HttpServletRequest request) {
+        return redirectToSigninWithToken("reset_token", token, request);
     }
 
     @RequestMapping(value = "/edit", method = RequestMethod.GET)
@@ -167,8 +169,13 @@ public class HomeController {
         return returnTo;
     }
 
-    private String redirectToSigninWithToken(String queryKey, String token) {
-        UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/signin.html");
+    private String redirectToSigninWithToken(String queryKey, String token,
+                                             HttpServletRequest request) {
+        // Keep the language across the redirect. Arriving from an Arabic mail at
+        // /ar/auth/verify and being bounced to the English sign-in page is the same
+        // trapdoor the link sweep exists to catch, just reached from outside the site.
+        UriComponentsBuilder builder = UriComponentsBuilder.fromPath(
+                PageLocale.of(request).prefix() + "/signin.html");
         if (token != null && !token.isBlank()) {
             builder.queryParam(queryKey, token);
         }

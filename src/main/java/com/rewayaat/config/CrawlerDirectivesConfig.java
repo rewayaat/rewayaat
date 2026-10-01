@@ -34,7 +34,13 @@ import org.springframework.core.Ordered;
 @Configuration
 public class CrawlerDirectivesConfig {
 
-    private static final List<String> NOINDEX_PATHS = List.of("/error/*", "/edit", "/signin.html");
+    // /auth/verify and /auth/reset carry a one-time token and redirect to the sign-in
+    // page. They became Arabic-capable so that a link in an Arabic mail keeps the reader
+    // on the Arabic site, and PageLocale is also what the sitemap reads — so without
+    // this they would be advertised for crawling, which is the last thing a tokenised
+    // URL should be. SitemapIntegrationTest caught exactly that.
+    private static final List<String> NOINDEX_PATHS = List.of(
+            "/error/*", "/edit", "/signin.html", "/auth/verify", "/auth/reset");
 
     /** While the Arabic site is being released, its whole tree joins that list. */
     private static final List<String> ARABIC_PATHS = List.of("/ar", "/ar/*");

@@ -1,7 +1,10 @@
 package com.rewayaat.controllers;
 
 import com.rewayaat.service.BookCatalog;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockHttpServletRequest;
+import com.rewayaat.service.PageLocale;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
@@ -95,7 +98,7 @@ class HomeControllerTest {
     void verifyRedirect_sendsTokenToSigninPage() {
         HomeController controller = controller();
 
-        String redirect = controller.verifyRedirect("abc123");
+        String redirect = controller.verifyRedirect("abc123", new MockHttpServletRequest());
 
         assertEquals("redirect:/signin.html?verify_token=abc123", redirect);
     }
@@ -104,9 +107,24 @@ class HomeControllerTest {
     void resetRedirect_sendsTokenToSigninPage() {
         HomeController controller = controller();
 
-        String redirect = controller.resetRedirect("abc123");
+        String redirect = controller.resetRedirect("abc123", new MockHttpServletRequest());
 
         assertEquals("redirect:/signin.html?reset_token=abc123", redirect);
+    }
+
+    @Test
+    @DisplayName("a reader arriving from an Arabic mail stays on the Arabic site")
+    void verifyRedirect_keepsTheLanguage() {
+        // The mail links to /ar/auth/verify; the prefix filter marks the request and
+        // forwards. Dropping the language here would hand an Arabic reader the English
+        // sign-in page at the last step of signing up.
+        MockHttpServletRequest arabic = new MockHttpServletRequest();
+        arabic.setAttribute(PageLocale.REQUEST_ATTRIBUTE, PageLocale.ARABIC);
+
+        assertEquals("redirect:/ar/signin.html?verify_token=abc123",
+                controller().verifyRedirect("abc123", arabic));
+        assertEquals("redirect:/ar/signin.html?reset_token=abc123",
+                controller().resetRedirect("abc123", arabic));
     }
 
     @Test

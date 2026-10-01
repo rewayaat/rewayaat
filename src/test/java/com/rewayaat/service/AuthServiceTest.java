@@ -155,12 +155,22 @@ class AuthServiceTest {
 
     @Test
     void buildVerifyUrl_usesAuthVerifyRedirectPath() {
-        assertEquals("http://localhost:8080/auth/verify?token=abc123", service.buildVerifyUrl("abc123"));
+        assertEquals("http://localhost:8080/auth/verify?token=abc123",
+                service.buildVerifyUrl("abc123", PageLocale.ENGLISH));
     }
 
     @Test
     void buildResetUrl_usesAuthResetRedirectPath() {
-        assertEquals("http://localhost:8080/auth/reset?token=abc123", service.buildResetUrl("abc123"));
+        assertEquals("http://localhost:8080/auth/reset?token=abc123",
+                service.buildResetUrl("abc123", PageLocale.ENGLISH));
+    }
+
+    @Test
+    void buildVerifyUrl_keepsAnArabicAccountOnTheArabicSite() {
+        assertEquals("http://localhost:8080/ar/auth/verify?token=abc123",
+                service.buildVerifyUrl("abc123", PageLocale.ARABIC));
+        assertEquals("http://localhost:8080/ar/auth/reset?token=abc123",
+                service.buildResetUrl("abc123", PageLocale.ARABIC));
     }
 
     @Test
