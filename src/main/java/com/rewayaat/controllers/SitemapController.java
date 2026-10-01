@@ -1,5 +1,6 @@
 package com.rewayaat.controllers;
 
+import com.rewayaat.config.ArabicIndexing;
 import com.rewayaat.config.ESClientProvider;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.FieldValue;
@@ -55,9 +56,11 @@ public class SitemapController {
     private volatile Instant cachedAt = Instant.EPOCH;
 
     private final BookCatalog catalog;
+    private final ArabicIndexing arabicIndexing;
 
-    public SitemapController(BookCatalog catalog) {
+    public SitemapController(BookCatalog catalog, ArabicIndexing arabicIndexing) {
         this.catalog = catalog;
+        this.arabicIndexing = arabicIndexing;
     }
 
     @RequestMapping(value = "/sitemap.xml", method = RequestMethod.GET, produces = MediaType.APPLICATION_XML_VALUE)
@@ -372,7 +375,11 @@ public class SitemapController {
      * <p>Pages with no Arabic version fall through to a single, unannotated entry.
      */
     private void appendLocalisedUrl(StringBuilder xml, String path, String priority, String changefreq) {
-        if (!PageLocale.hasArabicVersion(path)) {
+        // The release switch. Until the Arabic site is indexable, each pair is listed as
+        // the English page alone and carries no annotation: the Arabic twin is served
+        // with X-Robots-Tag: noindex, and an hreflang naming a noindex URL is a pair
+        // Google discards rather than follows. See ArabicIndexing.
+        if (!PageLocale.hasArabicVersion(path) || !arabicIndexing.isIndexable()) {
             appendUrl(xml, path, priority, changefreq);
             return;
         }

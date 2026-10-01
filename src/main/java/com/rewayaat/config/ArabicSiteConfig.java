@@ -60,6 +60,9 @@ public class ArabicSiteConfig {
         };
 
         FilterRegistrationBean<Filter> registration = new FilterRegistrationBean<>(filter);
+        // After the noindex filter. That one marks the response while the URL still says
+        // /ar; this one forwards to a handler that no longer knows it did.
+        registration.setOrder(CrawlerDirectivesConfig.ARABIC_NOINDEX_ORDER + 1);
         registration.addUrlPatterns("/ar", "/ar/*");
         return registration;
     }

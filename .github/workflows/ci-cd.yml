@@ -41,11 +41,21 @@ jobs:
       - name: Build with Maven
         run: mvn -B -q package -DskipTests -Dcheckstyle.skip=true -Dfindbugs.skip=true
 
-      # Two groups are excluded because they cannot pass on a CI runner:
-      # *IntegrationTest needs a live Elasticsearch, and HodaAlQuranQualityCheck
-      # scrapes hodaalquran.com over the network to check extraction quality.
+      # Testcontainers starts Elasticsearch for the run, so the integration tests are
+      # part of the gate rather than something only a developer's laptop ever ran. They
+      # were excluded because a runner has no Elasticsearch, and that exclusion was 65
+      # of the 590 tests - all of the end-to-end cover for the Arabic site: the sweep
+      # that proves no Arabic page drops the reader onto the English one, the canonical
+      # and hreflang checks, the sitemap pairing. A green build said nothing about any
+      # of it.
+      #
+      # The image is pinned to the version the cluster runs; see ElasticsearchTestSupport.
+      #
+      # HodaAlQuranQualityCheck stays out. It scrapes hodaalquran.com to check extraction
+      # quality against the live site, so it fails on the site's bad day rather than on
+      # ours, and no container fixes that.
       - name: Run tests
-        run: mvn -B test -Dtest='!*IntegrationTest, !HodaAlQuranQualityCheck' -DfailIfNoSpecifiedTests=false
+        run: mvn -B test -Dtestcontainers.enabled=true -Dtest='!HodaAlQuranQualityCheck' -DfailIfNoSpecifiedTests=false
 
   # Never runs for a pull request — only a push to master publishes and deploys.
   deploy:

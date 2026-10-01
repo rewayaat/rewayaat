@@ -101,15 +101,16 @@ anything. Read the per-field line it prints: `Updates`, `Already has <field>_ar`
 `No mapping`. A large `No mapping` count means the English in production does not match
 the English the mapping was built from, and the run should stop there.
 
-Run against production on 2026-10-01, four of the fields came back clean and the run
-took **19 minutes** over a port-forward:
+Run against production on 2026-10-01, all five fields came back clean and the run took
+**19 minutes** over a port-forward. `chapter` reported 16 unmatched on the first pass;
+those are mapped now and it reports none, re-checked with the applier's own matcher:
 
 ```
 book:      18 translations in mapping — Updates: 32519, Already has: 0, No mapping: 0
 source:    11 translations in mapping — Updates: 32519, Already has: 0, No mapping: 0
 part:     145 translations in mapping — Updates: 32519, Already has: 0, No mapping: 0
 section:  596 translations in mapping — Updates: 32519, Already has: 0, No mapping: 0
-chapter: 7724 translations in mapping — Updates: 32503, Already has: 0, No mapping: 16
+chapter: 7738 translations in mapping — Updates: 32519, Already has: 0, No mapping: 0
 ```
 
 That is the shape to expect. Nineteen minutes is five scrolls of 32,519 documents and no
@@ -196,30 +197,17 @@ note. The translated chunks are still under
 
 **`gradings`.** The field does not exist in production. Nothing to translate.
 
-**Sixteen chapter titles, in fourteen distinct spellings.** 32,503 of 32,519 narrations
-get an Arabic chapter name; the rest fall back to English, which is the designed
-behaviour.
+**Every narration has an Arabic chapter title**, as of 2026-10-01. Sixteen did not, in
+fourteen distinct spellings, and they are mapped now; `docs/arabic-release.md` records
+where each Arabic came from and which three were written by hand.
 
-It was three on 2026-09-27 and is sixteen now, and that movement is the thing to read,
-not the number. Fourteen of the sixteen are Al-Khiṣāl, the book being edited in
-production, and the two that are not are the known corrupt pair:
-
-| | id | English chapter |
-|---|---|---|
-| corrupt | `Man-La-Yahduruh-al-Faqih-Volume-2-Saduq:71` | `Hapter 9 - Chapter on the Specified Right and the Assistance` |
-| corrupt | `Man-La-Yahduruh-al-Faqih-Volume-4-Saduq:398` | `Techapter 59 - Chapter on Umm Al-Walad Killing Her Master by Mistake or Intentionar` |
-| drift | `Al-Khisal-Saduq:9, 13, 23, 107, 112, 239, 976, 998, 1000, 1105-1109` | eleven Al-Khiṣāl titles reworded in production since the mapping was built, plus `God has reinforced the intellect with ten things` |
-
-The first two are ingest damage — a swallowed "C", a doubled prefix and a trailing "ar" —
-and they are wrong on the English site too, independently of anything here.
-
-The Al-Khiṣāl ones are not damage and not a bug in the mapping. They are the same thing
-that produced the nineteen reconciled spellings already in `chapter_ar_mapping.json`: the
-English was reworded in production after the mapping was keyed against it. **This list
-will be different again next month.** Either re-reconcile immediately before the apply, or
-accept that a dozen or so Al-Khiṣāl chapters show an English title on the Arabic site and
-fix them afterwards. The second is a reasonable choice — the fallback is designed for
-exactly this — but it should be a choice.
+The number is less interesting than the movement. It was three on 2026-09-27 and sixteen
+four days later, and the notes went from 15 to 19 over the same days, all on Al-Khiṣāl.
+Production is being edited through `/edit`, so **a mapping keyed on English drifts away
+from production continuously**. Expect a handful of unmatched titles again by the time
+anyone runs this; the fallback to English is designed for exactly that, so a few delay
+nothing. What would be a mistake is reading a stale `No mapping: 0` from this document
+instead of running the dry run.
 
 The current list is reproduced by aggregating distinct `chapter.keyword` values out of
 production and subtracting the mapping's keys, exact and casefolded, which is the same

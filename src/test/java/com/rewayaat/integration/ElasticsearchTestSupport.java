@@ -22,7 +22,15 @@ import java.time.Duration;
 public abstract class ElasticsearchTestSupport {
 
     protected static final String INDEX = "rewayaat";
-    private static final String ELASTIC_IMAGE = "docker.elastic.co/elasticsearch/elasticsearch:9.2.4";
+    /**
+     * The version production runs, not the newest.
+     *
+     * <p>This is what CI tests against now that it starts a container, so a difference
+     * between it and the cluster is a difference between a green build and the site. It
+     * was 9.2.4 while nothing but a developer's laptop ever started it and the laptop had
+     * its own Elasticsearch anyway; now it has to match.
+     */
+    private static final String ELASTIC_IMAGE = "docker.elastic.co/elasticsearch/elasticsearch:9.0.2";
 
     private static final boolean USE_TESTCONTAINERS = Boolean.parseBoolean(
             System.getProperty("testcontainers.enabled", "false"));

@@ -1,80 +1,110 @@
 # Releasing the Arabic site
 
-`feature/arabic-seo` is 50 commits and 102 files against `master`. It adds a second
-language at `/ar`, and on the way it rewrites the header, the stylesheet and most of the
-browser code that the **English** site also runs. This is how it goes out, in what order,
-and how to tell at each point whether to carry on.
+`feature/arabic-seo` is 50-odd commits and 100-odd files against `master`. It adds a
+second language at `/ar`, and on the way it rewrites the header, the stylesheet and most
+of the browser code that the **English** site also runs.
 
-`docs/arabic-data-migration.md` is the detail of the Elasticsearch half. This is the
-order the two halves go in and why that order is not negotiable.
+Every step below can be undone. That is the organising principle rather than a section
+at the end, because one step — being indexed — cannot be undone cheaply, so the release
+is arranged to reach that step last, alone, and by an explicit switch.
 
-## The two facts that decide everything
+`docs/arabic-data-migration.md` is the detail of the Elasticsearch half.
+
+## The shape of it
+
+| # | Step | Undo | What the undo costs |
+|---|------|------|---------------------|
+| 0 | Rebase onto `master` | `git reset` | Nothing |
+| 1 | Load `_ar` into the production index | `rollback_ar_fields.py` | Minutes. The English is never touched |
+| 2 | Merge, which deploys, with `ARABIC_INDEXABLE=false` | Revert the merge, or repoint the image tag in `k8s/kustomization.yaml` | One CI run, or one sync. Nothing was advertised, so nothing is lost |
+| 3 | Verify on the live host | — | Read-only |
+| 4 | `ARABIC_INDEXABLE=true` | Set it back to `false` | **Free until Google crawls, then expensive.** The only step that decays |
+
+Steps 1 and 2 are independent and commute, but the order matters for what a reader sees
+in between — see below.
+
+## Why the data goes first
 
 **Merging is deploying.** `.github/workflows/ci-cd.yml` triggers on a push to `master`
 filtered on `src/**`, which this branch touches heavily. There is no staging environment
 and no manual gate: the merge commit builds an image, pushes it, and updates
-`k8s/kustomization.yaml`, which Argo picks up. The window between "merged" and "live" is
-a CI run.
+`k8s/kustomization.yaml`, which Argo picks up.
 
-**The data migration is backward-compatible; the code is not reversible.** Writing
-`chapter_ar` and its siblings into production today changes nothing a reader sees,
-because `HadithObject` carries `@JsonIgnoreProperties(ignoreUnknown = true)` on `master`
-as well as here — the running code reads straight past them. Deploying the code, by
-contrast, publishes about 3,900 Arabic URLs into `sitemap-books.xml`, and once Google has
-them, withdrawing them is a 404 for every one.
+**Writing `_ar` into production changes nothing today.** `HadithObject` carries
+`@JsonIgnoreProperties(ignoreUnknown = true)` on `master` as well as here, so the running
+code reads straight past the new fields. The load is invisible to the live site, which is
+what makes it safe to do first.
 
-So: **data first, code second.** In that order, there is no window in which the Arabic
-site exists with English narration metadata on it. In the other order there is, and its
-length is however long the apply takes.
+Do it the other way and there is a window — however long the load takes — in which the
+Arabic site exists with English chapter, part and section names on every page. The switch
+in step 2 means that window would not be *indexed*, so it is survivable; it is still an
+avoidable hour of a half-finished site being live.
 
-## Before anything: three things to settle
+## The switch
 
-### 1. The branch is one commit behind master
+`ARABIC_INDEXABLE` is the one thing standing between "deployed" and "irreversible". With
+it `false`:
+
+- every `/ar` response carries `X-Robots-Tag: noindex` — a header rather than a
+  `robots.txt` `Disallow`, because a blocked URL still gets indexed from links and a
+  crawler that cannot fetch the page never reads the directive telling it to stay away.
+  `robots.txt` says this in its own comments; it was learned from `/edit` and
+  `/signin.html` turning up in Search Console as "Indexed, though blocked by robots.txt".
+- the sitemaps list only the English half of each pair, with no `hreflang` annotation,
+  because an alternate naming a noindex URL is a pair Google discards rather than follows.
+- the Arabic site is otherwise completely live: it answers, in Arabic, and can be walked
+  in production.
+
+It lives in `k8s/deployment.yaml`, so flipping it is a sync rather than a build — the
+pattern `OPENAI_APPS_CHALLENGE` already uses. The default in `application.yaml` is
+`true`, which is the steady state; production holds the `false` for the length of the
+release and drops it afterwards.
+
+`ArabicIndexingGateIntegrationTest` covers both positions, because a switch verified in
+one position is a constant. It also covers the part that is easy to get wrong: the
+noindex filter has to run *before* the filter that forwards `/ar/books` to the English
+handler. Both match the same patterns and both defaulted to the lowest precedence, so
+the header was set or not depending on registration order. Removing the explicit
+ordering makes two of those tests fail, which is how the ordering is known to matter.
+
+## Before anything
+
+### The branch is behind master
 
 `1d8b3df ops: limit Meta's crawler, refuse two scraper networks, and give the JVM half
-the container (#97)`. Rebase or merge it in and re-run the suite before anything else —
-it touches the JVM heap setting, which is the sort of thing that only shows up under the
-load a release brings.
+the container (#97)`. Rebase and re-run the suite — it changes the JVM heap, which is the
+sort of thing that only shows up under the load a release brings.
 
-### 2. CI runs 525 of the 590 tests
+### CI now runs the integration tests
 
-The workflow excludes `*IntegrationTest` because a runner has no Elasticsearch. That is
-65 tests, and it is most of what covers the Arabic site end to end: the link sweep that
-proves no Arabic page drops the reader onto the English one, the canonical checks, the
-sitemap pairing, the hreflang reciprocity. **A green PR does not mean those passed.** Run
-`mvn test` locally against a live Elasticsearch and read the 590, every time, before
-merging.
+It did not. The workflow excluded `*IntegrationTest` because a runner has no
+Elasticsearch, and that was 65 of the 590 tests — all of the end-to-end cover for the
+Arabic site: the sweep that proves no Arabic page drops the reader onto the English one,
+the canonical checks, the sitemap pairing, the hreflang reciprocity. A green build said
+nothing about any of it.
 
-This also caught a release blocker. `ArabicLinksStayArabicTest` was new on this branch,
-extended `ElasticsearchTestSupport`, and did *not* end in `IntegrationTest` — so CI would
-have run it, all five tests would have errored with `Connection refused`, and `verify`
-failing would have blocked `deploy`. Verified by pointing the suite at a dead port. It is
-renamed `ArabicLinksStayArabicIntegrationTest` now. **Any future test that boots the app
-needs that suffix**, or the next release stalls on a failure that reproduces nowhere a
-developer looks.
+`ElasticsearchTestSupport` already knew how to start a container; nothing used it. CI
+passes `-Dtestcontainers.enabled=true` now and runs all 590. The image is pinned to
+**9.0.2, the version the cluster runs** — it was 9.2.4 while only a laptop ever started
+it, and a laptop has its own Elasticsearch anyway. Now that a green build depends on it,
+a version difference between the container and the cluster is a difference between a
+green build and the site.
 
-### 3. Two content decisions that are not the code's to make
+`HodaAlQuranQualityCheck` stays excluded. It scrapes hodaalquran.com to compare
+extraction against the live site, so it fails on their bad day rather than ours.
 
-**Sixteen chapter titles have no Arabic.** Fourteen are Al-Khiṣāl, reworded in production
-after the mapping was keyed against it; two are corrupt English in the corpus. They fall
-back to English on the Arabic page, by design. It was three of them on 2026-09-27 and is
-sixteen now, so the number will be different again by the time anyone reads this —
-production is being edited. Either re-reconcile right before the apply or accept the
-fallback and fix later. Either is defensible; drifting into one without noticing is not.
-
-**Nineteen narrations lose a footnote on the Arabic site.** `notes` exists on 19
-Al-Khiṣāl narrations in production and nowhere else; `notes_ar` does not exist at all,
-and `HadithCardFactory.notesFor` returns the Arabic or nothing rather than falling back.
-They are a translator's scholarly footnotes, several hundred words each, citing Lane's
-Lexicon and Biḥār — editorial work, not a lookup. Until somebody writes them, an Arabic
-reader of those 19 sees less than an English one, silently.
+One release blocker came out of looking at this. `ArabicLinksStayArabicTest` was new on
+this branch, extended `ElasticsearchTestSupport`, and did not end in `IntegrationTest` —
+so CI would have run it with no Elasticsearch, all five would have errored with
+`Connection refused`, and `verify` failing would have blocked `deploy`. Confirmed by
+pointing the suite at a dead port. It is renamed, and with the container in CI the name
+now only decides whether a test can run on a laptop without Docker.
 
 ## The sequence
 
 ### Phase 1 — data, while the old code is still running
 
-Nothing a reader can see changes in this phase. It can be abandoned at any point and
-re-run; it checkpoints per field.
+Nothing a reader can see changes. Abandon and re-run it freely; it checkpoints per field.
 
 ```bash
 kubectl port-forward -n elastic-v2 svc/elasticsearch-v2 9201:9200
@@ -83,19 +113,31 @@ python3 -m scripts.i18n.translate_tier1 --es-host http://localhost:9201 --apply 
 python3 -m scripts.i18n.translate_tier1 --es-host http://localhost:9201 --apply
 ```
 
-The dry run took **19 minutes** on 2026-10-01 and is five read-only scrolls; the apply
-does the same scrolls and writes in batches of 500, so budget appreciably more. Read the
-per-field `No mapping` count as a question, not a rounding error — that is what caught
-the drift above.
+Read the per-field `No mapping` count as a question, not a rounding error. As of
+2026-10-01 every field reports **0**, including `chapter` — but production is edited
+continuously, so the dry run is only valid for the apply that follows it immediately.
 
-**Gate:** the counts in `docs/arabic-data-migration.md` are what production reports back,
-and the index has grown by roughly 20% with disk to spare. Nothing about the English site
-has changed; confirm that by loading it.
+The dry run across all five fields took **19 minutes**; it is read-only scrolls, and the
+apply adds bulk writes on top. The index grows about 20%.
 
-### Phase 2 — merge, which deploys
+**Undo:**
 
-Merge to `master`. CI builds, pushes and repoints Argo. Watch the rollout rather than
-assuming it.
+```bash
+python3 -m scripts.i18n.rollback_ar_fields \
+    --es-host http://localhost:9201 --fields chapter_ar,book_ar,part_ar,section_ar,source_ar --dry-run
+```
+
+It resolves the alias to the concrete index and removes the `_ar` fields from every
+document that carries them; the English is never touched. Dry-run verified against the
+development index, where it correctly found 32,516 `chapter_ar` and 32,519 `book_ar`.
+
+One part of step 1 is **not** reversible, and it does not matter: the `_ar` entries added
+to the index *mapping* stay. Elasticsearch cannot drop a field from a mapping without a
+reindex. An empty mapped field costs nothing and the next reindex clears it.
+
+### Phase 2 — merge, which deploys, with the switch off
+
+Confirm `k8s/deployment.yaml` still has `ARABIC_INDEXABLE: "false"`, then merge.
 
 ```bash
 kubectl rollout status -n rewayaat-v2 deploy/rewayaat-v2
@@ -103,26 +145,31 @@ kubectl rollout status -n rewayaat-v2 deploy/rewayaat-v2
 
 The HPA is pinned at 2 pods, so this is a two-pod rolling replacement behind a PDB.
 
-### Phase 3 — verify against the live host, not against localhost
+**Undo:** revert the merge — CI deploys the revert the same way it deployed the change —
+or, for an immediate stop without waiting for a build, repoint `k8s/kustomization.yaml`
+at the previous image tag. Because nothing was advertised, a revert here leaves no trace
+in anyone's index.
 
-A merged fix can be unpushed and a rolling deploy takes time, so every check here names
-the real host and is worth repeating once the rollout reports complete.
+### Phase 3 — verify on the live host
+
+A merged fix can be unpushed and a rolling deploy takes time, so every check names the
+real host and is worth repeating once the rollout reports complete.
 
 ```bash
-# the Arabic site exists and is Arabic
-curl -s https://hadith.academyofislam.com/ar/books/al-kafi | grep -c 'dir="rtl"'
+# the Arabic site exists, is Arabic, and is held back
+curl -sI https://hadith.academyofislam.com/ar/books/al-kafi | grep -i x-robots-tag   # noindex
+curl -s  https://hadith.academyofislam.com/ar/books/al-kafi | grep -c 'dir="rtl"'
 
 # the data landed where a reader can see it: this must print an Arabic chapter title
 curl -s https://hadith.academyofislam.com/ar/books/al-kafi/part/the-book-on-virtue-of-knowledge \
   | grep -oE '<h1[^>]*>[^<]*</h1>'
 
+# the switch is doing its other half
+curl -s https://hadith.academyofislam.com/sitemap-static.xml | grep -c '/ar/'        # 0
+
 # three URLs that were static files and are now controllers, at the same paths
 for u in /search_tips.html /updates.html /signin.html; do
   curl -s -o /dev/null -w "%{http_code} $u\n" "https://hadith.academyofislam.com$u"; done
-
-# both halves of a pair, and the pair declared on both
-curl -s https://hadith.academyofislam.com/ | grep -c 'rel="alternate"'      # 3
-curl -s https://hadith.academyofislam.com/ar/ | grep -c 'rel="alternate"'   # 3
 
 # a page with no Arabic version still 404s rather than rendering English under /ar
 curl -s -o /dev/null -w '%{http_code}\n' https://hadith.academyofislam.com/ar/swagger-ui.html
@@ -142,49 +189,63 @@ a phone width and a desktop one:
 - `/books`, a book, a volume, a part, a chapter
 - `/updates.html`: the permalinks, and the connector videos
 
-### Phase 4 — let it be found
+Take as long as this needs. Nothing is decaying yet.
 
-There is no throttle between the deploy and Google. `robots.txt` names
-`/sitemap.xml`, the sitemap index names `sitemap-books.xml`, and that file advertises
-3,912 Arabic URLs the moment the code is live. Phase 1 is what makes that safe.
+### Phase 4 — the switch, and the point of no return
 
-If a brake is wanted anyway — to verify in production for a day with nothing indexable —
-the only one available is a temporary `Disallow: /ar/` in `robots.txt`, added in the same
-release and removed in a follow-up. It costs a Search Console warning about sitemap URLs
-being blocked, and it must actually be removed; a forgotten Disallow is indistinguishable
-from a deliberate one.
+Set `ARABIC_INDEXABLE` to `"true"` in `k8s/deployment.yaml`, commit, let Argo sync.
 
-Then watch, over days rather than minutes: Search Console for coverage of `/ar`, hreflang
-pairing and any spike in duplicates; the ingress rate limit (`limit-rpm: 50`) in case a
-crawler discovers 4,000 new URLs faster than that allows; and the Prometheus rules that
-already alert on CPU, memory and traffic pressure.
+There is no further throttle. `robots.txt` names `/sitemap.xml`, the index names
+`sitemap-books.xml`, and that file starts advertising 3,912 Arabic URLs on the next
+crawl.
 
-## Rolling back
+**Undo:** set it back to `false`. That is free for as long as Google has not crawled the
+sitemap, and the window is hours rather than minutes. After that, withdrawing `/ar` means
+roughly 3,900 indexed URLs going dark, and the honest version is a `410` or a redirect to
+each English twin rather than a silent 404 — which is more work than fixing most things
+that would prompt it.
 
-**The data.** `scripts/i18n/rollback_ar_fields.py --es-host … --fields chapter_ar
---dry-run` removes `_ar` fields and never touches the English. With the new code running,
-a rollback returns the Arabic site to its English-metadata fallback rather than breaking
-it.
+Then watch, over days: Search Console for `/ar` coverage, hreflang pairing and any spike
+in duplicates; the ingress rate limit (`limit-rpm: 50`) in case a crawler finds 4,000 new
+URLs faster than that allows; and the Prometheus rules that already alert on CPU, memory
+and traffic pressure.
 
-**The code.** Revert the merge on `master`; CI builds and deploys the revert the same way
-it deployed the change. For an immediate stop without waiting for a build, repoint
-`k8s/kustomization.yaml` at the previous image tag.
+## Decided
 
-**Where it stops being cheap.** A code rollback in the first hours costs nothing. After
-Google has crawled the sitemap, it turns roughly 3,900 indexed Arabic URLs into 404s, and
-getting them back is slower than losing them. If `/ar` has to come out after that, the
-honest version is a `410` or a redirect to the English twin, not a silent withdrawal —
-which is more work than fixing most things that would prompt it.
+**The nineteen footnotes stay English-only, which means absent.** `notes` exists on 19
+Al-Khiṣāl narrations in production and nowhere else; `notes_ar` does not exist, and
+`HadithCardFactory.notesFor` returns the Arabic or nothing rather than falling back. An
+Arabic reader of those 19 sees no note where an English reader sees several hundred words
+of translator's commentary. That is accepted: they are scholarly footnotes citing Lane's
+Lexicon and Biḥār by volume and page, and an English wall of text under an Arabic heading
+is worse than an absence on a page whose purpose is to be Arabic. Nothing blocks on it and
+nothing is waiting to be written.
 
-## What this does not cover
+**All 32,519 narrations have an Arabic chapter title.** Sixteen did not, in fourteen
+distinct spellings; they are mapped now. Eleven came out of the development index by
+document id — the same chapters, already translated, keyed there under the English
+production has since reworded. Three had no Arabic anywhere and were written from the
+narration's own matn: two Man Lā Yaḥḍuruh bab titles whose English is corrupt in the
+corpus, and one Al-Khiṣāl. Those three are the only hand-written entries in
+`chapter_ar_mapping.json` and are worth a reviewer's eye:
 
-**`notes_ar`** — the 19 footnotes, above. No script, because translating them is
-editorial.
+| id | Arabic written here |
+|---|---|
+| `Man-La-Yahduruh-al-Faqih-Volume-2-Saduq:71` | باب الحق المعلوم والماعون |
+| `Man-La-Yahduruh-al-Faqih-Volume-4-Saduq:398` | باب أم الولد تقتل سيدها خطأ أو عمدا |
+| `Al-Khisal-Saduq:976` | أيد الله العقل بعشرة أشياء |
+
+They will drift again. Production is edited through `/edit` — the notes went from 15 to
+19 and the unmatched chapters from 3 to 16 in four days — so re-run the dry run
+immediately before the apply and expect a handful more. The fallback to English is
+designed for exactly that, so a few unmapped titles delay nothing.
+
+## Not covered
 
 **`llm_similar.reason_ar`** — 43,112 translated reasons, deliberately dropped. The
 related-hadith panel does not show the match reason on the Arabic site in either
 implementation, because the reason is written in English by the model that judged the
-pair and reads as a machine note. The chunks are still under
+pair and reads as a machine note. The chunks are under
 `scripts/data/llm_similar_reason_batches/` if that is ever reversed.
 
 **`search_tips.html` has Arabic prose and English examples.** A field filter is keyed on
