@@ -30,10 +30,17 @@ filtered on `src/**`, which this branch touches heavily. There is no staging env
 and no manual gate: the merge commit builds an image, pushes it, and updates
 `k8s/kustomization.yaml`, which Argo picks up.
 
-**Writing `_ar` into production changes nothing today.** `HadithObject` carries
+**Writing `_ar` into production renders nothing today, but it is not inert.** Nothing
+*displays* the new fields: `HadithObject` carries
 `@JsonIgnoreProperties(ignoreUnknown = true)` on `master` as well as here, so the running
-code reads straight past the new fields. The load is invisible to the live site, which is
-what makes it safe to do first.
+code reads straight past them. But `QueryStringQueryResult.SEARCHABLE_FIELDS` names
+`book_ar`, `chapter_ar.text`, `part_ar.text`, `section_ar.text` and `source_ar.text`, and
+that file is **byte-identical on master** — the fields are empty today and they are
+searched today. Filling them changes what search can match, against the code already
+running, the moment the data lands.
+
+That is the one place this release can affect the live English site before anything is
+deployed, so it has a gate of its own; see below.
 
 Do it the other way and there is a window — however long the load takes — in which the
 Arabic site exists with English chapter, part and section names on every page. The switch
@@ -75,6 +82,26 @@ ordering makes two of those tests fail, which is how the ordering is known to ma
 the container (#97)`. Rebase and re-run the suite — it changes the JVM heap, which is the
 sort of thing that only shows up under the load a release brings.
 
+### What the tests do and do not cover
+
+The suite is 599 now and CI runs all of it (below). Two limits are worth knowing before
+leaning on it.
+
+**Most integration tests run against a toy mapping.** `ElasticsearchTestSupport` creates
+its index from a dynamic template that turns every string into `text` with fielddata and
+a `standard` search analyzer. No `arabic_norm`, no `english_fold`, no `.text` sub-fields
+on the metadata. That is fine for the tests that use it — they check routing, shape and
+links — and it is worthless for any question about matching or ranking, because on that
+mapping `chapter_ar.text` does not exist and the clause silently never fires.
+`MigrationPreservesSearchIntegrationTest` builds its index from
+`scripts/search/v2_mapping.json`, the mapping production runs, for exactly that reason.
+
+**Seven documents is not 32,519.** That test can show the migration does not change
+*which* narrations an English query matches. It cannot speak to a real term
+distribution, a real relevance curve, or the tuning the ranking boost was swept against.
+The before-and-after snapshot in Phase 1 is what covers that, and it is a gate rather
+than an optional extra.
+
 ### CI now runs the integration tests
 
 It did not. The workflow excluded `*IntegrationTest` because a runner has no
@@ -104,7 +131,8 @@ now only decides whether a test can run on a laptop without Docker.
 
 ### Phase 1 — data, while the old code is still running
 
-Nothing a reader can see changes. Abandon and re-run it freely; it checkpoints per field.
+Nothing a reader can see *rendered* changes, but search is a different matter — see
+above, and take the snapshot. Abandon and re-run it freely; it checkpoints per field.
 
 ```bash
 kubectl port-forward -n elastic-v2 svc/elasticsearch-v2 9201:9200
@@ -119,6 +147,35 @@ continuously, so the dry run is only valid for the apply that follows it immedia
 
 The dry run across all five fields took **19 minutes**; it is read-only scrolls, and the
 apply adds bulk writes on top. The index grows about 20%.
+
+**Snapshot search either side of the apply.** This is the gate, not a nicety: the Arabic
+fields are already in `SEARCHABLE_FIELDS`, so this write is the one step that can move
+English search on the live site.
+
+```bash
+python3 -m scripts.i18n.search_snapshot --out before.json      # BEFORE the apply
+# ... translate_tier1 --apply ...
+python3 -m scripts.i18n.search_snapshot --out after.json
+python3 -m scripts.i18n.search_snapshot --compare before.json after.json
+```
+
+It issues the same `GET /v1/narrations` the website does and writes nothing. A snapshot
+taken against production on 2026-10-01, before any of this ran, is committed at
+`scripts/data/search-snapshots/prod-before-arabic-load.json` — it can only be taken
+before, so it was.
+
+What must come back unchanged: **which narrations each English query returns, and how
+many**. What is expected to change: the Arabic queries, which is the point, and the
+*order* of results that score within a hair of each other.
+
+That last one is measured rather than waved away. Against the production mapping, adding
+the Arabic metadata left the relative order of two documents alone and moved both their
+absolute scores — 0.18513/0.18232 to 0.10698/0.10536 for `prayer`. Through the site's own
+query, which adds boosts and a metadata ranking lift, a pair that close can swap.
+`MigrationPreservesSearchIntegrationTest` demonstrates both: the matching set and the
+counts hold, and a phrase query over two documents with an identical `part.text` swaps
+them. A tie breaking differently is not relevance moving. **A changed set is**, and that
+is what `--compare` fails on.
 
 **Undo:**
 
