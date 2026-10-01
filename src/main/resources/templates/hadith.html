@@ -76,6 +76,8 @@
         .hp-related__list a { font-family: 'Source Serif 4', serif; font-weight: 600; text-decoration: none; }
         .hp-related__list a:hover { text-decoration: underline; }
         .hp-related__excerpt { display: block; font-size: 0.88rem; line-height: 1.5; color: var(--bs-secondary-color); margin-top: 0.15rem; }
+        .hp-quran__ref { display: block; font-family: 'Source Serif 4', serif; font-weight: 600; }
+        .hp-quran__arabic { display: block; font-family: 'Scheherazade New', serif; font-size: 1.35rem; line-height: 2; text-align: right; margin-top: 0.25rem; }
         .hp-onward { display: flex; flex-wrap: wrap; gap: 1.5rem; }
     </style>
 </head>
@@ -136,6 +138,22 @@
                 <li th:each="item : ${similar}">
                     <a th:href="${item.url}" th:text="${item.label}">Al-Kafi #1</a>
                     <span class="hp-related__excerpt" th:text="${item.excerpt}">Excerpt</span>
+                </li>
+            </ul>
+        </section>
+
+        <!-- The judged Quranic connections. Same story as the similar narrations: they
+             lived only behind the TAFSIR panel's XHR. The verses render here; the tafsir
+             commentary stays in the panel. -->
+        <section class="hp-related" th:if="${!#lists.isEmpty(quranVerses)}">
+            <h2 class="hp-related__title">Related Quranic verses</h2>
+            <ul class="hp-related__list">
+                <li th:each="verse : ${quranVerses}">
+                    <span class="hp-quran__ref" th:text="${verse.reference}">Al-Baqarah (2:255)</span>
+                    <span class="hp-quran__arabic" lang="ar" dir="rtl" th:if="${!#strings.isEmpty(verse.arabic)}"
+                          th:text="${verse.arabic}">Arabic</span>
+                    <span class="hp-related__excerpt" th:if="${!#strings.isEmpty(verse.english)}"
+                          th:text="${verse.english}">English</span>
                 </li>
             </ul>
         </section>

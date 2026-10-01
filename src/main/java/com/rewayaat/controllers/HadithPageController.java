@@ -118,13 +118,15 @@ public class HadithPageController {
         // to filter itself.
         Map<String, Object> card = cards.build(id, rawSource(id),
                 chapter.map(BookCatalog.Chapter::url).orElse(null), BASE_URL);
-        card.put("quranCount", quranicInsights.insightCounts(List.of(id)).getOrDefault(id, 0));
+        Map<String, Object> quran = quranicInsights.insightOverview(id, false, false);
+        card.put("quranCount", quran.getOrDefault("count", 0));
         model.addAttribute("card", card);
 
         model.addAttribute("breadcrumbs", crumbs);
         model.addAttribute("breadcrumbJsonLd", breadcrumbJsonLd(crumbs));
         model.addAttribute("chapterUrl", chapter.map(BookCatalog.Chapter::url).orElse(null));
         model.addAttribute("similar", similarLinks(id));
+        model.addAttribute("quranVerses", quranVerses(quran));
 
         model.addAttribute("hadith", hadith);
         model.addAttribute("hadithId", id);
@@ -252,6 +254,42 @@ public class HadithPageController {
             LOGGER.warn("Could not load similar narrations for {}", id, e);
         }
         return links;
+    }
+
+    /**
+     * The judged Quranic connections, as the verses themselves.
+     *
+     * <p>Like the similar narrations, they were reachable only through the TAFSIR panel's
+     * XHR, which a crawler never makes. The tafsir commentary stays behind the panel: it is
+     * long, third-party, and repeated on every narration tied to the same verse.
+     */
+    static List<Map<String, String>> quranVerses(Map<String, Object> overview) {
+        List<Map<String, String>> verses = new ArrayList<>();
+        if (!(overview.get("candidates") instanceof List<?> candidates)) {
+            return verses;
+        }
+        for (Object raw : candidates) {
+            if (!(raw instanceof Map<?, ?> candidate)) {
+                continue;
+            }
+            String arabic = text(candidate.get("text_arabic"));
+            String english = text(candidate.get("text_english"));
+            if (arabic.isEmpty() && english.isEmpty()) {
+                continue;
+            }
+            String surah = text(candidate.get("surah_name_english"));
+            String key = text(candidate.get("verse_key"));
+            String reference = surah.isEmpty() ? key : surah + (key.isEmpty() ? "" : " (" + key + ")");
+            verses.add(Map.of(
+                    "reference", reference.isEmpty() ? "Quranic verse" : reference,
+                    "arabic", arabic,
+                    "english", english));
+        }
+        return verses;
+    }
+
+    private static String text(Object raw) {
+        return raw == null ? "" : String.valueOf(raw).trim();
     }
 
     private String breadcrumbJsonLd(List<Map<String, String>> crumbs) {
