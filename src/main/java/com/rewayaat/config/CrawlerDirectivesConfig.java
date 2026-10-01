@@ -5,9 +5,11 @@ import java.util.List;
 import jakarta.servlet.Filter;
 import jakarta.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 
 /**
  * Marks the pages that serve a purpose but should never appear in search results.
@@ -65,6 +67,22 @@ public class CrawlerDirectivesConfig {
         if (!arabicIndexing.isIndexable()) {
             ARABIC_PATHS.forEach(registration::addUrlPatterns);
         }
+        return registration;
+    }
+
+    /**
+     * Limits Meta's AI crawler as a whole, ahead of everything else a request passes through.
+     * See {@link CrawlerRateLimitFilter} for why an address limit does not reach it.
+     *
+     * @param perMinute requests a minute each pod answers for it; zero turns the limit off
+     */
+    @Bean
+    public FilterRegistrationBean<Filter> metaCrawlerRateLimitFilter(
+            @Value("${rewayaat.crawlers.meta-externalagent.per-minute:10}") int perMinute) {
+        FilterRegistrationBean<Filter> registration = new FilterRegistrationBean<>(
+                new CrawlerRateLimitFilter("meta-externalagent", perMinute));
+        registration.addUrlPatterns("/*");
+        registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
         return registration;
     }
 }
