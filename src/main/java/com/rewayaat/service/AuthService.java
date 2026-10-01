@@ -167,7 +167,7 @@ public class AuthService {
                 "verificationToken",
                 "verificationUrl",
                 rawVerificationToken,
-                buildVerifyUrl(rawVerificationToken));
+                buildVerifyUrl(rawVerificationToken, localeOf(user)));
         if (debug != null) {
             payload.put("debug", debug);
         }
@@ -239,9 +239,15 @@ public class AuthService {
     public Map<String, Object> requestPasswordReset(String email) throws Exception {
         String normalizedEmail = normalizeEmail(email);
         String rawResetToken = null;
+        // The account's language, carried out of the block so the debug payload below
+        // reports the same link the mail contained. English when there is no account:
+        // this endpoint deliberately answers the same way either way, so that it cannot
+        // be used to find out which addresses are registered.
+        PageLocale resetLocale = PageLocale.ENGLISH;
         if (!normalizedEmail.isEmpty()) {
             UserAccount user = findByEmail(normalizedEmail);
             if (user != null && Boolean.TRUE.equals(user.getVerified())) {
+                resetLocale = localeOf(user);
                 long now = System.currentTimeMillis();
                 rawResetToken = generateToken();
                 user.setResetTokenHash(hashToken(rawResetToken));
@@ -258,7 +264,7 @@ public class AuthService {
                 "resetToken",
                 "resetUrl",
                 rawResetToken,
-                buildResetUrl(rawResetToken));
+                buildResetUrl(rawResetToken, resetLocale));
         if (debug != null) {
             payload.put("debug", debug);
         }
@@ -405,14 +411,14 @@ public class AuthService {
 
     private void sendVerificationEmail(UserAccount user, String rawToken) {
         // Use a path-based URL to avoid tokens leaking via Referer headers
-        String verifyUrl = buildVerifyUrl(rawToken);
+        String verifyUrl = buildVerifyUrl(rawToken, localeOf(user));
         Map<String, String> mail = accountEmail(user, "verify", verifyUrl, verifyTokenHours);
         sendEmail(user.getEmail(), mail.get("subject"), mail.get("body"), verifyUrl);
     }
 
     private void sendPasswordResetEmail(UserAccount user, String rawToken) {
         // Use a path-based URL to avoid tokens leaking via Referer headers
-        String resetUrl = buildResetUrl(rawToken);
+        String resetUrl = buildResetUrl(rawToken, localeOf(user));
         Map<String, String> mail = accountEmail(user, "reset", resetUrl, resetTokenHours);
         sendEmail(user.getEmail(), mail.get("subject"), mail.get("body"), resetUrl);
     }
@@ -444,12 +450,27 @@ public class AuthService {
         return payload;
     }
 
-    String buildVerifyUrl(String rawToken) {
-        return appBaseUrl + "/auth/verify?token=" + rawToken;
+    /**
+     * The link in an account mail, on the site the reader signed up to.
+     *
+     * <p>The body of these mails has been translated for a while and the link in them
+     * had not, so an Arabic reader got Arabic prose and a link onto the English site —
+     * where they would then verify, and land, in English.
+     *
+     * <p>The prefix cannot simply be prepended: {@code /ar/auth/verify} answered 404
+     * until {@code PageLocale.hasArabicVersion} was told these two paths exist, which
+     * would have been a worse bug than the one being fixed.
+     */
+    String buildVerifyUrl(String rawToken, PageLocale locale) {
+        return appBaseUrl + prefix(locale) + "/auth/verify?token=" + rawToken;
     }
 
-    String buildResetUrl(String rawToken) {
-        return appBaseUrl + "/auth/reset?token=" + rawToken;
+    String buildResetUrl(String rawToken, PageLocale locale) {
+        return appBaseUrl + prefix(locale) + "/auth/reset?token=" + rawToken;
+    }
+
+    private static String prefix(PageLocale locale) {
+        return locale == null ? "" : locale.prefix();
     }
 
     Map<String, String> debugTokenPayload(String tokenKey, String urlKey, String rawToken, String rawUrl) {

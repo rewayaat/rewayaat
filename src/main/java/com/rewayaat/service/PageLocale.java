@@ -173,6 +173,11 @@ public enum PageLocale {
             return false;
         }
         return strippedPath.equals("/")
+                // The two links an account mail can contain. They redirect to the
+                // sign-in page, which exists in Arabic, so the redirect has to keep the
+                // language rather than drop the reader onto the English one.
+                || strippedPath.equals("/auth/verify")
+                || strippedPath.equals("/auth/reset")
                 || strippedPath.equals("/books")
                 || strippedPath.startsWith("/books/")
                 || strippedPath.startsWith("/hadith/")
