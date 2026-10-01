@@ -11,7 +11,7 @@ tell it worked.
 
 ## Where things actually stand
 
-Measured 2026-09-27, not recalled.
+Measured 2026-10-01, not recalled.
 
 | | local | production |
 |---|---|---|
@@ -22,8 +22,19 @@ Measured 2026-09-27, not recalled.
 | `part_ar` | 32,519 | **0** |
 | `section_ar` | 32,519 | **0** |
 | `source_ar` | 32,519 | **0** |
-| `notes` | 0 | 15 |
+| `notes` | 0 | 19 |
 | `notes_ar` | 0 | **0** |
+| index size on disk | 951 MB | 791 MB |
+
+The size row is the cost of this migration: the same index with the `_ar` fields in it is
+about **20% larger**. The production nodes sit at 8-16% of their disk, so there is room,
+but it is not free.
+
+**Production is being edited while this waits.** The notes were 15 on 2026-09-27 and are
+19 now, and the unmatched chapter count moved with them (below). Somebody is editing
+Al-Khiṣāl through `/edit`. That is the single most important operational fact here: a
+mapping keyed on English drifts away from production every time production is edited, so
+**the dry run is only valid for the apply that follows it immediately**.
 
 Two rows in that table are the ones to read twice.
 
@@ -90,17 +101,20 @@ anything. Read the per-field line it prints: `Updates`, `Already has <field>_ar`
 `No mapping`. A large `No mapping` count means the English in production does not match
 the English the mapping was built from, and the run should stop there.
 
-Run against production on 2026-09-27, four of the fields came back clean:
+Run against production on 2026-10-01, four of the fields came back clean and the run
+took **19 minutes** over a port-forward:
 
 ```
 book:      18 translations in mapping — Updates: 32519, Already has: 0, No mapping: 0
 source:    11 translations in mapping — Updates: 32519, Already has: 0, No mapping: 0
 part:     145 translations in mapping — Updates: 32519, Already has: 0, No mapping: 0
 section:  596 translations in mapping — Updates: 32519, Already has: 0, No mapping: 0
-chapter: 7724 translations in mapping — Updates: 32516, Already has: 0, No mapping: 3
+chapter: 7724 translations in mapping — Updates: 32503, Already has: 0, No mapping: 16
 ```
 
-That is the shape to expect. The three are named at the bottom of this document and are
+That is the shape to expect. Nineteen minutes is five scrolls of 32,519 documents and no
+writes, so budget appreciably more for step 3; it checkpoints, so an interrupted run
+resumes rather than restarting. The three are named at the bottom of this document and are
 the same three the development index lacks, so production ends up with exactly the
 coverage local has. Anything else wants investigating before step 3.
 
@@ -182,21 +196,34 @@ note. The translated chunks are still under
 
 **`gradings`.** The field does not exist in production. Nothing to translate.
 
-**Three chapter titles.** 32,516 of 32,519 narrations have an Arabic chapter name. The
-three that do not fall back to English, which is the designed behaviour, and two of them
-are untranslatable because their *English* is corrupt in the corpus:
+**Sixteen chapter titles, in fourteen distinct spellings.** 32,503 of 32,519 narrations
+get an Arabic chapter name; the rest fall back to English, which is the designed
+behaviour.
 
-| id | English chapter |
-|---|---|
-| `Man-La-Yahduruh-al-Faqih-Volume-2-Saduq:71` | `Hapter 9 - Chapter on the Specified Right and the Assistance` |
-| `Man-La-Yahduruh-al-Faqih-Volume-4-Saduq:398` | `Techapter 59 - Chapter on Umm Al-Walad Killing Her Master by Mistake or Intentionar` |
-| `Al-Khisal-Saduq:976` | `God has reinforced the intellect with ten things` |
+It was three on 2026-09-27 and is sixteen now, and that movement is the thing to read,
+not the number. Fourteen of the sixteen are Al-Khiṣāl, the book being edited in
+production, and the two that are not are the known corrupt pair:
+
+| | id | English chapter |
+|---|---|---|
+| corrupt | `Man-La-Yahduruh-al-Faqih-Volume-2-Saduq:71` | `Hapter 9 - Chapter on the Specified Right and the Assistance` |
+| corrupt | `Man-La-Yahduruh-al-Faqih-Volume-4-Saduq:398` | `Techapter 59 - Chapter on Umm Al-Walad Killing Her Master by Mistake or Intentionar` |
+| drift | `Al-Khisal-Saduq:9, 13, 23, 107, 112, 239, 976, 998, 1000, 1105-1109` | eleven Al-Khiṣāl titles reworded in production since the mapping was built, plus `God has reinforced the intellect with ten things` |
 
 The first two are ingest damage — a swallowed "C", a doubled prefix and a trailing "ar" —
-and they are wrong on the English site too, independently of anything here. None of the
-three is in the mapping, and the same three are the only gaps in the development index, so
-they are genuinely untranslated rather than unmatched. No run will pick them up until the
-English is repaired or the Arabic is written by hand.
+and they are wrong on the English site too, independently of anything here.
+
+The Al-Khiṣāl ones are not damage and not a bug in the mapping. They are the same thing
+that produced the nineteen reconciled spellings already in `chapter_ar_mapping.json`: the
+English was reworded in production after the mapping was keyed against it. **This list
+will be different again next month.** Either re-reconcile immediately before the apply, or
+accept that a dozen or so Al-Khiṣāl chapters show an English title on the Arabic site and
+fix them afterwards. The second is a reasonable choice — the fallback is designed for
+exactly this — but it should be a choice.
+
+The current list is reproduced by aggregating distinct `chapter.keyword` values out of
+production and subtracting the mapping's keys, exact and casefolded, which is the same
+match the applier makes.
 
 **Chapter titles by scrape.** `load_thaqalayn_titles.py` rebuilds the Arabic titles by
 fetching thaqalayn.net, and it needs `scripts/data/thaqalayn_chapter_titles.json` (2 MB),

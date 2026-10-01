@@ -29,9 +29,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * definition, and is exempted by its {@code data-set-locale} attribute rather than by
  * its href. And a handful of paths have no Arabic version at all, listed below; a link
  * to one of those is correct English rather than a leak.
+ *
+ * <p>Named {@code …IntegrationTest} because it boots the application and walks real
+ * pages, which needs a live Elasticsearch. That suffix is what the CI workflow excludes
+ * — a runner has no Elasticsearch — so under any other name this would fail there and
+ * block the deploy rather than guard anything.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class ArabicLinksStayArabicTest extends ElasticsearchTestSupport {
+class ArabicLinksStayArabicIntegrationTest extends ElasticsearchTestSupport {
 
     private static final List<String> PAGES = List.of(
             "/ar/", "/ar/books", "/ar/signin.html", "/ar/privacy", "/ar/updates.html",
