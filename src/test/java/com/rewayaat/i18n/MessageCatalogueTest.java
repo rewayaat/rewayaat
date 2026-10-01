@@ -206,6 +206,69 @@ class MessageCatalogueTest {
                         + "\nRead them with t('key', 'English fallback') instead.");
     }
 
+    @Test
+    @DisplayName("nothing shadows the t() helper in a scope that calls it")
+    void theHelperIsNotShadowed() throws IOException {
+        // The feedback toast built its element as `var t`, in a function that then called
+        // t('feedback.title', …) five times. The declaration shadows the helper, so every
+        // one of those was invoking a <div>: "t is not a function", the toast dead on
+        // every page of the site in both languages, from the commit that translated it.
+        //
+        // Nothing caught it. The strings were in both bundles, the key names were right,
+        // the parity tests were green, and the only symptom was a console error on a
+        // toast that appears after a delay. It was found by a person looking at the
+        // Arabic home page.
+        //
+        // Scoped to the block the declaration sits in, not the file: three functions
+        // legitimately name a rect or a string `t` and never call the helper, and a
+        // file-level match calls all three a bug. The approximation is deliberate and
+        // has one known gap — `var` is function-scoped, so a `var t` inside an `if`
+        // shadows past the closing brace this stops at. Catching that needs a JS parser,
+        // and the bug it would add is rarer than the one this catches.
+        Pattern declaration = Pattern.compile("\\b(?:var|let|const)\\s+t\\s*=(?!=)");
+        Pattern call = Pattern.compile("\\bt\\(\\s*'[a-zA-Z0-9_.]+'");
+
+        List<String> shadowed = new ArrayList<>();
+        for (Path file : sources()) {
+            String source = Files.readString(file, StandardCharsets.UTF_8);
+            Matcher declared = declaration.matcher(source);
+            while (declared.find()) {
+                String block = enclosingBlock(source, declared.end());
+                if (!call.matcher(block).find()) {
+                    continue;
+                }
+                int line = 1 + (int) source.substring(0, declared.start()).chars()
+                        .filter(character -> character == '\n').count();
+                shadowed.add(file.getFileName() + ":" + line + "  " + declared.group().trim());
+            }
+        }
+
+        assertTrue(shadowed.isEmpty(),
+                "these declare a variable called t in a scope that also calls t('key', …), "
+                        + "so the call invokes the variable:\n  "
+                        + String.join("\n  ", shadowed)
+                        + "\nRename the variable. The failure is silent in English review "
+                        + "because the fallback never renders either - the call throws "
+                        + "before it can return anything.");
+    }
+
+    /** From {@code at} to the end of the brace-delimited block containing it. */
+    private static String enclosingBlock(String source, int at) {
+        int depth = 0;
+        for (int i = at; i < source.length(); i++) {
+            char character = source.charAt(i);
+            if (character == '{') {
+                depth++;
+            } else if (character == '}') {
+                if (depth == 0) {
+                    return source.substring(at, i);
+                }
+                depth--;
+            }
+        }
+        return source.substring(at);
+    }
+
     private static List<Path> sources() throws IOException {
         List<Path> files = new ArrayList<>();
         for (String dir : new String[]{"src/main/resources/static/js", "src/main/resources/templates"}) {

@@ -968,12 +968,17 @@
         if (storageGet('hdp_feedback_dismissed')) return;
         setTimeout(function() {
             if (document.getElementById('feedbackToast')) return;
-            var t = document.createElement('div');
-            t.id = 'feedbackToast';
-            t.setAttribute('role', 'dialog');
-            t.setAttribute('aria-label', 'Feedback');
+            // Named for what it is. It used to be `t`, which shadowed the t()
+            // i18n helper inside this function - so the moment these strings
+            // were translated, every t('feedback.…') call in here was trying to
+            // invoke a <div> and the toast died with "t is not a function" on
+            // every page of the site, in both languages.
+            var toast = document.createElement('div');
+            toast.id = 'feedbackToast';
+            toast.setAttribute('role', 'dialog');
+            toast.setAttribute('aria-label', 'Feedback');
             var selectedRating = 0;
-            t.innerHTML =
+            toast.innerHTML =
                 '<div style="display:flex;align-items:flex-start;gap:12px;">' +
                     '<i class="fa fa-comment-dots" style="font-size:1.4rem;color:#d4940a;margin-top:2px;flex-shrink:0;"></i>' +
                     '<div style="flex:1;min-width:0;">' +
@@ -1000,7 +1005,7 @@
                     '</div>' +
                     '<button id="feedbackClose" style="background:none;border:none;color:#888;font-size:1.2rem;cursor:pointer;padding:0 0 0 8px;line-height:1;-webkit-tap-highlight-color:transparent;" aria-label="Dismiss">&times;</button>' +
                 '</div>';
-            Object.assign(t.style, {
+            Object.assign(toast.style, {
                 position: 'fixed', bottom: '24px', right: '24px', zIndex: '9999',
                 background: '#1a1a2e', border: '1px solid #2a2a44',
                 borderRadius: '12px', padding: '20px 22px',
@@ -1012,13 +1017,13 @@
                 boxSizing: 'border-box',
                 paddingBottom: 'calc(20px + env(safe-area-inset-bottom, 0px))'
             });
-            document.body.appendChild(t);
+            document.body.appendChild(toast);
             requestAnimationFrame(function() {
-                t.style.opacity = '1';
-                t.style.transform = 'translateY(0)';
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateY(0)';
             });
 
-            var stars = t.querySelectorAll('#feedbackStars span');
+            var stars = toast.querySelectorAll('#feedbackStars span');
             var submitBtn = document.getElementById('feedbackSubmit');
             stars.forEach(function(s) {
                 s.addEventListener('click', function() {
@@ -1074,9 +1079,9 @@
             });
 
             function dismiss() {
-                t.style.opacity = '0';
-                t.style.transform = 'translateY(12px)';
-                setTimeout(function() { if (t.parentNode) t.remove(); }, 400);
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(12px)';
+                setTimeout(function() { if (toast.parentNode) toast.remove(); }, 400);
                 storageSet('hdp_feedback_dismissed', '1');
             }
             var closeBtn = document.getElementById('feedbackClose');

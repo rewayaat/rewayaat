@@ -9,6 +9,9 @@ import co.elastic.clients.transport.rest5_client.Rest5ClientTransport;
 import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rewayaat.config.ESClientProvider;
+import com.rewayaat.integration.TestElasticsearch;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.apache.hc.core5.http.HttpHost;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,6 +61,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class McpProtocolIntegrationTest {
 
+    /**
+     * Point the application at the shared container too.
+     *
+     * <p>The client below is the test's own; this is what the Spring context under test
+     * connects with. Without it the test talks to the container and the application
+     * talks to localhost, which on CI is nothing at all.
+     */
+    @DynamicPropertySource
+    static void elasticsearch(DynamicPropertyRegistry registry) {
+        registry.add("elasticsearch.host", TestElasticsearch::host);
+        registry.add("elasticsearch.port", TestElasticsearch::port);
+        registry.add("ELASTIC_HOST", TestElasticsearch::host);
+        registry.add("ELASTIC_PORT", () -> String.valueOf(TestElasticsearch.port()));
+    }
+
     private static final String INDEX = "rewayaat_mcp_test";
     static final String INSIGHTS_INDEX = "rewayaat_mcp_test_insights";
     static final String QURAN_INDEX = "rewayaat_mcp_test_quran";
@@ -102,7 +120,11 @@ class McpProtocolIntegrationTest {
     void seed() throws Exception {
         System.setProperty("REWAYAAT_INDEX", INDEX);
         ESClientProvider.resetIndex();
-        restClient = Rest5Client.builder(new HttpHost("http", "localhost", 9200)).build();
+        // The shared container, not a hardcoded localhost. This test was excluded from
+        // CI for as long as CI had no Elasticsearch; the moment it stopped being
+        // excluded it failed thirty-two times on connection refused.
+        restClient = Rest5Client.builder(new HttpHost(
+                "http", TestElasticsearch.host(), TestElasticsearch.port())).build();
         transport = new Rest5ClientTransport(restClient, new JacksonJsonpMapper());
         client = new ElasticsearchClient(transport);
 
