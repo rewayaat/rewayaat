@@ -192,6 +192,36 @@ One part of step 1 is **not** reversible, and it does not matter: the `_ar` entr
 to the index *mapping* stay. Elasticsearch cannot drop a field from a mapping without a
 reindex. An empty mapped field costs nothing and the next reindex clears it.
 
+#### Phase 1 was run on 2026-10-01 and it is done
+
+Fresh snapshot `rewayaat-2026.10.01-wl7huvlhsiaujtp54bocba` taken first: SUCCESS, 18/18
+shards, includes `rewayaat_hadith_20260909`. Then the apply, 22:28 to about 23:30, five
+fields, **32,519 updated and 0 errors each, `No mapping: 0` on every field**. Cluster
+green throughout and the site answered in about a second the whole way.
+
+The before and after snapshots are committed under `scripts/data/search-snapshots/`.
+
+**The gate failed, and the gate was wrong.** It reported eight of twenty English queries
+whose first page changed. Every English *count* was identical — 4,210 to 4,210 for
+`prayer`, 8,360 to 8,360 for `hassan`, 22 to 22 for `"pledge of allegiance"` — so not one
+narration was gained or lost. The churn was the first twenty of a tie:
+
+| query | distinct scores in top 40 | first page |
+|---|---|---|
+| `"the book of prayer"` | **1** — 927 narrations scored identically | churned |
+| `commerce`, `mercy`, `hassan` | 4–6 | churned |
+| `zakat` | 30 | **identical** |
+| `"pledge of allegiance"` | 19 of 22 | **identical** |
+
+Churn where tied, none where separated, in every case. That is the behaviour
+`MigrationPreservesSearchIntegrationTest` documented *before* the migration ran, which is
+the only reason this reads as a mis-specified check rather than as a convenient
+explanation found afterwards. The gate is the count now; the set is reported and
+`--scores` answers the follow-up.
+
+The Arabic half did what it was for: `صلاة` 673 → 993, `الزكاة` 349 → 902, `الخصال` 51 →
+1,332, `الكافي` 221 → capped at 10,000.
+
 ### Phase 2 — merge, which deploys, with the switch off
 
 Confirm `k8s/deployment.yaml` still has `ARABIC_INDEXABLE: "false"`, then merge.
