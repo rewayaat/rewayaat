@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ConnectorLinksTest {
 
-    private static final String BASE = "https://hadith.academyofislam.com";
+    private static final String BASE = "https://rewayaat.info";
     private static final String TAGS =
             "utm_source=claude&utm_medium=ai-connector&utm_campaign=hadith-connector&utm_content=get_chapter";
 

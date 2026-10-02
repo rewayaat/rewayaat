@@ -42,7 +42,7 @@ class ShareCardRendererTest {
     @EnumSource(Theme.class)
     void rendersTheOpenGraphSizeSoPreviewsAreNotCroppedOrRejected(Theme theme) throws IOException {
         BufferedImage card = decode(renderer.render(new ShareCardRenderer.Card(
-                "AL-KĀFI · VOLUME 2 · HADITH 81", ARABIC, ENGLISH, "hadith.academyofislam.com"),
+                "AL-KĀFI · VOLUME 2 · HADITH 81", ARABIC, ENGLISH, "rewayaat.info"),
                 theme));
 
         assertEquals(1200, card.getWidth());
@@ -58,9 +58,9 @@ class ShareCardRendererTest {
     @EnumSource(Theme.class)
     void drawsBothScriptsRatherThanFallingBackToMissingGlyphBoxes(Theme theme) throws IOException {
         BufferedImage arabicOnly = decode(renderer.render(new ShareCardRenderer.Card(
-                "AL-KHIṢĀL · HADITH 4", ARABIC, "", "hadith.academyofislam.com"), theme));
+                "AL-KHIṢĀL · HADITH 4", ARABIC, "", "rewayaat.info"), theme));
         BufferedImage englishOnly = decode(renderer.render(new ShareCardRenderer.Card(
-                "AL-KHIṢĀL · HADITH 4", "", ENGLISH, "hadith.academyofislam.com"), theme));
+                "AL-KHIṢĀL · HADITH 4", "", ENGLISH, "rewayaat.info"), theme));
 
         assertTrue(ink(arabicOnly, 114, 496) > 2000,
                 "Arabic-only card drew almost nothing; the Arabic face is probably missing");
@@ -79,7 +79,7 @@ class ShareCardRendererTest {
     void aVeryLongNarrationStaysAboveTheFooterInsteadOfOverrunningIt(Theme theme) throws IOException {
         BufferedImage card = decode(renderer.render(new ShareCardRenderer.Card(
                 "AL-KĀFI · VOLUME 1 · HADITH 1", (ARABIC + " ").repeat(6), (ENGLISH + " ").repeat(6),
-                "hadith.academyofislam.com"), theme));
+                "rewayaat.info"), theme));
 
         assertEquals(0, ink(card, 500, 516), "body text overran into the footer band");
     }
@@ -91,7 +91,7 @@ class ShareCardRendererTest {
         BufferedImage card = decode(renderer.render(new ShareCardRenderer.Card(
                 "NAHJ AL-BALĀGHA · HADITH 12", "",
                 "Patience is to faith what the head is to the body.",
-                "hadith.academyofislam.com"), theme));
+                "rewayaat.info"), theme));
 
         // Centred, so the single line lands in the middle band of the body, not at its top.
         assertTrue(ink(card, 250, 360) > 500, "the lone line was not centred in the body");
@@ -107,7 +107,7 @@ class ShareCardRendererTest {
     @EnumSource(Theme.class)
     void theAliMarkIsVisibleAgainstTheGroundItIsDrawnOn(Theme theme) throws IOException {
         BufferedImage card = decode(renderer.render(new ShareCardRenderer.Card(
-                "AL-KĀFI · VOLUME 2 · HADITH 81", ARABIC, ENGLISH, "hadith.academyofislam.com"),
+                "AL-KĀFI · VOLUME 2 · HADITH 81", ARABIC, ENGLISH, "rewayaat.info"),
                 theme));
 
         // The footer's left half, which holds the mark and nothing else.
@@ -119,7 +119,7 @@ class ShareCardRendererTest {
     @Test
     void renderingIsDeterministicSoTheContentHashEtagStaysStable() {
         ShareCardRenderer.Card card = new ShareCardRenderer.Card(
-                "AL-KĀFI · VOLUME 2 · HADITH 81", ARABIC, ENGLISH, "hadith.academyofislam.com");
+                "AL-KĀFI · VOLUME 2 · HADITH 81", ARABIC, ENGLISH, "rewayaat.info");
 
         assertTrue(Arrays.equals(renderer.render(card, Theme.DARK), renderer.render(card, Theme.DARK)),
                 "two renders of the same card produced different bytes");
@@ -129,7 +129,7 @@ class ShareCardRendererTest {
     @Test
     void theThemesAreDifferentImages() {
         ShareCardRenderer.Card card = new ShareCardRenderer.Card(
-                "AL-KĀFI · VOLUME 2 · HADITH 81", ARABIC, ENGLISH, "hadith.academyofislam.com");
+                "AL-KĀFI · VOLUME 2 · HADITH 81", ARABIC, ENGLISH, "rewayaat.info");
 
         assertTrue(!Arrays.equals(renderer.render(card, Theme.DARK), renderer.render(card, Theme.LIGHT)));
     }

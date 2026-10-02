@@ -238,7 +238,7 @@ class ShareCardIntegrationTest extends ElasticsearchTestSupport {
         String html = page.getBody();
 
         assertNotNull(html);
-        String expected = "https://hadith.academyofislam.com/hadith/" + ID + "/card.png";
+        String expected = "https://rewayaat.info/hadith/" + ID + "/card.png";
         assertTrue(html.contains("<meta property=\"og:image\" content=\"" + expected + "\""),
                 "og:image does not point at this narration's card");
         assertTrue(html.contains("<meta name=\"twitter:image\" content=\"" + expected + "\""),

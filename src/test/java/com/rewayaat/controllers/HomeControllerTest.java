@@ -66,7 +66,7 @@ class HomeControllerTest {
 
         controller().home("", 1, null, null, model);
 
-        assertEquals("https://hadith.academyofislam.com/", model.getAttribute("canonicalUrl"));
+        assertEquals("https://rewayaat.info/", model.getAttribute("canonicalUrl"));
     }
 
     @Test
