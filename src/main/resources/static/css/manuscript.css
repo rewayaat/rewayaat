@@ -13102,9 +13102,11 @@ body.is-authed .nav-menu__item--signin {
 
    So the wrapper keeps its padding, and this is scoped by .nav-search__shell -
    the class only the nav's shell carries - rather than by .navbar-search, which
-   also matches the search page and took that page's only clearance away. Enough is left that a chip, which carries a filled background and a
-   border, still clears the icon - plain grey placeholder text looks comfortable
-   at a distance where a chip does not.
+   also matches the search page and took that page's only clearance away.
+
+   Enough is left that a chip, which carries a filled background and a border,
+   still clears the icon - plain grey placeholder text looks comfortable at a
+   distance where a chip does not.
 
    The wrapper is named in these selectors to carry the same weight as
    `.site-nav .ts-wrapper.form-control .ts-control`, which sets the inset this
