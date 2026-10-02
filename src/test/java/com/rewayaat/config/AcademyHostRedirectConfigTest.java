@@ -115,6 +115,20 @@ class AcademyHostRedirectConfigTest {
         assertEquals(ELSEWHERE, AcademyHostRedirectConfig.clientAddress(realIp));
     }
 
+    /**
+     * A VPN exit serving Montreal on address space registered in Panama. The registries
+     * call it Panama, which redirected a reader who was in Canada; GeoLite2 calls it
+     * Canada, which is where it answers from. The shipped list is the union of the two,
+     * and this is the case that union exists for.
+     */
+    @Test
+    void aVpnExitServingCanadaCountsAsCanada() throws Exception {
+        assertTrue(canada.contains("187.13.222.58"),
+                "a VPN node serving Montreal should read as Canadian; regenerate the "
+                        + "ranges with MaxMind credentials if this fails");
+        assertEquals(200, run(ACADEMY, "187.13.222.58", "/", null).getStatus());
+    }
+
     @Test
     void theRangeTableRecognisesCanadaAndOnlyCanada() {
         assertTrue(canada.contains(CANADA));
