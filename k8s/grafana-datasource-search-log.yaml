@@ -1,0 +1,39 @@
+# The search log as a Grafana datasource.
+#
+# Grafana already reads Prometheus for how the service is behaving. This is the other
+# question - what readers came looking for - and it lives in Elasticsearch rather than in
+# a metric, because a search term is a value, not a counter: there is no useful way to
+# express "the twenty most common phrases this month" as a time series label without
+# unbounded cardinality.
+#
+# Read-only and unauthenticated, which matches how the application reaches the same
+# cluster from inside it. The index holds no personal data - a row is a phrase, a result
+# count and a time - so there is nothing here that widening read access would expose.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rewayaat-search-log-datasource
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: rewayaat-v2
+    # Watched by the grafana-sc-datasources sidecar, which looks for this label with
+    # value "1" and writes the file below into Grafana's provisioning directory.
+    grafana_datasource: "1"
+data:
+  rewayaat-search-log.yaml: |-
+    apiVersion: 1
+    datasources:
+      - name: Rewayaat Search Log
+        uid: rewayaat-search-log
+        type: elasticsearch
+        access: proxy
+        url: http://elasticsearch-v2.elastic-v2.svc.cluster.local:9200
+        isDefault: false
+        editable: false
+        jsonData:
+          index: rewayaat_search_log
+          timeField: timestamp
+          # Grafana 10 takes a capability string here rather than a version number.
+          esVersion: "8.0+"
+          maxConcurrentShardRequests: 5
+          includeFrozen: false
