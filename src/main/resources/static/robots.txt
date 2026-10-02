@@ -10,4 +10,4 @@ Disallow: /swagger-ui.html
 # Blocked, they were indexed anyway from the links in every card's action rail, which is
 # what Search Console reported as "Indexed, though blocked by robots.txt".
 
-Sitemap: https://hadith.academyofislam.com/sitemap.xml
+Sitemap: https://rewayaat.info/sitemap.xml

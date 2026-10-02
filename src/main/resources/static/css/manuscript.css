@@ -401,6 +401,18 @@ a:hover {
     display: block;
 }
 
+/* The database's own mark, carried by every host except the Academy's. It is the emblem
+   lifted out of the full lockup and cropped tight, so unlike the Academy asset it has no
+   built-in margin and wants no negative inline start to sit against the edge. Square, so
+   one asset serves the phone and the desktop rather than a wordmark plus an icon. */
+.brand-logo--emblem {
+    height: 42px;
+    width: auto;
+    display: block;
+    transition: opacity 150ms ease;
+}
+.brand-logo--emblem:hover { opacity: 0.85; }
+
 /* ── Search Bar ─────────────────────────────────────────────────────────── */
 #queryBar {
     display: flex;
@@ -4779,6 +4791,7 @@ code.welcome {
 @media (max-width: 768px) {
     .brand-logo--full { height: 38px; }
     .brand-logo--icon { height: 30px; }
+    .brand-logo--emblem { height: 34px; }
 
     .site-nav { padding-top: 0.45rem; padding-bottom: 0.5rem; }
 
@@ -10084,6 +10097,7 @@ body.is-search-mode .site-nav .search-entry-shell {
     }
 
     .brand-logo--icon { height: 30px; }
+    .brand-logo--emblem { height: 34px; }
     .navbar-brand { align-self: center; }
 
     .navbar-top {

@@ -24,7 +24,7 @@
       "Move in both directions between narrations and the Qur'anic verses connected to them",
       "Works with Claude and ChatGPT today, and powers the assistant on this site"
     ],
-    "connectorUrl": "https://hadith.academyofislam.com/mcp",
+    "connectorUrl": "https://rewayaat.info/mcp",
     "guides": [
       {
         "id": "connector-claude",

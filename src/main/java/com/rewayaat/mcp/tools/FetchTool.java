@@ -27,7 +27,7 @@ public class FetchTool implements McpTool {
     private final String baseUrl;
 
     public FetchTool(NarrationRepository repository,
-                     @Value("${rewayaat.canonical-url:https://hadith.academyofislam.com}") String baseUrl) {
+                     @Value("${rewayaat.canonical-url:https://rewayaat.info}") String baseUrl) {
         this.repository = repository;
         this.baseUrl = baseUrl;
     }

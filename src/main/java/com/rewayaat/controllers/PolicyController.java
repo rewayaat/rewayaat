@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class PolicyController {
 
-    private static final String BASE_URL = "https://hadith.academyofislam.com";
+    private static final String BASE_URL = "https://rewayaat.info";
 
     @GetMapping("/privacy")
     public String privacy(Model model, HttpServletRequest request) {
