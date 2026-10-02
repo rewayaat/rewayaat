@@ -172,11 +172,17 @@
         <div class="site-footer__grid">
             <div>
                 <div class="site-footer__title" th:text="#{site.name}">Rewayaat</div>
-                <p class="site-footer__text" th:text="#{site.footer.text}">Search, browse, and study Shi'i narrations in Arabic and English.</p>
+                <p class="site-footer__text" th:if="${academyHost}">
+                    <span th:text="#{footer.projectOf}">A project of the</span>
+                    <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" class="site-footer__link" th:text="#{footer.academyFull}">Academy for Learning Islam</a>
+                    <span th:text="#{footer.blurb}">Search, browse, and study Shi'i narrations in Arabic and English.</span>
+                </p>
+                <p class="site-footer__text" th:unless="${academyHost}" th:text="#{site.footer.textOwn}">Search, browse, and study Shi'i narrations in Arabic and English.</p>
             </div>
         </div>
         <div class="site-footer__bottom">
-            <span th:utext="#{footer.rights}">&copy; 2026 The Hadith Database</span>
+            <span th:if="${academyHost}" th:utext="#{footer.rights}">&copy; 2026 Academy for Learning Islam (A.L.I.)</span>
+                    <span th:unless="${academyHost}" th:utext="#{footer.rightsOwn}">&copy; 2026 The Hadith Database</span>
         </div>
     </div>
 </footer>
