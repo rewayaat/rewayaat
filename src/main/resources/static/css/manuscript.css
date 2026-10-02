@@ -1032,10 +1032,21 @@ body.is-search-mode .home-nav-links {
 }
 
 /* ── Profile Chip ───────────────────────────────────────────────────────── */
+/* align-items matters here because the buttons in this row are not the same height: the
+   language toggle and the profile chip carry a min-height the sign-in button does not, so
+   the row is taller than Sign In is. Without centring, the default stretch alignment left
+   Sign In flush against the top of the row and visibly higher than everything else in the
+   bar - its midpoint sat 3px above the midpoint of the logo, the search field and the
+   reading scope, which all centre together.
+
+   flex-wrap was written here as "flex-nowrap", which is the Bootstrap class name, not a
+   declaration. It has no colon, so the parser dropped it and the row was never actually
+   held on one line by this rule. */
 .top-actions {
     display: flex;
+    align-items: center;
     gap: 0.5rem;
-    flex-nowrap;
+    flex-wrap: nowrap;
 }
 
 .profile-chip {

@@ -5,7 +5,7 @@
     <meta charset="UTF-8"/>
     <title th:text="${seoTitle}">Shia Hadith Database — Search 32,000+ Narrations in Arabic &amp; English</title>
     <meta name="description" th:content="${seoDescription}" content="Search 32,000+ Shia hadith in Arabic and English. Browse Al-Kafi, Nahj al-Balagha, Man La Yahduruh al-Faqih and more, with similar narrations and Quranic insights."/>
-    <meta name="author" content="Academy for Learning Islam"/>
+    <meta name="author" content="The Hadith Database"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
     <!-- Absolute, and always on the canonical host: rewayaat.info mirrors this app, and a
          relative "/" made the mirror declare itself canonical, splitting the site in two. -->
@@ -890,11 +890,7 @@
         <div class="site-footer__grid">
             <div>
                 <div class="site-footer__title" th:text="#{site.name}">Rewayaat</div>
-                <p class="site-footer__text">
-                    <span th:text="#{footer.projectOf}">A project of the</span>
-                    <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" class="site-footer__link" th:text="#{footer.academyFull}">Academy for Learning Islam</a>
-                    <span th:text="#{footer.blurb}">Search, browse, and study Shi'i narrations in Arabic and English.</span>
-                </p>
+                <p class="site-footer__text" th:text="#{site.footer.text}">Search, browse, and study Shi'i narrations in Arabic and English.</p>
             </div>
             <div>
                 <div class="site-footer__label" th:text="#{footer.explore}">Explore</div>
@@ -910,12 +906,11 @@
                 <div class="site-footer__links">
                     <a href="mailto:rewayaat.org@gmail.com">rewayaat.org@gmail.com</a>
                     <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer" th:text="#{footer.github}">GitHub Repository</a>
-                    <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" th:text="#{footer.academy}">Academy of Islam</a>
                 </div>
             </div>
         </div>
         <div class="site-footer__bottom">
-            <span>&copy; 2026 Academy for Learning Islam (A.L.I.)</span>
+            <span th:utext="#{footer.rights}">&copy; 2026 The Hadith Database</span>
             <div class="site-footer__social">
                 <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer" title="GitHub"><i class="fa-brands fa-github"></i></a>
                 <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer" title="REST API"><i class="fa fa-code"></i></a>
