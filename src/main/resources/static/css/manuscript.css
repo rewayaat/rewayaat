@@ -13058,3 +13058,56 @@ body.is-authed .nav-menu__item--signin {
         right: 0.7rem;
     }
 }
+
+/* ── Search field: where the caret and the placeholder actually sit ──────────
+
+   Two things were wrong in the same bar, and both were measured against the
+   live page rather than guessed at.
+
+   Vertically, the caret and the typed text rendered 3px above the magnifier,
+   the Search button and the reading scope, all of which centre on the same
+   line. The cause is that Tom Select's control is a wrapping flex container:
+   align-items centres items *within* a flex line, but with a single line in a
+   box taller than it, align-content is what decides where that line sits - and
+   it was flex-start, which pinned the line to the top of the content box.
+
+   Horizontally, the left inset stacked three deep - the shell's inset, which
+   exists to clear the magnifier, plus Tom Select's own wrapper and control,
+   each adding their own - so the placeholder began about 65px into a bar whose
+   icon ends at 27px. Only the shell's inset has a job to do. */
+
+.search-entry-shell .ts-control {
+    align-content: center !important;
+}
+
+.search-entry-shell .ts-wrapper,
+.search-entry-shell .ts-wrapper.form-control {
+    padding-inline: 0 !important;
+}
+
+/* Small rather than none: the text should clear the magnifier, not touch it.
+
+   The wrapper is named in these selectors to carry the same weight as
+   `.site-nav .ts-wrapper.form-control .ts-control`, which sets the inset this
+   replaces. Being later in the file is not enough against it - that one counts
+   four classes to a plain three, so without the wrapper here it simply loses. */
+.navbar-search .search-entry-shell .ts-wrapper .ts-control,
+.site-nav .search-entry-shell .ts-wrapper .ts-control,
+.home-search .search-entry-shell .ts-wrapper .ts-control,
+.navbar-search .search-entry-shell .ts-wrapper.form-control .ts-control,
+.site-nav .search-entry-shell .ts-wrapper.form-control .ts-control,
+.home-search .search-entry-shell .ts-wrapper.form-control .ts-control {
+    padding-left: 0.45rem !important;
+}
+
+/* The mirror. Only the start side moves; the end side keeps the room the
+   Search button needs, which in Arabic is on the left. */
+[dir="rtl"] .navbar-search .search-entry-shell .ts-wrapper .ts-control,
+[dir="rtl"] .site-nav .search-entry-shell .ts-wrapper .ts-control,
+[dir="rtl"] .home-search .search-entry-shell .ts-wrapper .ts-control,
+[dir="rtl"] .navbar-search .search-entry-shell .ts-wrapper.form-control .ts-control,
+[dir="rtl"] .site-nav .search-entry-shell .ts-wrapper.form-control .ts-control,
+[dir="rtl"] .home-search .search-entry-shell .ts-wrapper.form-control .ts-control {
+    padding-left: var(--search-entry-side-pad) !important;
+    padding-right: 0.45rem !important;
+}
