@@ -92,6 +92,11 @@
         input.remove();
 
         var control = new window.TomSelect(select, {
+            // Without this a term can be added here and not taken back out: the chip
+            // renders with no remove control, and the reader only gets one after
+            // pressing enter, because the search page builds its own control that has
+            // always carried the plugin. Every other Tom Select on the site has it.
+            plugins: { remove_button: { title: t('js.remove', 'Remove') } },
             persist: false,
             create: true,
             createOnBlur: false,

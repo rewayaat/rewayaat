@@ -1625,7 +1625,10 @@ body.is-search-mode .home-nav-links {
     color: var(--text);
 }
 .ts-control input::placeholder { color: var(--text-muted); }
-.ts-control.has-items input::placeholder { color: transparent; opacity: 0; }
+/* Tom Select sets has-items on the wrapper, not on the control, so the original
+   selector never matched and the placeholder went on sitting beside the chips
+   it was meant to make way for. */
+.ts-wrapper.has-items .ts-control input::placeholder { color: transparent; opacity: 0; }
 
 .ts-control .item {
     background: var(--primary-bg);
@@ -13078,36 +13081,46 @@ body.is-authed .nav-menu__item--signin {
 
 .search-entry-shell .ts-control {
     align-content: center !important;
+    /* `safe` matters once terms wrap onto a second line. Centring lines in a box
+       they overflow pushes the first one above the top edge, and a scroll
+       container cannot scroll to negative offsets - the row would be
+       unreachable. `safe` falls back to start alignment in exactly that case,
+       so centring applies when it helps and gets out of the way when it would
+       hide something. Declared after the plain value, so a browser that does
+       not understand it keeps the line above. */
+    align-content: safe center !important;
 }
 
-.search-entry-shell .ts-wrapper,
-.search-entry-shell .ts-wrapper.form-control {
-    padding-inline: 0 !important;
-}
+/* Only the nav bar's control is narrowed, and only its own inset.
 
-/* Small rather than none: the text should clear the magnifier, not touch it.
+   The two search bars are built differently, which is the trap here. The nav
+   shell carries the inset that clears the magnifier and its control adds more
+   on top; the search page's shell carries none, so its control's inset is the
+   only clearance the icon has. An earlier attempt zeroed Tom Select's wrapper
+   padding for both, which read correctly in the nav and left the search page
+   with four pixels - a selected term sat on top of the magnifier there.
+
+   So the wrapper keeps its padding, and this is scoped by .nav-search__shell -
+   the class only the nav's shell carries - rather than by .navbar-search, which
+   also matches the search page and took that page's only clearance away.
+
+   Enough is left that a chip, which carries a filled background and a border,
+   still clears the icon - plain grey placeholder text looks comfortable at a
+   distance where a chip does not.
 
    The wrapper is named in these selectors to carry the same weight as
    `.site-nav .ts-wrapper.form-control .ts-control`, which sets the inset this
    replaces. Being later in the file is not enough against it - that one counts
    four classes to a plain three, so without the wrapper here it simply loses. */
-.navbar-search .search-entry-shell .ts-wrapper .ts-control,
-.site-nav .search-entry-shell .ts-wrapper .ts-control,
-.home-search .search-entry-shell .ts-wrapper .ts-control,
-.navbar-search .search-entry-shell .ts-wrapper.form-control .ts-control,
-.site-nav .search-entry-shell .ts-wrapper.form-control .ts-control,
-.home-search .search-entry-shell .ts-wrapper.form-control .ts-control {
-    padding-left: 0.45rem !important;
+.site-nav .search-entry-shell.nav-search__shell .ts-wrapper .ts-control,
+.site-nav .search-entry-shell.nav-search__shell .ts-wrapper.form-control .ts-control {
+    padding-left: 0.25rem !important;
 }
 
 /* The mirror. Only the start side moves; the end side keeps the room the
    Search button needs, which in Arabic is on the left. */
-[dir="rtl"] .navbar-search .search-entry-shell .ts-wrapper .ts-control,
-[dir="rtl"] .site-nav .search-entry-shell .ts-wrapper .ts-control,
-[dir="rtl"] .home-search .search-entry-shell .ts-wrapper .ts-control,
-[dir="rtl"] .navbar-search .search-entry-shell .ts-wrapper.form-control .ts-control,
-[dir="rtl"] .site-nav .search-entry-shell .ts-wrapper.form-control .ts-control,
-[dir="rtl"] .home-search .search-entry-shell .ts-wrapper.form-control .ts-control {
+[dir="rtl"] .site-nav .search-entry-shell.nav-search__shell .ts-wrapper .ts-control,
+[dir="rtl"] .site-nav .search-entry-shell.nav-search__shell .ts-wrapper.form-control .ts-control {
     padding-left: var(--search-entry-side-pad) !important;
-    padding-right: 0.45rem !important;
+    padding-right: 0.25rem !important;
 }
