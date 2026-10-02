@@ -20,19 +20,28 @@ import java.util.List;
 /**
  * Answers whether an address is Canadian, from a list shipped with the application.
  *
- * <p>The ranges are derived from the regional registries' own delegated-extended
- * statistics files, which are public, authoritative and need no account. That is the
- * reason for carrying a list at all rather than calling a geolocation service: a lookup
- * on every request would put a third party in the path of every page, and the visitor
- * addresses it would be asked about are not ours to hand out.
+ * <p>The ranges come from two sources that disagree in a useful way. The regional
+ * registries' delegated-extended files record who an allocation was <em>issued</em> to.
+ * GeoLite2 measures where a network actually <em>answers</em> from. A VPN exit serving
+ * Montreal on a block registered in Panama is Panama to the registries and Canada to
+ * GeoLite2, and it is a reader in Canada either way - so the shipped list is the union,
+ * which covers about seven million addresses the registries alone miss.
+ *
+ * <p>Carrying a list at all, rather than calling a geolocation service, keeps a third
+ * party out of the path of every request: the visitor addresses such a service would be
+ * asked about are not ours to hand out. Regenerate with
+ * {@code scripts/ops/generate_ca_ranges.py}.
  *
  * <p>The list goes stale, and the direction it fails in is deliberate. An address this
  * does not recognise is reported as not Canadian, so a reassigned block redirects to the
  * canonical host rather than quietly staying behind on a host that is being retired.
- * Regenerate it by re-reading the delegated files; it changes slowly.
  *
- * <p>Country-level address geolocation is roughly 95-99% accurate at best, and a VPN
- * defeats it outright. Nothing here should ever decide what a visitor is allowed to see.
+ * <p>Country-level address geolocation is never exact, and a VPN the databases have not
+ * caught up with still defeats it. Nothing here should ever decide what a visitor is
+ * allowed to see - only which host serves them.
+ *
+ * <p>This product includes GeoLite2 data created by MaxMind, available from
+ * <a href="https://www.maxmind.com">https://www.maxmind.com</a>.
  */
 @Component
 public class CanadianAddresses {
