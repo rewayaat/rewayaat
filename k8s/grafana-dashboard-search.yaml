@@ -1,0 +1,668 @@
+# What readers searched for, as a dashboard.
+#
+# The overview dashboard answers how the service behaved. This one answers what people
+# came for, which is the question behind a book placement: the ranking says what to
+# stock, and "found nothing" says what is missing.
+#
+# Backed by the Elasticsearch datasource in grafana-datasource-search-log.yaml, not by
+# Prometheus - a search term is a value, not a counter.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rewayaat-search-grafana-dashboard
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: rewayaat-v2
+    grafana_dashboard: "1"
+data:
+  rewayaat-search-terms.json: |-
+    {
+      "annotations": {
+        "list": []
+      },
+      "editable": false,
+      "graphTooltip": 1,
+      "links": [],
+      "panels": [
+        {
+          "type": "stat",
+          "title": "Searches",
+          "description": "Searches run by readers in the selected range. Crawlers and paging are not counted.",
+          "datasource": {
+            "type": "elasticsearch",
+            "uid": "rewayaat-search-log"
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 8,
+            "x": 0,
+            "y": 0
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "elasticsearch",
+                "uid": "rewayaat-search-log"
+              },
+              "query": "",
+              "metrics": [
+                {
+                  "id": "1",
+                  "type": "count"
+                }
+              ],
+              "bucketAggs": [
+                {
+                  "id": "2",
+                  "type": "date_histogram",
+                  "field": "timestamp",
+                  "settings": {
+                    "interval": "auto",
+                    "min_doc_count": "0",
+                    "trimEdges": "0"
+                  }
+                }
+              ],
+              "timeField": "timestamp"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "text"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "text",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "sum"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "orientation": "auto",
+            "textMode": "auto",
+            "colorMode": "none",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          }
+        },
+        {
+          "type": "stat",
+          "title": "Distinct terms",
+          "description": "How many different phrases, with case and spacing folded together.",
+          "datasource": {
+            "type": "elasticsearch",
+            "uid": "rewayaat-search-log"
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 8,
+            "x": 8,
+            "y": 0
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "elasticsearch",
+                "uid": "rewayaat-search-log"
+              },
+              "query": "",
+              "metrics": [
+                {
+                  "id": "1",
+                  "type": "cardinality",
+                  "field": "query_normalized"
+                }
+              ],
+              "bucketAggs": [],
+              "timeField": "timestamp"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "text"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "text",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "orientation": "auto",
+            "textMode": "auto",
+            "colorMode": "none",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          }
+        },
+        {
+          "type": "stat",
+          "title": "Found nothing",
+          "description": "Searches that returned no narration. Each one is either a gap in the corpus or a gap in the search.",
+          "datasource": {
+            "type": "elasticsearch",
+            "uid": "rewayaat-search-log"
+          },
+          "gridPos": {
+            "h": 4,
+            "w": 8,
+            "x": 16,
+            "y": 0
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "elasticsearch",
+                "uid": "rewayaat-search-log"
+              },
+              "query": "hits:0",
+              "metrics": [
+                {
+                  "id": "1",
+                  "type": "count"
+                }
+              ],
+              "bucketAggs": [
+                {
+                  "id": "2",
+                  "type": "date_histogram",
+                  "field": "timestamp",
+                  "settings": {
+                    "interval": "auto",
+                    "min_doc_count": "0",
+                    "trimEdges": "0"
+                  }
+                }
+              ],
+              "timeField": "timestamp"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "text"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "text",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "sum"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "orientation": "auto",
+            "textMode": "auto",
+            "colorMode": "none",
+            "graphMode": "area",
+            "justifyMode": "auto"
+          }
+        },
+        {
+          "type": "timeseries",
+          "title": "Searches over time",
+          "datasource": {
+            "type": "elasticsearch",
+            "uid": "rewayaat-search-log"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 16,
+            "x": 0,
+            "y": 4
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "elasticsearch",
+                "uid": "rewayaat-search-log"
+              },
+              "query": "",
+              "metrics": [
+                {
+                  "id": "1",
+                  "type": "count"
+                }
+              ],
+              "bucketAggs": [
+                {
+                  "id": "2",
+                  "type": "date_histogram",
+                  "field": "timestamp",
+                  "settings": {
+                    "interval": "auto",
+                    "min_doc_count": "0",
+                    "trimEdges": "0"
+                  }
+                }
+              ],
+              "timeField": "timestamp"
+            },
+            {
+              "refId": "B",
+              "datasource": {
+                "type": "elasticsearch",
+                "uid": "rewayaat-search-log"
+              },
+              "query": "hits:0",
+              "metrics": [
+                {
+                  "id": "1",
+                  "type": "count"
+                }
+              ],
+              "bucketAggs": [
+                {
+                  "id": "3",
+                  "type": "date_histogram",
+                  "field": "timestamp",
+                  "settings": {
+                    "interval": "auto",
+                    "min_doc_count": "0",
+                    "trimEdges": "0"
+                  }
+                }
+              ],
+              "timeField": "timestamp"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "bars",
+                "fillOpacity": 40,
+                "lineWidth": 1,
+                "stacking": {
+                  "mode": "none"
+                }
+              },
+              "color": {
+                "mode": "palette-classic"
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "text",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          }
+        },
+        {
+          "type": "piechart",
+          "title": "By language",
+          "datasource": {
+            "type": "elasticsearch",
+            "uid": "rewayaat-search-log"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 16,
+            "y": 4
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "elasticsearch",
+                "uid": "rewayaat-search-log"
+              },
+              "query": "",
+              "metrics": [
+                {
+                  "id": "1",
+                  "type": "count"
+                }
+              ],
+              "bucketAggs": [
+                {
+                  "id": "2",
+                  "type": "terms",
+                  "field": "locale",
+                  "settings": {
+                    "size": "5",
+                    "order": "desc",
+                    "orderBy": "_count",
+                    "min_doc_count": "1"
+                  }
+                }
+              ],
+              "timeField": "timestamp"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "mappings": []
+            },
+            "overrides": []
+          },
+          "options": {
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "pieType": "donut",
+            "legend": {
+              "displayMode": "list",
+              "placement": "right",
+              "showLegend": true
+            }
+          }
+        },
+        {
+          "type": "table",
+          "title": "Top search terms",
+          "description": "What readers actually looked for. This is the list a bookseller is being asked to pay against.",
+          "datasource": {
+            "type": "elasticsearch",
+            "uid": "rewayaat-search-log"
+          },
+          "gridPos": {
+            "h": 12,
+            "w": 12,
+            "x": 0,
+            "y": 12
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "elasticsearch",
+                "uid": "rewayaat-search-log"
+              },
+              "query": "",
+              "metrics": [
+                {
+                  "id": "1",
+                  "type": "count"
+                }
+              ],
+              "bucketAggs": [
+                {
+                  "id": "2",
+                  "type": "terms",
+                  "field": "query_normalized",
+                  "settings": {
+                    "size": "30",
+                    "order": "desc",
+                    "orderBy": "_count",
+                    "min_doc_count": "1"
+                  }
+                }
+              ],
+              "timeField": "timestamp"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "cellOptions": {
+                  "type": "auto"
+                },
+                "inspect": false
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "text",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "query_normalized"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Term"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Count"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Searches"
+                  },
+                  {
+                    "id": "custom.width",
+                    "value": 110
+                  }
+                ]
+              }
+            ]
+          },
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "footer": {
+              "show": false
+            },
+            "sortBy": [
+              {
+                "displayName": "Searches",
+                "desc": true
+              }
+            ]
+          }
+        },
+        {
+          "type": "table",
+          "title": "Searched for, found nothing",
+          "description": "Often the more useful list: a phrase people expect to find and do not.",
+          "datasource": {
+            "type": "elasticsearch",
+            "uid": "rewayaat-search-log"
+          },
+          "gridPos": {
+            "h": 12,
+            "w": 12,
+            "x": 12,
+            "y": 12
+          },
+          "targets": [
+            {
+              "refId": "A",
+              "datasource": {
+                "type": "elasticsearch",
+                "uid": "rewayaat-search-log"
+              },
+              "query": "hits:0",
+              "metrics": [
+                {
+                  "id": "1",
+                  "type": "count"
+                }
+              ],
+              "bucketAggs": [
+                {
+                  "id": "2",
+                  "type": "terms",
+                  "field": "query_normalized",
+                  "settings": {
+                    "size": "30",
+                    "order": "desc",
+                    "orderBy": "_count",
+                    "min_doc_count": "1"
+                  }
+                }
+              ],
+              "timeField": "timestamp"
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "cellOptions": {
+                  "type": "auto"
+                },
+                "inspect": false
+              },
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "text",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "query_normalized"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Term"
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Count"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Searches"
+                  },
+                  {
+                    "id": "custom.width",
+                    "value": 110
+                  }
+                ]
+              }
+            ]
+          },
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "footer": {
+              "show": false
+            },
+            "sortBy": [
+              {
+                "displayName": "Searches",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ],
+      "refresh": "",
+      "schemaVersion": 39,
+      "tags": [
+        "rewayaat",
+        "search"
+      ],
+      "templating": {
+        "list": []
+      },
+      "time": {
+        "from": "now-30d",
+        "to": "now"
+      },
+      "timepicker": {
+        "refresh_intervals": [
+          "1m",
+          "5m",
+          "15m",
+          "1h",
+          "6h",
+          "12h",
+          "24h"
+        ]
+      },
+      "timezone": "",
+      "title": "Rewayaat Search Terms",
+      "uid": "rewayaat-search-terms",
+      "version": 1,
+      "weekStart": ""
+    }
