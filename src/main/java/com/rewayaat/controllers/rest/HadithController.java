@@ -12,8 +12,11 @@ import com.rewayaat.service.AuthService;
 import com.rewayaat.service.HadithEditorAccessService;
 import com.rewayaat.service.HadithQueryService;
 import com.rewayaat.service.QuranicInsightsService;
+import com.rewayaat.service.PageLocale;
+import com.rewayaat.service.SearchLog;
 import com.rewayaat.service.SimilarHadithService;
 import io.swagger.v3.oas.annotations.Hidden;
+import jakarta.servlet.http.HttpServletRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -112,6 +115,8 @@ public class HadithController {
     @Autowired
     private HadithQueryService hadithQueryService;
     @Autowired
+    private SearchLog searchLog;
+    @Autowired
     private SimilarHadithService similarHadithService;
     @Autowired
     private QuranicInsightsService quranicInsightsService;
@@ -137,7 +142,8 @@ public class HadithController {
             @Parameter(name = "page", description = "The number of the page to return.", required = false) @RequestParam(value = "page", defaultValue = "1") int page,
             @Parameter(name = "per_page", description = "Number of hadith to include per page.") @RequestParam(value = "per_page", defaultValue = "20") int perPage,
             @Parameter(name = "topic_tags", description = "Controlled topic tags that all must match.", required = false) @RequestParam(value = "topic_tags", required = false) List<String> topicTags,
-            @Parameter(name = "topic_tags_any", description = "Controlled topic tags where any may match.", required = false) @RequestParam(value = "topic_tags_any", required = false) List<String> topicTagsAny)
+            @Parameter(name = "topic_tags_any", description = "Controlled topic tags where any may match.", required = false) @RequestParam(value = "topic_tags_any", required = false) List<String> topicTagsAny,
+            HttpServletRequest request)
             throws Exception {
         if (perPage < 1) {
             perPage = 20;
@@ -151,7 +157,7 @@ public class HadithController {
             queryMode = QueryMode.LOOKUP;
         }
         boolean strictMatchMode = hadithQueryService.isPreciseMatchMode(matchMode);
-        return new QueryStringQueryResult(
+        HadithObjectCollection results = new QueryStringQueryResult(
                 hadithQueryService.enhanceQuery(query, queryMode, strictMatchMode),
                 page - 1,
                 perPage,
@@ -160,6 +166,15 @@ public class HadithController {
                 0,
                 topicTags,
                 topicTagsAny).result();
+        // Recorded after the answer exists, so the result count is part of the row and a
+        // search that found nothing is as visible as a popular one. Never before: a reader
+        // waits on the search, not on us keeping notes about it.
+        if (queryMode == QueryMode.SEARCH && request != null) {
+            searchLog.record(query, results.getTotalResultSetSize(), page,
+                    PageLocale.of(request).isArabic() ? "ar" : "en",
+                    request.getServerName(), request.getHeader("User-Agent"));
+        }
+        return results;
     }
 
     @CrossOrigin(origins = { "*" }, allowCredentials = "false")
