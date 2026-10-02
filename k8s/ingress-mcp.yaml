@@ -39,11 +39,27 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
+        - rewayaat.info
         - hadith.academyofislam.com
       secretName: rewayaat-v2-mcp-tls
   rules:
-    # Only the canonical host. Connector URLs are configured once and copied around, so
-    # they should not be handed out on a mirror that may move.
+    # Both hosts, for the length of the canonical move. rewayaat.info is the host the
+    # guides and the tool citations hand out now; hadith.academyofislam.com stays because
+    # a connector URL is configured once and then lives in someone's client forever, so
+    # removing it would silently break every connector already set up against it.
+    #
+    # v2.rewayaat.info is deliberately absent: it is a mirror that may move, and a
+    # connector URL should not be handed out on one.
+    - host: rewayaat.info
+      http:
+        paths:
+          - path: /mcp
+            pathType: Prefix
+            backend:
+              service:
+                name: rewayaat-v2-mcp
+                port:
+                  number: 80
     - host: hadith.academyofislam.com
       http:
         paths:
