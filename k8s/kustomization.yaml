@@ -18,4 +18,4 @@ resources:
   - prometheus-rules.yaml
 images:
   - name: rewayaat/rewayaat-v2
-    newTag: "37003220216"
+    newTag: "37007240807"
