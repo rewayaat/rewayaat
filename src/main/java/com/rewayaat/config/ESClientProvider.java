@@ -110,8 +110,24 @@ public class ESClientProvider implements AutoCloseable {
         // Intentionally a no-op for connection-lifecycle safety.
     }
 
+    /**
+     * The live shared client, not the one this instance was constructed with.
+     *
+     * <p>Those differ for the Spring-managed bean, and the difference was a closed
+     * connection pool. The constructor snapshots {@code SHARED_CLIENT}; {@code springInit}
+     * then calls {@code initShared}, which closes that transport and installs a new one.
+     * An instance built before that - the injected bean itself - was left holding the
+     * closed one, so any collaborator that injected this provider and called
+     * {@code client()} got "Connection pool shut down" while the rest of the application
+     * worked. {@code core/} never saw it because it constructs a provider per query and so
+     * always reads the current static.
+     *
+     * <p>The field is kept for callers that captured it, and reading through to the static
+     * means a reconnect is picked up rather than pinned to whatever existed at startup.
+     */
     public ElasticsearchClient client() {
-        return client;
+        ElasticsearchClient live = SHARED_CLIENT;
+        return live != null ? live : client;
     }
 
     /**
