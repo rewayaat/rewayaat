@@ -11,6 +11,8 @@ resources:
   - service-mcp.yaml
   - servicemonitor.yaml
   - grafana-dashboard.yaml
+  - grafana-dashboard-search.yaml
+  - grafana-datasource-search-log.yaml
   - ingress.yaml
   - ingress-mcp.yaml
   - prometheus-rules.yaml
