@@ -4,15 +4,15 @@
     "date": "2026-09-13",
     "title": "Answers You Can Check, Inside Claude and ChatGPT",
     "summary": "Claude and ChatGPT can now search all 32,519 narrations directly, and link every answer back to its source.",
-    "previewVideo": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v1.mp4",
-    "previewPoster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v1.jpg",
+    "previewVideo": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v2.mp4",
+    "previewPoster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v2.jpg",
     "previewAspect": "1600 / 1088",
     "videoTitle": "Adding The Hadith Database connector in Claude",
     "why": {
       "title": "Why not just ask Claude or ChatGPT?",
       "intro": "On its own, an assistant has never read these books as books. It answers from memory — an impression of whatever it absorbed in training — or from web search, which finds pages written <em>about</em> the books: encyclopedia entries, fatwa sites, forums, quote collections. Famous narrations are written up many times over; most of the 32,519 are written up thinly or not at all. It sees fragments, so it cannot tell you what it missed, and how good an answer you get depends on what happens to be online. With the connector it reads the books themselves: a complete collection it can search, count and quote.",
-      "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/compare-v2.mp4",
-      "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/compare-v2.jpg",
+      "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/compare-v3.mp4",
+      "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/compare-v3.jpg",
       "videoAspect": "1600 / 1080",
       "videoAlt": "Side by side, the same question is asked of Claude on its own and of Claude with The Hadith Database: how many narrations are in al-Kāfi's chapter on the rights of the neighbour, listed with their numbers. On its own it says it cannot give a reliable numbered list, thinks there are about 15, labels one narration No. 1 when it is the chapter's second, and doubts that another is in the chapter when it is. With the connector it returns all 16, numbered #2298 to #2313, complete, each graded and linked.",
       "source": "The question was put to the model behind Claude, with no tools, three separate times on 14 September 2026; the video quotes the first answer. Every run said “about 15”, none could number the chapter, and each misplaced at least one narration. What an assistant recalls on its own changes with the model and from one asking to the next; the size of a chapter does not."
@@ -36,8 +36,8 @@
           "In a chat, open <strong>+ → Connectors</strong> and switch <strong>Hadith</strong> on, then ask your question."
         ],
         "note": "Works on every Claude plan; the free plan allows one custom connector. On Team and Enterprise, an owner adds it once under Organization settings → Connectors.",
-        "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v1.mp4",
-        "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v1.jpg",
+        "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v2.mp4",
+        "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v2.jpg",
         "videoTitle": "Adding the Hadith connector in Claude",
         "videoAspect": "1600 / 1088"
       },
@@ -51,8 +51,8 @@
           "In a chat, open <strong>+</strong> and choose <strong>Hadith</strong>, then ask your question."
         ],
         "note": "Developer mode is available on the web for Plus, Pro, Business, Enterprise and Edu plans.",
-        "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/chatgpt-v1.mp4",
-        "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/chatgpt-v1.jpg",
+        "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/chatgpt-v2.mp4",
+        "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/chatgpt-v2.jpg",
         "videoTitle": "Adding the Hadith connector in ChatGPT",
         "videoAspect": "1600 / 1088"
       }
@@ -63,8 +63,8 @@
     "why_ar": {
       "title": "ولمَ لا أسأل Claude أو ChatGPT مباشرة؟",
       "intro": "المساعد وحده لم يقرأ هذه الكتب قطّ ككتب. إنّما يجيب من الذاكرة — انطباعٍ عمّا استوعبه في التدريب — أو من البحث في الشبكة، حيث ما يجده صفحاتٌ كُتبت <em>عن</em> الكتب: مداخل موسوعات، ومواقع فتاوى، ومنتديات، ومجموعات اقتباسات. الروايات المشهورة كُتب عنها مرّات كثيرة، وأكثر الـ32,519 كُتب عنه قليلاً أو لم يُكتب عنه شيء. فهو يرى شذرات، ولا يستطيع أن يخبرك بما فاته، وجودة ما تحصل عليه رهنٌ بما تصادف وجوده على الشبكة. أمّا مع الموصل فهو يقرأ الكتب نفسها: مجموعة كاملة يبحث فيها ويعدّ ويقتبس منها.",
-      "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/compare-v2.mp4",
-      "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/compare-v2.jpg",
+      "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/compare-v3.mp4",
+      "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/compare-v3.jpg",
       "videoAspect": "1600 / 1080",
       "videoAlt": "Side by side, the same question is asked of Claude on its own and of Claude with The Hadith Database: how many narrations are in al-Kāfi's chapter on the rights of the neighbour, listed with their numbers. On its own it says it cannot give a reliable numbered list, thinks there are about 15, labels one narration No. 1 when it is the chapter's second, and doubts that another is in the chapter when it is. With the connector it returns all 16, numbered #2298 to #2313, complete, each graded and linked.",
       "source": "The question was put to the model behind Claude, with no tools, three separate times on 14 September 2026; the video quotes the first answer. Every run said “about 15”, none could number the chapter, and each misplaced at least one narration. What an assistant recalls on its own changes with the model and from one asking to the next; the size of a chapter does not."
@@ -80,8 +80,8 @@
           "في المحادثة، افتح <strong>+ → Connectors</strong> وفعّل <strong>Hadith</strong>، ثم اطرح سؤالك."
         ],
         "note": "يعمل مع كل خطط Claude؛ الخطة المجانية تتيح موصلاً مخصصاً واحداً.",
-        "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v1.mp4",
-        "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v1.jpg",
+        "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v2.mp4",
+        "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v2.jpg",
         "videoTitle": "Adding the Hadith connector in Claude",
         "videoAspect": "1600 / 1088"
       },
@@ -95,8 +95,8 @@
           "في المحادثة، افتح <strong>+</strong> واختر <strong>Hadith</strong>، ثم اطرح سؤالك."
         ],
         "note": "وضع المطوّر متاح على الويب لخطط Plus وPro وBusiness وEnterprise وEdu.",
-        "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/chatgpt-v1.mp4",
-        "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/chatgpt-v1.jpg",
+        "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/chatgpt-v2.mp4",
+        "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/chatgpt-v2.jpg",
         "videoTitle": "Adding the Hadith connector in ChatGPT",
         "videoAspect": "1600 / 1088"
       }
