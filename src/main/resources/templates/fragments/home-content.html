@@ -12,7 +12,7 @@
     <div class="home-hero__card">
         <div class="home-hero__layout">
             <div class="home-hero__content home-hero__content--stacked">
-                <p class="home-hero__presents"
+                <p class="home-hero__presents" th:if="${academyHost}"
                    th:with="academy=|<a href=&quot;https://academyofislam.com&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot;>${#messages.msg('home.academyName')}</a>|"
                    th:utext="#{home.presentedBy(${academy})}">Presented by the <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer">Academy for Learning Islam</a></p>
                 <div class="home-hero__brand">
@@ -198,11 +198,17 @@
     <div class="card shadow-sm border-0 home-card">
         <div class="card-body">
             <h2 class="h5" th:text="#{home.disclaimer}">Disclaimer</h2>
-            <div class="text-muted" th:text="#{home.disclaimerBody}">
+            <div class="text-muted" th:if="${academyHost}" th:text="#{home.disclaimerBody}">
                 The Hadith Database Project (HDP) team at the Academy for Learning Islam (A.L.I.) has collected
                 Shi`i Islamic Hadith from available translations online and in print from renown primary sources.
                 The objective of the HDP is to provide easy to search Shi'i Islamic Hadith online. A.L.I. is not
                 responsible for the contents and translations of these hadith.
+            </div>
+            <div class="text-muted" th:unless="${academyHost}" th:text="#{home.disclaimerBodyOwn}">
+                This database collects Shi`i Islamic hadith from available translations, online and
+                in print, from renowned primary sources. Its objective is to make Shi'i Islamic
+                hadith easy to search online. The contents and translations remain the
+                responsibility of their original sources.
             </div>
         </div>
     </div>

@@ -46,7 +46,7 @@ the connector exists in the test environment, and each ended by suggesting it; t
 left out of anything public. And one set of runs of one model is a sample, not a benchmark.
 
 The page shows this as a looping side-by-side, `scripts/connector-guides/compare.html` rendered
-by `render-compare.cjs` and served from the CDN as `compare-v2.mp4`; its header records every
+by `render-compare.cjs` and served from the CDN as `compare-v3.mp4`; its header records every
 measurement and the rule for changing them.
 
 ## Endpoints
@@ -56,7 +56,7 @@ measurement and the rule for changing them.
 | `/mcp` | Streamable HTTP | Current transport. What clients should use. |
 | `/mcp/sse` + `/mcp/message` | HTTP+SSE | Deprecated in the spec, still what several clients try first. |
 
-Public, `https://hadith.academyofislam.com`, and **unauthenticated** — the corpus is public
+Public, `https://rewayaat.info`, and **unauthenticated** — the corpus is public
 and every tool is read-only, so there is no identity to establish and nothing to authorise.
 Claude's connector guidance is explicit that such a server may skip OAuth, and skipping it
 removes the most common reason an install fails. Abuse control is at the ingress.
@@ -136,7 +136,7 @@ visit that starts from a connector answer is attributed in GA4 with no GA4 confi
 site's tag already runs on every narration page and reads UTM parameters by itself.
 
 ```
-https://hadith.academyofislam.com/hadith/Al-Kafi-Volume-2-Kulayni:245
+https://rewayaat.info/hadith/Al-Kafi-Volume-2-Kulayni:245
   ?utm_source=claude&utm_medium=ai-connector&utm_campaign=hadith-connector&utm_content=search_hadith
 ```
 
@@ -322,7 +322,7 @@ against memory.
 ### Claude
 
 Customize → Connectors → **+** → Add custom connector, with the URL
-`https://hadith.academyofislam.com/mcp`. Claude's help centre moved this out of Settings in
+`https://rewayaat.info/mcp`. Claude's help centre moved this out of Settings in
 2026; on Team and Enterprise an owner adds it once under Organization settings → Connectors.
 
 - **Auth is optional.** OAuth client id and secret live under Advanced settings and can be
@@ -361,7 +361,7 @@ This is why the tool catalogue is a bean rather than something welded to the tra
 `/updates.html#connector` carries written steps for each client followed by a looping
 walkthrough. The videos are plain MP4s on the `rewayaat-media` Space, served through its CDN
 endpoint (`rewayaat-media.nyc3.cdn.digitaloceanspaces.com`, 7-day edge TTL), not from the pods
-and not through a player. Names carry a version (`claude-v1.mp4`): replacing a video means
+and not through a player. Names carry a version (`claude-v2.mp4`): replacing a video means
 uploading `-v2` and changing the URL in `recent_updates.json`, never overwriting, because the
 edge would keep serving the old bytes for a week.
 

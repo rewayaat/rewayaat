@@ -80,9 +80,12 @@
         </section>
     </div>
 
-    <p class="tips-footnote"
+    <p class="tips-footnote" th:if="${academyHost}"
        th:with="site=${#messages.msg('site.name')},                academy=|<a href=&quot;https://academyofislam.com&quot;>${#messages.msg('home.academyName')}</a>|,                updated=|<time datetime=&quot;2026-09-09&quot;>${#messages.msg('privacy.lastUpdated')}</time>|"
        th:utext="#{privacy.footnote(${site}, ${academy}, ${updated})}">Rewayaat is a project of the Academy for Learning Islam. Last updated <time datetime="2026-09-09">9 September 2026</time>.</p>
+    <p class="tips-footnote" th:unless="${academyHost}"
+       th:with="site=${#messages.msg('site.name')}, updated=|<time datetime=&quot;2026-09-09&quot;>${#messages.msg('privacy.lastUpdated')}</time>|"
+       th:utext="#{privacy.footnoteOwn(${site}, ${updated})}">The Hadith Database. Last updated <time datetime="2026-09-09">9 September 2026</time>.</p>
 </main>
 
 <footer th:replace="~{fragments/site :: sitefooter}"></footer>

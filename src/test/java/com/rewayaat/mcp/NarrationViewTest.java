@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class NarrationViewTest {
 
-    private static final String BASE = "https://hadith.academyofislam.com";
+    private static final String BASE = "https://rewayaat.info";
 
     private Map<String, Object> fullSource() {
         Map<String, Object> source = new LinkedHashMap<>();

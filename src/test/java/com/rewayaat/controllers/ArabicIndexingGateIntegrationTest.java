@@ -77,7 +77,7 @@ class ArabicIndexingGateIntegrationTest {
             String xml = restTemplate.getForObject("/sitemap-static.xml", String.class);
             assertNotNull(xml);
 
-            assertTrue(xml.contains("<loc>https://hadith.academyofislam.com/</loc>"),
+            assertTrue(xml.contains("<loc>https://rewayaat.info/</loc>"),
                     "the English pages are still listed");
             assertFalse(xml.contains("/ar/"),
                     "an Arabic URL in the sitemap is an invitation to crawl it:\n" + xml);
@@ -115,7 +115,7 @@ class ArabicIndexingGateIntegrationTest {
 
             String xml = restTemplate.getForObject("/sitemap-static.xml", String.class);
             assertNotNull(xml);
-            assertTrue(xml.contains("<loc>https://hadith.academyofislam.com/ar/books</loc>"),
+            assertTrue(xml.contains("<loc>https://rewayaat.info/ar/books</loc>"),
                     "both halves of each pair are listed once the switch is on");
             assertTrue(xml.contains("hreflang=\"ar\""), "and each one names the other");
         }

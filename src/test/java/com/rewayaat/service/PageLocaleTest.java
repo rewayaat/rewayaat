@@ -29,7 +29,7 @@ class PageLocaleTest {
     void arabicPagesAreCanonicalToTheArabicUrl() {
         String canonical = PageLocale.ARABIC.urlFor("/books/al-kafi");
 
-        assertEquals("https://hadith.academyofislam.com/ar/books/al-kafi", canonical);
+        assertEquals("https://rewayaat.info/ar/books/al-kafi", canonical);
         assertNotEquals(PageLocale.ENGLISH.urlFor("/books/al-kafi"), canonical,
                 "an Arabic page canonical to the English URL is asking to be deindexed");
     }
@@ -39,8 +39,8 @@ class PageLocaleTest {
     void alternatesArePairedAndAbsolute() {
         Map<String, String> alternates = PageLocale.alternatesFor("/books/al-kafi");
 
-        assertEquals("https://hadith.academyofislam.com/books/al-kafi", alternates.get("en"));
-        assertEquals("https://hadith.academyofislam.com/ar/books/al-kafi", alternates.get("ar"));
+        assertEquals("https://rewayaat.info/books/al-kafi", alternates.get("en"));
+        assertEquals("https://rewayaat.info/ar/books/al-kafi", alternates.get("ar"));
         assertEquals(alternates.get("en"), alternates.get("x-default"));
 
         // The same map is served on both pages: a one-sided hreflang pair is discarded.
@@ -88,7 +88,7 @@ class PageLocaleTest {
         Model model = new ExtendedModelMap();
         PageLocale.ARABIC.applyTo(model, "/books/al-kafi");
 
-        assertEquals("https://hadith.academyofislam.com/ar/books/al-kafi",
+        assertEquals("https://rewayaat.info/ar/books/al-kafi",
                 model.getAttribute("canonicalUrl"));
         assertEquals("ar", model.getAttribute("htmlLang"));
         assertEquals("rtl", model.getAttribute("htmlDir"));
@@ -129,12 +129,12 @@ class PageLocaleTest {
     @DisplayName("an API call is given the language of the page that made it, and only that")
     void arabicReferrerIsReadFromOurOwnPagesOnly() {
         MockHttpServletRequest request = new MockHttpServletRequest();
-        request.setServerName("hadith.academyofislam.com");
+        request.setServerName("rewayaat.info");
 
         assertTrue(PageLocale.isArabicReferrer(
-                "https://hadith.academyofislam.com/ar/books/al-kafi", request));
+                "https://rewayaat.info/ar/books/al-kafi", request));
         assertFalse(PageLocale.isArabicReferrer(
-                "https://hadith.academyofislam.com/books/al-kafi", request));
+                "https://rewayaat.info/books/al-kafi", request));
 
         // Another site linking to ours says nothing about which language our reader is
         // in, so a referrer from anywhere else is not evidence of anything.
@@ -148,6 +148,6 @@ class PageLocaleTest {
 
         // A path that merely starts with the letters is not the prefix.
         assertFalse(PageLocale.isArabicReferrer(
-                "https://hadith.academyofislam.com/archive", request));
+                "https://rewayaat.info/archive", request));
     }
 }

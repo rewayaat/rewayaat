@@ -35,7 +35,7 @@ public class SearchHadithTool implements McpTool {
 
     public SearchHadithTool(NarrationRepository repository,
                             HadithQueryService queryService,
-                            @Value("${rewayaat.canonical-url:https://hadith.academyofislam.com}") String baseUrl) {
+                            @Value("${rewayaat.canonical-url:https://rewayaat.info}") String baseUrl) {
         this.repository = repository;
         this.queryService = queryService;
         this.baseUrl = baseUrl;

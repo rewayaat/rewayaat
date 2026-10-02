@@ -86,9 +86,8 @@ public class HomeController {
               "@context": "https://schema.org",
               "@type": ["Organization", "EducationalOrganization"],
               "@id": "%1$s/#organization",
-              "name": "Academy for Learning Islam",
-              "alternateName": "A.L.I.",
-              "url": "https://academyofislam.com",
+              "name": "The Hadith Database",
+              "url": "%1$s",
               "logo": "%1$s/img/mainlogo-transparent.png",
               "email": "rewayaat.org@gmail.com",
               "sameAs": ["https://github.com/rewayaat/rewayaat"]

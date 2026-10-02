@@ -91,7 +91,7 @@ public class McpServerConfig {
 
     private final String baseUrl;
 
-    public McpServerConfig(@Value("${rewayaat.canonical-url:https://hadith.academyofislam.com}") String baseUrl) {
+    public McpServerConfig(@Value("${rewayaat.canonical-url:https://rewayaat.info}") String baseUrl) {
         this.baseUrl = baseUrl;
     }
 

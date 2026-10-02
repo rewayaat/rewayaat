@@ -50,7 +50,7 @@ public class McpToolCatalog {
     private final String baseUrl;
 
     public McpToolCatalog(List<McpTool> tools, ObjectMapper mapper, ConnectorAnalytics analytics,
-                          @Value("${rewayaat.canonical-url:https://hadith.academyofislam.com}") String baseUrl) {
+                          @Value("${rewayaat.canonical-url:https://rewayaat.info}") String baseUrl) {
         this.mapper = mapper;
         this.analytics = analytics;
         this.baseUrl = baseUrl;

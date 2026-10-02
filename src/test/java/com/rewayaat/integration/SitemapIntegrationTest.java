@@ -45,7 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class SitemapIntegrationTest extends ElasticsearchTestSupport {
 
-    private static final String BASE_URL = "https://hadith.academyofislam.com";
+    private static final String BASE_URL = "https://rewayaat.info";
     private static final int PAGE_SIZE = 10000;
     private static final int BULK_BATCH_SIZE = 2000;
     private static final long VISIBILITY_TIMEOUT_MS = 30000L;

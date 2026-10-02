@@ -5,7 +5,7 @@
     <title th:text="${seoTitle}">Updates — The Hadith Database</title>
     <meta name="description" th:content="${seoDescription}" content="What is new in The Hadith Database."/>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
-    <link rel="canonical" th:href="${canonicalUrl}" href="https://hadith.academyofislam.com/updates.html"/>
+    <link rel="canonical" th:href="${canonicalUrl}" href="https://rewayaat.info/updates.html"/>
     <th:block th:if="${hreflangAlternates != null}">
         <link th:each="alt : ${hreflangAlternates}" rel="alternate"
               th:hreflang="${alt.key}" th:href="${alt.value}"/>
@@ -14,15 +14,15 @@
     <meta property="og:site_name" content="Rewayaat — Shia Hadith Database"/>
     <meta property="og:title" th:content="${seoTitle}" content="Updates"/>
     <meta property="og:description" th:content="${seoDescription}" content="What is new in The Hadith Database."/>
-    <meta property="og:url" th:content="${canonicalUrl}" content="https://hadith.academyofislam.com/updates.html"/>
-    <meta property="og:image" content="https://hadith.academyofislam.com/img/share-card.png"/>
+    <meta property="og:url" th:content="${canonicalUrl}" content="https://rewayaat.info/updates.html"/>
+    <meta property="og:image" content="https://rewayaat.info/img/share-card.png"/>
     <meta property="og:image:width" content="1200"/>
     <meta property="og:image:height" content="630"/>
     <meta property="og:image:alt" content="Rewayaat — a searchable database of Shia hadith in Arabic and English"/>
     <meta name="twitter:card" content="summary_large_image"/>
     <meta name="twitter:title" th:content="${seoTitle}" content="Updates"/>
     <meta name="twitter:description" th:content="${seoDescription}" content="What is new in The Hadith Database."/>
-    <meta name="twitter:image" content="https://hadith.academyofislam.com/img/share-card.png"/>
+    <meta name="twitter:image" content="https://rewayaat.info/img/share-card.png"/>
     <meta name="twitter:image:alt" content="Rewayaat — a searchable database of Shia hadith in Arabic and English"/>
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -122,11 +122,14 @@
         <div class="navbar-top w-100 d-flex align-items-center flex-wrap gap-3">
             <a class="navbar-brand d-flex align-items-center gap-2" href="/"
                th:href="@{${arPrefix} ?: '' } + '/'">
-                <img src="/img/Alilogov2-transparent.png"
+                <img th:if="${academyHost}" src="/img/Alilogov2-transparent.png"
                      th:src="${isArabic} ? @{/img/Alilogov2-ar-transparent.png} : @{/img/Alilogov2-transparent.png}"
                      class="brand-logo--full brand-logo--full-v2 d-none d-md-block"
                      alt="ALI Logo" th:alt="#{footer.academyFull}"/>
-                <img src="/img/ali_icon.png" class="brand-logo--icon d-md-none" alt="ALI"/>
+                <img th:if="${academyHost}" src="/img/ali_icon.png" class="brand-logo--icon d-md-none" alt="ALI"/>
+                <img th:unless="${academyHost}" src="/img/hdb-emblem.webp"
+                     th:src="@{/img/hdb-emblem.webp}" class="brand-logo--emblem"
+                     width="300" height="304" alt="The Hadith Database"/>
             </a>
             <div th:replace="~{fragments/site :: navlinks('updates')}"></div>
             <div th:replace="~{fragments/site :: navsearch}"></div>
@@ -169,15 +172,17 @@
         <div class="site-footer__grid">
             <div>
                 <div class="site-footer__title" th:text="#{site.name}">Rewayaat</div>
-                <p class="site-footer__text">
+                <p class="site-footer__text" th:if="${academyHost}">
                     <span th:text="#{footer.projectOf}">A project of the</span>
                     <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" class="site-footer__link" th:text="#{footer.academyFull}">Academy for Learning Islam</a>
                     <span th:text="#{footer.blurb}">Search, browse, and study Shi'i narrations in Arabic and English.</span>
                 </p>
+                <p class="site-footer__text" th:unless="${academyHost}" th:text="#{site.footer.textOwn}">Search, browse, and study Shi'i narrations in Arabic and English.</p>
             </div>
         </div>
         <div class="site-footer__bottom">
-            <span th:utext="#{footer.rights}">&copy; 2026 Academy for Learning Islam (A.L.I.)</span>
+            <span th:if="${academyHost}" th:utext="#{footer.rights}">&copy; 2026 Academy for Learning Islam (A.L.I.)</span>
+                    <span th:unless="${academyHost}" th:utext="#{footer.rightsOwn}">&copy; 2026 The Hadith Database</span>
         </div>
     </div>
 </footer>

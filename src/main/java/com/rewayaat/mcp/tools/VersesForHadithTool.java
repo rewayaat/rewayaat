@@ -40,7 +40,7 @@ public class VersesForHadithTool implements McpTool {
 
     public VersesForHadithTool(QuranicInsightsService insights,
                                NarrationRepository repository,
-                               @Value("${rewayaat.canonical-url:https://hadith.academyofislam.com}") String baseUrl) {
+                               @Value("${rewayaat.canonical-url:https://rewayaat.info}") String baseUrl) {
         this.insights = insights;
         this.repository = repository;
         this.baseUrl = baseUrl;

@@ -38,7 +38,7 @@
     <meta property="og:url" th:content="${canonicalUrl}"/>
     <!-- Pages that generate a card of their own set shareImageUrl; the rest keep the site card. -->
     <meta property="og:image"
-          th:content="${shareImageUrl} ?: 'https://hadith.academyofislam.com/img/share-card.png'"/>
+          th:content="${shareImageUrl} ?: 'https://rewayaat.info/img/share-card.png'"/>
     <meta property="og:image:width" content="1200"/>
     <meta property="og:image:height" content="630"/>
     <!-- A generated card shows this page's own text, so the page's title describes it.
@@ -49,7 +49,7 @@
     <meta name="twitter:title" th:content="${seoTitle}"/>
     <meta name="twitter:description" th:content="${seoDescription}"/>
     <meta name="twitter:image"
-          th:content="${shareImageUrl} ?: 'https://hadith.academyofislam.com/img/share-card.png'"/>
+          th:content="${shareImageUrl} ?: 'https://rewayaat.info/img/share-card.png'"/>
     <meta name="twitter:image:alt"
           th:content="${shareImageUrl != null} ? ${seoTitle} : 'Rewayaat — a searchable database of Shia hadith in Arabic and English'"/>
 
@@ -190,11 +190,14 @@
         <div class="navbar-top w-100 d-flex align-items-center flex-wrap gap-3">
             <a class="navbar-brand d-flex align-items-center gap-2" href="/"
                th:href="@{${arPrefix} ?: '' } + '/'">
-                <img src="/img/Alilogov2-transparent.png"
+                <img th:if="${academyHost}" src="/img/Alilogov2-transparent.png"
                      th:src="${isArabic} ? @{/img/Alilogov2-ar-transparent.png} : @{/img/Alilogov2-transparent.png}"
                      class="brand-logo--full brand-logo--full-v2 d-none d-md-block"
                      alt="ALI Logo" th:alt="#{footer.academyFull}"/>
-                <img src="/img/ali_icon.png" th:src="@{/img/ali_icon.png}" class="brand-logo--icon d-md-none" alt="ALI"/>
+                <img th:if="${academyHost}" src="/img/ali_icon.png" th:src="@{/img/ali_icon.png}" class="brand-logo--icon d-md-none" alt="ALI"/>
+                <img th:unless="${academyHost}" src="/img/hdb-emblem.webp"
+                     th:src="@{/img/hdb-emblem.webp}" class="brand-logo--emblem"
+                     width="300" height="304" alt="The Hadith Database"/>
             </a>
             <div th:replace="~{fragments/site :: navlinks('books')}"></div>
             <div th:replace="~{fragments/site :: navsearch}"></div>
@@ -269,12 +272,13 @@
         <div class="site-footer__grid">
             <div>
                 <div class="site-footer__title" th:text="#{site.name}">Rewayaat</div>
-                <p class="site-footer__text" th:with="academy=|<a href=&quot;https://academyofislam.com&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; class=&quot;site-footer__link&quot;>${#messages.msg('site.footer.academyName')}</a>|"
+                <p class="site-footer__text" th:if="${academyHost}" th:with="academy=|<a href=&quot;https://academyofislam.com&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot; class=&quot;site-footer__link&quot;>${#messages.msg('site.footer.academyName')}</a>|"
                    th:utext="#{site.footer.text(${academy})}">
                     <span th:text="#{footer.projectOf}">A project of the</span>
                     <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" class="site-footer__link" th:text="#{footer.academyFull}">Academy for Learning Islam</a>
                     <span th:text="#{footer.blurb}">Search, browse, and study Shi'i narrations in Arabic and English.</span>
                 </p>
+                <p class="site-footer__text" th:unless="${academyHost}" th:text="#{site.footer.textOwn}">Search, browse, and study Shi'i narrations in Arabic and English.</p>
             </div>
             <div>
                 <div class="site-footer__label" th:text="#{footer.explore}">Explore</div>
@@ -293,12 +297,13 @@
                 <div class="site-footer__links">
                     <a href="mailto:rewayaat.org@gmail.com">rewayaat.org@gmail.com</a>
                     <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer" th:text="#{footer.github}">GitHub Repository</a>
-                    <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" th:text="#{footer.academy}">Academy of Islam</a>
+                    <a th:if="${academyHost}" href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" th:text="#{footer.academy}">Academy of Islam</a>
                 </div>
             </div>
         </div>
         <div class="site-footer__bottom">
-            <span th:utext="#{footer.rights}">&copy; 2026 Academy for Learning Islam (A.L.I.)</span>
+            <span th:if="${academyHost}" th:utext="#{footer.rights}">&copy; 2026 Academy for Learning Islam (A.L.I.)</span>
+                    <span th:unless="${academyHost}" th:utext="#{footer.rightsOwn}">&copy; 2026 The Hadith Database</span>
             <span th:text="#{footer.disclaimer}">Content and translations remain the responsibility of their original sources.</span>
         </div>
     </div>

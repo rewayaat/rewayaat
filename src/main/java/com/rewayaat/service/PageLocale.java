@@ -43,7 +43,7 @@ public enum PageLocale {
      * declare itself canonical and split the site in two, so every canonical is absolute
      * and on this host whichever host served the request.
      */
-    public static final String BASE_URL = "https://hadith.academyofislam.com";
+    public static final String BASE_URL = "https://rewayaat.info";
 
     /** Request attribute carrying the locale across the forward that strips the prefix. */
     public static final String REQUEST_ATTRIBUTE = PageLocale.class.getName();
