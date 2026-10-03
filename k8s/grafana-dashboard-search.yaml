@@ -70,7 +70,7 @@ data:
           "fieldConfig": {
             "defaults": {
               "color": {
-                "mode": "text"
+                "mode": "thresholds"
               },
               "mappings": [],
               "thresholds": {
@@ -129,14 +129,27 @@ data:
                   "field": "query_normalized"
                 }
               ],
-              "bucketAggs": [],
+              "bucketAggs": [
+                {
+                  "id": "2",
+                  "type": "filters",
+                  "settings": {
+                    "filters": [
+                      {
+                        "query": "*",
+                        "label": "All"
+                      }
+                    ]
+                  }
+                }
+              ],
               "timeField": "timestamp"
             }
           ],
           "fieldConfig": {
             "defaults": {
               "color": {
-                "mode": "text"
+                "mode": "thresholds"
               },
               "mappings": [],
               "thresholds": {
@@ -212,7 +225,7 @@ data:
           "fieldConfig": {
             "defaults": {
               "color": {
-                "mode": "text"
+                "mode": "thresholds"
               },
               "mappings": [],
               "thresholds": {
