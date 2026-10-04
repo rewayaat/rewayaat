@@ -132,14 +132,13 @@ data:
               "bucketAggs": [
                 {
                   "id": "2",
-                  "type": "filters",
+                  "type": "terms",
+                  "field": "_index",
                   "settings": {
-                    "filters": [
-                      {
-                        "query": "*",
-                        "label": "All"
-                      }
-                    ]
+                    "size": "1",
+                    "order": "desc",
+                    "orderBy": "_term",
+                    "min_doc_count": "1"
                   }
                 }
               ],
