@@ -426,6 +426,16 @@ def document(person, source, headless):
     blurb_ar = (("، ".join(said_ar) + ". ") if said_ar else "") + where_ar
     names_ar = [n["value"] for n in values(person, "primary_names") + values(person, "arabic_aliases")
                 if n.get("value")]
+    # The names a book actually headed an entry with, apart from every name merely written
+    # inside one. The chain search uses these and not the aliases: Khoei's entry on Zurara
+    # carries «محمد بن مسلم» among the names in its text — one of them «محمد بن مسلم مضمرة»,
+    # which is a form of narration and not a name — and searching the chains by it put a
+    # thousand of Muhammad b. Muslim's narrations on Zurara's page. A heading is the book
+    # saying «this entry is about this man»; an alias is only a name that appeared nearby.
+    # Nothing is lost by the distinction: the short forms the chains use are headings too,
+    # «زرارة بن أعين» and «سهل بن زياد» among them.
+    headings_ar = {n["value"] for n in values(person, "primary_names") if n.get("value")}
+    headings_ar |= {e["heading_ar"] for e in entries if e.get("heading_ar")}
     names_en = [n["value"] for n in values(person, "english_aliases") if n.get("value")]
 
     return {
@@ -438,6 +448,7 @@ def document(person, source, headless):
         "slug": slugify(anchor.get("primary_english_name") or person.get("primary_english_name")
                         or ""),
         "names_ar": sorted(set(names_ar)),
+        "headings_ar": sorted(headings_ar),
         "names_en": sorted(set(names_en)),
         "normalized_ar": sorted({normalize_arabic(n) for n in names_ar}),
         "normalized_en": sorted({n.lower() for n in names_en}),
@@ -487,6 +498,7 @@ MAPPING = {
                        "fields": {"keyword": {"type": "keyword", "ignore_above": 256}}},
         "display_en": {"type": "text", "fields": {"keyword": {"type": "keyword", "ignore_above": 256}}},
         "names_ar": {"type": "text", "analyzer": "arabic_names"},
+        "headings_ar": {"type": "text", "analyzer": "arabic_names"},
         "names_en": {"type": "text"},
         "normalized_ar": {"type": "text", "analyzer": "arabic_names",
                           "fields": {"keyword": {"type": "keyword", "ignore_above": 256}}},
