@@ -1,5 +1,6 @@
 package com.rewayaat.controllers;
 
+import com.rewayaat.service.ArabicNames;
 import com.rewayaat.service.HadithCardFactory;
 import com.rewayaat.service.LocaleDigits;
 import com.rewayaat.service.NarratorArabic;
@@ -218,7 +219,7 @@ public class NarratorPageController {
         model.addAttribute("narrations", narrations);
         model.addAttribute("narrationTotal", narrationTotal);
         model.addAttribute("searchedNames", naming.get("searched_for"));
-        model.addAttribute("narrationBooks", naming.getOrDefault("books", List.of()));
+        model.addAttribute("narrationBooks", booksRead(locale, naming.get("books")));
         String filters = (tag == null || tag.isBlank() ? "" : "&tag=" + encode(tag))
                 + (book == null || book.isBlank() ? "" : "&book=" + encode(book));
         model.addAttribute("view", view);
@@ -230,7 +231,8 @@ public class NarratorPageController {
         model.addAttribute("activeBook", book == null || book.isBlank() ? null : book);
         model.addAttribute("clearBookUrl", narrationsBase
                 + (tag == null || tag.isBlank() ? "" : "&tag=" + encode(tag)));
-        model.addAttribute("bookFacets", bookFacets(naming.get("books"), narrationsBase, tag, book));
+        model.addAttribute("bookFacets",
+                bookFacets(locale, naming.get("books"), narrationsBase, tag, book));
         model.addAttribute("tagFacets", tagFacets(naming.get("tags"), narrationsBase, tag, book));
         model.addAttribute("activeTag", tag == null || tag.isBlank() ? null : tag);
         model.addAttribute("clearTagUrl", narrationsBase);
@@ -270,20 +272,44 @@ public class NarratorPageController {
     }
 
     /** The same, for the books his narrations sit in: «93% in al-Kafi» made clickable. */
-    private List<Map<String, Object>> bookFacets(Object buckets, String base, String tag,
-                                                 String active) {
+    private List<Map<String, Object>> bookFacets(PageLocale locale, Object buckets, String base,
+                                                 String tag, String active) {
         String keep = tag == null || tag.isBlank() ? "" : "&tag=" + encode(tag);
         List<Map<String, Object>> facets = new ArrayList<>();
         for (Object row : buckets instanceof List<?> list ? list : List.of()) {
             Map<?, ?> bucket = (Map<?, ?>) row;
-            String label = String.valueOf(bucket.get("book"));
-            facets.add(Map.of("label", label,
+            // The pill is read; the filter is queried. They are the same book under two
+            // names, and sending the Arabic one to Elasticsearch matches nothing.
+            String english = String.valueOf(bucket.get("book"));
+            facets.add(Map.of("label", bookNamed(locale, english),
                     "count", bucket.get("count"),
                     "share", bucket.get("share") == null ? 0 : bucket.get("share"),
-                    "url", base + keep + "&book=" + encode(label),
-                    "active", label.equals(active)));
+                    "url", base + keep + "&book=" + encode(english),
+                    "active", english.equals(active)));
         }
         return facets;
+    }
+
+    /** A hadith book as the page names it, falling back to the English where we have no Arabic. */
+    private static String bookNamed(PageLocale locale, String english) {
+        if (!locale.isArabic()) {
+            return english;
+        }
+        String arabic = ArabicNames.book(english);
+        return arabic == null || arabic.isBlank() ? english : arabic;
+    }
+
+    /** The same books for the ledger's «28% in al-Kafi», which is read and never queried. */
+    private static List<Map<String, Object>> booksRead(PageLocale locale, Object buckets) {
+        List<Map<String, Object>> out = new ArrayList<>();
+        for (Object row : buckets instanceof List<?> list ? list : List.of()) {
+            Map<?, ?> bucket = (Map<?, ?>) row;
+            Map<String, Object> named = new LinkedHashMap<>();
+            bucket.forEach((key, value) -> named.put(String.valueOf(key), value));
+            named.put("book", bookNamed(locale, String.valueOf(bucket.get("book"))));
+            out.add(named);
+        }
+        return out;
     }
 
     /** The books that head this man, as they are named on the page. */
