@@ -46,19 +46,32 @@ BATCH = 300
 
 # how a book is named on the page, and the order the books are shown in: the four early works
 # first, as the tradition reads them, then the later collections
+# slug, English title, English author, Arabic title, Arabic author. The Arabic is not a
+# transliteration of the English: it is what the book is called, which is what an Arabic
+# reader is looking for.
 BOOKS = [
-    ("najashi", "Rijāl al-Najāshī", "Aḥmad b. ʿAlī al-Najāshī (d. 450)"),
-    ("fihrist", "Al-Fihrist", "Muḥammad b. al-Ḥasan al-Ṭūsī (d. 460)"),
-    ("tusi", "Rijāl al-Ṭūsī", "Muḥammad b. al-Ḥasan al-Ṭūsī (d. 460)"),
-    ("kashshi", "Ikhtiyār Maʿrifat al-Rijāl", "Muḥammad b. ʿUmar al-Kashshī (4th c.)"),
-    ("duafa", "Kitāb al-Ḍuʿafāʾ", "Aḥmad b. al-Ḥusayn al-Ghaḍāʾirī (5th c.)"),
-    ("ardabili", "Jāmiʿ al-Ruwāt", "Muḥammad b. ʿAlī al-Ardabīlī (d. 1101)"),
-    ("khoei", "Muʿjam Rijāl al-Ḥadīth", "Abū al-Qāsim al-Khoei (d. 1413)"),
-    ("mamaqani", "Tanqīḥ al-Maqāl", "ʿAbd Allāh al-Māmaqānī (d. 1351)"),
+    ("najashi", "Rijāl al-Najāshī", "Aḥmad b. ʿAlī al-Najāshī (d. 450)",
+     "رجال النجاشي", "أحمد بن علي النجاشي (ت ٤٥٠)"),
+    ("fihrist", "Al-Fihrist", "Muḥammad b. al-Ḥasan al-Ṭūsī (d. 460)",
+     "الفهرست", "محمد بن الحسن الطوسي (ت ٤٦٠)"),
+    ("tusi", "Rijāl al-Ṭūsī", "Muḥammad b. al-Ḥasan al-Ṭūsī (d. 460)",
+     "رجال الطوسي", "محمد بن الحسن الطوسي (ت ٤٦٠)"),
+    ("kashshi", "Ikhtiyār Maʿrifat al-Rijāl", "Muḥammad b. ʿUmar al-Kashshī (4th c.)",
+     "اختيار معرفة الرجال", "محمد بن عمر الكشي (القرن الرابع)"),
+    ("duafa", "Kitāb al-Ḍuʿafāʾ", "Aḥmad b. al-Ḥusayn al-Ghaḍāʾirī (5th c.)",
+     "كتاب الضعفاء", "أحمد بن الحسين الغضائري (القرن الخامس)"),
+    ("ardabili", "Jāmiʿ al-Ruwāt", "Muḥammad b. ʿAlī al-Ardabīlī (d. 1101)",
+     "جامع الرواة", "محمد بن علي الأردبيلي (ت ١١٠١)"),
+    ("khoei", "Muʿjam Rijāl al-Ḥadīth", "Abū al-Qāsim al-Khoei (d. 1413)",
+     "معجم رجال الحديث", "أبو القاسم الخوئي (ت ١٤١٣)"),
+    ("mamaqani", "Tanqīḥ al-Maqāl", "ʿAbd Allāh al-Māmaqānī (d. 1351)",
+     "تنقيح المقال", "عبد الله المامقاني (ت ١٣٥١)"),
 ]
-BOOK_ORDER = {slug: n for n, (slug, _, _) in enumerate(BOOKS)}
-BOOK_TITLE = {slug: title for slug, title, _ in BOOKS}
-BOOK_AUTHOR = {slug: author for slug, _, author in BOOKS}
+BOOK_ORDER = {slug: n for n, (slug, *_rest) in enumerate(BOOKS)}
+BOOK_TITLE = {slug: title for slug, title, _a, _ta, _aa in BOOKS}
+BOOK_AUTHOR = {slug: author for slug, _t, author, _ta, _aa in BOOKS}
+BOOK_TITLE_AR = {slug: title for slug, _t, _a, title, _aa in BOOKS}
+BOOK_AUTHOR_AR = {slug: author for slug, _t, _a, _ta, author in BOOKS}
 # Ibn al-Ghada'iri's book is shown under his name with Khoei's doubt beside it: Khoei held that
 # «الكتاب المنسوب إلى ابن الغضائري لم يثبت», the book ascribed to him is not established as his.
 # grades the phase 1 extraction read from a book's silence rather than from a verdict. They are
@@ -71,10 +84,17 @@ GRADE_WORDS = {"thiqa": ("thiqa — trustworthy", "for"), "saduq": ("ṣadūq �
                "mukhtalaf_fih": ("disputed", "mixed"), "daif": ("ḍaʿīf — weak", "against"),
                "very_weak": ("very weak", "against"), "kadhdhab": ("a liar", "against"),
                "non_existent": ("no such narrator", "against"), "muhmal": ("passed over", "mixed")}
+# The same verdicts in the words the books themselves use. An Arabic page saying «thiqa —
+# trustworthy» would be transliterating a word its reader already has.
+GRADE_WORDS_AR = {"thiqa": "ثقة", "saduq": "صدوق", "hasan": "حسن", "qawi": "قوي",
+                  "mukhtalaf_fih": "مختلف فيه", "daif": "ضعيف", "very_weak": "ضعيف جدا",
+                  "kadhdhab": "كذاب", "non_existent": "لا وجود له", "muhmal": "مهمل"}
 # the Imams, in order, as a page names them
 IMAM_NAMES = ["the Prophet", "ʿAlī", "al-Ḥasan", "al-Ḥusayn", "al-Sajjād", "al-Bāqir",
               "al-Ṣādiq", "al-Kāẓim", "al-Riḍā", "al-Jawād", "al-Hādī", "al-ʿAskarī",
               "the Mahdī"]
+IMAM_NAMES_AR = ["النبي", "علي", "الحسن", "الحسين", "السجاد", "الباقر", "الصادق", "الكاظم",
+                 "الرضا", "الجواد", "الهادي", "العسكري", "المهدي"]
 BOOK_NOTE = {"duafa": "The ascription of this book to Ibn al-Ghaḍāʾirī is disputed; al-Khoei "
                       "held it unproven («الكتاب المنسوب إلى ابن الغضائري… لم يثبت»)."}
 
@@ -103,10 +123,14 @@ def sources_by_name(statements):
         name = (item.get("value") or "").strip()
         if not name:
             continue
-        held = found.setdefault(name, {"name": name, "books": []})
-        title = BOOK_TITLE.get(item.get("source_book"), item.get("source_book"))
+        held = found.setdefault(name, {"name": name, "books": [], "books_ar": []})
+        book = item.get("source_book")
+        title = BOOK_TITLE.get(book, book)
         if title and title not in held["books"]:
             held["books"].append(title)
+        title_ar = BOOK_TITLE_AR.get(book)
+        if title_ar and title_ar not in held["books_ar"]:
+            held["books_ar"].append(title_ar)
     return sorted(found.values(), key=lambda x: (-len(x["books"]), x["name"]))[:200]
 
 
@@ -116,6 +140,48 @@ def join_names(names):
     if len(names) <= 1:
         return names[0] if names else ""
     return ", ".join(names[:-1]) + " and " + names[-1]
+
+
+ARABIC_DIGITS = str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
+
+
+def arabic_digits(value):
+    """«150» -> «١٥٠»: an Arabic page reads its own numerals."""
+    return str(value).translate(ARABIC_DIGITS) if value is not None else None
+
+
+def join_names_ar(names):
+    """«الصادق والكاظم والرضا» — wa- binds to the word that follows it, so no space after it."""
+    names = [n for n in names if n]
+    return " و".join(names)
+
+
+# The city clause of the Arabic blurb, for the forms the books actually use. The field is free
+# text in eight books' hands — 5,700 distinct values, half of them tribes or nisbas — so
+# anything unmapped is left out of the Arabic sentence rather than transliterated back by guess.
+CITY_AR = {
+    "kufa": "الكوفة", "kufan": "الكوفة", "kufi": "الكوفة", "basra": "البصرة", "basran": "البصرة",
+    "qum": "قم", "qom": "قم", "qummi": "قم", "baghdad": "بغداد", "medina": "المدينة",
+    "madinah": "المدينة", "madina": "المدينة", "madani": "المدينة", "mecca": "مكة", "makkah": "مكة",
+    "makki": "مكة", "nishapur": "نيشابور", "naysabur": "نيشابور", "rayy": "الري", "razi": "الري",
+    "hamadan": "همدان", "qazwin": "قزوين", "qazvin": "قزوين", "isfahan": "أصفهان", "wasit": "واسط",
+    "najaf": "النجف", "khurasan": "خراسان", "balkh": "بلخ", "hilla": "الحلة", "bahrain": "البحرين",
+    "egypt": "مصر", "misr": "مصر", "jurjan": "جرجان", "ahwaz": "الأهواز", "yemen": "اليمن",
+    "marw": "مرو", "merv": "مرو", "mada'in": "المدائن", "madain": "المدائن", "samarra": "سامراء",
+    "sijistan": "سجستان", "tus": "طوس", "bukhara": "بخارى", "samarqand": "سمرقند", "aleppo": "حلب",
+    "halab": "حلب", "damascus": "دمشق", "sham": "الشام", "syria": "الشام", "jabal amil": "جبل عامل",
+}
+
+
+def city_ar(value):
+    """The city in Arabic, or nothing: a name we cannot vouch for is better left unsaid."""
+    if not value:
+        return None
+    if re.search(r"[\u0600-\u06ff]", value):
+        return value
+    key = re.sub(r"^(al-|el-)", "", value.strip().lower())
+    key = re.sub(r"\s*\(.*\)\s*", "", key).strip(" .")
+    return CITY_AR.get(key)
 
 
 def load(path):
@@ -135,7 +201,7 @@ YEARS = None
 
 def profiles():
     found = {}
-    for slug, _, _ in BOOKS:
+    for slug, *_rest in BOOKS:
         path = os.path.join(NORMALIZED, f"{slug}.json")
         if os.path.exists(path):
             for profile in load(path):
@@ -192,7 +258,9 @@ def document(person, source, headless):
             "source_key": key,
             "book": book,
             "book_title": BOOK_TITLE.get(book, book),
+            "book_title_ar": BOOK_TITLE_AR.get(book),
             "book_author": BOOK_AUTHOR.get(book),
+            "book_author_ar": BOOK_AUTHOR_AR.get(book),
             "book_note": BOOK_NOTE.get(book),
             "heading_ar": profile.get("primary_arabic_name"),
             "heading_en": profile.get("primary_english_name"),
@@ -204,6 +272,7 @@ def document(person, source, headless):
             # the grade in words, as the verdicts use: a badge reading «VERY_WEAK» is our
             # vocabulary showing through, not the book's
             "grade_said": GRADE_WORDS.get(profile.get("reliability_grade"), (None, None))[0],
+            "grade_said_ar": GRADE_WORDS_AR.get(profile.get("reliability_grade")),
             # Which Imam this entry places him under, in short. The raw statement is the book's
             # chapter heading — «أصحاب أبي جعفر محمد بن علي الثاني عليهما السلام» — and printed
             # under all three of al-Tusi's listings it said the same thing three times in the
@@ -211,6 +280,9 @@ def document(person, source, headless):
             # which of them this one is filed under.
             "under_imams": [IMAM_NAMES[n] for n in sorted(imam_generations(profile.get("generation")))
                             if n < len(IMAM_NAMES)],
+            "under_imams_ar": [IMAM_NAMES_AR[n]
+                               for n in sorted(imam_generations(profile.get("generation")))
+                               if n < len(IMAM_NAMES_AR)],
             "generation": profile.get("generation"),
             "is_printed_entry": "printed_entry" in (profile.get("flags") or ()),
         })
@@ -220,7 +292,8 @@ def document(person, source, headless):
         for item in values(person, field):
             book, pages = item.get("source_book"), item.get("source_pages") or []
             out.append({key_name: item.get(key_name) or item.get("value"),
-                        "book": book, "book_title": BOOK_TITLE.get(book, book), "pages": pages,
+                        "book": book, "book_title": BOOK_TITLE.get(book, book),
+                        "book_title_ar": BOOK_TITLE_AR.get(book), "pages": pages,
                         "source_key": entry_key_for(person, book, pages, entry_keys)})
         return [x for x in out if x.get(key_name)]
 
@@ -229,7 +302,8 @@ def document(person, source, headless):
         book, pages = grade.get("source_book"), grade.get("source_pages") or []
         verdicts.append({"grade": grade.get("grade"), "said": grade.get("raw"),
                          "stated": grade.get("grade") not in UNSTATED,
-                         "book": book, "book_title": BOOK_TITLE.get(book, book), "pages": pages,
+                         "book": book, "book_title": BOOK_TITLE.get(book, book),
+                         "book_title_ar": BOOK_TITLE_AR.get(book), "pages": pages,
                          "book_note": BOOK_NOTE.get(book),
                          "source_key": entry_key_for(person, book, pages, entry_keys)})
 
@@ -244,6 +318,7 @@ def document(person, source, headless):
             continue
         book = verdict["book"]
         held = stands.setdefault(book, {"book": book, "book_title": verdict["book_title"],
+                                        "book_title_ar": verdict["book_title_ar"],
                                         "book_note": verdict["book_note"], "positions": []})
         already = next((p for p in held["positions"] if p["grade"] == verdict["grade"]), None)
         if already:
@@ -251,9 +326,10 @@ def document(person, source, headless):
             continue
         word, leaning = GRADE_WORDS.get(verdict["grade"], (verdict["said"], "mixed"))
         held["positions"].append({"grade": verdict["grade"], "said": word,
+                                  "said_ar": GRADE_WORDS_AR.get(verdict["grade"]),
                                   "leaning": leaning, "pages": list(verdict["pages"] or [])})
     where_books_stand = []
-    for book, _, _ in BOOKS:
+    for book, *_rest in BOOKS:
         held = stands.get(book)
         if not held:
             continue
@@ -268,12 +344,17 @@ def document(person, source, headless):
     # better than a date, and most men have no date at all. The city is the one the books name
     # most often; where two books name different cities both are listed under the facts below.
     imams_named = [IMAM_NAMES[n] for n in sorted(imams) if n < len(IMAM_NAMES)]
+    imams_named_ar = [IMAM_NAMES_AR[n] for n in sorted(imams) if n < len(IMAM_NAMES_AR)]
     spans = [YEARS[n] for n in sorted(imams) if n in (YEARS or {})]
     cities = [c["value"] for c in values(person, "city_or_tribe") if c.get("value")]
     died = [d["value"] for d in values(person, "death_years") if d.get("value")]
+    city = Counter(cities).most_common(1)[0][0] if cities else None
     life = {"imams": imams_named,
-            "city": Counter(cities).most_common(1)[0][0] if cities else None,
-            "died": died[0] if died else None}
+            "imams_ar": imams_named_ar,
+            "city": city,
+            "city_ar": city_ar(city),
+            "died": died[0] if died else None,
+            "died_ar": arabic_digits(died[0]) if died else None}
 
     # Where the books leave him, in one word: a reader wants to know whether he is relied on
     # before reading eight entries, and the honest answer is often «they disagree».
@@ -281,6 +362,12 @@ def document(person, source, headless):
                if any(p["leaning"] == "for" for p in b["positions"])}
     against_him = {b["book_title"] for b in where_books_stand
                    if any(p["leaning"] == "against" for p in b["positions"])}
+    # the same two sets by book, so the Arabic sentence can name the books it means in Arabic
+    # and keep the printed order of the eight rather than sorting them by a Latin title
+    for_him_ar = [b["book_title_ar"] for b in where_books_stand if b.get("book_title_ar")
+                  and any(p["leaning"] == "for" for p in b["positions"])]
+    against_him_ar = [b["book_title_ar"] for b in where_books_stand if b.get("book_title_ar")
+                      and any(p["leaning"] == "against" for p in b["positions"])]
     standing = ("disputed" if for_him and against_him else "trusted" if for_him
                 else "weakened" if against_him else "unstated")
 
@@ -299,16 +386,44 @@ def document(person, source, headless):
     if life["city"] and imams_named:
         said.append(f"and was of {life['city']}")
     if life["died"]:
-        said.append(f"and died in {life['died']} AH")
+        said.append((f"and died in {life['died']} AH") if said
+                    else f"{display} died in {life['died']} AH")
     where = ""
     if standing == "disputed":
         where = ("The books are divided about him: " + join_names(sorted(for_him))
-                 + " hold him reliable, while " + join_names(sorted(against_him)) + " weaken him.")
+                 + (" hold" if len(for_him) > 1 else " holds") + " him reliable, while "
+                 + join_names(sorted(against_him))
+                 + (" weaken" if len(against_him) > 1 else " weakens") + " him.")
     elif standing == "trusted":
-        where = join_names(sorted(for_him)) + " hold him reliable."
+        where = join_names(sorted(for_him)) + (" hold" if len(for_him) > 1 else " holds") + \
+            " him reliable."
     elif standing == "weakened":
-        where = join_names(sorted(against_him)) + " weaken him."
+        where = join_names(sorted(against_him)) + (" weaken" if len(against_him) > 1 else " weakens") + \
+            " him."
     blurb = ((" ".join(said) + ". ") if said else "") + where
+
+    display_ar = anchor.get("primary_arabic_name") or person.get("primary_arabic_name")
+    said_ar = []
+    if imams_named_ar:
+        said_ar.append((display_ar + " " if display_ar else "") + "من أصحاب "
+                       + join_names_ar(imams_named_ar))
+    elif life["city_ar"]:
+        said_ar.append((display_ar + " من " if display_ar else "من ") + life["city_ar"])
+    if life["city_ar"] and imams_named_ar:
+        said_ar.append("وكان من " + life["city_ar"])
+    if life["died_ar"]:
+        said_ar.append(("وتوفي سنة " + life["died_ar"] + " هـ") if said_ar
+                       else ((display_ar + " " if display_ar else "") + "توفي سنة "
+                             + life["died_ar"] + " هـ"))
+    where_ar = ""
+    if standing == "disputed":
+        where_ar = ("اختلفت فيه الكتب: يوثّقه " + join_names_ar(for_him_ar)
+                    + "، ويضعّفه " + join_names_ar(against_him_ar) + ".")
+    elif standing == "trusted" and for_him_ar:
+        where_ar = "يوثّقه " + join_names_ar(for_him_ar) + "."
+    elif standing == "weakened" and against_him_ar:
+        where_ar = "يضعّفه " + join_names_ar(against_him_ar) + "."
+    blurb_ar = (("، ".join(said_ar) + ". ") if said_ar else "") + where_ar
     names_ar = [n["value"] for n in values(person, "primary_names") + values(person, "arabic_aliases")
                 if n.get("value")]
     names_en = [n["value"] for n in values(person, "english_aliases") if n.get("value")]
@@ -338,6 +453,9 @@ def document(person, source, headless):
         "standing": standing,
         "life": life,
         "blurb": blurb.strip(),
+        "blurb_ar": blurb_ar.strip(),
+        "for_him_ar": for_him_ar,
+        "against_him_ar": against_him_ar,
         "generations": traced("generations"),
         "imam_ordinals": sorted(imams),
         "cities_or_tribes": traced("city_or_tribe"),
