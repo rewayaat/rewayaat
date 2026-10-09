@@ -121,6 +121,11 @@ def main():
                              "are drawn whatever it says, so the auditors are still checked")
     parser.add_argument("--kinds", default="pair,person,recall",
                         help="which questions to draw: pair, person, recall")
+    parser.add_argument("--cohort", action="append", default=[], metavar="NAME=PATH",
+                        help="a named list of person ids to judge as person items, beside the "
+                             "random bands: a file of one id per line. A cohort is a census of "
+                             "a chosen group, not a sample of a population, so it is scored on "
+                             "its own and left out of the weighted gate.")
     parser.add_argument("--dry-run", action="store_true", help="count items, write nothing")
     args = parser.parse_args()
     kinds = {k.strip() for k in args.kinds.split(",") if k.strip()}
@@ -290,6 +295,35 @@ def main():
                                                                      len(all_units) - 1))
             person_items.append((band, person, chosen, len(all_units)))
         counts[f"person {band}"] = min(PER_BAND, len(banded[band]))
+
+    # The named cohorts, judged whole rather than sampled. Every member is asked about, in
+    # the same shape and shuffled in among the random items, so an auditor cannot tell he is
+    # being given the hard ones.
+    cohorts = []
+    for spec in args.cohort:
+        name, _, path = spec.partition("=")
+        with open(path) as handle:
+            wanted = [line.strip() for line in handle if line.strip()]
+        drawn = missing = 0
+        for pid in wanted:
+            person = by_id.get(pid)
+            if person is None or person.get("holds_entry") is False:
+                missing += 1
+                continue
+            all_units = units(person)
+            if len(all_units) < 2:
+                # one entry cannot contain a stray entry; there is nothing to judge
+                missing += 1
+                continue
+            chosen = [all_units[0]] + rng.sample(all_units[1:], min(MAX_UNITS - 1,
+                                                                   len(all_units) - 1))
+            person_items.append((name, person, chosen, len(all_units)))
+            drawn += 1
+        cohorts.append(name)
+        population[name] = drawn
+        counts[f"person {name}"] = drawn
+        if missing:
+            counts[f"person {name} (no second entry, left out)"] = missing
     rng.shuffle(person_items)
     for n, (band, person, chosen, total) in enumerate(person_items):
         item_id = f"u{n:04d}"
@@ -297,6 +331,7 @@ def main():
         items.append({"kind": "person", "item_id": item_id, "entries_in_person": total,
                       "entries": [shown(u, profiles, lab) for u, lab in zip(chosen, labels)]})
         key[item_id] = {"kind": "person", "band": band, "person_id": person["person_id"],
+                        "cohort": band in cohorts,
                         "units": dict(zip(labels, chosen)), "entries_in_person": total}
 
     # --- recall items: does this man have a double? -----------------------------------------
@@ -368,7 +403,7 @@ def main():
     os.makedirs(os.path.join(run_dir, "outputs"), exist_ok=True)
     os.makedirs(os.path.join(args.out_dir, "keys"), exist_ok=True)
     manifest = {"people_fingerprint": fingerprint, "seed": args.seed, "kinds": sorted(kinds), "rules_run": stats["rules_run"],
-                "person_band_population": population, "batches": []}
+                "person_band_population": population, "cohorts": cohorts, "batches": []}
     numbering = Counter()
     for kind, batch in batches:
         batch_name = f"{kind}_{numbering[kind]:04d}.json"
@@ -380,7 +415,7 @@ def main():
     write_json_atomic(os.path.join(run_dir, "manifest.json"), manifest)
     write_json_atomic(os.path.join(args.out_dir, "keys", f"{name}.json"),
                       {"people_fingerprint": fingerprint, "seed": args.seed, "kinds": sorted(kinds),
-                       "person_band_population": population, "items": key})
+                       "person_band_population": population, "cohorts": cohorts, "items": key})
     print(f"\nwrote {len(batches)} batches -> {batch_dir}")
 
 

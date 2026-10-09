@@ -143,12 +143,21 @@ def main():
         report["controls"][kind] = {"counts": dict(c), **share(right, n)}
         passed = passed and n > 0 and right / n >= CONTROL_PASS
     population = key_file["person_band_population"]
-    total_population = sum(population.values())
+    # A cohort is a census of a group chosen for being hard — the men rijali argument runs
+    # on, the men whose Imams span more than a life. Folding either into the weighted figure
+    # would be reporting a deliberately adversarial sample as if it were the corpus, in both
+    # directions: it would drag the headline down, and it would hide how bad the cohort is
+    # behind the 32,000 people it was not drawn from. They are scored on their own.
+    cohorts = set(key_file.get("cohorts") or ())
+    sampled = {b: n for b, n in population.items() if b not in cohorts}
+    total_population = sum(sampled.values())
     weighted = 0.0
+    report["cohort_precision"] = {}
     for band, c in bands.items():
-        report["people_precision"][band] = {"counts": dict(c), **share(c["clean"], c["audited"]),
-                                            "population": population.get(band)}
-        if c["audited"]:
+        where = report["cohort_precision"] if band in cohorts else report["people_precision"]
+        where[band] = {"counts": dict(c), **share(c["clean"], c["audited"]),
+                       "population": population.get(band)}
+        if c["audited"] and band not in cohorts:
             weighted += population[band] / total_population * c["clean"] / c["audited"]
     report["people_precision"]["weighted"] = round(weighted, 3)
     for group, c in groups.items():
@@ -156,7 +165,7 @@ def main():
                                              **share(c["has a double"], c["audited"])}
     report["controls_passed"] = passed
     # a run drawn from one stratum has no people in it, so the gate is not what it measures
-    measured = any(c["audited"] for c in bands.values())
+    measured = any(c["audited"] for band, c in bands.items() if band not in cohorts)
     report["gate"] = {"threshold": GATE, "people_precision": round(weighted, 3),
                       "people_measured": measured, "met": measured and passed and weighted >= GATE}
 
@@ -164,6 +173,13 @@ def main():
     write_json_atomic(os.path.join(args.run_dir, "errors.json"), errors, indent=1)
 
     print(f"problems: {len(problems)}" + ("".join(f"\n  {p}" for p in problems[:10])))
+    if report["cohort_precision"]:
+        print("\ncohorts (judged whole, and deliberately the hard ones — not in the gate):")
+        for name in sorted(report["cohort_precision"]):
+            row = report["cohort_precision"][name]
+            print(f"  {name:14s} {row['counts'].get('clean', 0):4d} clean of "
+                  f"{row['counts'].get('audited', 0):4d} = {row.get('share')}")
+
     print("\njoin precision (strict = cannot_tell unverified; lenient = left out):")
     for stratum in sorted(report["join_precision"]):
         r = report["join_precision"][stratum]
