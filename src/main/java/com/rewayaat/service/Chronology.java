@@ -122,11 +122,17 @@ public class Chronology {
 
     /** A narrator placed on the band. */
     public record Placement(List<Era> eras, Era occultation, List<String> highlightedNames,
+                            List<String> highlightedNamesAr,
                             Integer deathAh, Double deathPercent, boolean deathOutsideScale,
                             boolean disputedDeath) {
 
         public boolean hasAnything() {
             return !highlightedNames.isEmpty() || deathAh != null;
+        }
+
+        /** The Imams he lived under, named in the language the page is set in. */
+        public List<String> namesIn(boolean arabic) {
+            return arabic && !highlightedNamesAr.isEmpty() ? highlightedNamesAr : highlightedNames;
         }
     }
 
@@ -150,11 +156,15 @@ public class Chronology {
 
         List<Era> placed = new ArrayList<>();
         List<String> names = new ArrayList<>();
+        List<String> namesAr = new ArrayList<>();
         for (Era era : eras) {
             boolean on = marked.contains(era.order());
             placed.add(era.highlight(on));
             if (on) {
                 names.add(era.nameEn());
+                if (era.nameAr() != null && !era.nameAr().isBlank()) {
+                    namesAr.add(era.nameAr());
+                }
             }
         }
 
@@ -171,6 +181,7 @@ public class Chronology {
         }
 
         return new Placement(List.copyOf(placed), occultation, List.copyOf(names),
+                List.copyOf(namesAr),
                 death,
                 death == null ? null : percentOf(death),
                 death != null && death > axisToAh,

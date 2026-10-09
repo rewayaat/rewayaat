@@ -181,6 +181,11 @@ public enum PageLocale {
                 || strippedPath.equals("/books")
                 || strippedPath.startsWith("/books/")
                 || strippedPath.startsWith("/hadith/")
+                // The narrator tree. Every string on these pages is in the bundles and every
+                // field whose value is words has an Arabic twin in the index, so they render
+                // whole rather than half-translated - which is the bar this allowlist keeps.
+                || strippedPath.equals("/narrators")
+                || strippedPath.startsWith("/narrator/")
                 || strippedPath.equals("/privacy")
                 || strippedPath.equals("/search_tips.html")
                 || strippedPath.equals("/signin.html")

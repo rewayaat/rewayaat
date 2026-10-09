@@ -1,6 +1,9 @@
 package com.rewayaat.controllers;
 
 import com.rewayaat.service.HadithCardFactory;
+import com.rewayaat.service.LocaleDigits;
+import com.rewayaat.service.NarratorArabic;
+import com.rewayaat.service.PageLocale;
 import com.rewayaat.service.QuranicInsightsService;
 import com.rewayaat.service.Chronology;
 import com.rewayaat.service.NarratorSeal;
@@ -8,6 +11,7 @@ import com.rewayaat.service.NarratorService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -49,6 +53,9 @@ public class NarratorPageController {
     @Autowired
     private QuranicInsightsService quranicInsights;
 
+    @Autowired
+    private MessageSource messages;
+
     /**
      * The way in: a name, and the men the books head under it.
      *
@@ -59,7 +66,8 @@ public class NarratorPageController {
     @GetMapping("/narrators")
     public String narratorSearch(@RequestParam(value = "q", defaultValue = "") String query,
                                  @RequestParam(value = "page", defaultValue = "1") int page,
-                                 Model model) {
+                                 Model model, HttpServletRequest request) {
+        PageLocale locale = PageLocale.of(request);
         String text = query == null ? "" : query.trim();
         Map<String, Object> found = text.isEmpty() ? Map.of("total", 0, "narrators", List.of())
                 : narratorService.search(text, page, PER_PAGE);
@@ -70,16 +78,21 @@ public class NarratorPageController {
         model.addAttribute("total", total);
         model.addAttribute("page", Math.max(page, 1));
         model.addAttribute("hasMore", (long) Math.max(page, 1) * PER_PAGE < total);
-        model.addAttribute("nextUrl", "/narrators?q=" + encode(text) + "&page=" + (Math.max(page, 1) + 1));
-        model.addAttribute("prevUrl", "/narrators?q=" + encode(text) + "&page=" + (Math.max(page, 1) - 1));
-        model.addAttribute("seoTitle", text.isEmpty() ? "Narrators of the Shia hadith corpus"
-                : "Narrators named " + text);
-        model.addAttribute("seoDescription", "Look up a narrator and read what each of the eight "
-                + "Shia Rijal books says about him, with the page it is written on.");
-        model.addAttribute("canonicalUrl", BASE_URL + "/narrators");
+        // Every link a reader clicks has to keep him in the language he is reading.
+        String hub = locale.prefix() + "/narrators";
+        model.addAttribute("nextUrl", hub + "?q=" + encode(text) + "&page=" + (Math.max(page, 1) + 1));
+        model.addAttribute("prevUrl", hub + "?q=" + encode(text) + "&page=" + (Math.max(page, 1) - 1));
+        model.addAttribute("searchAction", hub);
+        model.addAttribute("seoTitle", text.isEmpty() ? msg(locale, "seo.narrators.title")
+                : msg(locale, "seo.narrators.titleNamed", text));
+        model.addAttribute("seoDescription", msg(locale, "seo.narrators.description"));
+        // The canonical and the hreflang pair are built together, from the one path both
+        // languages share - see PageLocale. Setting canonicalUrl by hand here is what made
+        // every Arabic page name the English one as the real one.
+        locale.applyTo(model, "/narrators");
         model.addAttribute("breadcrumbs", List.of(
-                Map.of("name", "Home", "url", "/"),
-                Map.of("name", "Narrators", "url", "/narrators")));
+                Map.of("name", msg(locale, "crumb.home"), "url", locale.prefix() + "/"),
+                Map.of("name", msg(locale, "crumb.narrators"), "url", hub)));
         return "narrators";
     }
 
@@ -104,6 +117,7 @@ public class NarratorPageController {
                                @RequestParam(value = "page", defaultValue = "1") int page,
                                Model model, HttpServletRequest request,
                                HttpServletResponse response) throws IOException {
+        PageLocale locale = PageLocale.of(request);
         Map<String, Object> narrator = narratorService.getNarrator(id);
         if (narrator == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -114,13 +128,22 @@ public class NarratorPageController {
             String query = request.getQueryString();
             // 301, not 302: the canonical address of a narrator does not change from request to
             // request, and a link that has been shared should end up pointing at the right one.
-            RedirectView moved = new RedirectView("/narrator/" + id + "/" + canonicalSlug
-                    + (query == null || query.isBlank() ? "" : "?" + query));
+            // It keeps the prefix: the forward that selects Arabic has already stripped it from
+            // the URI, so a redirect built without it drops an Arabic reader onto English.
+            RedirectView moved = new RedirectView(locale.prefix() + "/narrator/" + id + "/"
+                    + canonicalSlug + (query == null || query.isBlank() ? "" : "?" + query));
             moved.setStatusCode(HttpStatus.MOVED_PERMANENTLY);
             return moved;
         }
 
-        String base = "/narrator/" + id + (canonicalSlug.isEmpty() ? "" : "/" + canonicalSlug);
+        // The Arabic twin of every field whose value is words, moved into the field the
+        // template reads - see NarratorArabic. Numbers stay numbers.
+        narrator = NarratorArabic.localise(narrator, locale);
+
+        // The path both languages share, for the canonical and the alternates; and the same
+        // path prefixed, for every link on the page.
+        String path = "/narrator/" + id + (canonicalSlug.isEmpty() ? "" : "/" + canonicalSlug);
+        String base = locale.prefix() + path;
         String arabic = text(narrator.get("display_ar"));
         String english = text(narrator.get("display_en"));
 
@@ -128,8 +151,12 @@ public class NarratorPageController {
         // companion of al-Sadiq" and leave the reader to know what that means; the band
         // says it in a picture. Both inputs are routinely absent and the band simply does
         // not render then.
-        model.addAttribute("placement",
-                chronology.place(ordinals(narrator), statedDeathYears(narrator)));
+        Chronology.Placement placement = chronology.place(ordinals(narrator),
+                statedDeathYears(narrator));
+        model.addAttribute("placement", placement);
+        // The death year reaches the caption as text, so it is converted here rather than
+        // appearing as 150 in the one Arabic sentence that quotes it.
+        model.addAttribute("deathAh", LocaleDigits.in(locale, placement.deathAh()));
 
         // A name in a roundel, never a face - see NarratorSeal.
         model.addAttribute("seal", NarratorSeal.monogram(arabicNames(narrator), arabic));
@@ -141,13 +168,17 @@ public class NarratorPageController {
         model.addAttribute("displayAr", arabic);
         model.addAttribute("displayEn", english);
         model.addAttribute("books", booksNamed(narrator));
-        model.addAttribute("seoTitle", title + " — a narrator in the Shia Rijal books");
-        model.addAttribute("seoDescription", summary(title, narrator));
-        model.addAttribute("canonicalUrl", BASE_URL + base);
+        // The Arabic page leads with the Arabic name, which is the name the books print; the
+        // English one leads with the transliteration, which is what an English reader can type.
+        String heading = locale.isArabic() && !arabic.isEmpty() ? arabic : title;
+        model.addAttribute("seoTitle", msg(locale, "seo.narrator.title", heading));
+        model.addAttribute("seoDescription", summary(locale, heading, narrator));
+        locale.applyTo(model, path);
         model.addAttribute("breadcrumbs", List.of(
-                Map.of("name", "Home", "url", "/"),
-                Map.of("name", "Narrators", "url", "/narrators"),
-                Map.of("name", title, "url", base)));
+                Map.of("name", msg(locale, "crumb.home"), "url", locale.prefix() + "/"),
+                Map.of("name", msg(locale, "crumb.narrators"),
+                        "url", locale.prefix() + "/narrators"),
+                Map.of("name", heading, "url", base)));
 
         // The narrations that name him, as the same card the rest of the site renders. They
         // are found by his name, not by a resolved chain, so the section says so plainly.
@@ -272,11 +303,24 @@ public class NarratorPageController {
         return named;
     }
 
-    private String summary(String title, Map<String, Object> narrator) {
+    /**
+     * The meta description: which books are quoted, and about whom.
+     *
+     * <p>The books are named from the document itself, which has already been read in this
+     * locale, so the Arabic description names them in Arabic. Where no book heads him the
+     * phrase falls back to naming the shelf rather than leaving a gap mid-sentence.
+     */
+    private String summary(PageLocale locale, String title, Map<String, Object> narrator) {
         List<String> named = booksNamed(narrator);
-        String where = named.isEmpty() ? "the Shia Rijal books" : String.join(", ", named);
-        return "What " + where + " say about " + title + ", each verdict shown with the book "
-                + "and page it was read from.";
+        // Arabic separates a list with \u060c, not with a comma.
+        String separator = locale.isArabic() ? "\u060c " : ", ";
+        String where = named.isEmpty() ? msg(locale, "seo.narrator.descriptionBooks")
+                : String.join(separator, named);
+        return msg(locale, "seo.narrator.description", where, title);
+    }
+
+    private String msg(PageLocale locale, String key, Object... args) {
+        return messages.getMessage(key, args, locale.locale());
     }
 
     private String text(Object value) {
