@@ -190,11 +190,13 @@ public class NarratorPageController {
         // Zurara's page. Headings cost nothing in reach: the short forms the chains actually
         // use are headings too. Older documents have no headings_ar and fall back.
         @SuppressWarnings("unchecked")
+        List<String> vetted = (List<String>) narrator.getOrDefault("search_ar", List.of());
+        @SuppressWarnings("unchecked")
         List<String> headings = (List<String>) narrator.getOrDefault("headings_ar", List.of());
         @SuppressWarnings("unchecked")
-        List<String> names = headings.isEmpty()
-                ? (List<String>) narrator.getOrDefault("names_ar", List.of())
-                : headings;
+        List<String> names = !vetted.isEmpty() ? vetted
+                : !headings.isEmpty() ? headings
+                : (List<String>) narrator.getOrDefault("names_ar", List.of());
         // Two tabs, because the page had become a scroll: what the books say of him, and the
         // narrations he stands in. The tab is in the URL, so each is a page that can be sent to
         // someone, and the narrations are fetched only when they are the tab being read.

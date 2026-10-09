@@ -197,6 +197,7 @@ def imam_years():
 
 
 YEARS = None
+HOLDERS = {}
 
 
 def profiles():
@@ -241,6 +242,57 @@ def entry_key_for(person, book, pages, entry_keys):
         if pages and held and set(pages) & held:
             return key
     return None
+
+
+# Given names so common that holding one alone proves nothing, however the corpus counts
+# them. A chain saying «عن محمد» names one of hundreds of men.
+COMMON_ISM = {normalize_arabic(n) for n in (
+    "محمد", "علي", "أحمد", "الحسن", "الحسين", "جعفر", "إبراهيم", "إسماعيل", "موسى",
+    "عبد الله", "عبد الرحمن", "حماد", "يونس", "سعد", "سعيد", "عمر", "عمرو", "يحيى",
+    "داود", "زيد", "صالح", "عيسى", "هارون", "سليمان", "يعقوب", "يوسف", "أبان", "بكر")}
+
+
+def searchable(headings, aliases, holders):
+    """The names safe to search the chains by.
+
+    A chain says «عن زرارة», not «عن زرارة بن أعين». Requiring three words — which is what
+    the service did — found Zurara 84 narrations out of well over a thousand. Length was
+    never what made a name safe to search; one man holding it was. So a short heading is
+    searched when exactly one narrator in the corpus is headed by it, and a bare given name
+    never is, however the count falls: «محمد» looks unique here only because the other
+    Muhammads are headed more fully.
+
+    Headings alone are not enough either. Muhammad b. Muslim is headed «محمد بن مسلم
+    الطائفي» and «محمد بن مسلم بن رباح», never by the bare «محمد بن مسلم» the chains
+    actually use — that sits among his aliases — and searching headings alone found him
+    nothing at all. But an alias is where another man's name strays in: Khoei's entry on
+    Zurara left «محمد بن مسلم» among his, and searching it put a thousand of the wrong
+    man's narrations on Zurara's page.
+
+    So an alias is searched when it is a shortening of one of this man's own headings. The
+    bare «محمد بن مسلم» opens «محمد بن مسلم الطائفي», so it is his; on Zurara it opens
+    nothing he is headed by, so it is not.
+    """
+    folded = [normalize_arabic(h) for h in headings]
+
+    def allowed(name, from_heading):
+        words = normalize_arabic(name).split()
+        if not words:
+            return False
+        plain = normalize_arabic(name)
+        if not from_heading and not any(h == plain or h.startswith(plain + " ") for h in folded):
+            return False
+        if len(words) >= 3:
+            return True
+        return holders.get(plain, 99) == 1 and plain not in COMMON_ISM
+
+    out = [h for h in headings if allowed(h, True)]
+    seen = {normalize_arabic(h) for h in out}
+    for alias in aliases:
+        if normalize_arabic(alias) not in seen and allowed(alias, False):
+            out.append(alias)
+            seen.add(normalize_arabic(alias))
+    return out
 
 
 def document(person, source, headless):
@@ -436,6 +488,9 @@ def document(person, source, headless):
     # «زرارة بن أعين» and «سهل بن زياد» among them.
     headings_ar = {n["value"] for n in values(person, "primary_names") if n.get("value")}
     headings_ar |= {e["heading_ar"] for e in entries if e.get("heading_ar")}
+    search_ar = searchable(sorted(headings_ar),
+                           sorted({n["value"] for n in values(person, "arabic_aliases")
+                                   if n.get("value")}), HOLDERS)
     names_en = [n["value"] for n in values(person, "english_aliases") if n.get("value")]
 
     return {
@@ -449,6 +504,7 @@ def document(person, source, headless):
                         or ""),
         "names_ar": sorted(set(names_ar)),
         "headings_ar": sorted(headings_ar),
+        "search_ar": sorted(search_ar),
         "names_en": sorted(set(names_en)),
         "normalized_ar": sorted({normalize_arabic(n) for n in names_ar}),
         "normalized_en": sorted({n.lower() for n in names_en}),
@@ -499,6 +555,7 @@ MAPPING = {
         "display_en": {"type": "text", "fields": {"keyword": {"type": "keyword", "ignore_above": 256}}},
         "names_ar": {"type": "text", "analyzer": "arabic_names"},
         "headings_ar": {"type": "text", "analyzer": "arabic_names"},
+        "search_ar": {"type": "text", "analyzer": "arabic_names"},
         "names_en": {"type": "text"},
         "normalized_ar": {"type": "text", "analyzer": "arabic_names",
                           "fields": {"keyword": {"type": "keyword", "ignore_above": 256}}},
@@ -543,9 +600,19 @@ def main():
     parser.add_argument("--index", default=INDEX)
     args = parser.parse_args()
 
-    global YEARS
+    global YEARS, HOLDERS
     YEARS = imam_years()
     people = load(os.path.join(IDENTITY, "people.json"))
+    HOLDERS = Counter()
+    for person in people:
+        if person.get("holds_entry") is False:
+            continue
+        forms = {normalize_arabic(i["value"]) for i in (person.get("primary_names") or [])
+                 if i.get("value")}
+        if person.get("primary_arabic_name"):
+            forms.add(normalize_arabic(person["primary_arabic_name"]))
+        for form in forms:
+            HOLDERS[form] += 1
     source, headless = profiles(), not_entries(TMP)
     counts = Counter()
     documents = []

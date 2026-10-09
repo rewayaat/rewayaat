@@ -286,13 +286,19 @@ public class NarratorService {
      *
      * <p>Shortest first, and «X b. Y» at the least. A chain names a man the short way —
      * «سهل بن زياد» stands in 1,500 of them — while the Rijal books head him with his kunyah,
-     * his nisbah and his city, and searching for those full headings found eight. A single
-     * word is still too little: «Zurara» alone would gather every Zurara there is.
+     * his nisbah and his city, and searching for those full headings found eight.
+     *
+     * <p>Which forms are safe to search is settled when the index is built, by how many
+     * narrators answer to each ({@code search_ar}, index_people.searchable), not here by
+     * counting words. A three-word rule looked safe and was not: a chain says «عن زرارة»,
+     * so the rule found Zurara 84 narrations out of well over a thousand, while admitting
+     * any three-word name that had strayed onto his record. One man holding the name is
+     * what makes it his; length never was.
      */
     private List<String> distinctive(List<String> nameForms) {
         List<String> forms = new ArrayList<>();
         for (String form : nameForms == null ? List.<String>of() : nameForms) {
-            if (form != null && form.trim().split("\\s+").length >= 3) {
+            if (form != null && !form.isBlank()) {
                 forms.add(form.trim());
             }
         }
