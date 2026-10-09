@@ -121,7 +121,13 @@ def main():
             # people. A high-confidence answer therefore goes in as `distinct`, which binds
             # equal rank too, and that is the honest weight for it: every other pass judged
             # these men from a sample, and this one read the whole file.
-            kind = "distinct" if answer.get("confidence") == "high" else "partition"
+            # Medium binds too. These answers are medium mostly because the rijal books
+            # disagree about the man — «Khoei makes them one, Mamaqani makes them father and
+            # son» — which is a finding about the corpus, not a hedge about the reading. A
+            # soft constraint leaves such a man silently fused, which states one book's view
+            # as fact; splitting him and showing the disagreement is the lesser error, and
+            # the page already says where each book stands. Only `low` is left for review.
+            kind = "partition" if answer.get("confidence") == "low" else "distinct"
             made.append(make_decision(
                 kind, groups=groups, method="large_partition", actor="agent",
                 confidence=answer.get("confidence", "medium"), status="applied",
