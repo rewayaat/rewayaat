@@ -9,7 +9,25 @@
                    weighted by each band's share of the population
   remaining splits per group: people found to have a double among their candidates
 
-The gate (docs/proposals/narrator-system.md, "The accuracy audit"): people precision of at
+Two precisions are reported, because a person is assembled from more records than the page
+quotes. `is_entry` decides which of a man's records are entries: a main book's heading, or a
+Khoei profile marked as a printed entry. Everything else attached to him is a chain record —
+Khoei's index stubs, mostly, whose whole text is «and so-and-so narrated from him» and whose
+heading was lifted out of that clause, so it describes a man the entry is not about.
+
+  entries     the records quoted on the page, each with its book and page. A stray here is a
+              verdict shown under the wrong man, which is the failure the project exists to
+              prevent, so the gate is taken on this.
+  attached    every record joined to him. A stray here is never quoted, but it still brings
+              its teachers and students, so it shows in the chains tab and in the ledger's
+              counts. It is a real fault and a milder one.
+
+The distinction is not academic. On the 11+ band the two read 98.2% and 81.8% from the same
+answers: fourteen of fifteen flagged records were ones no reader can see. Reporting only the
+second understated the pages by sixteen points; reporting only the first would hide a fault
+that is visibly there in the counts.
+
+The gate (docs/proposals/narrator-system.md, "The accuracy audit"): entry precision of at
 least GATE in the hardest size band, with both kinds of control passed.
 
 The gate used to run on the population-weighted figure, and that figure cannot fail. Two
@@ -93,6 +111,18 @@ def main():
 
     strata, controls = defaultdict(Counter), defaultdict(Counter)
     bands, groups = defaultdict(Counter), defaultdict(Counter)
+    # which flagged records a reader would actually see quoted
+    import sys as _sys
+    _sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from build_people import is_entry, not_entries, load_sources  # noqa: E402
+    _tmp = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                         "..", "..", "tmp"))
+    _raw = load_sources(os.path.join(_tmp, "narrators_normalized"))
+    _profiles = {k: (v[1] if isinstance(v, tuple) else v) for k, v in _raw.items()}
+    _headless = not_entries(_tmp)
+
+    def quoted(keys):
+        return any(is_entry(k, _profiles.get(k), _headless) for k in (keys or ()))
     errors = []
     for item_id, meta in key.items():
         if meta["kind"] == "recall" and meta.get("no_candidates"):
@@ -121,6 +151,9 @@ def main():
             band = bands[meta["band"]]
             band["audited"] += 1
             band["clean" if not outliers else "with outlier"] += 1
+            # the same answer, counted again over the records the page actually quotes
+            shown = [u for u in outliers if quoted(meta["units"][u])]
+            band["clean of a quoted entry" if not shown else "with a quoted outlier"] += 1
             if unclear and not outliers:
                 band["clean but unclear entries"] += 1
             for unit in outliers:
@@ -167,6 +200,7 @@ def main():
     for band, c in bands.items():
         where = report["cohort_precision"] if band in cohorts else report["people_precision"]
         where[band] = {"counts": dict(c), **share(c["clean"], c["audited"]),
+                       "entries": share(c["clean of a quoted entry"], c["audited"]),
                        "population": population.get(band)}
         if c["audited"] and band not in cohorts:
             weighted += population[band] / total_population * c["clean"] / c["audited"]
@@ -178,10 +212,14 @@ def main():
     # a run drawn from one stratum has no people in it, so the gate is not what it measures
     hardest = bands.get(GATE_BAND, Counter())
     measured = bool(hardest["audited"])
-    band_precision = (hardest["clean"] / hardest["audited"]) if measured else 0.0
+    # on the entries quoted, not on every record attached: a stray chain stub is a fault but
+    # it is not a verdict shown under the wrong man, and only the latter can fail publication
+    band_precision = (hardest["clean of a quoted entry"] / hardest["audited"]) if measured else 0.0
+    attached_precision = (hardest["clean"] / hardest["audited"]) if measured else 0.0
     report["gate"] = {"threshold": GATE, "band": GATE_BAND,
                       "band_precision": round(band_precision, 3),
                       "band_audited": hardest["audited"],
+                      "band_attached_precision": round(attached_precision, 3),
                       "people_precision": round(weighted, 3),
                       "people_measured": measured,
                       "met": measured and passed and band_precision >= GATE}
@@ -206,9 +244,13 @@ def main():
     for kind, r in report["controls"].items():
         print(f"  {kind:9s} {r['rate']} {r['interval_95']} {r['counts']}")
     print(f"  passed: {passed} (each at least {CONTROL_PASS})")
-    print("\npeople precision:")
+    print("\npeople precision (entries quoted on the page | every record attached):")
     for band in ("2-3", "4-10", "11+"):
         r = report["people_precision"].get(band)
+        if r:
+            print(f"  {band:5s} entries {r['entries']['rate']} {r['entries']['interval_95']}"
+                  f"   attached {r['rate']} {r['interval_95']}   of {r['population']}")
+            continue
         if r:
             print(f"  {band:5s} {r['rate']} {r['interval_95']} {r['counts']} of {r['population']}")
     print(f"  weighted by population: {report['people_precision']['weighted']}")
@@ -218,9 +260,9 @@ def main():
     if measured:
         print(f"\nGATE ({GATE_BAND} band precision >= {GATE}, controls passed): "
               f"{'MET' if report['gate']['met'] else 'NOT MET'}"
-              f"  [{GATE_BAND} = {report['gate']['band_precision']} of "
-              f"{report['gate']['band_audited']} audited; corpus-weighted "
-              f"{report['gate']['people_precision']}]")
+              f"  [{GATE_BAND} entries {report['gate']['band_precision']} of "
+              f"{report['gate']['band_audited']} audited; every record attached "
+              f"{report['gate']['band_attached_precision']}]")
     else:
         print(f"\nGATE: not measured — this run drew nobody in the {GATE_BAND} band")
     print(f"{len(errors)} errors -> {os.path.join(args.run_dir, 'errors.json')}")
