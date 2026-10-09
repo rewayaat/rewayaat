@@ -371,6 +371,52 @@ Under `tmp/`, which is symlinked to `/mnt/share/rewayaat-backup/tmp/`:
 | `narrators_archive/2026-09-14-{5b-post-verify2,5b-post-xform2,5b-post-attach2,5b-post-split}/` | the same through phase B and its split pass, each the baseline of the run after it |
 | `narrators_merged.json` | **superseded** — the June merge; do not use |
 
+### The Khoei source, and what is wrong with it
+
+`tmp/narrators_sources/khoei_mujam.txt` is cleanly structured. Every entry opens on a
+numbered heading naming its subject:
+
+```
+### $ 2896 - الحسن بن عباس:
+### $ 2897 - الحسن بن العباس المعروفي:
+# روى عن الرضا (عليه السلام)، وروى عنه إسماعيل بن مرار. الكافي: ...
+```
+
+**15,706 numbered entries**, which is the Muʿjam's own count. Our extraction produced
+**37,541 profiles** from them — 2.4× — by splitting entries into pieces. A piece has no
+heading of its own, so the extractor inferred one from the body, and the body of entry 2897
+names Ismāʿīl b. Mirār only as the man who transmitted *from* its subject.
+
+What is measured:
+
+- **3,290 profiles (8.8%) carry a heading the book never prints.** Those are inferred
+  outright. The 91.2% that match a printed heading are an upper bound on correctness and not
+  a measure of it: a piece headed with the wrong man's name still matches *his* heading.
+- **748 are provably about a different man** — the whole body is one relation clause with
+  the inferred heading inside it. Thirty-two read at random across two samples were all of
+  that shape. `find_relation_stubs.py` draws the list; `build_people.relation_stubs` keeps
+  them from joining anybody.
+
+Two ways of repairing this after the fact were prototyped and **both failed**, and are
+recorded so they are not tried again:
+
+- matching a profile's text against entry bodies across the whole file — **38%** resolved
+  (the extraction paraphrases rather than quoting, so there is nothing to anchor on);
+- narrowing first by page. `source_pages` is a five-page window, so it identifies the chunk
+  the extractor read and not the entry; scoring body overlap inside the window resolved
+  **48%**, and most disagreements it surfaced were benign — the extraction having given a
+  *fuller* name than the printed heading, which is an improvement.
+
+Neither is accurate enough to relabel 37,541 records, and tuning a third heuristic would
+only fit it to the examples one happens to read.
+
+**So the repair is to extract Khoei against its own structure** — parse the 15,706 numbered
+entries and extract per entry, rather than chunking the text and inferring a subject for
+each piece. The cost is that it re-keys `khoei:N`, and **259,732 of 390,765 decisions
+(66.5%) mention a khoei key**: it is a re-run of the identity pipeline on a new source, not
+a refactor. Until then the page is honest about what it shows — `is_entry` keeps non-entries
+off it — but the chains tab and the ledger counts still carry what the pieces brought.
+
 ### Code
 
 On `feature/narrators`:
