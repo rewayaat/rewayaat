@@ -13539,7 +13539,14 @@ html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
     font-size: 0.88rem;
 }
 
+/* The columns are named, not left to auto-placement. A <dt> is followed by one <dd>
+   per book that states the fact, and auto-placement drops every <dd> after the first
+   into whichever cell comes next - which is column 1, the max-content label column. One
+   long statement there sized that column to 1,359px and pushed the document 193px wider
+   than the viewport. It was a horizontal scrollbar in English and, once the page could
+   be read right to left, half of it off the edge. */
 .narrator-facts__list dt {
+    grid-column: 1;
     font-family: var(--font-ui);
     font-size: 0.7rem;
     letter-spacing: 0.1em;
@@ -13549,6 +13556,7 @@ html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
 }
 
 .narrator-facts__list dd {
+    grid-column: 2;
     margin: 0;
     color: var(--text);
 }
@@ -13578,6 +13586,11 @@ html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
     .narrator-facts__list {
         grid-template-columns: 1fr;
         gap: 0.15rem;
+    }
+
+    .narrator-facts__list dt,
+    .narrator-facts__list dd {
+        grid-column: 1;
     }
 
     .narrator-facts__list dt {
