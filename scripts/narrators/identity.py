@@ -51,6 +51,35 @@ import sys
 from collections import defaultdict
 
 ACTOR_RANK = {"reviewer": 3, "agent": 2, "rule": 1}
+
+# Joins a script made by matching a pattern, recorded at the time as «reviewer».
+#
+# They are not reviews. `mention_names_one_entry` carries the rationale «every entry carrying
+# this name belongs to one man», which is a rule stated in words, and audit 4 measured it at
+# 69% strict precision — the worst of any method, some 3,000 unverified joins. Holding
+# reviewer rank, it outranked every piece of evidence against it: audit 5 found al-Bazanti
+# (d. 221) sitting inside Ahmad b. Muhammad b. Isa with a cited, high-confidence reason, and
+# the finding could not move him. Only fourteen decisions in the whole log are human reviews.
+#
+# So rank is read from what made a decision, not from the word recorded beside it. The
+# mechanical de-duplications are left alone: `*_reextraction_duplicate` and `*_read_twice`
+# merge two readings of one printed entry, which is a fact about our own parsing rather
+# than a claim about a man.
+RULE_METHODS = {
+    "mention_is_entry", "mention_names_one_entry",
+    "khoei_quotes_najashi", "khoei_quotes_fihrist", "khoei_quotes_kashshi",
+    "khoei_cites_tusi",
+    "khoei_points_equals", "khoei_points_see", "khoei_points_adjacent", "khoei_points_union",
+    "entry_books_jami", "entry_books_tusi", "entry_books_jami_tusi", "entry_books_jami_text",
+    "jami_quotes_najashi", "jami_quotes_fihrist", "jami_quotes_kashshi",
+}
+
+
+def effective_rank(decision):
+    """What a decision is actually worth, whatever actor was written on it."""
+    if decision.get("method") in RULE_METHODS:
+        return ACTOR_RANK["rule"]
+    return ACTOR_RANK[decision["actor"]]
 KINDS = {"same", "partition", "not_same", "distinct", "exclude", "retract"}
 
 # Books extracted one profile per headed entry come first, so an anchor is an entry heading
@@ -316,7 +345,7 @@ def build_components(universe, decisions):
     sides = defaultdict(dict)          # root -> {constraint id: set of sides present}
     constraints = {}                   # constraint id -> (rank, hard, kind)
     for d in decisions:
-        rank = ACTOR_RANK[d["actor"]]
+        rank = effective_rank(d)
         if d["kind"] == "distinct":
             hard = True
         elif d["kind"] in ("not_same", "partition") and rank >= ACTOR_RANK["agent"]:
@@ -329,7 +358,7 @@ def build_components(universe, decisions):
                 if key in universe:
                     sides[uf.find(key)].setdefault(d["decision_id"], set()).add(i)
 
-    proposals = [(ACTOR_RANK[d["actor"]], d) for d in decisions
+    proposals = [(effective_rank(d), d) for d in decisions
                  if d["kind"] in ("same", "partition")]
     proposals.sort(key=lambda p: -p[0])
     refused, overridden = [], []
