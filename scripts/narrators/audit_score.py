@@ -10,7 +10,15 @@
   remaining splits per group: people found to have a double among their candidates
 
 The gate (docs/proposals/narrator-system.md, "The accuracy audit"): people precision of at
-least GATE, with both kinds of control passed.
+least GATE in the hardest size band, with both kinds of control passed.
+
+The gate used to run on the population-weighted figure, and that figure cannot fail. Two
+thirds of the people hold two or three entries, those score 99-100%, and they carry the
+average whatever happens to anyone else: 97.3% over the whole corpus and 97.1% over people
+no auditor had seen, while the band a reader actually reads sat at 86-87.5% in both. An
+average that cannot move is not a gate. It is reported still, because the corpus-wide number
+is the honest thing to publish, but what has to clear the bar is GATE_BAND — a man with
+fifteen entries has fifteen chances to absorb a namesake, and he is the man someone looks up.
 
 Writes <run>/report.json and <run>/errors.json (every join judged different, every outlier
 entry, every double found), for review; the audit itself changes no identity.
@@ -31,6 +39,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from identity import write_json_atomic  # noqa: E402
 
 GATE = 0.95
+# The band the gate is taken on. Error tracks entry count, not fame: 87.5% among the hundred
+# most-discussed and 86.0% among people nobody has heard of, measured a day apart.
+GATE_BAND = "11+"
 CONTROL_PASS = 0.90
 
 
@@ -165,9 +176,15 @@ def main():
                                              **share(c["has a double"], c["audited"])}
     report["controls_passed"] = passed
     # a run drawn from one stratum has no people in it, so the gate is not what it measures
-    measured = any(c["audited"] for band, c in bands.items() if band not in cohorts)
-    report["gate"] = {"threshold": GATE, "people_precision": round(weighted, 3),
-                      "people_measured": measured, "met": measured and passed and weighted >= GATE}
+    hardest = bands.get(GATE_BAND, Counter())
+    measured = bool(hardest["audited"])
+    band_precision = (hardest["clean"] / hardest["audited"]) if measured else 0.0
+    report["gate"] = {"threshold": GATE, "band": GATE_BAND,
+                      "band_precision": round(band_precision, 3),
+                      "band_audited": hardest["audited"],
+                      "people_precision": round(weighted, 3),
+                      "people_measured": measured,
+                      "met": measured and passed and band_precision >= GATE}
 
     write_json_atomic(os.path.join(args.run_dir, "report.json"), report, indent=1)
     write_json_atomic(os.path.join(args.run_dir, "errors.json"), errors, indent=1)
@@ -199,10 +216,13 @@ def main():
     for group, r in report["remaining_splits"].items():
         print(f"  {group:10s} {r['rate']} {r['interval_95']} {r['counts']}")
     if measured:
-        print(f"\nGATE (people precision >= {GATE}, controls passed): "
-              f"{'MET' if report['gate']['met'] else 'NOT MET'}")
+        print(f"\nGATE ({GATE_BAND} band precision >= {GATE}, controls passed): "
+              f"{'MET' if report['gate']['met'] else 'NOT MET'}"
+              f"  [{GATE_BAND} = {report['gate']['band_precision']} of "
+              f"{report['gate']['band_audited']} audited; corpus-weighted "
+              f"{report['gate']['people_precision']}]")
     else:
-        print("\nGATE: not measured — this run drew no people, only the strata named")
+        print(f"\nGATE: not measured — this run drew nobody in the {GATE_BAND} band")
     print(f"{len(errors)} errors -> {os.path.join(args.run_dir, 'errors.json')}")
 
 
