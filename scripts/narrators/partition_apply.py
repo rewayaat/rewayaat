@@ -77,7 +77,11 @@ def main():
 
     for path in sorted(glob.glob(os.path.join(args.run_dir, "outputs", "*.json"))):
         for answer in load(path).get("partitions", []):
-            task = posed.get(answer.get("task_id"))
+            # One agent answered with the bare person id. The id is unambiguous either
+            # way, and dropping eleven people over a missing prefix would be the wrong
+            # kind of strictness.
+            asked = answer.get("task_id")
+            task = posed.get(asked) or posed.get(f"partition:{asked}")
             if task is None:
                 problems.append({"answer": answer.get("task_id"), "why": "no such task"})
                 counts["answer for a task not posed"] += 1
@@ -111,14 +115,21 @@ def main():
 
             groups = [sorted({k for label in cluster for k in keys_of[label]})
                       for cluster in real]
+            # `partition` from an agent is a soft constraint: it refuses a union only from a
+            # strictly lower-ranked actor, so it cannot undo a join another agent made — and
+            # most of these men were assembled by agents. Recording 76 partitions moved 17
+            # people. A high-confidence answer therefore goes in as `distinct`, which binds
+            # equal rank too, and that is the honest weight for it: every other pass judged
+            # these men from a sample, and this one read the whole file.
+            kind = "distinct" if answer.get("confidence") == "high" else "partition"
             made.append(make_decision(
-                "partition", groups=groups, method="large_partition", actor="agent",
+                kind, groups=groups, method="large_partition", actor="agent",
                 confidence=answer.get("confidence", "medium"), status="applied",
                 evidence={"reason": answer.get("reason", ""),
                           "read": "every entry of this person, not a sample",
                           "run": os.path.basename(args.run_dir.rstrip("/"))},
                 origin={"run": f"partition:{os.path.basename(args.run_dir.rstrip('/'))}"}))
-            counts["people split"] += 1
+            counts[f"people split ({kind})"] += 1
             counts["men where there was one"] += len(real)
 
     for label, n in counts.most_common():
