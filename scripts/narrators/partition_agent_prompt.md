@@ -13,22 +13,29 @@ Your batch holds `tasks`. Each task is one assembled person:
 
 ## The question
 
-**How many men are these?** Put every entry into exactly one cluster. One cluster means the
-assembly was right and this is one man.
+**Which of these entries are not this man?**
+
+Start from the anchor, `U1`. The rest were assembled with him for reasons, and most of them
+belong: a famous narrator carries dozens of entries, many of them bare sub-entries in Khoei
+that say little more than his name. **An entry stays with the anchor unless the text gives
+you a positive reason to take it away.**
+
+This is the opposite of the instinct that serves when sorting a pile of same-named
+strangers. Here the men are already assembled, and treating "this entry says nothing either
+way" as grounds to separate shatters one man into forty. A bare name alongside the anchor's
+name is weak evidence *for* him, not evidence against.
+
+Three places to put an entry:
+
+- the **anchor's cluster**, where most belong
+- **another cluster**, when the text positively shows a different man — and say which
+- **`unplaced`**, when an entry is too bare to judge and you are not willing to call it
+  either way. Use this freely. It is the honest answer, and it is far more useful than a
+  singleton cluster that asserts a man who may not exist.
 
 ## How to judge
 
-Men sharing a name are different people unless the text gives a positive reason to join
-them. **Absence of conflict is not evidence of sameness** — two bare entries reading only
-«محمد بن علي» tell you nothing, and belong apart.
-
-Evidence they are the same man:
-
-- one entry quoting or citing the other's book and page
-- a shared full lineage, kunyah with nisbah, teacher *and* student, city, or death year
-- a source saying so: «هو», «وهو الذي», «تقدم», «مضى بعنوان»
-
-Evidence they are different men:
+Take an entry away from the anchor only on positive evidence:
 
 - a contradicting father or lineage, a kunyah that clashes, a nisbah of another tribe
 - generations apart — a Companion of the Prophet against a companion of al-Ṣādiq. Each
@@ -37,10 +44,17 @@ Evidence they are different men:
 - a verdict or quotation plainly about somebody else
 - the source saying it is another man: «وليس بـ», «غير», «مشترك بين»
 
+Reasons an entry stays, even a thin one:
+
+- a shared teacher or student, city, kunyah, nisbah or death year
+- one entry quoting or citing the other's book and page
+- a source saying so: «هو», «وهو الذي», «تقدم», «مضى بعنوان»
+- nothing at all said against him, and the name fits
+
 Different books head one man differently — a short name in one, a full lineage or an added
 nisbah in another — and that is **not** a conflict. Brothers, fathers and sons, and
-consecutive homonyms share names, kunyahs and nisbahs, and that is **not** evidence of
-sameness.
+consecutive homonyms do share names and nisbahs, so where the text *does* distinguish them,
+distinguish them.
 
 Do not use outside knowledge to overrule the sources. You may use it to *read* a quotation,
 never to assert what it does not contain.
@@ -54,17 +68,20 @@ Write a JSON file to the exact path you are given, no prose outside the JSON.
   "batch": "<the batch filename>",
   "partitions": [
     {"task_id": "partition:n000220",
-     "clusters": [["U1","U2","U4"], ["U3"], ["U5","U6"]],
+     "clusters": [["U1","U2","U4","U6"], ["U3","U5"]],
+     "unplaced": ["U7"],
      "confidence": "high",
-     "reason": "U3 is al-Bazanṭī, d. 221, whom Māmaqānī heads separately; U5/U6 share the
-                kunyah Abū Jaʿfar and the student Ibn Abī ʿUmayr with each other but not
-                with U1."}
+     "reason": "U3 is al-Bazanṭī, d. 221, whom Māmaqānī heads separately, and U5 shares his
+                kunyah and his student; the rest carry the anchor's lineage or say nothing
+                against it. U7 is a bare name with no teacher, student or generation."}
   ]
 }
 ```
 
 - One answer for every `task_id` in the batch.
-- Every entry label appears in exactly one cluster, and no label is invented.
+- Every entry label appears exactly once, in a cluster or in `unplaced`. No invented labels.
+- The anchor's cluster comes first. Expect it to hold most of the entries; if it does not,
+  read again and ask whether you have separated men or merely separated silence.
 - `confidence` is `high`, `medium` or `low`.
 - `reason` must cite the evidence you actually used, naming the labels. "Same name" is not a
   reason, and a reason reused word for word across tasks is not a reason either.
