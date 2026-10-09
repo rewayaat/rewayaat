@@ -77,6 +77,23 @@ def not_entries(tmp_dir):
     return keys
 
 
+def relation_stubs(tmp_dir):
+    """Records that are a chain clause about an unnamed man, headed by a name inside it.
+
+    «وروى عنه إسماعيل بن مرار» under the heading «إسماعيل بن مرار» is not a biography of
+    Isma'il; it says he transmitted from someone the record never names. `is_entry` already
+    keeps these off the page, but they were still attaching to people as mentions and
+    bringing that someone's teachers and students with them.
+
+    See find_relation_stubs.py, which writes the list and explains how it is drawn.
+    """
+    keys = set()
+    for path in glob.glob(os.path.join(tmp_dir, "narrators_sources", "*_relation_stub.json")):
+        with open(path) as handle:
+            keys |= {item["source_key"] for item in json.load(handle)}
+    return keys
+
+
 def is_entry(key, profile, excluded_keys):
     if "printed_entry" in (profile or {}).get("flags", ()):
         return True
@@ -102,13 +119,20 @@ def anchored(decisions, profiles, tmp_dir):
     traced its stray entries to exactly that.
     """
     headless = not_entries(tmp_dir)
+    stubs = relation_stubs(tmp_dir)
     anchors = {k for k, (_, prof) in profiles.items() if is_entry(k, prof, headless)}
     for d in decisions:
         if d["kind"] == "same" and d["method"] in ANCHORING:
             anchors.update(d["sources"])
+    anchors -= stubs
     kept = []
     for d in decisions:
         if d["kind"] == "same":
+            # A relation stub never joins anybody. Whoever it names, it is a note about a
+            # third man, so attaching it to the name inside it is attaching the wrong
+            # person's chain. It stays on record for stage 8, which resolves chains.
+            if any(k in stubs for k in d["sources"]):
+                continue
             if d["method"] in ATTACHMENTS or all(k in anchors for k in d["sources"]):
                 kept.append(d)
         elif d["kind"] == "partition":
