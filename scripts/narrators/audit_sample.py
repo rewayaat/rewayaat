@@ -121,6 +121,15 @@ def main():
                              "are drawn whatever it says, so the auditors are still checked")
     parser.add_argument("--kinds", default="pair,person,recall",
                         help="which questions to draw: pair, person, recall")
+    parser.add_argument("--per-band", type=int, default=PER_BAND, metavar="N",
+                        help=f"people to draw from each size band (default {PER_BAND})")
+    parser.add_argument("--exclude-people", action="append", default=[], metavar="PATH",
+                        help="a file of person ids to keep out of the person bands: people a "
+                             "previous audit already judged, so a new run measures people no "
+                             "auditor has seen")
+    parser.add_argument("--max-sources", type=int, default=0, metavar="N",
+                        help="draw only people with at most N source entries, to measure the "
+                             "long tail rather than the men the books write most about")
     parser.add_argument("--cohort", action="append", default=[], metavar="NAME=PATH",
                         help="a named list of person ids to judge as person items, beside the "
                              "random bands: a file of one id per line. A cohort is a census of "
@@ -276,11 +285,23 @@ def main():
         key[item_id] = {"kind": "pair", "A": ua, "B": ub, **meta}
 
     # --- person items: is every entry one man? ----------------------------------------------
+    # People an earlier audit already judged, and the famous, so that a run can ask what
+    # precision looks like among the people nobody has checked. A weighted figure carried by
+    # the two-entry band says little about the man a reader is actually reading.
+    excluded = set()
+    for path in args.exclude_people:
+        with open(path) as handle:
+            excluded |= {line.strip() for line in handle if line.strip()}
+
     banded = defaultdict(list)
     for person in people:
         # A component of mentions alone is not a person and is not published: people precision
         # is measured over those who hold an entry (build_people.py's holds_entry).
         if person.get("holds_entry") is False:
+            continue
+        if person["person_id"] in excluded:
+            continue
+        if args.max_sources and len(person["source_keys"]) > args.max_sources:
             continue
         n = len(units(person))
         for band, (lo, hi) in PERSON_BANDS.items():
@@ -289,12 +310,12 @@ def main():
     population = {band: len(ps) for band, ps in banded.items()}
     person_items = []
     for band in (PERSON_BANDS if "person" in kinds else []):
-        for person in rng.sample(banded[band], min(PER_BAND, len(banded[band]))):
+        for person in rng.sample(banded[band], min(args.per_band, len(banded[band]))):
             all_units = units(person)
             chosen = [all_units[0]] + rng.sample(all_units[1:], min(MAX_UNITS - 1,
                                                                      len(all_units) - 1))
             person_items.append((band, person, chosen, len(all_units)))
-        counts[f"person {band}"] = min(PER_BAND, len(banded[band]))
+        counts[f"person {band}"] = min(args.per_band, len(banded[band]))
 
     # The named cohorts, judged whole rather than sampled. Every member is asked about, in
     # the same shape and shuffled in among the random items, so an auditor cannot tell he is
