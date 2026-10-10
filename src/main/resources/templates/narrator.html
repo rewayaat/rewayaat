@@ -415,8 +415,40 @@
                 </ul>
             </div>
         </section>
+        <!-- The Imams, apart. Everyone transmits from them, so mixed into the list above they
+             bury the names that actually identify a man. -->
+        <p class="chains__imams" th:if="${!#lists.isEmpty(narrator.imams_from)}">
+            <span class="narrator-entry__label" th:text="#{narrator.chains.fromImams}">Narrated from the Imams</span>
+            <span th:text="${#strings.listJoin(narrator.imams_from.![name], ' · ')}">al-Ṣādiq</span>
+        </p>
+
+        <!-- What the books do not say of him, only show him standing in. Khoei lists the
+             chains a man appears in as well as writing him up, and 87% of every link in this
+             corpus comes from a list of that kind. It is true and it is a weaker claim. -->
+        <section class="chains__indexed"
+                 th:if="${!#lists.isEmpty(narrator.chain_from) or !#lists.isEmpty(narrator.chain_to)}">
+            <h2 class="hub-group__label" th:text="#{narrator.chains.indexedHeading}">
+                Also stands beside him in the chain indexes
+            </h2>
+            <p class="chains__note" th:text="#{narrator.chains.indexedNote}">
+                No book says these men were his teachers or his pupils.
+            </p>
+            <ul class="chains__list chains__list--indexed">
+                <li class="chains__row" th:each="man : ${narrator.chain_from}">
+                    <span class="chains__dir" th:text="#{narrator.chains.dirFrom}">from</span>
+                    <span class="chains__name" th:text="${man.name}">اسم</span>
+                    <span class="chains__books" th:text="${#strings.listJoin(man.books, ' · ')}">Khoei</span>
+                </li>
+                <li class="chains__row" th:each="man : ${narrator.chain_to}">
+                    <span class="chains__dir" th:text="#{narrator.chains.dirTo}">to</span>
+                    <span class="chains__name" th:text="${man.name}">اسم</span>
+                    <span class="chains__books" th:text="${#strings.listJoin(man.books, ' · ')}">Khoei</span>
+                </li>
+            </ul>
+        </section>
+
         <p class="chains__caveat" th:text="#{narrator.chains.caveat}">
-            These are the links the Rijal books state in words.
+            The men above are those a book names as his teachers or his pupils.
         </p>
     </div>
 

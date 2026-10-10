@@ -121,6 +121,8 @@ def main():
                              "are drawn whatever it says, so the auditors are still checked")
     parser.add_argument("--kinds", default="pair,person,recall",
                         help="which questions to draw: pair, person, recall")
+    parser.add_argument("--per-stratum", type=int, default=PER_STRATUM, metavar="N",
+                        help=f"joins to draw from each method (default {PER_STRATUM})")
     parser.add_argument("--per-band", type=int, default=PER_BAND, metavar="N",
                         help=f"people to draw from each size band (default {PER_BAND})")
     parser.add_argument("--exclude-people", action="append", default=[], metavar="PATH",
@@ -220,7 +222,7 @@ def main():
             pairs.append(({"stratum": stratum, "decision_id": decision_id,
                            "person_id": membership[a]}, ua, ub))
             drawn += 1
-            if drawn == PER_STRATUM:
+            if drawn == args.per_stratum:
                 break
         counts[f"pair {stratum}"] = drawn
 

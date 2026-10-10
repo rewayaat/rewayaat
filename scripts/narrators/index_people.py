@@ -112,18 +112,67 @@ def slugify(name):
     return re.sub(r"(^-|-$)", "", re.sub(r"[^a-z0-9]+", "-", plain))[:60]
 
 
-def sources_by_name(statements):
+# An isnad names things that are not men. «أحدهما عليهما السلام» — «one of the two of them» —
+# stands for either al-Baqir or al-Sadiq and is a convention, not a person; «بعض أصحابنا» is
+# «some of our companions». Listed among a man's teachers they read as names, and 331 of them
+# were.
+CHAIN_FORMULA = ("أحدهما", "بعض أصحابنا", "بعض أصحابه", "بعض رجاله", "غير واحد",
+                 "عدة من أصحابنا", "عمن حدثه", "من حدثه", "Subject of the entry",
+                 # the same conventions where the extraction rendered them in English
+                 "some of his companions", "some of our companions", "a number of our",
+                 "one of our companions", "one of them", "a group of", "several of",
+                 "someone who", "a man from", "unnamed")
+# The Imams are transmitted from by everybody, so listing them beside a man's own masters
+# buries the ones that identify him. True, and shown apart.
+# Only an explicit signal counts. «أبو عبد الله» alone is one of the commonest kunyahs there
+# is, and marking every man who carries it as an Imam would be worse than the problem — so a
+# bare kunyah stays a person even where the Imam is probably meant, and the book's own words
+# stand.
+IMAM_MARK = re.compile(
+    r"عليه السلام|عليهما السلام|عليهم السلام|\(ع\)|\(عج\)|صلى الله عليه"
+    r"|الصادق|الباقر|الكاظم|الرضا|الجواد|الهادي|العسكري|السجاد|المهدي|زين العابدين"
+    r"|رسول الله|النبي"
+    r"|al-Sadiq|al-Baqir|al-Kazim|al-Rida|al-Jawad|al-Hadi|al-Askari|al-Sajjad|al-Mahdi"
+    r"|the Prophet|Messenger of Allah", re.I)
+
+
+def relation_kind(name):
+    """What a name in a chain actually is: a man, an Imam, or a convention standing for one."""
+    folded = name.casefold()
+    if any(f.casefold() in folded for f in CHAIN_FORMULA):
+        return "formula"
+    if IMAM_MARK.search(name):
+        return "imam"
+    if len(name.split()) == 1:
+        # «الفضيل» alone is a real reference and not an identification: it is whoever the
+        # chain's reader already knows. Kept, and marked, because dropping it would hide a
+        # link the book does make.
+        return "bare"
+    return "person"
+
+
+def sources_by_name(statements, stated_keys, key_of):
     """«Ibn Abi 'Umayr → [al-Najashi, Khoei]»: each man once, with who records the link.
 
     A teacher named by four books is better evidence than one named in a single chain note,
     and the page cannot show that unless the books travel with the name.
+
+    Each link also carries whether a book *states* it of this man. Khoei indexes the chains a
+    man stands in as well as writing him up, and the extraction read both: 96 of Zurara's
+    «students» come from «وقع بعنوان زرارة في إسناد كثير من الروايات» — the list of 2,094
+    chains he appears in — and not from anything a book says about his pupils. Both are true
+    and they are not the same claim, so they are not mixed.
     """
     found = {}
     for item in statements:
         name = (item.get("value") or "").strip()
         if not name:
             continue
-        held = found.setdefault(name, {"name": name, "books": [], "books_ar": []})
+        kind = relation_kind(name)
+        if kind == "formula":
+            continue
+        held = found.setdefault(name, {"name": name, "books": [], "books_ar": [],
+                                       "kind": kind, "stated": False})
         book = item.get("source_book")
         title = BOOK_TITLE.get(book, book)
         if title and title not in held["books"]:
@@ -131,7 +180,11 @@ def sources_by_name(statements):
         title_ar = BOOK_TITLE_AR.get(book)
         if title_ar and title_ar not in held["books_ar"]:
             held["books_ar"].append(title_ar)
-    return sorted(found.values(), key=lambda x: (-len(x["books"]), x["name"]))[:200]
+        key = key_of(book, item.get("source_pages") or [])
+        if key in stated_keys:
+            held["stated"] = True
+    return sorted(found.values(),
+                  key=lambda x: (not x["stated"], -len(x["books"]), x["name"]))[:200]
 
 
 def join_names(names):
@@ -476,6 +529,32 @@ def document(person, source, headless):
     elif standing == "weakened" and against_him_ar:
         where_ar = "يضعّفه " + join_names_ar(against_him_ar) + "."
     blurb_ar = (("، ".join(said_ar) + ". ") if said_ar else "") + where_ar
+    def key_of(book, pages):
+        """Which of this man's records a statement was read from."""
+        same = [k for k in keys if k.split(":")[0] == book]
+        if len(same) == 1:
+            return same[0]
+        for key in same:
+            held = set(person["pages_of"].get(key) or ())
+            if pages and held and set(pages) & held:
+                return key
+        return None
+
+    stated_keys = set(entry_keys)
+    all_from = sources_by_name(values(person, "narrated_from"), stated_keys, key_of)
+    all_to = sources_by_name(values(person, "narrated_to"), stated_keys, key_of)
+
+    # Three lists, because they are three different claims and the page may not blur them:
+    # men a book says he learned from, men who merely stand beside him in an index of
+    # chains, and the Imams, who everyone transmits from and who bury the rest if mixed in.
+    def split(links):
+        return ([m for m in links if m["kind"] != "imam" and m["stated"]],
+                [m for m in links if m["kind"] != "imam" and not m["stated"]],
+                [m for m in links if m["kind"] == "imam"])
+
+    narrated_from, chain_from, imams_from = split(all_from)
+    narrated_to, chain_to, imams_to = split(all_to)
+
     names_ar = [n["value"] for n in values(person, "primary_names") + values(person, "arabic_aliases")
                 if n.get("value")]
     # The names a book actually headed an entry with, apart from every name merely written
@@ -531,10 +610,17 @@ def document(person, source, headless):
         # his generation actually runs on, so the counts are kept whole even where the
         # lists shown are trimmed.
         # each name once, with the books that record the link, so the tab can show who says it
-        "narrated_from": sources_by_name(values(person, "narrated_from")),
-        "narrated_to": sources_by_name(values(person, "narrated_to")),
-        "teacher_count": len({n.get("value") for n in values(person, "narrated_from") if n.get("value")}),
-        "student_count": len({n.get("value") for n in values(person, "narrated_to") if n.get("value")}),
+        "narrated_from": narrated_from,
+        "narrated_to": narrated_to,
+        "chain_from": chain_from,
+        "chain_to": chain_to,
+        "imams_from": imams_from,
+        "imams_to": imams_to,
+        # the counts the ledger shows are of men a book states he learned from or taught,
+        # not of everyone who stands beside him in an index of chains
+        "teacher_count": len(narrated_from),
+        "student_count": len(narrated_to),
+        "chain_only_count": len(chain_from) + len(chain_to),
         # the years his imamates cover, first to last
         "span_from": min((y[0] for y in spans), default=None),
         "span_to": max((y[1] for y in spans), default=None),
