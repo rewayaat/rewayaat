@@ -13734,6 +13734,11 @@ html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
 .narrator-stands--unsourced { opacity: 0.86; margin-block-start: 1.25rem; }
 /* Why this grade is set aside, beside the grade itself: quiet, because it is a note
    about our evidence and not part of what the book says. */
+/* Relations our records hold out of an entry that does not name the man: the same quiet
+   treatment the set-aside grades get, because it is the same admission. */
+.chains__indexed--unsaid { opacity: 0.9; }
+.chains__indexed--unsaid .chains__name { font-style: italic; }
+
 .narrator-stands__why {
     margin-inline-start: 0.4rem;
     font-size: 0.74rem;

@@ -34,6 +34,7 @@ import unicodedata
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from build_people import MAIN_BOOKS, is_entry, not_entries  # noqa: E402
 from grade_evidence import shown  # noqa: E402
+import relation_evidence  # noqa: E402
 from narrator_schema import imam_generations, normalize_arabic  # noqa: E402
 
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
@@ -195,15 +196,20 @@ def learn_transliterations(profiles):
     return len(TRANSLITERATED)
 
 
-def one_man(name):
-    """The key under which one man's name is counted, whichever script a book spelled it in."""
+def whole_arabic(name):
+    """The full Arabic of a name where the corpus itself can give it, else None."""
     if ARABIC_RANGE.search(name):
         return normalize_arabic(name)
     arabic = TRANSLITERATED.get(fold_english(name))
-    return normalize_arabic(arabic) if arabic else fold_english(name)
+    return normalize_arabic(arabic) if arabic else None
 
 
-def sources_by_name(statements, stated_keys, key_of):
+def one_man(name):
+    """The key under which one man's name is counted, whichever script a book spelled it in."""
+    return whole_arabic(name) or fold_english(name)
+
+
+def sources_by_name(statements, stated_keys, key_of, text_for):
     """«Ibn Abi 'Umayr → [al-Najashi, Khoei]»: each man once, with who records the link.
 
     A teacher named by four books is better evidence than one named in a single chain note,
@@ -224,24 +230,38 @@ def sources_by_name(statements, stated_keys, key_of):
         if kind == "formula":
             continue
         # keyed by the man, not by the spelling, so one pupil is one row
-        held = found.setdefault(one_man(name), {"name": name, "books": [], "books_ar": [],
-                                               "kind": kind, "stated": False})
+        held = found.setdefault(one_man(name), {"name": name, "kind": kind,
+                                                "names": [], "absent": []})
         if ARABIC_RANGE.search(name) and not ARABIC_RANGE.search(held["name"]):
             held["name"] = name          # the book's own script wins the display
         elif not ARABIC_RANGE.search(held["name"]) and len(name) > len(held["name"]):
             held["name"] = name          # otherwise the fuller of two Latin spellings
         book = item.get("source_book")
-        title = BOOK_TITLE.get(book, book)
-        if title and title not in held["books"]:
-            held["books"].append(title)
-        title_ar = BOOK_TITLE_AR.get(book)
-        if title_ar and title_ar not in held["books_ar"]:
-            held["books_ar"].append(title_ar)
         key = key_of(book, item.get("source_pages") or [])
-        if key in stated_keys:
-            held["stated"] = True
-    return sorted(found.values(),
-                  key=lambda x: (not x["stated"], -len(x["books"]), x["name"]))[:200]
+        if key not in stated_keys:
+            # an index of chains, not a book's statement: it names no passage to test
+            held.setdefault("indexed", []).append(book)
+            continue
+        # A book states this of him; the question is whether its entry names the man. The
+        # audit scored the relation fields lowest of the six, and at the level of one name
+        # only 34.4% of 771 were upheld. Set aside the ones the passage does not hold and
+        # the rest read 73.3%, at the cost of 7 names in 419 that an auditor would have kept.
+        says = relation_evidence.names_him(name, text_for(key), whole_arabic, fold_english)
+        (held["absent"] if says == "absent" else held["names"]).append(book)
+
+    rows = []
+    for held in found.values():
+        books = held["names"] or held["absent"] or held.get("indexed") or []
+        rows.append({"name": held["name"], "kind": held["kind"],
+                     "books": [BOOK_TITLE.get(b, b) for b in dict.fromkeys(books)
+                               if BOOK_TITLE.get(b, b)],
+                     "books_ar": [BOOK_TITLE_AR[b] for b in dict.fromkeys(books)
+                                  if BOOK_TITLE_AR.get(b)],
+                     "stated": bool(held["names"]),
+                     # a book states it, and the entry it states it in does not name the man
+                     "unsaid": not held["names"] and bool(held["absent"])})
+    return sorted(rows, key=lambda x: (not x["stated"], x["unsaid"],
+                                       -len(x["books"]), x["name"]))[:200]
 
 
 def join_names(names):
@@ -692,19 +712,28 @@ def document(person, source, headless):
         return None
 
     stated_keys = set(entry_keys)
-    all_from = sources_by_name(values(person, "narrated_from"), stated_keys, key_of)
-    all_to = sources_by_name(values(person, "narrated_to"), stated_keys, key_of)
+    def text_for(key):
+        return text_of(source[key]) if key in source else None
+
+    all_from = sources_by_name(values(person, "narrated_from"), stated_keys, key_of, text_for)
+    all_to = sources_by_name(values(person, "narrated_to"), stated_keys, key_of, text_for)
 
     # Three lists, because they are three different claims and the page may not blur them:
     # men a book says he learned from, men who merely stand beside him in an index of
     # chains, and the Imams, who everyone transmits from and who bury the rest if mixed in.
+    # Four lists now, because the gate adds a fourth claim: men a book says he learned from
+    # and names in the entry it says it in; men a book says it of in an entry that does not
+    # name them; men who merely stand beside him in an index of chains; and the Imams, who
+    # everyone transmits from and who bury the rest if mixed in.
     def split(links):
         return ([m for m in links if m["kind"] != "imam" and m["stated"]],
-                [m for m in links if m["kind"] != "imam" and not m["stated"]],
-                [m for m in links if m["kind"] == "imam"])
+                [m for m in links if m["kind"] != "imam" and not m["stated"]
+                 and not m["unsaid"]],
+                [m for m in links if m["kind"] == "imam" and not m["unsaid"]],
+                [m for m in links if m["unsaid"]])
 
-    narrated_from, chain_from, imams_from = split(all_from)
-    narrated_to, chain_to, imams_to = split(all_to)
+    narrated_from, chain_from, imams_from, unsaid_from = split(all_from)
+    narrated_to, chain_to, imams_to, unsaid_to = split(all_to)
 
     names_ar = [n["value"] for n in values(person, "primary_names") + values(person, "arabic_aliases")
                 if n.get("value")]
@@ -764,6 +793,8 @@ def document(person, source, headless):
         # each name once, with the books that record the link, so the tab can show who says it
         "narrated_from": narrated_from,
         "narrated_to": narrated_to,
+        "unsaid_from": unsaid_from,
+        "unsaid_to": unsaid_to,
         "chain_from": chain_from,
         "chain_to": chain_to,
         "imams_from": imams_from,

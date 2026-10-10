@@ -87,6 +87,9 @@ public final class NarratorArabic {
         // were added, so an Arabic page named their books in English.
         out.put("chain_from", swapEach(narrator.get("chain_from"), LINK));
         out.put("chain_to", swapEach(narrator.get("chain_to"), LINK));
+        // and the links the gate sets aside, shown in the same tab
+        out.put("unsaid_from", swapEach(narrator.get("unsaid_from"), LINK));
+        out.put("unsaid_to", swapEach(narrator.get("unsaid_to"), LINK));
         out.put("reported_without_a_passage",
                 swapEach(narrator.get("reported_without_a_passage"), UNSOURCED));
 

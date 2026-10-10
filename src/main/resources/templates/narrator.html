@@ -462,6 +462,33 @@
             <span th:text="${#strings.listJoin(narrator.imams_from.![name], ' · ')}">al-Ṣādiq</span>
         </p>
 
+        <!-- Names our records attach to him out of an entry that does not contain them. The
+             audit put a single relation name at 34.4% upheld; where the cited entry names
+             the man it is 73.3%, and these are the rest. Shown, because the record holds
+             them, and apart, because the entry cited cannot be read to say it. -->
+        <section class="chains__indexed chains__indexed--unsaid"
+                 th:if="${!#lists.isEmpty(narrator.unsaid_from) or !#lists.isEmpty(narrator.unsaid_to)}">
+            <h2 class="hub-group__label" th:text="#{narrator.chains.unsaidHeading}">
+                Named with him, but not in the entry we hold
+            </h2>
+            <p class="chains__note" th:text="#{narrator.chains.unsaidNote}">
+                Our records tie these men to him on the authority of these books, but the
+                entries we hold do not name them.
+            </p>
+            <ul class="chains__list chains__list--indexed">
+                <li class="chains__row" th:each="man : ${narrator.unsaid_from}">
+                    <span class="chains__dir" th:text="#{narrator.chains.dirFrom}">from</span>
+                    <span class="chains__name" th:text="${man.name}">اسم</span>
+                    <span class="chains__books" th:text="${#strings.listJoin(man.books, ' · ')}">Khoei</span>
+                </li>
+                <li class="chains__row" th:each="man : ${narrator.unsaid_to}">
+                    <span class="chains__dir" th:text="#{narrator.chains.dirTo}">to</span>
+                    <span class="chains__name" th:text="${man.name}">اسم</span>
+                    <span class="chains__books" th:text="${#strings.listJoin(man.books, ' · ')}">Khoei</span>
+                </li>
+            </ul>
+        </section>
+
         <!-- What the books do not say of him, only show him standing in. Khoei lists the
              chains a man appears in as well as writing him up, and 87% of every link in this
              corpus comes from a list of that kind. It is true and it is a weaker claim. -->
