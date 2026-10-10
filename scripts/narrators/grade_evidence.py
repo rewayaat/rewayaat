@@ -47,14 +47,26 @@ from narrator_schema import normalize_arabic  # noqa: E402
 # The Arabic a verdict is read from. Each grade lists the words of its own root first and
 # then the formulas the books use in place of a word, which the audit's own notes supplied.
 GRADE_EVIDENCE_AR = {
+    # Tawthiq words, and the formulas that carry a tawthiq: «صحيح الحديث» is al-Najashi's own,
+    # «أحد الأركان الأربعة» al-Kashshi's, «شيخ العصابة» the highest of them.
+    #
+    # Madh and jalala are deliberately absent, and the auditors are the reason. Told only to
+    # judge whether the passage grades the man, they drew the classical line without being
+    # asked to: «فاضل، شاعر، أديب» is not tawthiq, «فقيه أصولي» is praise and no reliability
+    # grade, «العالم العامل والورع الزاهد والفقيه المحدّث» grades nobody, and al-Najashi's
+    # «وجه من وجوه العرب» is eminence among Arabs and not in hadith. Admitting that
+    # vocabulary took the shown claims from 3.1% wrong to 12.0% and rescued one claim.
     "thiqa": ["ثقة", "ثقه", "ثقات", "ثقتان", "وثقه", "وثقوه", "وثق", "وثاق", "توثيق", "موثق",
-              "أوثق", "الأركان الأربعة", "مستقيم", "أوجه", "عين", "عينا", "عيون",
-              "جليل القدر", "لا يطعن عليه"],
+              "أوثق", "صحيح الحديث", "صحيح الرواية", "صالح الحديث", "مسكون إلى روايته",
+              "مأمون", "متقن", "ثبت", "لا يطعن عليه", "الأركان الأربعة", "شيخ العصابة",
+              "مستقيم", "عين", "عينا", "عيون"],
     "saduq": ["صدوق", "صدق", "مصدق"],
     "hasan": ["حسن", "حسان", "ممدوح", "مدح"],
     "qawi": ["قوي", "قوة"],
     "daif": ["ضعيف", "ضعف", "ضعاف", "ضعفاء", "تضعيف", "مطعون", "لا يلتفت", "لا يعبأ",
-             "متروك", "غير معتمد", "مرتفع القول"],
+             "متروك", "غير معتمد", "مرتفع القول", "ليس بشيء", "ليس بذاك", "فاسد الحديث",
+             "منكر الحديث", "مضطرب", "لم يوثق", "في حديثه نظر", "يروي عن الضعفاء",
+             "لا يعتمد"],
     # A passage that weakens the man carries the substance of «very weak» even where it does
     # not reach for the word, so this grade reads from al-ḍaʿīf's words as well as its own.
     "very_weak": ["ضعيف جدا", "ضعيف جد"],
@@ -66,7 +78,8 @@ GRADE_EVIDENCE_AR = {
 # on it alone were of that kind. The definite article and the conjunctions may still precede
 # it. «حجة» was dropped outright: every sample was al-Kāfī's «كتاب الحجة» or the Mahdī's own
 # title, and no boundary can tell those from the praise.
-WHOLE_WORD = {"عين", "أوجه", "قوي", "قوة", "صدق", "مدح", "كذب", "حسن", "حسان"}
+WHOLE_WORD = {"عين", "ثبت", "قوي", "قوة", "صدق", "مدح", "كذب",
+              "حسن", "حسان"}
 _LETTER = r"\u0621-\u064a"
 _PREFIX = r"(?:و|ف|ب|ل|ك|ال|وال|فال|بال|لل)?"
 
