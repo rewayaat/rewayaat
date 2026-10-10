@@ -191,8 +191,17 @@ def learn_transliterations(profiles):
     TRANSLITERATED.clear()
     for form, holders in seen.items():
         # an English form two different men answer to is no use for joining them
-        if len(holders) == 1 or holders.most_common(1)[0][1] > sum(holders.values()) / 2:
-            TRANSLITERATED[form] = holders.most_common(1)[0][0]
+        arabic, support = holders.most_common(1)[0]
+        if len(holders) > 1 and support <= sum(holders.values()) / 2:
+            continue
+        # One heading pair is not a transliteration, it is a coincidence: a profile may hold
+        # an English name and an Arabic name that are not the same words. «kayssan» came out
+        # as «سعد بن أبي سعد المقبري» that way, «al-Sadiq» as «جعفر بن علي بن أبي طالب» —
+        # the wrong Ja'far, printed on an Arabic page as his teacher. A second heading
+        # agreeing, or a name long enough that a single coincidence is unlikely, is the bar.
+        if support < 2 and len(form.split()) < 3:
+            continue
+        TRANSLITERATED[form] = arabic
     return len(TRANSLITERATED)
 
 
