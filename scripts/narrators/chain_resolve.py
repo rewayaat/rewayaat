@@ -34,6 +34,7 @@ import sys
 
 W = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 sys.path.insert(0, f'{W}/scripts/narrators')
+import imams  # noqa: E402
 from narrator_schema import normalize_arabic  # noqa: E402
 
 TMP = f'{W}/tmp'
@@ -72,11 +73,29 @@ def same_name(one, other):
     return len(short) >= 2 and long[:len(short)] == short
 
 
+def father_name(person):
+    """The father's name as the book itself wrote it: what stands after the first «بن».
+
+    A man's own heading carries his father — «علي بن إبراهيم بن هاشم» names Ibrāhīm b. Hāshim
+    — so «عن أبيه» after him needs no guess, only the nasab the rijālī already recorded.
+    """
+    longest = ""
+    for name in list(person.get("headings_ar") or []) + [person.get("display_ar") or ""]:
+        folded = key(name)
+        if len(folded.split()) > len(longest.split()):
+            longest = folded
+    tokens = longest.split()
+    if "بن" not in tokens:
+        return ""
+    return " ".join(tokens[tokens.index("بن") + 1:])
+
+
 def load_people(path, books):
     """Name → the men filed under it, and each man's attested teachers and students."""
     with open(path) as handle:
         people = json.load(handle)
     holders, teachers, students, by_id = defaultdict(set), {}, {}, {}
+    imams_of, fathers = {}, {}
     for person in people:
         if books and not books & set(person.get("books") or []):
             continue
@@ -98,7 +117,14 @@ def load_people(path, books):
                          for r in person.get(field) or []}
         teachers[pid].discard("")
         students[pid].discard("")
-    return holders, teachers, students, by_id
+        imams_of[pid] = set()
+        for field in ("imams_from", "imams_to"):
+            for relation in person.get(field) or []:
+                name = relation.get("name_ar") or relation.get("name") or ""
+                imams_of[pid] |= imams.from_relation(name, key(name))
+        fathers[pid] = father_name(person)
+    return {"holders": holders, "teachers": teachers, "students": students, "by_id": by_id,
+            "imams_of": imams_of, "fathers": fathers}
 
 
 # «أبيه» as a teacher's name identifies nobody: every man who narrates from his father
@@ -121,16 +147,27 @@ def support(pid, before, after, teachers, students):
     return ""
 
 
-def resolve_chain(mentions, holders, teachers, students):
-    """Give each name mention in one chain an outcome, reading its neighbours for evidence."""
+def one_of(candidates, data):
+    """A single man, or nothing: the holder index's answer when it is not ambiguous."""
+    return candidates[0] if len(candidates) == 1 else ""
+
+
+def resolve_chain(mentions, data):
+    """Give each mention in one chain an outcome, in three passes over the same chain.
+
+    Names first, because the other two kinds are read off their neighbours: an Imam's kunya is
+    settled by which Imams the books say the narrator beside him transmitted from, and «أبيه»
+    is settled by whose father he is.
+    """
+    holders = data["holders"]
     keys = [key(m["text"]) for m in mentions]
-    out = []
-    for position, mention in enumerate(mentions):
-        row = dict(mention)
-        if mention["kind"] != "name":
-            row["outcome"] = mention["kind"]
-            out.append(row)
+    rows = [dict(m) for m in mentions]
+
+    for position, row in enumerate(rows):
+        if row["kind"] != "name":
+            row["outcome"] = row["kind"]
             continue
+        row["target"] = "narrator"
         candidates = sorted(holders.get(keys[position], ()))
         before = keys[position - 1] if position else ""
         after = keys[position + 1] if position + 1 < len(keys) else ""
@@ -139,7 +176,8 @@ def resolve_chain(mentions, holders, teachers, students):
         elif len(candidates) == 1:
             row["outcome"], row["person_id"] = "one", candidates[0]
         else:
-            backed = [(pid, support(pid, before, after, teachers, students)) for pid in candidates]
+            backed = [(pid, support(pid, before, after, data["teachers"], data["students"]))
+                      for pid in candidates]
             backed = [(pid, why) for pid, why in backed if why]
             if len(backed) == 1:
                 row["outcome"], row["person_id"], row["because"] = "chosen", *backed[0]
@@ -147,8 +185,64 @@ def resolve_chain(mentions, holders, teachers, students):
                 row["outcome"], row["candidates"] = "several", candidates
                 if backed:
                     row["backed"] = [pid for pid, _ in backed]
-        out.append(row)
-    return out
+
+    for position, row in enumerate(rows):
+        if row["kind"] != "imam":
+            continue
+        found = imams.identify(keys[position])
+        if not found:
+            # blessed, but not one of the fourteen: «أبي ذر رضي الله عنه», «جبريل عليه السلام»
+            row["outcome"] = "none"
+            continue
+        row["target"] = "imam"
+        if len(found) == 1:
+            row["outcome"], row["imam_id"] = "one", found[0]
+            continue
+        narrower = set()
+        for neighbour in (position - 1, position + 1):
+            if 0 <= neighbour < len(rows):
+                pid = rows[neighbour].get("person_id")
+                if pid:
+                    narrower |= data["imams_of"].get(pid, set())
+        backed = [i for i in found if i in narrower]
+        if len(backed) == 1:
+            row["outcome"], row["imam_id"] = "chosen", backed[0]
+            row["because"] = "the books file the narrator beside him with this Imam"
+        else:
+            row["outcome"], row["candidates"] = "several", list(found)
+
+    for position, row in enumerate(rows):
+        if row["kind"] != "relative":
+            continue
+        folded = keys[position]
+        steps = 2 if folded in ("جده", "جدي") else 1
+        if folded not in ("ابيه", "ابيها", "ابي", "جده", "جدي", "ابوه"):
+            row["outcome"] = "relative"
+            continue
+        previous = rows[position - 1] if position else {}
+        if previous.get("imam_id"):
+            imam = previous["imam_id"]
+            for _ in range(steps):
+                imam = imams.FATHER_OF.get(imam, "")
+            if imam:
+                row["target"], row["outcome"], row["imam_id"] = "imam", "chosen", imam
+                row["because"] = f"the father of {imams.BY_ID[previous['imam_id']]['name_en']}"
+                continue
+        pid = previous.get("person_id")
+        name = data["fathers"].get(pid, "") if pid else ""
+        for _ in range(steps - 1):
+            tokens = name.split()
+            name = " ".join(tokens[tokens.index("بن") + 1:]) if "بن" in tokens else ""
+        candidates = sorted(holders.get(name, ())) if name else []
+        if not candidates:
+            row["outcome"] = "relative"
+        elif len(candidates) == 1:
+            row["target"], row["outcome"], row["person_id"] = "narrator", "chosen", candidates[0]
+            row["because"] = f"the nasab of the man before him names his father «{name}»"
+        else:
+            row["target"], row["outcome"], row["candidates"] = "narrator", "several", candidates
+
+    return rows
 
 
 def main():
@@ -164,20 +258,24 @@ def main():
     args = parser.parse_args()
 
     books = set() if args.all_books else CLASSICAL
-    holders, teachers, students, by_id = load_people(args.people, books)
+    data = load_people(args.people, books)
+    by_id = data["by_id"]
     print(f"  {len(by_id):7,}  men can be linked to"
           f"{'' if args.all_books else ' (an entry in a classical book)'}")
-    print(f"  {len(holders):7,}  names lead to them")
+    print(f"  {len(data['holders']):7,}  names lead to them, besides the fourteen in the roster")
 
     outcomes, examples, chains = Counter(), defaultdict(list), 0
+    by_kind, per_book = Counter(), defaultdict(Counter)
     rows = []
     with open(args.mentions) as handle:
         for line in handle:
             row = json.loads(line)
             chains += 1
-            resolved = resolve_chain(row["mentions"], holders, teachers, students)
+            resolved = resolve_chain(row["mentions"], data)
             for mention in resolved:
                 outcomes[mention["outcome"]] += 1
+                by_kind[(mention["kind"], mention["outcome"])] += 1
+                per_book[row["book"]][mention["outcome"] in ("one", "chosen")] += 1
                 pool = examples[mention["outcome"]]
                 if len(pool) < max(args.show, 0):
                     pool.append((row["book"], mention))
@@ -190,16 +288,33 @@ def main():
         print(f"      {count:7,}  {100 * count / names:5.1f}%  {outcome}")
     linked = outcomes["one"] + outcomes["chosen"]
     print(f"      {linked:7,}  {100 * linked / names:5.1f}%  become a link")
-    for outcome in ("imam", "relative", "collective", "text"):
+    for outcome in ("relative", "collective", "text"):
         print(f"      {outcomes[outcome]:7,}         {outcome} (not a link)")
+
+    print("\n  by what the mention is:")
+    for kind in ("name", "imam", "relative", "collective", "text"):
+        held = sum(c for (k, _), c in by_kind.items() if k == kind)
+        if not held:
+            continue
+        parts = " ".join(f"{o} {by_kind[(kind, o)]:,}"
+                         for o in ("one", "chosen", "several", "none", kind)
+                         if by_kind[(kind, o)])
+        linked = by_kind[(kind, "one")] + by_kind[(kind, "chosen")]
+        print(f"      {kind:11s} {held:7,}  {100 * linked / held:5.1f}% linked   {parts}")
+
+    print("\n  by book:")
+    for book, counts in sorted(per_book.items(), key=lambda kv: -sum(kv[1].values())):
+        held = sum(counts.values())
+        print(f"      {counts[True]:7,}/{held:7,}  {100 * counts[True] / held:5.1f}%  {book}")
 
     for outcome in ("one", "chosen", "several", "none"):
         if not examples[outcome]:
             continue
         print(f"\n  {outcome}:")
         for book, mention in examples[outcome]:
-            who = mention.get("person_id", "")
-            name = by_id[who]["display_ar"] if who in by_id else ""
+            who = mention.get("person_id") or mention.get("imam_id", "")
+            name = (by_id[who]["display_ar"] if who in by_id
+                    else imams.BY_ID[who]["name_ar"] if who in imams.BY_ID else "")
             extra = mention.get("because", "") or f"{len(mention.get('candidates', []))} men"
             print(f"      «{mention['text'][:40]}» {book[:18]:18s} {who:8s} {name[:28]:28s} {extra}")
 
