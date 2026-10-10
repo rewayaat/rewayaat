@@ -252,7 +252,12 @@ def sources_by_name(statements, stated_keys, key_of, text_for):
     rows = []
     for held in found.values():
         books = held["names"] or held["absent"] or held.get("indexed") or []
-        rows.append({"name": held["name"], "kind": held["kind"],
+        # An Arabic page should not read «روى عنه Abu al-Hasan Musa». Where the books
+        # themselves spelled this man's name in Arabic somewhere in the corpus, that
+        # spelling is what an Arabic reader gets; where they never did, the Latin stands.
+        name_ar = (held["name"] if ARABIC_RANGE.search(held["name"])
+                   else TRANSLITERATED.get(fold_english(held["name"])))
+        rows.append({"name": held["name"], "name_ar": name_ar, "kind": held["kind"],
                      "books": [BOOK_TITLE.get(b, b) for b in dict.fromkeys(books)
                                if BOOK_TITLE.get(b, b)],
                      "books_ar": [BOOK_TITLE_AR[b] for b in dict.fromkeys(books)

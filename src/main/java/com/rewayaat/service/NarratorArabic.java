@@ -50,7 +50,9 @@ public final class NarratorArabic {
             "said", "said_ar");
 
     /** A teacher or a student, with the books that record the link. */
-    private static final Map<String, String> LINK = Map.of("books", "books_ar");
+    private static final Map<String, String> LINK = Map.of(
+            "books", "books_ar",
+            "name", "name_ar");
 
     /** A grade we hold no passage for: the book's name and the word, both in Arabic. */
     private static final Map<String, String> UNSOURCED = Map.of(
