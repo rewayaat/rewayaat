@@ -155,3 +155,18 @@ def from_relation(name, folded):
 FATHER_OF = {"i12": "i11", "i11": "i10", "i10": "i09", "i09": "i08", "i08": "i07",
              "i07": "i06", "i06": "i05", "i05": "i04", "i04": "i03", "i03": "i01",
              "i02": "i01", "i13": "i00"}
+
+
+# The forms that, in a hadith chain, designate one of the fourteen and nobody else — whether
+# or not the scribe wrote the blessing after them. Several books print «عن أبي عبد الله» bare,
+# and the auditors read every one of those as al-Sadiq; left to the narrator index the kunya
+# matched a handful of obscure men who also carry it. Full names are not listed here, because
+# «جعفر بن محمد» really is several men besides the sixth Imam.
+CHAIN_FORMS = {
+    "ابي عبد الله", "ابو عبد الله", "ابا عبد الله", "ابي عبدالله", "ابي جعفر", "ابو جعفر",
+    "ابا جعفر", "ابي الحسن", "ابو الحسن", "ابا الحسن", "ابي محمد", "ابي ابراهيم",
+    "امير المومنين", "رسول الله", "النبي", "الصادق", "الباقر", "الكاظم", "الرضا", "الجواد",
+    "الهادي", "المهدي", "القايم", "صاحب الزمان", "العبد الصالح", "ابي الحسن الرضا",
+    "ابي الحسن الاول", "ابي الحسن الثاني", "ابي الحسن الثالث", "ابي جعفر الثاني",
+    "ابي جعفر الباقر", "ابي عبد الله الصادق", "ابي الحسن موسي", "ابي الحسن الماضي",
+}

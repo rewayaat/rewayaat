@@ -37,7 +37,11 @@ TMP = f'{W}/tmp'
 CHAINS = f'{TMP}/narrators_chains/chains.jsonl'
 
 _TASHKEEL = re.compile(r"[ً-ْٰـ­ۖ-ۭ]")
-_FOLD = str.maketrans({"أ": "ا", "إ": "ا", "آ": "ا", "ٱ": "ا", "ى": "ي", "ئ": "ي", "ؤ": "و"})
+# ی and ک are the Persian letters: the Qom editions of several of these books are typeset
+# with them, and «أَبِیهِ» went unrecognised as «أبيه» until they were folded — six of the
+# audit's wrong links were that one slip, each of them «his father» pointing at a Qummi shaykh.
+_FOLD = str.maketrans({"أ": "ا", "إ": "ا", "آ": "ا", "ٱ": "ا", "ى": "ي", "ئ": "ي", "ؤ": "و",
+                       "ی": "ي", "ک": "ك", "ۀ": "ه", "ە": "ه", "ھ": "ه"})
 _NOT_ARABIC = re.compile(r"[^ء-ي]")
 
 # Words that join one name to the next, or end the chain. None of them is part of a name.

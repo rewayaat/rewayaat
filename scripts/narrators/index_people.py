@@ -34,8 +34,9 @@ import unicodedata
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from build_people import MAIN_BOOKS, is_entry, not_entries  # noqa: E402
 from grade_evidence import shown  # noqa: E402
+import imams  # noqa: E402
 import relation_evidence  # noqa: E402
-from narrator_schema import imam_generations, normalize_arabic  # noqa: E402
+from narrator_schema import imam_generations, normalize_arabic, normalize_english  # noqa: E402
 
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 TMP = os.path.join(REPO, "tmp")
@@ -868,6 +869,47 @@ MAPPING = {
 }
 
 
+def roster_documents(like):
+    """The fourteen, shaped like every other document so one page can render them all.
+
+    The Imams hold no entry in any rijāl book, because no rijālī assesses the man he is
+    assessing narrators for, yet theirs are the commonest names in the chains the site prints.
+    A link needs somewhere to land, so they are indexed from the roster in `imams.py` with
+    every field a narrator document has, emptied — no entries, no verdicts, no standing. The
+    page then says what is true of them: the books do not grade them.
+    """
+    blank = {field: ([] if isinstance(value, list) else {} if isinstance(value, dict)
+                     else "" if isinstance(value, str) else False if isinstance(value, bool)
+                     else None)
+             for field, value in like.items()}
+    documents = []
+    for imam in imams.ROSTER:
+        names_ar = sorted({imam["name_ar"]} | {f for f in imam["exact"]})
+        document_ = dict(blank)
+        document_.update({
+            "person_id": imam["id"],
+            "display_ar": imam["name_ar"],
+            "display_en": imam["name_en"],
+            "slug": slugify(imam["name_en"]),
+            "names_ar": names_ar,
+            "names_en": [imam["name_en"]],
+            "normalized_ar": sorted({normalize_arabic(n) for n in names_ar} - {""}),
+            "normalized_en": sorted({normalize_english(imam["name_en"])} - {""}),
+            "search_ar": names_ar,
+            "kind": "imam",
+            "holds_entry": True,
+            "standing": "not_graded",
+            "life": {"imams": [], "imams_ar": [], "city": None, "city_ar": None,
+                     "died": imam["died"], "died_ar": arabic_digits(imam["died"])},
+            # death_years holds years traced to a book's words; the roster's own year is
+            # not one of those, so it stands in `life` alone.
+            "entry_count": 0, "mention_count": 0, "teacher_count": 0, "student_count": 0,
+            "chain_only_count": 0, "blurb": "", "blurb_ar": "",
+        })
+        documents.append(document_)
+    return documents
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -909,6 +951,10 @@ def main():
             counts["entries shown"] += doc["entry_count"]
             counts["verdicts shown"] += len(doc["verdicts"])
             counts["verdicts traced to an entry"] += sum(1 for v in doc["verdicts"] if v["source_key"])
+    if documents:
+        roster = roster_documents(documents[0])
+        documents += roster
+        counts["the fourteen, who hold no entry anywhere"] = len(roster)
     for label, n in counts.most_common():
         print(f"  {n:7d}  {label}")
 

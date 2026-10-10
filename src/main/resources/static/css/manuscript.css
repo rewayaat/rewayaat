@@ -13686,6 +13686,15 @@ html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
 .narrator-standing--trusted  { background: rgba(120, 190, 140, 0.26); color: #d7f0dd; }
 .narrator-standing--weakened { background: rgba(220, 120, 110, 0.26); color: #f6dcd9; }
 .narrator-standing--unstated { background: rgba(255, 255, 255, 0.14); color: rgba(255,255,255,0.8); }
+.narrator-standing--not_graded { background: rgba(255, 255, 255, 0.10); color: rgba(255,255,255,0.72); }
+
+.narrator-imam-note {
+    margin: 0.9rem 0 0;
+    max-width: 48ch;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.78);
+}
 
 .narrator-stands {
     margin-bottom: 2.4rem;

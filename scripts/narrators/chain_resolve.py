@@ -73,6 +73,13 @@ def same_name(one, other):
     return len(short) >= 2 and long[:len(short)] == short
 
 
+# «أبيه» names nobody. As a teacher's name it would hand a man to whichever candidate was
+# listed first, and as a name in its own right it was pointing six chains at a Qummi shaykh
+# who happens to carry «أبيه» among his aliases. It is refused in both places.
+RELATIVE = {"ابيه", "ابيها", "عمه", "جده", "اخيه", "ابنه", "امه", "ابي", "جدي", "ابايه",
+            "ابوه", "اخوه", "ابويه", "عمته", "خاله", "عميه", "ابائه", "اجداده"}
+
+
 def father_name(person):
     """The father's name as the book itself wrote it: what stands after the first «بن».
 
@@ -91,24 +98,35 @@ def father_name(person):
 
 
 def load_people(path, books):
-    """Name → the men filed under it, and each man's attested teachers and students."""
+    """Name → the men filed under it, and each man's attested teachers, students and Imams.
+
+    The names are kept in two tiers, because they are not equal evidence. A heading is what a
+    rijālī filed the man under; an alias is any other name his entry mentions, and those lists
+    carry names lifted out of chains quoted inside the entry. Isḥāq b. ʿAmmār holds «ابن أبي
+    عمير» among his aliases, Zurāra holds «محمد بن مسلم», and the audit caught both of them
+    being handed somebody else's name. So an alias is consulted only when no heading matches.
+    """
     with open(path) as handle:
         people = json.load(handle)
-    holders, teachers, students, by_id = defaultdict(set), {}, {}, {}
+    headings, aliases = defaultdict(set), defaultdict(set)
+    teachers, students, by_id = {}, {}, {}
     imams_of, fathers = {}, {}
     for person in people:
         if books and not books & set(person.get("books") or []):
             continue
         pid = person["person_id"]
         by_id[pid] = person
-        names = list(person.get("headings_ar") or [])
+        own = set(person.get("headings_ar") or [])
         if person.get("display_ar"):
-            names.append(person["display_ar"])
-        names += list(person.get("names_ar") or [])
-        for name in names:
+            own.add(person["display_ar"])
+        for name in own:
             folded = key(name)
-            if folded:
-                holders[folded].add(pid)
+            if folded and folded not in RELATIVE:
+                headings[folded].add(pid)
+        for name in person.get("names_ar") or []:
+            folded = key(name)
+            if folded and folded not in RELATIVE and folded not in headings:
+                aliases[folded].add(pid)
         teachers[pid] = {key(r.get("name_ar") or r.get("name"))
                          for field in ("narrated_from", "chain_from", "unsaid_from")
                          for r in person.get(field) or []}
@@ -123,13 +141,18 @@ def load_people(path, books):
                 name = relation.get("name_ar") or relation.get("name") or ""
                 imams_of[pid] |= imams.from_relation(name, key(name))
         fathers[pid] = father_name(person)
-    return {"holders": holders, "teachers": teachers, "students": students, "by_id": by_id,
-            "imams_of": imams_of, "fathers": fathers}
+    return {"headings": headings, "aliases": aliases, "teachers": teachers,
+            "students": students, "by_id": by_id, "imams_of": imams_of, "fathers": fathers}
 
 
-# «أبيه» as a teacher's name identifies nobody: every man who narrates from his father
-# carries it, so it would hand the name to whichever candidate happened to be listed first.
-RELATIVE = {"ابيه", "ابيها", "عمه", "جده", "اخيه", "ابنه", "امه", "ابي", "جدي", "ابايه"}
+def held_by(folded, data):
+    """The men filed under a name — by their own heading, or failing that by an alias."""
+    if not folded:
+        return []
+    found = data["headings"].get(folded)
+    if found:
+        return sorted(found)
+    return sorted(data["aliases"].get(folded, ()))
 
 
 def support(pid, before, after, teachers, students):
@@ -159,7 +182,6 @@ def resolve_chain(mentions, data):
     settled by which Imams the books say the narrator beside him transmitted from, and «أبيه»
     is settled by whose father he is.
     """
-    holders = data["holders"]
     keys = [key(m["text"]) for m in mentions]
     rows = [dict(m) for m in mentions]
 
@@ -168,7 +190,7 @@ def resolve_chain(mentions, data):
             row["outcome"] = row["kind"]
             continue
         row["target"] = "narrator"
-        candidates = sorted(holders.get(keys[position], ()))
+        candidates = held_by(keys[position], data)
         before = keys[position - 1] if position else ""
         after = keys[position + 1] if position + 1 < len(keys) else ""
         if not candidates:
@@ -187,7 +209,8 @@ def resolve_chain(mentions, data):
                     row["backed"] = [pid for pid, _ in backed]
 
     for position, row in enumerate(rows):
-        if row["kind"] != "imam":
+        if row["kind"] != "imam" and not (keys[position] in imams.CHAIN_FORMS
+                                          and row.get("outcome") in ("several", "none")):
             continue
         found = imams.identify(keys[position])
         if not found:
@@ -195,6 +218,8 @@ def resolve_chain(mentions, data):
             row["outcome"] = "none"
             continue
         row["target"] = "imam"
+        row.pop("candidates", None)
+        row.pop("backed", None)
         if len(found) == 1:
             row["outcome"], row["imam_id"] = "one", found[0]
             continue
@@ -233,7 +258,7 @@ def resolve_chain(mentions, data):
         for _ in range(steps - 1):
             tokens = name.split()
             name = " ".join(tokens[tokens.index("بن") + 1:]) if "بن" in tokens else ""
-        candidates = sorted(holders.get(name, ())) if name else []
+        candidates = held_by(name, data) if name else []
         if not candidates:
             row["outcome"] = "relative"
         elif len(candidates) == 1:
@@ -262,7 +287,8 @@ def main():
     by_id = data["by_id"]
     print(f"  {len(by_id):7,}  men can be linked to"
           f"{'' if args.all_books else ' (an entry in a classical book)'}")
-    print(f"  {len(data['holders']):7,}  names lead to them, besides the fourteen in the roster")
+    print(f"  {len(data['headings']):7,}  names a book files one of them under, "
+          f"{len(data['aliases']):,} more they are called elsewhere")
 
     outcomes, examples, chains = Counter(), defaultdict(list), 0
     by_kind, per_book = Counter(), defaultdict(Counter)

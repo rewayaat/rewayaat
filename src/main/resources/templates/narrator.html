@@ -31,6 +31,12 @@
                 <span th:text="#{'narrator.standing.' + ${narrator.standing}}">The books disagree about him</span>
             </div>
 
+            <!-- The Imams hold no entry in any rijal book, because no rijali assesses the man
+                 he is assessing narrators for. Their pages say so rather than reading as a man
+                 nobody troubled to grade. -->
+            <p class="narrator-imam-note" th:if="${narrator.kind == 'imam'}"
+               th:text="#{narrator.imam.note}">The rijal books do not assess the Imams.</p>
+
             <!-- Each of these said what it is. Unlabelled they were three pills reading
                  «al-Jawād, al-Hādī, al-ʿAskarī», «Rayy» and «10 entries in 7 books», and
                  nothing on the page said which was a lifetime and which a birthplace. -->

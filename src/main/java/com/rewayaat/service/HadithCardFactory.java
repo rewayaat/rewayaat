@@ -1,6 +1,7 @@
 package com.rewayaat.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rewayaat.core.ChainLinks;
 import com.rewayaat.core.HadithDisplaySegmenter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,9 +78,14 @@ public class HadithCardFactory {
         row.put("number", number);
         String bookLabel = localised(source, "book", book, locale);
         row.put("label", (bookLabel + (number.isBlank() ? "" : " #" + number)).trim());
-        row.put("englishChain", str(segmented.get("englishChain")));
+        // The isnād carries a link on each name whose man the rijāl books identify; the
+        // spans were measured against this same segmenter's output (see ChainLinks).
+        Object chainLinks = source.get("chain_links");
+        row.put("englishChain", ChainLinks.render(str(segmented.get("englishChain")),
+                null, locale.prefix()));
         row.put("english", firstNonBlank(str(segmented.get("englishContent")), str(source.get("english"))));
-        row.put("arabicChain", str(segmented.get("arabicChain")));
+        row.put("arabicChain", ChainLinks.render(str(segmented.get("arabicChain")),
+                chainLinks, locale.prefix()));
         row.put("arabic", firstNonBlank(str(segmented.get("arabicContent")), str(source.get("arabic"))));
         row.put("notes", notesFor(source, locale));
         row.put("metadata", metadataRows(source, number, locale));
