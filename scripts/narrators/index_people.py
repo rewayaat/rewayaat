@@ -33,6 +33,7 @@ import unicodedata
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from build_people import MAIN_BOOKS, is_entry, not_entries  # noqa: E402
+from grade_evidence import shown  # noqa: E402
 from narrator_schema import imam_generations, normalize_arabic  # noqa: E402
 
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
@@ -527,20 +528,35 @@ def document(person, source, headless):
     # against 65% for entries, so presenting them as a book's word was wrong about two times
     # in three. They are kept and shown apart, named for what they are.
     stands, unsourced = {}, {}
+
+    def set_aside(verdict, reason):
+        """A grade the page holds but cannot show the reader a passage for."""
+        held = unsourced.setdefault(verdict["book"], {
+            "book": verdict["book"], "book_title": verdict["book_title"],
+            "book_title_ar": verdict["book_title_ar"],
+            "grades": [], "grades_ar": [], "reason": reason})
+        if held["reason"] != reason:
+            held["reason"] = "either"
+        word = GRADE_WORDS.get(verdict["grade"], (verdict["said"], "mixed"))[0]
+        if word not in held["grades"]:
+            held["grades"].append(word)
+        word_ar = GRADE_WORDS_AR.get(verdict["grade"])
+        if word_ar and word_ar not in held["grades_ar"]:
+            held["grades_ar"].append(word_ar)
+
     for verdict in verdicts:
         if not verdict["stated"]:
             continue
         if not verdict["source_key"]:
-            held = unsourced.setdefault(verdict["book"], {
-                "book": verdict["book"], "book_title": verdict["book_title"],
-                "book_title_ar": verdict["book_title_ar"],
-                "grades": [], "grades_ar": []})
-            word = GRADE_WORDS.get(verdict["grade"], (verdict["said"], "mixed"))[0]
-            if word not in held["grades"]:
-                held["grades"].append(word)
-            word_ar = GRADE_WORDS_AR.get(verdict["grade"])
-            if word_ar and word_ar not in held["grades_ar"]:
-                held["grades_ar"].append(word_ar)
+            set_aside(verdict, "no_entry")
+            continue
+        # The passage is citable; the question is whether it says it. A verdict is read from
+        # a word, and the audit of 2026-10-10 found that where the grade's own word is absent
+        # from the cited passage the claim is wrong — 36 of 36 where no verdict word stood at
+        # all, 18 of 22 where only another grade's word did. 1,125 of the 4,087 verdicts the
+        # page presented as a book's position are of those two kinds, 816 of them Khoei's.
+        if not shown(verdict["grade"], text_of(source[verdict["source_key"]])):
+            set_aside(verdict, "not_in_passage")
             continue
         book = verdict["book"]
         held = stands.setdefault(book, {"book": book, "book_title": verdict["book_title"],

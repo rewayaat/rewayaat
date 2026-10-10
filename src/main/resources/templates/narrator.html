@@ -285,7 +285,14 @@
             <tr th:each="stand : ${narrator.reported_without_a_passage}">
                 <th scope="row" th:text="${stand.book_title}">Tanqīḥ al-Maqāl</th>
                 <td><span class="narrator-stands__position narrator-stands__position--unsourced"
-                          th:each="said : ${stand.grades}" th:text="${said}">thiqa</span></td>
+                          th:each="said : ${stand.grades}" th:text="${said}">thiqa</span>
+                    <!-- which of the two it is: a book with no entry of his that we hold, or
+                         an entry we hold that does not say it. The second is the stronger
+                         admission and the reader is owed the difference. -->
+                    <span class="narrator-stands__why"
+                          th:if="${stand.reason != null}"
+                          th:text="#{'narrator.unsourced.reason.' + ${stand.reason}}">
+                        not in the entry we hold</span></td>
             </tr>
             </tbody>
         </table>

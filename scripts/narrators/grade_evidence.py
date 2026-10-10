@@ -37,6 +37,7 @@ from collections import Counter, defaultdict
 import json
 import os
 import random
+import re
 import sys
 
 W = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
@@ -47,18 +48,40 @@ from narrator_schema import normalize_arabic  # noqa: E402
 # then the formulas the books use in place of a word, which the audit's own notes supplied.
 GRADE_EVIDENCE_AR = {
     "thiqa": ["ثقة", "ثقه", "ثقات", "ثقتان", "وثقه", "وثقوه", "وثق", "وثاق", "توثيق", "موثق",
-              "أوثق", "الأركان الأربعة", "مستقيم", "أوجه", "عين", "جليل القدر",
-              "لا يطعن عليه", "حجة"],
+              "أوثق", "الأركان الأربعة", "مستقيم", "أوجه", "عين", "عينا", "عيون",
+              "جليل القدر", "لا يطعن عليه"],
     "saduq": ["صدوق", "صدق", "مصدق"],
     "hasan": ["حسن", "حسان", "ممدوح", "مدح"],
     "qawi": ["قوي", "قوة"],
     "daif": ["ضعيف", "ضعف", "ضعاف", "ضعفاء", "تضعيف", "مطعون", "لا يلتفت", "لا يعبأ",
              "متروك", "غير معتمد", "مرتفع القول"],
+    # A passage that weakens the man carries the substance of «very weak» even where it does
+    # not reach for the word, so this grade reads from al-ḍaʿīf's words as well as its own.
     "very_weak": ["ضعيف جدا", "ضعيف جد"],
     "kadhdhab": ["كذاب", "كذب", "وضاع", "يضع الحديث", "يكذب"],
     "non_existent": ["لا وجود له", "لا ذكر له"],
 }
+# Needles that must stand as a word of their own. «عين» — an eminent man — is also the tail
+# of «أعين» (Zurāra b. Aʿyan), of «معين» and of «عين رسول الله»: all five of a sample resting
+# on it alone were of that kind. The definite article and the conjunctions may still precede
+# it. «حجة» was dropped outright: every sample was al-Kāfī's «كتاب الحجة» or the Mahdī's own
+# title, and no boundary can tell those from the praise.
+WHOLE_WORD = {"عين", "أوجه", "قوي", "قوة", "صدق", "مدح", "كذب", "حسن", "حسان"}
+_LETTER = r"\u0621-\u064a"
+_PREFIX = r"(?:و|ف|ب|ل|ك|ال|وال|فال|بال|لل)?"
+
+
+def _needle(word):
+    """A matcher for one needle: a substring, or a standalone word where that is required."""
+    normed = normalize_arabic(word)
+    if word not in WHOLE_WORD:
+        return normed
+    return re.compile(f"(?:^|[^{_LETTER}]){_PREFIX}{re.escape(normed)}(?:$|[^{_LETTER}])")
+
+
 # Read from the sense of a passage, never from a word.
+GRADE_EVIDENCE_AR["very_weak"] = (GRADE_EVIDENCE_AR["very_weak"]
+                                  + GRADE_EVIDENCE_AR["daif"])
 BY_SENSE = {"mukhtalaf_fih"}
 # Claims that the books say nothing: a silent passage is the evidence, not the absence of it.
 NO_VERDICT = {"majhul", "muhmal", "not_assessed", "unknown", "assessed", "unknown (majhul)"}
@@ -70,8 +93,12 @@ _NORM = {}
 def _normed(words):
     key = id(words)
     if key not in _NORM:
-        _NORM[key] = [normalize_arabic(w) for w in words]
+        _NORM[key] = [_needle(w) for w in words]
     return _NORM[key]
+
+
+def _stands_in(needle, body):
+    return bool(needle.search(body)) if hasattr(needle, "search") else needle in body
 
 
 def reads_as(grade, text):
@@ -84,10 +111,10 @@ def reads_as(grade, text):
         return "none"
     body = normalize_arabic(text)
     for needle in _normed(GRADE_EVIDENCE_AR.get(grade, [])):
-        if needle in body:
+        if _stands_in(needle, body):
             return "own"
     for needle in _normed(ANY_EVIDENCE):
-        if needle in body:
+        if _stands_in(needle, body):
             return "other"
     return "none"
 

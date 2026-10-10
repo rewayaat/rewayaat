@@ -13732,6 +13732,13 @@ html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
     font-style: italic;
 }
 .narrator-stands--unsourced { opacity: 0.86; margin-block-start: 1.25rem; }
+/* Why this grade is set aside, beside the grade itself: quiet, because it is a note
+   about our evidence and not part of what the book says. */
+.narrator-stands__why {
+    margin-inline-start: 0.4rem;
+    font-size: 0.74rem;
+    color: var(--text-muted);
+}
 
 .narrator-stands__page {
     font-size: 0.76rem;
