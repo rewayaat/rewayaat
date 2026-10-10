@@ -104,6 +104,9 @@ def is_entry(key, profile, excluded_keys):
 # own entry is that entry, so every decision on it counts (ANCHORING); a mention attached because
 # its name names one man is his only on that ground, so it joins him and nothing else — its older
 # joins were made on the host entry's data and would bridge him to someone else.
+# An experiment switch: whether a name mentioned inside someone else's entry may
+# join the man it names. See the note in anchored().
+ATTACH_MENTIONS = os.environ.get("ATTACH_MENTIONS", "1") != "0"
 ANCHORING = {"mention_is_entry"}
 ATTACHMENTS = ANCHORING | {"mention_names_one_entry"}
 
@@ -133,7 +136,8 @@ def anchored(decisions, profiles, tmp_dir):
             # person's chain. It stays on record for stage 8, which resolves chains.
             if any(k in stubs for k in d["sources"]):
                 continue
-            if d["method"] in ATTACHMENTS or all(k in anchors for k in d["sources"]):
+            if (ATTACH_MENTIONS and d["method"] in ATTACHMENTS) \
+                    or all(k in anchors for k in d["sources"]):
                 kept.append(d)
         elif d["kind"] == "partition":
             groups = [[k for k in g if k in anchors] for g in d["groups"]]
