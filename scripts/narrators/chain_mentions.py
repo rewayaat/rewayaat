@@ -64,6 +64,19 @@ BLESSINGS = {
 COLLECTIVE = {"بعض", "عدة", "اصحابنا", "اصحابه", "اصحابي", "واحد", "غير", "رجل", "رجال",
               "جماعة", "ذكره", "الكوفيين", "اخبرني بعض", "اصحاب", "عدتي"}
 
+# Words no name contains. When the chain's «عن» is the preposition "about" rather than the
+# relation — «سألته عن قول الله عز وجل الذين ملكت أيمانكم» — the cut lands in the body of the
+# narration, and what follows is a question, not a man. Note that «على» folds to «علي», which
+# is a name, so the preposition cannot be listed.
+FUNCTION = {"الذي", "التي", "الذين", "يا", "ايها", "كيف", "لم", "لا", "ما", "هل", "اذا",
+            "كان", "وكان", "كانت", "مع", "عند", "بين", "قد", "كذا", "الي", "في", "من",
+            "هذا", "هذه", "هو", "هي", "انا", "نحن", "لك", "له", "لها", "به", "بها", "عليك",
+            "يصلح", "يطاف", "ارايت", "اراه", "تلد", "يتزوج", "فقلت", "حتي", "او", "ايضا"}
+
+# The words that hold a name together and so do not count towards its length.
+NAME_GLUE = {"بن", "ابن", "ابي", "ابو", "ابا", "بنت", "عبد", "ال", "مولي", "اخي", "ام"}
+MAX_NAME_WORDS = 5
+
 # A name only in relation to the man before it.
 RELATIVE = {"ابيه", "ابيها", "ابويه", "عمه", "جده", "اخيه", "ابنه", "عمته", "خاله", "امه",
             "عميه", "جدي", "ابي", "ابوه", "اخوه", "ابايه", "ابائه", "اجداده", "ابويها"}
@@ -88,6 +101,8 @@ def bare(word):
 JOINERS = {bare(w) for w in JOINERS}
 BLESSINGS = {bare(w) for w in BLESSINGS}
 COLLECTIVE = {bare(w) for w in COLLECTIVE if " " not in w}
+FUNCTION = {bare(w) for w in FUNCTION}
+NAME_GLUE = {bare(w) for w in NAME_GLUE}
 RELATIVE = {bare(w) for w in RELATIVE}
 OPENERS = {bare(w) for w in OPENERS}
 
@@ -99,6 +114,10 @@ def kind_of(words, blessed):
         return "collective"
     if " ".join(folded) in RELATIVE:
         return "relative"
+    if any(w in FUNCTION for w in folded):
+        return "text"
+    if len([w for w in folded if w not in NAME_GLUE]) > MAX_NAME_WORDS:
+        return "text"
     if blessed and "بن" not in folded and "ابن" not in folded and len(folded) <= 4:
         # «أبي عبد الله عليه السلام», «الصادق عليه السلام» — an Imam, named by kunya or
         # title rather than by name, and «أبي جعفر» alone is two different Imams.
@@ -188,7 +207,7 @@ def main():
     print("  names a chain:", ", ".join(f"{n}×{c:,}" for n, c in sorted(per_chain.items())[:12]))
 
     if args.show:
-        for kind in ("name", "imam", "collective", "relative"):
+        for kind in ("name", "imam", "collective", "relative", "text"):
             pool = [(f, c) for (k, f), c in forms.items() if k == kind]
             pool.sort(key=lambda fc: -fc[1])
             print(f"\n  commonest {kind} mentions ({len(pool):,} distinct):")
