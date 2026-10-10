@@ -151,6 +151,57 @@ def relation_kind(name):
     return "person"
 
 
+# The corpus transliterates its own names. Two in five relation names are stored in Latin
+# script — "Safwan ibn Yahya" beside «صفوان بن يحيى» — because phase 1 wrote whichever the
+# passage gave it, and the two never met: al-Hakam b. Hakim listed Safwan as a stated pupil
+# under the Latin spelling and again, as a separate man, under the Arabic one in the chain
+# indexes. Every profile carries its own heading in both scripts, and its aliases in both, so
+# the books supply the mapping themselves: 44,269 forms, 92.6% of them pointing at a single
+# Arabic name, resolving 73.2% of the Latin relation names. What it cannot resolve is left as
+# it stands rather than transliterated back by guess — and most of that remainder is the Imams,
+# «Abu Abdullah (al-Sadiq)», which are marked as Imams and shown on their own line anyway.
+TRANSLITERATED = {}
+ARABIC_RANGE = re.compile(r"[\u0600-\u06ff]")
+
+
+def fold_english(value):
+    """A Latin name reduced to what two spellings of it share: «Abu 'Abd Allah» ~ «Abu Abdallah»."""
+    folded = unicodedata.normalize("NFKD", value or "").encode("ascii", "ignore").decode()
+    folded = folded.lower().replace("'", "").replace("`", "").replace("-", " ")
+    folded = re.sub(r"\b(?:ibn|bin|b)\b", "ibn", folded)
+    folded = re.sub(r"\bal\s+", "al", folded)
+    return " ".join(folded.split())
+
+
+def learn_transliterations(profiles):
+    """Build the English-to-Arabic map from the headings and aliases the books print."""
+    seen = defaultdict(Counter)
+    for profile in profiles.values():
+        couples = [(profile.get("primary_arabic_name"), profile.get("primary_english_name"))]
+        arabic, english = profile.get("arabic_aliases") or [], profile.get("english_aliases") or []
+        if len(arabic) == len(english):
+            couples.extend(zip(arabic, english))
+        for one, other in couples:
+            if not (isinstance(one, str) and isinstance(other, str)):
+                continue
+            if ARABIC_RANGE.search(one) and not ARABIC_RANGE.search(other):
+                seen[fold_english(other)][one.strip()] += 1
+    TRANSLITERATED.clear()
+    for form, holders in seen.items():
+        # an English form two different men answer to is no use for joining them
+        if len(holders) == 1 or holders.most_common(1)[0][1] > sum(holders.values()) / 2:
+            TRANSLITERATED[form] = holders.most_common(1)[0][0]
+    return len(TRANSLITERATED)
+
+
+def one_man(name):
+    """The key under which one man's name is counted, whichever script a book spelled it in."""
+    if ARABIC_RANGE.search(name):
+        return normalize_arabic(name)
+    arabic = TRANSLITERATED.get(fold_english(name))
+    return normalize_arabic(arabic) if arabic else fold_english(name)
+
+
 def sources_by_name(statements, stated_keys, key_of):
     """«Ibn Abi 'Umayr → [al-Najashi, Khoei]»: each man once, with who records the link.
 
@@ -171,8 +222,13 @@ def sources_by_name(statements, stated_keys, key_of):
         kind = relation_kind(name)
         if kind == "formula":
             continue
-        held = found.setdefault(name, {"name": name, "books": [], "books_ar": [],
-                                       "kind": kind, "stated": False})
+        # keyed by the man, not by the spelling, so one pupil is one row
+        held = found.setdefault(one_man(name), {"name": name, "books": [], "books_ar": [],
+                                               "kind": kind, "stated": False})
+        if ARABIC_RANGE.search(name) and not ARABIC_RANGE.search(held["name"]):
+            held["name"] = name          # the book's own script wins the display
+        elif not ARABIC_RANGE.search(held["name"]) and len(name) > len(held["name"]):
+            held["name"] = name          # otherwise the fuller of two Latin spellings
         book = item.get("source_book")
         title = BOOK_TITLE.get(book, book)
         if title and title not in held["books"]:
@@ -417,9 +473,26 @@ def document(person, source, headless):
     # profile, so a page showed «Tanqīḥ al-Maqāl: thiqa» three times. Where a book really does
     # take two positions, as Mamaqani does in quoting al-Najashi's «weak» before concluding
     # «thiqa» himself, both are kept and the disagreement is marked.
-    stands = {}
+    # A verdict is a book's position only when we can show the passage it stands in. Half of
+    # the stated verdicts in the corpus — 3,735 of 7,822 — cannot be tied to any entry the page
+    # holds, and 621 pages carried a reliability badge resting on nothing a reader could open.
+    # They come from phase 1 records whose «pages» are a five-page window rather than a
+    # citation: Tanqih al-Maqal has no printed entry in the corpus at all, so every one of its
+    # verdicts is of this kind, and Khoei's sub-records carry «thiqa» into passages whose whole
+    # text is «أقول: هو متحد مع ما تقدم عليه». The attribute audit measured such records at 37%
+    # against 65% for entries, so presenting them as a book's word was wrong about two times
+    # in three. They are kept and shown apart, named for what they are.
+    stands, unsourced = {}, {}
     for verdict in verdicts:
         if not verdict["stated"]:
+            continue
+        if not verdict["source_key"]:
+            held = unsourced.setdefault(verdict["book"], {
+                "book": verdict["book"], "book_title": verdict["book_title"],
+                "book_title_ar": verdict["book_title_ar"], "grades": []})
+            word = GRADE_WORDS.get(verdict["grade"], (verdict["said"], "mixed"))[0]
+            if word not in held["grades"]:
+                held["grades"].append(word)
             continue
         book = verdict["book"]
         held = stands.setdefault(book, {"book": book, "book_title": verdict["book_title"],
@@ -440,6 +513,7 @@ def document(person, source, headless):
             continue
         held["divided"] = len({p["leaning"] for p in held["positions"]}) > 1
         where_books_stand.append(held)
+    reported_without_a_passage = [unsourced[b] for b, *_r in BOOKS if b in unsourced]
 
     imams = set()
     for statement in values(person, "generations"):
@@ -451,8 +525,21 @@ def document(person, source, headless):
     imams_named = [IMAM_NAMES[n] for n in sorted(imams) if n < len(IMAM_NAMES)]
     imams_named_ar = [IMAM_NAMES_AR[n] for n in sorted(imams) if n < len(IMAM_NAMES_AR)]
     spans = [YEARS[n] for n in sorted(imams) if n in (YEARS or {})]
-    cities = [c["value"] for c in values(person, "city_or_tribe") if c.get("value")]
-    died = [d["value"] for d in values(person, "death_years") if d.get("value")]
+    # Cited or not said. A city or a death year read from a record we cannot show the reader
+    # is an assertion the page cannot support, and the audit put the city field at 67% on
+    # entries against 48% across every record that carries one.
+    def cited(field, key_name="value"):
+        out = []
+        for item in values(person, field):
+            if not item.get(key_name):
+                continue
+            if entry_key_for(person, item.get("source_book"),
+                             item.get("source_pages") or [], entry_keys):
+                out.append(item[key_name])
+        return out
+
+    cities = cited("city_or_tribe")
+    died = cited("death_years")
     city = Counter(cities).most_common(1)[0][0] if cities else None
     life = {"imams": imams_named,
             "imams_ar": imams_named_ar,
@@ -594,6 +681,7 @@ def document(person, source, headless):
         "entry_count": len(entries),
         "verdicts": verdicts,
         "where_books_stand": where_books_stand,
+        "reported_without_a_passage": reported_without_a_passage,
         "for_him": sorted(for_him),
         "against_him": sorted(against_him),
         "standing": standing,
@@ -700,6 +788,8 @@ def main():
         for form in forms:
             HOLDERS[form] += 1
     source, headless = profiles(), not_entries(TMP)
+    learned = learn_transliterations(source)
+    print(f"{learned:,} English name forms mapped to Arabic from the books' own headings")
     counts = Counter()
     documents = []
     for person in people:

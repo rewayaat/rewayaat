@@ -13725,6 +13725,13 @@ html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
 
 .narrator-stands__position--for { background: rgba(120, 190, 140, 0.2); }
 .narrator-stands__position--against { background: rgba(220, 120, 110, 0.18); }
+/* A grade we cannot tie to a passage: shown, but without the colour that reads as a verdict
+   the reader can check. No green, no red — it is not evidence until there is a page behind it. */
+.narrator-stands__position--unsourced {
+    background: rgba(140, 140, 140, 0.14);
+    font-style: italic;
+}
+.narrator-stands--unsourced { opacity: 0.86; margin-block-start: 1.25rem; }
 
 .narrator-stands__page {
     font-size: 0.76rem;

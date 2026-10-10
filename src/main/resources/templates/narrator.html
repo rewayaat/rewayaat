@@ -267,6 +267,30 @@
         </p>
     </section>
 
+    <!-- Grades we hold for him that we cannot tie to a passage. They are not counted among
+         the books' positions above, and they do not set the standing in the hero: a verdict a
+         reader cannot open is not evidence, and half the stated grades in the corpus are of
+         this kind. Shown because withholding them would hide what the record contains, named
+         for exactly what they are. -->
+    <section class="narrator-stands narrator-stands--unsourced"
+             th:if="${!#lists.isEmpty(narrator.reported_without_a_passage)}">
+        <h2 class="hub-group__label" th:text="#{narrator.unsourced.heading}">
+            Reported of him without a passage we can show</h2>
+        <p class="narrator-stands__note" th:text="#{narrator.unsourced.note}">
+            These grades sit in our records for these books, but not in any entry of theirs
+            that we hold, so there is nothing here for you to read them against.
+        </p>
+        <table class="narrator-stands__table">
+            <tbody>
+            <tr th:each="stand : ${narrator.reported_without_a_passage}">
+                <th scope="row" th:text="${stand.book_title}">Tanqīḥ al-Maqāl</th>
+                <td><span class="narrator-stands__position narrator-stands__position--unsourced"
+                          th:each="said : ${stand.grades}" th:text="${said}">thiqa</span></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
 
     </div>
 
