@@ -98,6 +98,23 @@ def structural(task, field):
     return normalize_arabic(said) not in normalize_arabic(text)
 
 
+# Grades that assert the absence of a verdict rather than a verdict. «مجهول» means the books
+# do not grade this man; «مهمل» that they list him without comment. A passage that says nothing
+# about his reliability therefore CONFIRMS such a claim, and the auditors' `absent` is the right
+# answer to the wrong question — the first scoring counted 92 confirmations as failures and read
+# the grade field nine points lower than it is. They are measured on their own terms: right when
+# the passage is silent or says as much, wrong only when the passage does grade him.
+NO_VERDICT = {"majhul", "muhmal", "not_assessed", "unknown"}
+
+
+def grade_claim(task):
+    """Whether this task's grade asserts a verdict, the absence of one, or nothing."""
+    grade = (task.get("asserts") or {}).get("grade") or {}
+    if not grade.get("value"):
+        return None
+    return "absence" if grade["value"] in NO_VERDICT else "verdict"
+
+
 def stem(arabic):
     """Enough of an Arabic place name to find its nisbah: «الكوفة» -> «كوف», for «الكوفي»."""
     word = re.sub(r"^(ال)", "", normalize_arabic(arabic or "")).strip()
@@ -232,6 +249,8 @@ def main():
     whose = Counter()
     from_structure = defaultdict(Counter)
     from_heading = defaultdict(Counter)
+    no_verdict = Counter()
+    no_verdict_rows = defaultdict(Counter)
     unanswered = Counter()
     failures = []
     for row in measured:
@@ -249,6 +268,13 @@ def main():
                 by_field[field]["no answer"] += 1
                 continue
             task = posed.get(row["task_id"]) or {}
+            if field == "grade" and grade_claim(task) == "absence":
+                # right when the passage grades nobody, wrong when it does
+                no_verdict["confirmed" if verdict in ("absent", "supported")
+                           else "the passage does grade him"] += 1
+                no_verdict_rows[row["kind"]]["confirmed" if verdict in ("absent", "supported")
+                                             else "wrong"] += 1
+                continue
             if structural(task, field):
                 from_structure[row["book"]][verdict] += 1
                 continue
@@ -287,6 +313,15 @@ def main():
         overall.update(by_field[field])
     print(line("ALL", overall))
 
+    if no_verdict:
+        total = sum(no_verdict.values())
+        right = no_verdict["confirmed"]
+        print(f"\nclaims that the books do not grade him — «مجهول», «مهمل» — judged on their own"
+              f"\nterms, since a silent passage confirms them rather than failing them")
+        print(f"  {'majhul etc.':14s}{right / total:>7.1%}  of {total:4d} judged"
+              f"   wrong {no_verdict['the passage does grade him']:3d}"
+              f"   (the passage grades him after all)")
+
     print("\nby record kind")
     for kind in ("entry", "mention"):
         rolled = Counter()
@@ -294,6 +329,16 @@ def main():
             rolled.update(by_kind[kind][field])
         if sum(rolled.values()):
             print(line(kind, rolled))
+
+    print("\nwhat a page actually attributes to a book — printed entries only, which are the"
+          "\nrecords a reader can open and the only ones the page cites for a fact")
+    page = Counter()
+    for field in FIELDS:
+        page.update(by_kind["entry"][field])
+    print(line("the page", page))
+    for field in FIELDS:
+        if sum(by_kind["entry"][field].values()):
+            print(line("  " + field, by_kind["entry"][field], width=14))
 
     print("\nby book")
     for book in sorted(by_book):
@@ -344,6 +389,7 @@ def main():
         "precision": {f: precision(by_field[f])[0] for f in FIELDS
                       if sum(by_field[f].values())},
         "grade_whose": dict(whose),
+        "no_verdict_claims": dict(no_verdict),
         "from_section_heading": {b: dict(c) for b, c in from_structure.items()},
         "from_entry_heading": {f: dict(c) for f, c in from_heading.items()},
         "unanswered": dict(unanswered),

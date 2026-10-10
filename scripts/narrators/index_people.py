@@ -341,6 +341,23 @@ def values(person, field):
     return out
 
 
+def _same_value(value):
+    """Two statements of one fact, however the book spelled it: «Kufan (city)» ~ «Kufa»."""
+    if not isinstance(value, str):
+        return value
+    if ARABIC_RANGE.search(value):
+        return normalize_arabic(value)
+    # CITY_AR already holds the forms the books use — kufa, kufan, kufi all point at
+    # «الكوفة» — so the place names fold through it rather than through a second rule of
+    # my own. A first attempt stripped a trailing «an» and made «Kufan» and «Kufa» differ.
+    place = city_ar(value)
+    if place:
+        return normalize_arabic(place)
+    folded = re.sub(r"\s*\(.*?\)\s*", " ", value).strip().lower()
+    folded = re.sub(r"^(al-|el-)", "", folded).strip(" .")
+    return " ".join(folded.split()) or value.lower()
+
+
 def entry_key_for(person, book, pages, entry_keys):
     """The entry a statement was read from: its book, and its pages if they say which."""
     same_book = [k for k in entry_keys if k.split(":")[0] == book]
@@ -449,14 +466,37 @@ def document(person, source, headless):
         })
 
     def traced(field, key_name="value"):
-        out = []
+        """What the books state about him, each line attributed to the entry that states it.
+
+        A line here names a book, so it has to be a line that book can be held to. Anything
+        read from a record the page cannot open is left out — the same rule the verdicts and
+        the chain links answer to — because «Kufa — Tanqih al-Maqal» beside a book with no
+        entry in the corpus invites a reader to go and check a page that is not there.
+
+        Values that differ only in spelling are one line. The city field is free text in eight
+        books' hands, so one man carried «Kufan (city)» from al-Najashi and «Kufa» from
+        Mamaqani and the page printed his city twice.
+        """
+        out, seen = [], {}
         for item in values(person, field):
             book, pages = item.get("source_book"), item.get("source_pages") or []
-            out.append({key_name: item.get(key_name) or item.get("value"),
-                        "book": book, "book_title": BOOK_TITLE.get(book, book),
-                        "book_title_ar": BOOK_TITLE_AR.get(book), "pages": pages,
-                        "source_key": entry_key_for(person, book, pages, entry_keys)})
-        return [x for x in out if x.get(key_name)]
+            value = item.get(key_name) or item.get("value")
+            if not value:
+                continue
+            key = entry_key_for(person, book, pages, entry_keys)
+            if not key:
+                continue
+            same = seen.get(_same_value(value))
+            if same is not None:
+                if BOOK_TITLE.get(book, book) not in same["also"]:
+                    same["also"].append(BOOK_TITLE.get(book, book))
+                continue
+            row = {key_name: value, "book": book, "book_title": BOOK_TITLE.get(book, book),
+                   "book_title_ar": BOOK_TITLE_AR.get(book), "pages": pages,
+                   "source_key": key, "also": []}
+            seen[_same_value(value)] = row
+            out.append(row)
+        return out
 
     verdicts = []
     for grade in values(person, "reliability_grades"):
@@ -489,10 +529,14 @@ def document(person, source, headless):
         if not verdict["source_key"]:
             held = unsourced.setdefault(verdict["book"], {
                 "book": verdict["book"], "book_title": verdict["book_title"],
-                "book_title_ar": verdict["book_title_ar"], "grades": []})
+                "book_title_ar": verdict["book_title_ar"],
+                "grades": [], "grades_ar": []})
             word = GRADE_WORDS.get(verdict["grade"], (verdict["said"], "mixed"))[0]
             if word not in held["grades"]:
                 held["grades"].append(word)
+            word_ar = GRADE_WORDS_AR.get(verdict["grade"])
+            if word_ar and word_ar not in held["grades_ar"]:
+                held["grades_ar"].append(word_ar)
             continue
         book = verdict["book"]
         held = stands.setdefault(book, {"book": book, "book_title": verdict["book_title"],

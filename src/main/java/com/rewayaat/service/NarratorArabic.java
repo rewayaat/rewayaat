@@ -51,6 +51,11 @@ public final class NarratorArabic {
     /** A teacher or a student, with the books that record the link. */
     private static final Map<String, String> LINK = Map.of("books", "books_ar");
 
+    /** A grade we hold no passage for: the book's name and the word, both in Arabic. */
+    private static final Map<String, String> UNSOURCED = Map.of(
+            "book_title", "book_title_ar",
+            "grades", "grades_ar");
+
     /** Where and when he lived. {@code died} is a number and stays one. */
     private static final Map<String, String> LIFE = Map.of(
             "city", "city_ar",
@@ -77,6 +82,12 @@ public final class NarratorArabic {
         out.put("sect_flags", swapEach(narrator.get("sect_flags"), SOURCED));
         out.put("narrated_from", swapEach(narrator.get("narrated_from"), LINK));
         out.put("narrated_to", swapEach(narrator.get("narrated_to"), LINK));
+        // The chain-index links are shown beside the stated ones and were missed when they
+        // were added, so an Arabic page named their books in English.
+        out.put("chain_from", swapEach(narrator.get("chain_from"), LINK));
+        out.put("chain_to", swapEach(narrator.get("chain_to"), LINK));
+        out.put("reported_without_a_passage",
+                swapEach(narrator.get("reported_without_a_passage"), UNSOURCED));
 
         // A book's row, and the positions it takes inside that row.
         List<Object> stands = new ArrayList<>();

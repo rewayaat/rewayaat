@@ -310,6 +310,7 @@ published.
 | Accuracy, audit 2 (seed 20260920) | People precision 91.3%, **not met**, and the negative controls failed at 86.7%. Its strays traced to Layer 0 fusing two printed entries and to name-attached mentions bridging old joins; on the same sample after those fixes, 96.1% |
 | Accuracy, audit 4 (seed 20260924) | People precision **98.2%** against the 95% gate — **met**, with both controls at 30/30. The bands: 2–3 entries 100%, 4–10 97.5%, 11+ 82.5%, and it is the population weighting that carries the figure, because only 559 people hold eleven entries or more. Join precision: Khoei's quotations of al-Najāshī 100/100, his «=» pointers 100/100, Jāmiʿ's copies of al-Ṭūsī 99/100, Jāmiʿ among Khoei's homonyms 96/100, Khoei's citations of al-Ṭūsī 92/100 (96.8% leaving out «cannot tell»), mentions tied by name 69/100 strict but 97.2% leaving out the 29 too thin to judge. Splitting: 32% of sampled people have a double. All but one of its stray entries are mended |
 | Accuracy, audit 3 (seed 20260922) | People precision 95.3% — the 11+ band 90% — and the negative controls 86.7%, so the **gate is not met**. The entry-level joins measure 96–100%: Khoei's quotations of al-Najāshī 100/100, of al-Fihrist 97, Jāmiʿ's of al-Najāshī 99, Khoei's «=» pointers 98, «تقدم في» 98, «متحد مع ما بعده» 96. All 26 stray entries it found are mended. About a third of sampled people still have a double |
+| **Attributes, audit 7 (seed 20261010)** | The first audit of the *facts* rather than the identities: 460 records shown beside the Arabic they were read from, 1,278 questions, controls **30/30 planted caught and 30/30 verbatim passed**. **Of what a page attributes to a book entry, 65.5% stands in that entry's text** — generation 82.4%, grade 73.9%, city 66.7%, teachers 63.1%, death year 54.5%, students 45.8%. Across every stored record 48.3%; the phase 1 mentions alone 37.2%. By book: al-Najāshī 76%, al-Ḍuʿafāʾ 74%, al-Fihrist 50%, Khoei 40%, al-Kashshī 29%, Māmaqānī 29%. Only **2.0% is contradicted** (19 of 952) — the failure is overwhelmingly a page asserting what its own citation does not carry, and three cases read by hand against the raw books confirmed the unsupported grades are real inventions, often a fact belonging to a neighbouring same-named man. Of the grades a passage does state, **68.5% are the book's own verdict and 22.8% are it quoting another book**. Two artifacts of the sampler were found and scored apart: `majhul` is a claim that the books do *not* grade him, so a silent passage confirms it (97.2% right, and 92 confirmations were counted as failures in the first scoring); and Rijāl al-Ṭūsī files a man under a chapter heading the entry line does not repeat. The uncorrected headline was 44.7% |
 
 ### Data
 
@@ -371,51 +372,46 @@ Under `tmp/`, which is symlinked to `/mnt/share/rewayaat-backup/tmp/`:
 | `narrators_archive/2026-09-14-{5b-post-verify2,5b-post-xform2,5b-post-attach2,5b-post-split}/` | the same through phase B and its split pass, each the baseline of the run after it |
 | `narrators_merged.json` | **superseded** — the June merge; do not use |
 
-### The Khoei source, and what is wrong with it
+### The Khoei source: a diagnosis that was wrong, and the one that replaced it
 
-`tmp/narrators_sources/khoei_mujam.txt` is cleanly structured. Every entry opens on a
-numbered heading naming its subject:
+This section argued for months that the Khoei extraction had split the Muʿjam's 15,706
+numbered entries into 37,541 pieces and inferred a heading for each piece from its body, and
+that the repair was to re-extract the book against its own structure — a re-run of the
+identity pipeline, since 259,732 of 390,765 decisions name a khoei key.
 
-```
-### $ 2896 - الحسن بن عباس:
-### $ 2897 - الحسن بن العباس المعروفي:
-# روى عن الرضا (عليه السلام)، وروى عنه إسماعيل بن مرار. الكافي: ...
-```
+**That diagnosis was wrong and is retracted.** Checked before the re-extraction was paid for:
+**15,627 profiles carry `printed_entry` against the book's 15,706 printed entries — 99.5%.**
+The entries were parsed correctly all along. The other ~22,000 records are phase 1 *mentions*,
+which are not a failed parse of an entry; they are a separate and deliberate layer, a name
+appearing inside somebody else's passage. The 748 «relation stubs» are mentions behaving
+exactly as designed, and `is_entry` already keeps every one of them off the page.
 
-**15,706 numbered entries**, which is the Muʿjam's own count. Our extraction produced
-**37,541 profiles** from them — 2.4× — by splitting entries into pieces. A piece has no
-heading of its own, so the extractor inferred one from the body, and the body of entry 2897
-names Ismāʿīl b. Mirār only as the man who transmitted *from* its subject.
+What is true, and what the attribute audit of 2026-10-10 measured, is a different thing.
 
-What is measured:
+**A mention carries the facts of the passage it was read from, and that passage is usually
+about another man.** Audited against the Arabic they were read from, printed entries support
+**65.5%** of the facts extracted from them; mentions support **37.2%**. Al-Ḥakam b. Ḥakīm
+carried «thiqa» from two Khoei records whose whole text is «أقول: هو متحد مع ما تقدم عليه»,
+and a page showed it as Khoei's verdict on him.
 
-- **3,290 profiles (8.8%) carry a heading the book never prints.** Those are inferred
-  outright. The 91.2% that match a printed heading are an upper bound on correctness and not
-  a measure of it: a piece headed with the wrong man's name still matches *his* heading.
-- **748 are provably about a different man** — the whole body is one relation clause with
-  the inferred heading inside it. Thirty-two read at random across two samples were all of
-  that shape. `find_relation_stubs.py` draws the list; `build_people.relation_stubs` keeps
-  them from joining anybody.
+This is not confined to Khoei and is not fixed by re-extracting him:
 
-Two ways of repairing this after the fact were prototyped and **both failed**, and are
-recorded so they are not tried again:
+- **Tanqīḥ al-Maqāl has no printed entry in the corpus at all.** No raw text of it survives in
+  `tmp` to extract from, so all 15,740 of its records are mentions and every verdict it
+  carries is unsourced. A heading-shape rule for promoting them was tried and rejected: it
+  caught 4%, and the passages it rejected are plainly Māmaqānī's entries — he writes of a man
+  as «المعنون» rather than repeating the name, and what we hold are paragraph fragments.
+- **3,735 of the corpus's 7,822 stated verdicts could not be tied to any entry**, and 621
+  pages wore a reliability badge resting on nothing a reader could open.
 
-- matching a profile's text against entry bodies across the whole file — **38%** resolved
-  (the extraction paraphrases rather than quoting, so there is nothing to anchor on);
-- narrowing first by page. `source_pages` is a five-page window, so it identifies the chunk
-  the extractor read and not the entry; scoring body overlap inside the window resolved
-  **48%**, and most disagreements it surfaced were benign — the extraction having given a
-  *fuller* name than the printed heading, which is an improvement.
+**The repair is a rule about what a page may assert, not a re-extraction.** A fact is printed
+as a book's word only where the entry that states it can be shown: this governs the verdicts,
+the standing badge, the city, the death year, the generation and the chain links. What cannot
+be cited is shown apart, in grey, under a heading saying we hold no passage for it. That is
+cheap, it is already done, and it would still have been necessary after a re-extraction.
 
-Neither is accurate enough to relabel 37,541 records, and tuning a third heuristic would
-only fit it to the examples one happens to read.
-
-**So the repair is to extract Khoei against its own structure** — parse the 15,706 numbered
-entries and extract per entry, rather than chunking the text and inferring a subject for
-each piece. The cost is that it re-keys `khoei:N`, and **259,732 of 390,765 decisions
-(66.5%) mention a khoei key**: it is a re-run of the identity pipeline on a new source, not
-a refactor. Until then the page is honest about what it shows — `is_entry` keeps non-entries
-off it — but the chains tab and the ledger counts still carry what the pieces brought.
+Re-extracting Khoei may yet be worth doing for recall. It is not a correctness fix, and the
+cost above still applies to it.
 
 ### Code
 

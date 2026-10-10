@@ -354,6 +354,9 @@
                     <span th:text="${fact.value}">a companion of al-Sadiq</span>
                     <span class="narrator-facts__source"
                           th:text="#{narrator.facts.source(${fact.book_title})}">— book</span>
+                    <span class="narrator-facts__source" th:if="${!#lists.isEmpty(fact.also)}"
+                          th:text="#{narrator.facts.alsoIn(${#strings.listJoin(fact.also, ', ')})}">
+                        and also in another book</span>
                 </dd>
             </th:block>
             <th:block th:if="${!#lists.isEmpty(narrator.cities_or_tribes)}">
@@ -362,6 +365,9 @@
                     <span th:text="${fact.value}">Kufa</span>
                     <span class="narrator-facts__source"
                           th:text="#{narrator.facts.source(${fact.book_title})}">— book</span>
+                    <span class="narrator-facts__source" th:if="${!#lists.isEmpty(fact.also)}"
+                          th:text="#{narrator.facts.alsoIn(${#strings.listJoin(fact.also, ', ')})}">
+                        and also in another book</span>
                 </dd>
             </th:block>
             <th:block th:if="${!#lists.isEmpty(narrator.death_years)}">
@@ -370,6 +376,9 @@
                     <span th:text="#{narrator.yearAh(${@localeDigits.of(fact.value)})}">260 AH</span>
                     <span class="narrator-facts__source"
                           th:text="#{narrator.facts.source(${fact.book_title})}">— book</span>
+                    <span class="narrator-facts__source" th:if="${!#lists.isEmpty(fact.also)}"
+                          th:text="#{narrator.facts.alsoIn(${#strings.listJoin(fact.also, ', ')})}">
+                        and also in another book</span>
                 </dd>
             </th:block>
         </dl>
