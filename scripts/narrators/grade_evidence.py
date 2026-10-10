@@ -65,8 +65,8 @@ GRADE_EVIDENCE_AR = {
     "qawi": ["قوي", "قوة"],
     "daif": ["ضعيف", "ضعف", "ضعاف", "ضعفاء", "تضعيف", "مطعون", "لا يلتفت", "لا يعبأ",
              "متروك", "غير معتمد", "مرتفع القول", "ليس بشيء", "ليس بذاك", "فاسد الحديث",
-             "منكر الحديث", "مضطرب", "لم يوثق", "في حديثه نظر", "يروي عن الضعفاء",
-             "لا يعتمد"],
+             "منكر الحديث", "مناكير", "مضطرب", "لم يوثق", "في حديثه نظر",
+             "يروي عن الضعفاء", "لا يعتمد", "لا يعول عليه"],
     # A passage that weakens the man carries the substance of «very weak» even where it does
     # not reach for the word, so this grade reads from al-ḍaʿīf's words as well as its own.
     "very_weak": ["ضعيف جدا", "ضعيف جد"],
