@@ -2386,6 +2386,20 @@ main.container::before {
     color: inherit !important;
 }
 
+/* Each name in the isnād that the rijāl books identify is a link to that man's page. A chain
+   is read as one sentence, so the links are marked by an underline and not by colour: eight
+   names in eight bright words would read as a list of buttons rather than a chain. */
+.hadith-chain .chain-name {
+    text-decoration: none;
+    border-bottom: 1px dotted rgba(200, 162, 61, 0.5);
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+.hadith-chain .chain-name:hover,
+.hadith-chain .chain-name:focus-visible {
+    color: var(--accent-gold, #c8a23d) !important;
+    border-bottom-color: rgba(200, 162, 61, 0.9);
+}
+
 .arabic-text,
 .hadith-arabic {
     font-family: var(--font-arabic);
