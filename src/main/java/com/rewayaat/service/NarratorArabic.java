@@ -45,6 +45,7 @@ public final class NarratorArabic {
 
     /** Anything carrying the book it was read from: verdicts, statements, positions. */
     private static final Map<String, String> SOURCED = Map.of(
+            "value", "value_ar",
             "book_title", "book_title_ar",
             "said", "said_ar");
 

@@ -494,6 +494,10 @@ def document(person, source, headless):
             row = {key_name: value, "book": book, "book_title": BOOK_TITLE.get(book, book),
                    "book_title_ar": BOOK_TITLE_AR.get(book), "pages": pages,
                    "source_key": key, "also": []}
+            # the city in Arabic where CITY_AR vouches for it, so an Arabic page does not
+            # print «Kufan (city)» in the middle of a line of Arabic
+            if field == "city_or_tribe":
+                row["value_ar"] = city_ar(value)
             seen[_same_value(value)] = row
             out.append(row)
         return out
