@@ -4,6 +4,7 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
 import co.elastic.clients.elasticsearch._types.query_dsl.FieldValueFactorModifier;
 import co.elastic.clients.elasticsearch._types.query_dsl.FunctionBoostMode;
+import co.elastic.clients.elasticsearch._types.query_dsl.Operator;
 import co.elastic.clients.elasticsearch.core.GetResponse;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
@@ -110,7 +111,17 @@ public class NarratorService {
                     .query(q -> q.functionScore(fs -> fs
                             .query(inner -> inner.multiMatch(m -> m
                                     .query(text)
-                                    .fuzziness("AUTO")
+                                    // «AUTO» allows two edits past five letters, and at two
+                                    // edits «zurara» reaches «hurasa» and «zuraqan»: a search
+                                    // for Zurara returned Abu Hurasa and Qurazah b. Ka'b.
+                                    // One edit up to eight letters, and the first letter
+                                    // fixed, keeps the spellings that vary and drops the men
+                                    // who merely rhyme.
+                                    .fuzziness("AUTO:4,8")
+                                    .prefixLength(1)
+                                    // Every word, not any word. «ibn abi umayr» matched
+                                    // 10,000 men because «ibn» is in nearly every name.
+                                    .operator(Operator.And)
                                     .fields("display_ar^4", "display_en^4", "names_ar^2",
                                             "names_en^2", "normalized_ar", "normalized_en",
                                             "kunyahs_ar", "titles")))
