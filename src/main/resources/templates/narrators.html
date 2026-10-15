@@ -45,17 +45,50 @@
         <!-- The entry count is the honest ranking signal and it is shown, not hidden: a man
              with eleven entries is written about, one with a single chain mention is a name. -->
         <div class="hub-grid narrator-results" th:if="${total > 0}">
+            <!-- A search for one name answers with the whole family: Zurara b. A'yan, his
+                 five sons, and As'ad b. Zurara who stood with the Prophet a century and a
+                 half earlier. Under their names they are twenty copies of one card, so the
+                 card has to say which is which. The era he transmitted in, the year he died
+                 and where he lived are what tell them apart, and the books' verdict on him is
+                 what a reader came to find. `found['x']` and not `found.x`: this is a map,
+                 and asking a map for a key it lacks throws rather than reading as null. -->
             <a class="hub-card narrator-result" th:each="found : ${results}"
+               th:with="life=${found['life']},
+                        standing=${found['standing']},
+                        eras=${found['life'] == null ? null
+                              : (#locale.language == 'ar' ? found['life']['imams_ar']
+                                                          : found['life']['imams'])},
+                        where=${found['life'] == null ? null
+                               : (#locale.language == 'ar' ? found['life']['city_ar']
+                                                           : found['life']['city'])},
+                        died=${found['life'] == null ? null : found['life']['died']}"
                th:href="${arPrefix} + '/narrator/' + ${found.person_id}
                         + (${found.slug} != null and !${#strings.isEmpty(found.slug)} ? '/' + ${found.slug} : '')">
                 <div class="narrator-result__name" dir="rtl" lang="ar"
                      th:text="${found.display_ar}">اسم الراوي</div>
                 <div class="narrator-result__name-en" th:if="${found.display_en != null}"
                      th:text="${found.display_en}">Transliterated</div>
+                <div class="narrator-result__life"
+                     th:if="${!#lists.isEmpty(eras) or died != null or where != null}">
+                    <span class="narrator-result__era" th:if="${!#lists.isEmpty(eras)}"
+                          th:text="${#strings.listJoin(eras, ' · ')}">al-Bāqir · al-Ṣādiq</span>
+                    <span class="narrator-result__died" th:if="${died != null}"
+                          th:text="#{narrators.died(${@localeDigits.of(died)})}">d. 150</span>
+                    <span class="narrator-result__where" th:if="${where != null}"
+                          th:text="${where}">Kufa</span>
+                </div>
                 <div class="hub-card__meta">
                     <span th:text="#{narrators.entries(${@localeDigits.of(found.entry_count)})}">5 entries</span>
                     <span th:if="${!#lists.isEmpty(found.books)}"
                           th:text="#{narrators.books(${@localeDigits.of(#lists.size(found.books))})}">4 books</span>
+                    <!-- Only where a book actually grades him. «No book grades him» on
+                         fourteen cards of twenty is noise, and the silence is already told
+                         by the absence of a verdict. -->
+                    <span class="narrator-result__standing"
+                          th:if="${standing != null and standing != 'unstated'
+                                   and standing != 'not_graded'}"
+                          th:classappend="'narrator-result__standing--' + ${standing}"
+                          th:text="#{'narrator.standing.' + ${standing}}">Held reliable</span>
                 </div>
             </a>
         </div>

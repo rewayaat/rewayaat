@@ -13681,6 +13681,58 @@ html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
     color: var(--text-secondary);
 }
 
+/* What tells one man of a name from another: the Imams he transmitted under, the year he
+   died, where he lived. Dim, because it is there to be scanned down a column of twenty
+   cards rather than read, and separated by middots so a row reads as one line. */
+
+.narrator-result__life {
+    margin-top: 0.35rem;
+    font-family: var(--font-ui);
+    font-size: 0.76rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+}
+
+/* The middot hangs off the end of the part before it, not the start of the part after:
+   on a card narrow enough to wrap, a leading separator opens the second line. */
+
+.narrator-result__life > span:not(:last-child)::after {
+    content: "·";
+    margin: 0 0.4rem;
+    opacity: 0.55;
+}
+
+.narrator-result__era {
+    color: var(--text-secondary);
+}
+
+.narrator-result__died {
+    white-space: nowrap;
+}
+
+/* The verdict is the one thing on the card a reader came for, so it carries colour where
+   nothing else on the card does — and only where a book actually grades him. */
+
+.narrator-result__standing {
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+/* The hero's badges are light on a dark panel; a card is dark on light, so the same three
+   hues are taken down rather than reused as they stand. */
+
+.narrator-result__standing--trusted {
+    color: #2f6b43;
+}
+
+.narrator-result__standing--weakened {
+    color: #9b3028;
+}
+
+.narrator-result__standing--disputed {
+    color: var(--gold-dark);
+}
+
 /* Where each book stands: a table, because the reader's question is comparative — who says
    what — and chips scattered under a heading answered it badly. */
 
