@@ -34,7 +34,7 @@
             <!-- The Imams hold no entry in any rijal book, because no rijali assesses the man
                  he is assessing narrators for. Their pages say so rather than reading as a man
                  nobody troubled to grade. -->
-            <p class="narrator-imam-note" th:if="${narrator.kind == 'imam'}"
+            <p class="narrator-imam-note" th:if="${narrator['kind'] == 'imam'}"
                th:text="#{narrator.imam.note}">The rijal books do not assess the Imams.</p>
 
             <!-- Each of these said what it is. Unlabelled they were three pills reading
@@ -52,7 +52,7 @@
                 </span>
                 <!-- «4 books, 5 entries» is one message rather than two counts with words
                      spliced between them: Arabic does not take that word order. -->
-                <span class="hub-stat" th:unless="${narrator.kind == 'imam'}">
+                <span class="hub-stat" th:unless="${narrator['kind'] == 'imam'}">
                     <span class="hub-stat__label" th:text="#{narrator.writtenAboutIn}">Written about in</span>
                     <span class="hub-stat__value"
                           th:text="#{narrator.booksEntries(${@localeDigits.of(#lists.size(books))},
@@ -174,17 +174,17 @@
              open is a number he has to take on trust. -->
         <!-- A roster page has no entries to count from, so the three figures that come
              out of entries are left off rather than printed as noughts. -->
-        <a class="ledger__cell" th:href="${chainsUrl}" th:unless="${narrator.kind == 'imam'}">
+        <a class="ledger__cell" th:href="${chainsUrl}" th:unless="${narrator['kind'] == 'imam'}">
             <div class="ledger__value" th:text="${@localeDigits.of(narrator.teacher_count)}">37</div>
             <div class="ledger__label" th:text="#{narrator.ledger.narratesFrom}">Narrates from</div>
             <div class="ledger__note" th:text="#{narrator.ledger.narratesFromNote}">men the books name →</div>
         </a>
-        <a class="ledger__cell" th:href="${chainsUrl}" th:unless="${narrator.kind == 'imam'}">
+        <a class="ledger__cell" th:href="${chainsUrl}" th:unless="${narrator['kind'] == 'imam'}">
             <div class="ledger__value" th:text="${@localeDigits.of(narrator.student_count)}">26</div>
             <div class="ledger__label" th:text="#{narrator.ledger.narratedTo}">Narrated to</div>
             <div class="ledger__note" th:text="#{narrator.ledger.narratedToNote}">men who take from him →</div>
         </a>
-        <a class="ledger__cell" th:href="${booksUrl}" th:unless="${narrator.kind == 'imam'}">
+        <a class="ledger__cell" th:href="${booksUrl}" th:unless="${narrator['kind'] == 'imam'}">
             <div class="ledger__value">
                 <span class="ledger__for" th:text="${@localeDigits.of(#lists.size(narrator.for_him))}">2</span>
                 <span class="ledger__slash">/</span>
@@ -608,12 +608,16 @@
         </nav>
     </section>
 
-    <p class="narrator-provenance" th:if="${narrator.mention_count > 0 and narrator.kind != 'imam'}"
+    <p class="narrator-provenance" th:if="${narrator['kind'] == 'imam'}"
+       th:text="#{narrator.provenance.imam}">
+        This page is not assembled from entries. It gathers the chains that name him.
+    </p>
+    <p class="narrator-provenance" th:if="${narrator.mention_count > 0 and narrator['kind'] != 'imam'}"
        th:text="#{narrator.provenanceWithMentions(${@localeDigits.of(narrator.entry_count)},
                  ${@localeDigits.of(narrator.mention_count)})}">
         This page is assembled from 5 entries and 9 mentions in the chains.
     </p>
-    <p class="narrator-provenance" th:unless="${narrator.mention_count > 0 or narrator.kind == 'imam'}"
+    <p class="narrator-provenance" th:unless="${narrator.mention_count > 0 or narrator['kind'] == 'imam'}"
        th:text="#{narrator.provenance(${@localeDigits.of(narrator.entry_count)})}">
         This page is assembled from 5 entries.
     </p>

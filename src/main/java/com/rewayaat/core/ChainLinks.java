@@ -41,7 +41,9 @@ public final class ChainLinks {
             out.append(escape(chain.substring(at, span.start)));
             out.append("<a class=\"").append(CLASS).append("\" href=\"")
                     .append(escape(prefix == null ? "" : prefix)).append("/narrator/")
-                    .append(escape(span.person)).append("\">")
+                    .append(escape(span.person))
+                    .append(span.slug.isEmpty() ? "" : "/" + escape(span.slug))
+                    .append("\">")
                     .append(escape(chain.substring(span.start, span.end)))
                     .append("</a>");
             at = span.end;
@@ -69,7 +71,7 @@ public final class ChainLinks {
             if (!covers.isEmpty() && !chain.substring(start, end).equals(covers)) {
                 continue;  // the text moved under the offsets; leave this name unlinked
             }
-            spans.add(new Span(start, end, person));
+            spans.add(new Span(start, end, person, text(link.get("g"))));
         }
         spans.sort(Comparator.comparingInt(span -> span.start));
         List<Span> kept = new ArrayList<>(spans.size());
@@ -114,6 +116,6 @@ public final class ChainLinks {
         return out.toString();
     }
 
-    private record Span(int start, int end, String person) {
+    private record Span(int start, int end, String person, String slug) {
     }
 }

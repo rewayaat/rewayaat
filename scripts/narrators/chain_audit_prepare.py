@@ -109,10 +109,12 @@ def main():
     parser.add_argument("--batches", type=int, default=8)
     parser.add_argument("--controls", type=int, default=12,
                         help="planted controls, and the same number of verbatim ones")
+    parser.add_argument("--seed", type=int, default=SEED,
+                        help="a different seed draws a different sample, for a re-audit")
     parser.add_argument("--dry-run", action="store_true", help="count, write nothing")
     args = parser.parse_args()
 
-    rng = random.Random(SEED)
+    rng = random.Random(args.seed)
     people = load_people(args.people)
     pool = sorted(pid for pid, p in people.items() if p.get("entry_count", 0) > 1)
 
@@ -204,7 +206,7 @@ def main():
         write_json_atomic(f'{run}/batches/chain_{number:02d}.json',
                           {"batch": f"chain_{number:02d}.json", "tasks": batch}, indent=1)
     write_json_atomic(f'{run}/manifest.json',
-                      {"run": name, "seed": SEED, "chains": len(tasks), "links": questions,
+                      {"run": name, "seed": args.seed, "chains": len(tasks), "links": questions,
                        "batches": len(batches), "planted": planted, "twins": len(copies),
                        "by_outcome": dict(counts)}, indent=1)
     write_json_atomic(f'{args.out_dir}/keys/{name}.json', key_rows, indent=1)

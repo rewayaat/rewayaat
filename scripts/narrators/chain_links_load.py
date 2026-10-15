@@ -26,6 +26,17 @@ TMP = f'{W}/tmp'
 LINKED = ("one", "chosen")
 
 
+def slugs(host, index="rewayaat_narrators"):
+    """person_id → slug, so a link lands on the canonical page instead of a redirect."""
+    import urllib.request
+    body = json.dumps({"size": 10000, "_source": ["person_id", "slug"],
+                       "query": {"match_all": {}}}).encode()
+    request = urllib.request.Request(f'{host}/{index}/_search', data=body,
+                                     headers={"Content-Type": "application/json"})
+    hits = json.load(urllib.request.urlopen(request))["hits"]["hits"]
+    return {h["_source"]["person_id"]: h["_source"].get("slug") or "" for h in hits}
+
+
 def served_chains(path):
     """The chain text as the index the site reads actually holds it."""
     chains = {}
@@ -64,6 +75,8 @@ def main():
     args = parser.parse_args()
 
     chains = served_chains(args.served)
+    slug_of = slugs(args.es_host)
+    print(f"  {len(slug_of):7,}  people the links can point at")
     print(f"  {len(chains):7,}  narrations in the index the site reads")
 
     counts, updates = Counter(), []
@@ -86,7 +99,8 @@ def main():
                 if not where:
                     continue
                 links.append({"s": where[0], "e": where[1],
-                              "t": chain[where[0]:where[1]], "p": person})
+                              "t": chain[where[0]:where[1]], "p": person,
+                              "g": slug_of.get(person, "")})
             if links:
                 updates.append({"_id": row["id"], "chain_links": links})
                 counts["links placed"] += len(links)

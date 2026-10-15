@@ -825,6 +825,9 @@ def document(person, source, headless):
         "sect_flags": traced("sect_flags"),
         "mention_count": len(keys) - len(entry_keys),
         "holds_entry": bool(entry_keys),
+        # Always present, so a page asking a document for its kind never asks a map for a key
+        # it lacks: SpEL throws on that rather than reading it as null.
+        "kind": "narrator",
     }
 
 
