@@ -108,12 +108,103 @@ def years_in(text):
     return found
 
 
+def stated_deaths(page):
+    """Every year this man's own entries give as the year he died."""
+    said = set()
+    for entry in page.get("entries") or []:
+        said |= {y["year"] for y in years_in(entry.get("text_ar") or "") if y["about_death"]}
+    return said
+
+
+def pages(host, index):
+    import urllib.request
+    after = None
+    while True:
+        body = {"size": 1000, "sort": [{"person_id": "asc"}],
+                "query": {"exists": {"field": "life.died"}},
+                "_source": ["person_id", "display_ar", "life", "entries"]}
+        if after:
+            body["search_after"] = after
+        request = urllib.request.Request(f'{host}/{index}/_search',
+                                         data=json.dumps(body).encode(),
+                                         headers={"Content-Type": "application/json"})
+        hits = json.load(urllib.request.urlopen(request))["hits"]["hits"]
+        if not hits:
+            return
+        for hit in hits:
+            yield hit["_source"]
+        after = hits[-1]["sort"]
+
+
+def a_misreading(printed, said):
+    """Whether the difference between the two looks like a misread year and not another one.
+
+    The first cut of this corrected «1094» to «94», because an eleventh-century entry writes
+    «سنة أربع وتسعين» with the thousand understood and the parser takes it literally. It also
+    corrected 463 to 167 and 325 to 190, where the parser had simply found a different
+    sentence. Twelve of its sixteen corrections were wrong, and applying them would have done
+    more harm than the fault they were mending.
+
+    A misreading of a year written in words leaves a near miss or a transposition — «إحدى
+    وثلاثمائة» read as 311 instead of 301, «الف واحد عشر» as 1101 instead of 1011. A year with
+    a different number of digits, or a different set of them and far away, is the parser
+    reading the wrong sentence, and the page is left alone.
+    """
+    if len(str(printed)) != len(str(said)):
+        return False
+    if sorted(str(printed)) == sorted(str(said)):
+        return True
+    return abs(printed - said) <= 10
+
+
+def write_fixes(args):
+    """Only where the man's own entries state exactly one year, and it is not the one printed.
+
+    A passage often carries several years — a birth, a teacher's death, the year a book was
+    finished — so a disagreement is only safe to act on when the entries name one death year
+    and one alone. Everything else is left for a reader to settle, because a confident wrong
+    correction is worse than the misreading it replaces.
+    """
+    from collections import Counter
+    counts, fixes = Counter(), {}
+    for page in pages(args.es_host, args.index):
+        printed = (page.get("life") or {}).get("died")
+        if not printed:
+            continue
+        counts["death years printed"] += 1
+        said = stated_deaths(page)
+        if not said:
+            counts["no death year in any passage we hold"] += 1
+        elif printed in said:
+            counts["the passage states the year we print"] += 1
+        elif len(said) == 1 and a_misreading(printed, sorted(said)[0]):
+            counts["one year stated, and the difference looks like a misreading"] += 1
+            fixes[page["person_id"]] = {"was": printed, "year": sorted(said)[0],
+                                        "name_ar": page.get("display_ar")}
+        elif len(said) == 1:
+            counts["one year stated, but too far off to be a misreading — left alone"] += 1
+        else:
+            counts["several years stated — left for a reader"] += 1
+    for label, count in counts.most_common():
+        print(f"  {count:6,}  {label}")
+    os.makedirs(os.path.dirname(args.out), exist_ok=True)
+    with open(args.out + ".part", "w") as handle:
+        json.dump({"note": "Death years their own passage contradicts, read by rule from the "
+                           "entry. Only where the entries state exactly one year.",
+                   "years": fixes}, handle, ensure_ascii=False, indent=1, sort_keys=True)
+    os.replace(args.out + ".part", args.out)
+    print(f"\nwrote {len(fixes)} corrections -> {args.out}")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--check", action="store_true", help="the parser on known phrases")
     parser.add_argument("--sweep", action="store_true",
                         help="every stored death year against the passage it came from")
+    parser.add_argument("--fix", action="store_true",
+                        help="write the corrections that are safe to apply")
+    parser.add_argument("--out", default=f'{W}/scripts/data/narrators/death_years.json')
     parser.add_argument("--es-host", default="http://localhost:9200")
     parser.add_argument("--index", default="rewayaat_narrators")
     args = parser.parse_args()
@@ -133,6 +224,9 @@ def main():
         print(f"\n  {len(known) - wrong}/{len(known)} parsed correctly")
         return
 
+    if args.fix:
+        write_fixes(args)
+        return
     if not args.sweep:
         return
     import urllib.request

@@ -7,7 +7,8 @@ are in the books at all.** That is your question, and it is the only one.
 
 Your batch holds `tasks`. Each is one statement:
 
-- `field` — what kind of claim it is: `city_or_tribe`, `death_years`, or `generations`
+- `field` — what kind of claim it is: `city_or_tribe`, `death_years`, `generations`,
+  `reliability_grades`, `narrated_from`, `narrated_to`, `titles` or `kunyahs_arabic`
 - `value` — what the page prints
 - `narrator_ar` / `narrator_en` — the man it is printed about
 - `book`, `pages` — where it was read from
@@ -41,6 +42,19 @@ print that its own passage does not contain is the defect this audit exists to f
 - **A generation is usually the chapter a man is filed under**, «أصحاب أبي عبد الله» and the
   like, and the passage may carry it as «روى عن أبي عبد الله» or «عده الشيخ في أصحاب…». Any
   of those support it. A man merely *mentioned* with an Imam is not filed under him.
+- **A grade must be said of this man, in these words or plainly meant.** `thiqa` needs «ثقة»
+  or an equal — «لا بأس به» is not it, and «ثقة» said of his father or his teacher is not his.
+  A grade the passage gives on somebody else's authority («قال النجاشي: ثقة») still counts:
+  the entry is reporting it. `daif` needs «ضعيف» or «كذاب», «غال», «مخلط» and the like;
+  `majhul` needs the passage to say he is unknown, not merely to say little about him. **An
+  entry that says nothing about his reliability is `not_in_passage`, however long it is.**
+- **A teacher or a student must be named as one.** `narrated_from` says this man learned from
+  that one: «روى عن», «أخبرنا», or a chain in the entry where he stands directly after him.
+  `narrated_to` is the reverse. A man merely named in the same entry — a brother, a rival, the
+  subject of a story — is `not_in_passage`. If the passage has them the other way round, that
+  is `contradicted`, and it is the error worth catching.
+- **A title or a kunya must be his.** «أبو عبد الله» in the heading is his kunya; the same
+  words later in the entry may be the Imam he narrates from, which is not the same claim.
 - **A death year must be the man's own.** A passage that gives the year his teacher died, or
   the year a book was written, does not support his death year: that is `contradicted` if it
   is being read as his, and `not_in_passage` if the passage gives no year for him at all.

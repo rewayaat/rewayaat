@@ -25,7 +25,9 @@ import os
 W = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 AUDIT = f'{W}/tmp/narrators_audit/fields'
 # What the corpus prints, to weight the sample by: statements that reached a page.
-CORPUS = {"city_or_tribe": 2969, "death_years": 217, "generations": 7051}
+CORPUS = {"city_or_tribe": 2969, "death_years": 217, "generations": 7051,
+          "reliability_grades": 4773, "narrated_from": 3232, "narrated_to": 5223,
+          "titles": 4690, "kunyahs_arabic": 2668}
 
 
 def main():
@@ -94,14 +96,14 @@ def main():
 
     print(f"\n  {len(judged):,} statements judged of {len(asked):,} asked\n")
     right = whole = 0.0
-    for field in ("city_or_tribe", "death_years", "generations"):
+    for field in CORPUS:
         counts = by_field[field]
         held = sum(counts.values())
         if not held:
             continue
         decided = held - counts["unanswered"]
         rate = 100 * counts["supported"] / decided if decided else 0.0
-        print(f"  {field:14s} {held:4,} asked   {rate:5.1f}% supported "
+        print(f"  {field:18s} {held:4,} asked   {rate:5.1f}% supported "
               f"({counts['supported']:,} supported, {counts['contradicted']:,} contradicted, "
               f"{counts['not_in_passage']:,} not in the passage, "
               f"{counts['unanswered']:,} unanswered)")

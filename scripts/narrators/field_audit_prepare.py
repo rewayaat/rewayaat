@@ -40,7 +40,11 @@ TMP = f'{W}/tmp'
 SEED = 7
 # Each field, and the words that would show it in a passage. A death year and a generation
 # are read from different parts of an entry and are worth separate numbers.
-FIELDS = ("city_or_tribe", "death_years", "generations")
+# Every kind of claim a page prints with a book and a page behind it. The verdicts are the
+# weightiest — a man is relied on or he is not, and 53,560 statements say which — and the
+# relations are what the research graph will be built out of, so neither can stay unread.
+FIELDS = ("city_or_tribe", "death_years", "generations", "reliability_grades",
+          "narrated_from", "narrated_to", "titles", "kunyahs_arabic")
 SNIPPET = 1400
 
 
@@ -97,9 +101,11 @@ def main():
         pages_of = person.get("pages_of") or {}
         for field in FIELDS:
             for item in person.get(field) or []:
-                value = item.get("value")
+                value = item.get("value") or item.get("grade")
                 if not value:
                     continue
+                if field == "reliability_grades" and value == "not_assessed":
+                    continue   # «no grade» is the absence of a claim, not a claim
                 key = entry_key_for(pages_of, item.get("source_book"),
                                     item.get("source_pages") or [], entry_keys)
                 if key:
