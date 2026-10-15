@@ -36,6 +36,7 @@ AUDIT = f'{TMP}/narrators_audit/chain'
 
 # What the resolver made of the whole corpus, to weight the sample by (chain_resolve.py).
 CORPUS = {"one": 62173, "chosen": 7536, "convention": 18219, "several": 6391}
+CONVENTION_REACH = {"one book": 12994, "every book": 5225}
 RIGHT = {"one": "right", "chosen": "right", "convention": "right", "several": "ambiguous"}
 WRONG = {"one": "wrong", "chosen": "wrong", "convention": "wrong", "several": "settled"}
 
@@ -43,6 +44,21 @@ WRONG = {"one": "wrong", "chosen": "wrong", "convention": "wrong", "several": "s
 def load(path):
     with open(path) as handle:
         return json.load(handle)
+
+
+def reasons(run_dir):
+    """link_id → the reason the batch gave for it, which is where a convention came from.
+
+    A convention written against one book says so by name; one the auditors reached in two
+    different books says `the books`. The two are different claims and deserve separate
+    numbers: the wider a convention reaches, the more chains a wrong one spoils.
+    """
+    said = {}
+    for path in sorted(glob.glob(f'{run_dir}/batches/chain_*.json')):
+        for task in load(path).get("tasks") or []:
+            for link in task.get("links") or []:
+                said[link["link_id"]] = link.get("because", "")
+    return said
 
 
 def main():
@@ -92,6 +108,7 @@ def main():
                 agreed += judged[mirror]["verdict"] == item["verdict"]
     print(f"  twins answered the same  {agreed}/{total_twins}")
 
+    said = reasons(f'{args.audit_dir}/runs/{args.run}')
     verdicts = defaultdict(Counter)
     per_book, notes = defaultdict(Counter), []
     for link_id, answer in answer_of.items():
@@ -101,6 +118,9 @@ def main():
         verdict = item["verdict"] if item else "unanswered"
         verdicts[answer["outcome"]][verdict] += 1
         verdicts[("kind", answer["kind"])][verdict] += 1
+        if answer["outcome"] == "convention":
+            reach = "every book" if said.get(link_id, "").startswith("the books") else "one book"
+            verdicts[("reach", reach)][verdict] += 1
         per_book[answer["book"]][verdict] += 1
         if item and args.notes and verdict == args.notes:
             notes.append((answer["book"], link_id, item.get("who", ""), item.get("note", "")))
@@ -115,12 +135,28 @@ def main():
         right, wrong = counts[RIGHT[outcome]], counts[WRONG[outcome]]
         decided = right + wrong
         rate = 100 * right / decided if decided else 0.0
-        print(f"  {outcome:8s} {held:5,} asked   {rate:5.1f}% {RIGHT[outcome]} "
+        print(f"  {outcome:10s} {held:5,} asked   {rate:5.1f}% {RIGHT[outcome]} "
               f"({right:,} {RIGHT[outcome]}, {wrong:,} {WRONG[outcome]}, "
               f"{counts['cannot_tell']:,} cannot tell, {counts['unanswered']:,} unanswered)")
         if decided and outcome in CORPUS:
             estimate_right += CORPUS[outcome] * right / decided
             estimate_total += CORPUS[outcome]
+
+    if verdicts[("reach", "one book")] or verdicts[("reach", "every book")]:
+        print("\n  by how far the convention reaches "
+              f"(the corpus holds {CONVENTION_REACH['one book']:,} links from a convention "
+              f"written against one book, {CONVENTION_REACH['every book']:,} from one that "
+              "holds in every book):")
+        for reach in ("one book", "every book"):
+            counts = verdicts[("reach", reach)]
+            held = sum(counts.values())
+            if not held:
+                continue
+            right, wrong = counts["right"], counts["wrong"]
+            decided = right + wrong
+            print(f"      {reach:10s} {held:5,}   "
+                  f"{100 * right / decided if decided else 0:5.1f}% right "
+                  f"({right} right, {wrong} wrong, {counts['cannot_tell']} cannot tell)")
 
     print("\n  by what the mention is:")
     for kind in ("name", "imam", "relative"):

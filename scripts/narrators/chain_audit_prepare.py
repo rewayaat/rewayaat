@@ -187,7 +187,7 @@ def main():
                       "links": [shown(m, people) for m in judged]})
         key_rows.append({"task_id": task_id, "hadith": row["id"], "book": row["book"],
                          "answers": [{"link_id": m["link_id"], "outcome": m["outcome"],
-                                      "kind": m["kind"],
+                                      "kind": m["kind"], "because": m.get("because", ""),
                                       "person_id": m.get("person_id") or m.get("imam_id", ""),
                                       "candidates": m.get("candidates", [])}
                                      for m in judged]})
