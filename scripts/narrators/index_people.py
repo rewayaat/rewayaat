@@ -101,6 +101,9 @@ IMAM_NAMES = ["the Prophet", "ʿAlī", "al-Ḥasan", "al-Ḥusayn", "al-Sajjād"
               "the Mahdī"]
 IMAM_NAMES_AR = ["النبي", "علي", "الحسن", "الحسين", "السجاد", "الباقر", "الصادق", "الكاظم",
                  "الرضا", "الجواد", "الهادي", "العسكري", "المهدي"]
+# The rijālīs who wrote within reach of the men they assess. A verdict of theirs is a
+# testimony; a verdict of al-Ardabīlī's or al-Khoei's is usually a reading of one.
+EARLY_BOOKS = {"najashi", "fihrist", "tusi", "kashshi"}
 BOOK_NOTE = {"duafa": "The ascription of this book to Ibn al-Ghaḍāʾirī is disputed; al-Khoei "
                       "held it unproven («الكتاب المنسوب إلى ابن الغضائري… لم يثبت»)."}
 
@@ -781,6 +784,29 @@ def document(person, source, headless):
     standing = ("disputed" if for_him and against_him else "trusted" if for_him
                 else "weakened" if against_him else "unstated")
 
+    # Whose authority the one word rests on. The eight books are not eight equal voices: al-
+    # Najāshī and al-Ṭūsī wrote within living memory of the men they assess, al-Ardabīlī in
+    # 1101 and al-Khoei in 1413 are reading the same early books we are, and the ascription
+    # of the Ḍuʿafāʾ to Ibn al-Ghaḍāʾirī is disputed — al-Khoei held it unproven and would
+    # not weaken a man on it. Flattening them put «Held weak» at the head of 48 pages on the
+    # Ḍuʿafāʾ alone, and «Held reliable» on 319 where no early book says so. The verdict
+    # stands, because the books do say it; the page now says on whose word.
+    spoke = {b["book_title"] for b in where_books_stand
+             for p in b["positions"]
+             if p["leaning"] == ("against" if standing == "weakened" else "for")}
+    said_it = {b["book"] for b in where_books_stand
+               for p in b["positions"]
+               if standing == "disputed" or p["leaning"] == (
+                   "against" if standing == "weakened" else "for")}
+    rests_on = ""
+    if standing in ("trusted", "weakened", "disputed"):
+        if said_it == {"duafa"}:
+            rests_on = "duafa_only"
+        elif said_it & EARLY_BOOKS:
+            rests_on = "early"
+        else:
+            rests_on = "late"
+
     anchor = source.get(person.get("anchor")) or {}
     display = (anchor.get("primary_english_name") or person.get("primary_english_name")
                or anchor.get("primary_arabic_name") or "He")
@@ -948,6 +974,7 @@ def document(person, source, headless):
         "for_him": sorted(for_him),
         "against_him": sorted(against_him),
         "standing": standing,
+        "standing_rests_on": rests_on,
         "life": life,
         "blurb": blurb.strip(),
         "blurb_ar": blurb_ar.strip(),
@@ -1009,6 +1036,7 @@ MAPPING = {
         "mention_count": {"type": "integer"},
         "imam_ordinals": {"type": "integer"},
         "holds_entry": {"type": "boolean"},
+        "standing_rests_on": {"type": "keyword"},
         "display_en_made": {"type": "boolean"},
         "kunyahs_reported_ar": {"type": "text"},
         "titles_reported": {"type": "text"},

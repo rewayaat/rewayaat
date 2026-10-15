@@ -13713,6 +13713,18 @@ html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
 /* Said by a record with no passage behind it. Fainter and dotted, because the page is
    repeating it rather than standing behind it. */
 
+/* On whose authority a verdict rests, where it is not the early rijāl. Set under the badge
+   rather than beside it: a reader who takes in «Held weak» and stops reading has still been
+   told the wrong thing, so the qualification sits in the same breath. */
+
+.narrator-standing__rests {
+    margin-top: 0.35rem;
+    font-family: var(--font-ui);
+    font-size: 0.74rem;
+    letter-spacing: 0.04em;
+    opacity: 0.82;
+}
+
 .narrator-result__said {
     opacity: 0.72;
     border-bottom: 1px dotted currentColor;

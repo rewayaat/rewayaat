@@ -30,6 +30,18 @@
             <div class="narrator-standing" th:classappend="'narrator-standing--' + ${narrator.standing}">
                 <span th:text="#{'narrator.standing.' + ${narrator.standing}}">The books disagree about him</span>
             </div>
+            <!-- On whose word. The eight books are not eight equal voices: al-Najāshī and
+                 al-Ṭūsī wrote within reach of these men, al-Ardabīlī and al-Khoei are reading
+                 the same early books a reader of this page can read, and the ascription of
+                 the Ḍuʿafāʾ to Ibn al-Ghaḍāʾirī is disputed. A reader who is told «Held weak»
+                 and not told it rests on the Ḍuʿafāʾ alone has been told the wrong thing. -->
+            <div class="narrator-standing__rests"
+                 th:if="${narrator['standing_rests_on'] != null
+                         and narrator['standing_rests_on'] != ''
+                         and narrator['standing_rests_on'] != 'early'}"
+                 th:text="#{'narrator.standing.restsOn.' + ${narrator['standing_rests_on']}}">
+                on later scholars only
+            </div>
 
             <!-- The Imams hold no entry in any rijal book, because no rijali assesses the man
                  he is assessing narrators for. Their pages say so rather than reading as a man

@@ -106,6 +106,12 @@
                                    and standing != 'not_graded'}"
                           th:classappend="'narrator-result__standing--' + ${standing}"
                           th:text="#{'narrator.standing.' + ${standing}}">Held reliable</span>
+                    <!-- A verdict that no early rijālī gives, or that rests on a book of
+                         disputed ascription, says so here rather than passing as the rest. -->
+                    <span class="narrator-result__standing narrator-result__said"
+                          th:with="rests=${found['standing_rests_on']}"
+                          th:if="${rests != null and rests != '' and rests != 'early'}"
+                          th:text="#{'narrator.standing.restsOn.' + ${rests}}">later only</span>
                 </div>
             </a>
         </div>
