@@ -2594,6 +2594,16 @@ function initSelect2(select2_id) {
         },
         maxItems: null,
         placeholder: SEARCH_PLACEHOLDER_DEFAULT,
+        // Two kinds of suggestion, kept apart so the reader can see which is which: the men
+        // the rijāl books head, and the words the corpus actually uses. A name typed into
+        // this box used to offer only words, and the one thing a reader searching «zurara»
+        // most likely wants is the man.
+        optgroups: [
+            {value: 'narrators', label: t('js.suggest.narrators', 'Narrators')},
+            {value: 'terms', label: t('js.suggest.terms', 'Terms in the narrations')}
+        ],
+        optgroupField: 'group',
+        lockOptgroupOrder: true,
         loadThrottle: 250,
         load: function(query, callback) {
             var term = (query || '').trim();
@@ -2603,18 +2613,47 @@ function initSelect2(select2_id) {
             if (term.indexOf(' ') >= 0) {
                 return callback();
             }
-            var url = '/v1/terms/top?term=' + encodeURIComponent(term.replace(/["']/g, ""));
-            fetch(url)
+            var clean = term.replace(/["']/g, "");
+            // Asked for together, so the list does not jump as a second answer lands. Either
+            // side may fail on its own without costing the reader the other.
+            var terms = fetch('/v1/terms/top?term=' + encodeURIComponent(clean))
                 .then(function(response) { return response.json(); })
-                .then(function(data) {
-                    var results = data.map(function(item) {
-                        return { value: item, text: item };
+                .catch(function() { return []; });
+            var men = fetch('/v1/narrators?per_page=4&q=' + encodeURIComponent(clean))
+                .then(function(response) { return response.ok ? response.json() : null; })
+                .then(function(payload) {
+                    // A name three thousand men share names nobody — the same floor the
+                    // narrator strip uses, for the same reason.
+                    if (!payload || !payload.narrators || payload.total > 150) {
+                        return [];
+                    }
+                    return payload.narrators.filter(function(man) {
+                        return man && man.entry_count > 0;
                     });
-                    callback(results);
                 })
-                .catch(function() {
-                    callback();
+                .catch(function() { return []; });
+            Promise.all([men, terms]).then(function(both) {
+                var results = both[0].map(function(man) {
+                    // The value is what gets searched, so it is the name as the books write
+                    // it; the label carries the Arabic and the era to tell two men apart.
+                    var label = man.display_en || man.display_ar;
+                    var life = (man.life && man.life.imams || []).slice(0, 2).join(', ');
+                    return {
+                        value: label,
+                        text: label + (man.display_ar ? '  ' + man.display_ar : '')
+                              + (life ? '  \u00b7 ' + life : ''),
+                        group: 'narrators'
+                    };
                 });
+                var seen = {};
+                results.forEach(function(row) { seen[row.value.toLowerCase()] = true; });
+                (Array.isArray(both[1]) ? both[1] : []).forEach(function(item) {
+                    if (!seen[String(item).toLowerCase()]) {
+                        results.push({value: item, text: item, group: 'terms'});
+                    }
+                });
+                callback(results);
+            }).catch(function() { callback(); });
         },
         onItemAdd: function() {
             if (!suppressSearchGlow) {
