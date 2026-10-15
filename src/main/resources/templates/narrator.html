@@ -87,7 +87,7 @@
         <!-- The band is laid out in logical properties throughout, so on the Arabic page it
              mirrors of its own accord and time runs right to left, as an Arabic reader reads. -->
         <div class="chrono" th:if="${placement != null and placement.hasAnything()}"
-             th:attr="aria-label=#{narrator.chrono.label}">
+             data-chrono th:attr="aria-label=#{narrator.chrono.label}">
             <span class="chrono__ground" aria-hidden="true"></span>
 
             <!-- The dates, ruled above: the year each period opens on, and the axis end. -->
@@ -95,7 +95,7 @@
                 <th:block th:each="era, it : ${placement.eras}">
                     <span class="chrono__date"
                           th:classappend="${it.index % 2 == 1 ? 'is-low' : ''}"
-                          th:style="|inset-inline-start:${era.leftPercent}%|">
+                          th:style="|inset-inline-start:${era.leftPercent}%; --i:${it.index}|">
                         <span class="chrono__date-year" th:text="${era.fromArabic()}">١١٤</span>
                         <span class="chrono__date-tick"></span>
                     </span>
@@ -106,11 +106,20 @@
                 </span>
             </div>
 
-            <!-- The band itself: panels in proportion to the years they ran. -->
+            <!-- The band itself: panels in proportion to the years they ran. The plot wraps
+                 it because the band clips its own overflow, and the death mark has to stand
+                 above the gold rather than inside it — struck on a gold panel in gold, which
+                 is where most of these men died, it was invisible. -->
+            <div class="chrono__plot">
             <div class="chrono__band">
-                <span class="chrono__cell" th:each="era : ${placement.eras}"
+                <span class="chrono__cell" th:each="era, it : ${placement.eras}"
                       th:classappend="${era.highlighted ? 'is-on' : ''}"
-                      th:style="|inset-inline-start:${era.leftPercent}%; width:${era.widthPercent}%|"
+                      tabindex="0"
+                      th:style="|inset-inline-start:${era.leftPercent}%; width:${era.widthPercent}%; --i:${it.index}|"
+                      th:data-era="#{narrator.chrono.era(${isArabic} ? ${era.shortAr} : ${era.nameEn},
+                                   ${@localeDigits.of(era.fromAh)}, ${@localeDigits.of(era.toAh)})}"
+                      th:data-on="${era.highlighted}"
+                      th:data-lived="#{narrator.chrono.livedUnder}"
                       th:title="#{narrator.chrono.era(${isArabic} ? ${era.shortAr} : ${era.nameEn},
                                  ${@localeDigits.of(era.fromAh)}, ${@localeDigits.of(era.toAh)})}">
                     <!-- A panel of six years cannot hold a name; it keeps its number, and the
@@ -132,10 +141,18 @@
 
                 <span class="chrono__thread"
                       th:if="${placement.deathPercent != null and !placement.deathOutsideScale}"
-                      th:style="|inset-inline-start:${placement.deathPercent}%|"
-                      th:title="#{narrator.chrono.died(${deathAh})}">
-                    <span class="chrono__thread-head">۞</span>
-                </span>
+                      th:style="|inset-inline-start:${placement.deathPercent}%|"></span>
+            </div>
+
+            <!-- The one date on the band that is his own, so it is struck over everything
+                 else and labelled: a rosette, a thread, and the year in figures. -->
+            <span class="chrono__death"
+                  th:if="${placement.deathPercent != null and !placement.deathOutsideScale}"
+                  th:style="|inset-inline-start:${placement.deathPercent}%|"
+                  th:title="#{narrator.chrono.died(${deathAh})}">
+                <span class="chrono__death-mark" aria-hidden="true">۞</span>
+                <span class="chrono__death-year" th:text="${deathAh}">٢٢٠</span>
+            </span>
             </div>
 
             <p class="chrono__cartouche">
@@ -627,6 +644,7 @@
 <!-- Folds al-Khoei's longer entries, and the narrations below them, with the same control
      the chapter pages use. Without it the page is long but whole. -->
 <script src="/js/narration-collapse.js" th:src="@{/js/narration-collapse.js}"></script>
+<script src="/js/chrono.js" th:src="@{/js/chrono.js}" defer></script>
 <th:block th:replace="~{fragments/site :: analytics}"></th:block>
 </body>
 </html>
