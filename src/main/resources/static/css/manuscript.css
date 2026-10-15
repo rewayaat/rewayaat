@@ -13710,6 +13710,14 @@ html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
     white-space: nowrap;
 }
 
+/* Said by a record with no passage behind it. Fainter and dotted, because the page is
+   repeating it rather than standing behind it. */
+
+.narrator-result__said {
+    opacity: 0.72;
+    border-bottom: 1px dotted currentColor;
+}
+
 /* The verdict is the one thing on the card a reader came for, so it carries colour where
    nothing else on the card does — and only where a book actually grades him. */
 

@@ -664,15 +664,44 @@ def document(person, source, headless):
                 out.append(item[key_name])
         return out
 
+    def reported(field, key_name="value"):
+        """What a record says but cannot show: the same claim, without a passage behind it.
+
+        The gate above is right to keep an untraceable city out of the field the page states
+        as fact. Dropping it altogether is a different thing, and it was costing readers what
+        the sources do say: a city for 8% of men, a death year for 1.7%, with no way to tell
+        «no book says where he lived» from «a book says it and we would not pass it on». A
+        verdict in that position is already carried and marked — `reported_without_a_passage`
+        — so a city and a death year are carried the same way and marked the same way.
+        """
+        out = []
+        for item in values(person, field):
+            if not item.get(key_name):
+                continue
+            if not entry_key_for(person, item.get("source_book"),
+                                 item.get("source_pages") or [], entry_keys):
+                out.append(item[key_name])
+        return out
+
     cities = cited("city_or_tribe")
     died = cited("death_years")
+    said_cities, said_died = reported("city_or_tribe"), reported("death_years")
     city = Counter(cities).most_common(1)[0][0] if cities else None
+    said_city = (Counter(said_cities).most_common(1)[0][0]
+                 if said_cities and not city else None)
+    said_death = said_died[0] if said_died and not died else None
     life = {"imams": imams_named,
             "imams_ar": imams_named_ar,
             "city": city,
             "city_ar": city_ar(city),
             "died": died[0] if died else None,
-            "died_ar": arabic_digits(died[0]) if died else None}
+            "died_ar": arabic_digits(died[0]) if died else None,
+            # Said by a record we cannot show a passage for, and only where the traced field
+            # is empty. The page must print these differently: they are reported, not shown.
+            "city_reported": said_city,
+            "city_reported_ar": city_ar(said_city) if said_city else None,
+            "died_reported": said_death,
+            "died_reported_ar": arabic_digits(said_death) if said_death else None}
 
     # Where the books leave him, in one word: a reader wants to know whether he is relied on
     # before reading eight entries, and the honest answer is often «they disagree».

@@ -61,21 +61,38 @@
                         where=${found['life'] == null ? null
                                : (#locale.language == 'ar' ? found['life']['city_ar']
                                                            : found['life']['city'])},
-                        died=${found['life'] == null ? null : found['life']['died']}"
+                        whereSaid=${found['life'] == null ? null
+                                   : (#locale.language == 'ar' ? found['life']['city_reported_ar']
+                                                               : found['life']['city_reported'])},
+                        died=${found['life'] == null ? null : found['life']['died']},
+                        diedSaid=${found['life'] == null ? null : found['life']['died_reported']}"
                th:href="${arPrefix} + '/narrator/' + ${found.person_id}
                         + (${found.slug} != null and !${#strings.isEmpty(found.slug)} ? '/' + ${found.slug} : '')">
                 <div class="narrator-result__name" dir="rtl" lang="ar"
                      th:text="${found.display_ar}">اسم الراوي</div>
                 <div class="narrator-result__name-en" th:if="${found.display_en != null}"
                      th:text="${found.display_en}">Transliterated</div>
+                <!-- A city or a year a record states but cannot show a passage for is
+                     carried in its own field and printed faintly. «No book says where he
+                     lived» and «a book says it and we will not vouch for it» are different
+                     answers, and the second was being shown as the first. -->
                 <div class="narrator-result__life"
-                     th:if="${!#lists.isEmpty(eras) or died != null or where != null}">
+                     th:if="${!#lists.isEmpty(eras) or died != null or where != null
+                             or diedSaid != null or whereSaid != null}">
                     <span class="narrator-result__era" th:if="${!#lists.isEmpty(eras)}"
                           th:text="${#strings.listJoin(eras, ' · ')}">al-Bāqir · al-Ṣādiq</span>
                     <span class="narrator-result__died" th:if="${died != null}"
                           th:text="#{narrators.died(${@localeDigits.of(died)})}">d. 150</span>
+                    <span class="narrator-result__died narrator-result__said"
+                          th:if="${died == null and diedSaid != null}"
+                          th:title="#{narrators.reported}"
+                          th:text="#{narrators.died(${@localeDigits.of(diedSaid)})}">d. 150</span>
                     <span class="narrator-result__where" th:if="${where != null}"
                           th:text="${where}">Kufa</span>
+                    <span class="narrator-result__where narrator-result__said"
+                          th:if="${where == null and whereSaid != null}"
+                          th:title="#{narrators.reported}"
+                          th:text="${whereSaid}">Kufa</span>
                 </div>
                 <div class="hub-card__meta">
                     <span th:text="#{narrators.entries(${@localeDigits.of(found.entry_count)})}">5 entries</span>
