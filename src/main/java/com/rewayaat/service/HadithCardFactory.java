@@ -81,8 +81,13 @@ public class HadithCardFactory {
         // The isnād carries a link on each name whose man the rijāl books identify; the
         // spans were measured against this same segmenter's output (see ChainLinks).
         Object chainLinks = source.get("chain_links");
+        // English is what most readers of this site see, and its links are not resolved a
+        // second time: the English chain was aligned against the Arabic one name for name,
+        // so a name carries the man the Arabic name in the same place was given and the two
+        // languages cannot disagree about the same isnād (see chain_links_en.py).
+        Object chainLinksEn = source.get("chain_links_en");
         row.put("englishChain", ChainLinks.render(str(segmented.get("englishChain")),
-                null, locale.prefix()));
+                chainLinksEn, locale.prefix()));
         row.put("english", firstNonBlank(str(segmented.get("englishContent")), str(source.get("english"))));
         row.put("arabicChain", ChainLinks.render(str(segmented.get("arabicChain")),
                 chainLinks, locale.prefix()));
