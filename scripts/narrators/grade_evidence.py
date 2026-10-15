@@ -78,8 +78,11 @@ GRADE_EVIDENCE_AR = {
 # on it alone were of that kind. The definite article and the conjunctions may still precede
 # it. «حجة» was dropped outright: every sample was al-Kāfī's «كتاب الحجة» or the Mahdī's own
 # title, and no boundary can tell those from the praise.
+# A stem matched as a substring finds itself inside words that mean something else:
+# «ضعف» stands in «الضعفاء», so «يروي عن الضعفاء» — a statement about whom he narrates from —
+# was being read as a grade of him. These have to stand as words of their own.
 WHOLE_WORD = {"عين", "ثبت", "قوي", "قوة", "صدق", "مدح", "كذب",
-              "حسن", "حسان"}
+              "حسن", "حسان", "ضعف", "ثقة", "ثقه", "وثق", "ضعيف", "صالح الحديث"}
 _LETTER = r"\u0621-\u064a"
 _PREFIX = r"(?:و|ف|ب|ل|ك|ال|وال|فال|بال|لل)?"
 
@@ -107,6 +110,19 @@ GRADE_EVIDENCE_AR["mukhtalaf_fih"] = (
     "وقع الخلاف", "محل خلاف", "موضع خلاف",
 )
 BY_SENSE = set()
+
+# Words that were letting a grade through which the passage says of somebody else, or does
+# not say at all. The audit of 2026-10-15 found «ثقات» carrying a `thiqa` for Ḥafṣ b. Sūqa
+# when it is said of his maternal uncles, «يروي عن الضعفاء» carrying a `daif` when it says
+# whom he narrates from, and «عين» — a notable — read as a grade of reliability. A plural or
+# a dual is almost never about the one man an entry is about, and praise is not a verdict.
+TOO_LOOSE = {
+    "thiqa": {"ثقات", "ثقتان", "عيون", "عين", "عينا", "مستقيم"},
+    "daif": {"يروي عن الضعفاء", "ضعفاء", "ضعاف"},
+    "very_weak": {"يروي عن الضعفاء", "ضعفاء", "ضعاف"},
+}
+for _grade, _drop in TOO_LOOSE.items():
+    GRADE_EVIDENCE_AR[_grade] = [w for w in GRADE_EVIDENCE_AR[_grade] if w not in _drop]
 # Claims that the books say nothing: a silent passage is the evidence, not the absence of it.
 NO_VERDICT = {"majhul", "muhmal", "not_assessed", "unknown", "assessed", "unknown (majhul)"}
 ANY_EVIDENCE = sorted({n for words in GRADE_EVIDENCE_AR.values() for n in words},

@@ -39,6 +39,7 @@ import relation_evidence  # noqa: E402
 from narrator_schema import imam_generations, normalize_arabic, normalize_english  # noqa: E402
 import transliterate  # noqa: E402
 import field_check  # noqa: E402
+import arabic_years  # noqa: E402
 
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 TMP = os.path.join(REPO, "tmp")
@@ -722,10 +723,23 @@ def document(person, source, headless):
     # A year read out of the entry by rule beats a year an agent read in phase 1, where the
     # two differ in the way a misreading differs — «إحدى وثلاثمائة» is 301, not 311. The
     # table holds only those, each one checked by hand; see arabic_years.py.
+    # A death year the entry does not state is reported, never stated. The books give one
+    # for 4% of men and the extraction read many of the rest off something else — a teacher's
+    # year, the year a man taught, a year he was still alive. The entry either says when he
+    # died or it does not, and that is a thing a rule can settle for every man at once.
+    stated_years = set()
+    for passage in (e.get("text_ar") or "" for e in entries):
+        stated_years |= {y["year"] for y in arabic_years.years_in(passage) if y["about_death"]}
+
     death_year = died[0] if died else None
     corrected = DEATH_YEARS.get(person["person_id"])
     if corrected and death_year == corrected.get("was"):
         death_year = corrected["year"]
+    said_death_year = None
+    if death_year and stated_years and death_year not in stated_years:
+        said_death_year, death_year = death_year, None
+    elif death_year and not stated_years:
+        said_death_year, death_year = death_year, None
     # Every entry's own words, to test a claim against. The same test `field_check.py` runs
     # over the corpus — grades have had one since the beginning and relations too; a city, a
     # kunya and a title were printed and searched with nothing behind them.
@@ -738,7 +752,7 @@ def document(person, source, headless):
         said_cities, city = list(cities), None
     said_city = (Counter(said_cities).most_common(1)[0][0]
                  if said_cities and not city else None)
-    said_death = said_died[0] if said_died and not died else None
+    said_death = (said_died[0] if said_died and not died else None) or said_death_year
     life = {"imams": imams_named,
             "imams_ar": imams_named_ar,
             "city": city,
