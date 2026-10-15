@@ -383,6 +383,35 @@ pupils, lifted out of a chain running past the man. Keeping only what «روى �
 measured in an earlier round and rejected — it discarded ṭarīq names auditors upheld 64% of
 the time — so 65.2% is the price of a choice already made.
 
+#### Every claim tested, not a sample
+
+An audit reads a sample, and a sample answers with a range. Grades first came back 73.7% off
+38 statements, which is a 95% range of 59.7% to 87.7% — not a measurement. Two things closed
+that gap.
+
+**Grades re-measured on the mended corpus: 94.3%** (574 of 609, controls 10/10 and 10/10),
+reading a quarter of every grade a page states and narrowing the range to ±1.9 points. The
+rise is the `mukhtalaf_fih` gate: 637 positions resting on «مخلط» or on nothing are no longer
+stated. What still fails is an entry praising a man — «عظيم المنزلة», «فاضل جليل القدر» — that
+an extraction read as «ثقة».
+
+**And `field_check.py`, which reads all of them.** Grades had a passage test from the start
+and relations since the relation audit; a city, a kunya and a title had none. The rule tracks
+the auditors closely — city 88.6% against their 89.5%, kunya 86.2% against 91.8%, title 90.5%
+against 87.0% — over **27,077 claims** where the audits read 332. It is now the gate as well
+as the measure: 2,468 claims whose words do not stand in their entry are moved to a reported
+field, kept but neither stated nor searched, and the three fields read 100%.
+
+That last part matters for titles and kunyas in a way it does not for a city. They are printed
+nowhere; they are what a search matches on. A title no entry bears out was making a man
+findable under a name that is not his, and 1,370 of those are out of the search.
+
+What a rule cannot do is judge whether «عظيم المنزلة» amounts to a grade, which is what the
+auditors are for, and where a rule cannot speak at all — two cities in five have no Arabic
+form recorded and cannot be looked for in an Arabic entry — the claim is counted untestable
+rather than passed. Reading that distinction wrongly is what first made the city field look
+like 53.3%.
+
 #### An Imam is not a narrator
 
 A rijālī who catalogues the companions catalogues the Imams among them: 27 published pages
