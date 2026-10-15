@@ -332,6 +332,57 @@ reduce to 'lhsn, «سعد» and «Sa'id» to s'd, «عمير» and «'Amir» to 
 match would drop 10,096 links — 16.7% — to mend about 1%. The repair is to model a long vowel
 as a mark both scripts carry rather than a letter to throw away, and it is not done.
 
+#### Auditing what a page states (2026-10-15)
+
+Seven audits had measured identity and the chain links. None had asked whether the facts
+printed beside a man's name are in the books. 852 statements over all eight cited fields, 7
+auditors, controls 9/10 planted and 10/10 twins. Each is shown as a claim beside its evidence
+— the value, the book and page, and the entry's own words — and the question is only: does
+this passage say this?
+
+| field | supported | stated claims |
+|---|---|---|
+| generations | 99.2% | 7,051 |
+| kunyas | 91.8% | 2,668 |
+| city or tribe | 89.5% | 2,969 |
+| titles | 87.0% | 4,690 |
+| teachers | 80.0% | 947 |
+| grades | 73.7% | 2,584 |
+| students | 65.2% | 2,810 |
+| death years | 58.5% | 217 |
+
+**86.9% of 23,936 stated claims stand.** The raw figures were far worse — grades 37.2%,
+students 45.4% — and they would have been the wrong thing to report. The page is much more
+careful than the record behind it: 53,552 verdict rows are held and 2,584 become a stated
+position; `narrated_to` holds 2,810 a book asserts against 19,176 where the man merely stands
+beside him in an index of chains. Split by what the page prints, the gate is doing its work:
+of the grades it withholds 44 of 48 are indeed not in the passage, and of the students 36 of
+42. Every `majhul` is inferred from silence and carries no quote, so no passage test can speak
+to it.
+
+Two of the audit's numbers were artefacts of how I asked. Generations first scored 15.2%,
+because a generation in Rijāl al-Ṭūsī is the chapter an entry is filed under and I showed the
+auditors the entry's text alone — «سليم بن قيس الهلالي.» is a complete entry. All four said
+so; with the chapter in the task it is 99.2%. The same error nearly buried the grades.
+
+Three faults were mended at the source. **«Disputed» was exempt from the word test**, so 642
+of 2,584 stated positions rested on «مخلط» or on nothing; testable now, and 642 became 5.
+**133 kunyas were cut off at «عبد»** — «أبو عبد» for «أبو عبد الله» — completed from the
+man's own names or dropped. **Five death years** their passage contradicts are corrected by
+rule: «إحدى وثلاثمائة» is 301, not the 311 printed.
+
+`arabic_years.py` reads a year written in words, and the first sweep of it offered 16
+corrections of which twelve were wrong — an eleventh-century entry writes «سنة أربع وتسعين»
+with the thousand understood, and it would have made 1094 into 94. A misreading leaves a near
+miss or a transposition, so a correction is taken only when the two years have the same digit
+count and either the same digits or a gap of ten. That is the whole difference between
+mending the data and damaging it.
+
+Left deliberately: a third of stated students are names the entry holds but does not name as
+pupils, lifted out of a chain running past the man. Keeping only what «روى عن» governs was
+measured in an earlier round and rejected — it discarded ṭarīq names auditors upheld 64% of
+the time — so 65.2% is the price of a choice already made.
+
 #### An Imam is not a narrator
 
 A rijālī who catalogues the companions catalogues the Imams among them: 27 published pages
