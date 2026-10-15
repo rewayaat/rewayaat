@@ -27,14 +27,28 @@ LINKED = ("one", "chosen", "convention")
 
 
 def slugs(host, index="rewayaat_narrators"):
-    """person_id → slug, so a link lands on the canonical page instead of a redirect."""
+    """person_id → slug, so a link lands on the canonical page instead of a redirect.
+
+    Paged, because a plain search stops at 10,000 hits and the index holds half again as
+    many men: asking for all of them in one request quietly left the rest without a slug,
+    and their links went out to the redirect instead of the page.
+    """
     import urllib.request
-    body = json.dumps({"size": 10000, "_source": ["person_id", "slug"],
-                       "query": {"match_all": {}}}).encode()
-    request = urllib.request.Request(f'{host}/{index}/_search', data=body,
-                                     headers={"Content-Type": "application/json"})
-    hits = json.load(urllib.request.urlopen(request))["hits"]["hits"]
-    return {h["_source"]["person_id"]: h["_source"].get("slug") or "" for h in hits}
+    found, after = {}, None
+    while True:
+        query = {"size": 2000, "_source": ["person_id", "slug"],
+                 "query": {"match_all": {}}, "sort": [{"person_id": "asc"}]}
+        if after:
+            query["search_after"] = after
+        request = urllib.request.Request(f'{host}/{index}/_search',
+                                         data=json.dumps(query).encode(),
+                                         headers={"Content-Type": "application/json"})
+        hits = json.load(urllib.request.urlopen(request))["hits"]["hits"]
+        if not hits:
+            return found
+        for hit in hits:
+            found[hit["_source"]["person_id"]] = hit["_source"].get("slug") or ""
+        after = hits[-1]["sort"]
 
 
 def served_chains(path):

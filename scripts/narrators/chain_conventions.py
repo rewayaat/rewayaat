@@ -59,6 +59,24 @@ def judgements(run_dir):
     return answers
 
 
+def linked(run_dir, audit_dir):
+    """link id → the man the resolver had already linked, from the run's key.
+
+    A correction has to correct something. An auditor who calls a link wrong and then names
+    the man we had linked all along has told us his own reading was the same as ours — the
+    disagreement was with our display name, or with nothing. Written down as a correction it
+    would entrench the link it looks like it overturns.
+    """
+    run = os.path.basename(run_dir.rstrip('/'))
+    try:
+        with open(f'{audit_dir}/keys/{run}.json') as handle:
+            key = json.load(handle)
+    except FileNotFoundError:
+        return {}
+    return {a["link_id"]: a.get("person_id", "")
+            for row in key for a in row.get("answers") or []}
+
+
 def asked(run_dir):
     """What each link showed the auditor: the book it stands in and the name in the chain."""
     shown = {}
@@ -82,11 +100,12 @@ def whom(named, data):
     return ""
 
 
-def harvest(runs, data):
+def harvest(runs, data, audit_dir):
     """Every (book, name) the auditors settled or corrected, with who said what."""
     votes = defaultdict(lambda: defaultdict(Counter))
     for run_dir in runs:
         answers, shown = judgements(run_dir), asked(run_dir)
+        already = linked(run_dir, audit_dir)
         for link_id, item in answers.items():
             if link_id.startswith("chain:twin") or link_id not in shown:
                 continue
@@ -96,6 +115,8 @@ def harvest(runs, data):
             if not kind or not item.get("who"):
                 continue
             person = whom(item["who"], data)
+            if kind == "corrects" and person and person == already.get(link_id):
+                continue  # he named the man we had linked; there is nothing to correct
             votes[kind][(book, key(name))][person or f"?{item['who']}"] += 1
         # a dissent is a vote against: an auditor who upheld the refusal, or the link
         for link_id, item in answers.items():
@@ -133,6 +154,11 @@ def agreed(votes, by_id):
             # name in that book, which is a long step from a single voice. Those are written
             # down and left unapplied rather than thrown away.
             applied = kind != "corrects" or voices >= 2
+            if kind == "corrects" and len(imams.identify(name)) > 1:
+                # Which Imam «أبي جعفر» or «محمد بن علي» means is settled by the layer of the
+                # man receiving from him, so one chain's reading is not the book's rule. The
+                # correction is recorded and left for the resolver to earn chain by chain.
+                applied = False
             table[kind][f"{book}\t{name}"] = {"person_id": person, "voices": voices,
                                                "applied": applied,
                                                "display": display(person, by_id)}
@@ -146,13 +172,24 @@ def display(person, by_id):
 
 
 def promote(table):
-    """A convention seen in two books is the tradition's, not one author's."""
+    """A convention seen in two books is the tradition's, not one author's.
+
+    With one exception, which the third audit paid for: a kunya the books share between two
+    Imams is never promoted. «أبي جعفر» is al-Bāqir or al-Jawād and «أبي الحسن» is one of
+    three, and which of them a chain means is settled by the layer of the man receiving from
+    him — a property of that chain, not of the corpus. Promoted to every book, «أبي جعفر» read
+    as al-Bāqir put him above al-Riḍā in ʿUyūn, where the Imam is al-Riḍā's own father, and
+    answered six bare kunyas in Kitāb al-Muʾmin that nothing in their chains places. The books
+    whose auditors did vote on the kunya keep their entry; it is the promotion that was wrong.
+    """
     everywhere = {}
     seen = defaultdict(Counter)
     for row in table.get("settles", {}):
         book, name = row.split("\t")
         seen[name][table["settles"][row]["person_id"]] += 1
     for name, people in seen.items():
+        if len(imams.identify(name)) > 1:
+            continue
         if len(people) == 1 and list(people.values())[0] >= 2:
             everywhere[name] = list(people)[0]
     return everywhere
@@ -171,7 +208,7 @@ def main():
     data = load_people(args.people, CLASSICAL)
     runs = sorted(glob.glob(f'{args.audit_dir}/runs/chain-*'))
     print(f"  {len(runs)} audit runs read")
-    votes = harvest(runs, data)
+    votes = harvest(runs, data, args.audit_dir)
     table, dropped = agreed(votes, data["by_id"])
     everywhere = promote(table)
 

@@ -156,6 +156,11 @@ def held_by(folded, data):
     return sorted(data["aliases"].get(folded, ()))
 
 
+def by_heading(folded, data):
+    """Whether a rijālī filed anybody under this name, or it is only quoted inside entries."""
+    return bool(folded and data["headings"].get(folded))
+
+
 def support(pid, before, after, teachers, students):
     """Why this candidate and not the others: a book shows him beside the name next to him."""
     if before in RELATIVE:
@@ -193,14 +198,14 @@ def conventions(path):
 
 
 def by_convention(table, book, folded):
-    """The man a book's own practice names, with the reason to show beside the link."""
+    """The man a book's own practice names, the reason to show, and how many said so."""
     row = (table.get("settles") or {}).get(f"{book}\t{folded}")
     if row and row.get("applied", True):
-        return row["person_id"], f"{book} reads this name as one man"
+        return row["person_id"], f"{book} reads this name as one man", row.get("voices", 1)
     person = (table.get("everywhere") or {}).get(folded)
     if person:
-        return person, "the books read this name as one man"
-    return "", ""
+        return person, "the books read this name as one man", 99
+    return "", "", 0
 
 
 def resolve_chain(mentions, data, book="", table=None):
@@ -213,6 +218,9 @@ def resolve_chain(mentions, data, book="", table=None):
     keys = [key(m["text"]) for m in mentions]
     rows = [dict(m) for m in mentions]
     table = table or {}
+    # Whether each name was matched under somebody's own heading or only among the names
+    # quoted inside entries. It decides whose word beats whose below, and is not published.
+    filed = [by_heading(folded, data) for folded in keys]
 
     for position, row in enumerate(rows):
         if row["kind"] != "name":
@@ -268,9 +276,21 @@ def resolve_chain(mentions, data, book="", table=None):
     for position, row in enumerate(rows):
         if row.get("kind") not in ("name", "imam"):
             continue
-        if row["outcome"] in ("several", "none"):
-            person, why = by_convention(table, book, keys[position])
-            if person:
+        if row["outcome"] in ("several", "none") or (
+                row["outcome"] == "chosen" and row.get("kind") == "name"):
+            # Where a convention and a `chosen` name different men, the audit has said three
+            # times that the convention was right, and never the other way. A `chosen` rests
+            # on one pairing found in one entry, and it rests on nothing at all when nobody is
+            # filed under the name: «محمد بن مسلم» went to Zurāra three times because his own
+            # entry quotes a chain holding it. So a convention takes a `chosen` when the name
+            # is not anybody's heading, or when more than one auditor reached the same man —
+            # «محمد بن يحيى» opening a chain in al-Kāfī, which fifteen of them named, was
+            # going to al-Khazzāz, a Kufan of al-Ṣādiq's generation, in 160 of al-Kulaynī's
+            # chains. A single voice does not outrank a heading match.
+            person, why, voices = by_convention(table, book, keys[position])
+            if row["outcome"] == "chosen" and filed[position] and voices < 2:
+                continue
+            if person and person != (row.get("person_id") or row.get("imam_id")):
                 row["outcome"] = "convention"
                 row["because"] = why
                 row.pop("candidates", None)
@@ -304,7 +324,9 @@ def resolve_chain(mentions, data, book="", table=None):
                 imam = imams.FATHER_OF.get(imam, "")
             if imam:
                 row["target"], row["outcome"], row["imam_id"] = "imam", "chosen", imam
-                row["because"] = f"the father of {imams.BY_ID[previous['imam_id']]['name_en']}"
+                kin = "father" if steps == 1 else "grandfather"
+                row["because"] = (f"the {kin} of "
+                                  f"{imams.BY_ID[previous['imam_id']]['name_en']}")
                 continue
         pid = previous.get("person_id")
         name = data["fathers"].get(pid, "") if pid else ""
