@@ -37,6 +37,7 @@ from grade_evidence import shown  # noqa: E402
 import imams  # noqa: E402
 import relation_evidence  # noqa: E402
 from narrator_schema import imam_generations, normalize_arabic, normalize_english  # noqa: E402
+import transliterate  # noqa: E402
 
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 TMP = os.path.join(REPO, "tmp")
@@ -206,6 +207,31 @@ def learn_transliterations(profiles):
     return len(TRANSLITERATED)
 
 
+# Words that stand in the prose around a heading and never inside a man's filing name. An
+# extraction that ran on past the name leaves them in it: «الحسين بن عثمان بن شريك العامري
+# الوحيدي ثقة» ends in a verdict, and one heading runs to 360 words of al-Ardabīlī on who is
+# called Abū Jaʿfar. A long name is not the fault — «سلامة بن محمد بن إسماعيل بن عبد الله بن
+# موسى بن أبي الاكرم» is thirteen words of genuine lineage — so the cut is made at the prose
+# and never at a length.
+PROSE = re.compile(r'(?:كنية|المعروف|يعرف|يكنى|قدوة|سيدنا|مولانا|رحمه|رضي|قدس|عداده|وهو|'
+                   r'وكان|قال|ذكره|روى|صاحب|المشايخ|ثقة|ضعيف|مجهول|عالم|فقيه|نزيل|أسند)')
+AFTER_NASAB = ("بن", "ابن", "أبي", "أبو", "ابو")
+
+
+def name_only(heading):
+    """A heading with the prose cut off it, or the heading unchanged when it carries none."""
+    if not heading:
+        return heading
+    words = heading.split()
+    for position, word in enumerate(words):
+        if position and words[position - 1] in AFTER_NASAB:
+            continue   # «محمد بن المعروف» is a name, not a name followed by a remark
+        if PROSE.fullmatch(word.strip('،,.:()')):
+            cut = ' '.join(words[:position]).strip(' -،,')
+            return cut if len(cut.split()) >= 2 else heading
+    return heading
+
+
 def whole_arabic(name):
     """The full Arabic of a name where the corpus itself can give it, else None."""
     if ARABIC_RANGE.search(name):
@@ -342,6 +368,7 @@ def imam_years():
 
 
 YEARS = None
+TRANSLITERATION = {}
 HOLDERS = {}
 
 
@@ -767,15 +794,31 @@ def document(person, source, headless):
                                    if n.get("value")}), HOLDERS)
     names_en = [n["value"] for n in values(person, "english_aliases") if n.get("value")]
 
+    display_ar = anchor.get("primary_arabic_name") or person.get("primary_arabic_name")
+    clean = name_only(display_ar)
+    if clean != display_ar:
+        # Prefer a heading of his own that was never contaminated, and only cut when there
+        # is none: a book's own filing name beats our repair of another one.
+        whole = [h for h in sorted(headings_ar, key=lambda h: len(h.split()))
+                 if 2 <= len(h.split()) and name_only(h) == h]
+        display_ar = whole[0] if whole else clean
+    display_en = anchor.get("primary_english_name") or person.get("primary_english_name")
+    made = False
+    if not display_en and display_ar:
+        display_en = transliterate.english_for(display_ar, TRANSLITERATION)
+        made = bool(display_en)
+
     return {
         "person_id": person["person_id"],
         # the anchor entry's own heading, not the longest name the merge found: that gave Ibn Abi
         # 'Umayr the garbled «أبو أحمد بن محمد بن زياد الأزدي»
-        "display_ar": anchor.get("primary_arabic_name") or person.get("primary_arabic_name"),
-        "display_en": anchor.get("primary_english_name") or person.get("primary_english_name"),
+        "display_ar": display_ar,
+        "display_en": display_en,
+        # True where no book printed him an English name and we made one from his Arabic, so
+        # a page can say so rather than passing our spelling off as a book's.
+        "display_en_made": made,
         "anchor_key": person.get("anchor"),
-        "slug": slugify(anchor.get("primary_english_name") or person.get("primary_english_name")
-                        or ""),
+        "slug": slugify(display_en or ""),
         "names_ar": sorted(set(names_ar)),
         "headings_ar": sorted(headings_ar),
         "search_ar": sorted(search_ar),
@@ -854,6 +897,7 @@ MAPPING = {
         "mention_count": {"type": "integer"},
         "imam_ordinals": {"type": "integer"},
         "holds_entry": {"type": "boolean"},
+        "display_en_made": {"type": "boolean"},
         # set only on a document that is really somebody else's, so a search can leave it out
         # with `must_not exists` and a page can send the reader on
         "moved_to": {"type": "keyword"},
@@ -934,8 +978,11 @@ def main():
     parser.add_argument("--index", default=INDEX)
     args = parser.parse_args()
 
-    global YEARS, HOLDERS
+    global YEARS, HOLDERS, TRANSLITERATION
     YEARS = imam_years()
+    TRANSLITERATION = transliterate.load()
+    print(f"{len(TRANSLITERATION):,} Arabic words the corpus prints in English, for the men "
+          f"no book names in English")
     people = load(os.path.join(IDENTITY, "people.json"))
     HOLDERS = Counter()
     for person in people:

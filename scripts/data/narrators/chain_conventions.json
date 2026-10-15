@@ -1,0 +1,1050 @@
+{
+ "note": "Chain conventions named by the audit's auditors and agreed by them. Keys are '<book>\\t<folded name>'; `everywhere` is keyed by the name alone.",
+ "settles": {
+  "Al-Amālī\tخلف بن حماد": {
+   "person_id": "n000424",
+   "voices": 1,
+   "applied": true,
+   "display": "خلف بن حماد بن ناشر بن المسيب"
+  },
+  "Kitāb al-Ghayba\tنصر بن مزاحم": {
+   "person_id": "n067265",
+   "voices": 2,
+   "applied": true,
+   "display": "نصر بن مزاحم"
+  },
+  "Al-Kāfi\tمحمد بن يحيي": {
+   "person_id": "n034836",
+   "voices": 15,
+   "applied": true,
+   "display": "محمد بن يحيى أبو جعفر العطار القمي"
+  },
+  "Kitāb al-Ḍuʿafāʾ\tجعفر بن محمد": {
+   "person_id": "i06",
+   "voices": 2,
+   "applied": true,
+   "display": "جعفر بن محمد الصادق"
+  },
+  "Kitāb al-Zuhd\tعلي بن النعمان": {
+   "person_id": "n000745",
+   "voices": 3,
+   "applied": true,
+   "display": "علي بن النعمان الاعلم النخعي"
+  },
+  "Al-Tawḥīd\tجعفر بن محمد": {
+   "person_id": "i06",
+   "voices": 1,
+   "applied": true,
+   "display": "جعفر بن محمد الصادق"
+  },
+  "Muʿjam al-Aḥādīth al-Muʿtabara\tجعفر بن محمد": {
+   "person_id": "n000339",
+   "voices": 1,
+   "applied": true,
+   "display": "جعفر بن محمد بن جعفر بن موسى بن قولويه"
+  },
+  "Muʿjam al-Aḥādīth al-Muʿtabara\tاحمد بن محمد": {
+   "person_id": "n000220",
+   "voices": 2,
+   "applied": true,
+   "display": "أحمد بن محمد بن عيسى بن عبد الله بن سعد بن مالك بن الاحوص بن السائب بن مالك بن عامر الاشعري"
+  },
+  "Al-Amālī\tمحمد بن زياد": {
+   "person_id": "n000912",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن أبي عمير زياد بن عيسى"
+  },
+  "Man Lā Yaḥḍuruh al-Faqīh\tابي جعفر": {
+   "person_id": "i05",
+   "voices": 2,
+   "applied": true,
+   "display": "محمد بن علي الباقر"
+  },
+  "Al-Khiṣāl\tجعفر بن محمد": {
+   "person_id": "i06",
+   "voices": 3,
+   "applied": true,
+   "display": "جعفر بن محمد الصادق"
+  },
+  "Faḍaʾil al-Shīʿa\tجعفر بن محمد": {
+   "person_id": "i06",
+   "voices": 2,
+   "applied": true,
+   "display": "جعفر بن محمد الصادق"
+  },
+  "Kitāb al-Ghayba\tمحمد بن علي": {
+   "person_id": "n000920",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن علي بن إبراهيم بن موسى"
+  },
+  "Thawāb al-Aʿmāl wa ʿiqāb al-Aʿmāl\tعبد الله بن جعفر": {
+   "person_id": "n000597",
+   "voices": 2,
+   "applied": true,
+   "display": "عبد الله بن جعفر بن الحسين بن مالك بن جامع الحميري"
+  },
+  "Kitāb al-Zuhd\tابي جعفر": {
+   "person_id": "i05",
+   "voices": 8,
+   "applied": true,
+   "display": "محمد بن علي الباقر"
+  },
+  "Kāmil al-Ziyārāt\tسعد بن عبد الله": {
+   "person_id": "n000492",
+   "voices": 2,
+   "applied": true,
+   "display": "سعد بن عبد الله بن أبي خلف"
+  },
+  "Muʿjam al-Aḥādīth al-Muʿtabara\tابن ابي عمير": {
+   "person_id": "n000912",
+   "voices": 8,
+   "applied": true,
+   "display": "محمد بن أبي عمير زياد بن عيسى"
+  },
+  "Al-Khiṣāl\tابن ابي عمير": {
+   "person_id": "n000912",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن أبي عمير زياد بن عيسى"
+  },
+  "Kāmil al-Ziyārāt\tابان": {
+   "person_id": "n000024",
+   "voices": 1,
+   "applied": true,
+   "display": "أبان بن عثمان الاحمر البجلي"
+  },
+  "Man Lā Yaḥḍuruh al-Faqīh\tجعفر بن محمد": {
+   "person_id": "i06",
+   "voices": 4,
+   "applied": true,
+   "display": "جعفر بن محمد الصادق"
+  },
+  "Ṣifāt al-Shīʿa\tابن فضال": {
+   "person_id": "n000085",
+   "voices": 1,
+   "applied": true,
+   "display": "الحسن بن علي بن فضال"
+  },
+  "Man Lā Yaḥḍuruh al-Faqīh\tعلي بن ابراهيم": {
+   "person_id": "n000706",
+   "voices": 1,
+   "applied": true,
+   "display": "علي بن إبراهيم بن هاشم"
+  },
+  "Man Lā Yaḥḍuruh al-Faqīh\tابن ابي عمير": {
+   "person_id": "n000912",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن أبي عمير زياد بن عيسى"
+  },
+  "Thawāb al-Aʿmāl wa ʿiqāb al-Aʿmāl\tابان": {
+   "person_id": "n000024",
+   "voices": 1,
+   "applied": true,
+   "display": "أبان بن عثمان الاحمر البجلي"
+  },
+  "Al-Kāfi\tعلي بن ابراهيم": {
+   "person_id": "n000706",
+   "voices": 7,
+   "applied": true,
+   "display": "علي بن إبراهيم بن هاشم"
+  },
+  "Thawāb al-Aʿmāl wa ʿiqāb al-Aʿmāl\tجعفر بن محمد": {
+   "person_id": "i06",
+   "voices": 2,
+   "applied": true,
+   "display": "جعفر بن محمد الصادق"
+  },
+  "Kāmil al-Ziyārāt\tابي جعفر": {
+   "person_id": "i05",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن علي الباقر"
+  },
+  "Al-Kāfi\tابن ابي عمير": {
+   "person_id": "n000912",
+   "voices": 5,
+   "applied": true,
+   "display": "محمد بن أبي عمير زياد بن عيسى"
+  },
+  "Faḍaʾil al-Shīʿa\tبكر بن عبد الله": {
+   "person_id": "n000299",
+   "voices": 1,
+   "applied": true,
+   "display": "بكر بن عبد الله بن حبيب المزني"
+  },
+  "Faḍaʾil al-Shīʿa\tهشام": {
+   "person_id": "n001190",
+   "voices": 1,
+   "applied": true,
+   "display": "هشام بن سالم الجو اليقي"
+  },
+  "Faḍaʾil al-Shīʿa\tسعد بن عبد الله": {
+   "person_id": "n000492",
+   "voices": 3,
+   "applied": true,
+   "display": "سعد بن عبد الله بن أبي خلف"
+  },
+  "Al-Tawḥīd\tسعد بن عبد الله": {
+   "person_id": "n000492",
+   "voices": 5,
+   "applied": true,
+   "display": "سعد بن عبد الله بن أبي خلف"
+  },
+  "Kitāb al-Ḍuʿafāʾ\tابي جعفر": {
+   "person_id": "i05",
+   "voices": 2,
+   "applied": true,
+   "display": "محمد بن علي الباقر"
+  },
+  "Thawāb al-Aʿmāl wa ʿiqāb al-Aʿmāl\tمحمد بن الحسن": {
+   "person_id": "n001068",
+   "voices": 3,
+   "applied": true,
+   "display": "محمد بن الحسن بن أحمد بن الوليد"
+  },
+  "Al-Tawḥīd\tابن ابي عمير": {
+   "person_id": "n000912",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن أبي عمير زياد بن عيسى"
+  },
+  "Maʿānī al-ʾAkhbār\tاحمد بن محمد": {
+   "person_id": "n000220",
+   "voices": 2,
+   "applied": true,
+   "display": "أحمد بن محمد بن عيسى بن عبد الله بن سعد بن مالك بن الاحوص بن السائب بن مالك بن عامر الاشعري"
+  },
+  "Maʿānī al-ʾAkhbār\tابي الجارود": {
+   "person_id": "n000473",
+   "voices": 1,
+   "applied": true,
+   "display": "زياد بن المنذر"
+  },
+  "Al-Kāfi\tابي جعفر": {
+   "person_id": "i05",
+   "voices": 3,
+   "applied": true,
+   "display": "محمد بن علي الباقر"
+  },
+  "Kāmil al-Ziyārāt\tمحمد بن يحيي": {
+   "person_id": "n034836",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن يحيى أبو جعفر العطار القمي"
+  },
+  "Maʿānī al-ʾAkhbār\tمحمد بن يحيي": {
+   "person_id": "n034836",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن يحيى أبو جعفر العطار القمي"
+  },
+  "Maʿānī al-ʾAkhbār\tمحمد بن احمد": {
+   "person_id": "n000966",
+   "voices": 4,
+   "applied": true,
+   "display": "محمد بن أحمد بن يحيى بن عمران بن عبد الله بن سعد بن مالك"
+  },
+  "Al-Amālī\tمحمد بن الحسن": {
+   "person_id": "n001068",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن الحسن بن أحمد بن الوليد"
+  },
+  "Al-Amālī\tابان بن عثمان": {
+   "person_id": "n000024",
+   "voices": 2,
+   "applied": true,
+   "display": "أبان بن عثمان الاحمر البجلي"
+  },
+  "Maʿānī al-ʾAkhbār\tعلي بن الحكم": {
+   "person_id": "n067159",
+   "voices": 1,
+   "applied": true,
+   "display": "علي بن الحكم الكوفي"
+  },
+  "Maʿānī al-ʾAkhbār\tابان بن عثمان": {
+   "person_id": "n000024",
+   "voices": 1,
+   "applied": true,
+   "display": "أبان بن عثمان الاحمر البجلي"
+  },
+  "Muʿjam al-Aḥādīth al-Muʿtabara\tالميثمي": {
+   "person_id": "n000202",
+   "voices": 1,
+   "applied": true,
+   "display": "أحمد بن الحسن بن إسماعيل بن شعيب بن ميثم التمار"
+  },
+  "Muʿjam al-Aḥādīth al-Muʿtabara\tمحمد بن مسلم": {
+   "person_id": "n000907",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن مسلم بن رباح"
+  },
+  "Ṣifāt al-Shīʿa\tمحمد بن عماره": {
+   "person_id": "n003152",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن عمارة بن أشعث"
+  },
+  "Al-Kāfi\tمحمد بن سالم": {
+   "person_id": "n012607",
+   "voices": 2,
+   "applied": true,
+   "display": "محمد بن الوليد الخزاز ومعاوية بن حكيم ومصدق بن صدقة ومحمد بن سالم بن عبد الحميد"
+  },
+  "Kitāb al-Ghayba\tداود الصرمي": {
+   "person_id": "n000451",
+   "voices": 1,
+   "applied": true,
+   "display": "داود بن مافنة الصرمي"
+  },
+  "Kitāb al-Zuhd\tحنان": {
+   "person_id": "n000402",
+   "voices": 1,
+   "applied": true,
+   "display": "حنان بن سدير بن حكيم بن صهيب"
+  },
+  "Al-Khiṣāl\tمحمد بن احمد": {
+   "person_id": "n000966",
+   "voices": 2,
+   "applied": true,
+   "display": "محمد بن أحمد بن يحيى بن عمران بن عبد الله بن سعد بن مالك"
+  },
+  "Al-Tawḥīd\tعبد الله بن سنان": {
+   "person_id": "n000582",
+   "voices": 1,
+   "applied": true,
+   "display": "عبد الله بن سنان بن طريف"
+  },
+  "Al-Kāfi\tمعلي بن محمد": {
+   "person_id": "n001142",
+   "voices": 2,
+   "applied": true,
+   "display": "معلى بن محمد"
+  },
+  "Al-Kāfi\tابي عبد الله": {
+   "person_id": "i06",
+   "voices": 1,
+   "applied": true,
+   "display": "جعفر بن محمد الصادق"
+  },
+  "Thawāb al-Aʿmāl wa ʿiqāb al-Aʿmāl\tعلي بن الحكم": {
+   "person_id": "n067159",
+   "voices": 1,
+   "applied": true,
+   "display": "علي بن الحكم الكوفي"
+  },
+  "Faḍaʾil al-Shīʿa\tمنصور الصيقل": {
+   "person_id": "n026270",
+   "voices": 1,
+   "applied": true,
+   "display": "منصور بن الوليد الصيقل"
+  },
+  "Kitāb al-Ghayba\tابي عبد الله": {
+   "person_id": "i06",
+   "voices": 3,
+   "applied": true,
+   "display": "جعفر بن محمد الصادق"
+  },
+  "Maʿānī al-ʾAkhbār\tعباد بن كثير": {
+   "person_id": "n026803",
+   "voices": 1,
+   "applied": true,
+   "display": "عباد بن كثير الكاهلي الثقفي"
+  },
+  "Maʿānī al-ʾAkhbār\tجابر": {
+   "person_id": "n005580",
+   "voices": 1,
+   "applied": true,
+   "display": "جابر بن عبد الله الأنصاري"
+  },
+  "Al-Khiṣāl\tاحمد بن ابي عبد الله البرقي": {
+   "person_id": "n000205",
+   "voices": 2,
+   "applied": true,
+   "display": "أحمد بن محمد بن خالد بن عبد الرحمن بن محمد بن علي البرقي"
+  },
+  "Thawāb al-Aʿmāl wa ʿiqāb al-Aʿmāl\tابن مسكان": {
+   "person_id": "n000583",
+   "voices": 1,
+   "applied": true,
+   "display": "عبد الله بن مسكان"
+  },
+  "Man Lā Yaḥḍuruh al-Faqīh\tمحمد بن مسلم": {
+   "person_id": "n000907",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن مسلم بن رباح"
+  },
+  "Ṣifāt al-Shīʿa\tمحمد بن علي ماجيلويه": {
+   "person_id": "n004274",
+   "voices": 2,
+   "applied": true,
+   "display": "محمد بن علي ماجيلويه"
+  },
+  "Al-Kāfi\tسهل بن زياد": {
+   "person_id": "n000515",
+   "voices": 4,
+   "applied": true,
+   "display": "سهل بن زياد"
+  },
+  "ʿUyūn akhbār al-Riḍā\tالحسن بن علي": {
+   "person_id": "i11",
+   "voices": 1,
+   "applied": true,
+   "display": "الحسن بن علي العسكري"
+  },
+  "Kāmil al-Ziyārāt\tعلي بن النعمان": {
+   "person_id": "n000745",
+   "voices": 1,
+   "applied": true,
+   "display": "علي بن النعمان الاعلم النخعي"
+  },
+  "Kāmil al-Ziyārāt\tاحمد بن محمد": {
+   "person_id": "n000220",
+   "voices": 1,
+   "applied": true,
+   "display": "أحمد بن محمد بن عيسى بن عبد الله بن سعد بن مالك بن الاحوص بن السائب بن مالك بن عامر الاشعري"
+  },
+  "Maʿānī al-ʾAkhbār\tمحمد بن ابي عمير": {
+   "person_id": "n000912",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن أبي عمير زياد بن عيسى"
+  },
+  "Man Lā Yaḥḍuruh al-Faqīh\tعبد الله بن سنان": {
+   "person_id": "n000582",
+   "voices": 1,
+   "applied": true,
+   "display": "عبد الله بن سنان بن طريف"
+  },
+  "Kitāb al-Ghayba\tالحسن بن محمد بن سماعه": {
+   "person_id": "n000097",
+   "voices": 2,
+   "applied": true,
+   "display": "الحسن بن محمد بن سماعة"
+  },
+  "Al-Kāfi\tاحمد بن محمد بن خالد": {
+   "person_id": "n000205",
+   "voices": 2,
+   "applied": true,
+   "display": "أحمد بن محمد بن خالد بن عبد الرحمن بن محمد بن علي البرقي"
+  },
+  "Al-Tawḥīd\tاحمد بن ابي عبد الله البرقي": {
+   "person_id": "n000205",
+   "voices": 1,
+   "applied": true,
+   "display": "أحمد بن محمد بن خالد بن عبد الرحمن بن محمد بن علي البرقي"
+  },
+  "Al-Tawḥīd\tاسحاق بن عمار": {
+   "person_id": "n000183",
+   "voices": 1,
+   "applied": true,
+   "display": "إسحاق بن عمار بن حيان"
+  },
+  "ʿUyūn akhbār al-Riḍā\tموسي بن عمر بن بزيع": {
+   "person_id": "n001114",
+   "voices": 1,
+   "applied": true,
+   "display": "موسى بن عمر بن بزيع"
+  },
+  "Kitāb al-Ghayba\tابي الجارود": {
+   "person_id": "n000473",
+   "voices": 1,
+   "applied": true,
+   "display": "زياد بن المنذر"
+  },
+  "Kāmil al-Ziyārāt\tعبد الرحمن بن مسلم": {
+   "person_id": "n028139",
+   "voices": 1,
+   "applied": true,
+   "display": "عبد الرحمان بن مسلم الأزدي الكوفي"
+  },
+  "Thawāb al-Aʿmāl wa ʿiqāb al-Aʿmāl\tابي عبد الله": {
+   "person_id": "i06",
+   "voices": 1,
+   "applied": true,
+   "display": "جعفر بن محمد الصادق"
+  },
+  "ʿUyūn akhbār al-Riḍā\tمحمد بن علي ماجيلويه": {
+   "person_id": "n004274",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن علي ماجيلويه"
+  },
+  "Thawāb al-Aʿmāl wa ʿiqāb al-Aʿmāl\tعلي بن ابراهيم": {
+   "person_id": "n000706",
+   "voices": 1,
+   "applied": true,
+   "display": "علي بن إبراهيم بن هاشم"
+  },
+  "Al-Tawḥīd\tمحمد بن عيسي": {
+   "person_id": "n069052",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن عيسى بن عبيد اليقطيني"
+  },
+  "Al-Tawḥīd\tالمشرقي": {
+   "person_id": "n001193",
+   "voices": 1,
+   "applied": true,
+   "display": "هاشم بن إبراهيم العباسي"
+  },
+  "Kitāb al-Zuhd\tابن ابي عمير": {
+   "person_id": "n000912",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن أبي عمير زياد بن عيسى"
+  },
+  "Al-Tawḥīd\tاحمد بن محمد بن عيسي": {
+   "person_id": "n000220",
+   "voices": 2,
+   "applied": true,
+   "display": "أحمد بن محمد بن عيسى بن عبد الله بن سعد بن مالك بن الاحوص بن السائب بن مالك بن عامر الاشعري"
+  },
+  "Muʿjam al-Aḥādīth al-Muʿtabara\tالحميري": {
+   "person_id": "n000597",
+   "voices": 1,
+   "applied": true,
+   "display": "عبد الله بن جعفر بن الحسين بن مالك بن جامع الحميري"
+  },
+  "Muʿjam al-Aḥādīth al-Muʿtabara\tعنبسه العابد": {
+   "person_id": "n025141",
+   "voices": 1,
+   "applied": true,
+   "display": "عنبسة بن بجاد العابد"
+  },
+  "Kāmil al-Ziyārāt\tمحمد بن الحسن": {
+   "person_id": "n001068",
+   "voices": 2,
+   "applied": true,
+   "display": "محمد بن الحسن بن أحمد بن الوليد"
+  },
+  "Kāmil al-Ziyārāt\tابن فضال": {
+   "person_id": "n000085",
+   "voices": 1,
+   "applied": true,
+   "display": "الحسن بن علي بن فضال"
+  },
+  "Al-Khiṣāl\tاحمد بن ابي عبد الله": {
+   "person_id": "n000205",
+   "voices": 1,
+   "applied": true,
+   "display": "أحمد بن محمد بن خالد بن عبد الرحمن بن محمد بن علي البرقي"
+  },
+  "Al-Khiṣāl\tخلف بن حماد": {
+   "person_id": "n000424",
+   "voices": 1,
+   "applied": true,
+   "display": "خلف بن حماد بن ناشر بن المسيب"
+  },
+  "Al-Khiṣāl\tابي جعفر": {
+   "person_id": "i05",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن علي الباقر"
+  },
+  "Kāmil al-Ziyārāt\tابن ابي عمير": {
+   "person_id": "n000912",
+   "voices": 2,
+   "applied": true,
+   "display": "محمد بن أبي عمير زياد بن عيسى"
+  },
+  "Al-Khiṣāl\tمحمد بن علي ماجيلويه": {
+   "person_id": "n004274",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن علي ماجيلويه"
+  },
+  "Thawāb al-Aʿmāl wa ʿiqāb al-Aʿmāl\tابن فضال": {
+   "person_id": "n000085",
+   "voices": 1,
+   "applied": true,
+   "display": "الحسن بن علي بن فضال"
+  },
+  "Kāmil al-Ziyārāt\tاحمد بن ابي عبد الله البرقي": {
+   "person_id": "n000205",
+   "voices": 2,
+   "applied": true,
+   "display": "أحمد بن محمد بن خالد بن عبد الرحمن بن محمد بن علي البرقي"
+  },
+  "Thawāb al-Aʿmāl wa ʿiqāb al-Aʿmāl\tسعد بن عبد الله": {
+   "person_id": "n000492",
+   "voices": 4,
+   "applied": true,
+   "display": "سعد بن عبد الله بن أبي خلف"
+  },
+  "Thawāb al-Aʿmāl wa ʿiqāb al-Aʿmāl\tصالح بن عقبه": {
+   "person_id": "n000556",
+   "voices": 1,
+   "applied": true,
+   "display": "صالح بن عقبة بن قيس بن سمعان بن أبي ربيحة"
+  },
+  "Thawāb al-Aʿmāl wa ʿiqāb al-Aʿmāl\tداود بن فرقد": {
+   "person_id": "n035968",
+   "voices": 1,
+   "applied": true,
+   "display": "داود بن فرقد"
+  },
+  "Faḍaʾil al-Shīʿa\tمحمد بن مسلم": {
+   "person_id": "n000907",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن مسلم بن رباح"
+  },
+  "Ṣifāt al-Shīʿa\tالحارثي": {
+   "person_id": "n000618",
+   "voices": 1,
+   "applied": true,
+   "display": "عبد الله بن القاسم الحارثي"
+  },
+  "Al-Amālī\tاحمد بن محمد بن عيسي": {
+   "person_id": "n000220",
+   "voices": 1,
+   "applied": true,
+   "display": "أحمد بن محمد بن عيسى بن عبد الله بن سعد بن مالك بن الاحوص بن السائب بن مالك بن عامر الاشعري"
+  },
+  "Al-Tawḥīd\tعلي بن الحكم": {
+   "person_id": "n067159",
+   "voices": 1,
+   "applied": true,
+   "display": "علي بن الحكم الكوفي"
+  },
+  "Al-Tawḥīd\tمحمد بن ابي عمير": {
+   "person_id": "n000912",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن أبي عمير زياد بن عيسى"
+  },
+  "ʿUyūn akhbār al-Riḍā\tجعفر بن محمد": {
+   "person_id": "i06",
+   "voices": 1,
+   "applied": true,
+   "display": "جعفر بن محمد الصادق"
+  },
+  "ʿUyūn akhbār al-Riḍā\tاحمد بن محمد بن عيسي": {
+   "person_id": "n000220",
+   "voices": 1,
+   "applied": true,
+   "display": "أحمد بن محمد بن عيسى بن عبد الله بن سعد بن مالك بن الاحوص بن السائب بن مالك بن عامر الاشعري"
+  },
+  "Al-Kāfi\tاحمد بن محمد بن عيسي": {
+   "person_id": "n000220",
+   "voices": 3,
+   "applied": true,
+   "display": "أحمد بن محمد بن عيسى بن عبد الله بن سعد بن مالك بن الاحوص بن السائب بن مالك بن عامر الاشعري"
+  },
+  "Muʿjam al-Aḥādīth al-Muʿtabara\tمحمد بن الحسين": {
+   "person_id": "n000923",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن الحسين بن أبي الخطاب"
+  },
+  "Al-Kāfi\tعلي": {
+   "person_id": "n000706",
+   "voices": 1,
+   "applied": true,
+   "display": "علي بن إبراهيم بن هاشم"
+  },
+  "Al-Kāfi\tمحمد بن مسلم": {
+   "person_id": "n000907",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن مسلم بن رباح"
+  },
+  "Al-Tawḥīd\tاحمد بن محمد": {
+   "person_id": "n000220",
+   "voices": 1,
+   "applied": true,
+   "display": "أحمد بن محمد بن عيسى بن عبد الله بن سعد بن مالك بن الاحوص بن السائب بن مالك بن عامر الاشعري"
+  },
+  "Al-Tawḥīd\tابن فضال": {
+   "person_id": "n000085",
+   "voices": 1,
+   "applied": true,
+   "display": "الحسن بن علي بن فضال"
+  },
+  "Faḍaʾil al-Shīʿa\tمحمد بن سليمان": {
+   "person_id": "n001013",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن سليمان بن عبد الله الديلمي"
+  },
+  "Muʿjam al-Aḥādīth al-Muʿtabara\tعبد الله بن جعفر": {
+   "person_id": "n000597",
+   "voices": 1,
+   "applied": true,
+   "display": "عبد الله بن جعفر بن الحسين بن مالك بن جامع الحميري"
+  },
+  "Kitāb al-Ḍuʿafāʾ\tعلي بن محمد بن الزبير": {
+   "person_id": "n029741",
+   "voices": 1,
+   "applied": true,
+   "display": "علي بن محمد بن الزبير القرشي الكوفي"
+  },
+  "Al-Amālī\tاحمد بن ابي عبد الله البرقي": {
+   "person_id": "n000205",
+   "voices": 1,
+   "applied": true,
+   "display": "أحمد بن محمد بن خالد بن عبد الرحمن بن محمد بن علي البرقي"
+  },
+  "Al-Khiṣāl\tعلي بن الحكم": {
+   "person_id": "n067159",
+   "voices": 1,
+   "applied": true,
+   "display": "علي بن الحكم الكوفي"
+  },
+  "Kitāb al-Zuhd\tعبد الله بن سنان": {
+   "person_id": "n000582",
+   "voices": 1,
+   "applied": true,
+   "display": "عبد الله بن سنان بن طريف"
+  },
+  "Al-Khiṣāl\tمحمد بن ابي عمير": {
+   "person_id": "n000912",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن أبي عمير زياد بن عيسى"
+  },
+  "Al-Kāfi\tابن فضال": {
+   "person_id": "n000085",
+   "voices": 2,
+   "applied": true,
+   "display": "الحسن بن علي بن فضال"
+  },
+  "Maʿānī al-ʾAkhbār\tاحمد بن محمد بن عيسي": {
+   "person_id": "n000220",
+   "voices": 1,
+   "applied": true,
+   "display": "أحمد بن محمد بن عيسى بن عبد الله بن سعد بن مالك بن الاحوص بن السائب بن مالك بن عامر الاشعري"
+  },
+  "Kitāb al-Ghayba\tابن نوح": {
+   "person_id": "n000231",
+   "voices": 1,
+   "applied": true,
+   "display": "أحمد بن علي بن العباس بن نوح السيرافي"
+  },
+  "Al-Khiṣāl\tابي عبد الله": {
+   "person_id": "i06",
+   "voices": 2,
+   "applied": true,
+   "display": "جعفر بن محمد الصادق"
+  },
+  "Muʿjam al-Aḥādīth al-Muʿtabara\tمحمد بن عيسي": {
+   "person_id": "n069052",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن عيسى بن عبيد اليقطيني"
+  },
+  "Al-Kāfi\tعلي بن الحكم": {
+   "person_id": "n067159",
+   "voices": 2,
+   "applied": true,
+   "display": "علي بن الحكم الكوفي"
+  },
+  "Maʿānī al-ʾAkhbār\tجعفر بن محمد": {
+   "person_id": "i06",
+   "voices": 1,
+   "applied": true,
+   "display": "جعفر بن محمد الصادق"
+  },
+  "Kāmil al-Ziyārāt\tاحمد بن محمد بن عيسي": {
+   "person_id": "n000220",
+   "voices": 2,
+   "applied": true,
+   "display": "أحمد بن محمد بن عيسى بن عبد الله بن سعد بن مالك بن الاحوص بن السائب بن مالك بن عامر الاشعري"
+  },
+  "Thawāb al-Aʿmāl wa ʿiqāb al-Aʿmāl\tابي جعفر": {
+   "person_id": "i05",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن علي الباقر"
+  },
+  "Thawāb al-Aʿmāl wa ʿiqāb al-Aʿmāl\tالحسين بن احمد": {
+   "person_id": "n002398",
+   "voices": 1,
+   "applied": true,
+   "display": "الحسين بن أحمد بن إدريس القمي الأشعري"
+  },
+  "Ṣifāt al-Shīʿa\tعبد الله بن سنان": {
+   "person_id": "n000582",
+   "voices": 1,
+   "applied": true,
+   "display": "عبد الله بن سنان بن طريف"
+  },
+  "Muʿjam al-Aḥādīth al-Muʿtabara\tاحمد بن محمد بن خالد": {
+   "person_id": "n000205",
+   "voices": 1,
+   "applied": true,
+   "display": "أحمد بن محمد بن خالد بن عبد الرحمن بن محمد بن علي البرقي"
+  },
+  "Al-Khiṣāl\tعلي بن اسباط": {
+   "person_id": "n036080",
+   "voices": 1,
+   "applied": true,
+   "display": "علي بن أسباط بن سالم"
+  },
+  "Kitāb al-Zuhd\tمحمد بن ابي عمير": {
+   "person_id": "n000912",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن أبي عمير زياد بن عيسى"
+  },
+  "Kitāb al-Zuhd\tمحمد بن حمران": {
+   "person_id": "n000991",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن حمران النهدي"
+  },
+  "Kitāb al-Zuhd\tابان بن عثمان": {
+   "person_id": "n000024",
+   "voices": 1,
+   "applied": true,
+   "display": "أبان بن عثمان الاحمر البجلي"
+  },
+  "Kitāb al-Ghayba\tابن فضال": {
+   "person_id": "n000085",
+   "voices": 1,
+   "applied": true,
+   "display": "الحسن بن علي بن فضال"
+  },
+  "Kitāb al-Ghayba\tعبد الله بن عجلان": {
+   "person_id": "n002663",
+   "voices": 1,
+   "applied": true,
+   "display": "عبد الله بن عجلان"
+  },
+  "Ṣifāt al-Shīʿa\tجعفر بن محمد بن مسرور": {
+   "person_id": "n002315",
+   "voices": 1,
+   "applied": true,
+   "display": "جعفر بن محمد بن مسرور"
+  },
+  "Ṣifāt al-Shīʿa\tابان بن عثمان": {
+   "person_id": "n000024",
+   "voices": 1,
+   "applied": true,
+   "display": "أبان بن عثمان الاحمر البجلي"
+  },
+  "Faḍaʾil al-Shīʿa\tمحمد بن علي ماجيلويه": {
+   "person_id": "n004274",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن علي ماجيلويه"
+  },
+  "Al-Amālī\tابي جعفر": {
+   "person_id": "i05",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن علي الباقر"
+  },
+  "Al-Khiṣāl\tجعفر بن محمد بن مسرور": {
+   "person_id": "n002315",
+   "voices": 1,
+   "applied": true,
+   "display": "جعفر بن محمد بن مسرور"
+  },
+  "Al-Kāfi\tحنان": {
+   "person_id": "n000402",
+   "voices": 1,
+   "applied": true,
+   "display": "حنان بن سدير بن حكيم بن صهيب"
+  },
+  "Al-Amālī\tمحمد بن الحسين": {
+   "person_id": "n000923",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن الحسين بن أبي الخطاب"
+  },
+  "Al-Amālī\tمحمد بن يحيي": {
+   "person_id": "n000990",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن يحيى الخزاز"
+  },
+  "Maʿānī al-ʾAkhbār\tابي جعفر": {
+   "person_id": "i05",
+   "voices": 1,
+   "applied": true,
+   "display": "محمد بن علي الباقر"
+  },
+  "Ṣifāt al-Shīʿa\tسهل بن زياد": {
+   "person_id": "n000515",
+   "voices": 1,
+   "applied": true,
+   "display": "سهل بن زياد"
+  },
+  "Al-Amālī\tمنصور": {
+   "person_id": "n014037",
+   "voices": 1,
+   "applied": true,
+   "display": "منصور بن المعتمر"
+  },
+  "Al-Amālī\tحذيفه": {
+   "person_id": "n001813",
+   "voices": 1,
+   "applied": true,
+   "display": "حذيفة بن اليمان الانصاري"
+  }
+ },
+ "corrects": {
+  "Maʿānī al-ʾAkhbār\tجده": {
+   "person_id": "i04",
+   "voices": 1,
+   "applied": false,
+   "display": "علي بن الحسين زين العابدين"
+  },
+  "Muʿjam al-Aḥādīth al-Muʿtabara\tمحمد العطار": {
+   "person_id": "n034836",
+   "voices": 2,
+   "applied": true,
+   "display": "محمد بن يحيى أبو جعفر العطار القمي"
+  },
+  "Faḍaʾil al-Shīʿa\tجده": {
+   "person_id": "i04",
+   "voices": 1,
+   "applied": false,
+   "display": "علي بن الحسين زين العابدين"
+  },
+  "Al-Amālī\tمحمد بن يحيي": {
+   "person_id": "n034836",
+   "voices": 1,
+   "applied": false,
+   "display": "محمد بن يحيى أبو جعفر العطار القمي"
+  },
+  "Al-Tawḥīd\tمحمد بن مسلم": {
+   "person_id": "n000907",
+   "voices": 1,
+   "applied": false,
+   "display": "محمد بن مسلم بن رباح"
+  },
+  "Al-Khiṣāl\tمحمد بن مسلم": {
+   "person_id": "n000907",
+   "voices": 1,
+   "applied": false,
+   "display": "محمد بن مسلم بن رباح"
+  },
+  "ʿUyūn akhbār al-Riḍā\tابي جعفر": {
+   "person_id": "i07",
+   "voices": 2,
+   "applied": false,
+   "display": "موسى بن جعفر الكاظم"
+  },
+  "Thawāb al-Aʿmāl wa ʿiqāb al-Aʿmāl\tمحمد بن موسي": {
+   "person_id": "n036201",
+   "voices": 1,
+   "applied": false,
+   "display": "محمد بن موسى بن المتوكل"
+  },
+  "Al-Kāfi\tالحلبي": {
+   "person_id": "n038120",
+   "voices": 1,
+   "applied": false,
+   "display": "عبيد الله بن علي الحلبي"
+  },
+  "Muʿjam al-Aḥādīth al-Muʿtabara\tاليقطيني": {
+   "person_id": "n069052",
+   "voices": 1,
+   "applied": false,
+   "display": "محمد بن عيسى بن عبيد اليقطيني"
+  },
+  "Muʿjam al-Aḥādīth al-Muʿtabara\tيونس": {
+   "person_id": "n001232",
+   "voices": 1,
+   "applied": false,
+   "display": "يونس بن عبد الرحمن"
+  },
+  "Al-Khiṣāl\tمحمد بن علي": {
+   "person_id": "i05",
+   "voices": 2,
+   "applied": true,
+   "display": "محمد بن علي الباقر"
+  },
+  "Kitāb al-Ghayba\tعبيد الله بن موسي": {
+   "person_id": "n040720",
+   "voices": 1,
+   "applied": false,
+   "display": "عبيد الله بن موسى بن موسى بن أبي المختار العبسي الكوفي"
+  },
+  "Al-Kāfi\tيونس": {
+   "person_id": "n001232",
+   "voices": 1,
+   "applied": false,
+   "display": "يونس بن عبد الرحمن"
+  },
+  "Al-Kāfi\tعلي بن الحسن": {
+   "person_id": "n000702",
+   "voices": 1,
+   "applied": false,
+   "display": "علي بن الحسن بن علي بن فضال بن عمر بن أيمن"
+  },
+  "Muʿjam al-Aḥādīth al-Muʿtabara\tالاشعري": {
+   "person_id": "n000220",
+   "voices": 1,
+   "applied": false,
+   "display": "أحمد بن محمد بن عيسى بن عبد الله بن سعد بن مالك بن الاحوص بن السائب بن مالك بن عامر الاشعري"
+  },
+  "Muʿjam al-Aḥādīth al-Muʿtabara\tابن المتوكل": {
+   "person_id": "n036201",
+   "voices": 1,
+   "applied": false,
+   "display": "محمد بن موسى بن المتوكل"
+  },
+  "Kāmil al-Ziyārāt\tالحلبي": {
+   "person_id": "n038120",
+   "voices": 1,
+   "applied": false,
+   "display": "عبيد الله بن علي الحلبي"
+  },
+  "Faḍaʾil al-Shīʿa\tعقبه": {
+   "person_id": "n026946",
+   "voices": 1,
+   "applied": false,
+   "display": "عقبة بن عامر الجهني"
+  },
+  "Al-Kāfi\tسعيد بن يسار": {
+   "person_id": "n000503",
+   "voices": 1,
+   "applied": false,
+   "display": "سعيد بن يسار"
+  },
+  "Al-Amālī\tربعي": {
+   "person_id": "n007570",
+   "voices": 1,
+   "applied": false,
+   "display": "ربعي بن خراش"
+  }
+ },
+ "everywhere": {
+  "خلف بن حماد": "n000424",
+  "علي بن النعمان": "n000745",
+  "احمد بن محمد": "n000220",
+  "عبد الله بن جعفر": "n000597",
+  "سعد بن عبد الله": "n000492",
+  "ابن ابي عمير": "n000912",
+  "ابان": "n000024",
+  "ابن فضال": "n000085",
+  "علي بن ابراهيم": "n000706",
+  "محمد بن الحسن": "n001068",
+  "ابي الجارود": "n000473",
+  "محمد بن احمد": "n000966",
+  "ابان بن عثمان": "n000024",
+  "علي بن الحكم": "n067159",
+  "محمد بن مسلم": "n000907",
+  "حنان": "n000402",
+  "عبد الله بن سنان": "n000582",
+  "ابي عبد الله": "i06",
+  "احمد بن ابي عبد الله البرقي": "n000205",
+  "محمد بن علي ماجيلويه": "n004274",
+  "سهل بن زياد": "n000515",
+  "محمد بن ابي عمير": "n000912",
+  "احمد بن محمد بن خالد": "n000205",
+  "محمد بن عيسي": "n069052",
+  "احمد بن محمد بن عيسي": "n000220",
+  "محمد بن الحسين": "n000923",
+  "جعفر بن محمد بن مسرور": "n002315"
+ }
+}
