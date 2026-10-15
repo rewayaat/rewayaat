@@ -249,6 +249,68 @@ book's conventions, checked against the teachers and students each person is kno
 A mention that cannot be resolved with confidence stays unresolved rather than being guessed.
 Every resolution is recorded, and the chain's text is never altered.
 
+#### Linking the chains (stage 8)
+
+The chains are cut from the site's own rendering of them, by `HadithDisplaySegmenter`, so an
+offset is an offset into the text the reader sees. 26,256 of 32,519 narrations carry an Arabic
+isnād; Nahj al-Balāgha has almost none and Risālat al-Ḥuqūq none at all, which is correct — they
+are not narrated with chains. Each chain is cut into mentions (137,293 of them, 5.2 a chain)
+sorted by what they are: a name, an Imam's kunya, a relative («عن أبيه»), a collective («عدة من
+أصحابنا»), or «عن» doing duty as an ordinary preposition. Only a man with an entry in a
+**classical** book can be linked to — 9,099 of 15,976 — because a Khoei-only one-liner is itself
+a chain fragment and not a man's biography.
+
+Four of the rules earned their place by failing without them: a blessing closes the name it
+follows, or «محمد بن الحسن بن أحمد بن الوليد رضي الله» reads as an Imam and «الله» as a man; the
+و in «وهب بن وهب» is part of a name, not a conjunction; a heading beats an alias, because alias
+lists carry names lifted out of chains quoted inside entries and Zurāra's own entry holds «محمد
+بن مسلم»; and «أبيه» is refused both as evidence and as a name, which costs about 4,000 links and
+is worth it.
+
+Then the conventions, which is where most of the reach came from. A bare name at the head of one
+author's chains is regularly one particular man although several men of the books hold it, and
+the auditors of the first two rounds named these as they went: 148 of them, 27 holding in every
+book, each requiring that the auditors agreed and that the man they named resolves to exactly
+one person. Coverage went 58.2% → 73.4% and refusals 24,600 → 6,518.
+
+Three audit rounds, on the method the whole system uses — hidden controls first, and nothing
+believed until they pass.
+
+| | links | planted caught | twins agreed | what it measured |
+|---|---|---|---|---|
+| `chain-862-c49febdf3db53cc4` | 862 | 12/12 | 29/29 | `one` 96.6%, `chosen` 89.5%; 220 of 270 refusals the chain in fact settles |
+| `chain-599-66ed6d66f3f9c9ff` | 599 | 10/10 | 32/32 | `one` 94.5%, `chosen` 88.2% after the heading-over-alias fix |
+| `chain-541-94093667316b2f81` | 541 | 10/10 | 24/24 | **`convention` 96.6%**, against `one` 96.4% and `chosen` 83.9% from the same readers |
+
+The third round measures the conventions, which the first two could not: the table was built out
+of what their auditors said. Two precautions, both necessary. A convention link is shown as any
+other link made on evidence is shown, so no batch says which claims are under test; and the four
+specific conventions the prompt used to teach with are in the table now, so they are gone from
+the prompt — confirming a convention the prompt has just asserted measures nothing. A reference
+class of plain links went into the same batches, because the same readers judging claims already
+measured is how a strict panel is told apart from a bad claim.
+
+It found the conventions to be the sturdiest tier we have and `chosen` the weakest, and it found
+**160 al-Kāfī chains** opening on «محمد بن يحيى» pointed at al-Khazzāz, a Kufan companion of
+al-Ṣādiq, where fifteen auditors had named al-ʿAṭṭār, al-Kulaynī's own shaykh — a man dead about
+a century and a half before the book was written. A convention more than one auditor reached now
+outranks a pairing found in one entry. A kunya the books share between two Imams is never
+promoted to every book, because which Imam a chain means is settled by the layer of the man
+receiving from him. 3,481 links moved to the right man; 127 contested kunyas are now refused
+outright.
+
+Two things the round named that are not yet done. **A layer check** — refusing a link whose man
+died a generation or more away from his neighbour in the chain — would have caught the al-Khazzāz
+cluster mechanically, and four more of the nineteen convention faults besides; it waits on the
+death years being audited, since a wrong year would break good links. And **an alias is kept
+however unlike the man's own heading it is**, so «محمد بن مسلم» sits among Zurāra's names and
+«ابن أبي عمير» among Isḥāq b. ʿAmmār's. Keeping only aliases whose words are a subsequence of one
+of his own headings would cut that at the root, but it would also drop real laqabs that share no
+word with a nasab, so it has to be measured before it is adopted.
+
+Each round's answers are folded back into the table, so **a round measures the table as it stood
+when the round was drawn**, never as it stands after. That is what the next round is for.
+
 ### The research graph
 
 - **Nodes** are people, with death year or generation where the sources give one.
@@ -279,7 +341,7 @@ measured.
 | ✓ 5a | **Return through stages 2–4, on the audit's findings.** Repair every remaining Khoei and Mamaqani Layer 0 entry page by page. Put Layer 1 full-name joins, and Layer 2 joins below context score 6, to agents. Widen the attach question to namesakes without an agreeing kunyah or nisbah. Compare Khoei and Mamaqani profiles with each other. Put the rule joins a re-audit traces its errors to through a second verify pass. | A fresh audit meets the gate. Phase A (repair) done 2026-09-14: 782 entries shown page by page and 309 split, 190 people asked again, 3,301 rule joins verified and 396 broken. That left 24,633 people. A people-only re-audit scored 93.4%, still short of the gate; its errors traced to Layer 1 exact joins at score 0 and to Layer 2 joins at any score. Phase B (widening) done 2026-09-14. The second verify pass broke 133 rule joins, Khoei against Mamaqani joined 2,090 profiles, and the wider attach question attached 737. That left 22,013 people. The split pass then ran again on the 426 people phase B's agents flagged or disagreed over and split 158 of them, leaving 22,203 people. Done 2026-09-16: the fresh full audit **met the gate** at 98.7%, with both controls passed and every rule layer at 94% or better. What it leaves is the other side of the ledger, where 23% of sampled main-entry people still have a double. |
 | 6 | **Complete the sources.** Re-extract the books phase 1 truncated — Rijal al-Ṭūsī, al-Fihrist, al-Kashshī, Jāmiʿ al-Ruwāt — from the openly licensed OpenITI texts of the same printed editions, by rule and with no agent reading a page. Re-extract, one man at a time, the 325 entries agents marked as describing two men, 282 of them from Khoei and Mamaqani. An identity decision cannot divide a single extracted profile. Mend what the passes found in the extraction itself: collective phrases headed as men («عدة من أصحابنا»), headings that say only «أحمد ابنه», an entry for the Prophet Moses, aliases and titles belonging to a neighbouring entry, and verdicts quoted from one. Fold the defective spellings the rules cannot match — «عبد الرحمان» against «عبد الرحمن» in 403 headings, «الحرث» against «الحارث» in 43 — and re-merge, then verify the joins that fold newly allows. The keying is settled by appending: a source key is `book:index`, so the re-extracted entries go after the ones already on file, every existing key keeps its entry, and each entry the two readings share is merged into the one that holds the key while its duplicate is excluded. No recorded decision is invalidated, and the 728 resting on al-Ṭūsī's original entries still stand. | Each book's yield matches its known entry count; no entry is left marked mixed; the folded spellings match across books. All four done 2026-09-18: Rijāl al-Ṭūsī 123 entries → 6,429, al-Fihrist 731 → 910, al-Kashshī 209 → 430, each verified against the edition's own numbering rather than a page count, and Jāmiʿ al-Ruwāt 1,796 → 7,492, recovered from the book's own alphabetical order because its text marks no entries. People holding a main-book entry 2,990 → 13,396. The Layer 3 pass the new entries created ran on 2026-09-19 — 84 batches, 3,599 tasks — and a fresh audit of the result **met the gate at 97.5%**; see [completing the sources](#completing-the-sources-stage-6). Then al-Najāshī was re-parsed the same way, 1,192 → 1,279 entries with his own words and pages, and stage 6 turned to joining the books to each other by what they say, not by name; see [completing the sources](#completing-the-sources-stage-6). Audit 3 (2026-09-22 seed) measured those joins at 96–100% and mended all 26 stray entries it found, but scored people precision 95.3% with the negative controls at 86.7%, so the gate went unmet until the measurement itself was mended: with each pair's Imam-generation gap stated in the item, **audit 4 (2026-09-24 seed) met the gate at 98.2%, both controls 30/30**. What remains of the stage is the mixed entries, the extraction defects the passes found, and the splitting: about a third of sampled people still have a double, though 10,296 unattached mentions have no entry of that name anywhere, which is a ceiling rather than a defect. |
 | 7 | **Publish.** Restore the narrator index, service and API deleted in `9b6adb6`; write the narrator page; add `lookup_narrator` to the MCP connector. A person's display name is his anchor entry's own heading; the merge's longest-form rule gave Ibn Abī ʿUmayr the garbled «أبو أحمد بن محمد بن زياد الأزدي». Before any verdict is shown under a scholar's name, it is checked against the entry it came from. The split pass found 200 entries carrying another man's data, and one Khoei page credits al-Najāshī with praise of Sahl b. Ziyād that al-Najāshī's own entry contradicts. | Narrator pages live, on permanent identifiers; every published verdict traced to its entry. | Done 2026-09-20: `index_people.py` builds `rewayaat_narrators` (16,522 people, 32,622 entries, 54,483 verdicts of which 43,043 are traced to a single entry); `NarratorService`, `NarratorPageController` at `/narrator/{id}`, `/v1/narrators` and `/v1/narrators/{id}`; `narrator.html` leads with where the books disagree; `lookup_narrator` is in the connector with six tests. The search page at `/narrators` is live too, and its matching was mended on 2026-10-10: two-edit fuzziness had «zurara» reaching «hurasa» and «zuraqan», and an OR of the query's words had «ibn abi umayr» matching 10,000 men because «ibn» stands in nearly every name. What is left of the stage is the link from a chain to the man, which is stage 8's work and the point of the whole system: every name in every isnād the site displays should be a link to that man's page.
-| 8 | **Resolve every chain.** Per-mention records linking each name in each chain to a person, following each book's conventions. | Coverage and confidence measured per book. |
+| 8 | **Resolve every chain.** Per-mention records linking each name in each chain to a person, following each book's conventions. | Coverage and confidence measured per book. **Links live 2026-10-15**, on 24,295 narrations: 73.4% of the 119,634 names in the 26,256 Arabic isnāds the corpus holds, measured at **95.3% precision** weighted by what the resolver claims. See [linking the chains](#linking-the-chains-stage-8). What remains: the English chains, which most readers see and which are untouched; the 25,315 names no classical book holds an entry for; and the 6,518 the books do not choose between. |
 | 9 | **Publish the research graph.** Node and edge files, documented, with a worked path query. | A researcher can count time-ordered paths between two people from the export alone. |
 
 If the accuracy audit falls short, the plan returns through stages 2–4 before anything is
@@ -448,6 +510,16 @@ On `feature/narrators`:
 | `scripts/narrators/audit_agent_prompt.md` | the auditors' brief |
 | `scripts/narrators/audit_score.py` | scores the audit against its key: join precision per method, controls, people precision, remaining splits, the gate |
 | `scripts/narrators/audit_narrator_quality.py` | per-book completeness audit |
+| `src/main/java/com/rewayaat/tools/ChainExportTool.java` | exports every chain through the site's own `HadithDisplaySegmenter`, so a stored offset is an offset into what the reader sees |
+| `scripts/narrators/chain_mentions.py` | cuts each isnād into mentions with offsets, sorted by kind: name, Imam, relative, collective, or «عن» as a preposition |
+| `scripts/narrators/chain_resolve.py` | gives each mention an outcome — `one`, `chosen`, `convention`, `several`, `none` — in passes, names first because the kunyas and «أبيه» are read off their neighbours |
+| `scripts/narrators/imams.py` | the fourteen, who have no entry in any rijāl book: their forms, death years, shared kunyas and fathers |
+| `scripts/narrators/chain_audit_prepare.py` | draws chains for auditors, stratified by book, with planted men and twinned tasks; `--require`/`--thin` draw a round at one tier with a reference class |
+| `scripts/narrators/chain_audit_prompt.md` | the chain auditors' brief; it states the principle of a book's conventions and deliberately names none of those in the table |
+| `scripts/narrators/chain_audit_score.py` | scores a round per tier, by book, and by how far a convention reaches |
+| `scripts/narrators/chain_conventions.py` | harvests the conventions the auditors named — agreement required, the man resolving to one person, no promotion of a kunya two Imams share |
+| `scripts/narrators/chain_links_load.py` | writes `chain_links` onto the narrations, relocating a span whose name moved and dropping it if it cannot be placed once |
+| `src/main/java/com/rewayaat/core/ChainLinks.java` | renders the spans as links, escaping everything outside them and dropping any span whose covered text no longer matches |
 
 ```bash
 python3 scripts/narrators/normalize_extraction.py --strict
@@ -461,6 +533,17 @@ python3 scripts/narrators/crossform_prepare.py             # cross-form batches,
 python3 scripts/narrators/record_decisions.py --no-rules --l3-run tmp/narrators_l3/runs/xform-<fp>
 python3 scripts/narrators/build_people.py
 python3 scripts/narrators/crossform_prepare.py --attach    # then record and build the same way
+
+# stage 8 — the chains
+REWAYAAT_INDEX=rewayaat_hadith CHAIN_EXPORT_OUT=tmp/narrators_chains/chains_served.jsonl \
+  java -cp "target/classes:$(cat /tmp/rewayaat-narr.cp)" com.rewayaat.tools.ChainExportTool
+python3 scripts/narrators/chain_mentions.py
+python3 scripts/narrators/chain_resolve.py
+python3 scripts/narrators/chain_audit_prepare.py --seed 73 --chains 240 --batches 4 \
+  --ask one,chosen,convention --require convention --thin one:1   # a round at one tier
+python3 scripts/narrators/chain_audit_score.py --run chain-541-94093667316b2f81
+python3 scripts/narrators/chain_conventions.py --harvest    # then resolve again
+python3 scripts/narrators/chain_links_load.py --live
 python3 scripts/narrators/split_prepare.py                 # the split pass, recorded the same way
 python3 scripts/narrators/split_prepare.py --pages         # then Layer 0 entries, page by page
 ```
