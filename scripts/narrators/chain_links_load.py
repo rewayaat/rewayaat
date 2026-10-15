@@ -23,7 +23,7 @@ import sys
 
 W = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 TMP = f'{W}/tmp'
-LINKED = ("one", "chosen")
+LINKED = ("one", "chosen", "convention")
 
 
 def slugs(host, index="rewayaat_narrators"):

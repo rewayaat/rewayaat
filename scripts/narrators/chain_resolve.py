@@ -38,6 +38,7 @@ import imams  # noqa: E402
 from narrator_schema import normalize_arabic  # noqa: E402
 
 TMP = f'{W}/tmp'
+CONVENTIONS = f'{W}/scripts/data/narrators/chain_conventions.json'
 MENTIONS = f'{TMP}/narrators_chains/mentions.jsonl'
 PEOPLE = f'{TMP}/narrators_chains/people_index.json'
 
@@ -175,7 +176,34 @@ def one_of(candidates, data):
     return candidates[0] if len(candidates) == 1 else ""
 
 
-def resolve_chain(mentions, data):
+def conventions(path):
+    """The chain conventions the auditors named, as the resolver reads them.
+
+    A convention is not a fifth kind of evidence smuggled in: it is what the rijālī literature
+    says about reading a particular author's isnāds — «محمد بن يحيى» opening a chain in al-Kāfī
+    is al-ʿAṭṭār — written down only where the auditors agreed and the man they named resolves
+    to one person. Where the file is absent the resolver simply refuses those names as before.
+    """
+    try:
+        with open(path) as handle:
+            table = json.load(handle)
+    except FileNotFoundError:
+        return {"settles": {}, "corrects": {}, "everywhere": {}}
+    return table
+
+
+def by_convention(table, book, folded):
+    """The man a book's own practice names, with the reason to show beside the link."""
+    row = (table.get("settles") or {}).get(f"{book}\t{folded}")
+    if row and row.get("applied", True):
+        return row["person_id"], f"{book} reads this name as one man"
+    person = (table.get("everywhere") or {}).get(folded)
+    if person:
+        return person, "the books read this name as one man"
+    return "", ""
+
+
+def resolve_chain(mentions, data, book="", table=None):
     """Give each mention in one chain an outcome, in three passes over the same chain.
 
     Names first, because the other two kinds are read off their neighbours: an Imam's kunya is
@@ -184,6 +212,7 @@ def resolve_chain(mentions, data):
     """
     keys = [key(m["text"]) for m in mentions]
     rows = [dict(m) for m in mentions]
+    table = table or {}
 
     for position, row in enumerate(rows):
         if row["kind"] != "name":
@@ -237,6 +266,30 @@ def resolve_chain(mentions, data):
             row["outcome"], row["candidates"] = "several", list(found)
 
     for position, row in enumerate(rows):
+        if row.get("kind") not in ("name", "imam"):
+            continue
+        if row["outcome"] in ("several", "none"):
+            person, why = by_convention(table, book, keys[position])
+            if person:
+                row["outcome"] = "convention"
+                row["because"] = why
+                row.pop("candidates", None)
+                row.pop("backed", None)
+                row["target"] = "imam" if person in imams.BY_ID else "narrator"
+                row["imam_id" if person in imams.BY_ID else "person_id"] = person
+            continue
+        fix = (table.get("corrects") or {}).get(f"{book}\t{keys[position]}")
+        if fix and fix.get("applied") and row["outcome"] in ("one", "chosen"):
+            # the audit found this link wrong and named the man; a wrong link is worse than
+            # a missing one, so the correction stands over our own match
+            row["outcome"] = "convention"
+            row["because"] = "the audit read this chain and named the man"
+            row.pop("person_id", None)
+            row.pop("imam_id", None)
+            row["target"] = "imam" if fix["person_id"] in imams.BY_ID else "narrator"
+            row["imam_id" if fix["person_id"] in imams.BY_ID else "person_id"] = fix["person_id"]
+
+    for position, row in enumerate(rows):
         if row["kind"] != "relative":
             continue
         folded = keys[position]
@@ -276,6 +329,7 @@ def main():
     parser.add_argument("--mentions", default=MENTIONS)
     parser.add_argument("--people", default=PEOPLE)
     parser.add_argument("--out", default=f'{TMP}/narrators_chains/resolved.jsonl')
+    parser.add_argument("--conventions", default=CONVENTIONS)
     parser.add_argument("--all-books", action="store_true",
                         help="let Khoei-only and Māmaqānī-only records be link targets too")
     parser.add_argument("--show", type=int, default=0, help="print N of each outcome")
@@ -284,6 +338,9 @@ def main():
 
     books = set() if args.all_books else CLASSICAL
     data = load_people(args.people, books)
+    table = conventions(args.conventions)
+    print(f"  {len(table.get('settles') or {}):7,}  names a book's own practice settles, "
+          f"{len(table.get('everywhere') or {}):,} of them in every book")
     by_id = data["by_id"]
     print(f"  {len(by_id):7,}  men can be linked to"
           f"{'' if args.all_books else ' (an entry in a classical book)'}")
@@ -297,22 +354,23 @@ def main():
         for line in handle:
             row = json.loads(line)
             chains += 1
-            resolved = resolve_chain(row["mentions"], data)
+            resolved = resolve_chain(row["mentions"], data, row["book"], table)
             for mention in resolved:
                 outcomes[mention["outcome"]] += 1
                 by_kind[(mention["kind"], mention["outcome"])] += 1
-                per_book[row["book"]][mention["outcome"] in ("one", "chosen")] += 1
+                per_book[row["book"]][mention["outcome"] in
+                                     ("one", "chosen", "convention")] += 1
                 pool = examples[mention["outcome"]]
                 if len(pool) < max(args.show, 0):
                     pool.append((row["book"], mention))
             rows.append({"id": row["id"], "book": row["book"], "mentions": resolved})
 
-    names = sum(outcomes[k] for k in ("one", "chosen", "several", "none"))
+    names = sum(outcomes[k] for k in ("one", "chosen", "convention", "several", "none"))
     print(f"\n  {chains:7,}  chains, {sum(outcomes.values()):,} mentions, {names:,} of them names")
-    for outcome in ("one", "chosen", "several", "none"):
+    for outcome in ("one", "chosen", "convention", "several", "none"):
         count = outcomes[outcome]
         print(f"      {count:7,}  {100 * count / names:5.1f}%  {outcome}")
-    linked = outcomes["one"] + outcomes["chosen"]
+    linked = outcomes["one"] + outcomes["chosen"] + outcomes["convention"]
     print(f"      {linked:7,}  {100 * linked / names:5.1f}%  become a link")
     for outcome in ("relative", "collective", "text"):
         print(f"      {outcomes[outcome]:7,}         {outcome} (not a link)")
@@ -323,9 +381,10 @@ def main():
         if not held:
             continue
         parts = " ".join(f"{o} {by_kind[(kind, o)]:,}"
-                         for o in ("one", "chosen", "several", "none", kind)
+                         for o in ("one", "chosen", "convention", "several", "none", kind)
                          if by_kind[(kind, o)])
-        linked = by_kind[(kind, "one")] + by_kind[(kind, "chosen")]
+        linked = (by_kind[(kind, "one")] + by_kind[(kind, "chosen")]
+                  + by_kind[(kind, "convention")])
         print(f"      {kind:11s} {held:7,}  {100 * linked / held:5.1f}% linked   {parts}")
 
     print("\n  by book:")
@@ -333,7 +392,7 @@ def main():
         held = sum(counts.values())
         print(f"      {counts[True]:7,}/{held:7,}  {100 * counts[True] / held:5.1f}%  {book}")
 
-    for outcome in ("one", "chosen", "several", "none"):
+    for outcome in ("one", "chosen", "convention", "several", "none"):
         if not examples[outcome]:
             continue
         print(f"\n  {outcome}:")
