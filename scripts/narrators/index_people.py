@@ -218,6 +218,16 @@ PROSE = re.compile(r'(?:كنية|المعروف|يعرف|يكنى|قدوة|سي�
 AFTER_NASAB = ("بن", "ابن", "أبي", "أبو", "ابو")
 
 
+# A heading that describes a group, a topic or a relation instead of naming a man. Al-Kashshī
+# sets his sections off with these and the extraction read eight of them as narrators: «اخوة
+# زرارة» is «the brothers of Zurāra», and its own text says so — «في اخوة زرارة حمران وبكير
+# وعبد الملك وعبد الرحمن بني أعين». Transliterating it into «Akhua Zurarah» made a chapter
+# heading look even more like a man. They are not published; the defect belongs to the
+# extraction and is recorded there.
+NOT_A_MAN = re.compile(r'^(?:في\s|باب\s|ذكر\s|[اأإ]خوة\s|بنو\s|بني\s|آل\s|من\s(?:روى|لم)|'
+                       r'ما\s|[اأ]صحاب\s|فيمن\s|تسمية\s|من\s(?:اسمه|كنيته)\s)')
+
+
 def name_only(heading):
     """A heading with the prose cut off it, or the heading unchanged when it carries none."""
     if not heading:
@@ -1038,6 +1048,9 @@ def main():
         # They keep their documents, so no link 404s, and point at the roster page instead.
         # Their entries are not moved onto it: an entry headed «علي» may be any ʿAlī, and
         # publishing it under the Imam's name would be a worse error than not showing it.
+        if NOT_A_MAN.match((doc.get("display_ar") or "").strip()):
+            counts["a chapter heading, not a man — left out"] += 1
+            continue
         moved = imams.identify(normalize_arabic(doc.get("display_ar") or ""))
         if len(moved) == 1:
             doc["moved_to"] = moved[0]
