@@ -5,6 +5,10 @@ Three numbers come out of a run, and they answer different questions:
 
 - the precision of `one` — links made because only one man holds the name
 - the precision of `chosen` — links made because a book shows him beside his neighbour
+- the precision of `convention` — links made because the book the chain stands in reads that
+  name as one man. These come from what earlier auditors said, so they are the claims least
+  entitled to be believed on our own word, and they are shown to the auditor as any other
+  link made on evidence is shown: nothing in a batch says which kind a link is.
 - the share of `several` the auditors call `settled` — refusals we could have decided, each
   one carrying the convention that decides it, which is the next thing to encode
 
@@ -31,9 +35,9 @@ TMP = f'{W}/tmp'
 AUDIT = f'{TMP}/narrators_audit/chain'
 
 # What the resolver made of the whole corpus, to weight the sample by (chain_resolve.py).
-CORPUS = {"one": 46304, "chosen": 14228, "several": 33527}
-RIGHT = {"one": "right", "chosen": "right", "several": "ambiguous"}
-WRONG = {"one": "wrong", "chosen": "wrong", "several": "settled"}
+CORPUS = {"one": 62173, "chosen": 7536, "convention": 18219, "several": 6391}
+RIGHT = {"one": "right", "chosen": "right", "convention": "right", "several": "ambiguous"}
+WRONG = {"one": "wrong", "chosen": "wrong", "convention": "wrong", "several": "settled"}
 
 
 def load(path):
@@ -103,7 +107,7 @@ def main():
 
     print(f"\n  {len(judged):,} links judged of {len(answer_of):,} asked\n")
     estimate_right = estimate_total = 0.0
-    for outcome in ("one", "chosen", "several"):
+    for outcome in ("one", "chosen", "convention", "several"):
         counts = verdicts[outcome]
         held = sum(counts.values())
         if not held:

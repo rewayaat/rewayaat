@@ -38,8 +38,15 @@ from identity import write_json_atomic  # noqa: E402
 
 TMP = f'{W}/tmp'
 SEED = 11
-JUDGED = ("one", "chosen", "several")
+JUDGED = ("one", "chosen", "convention", "several")
 MAX_LINKS = 7
+
+# A convention link is a link made on evidence — the evidence being how the book in question
+# reads that name — so the auditor is shown it the way every other link made on evidence is
+# shown: the name, the man, and the reason. Which links came from the conventions table is
+# written in the key and not in the batch, so that an auditor cannot hold one kind of claim to
+# a gentler standard than another by knowing which kind he is looking at.
+AS_SHOWN = {"convention": "chosen"}
 
 
 def load_people(path):
@@ -50,7 +57,7 @@ def load_people(path):
 def shown(mention, people):
     """One link as an auditor sees it: the name, what we say about it, and nothing more."""
     row = {"link_id": mention["link_id"], "name": mention["text"].strip(),
-           "we_say": mention["outcome"]}
+           "we_say": AS_SHOWN.get(mention["outcome"], mention["outcome"])}
     who = mention.get("person_id") or mention.get("imam_id")
     if mention["outcome"] == "several":
         names = []
@@ -111,9 +118,23 @@ def main():
                         help="planted controls, and the same number of verbatim ones")
     parser.add_argument("--seed", type=int, default=SEED,
                         help="a different seed draws a different sample, for a re-audit")
+    parser.add_argument("--ask", default=",".join(JUDGED),
+                        help="which outcomes become questions")
+    parser.add_argument("--require", default="",
+                        help="draw only chains holding a link of this outcome")
+    parser.add_argument("--thin", default="",
+                        help="at most N links of an outcome per chain, as `one:1`, so a "
+                             "reference class does not crowd out what is being measured")
     parser.add_argument("--dry-run", action="store_true", help="count, write nothing")
     args = parser.parse_args()
 
+    ask = tuple(o.strip() for o in args.ask.split(",") if o.strip())
+    require = tuple(o.strip() for o in args.require.split(",") if o.strip())
+    thin = {}
+    for rule in args.thin.split(","):
+        if rule.strip():
+            outcome, cap = rule.split(":")
+            thin[outcome.strip()] = int(cap)
     rng = random.Random(args.seed)
     people = load_people(args.people)
     pool = sorted(pid for pid, p in people.items() if p.get("entry_count", 0) > 1)
@@ -128,8 +149,10 @@ def main():
     with open(args.resolved) as handle:
         for line in handle:
             row = json.loads(line)
-            judged = [m for m in row["mentions"] if m["outcome"] in JUDGED]
+            judged = [m for m in row["mentions"] if m["outcome"] in ask]
             if not judged or len(judged) > MAX_LINKS:
+                continue
+            if require and not any(m["outcome"] in require for m in row["mentions"]):
                 continue
             by_book[row["book"]].append(row)
 
@@ -149,8 +172,16 @@ def main():
     tasks, key_rows = [], []
     for position, row in enumerate(drawn):
         task_id = f"chain:{position:04d}"
-        judged = [dict(m, link_id=f"{task_id}.{number}") for number, m
-                  in enumerate(m for m in row["mentions"] if m["outcome"] in JUDGED)]
+        keep, held = [], Counter()
+        for mention in row["mentions"]:
+            if mention["outcome"] not in ask:
+                continue
+            held[mention["outcome"]] += 1
+            if held[mention["outcome"]] > thin.get(mention["outcome"], MAX_LINKS):
+                continue
+            keep.append(mention)
+        judged = [dict(m, link_id=f"{task_id}.{number}")
+                  for number, m in enumerate(keep)]
         tasks.append({"task_id": task_id, "book": row["book"],
                       "chain_ar": text_of.get(row["id"], ""),
                       "links": [shown(m, people) for m in judged]})
@@ -180,13 +211,14 @@ def main():
                          "book": twin["book"], "answers": []})
 
     rng.shuffle(tasks)
-    counts = Counter(l["we_say"] for t in tasks for l in t["links"])
+    counts = Counter(a["outcome"] for k in key_rows for a in k.get("answers") or [])
     questions = sum(counts.values())
     print(f"  {len(tasks):5,}  chains drawn ({planted} with a link replaced, "
           f"{len(copies)} drawn twice)")
     print(f"  {questions:5,}  links to judge")
-    for outcome in JUDGED:
-        print(f"      {counts[outcome]:5,}  {outcome}")
+    for outcome in ask:
+        print(f"      {counts[outcome]:5,}  {outcome}"
+              + (f"  (shown as {AS_SHOWN[outcome]})" if outcome in AS_SHOWN else ""))
     print(f"  {len(set(t['book'] for t in tasks)):5,}  books represented")
 
     batches = [tasks[i::args.batches] for i in range(args.batches)]
@@ -206,7 +238,9 @@ def main():
         write_json_atomic(f'{run}/batches/chain_{number:02d}.json',
                           {"batch": f"chain_{number:02d}.json", "tasks": batch}, indent=1)
     write_json_atomic(f'{run}/manifest.json',
-                      {"run": name, "seed": args.seed, "chains": len(tasks), "links": questions,
+                      {"run": name, "seed": args.seed, "ask": list(ask),
+                       "require": list(require),
+                       "chains": len(tasks), "links": questions,
                        "batches": len(batches), "planted": planted, "twins": len(copies),
                        "by_outcome": dict(counts)}, indent=1)
     write_json_atomic(f'{args.out_dir}/keys/{name}.json', key_rows, indent=1)

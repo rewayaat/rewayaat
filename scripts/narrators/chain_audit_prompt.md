@@ -16,7 +16,7 @@ Each link carries `we_say`, which is one of three things, and your question depe
 | `we_say` | what the resolver claims | your question |
 |---|---|---|
 | `one` | exactly one man in the books holds this name, so there was nothing to decide | is `person` the man this chain means by this name? |
-| `chosen` | several men hold it, and `because` names the evidence that picked this one | is `person` the man this chain means, and does `because` bear it? |
+| `chosen` | several men hold it, and `because` names the evidence that picked this one — a book showing him beside the man next to him in this chain, or the practice of the book the chain stands in | is `person` the man this chain means, and does `because` bear it? |
 | `several` | several men hold it and the books do not choose between them, so no link is made | is the name really undecidable here, or does this chain settle it? |
 
 A link also shows `person` (the man we picked, under the longest name a book gives him),
@@ -49,16 +49,24 @@ For `several`:
 - **Layer.** A chain is a column of time. If the man we picked died two generations before the
   man receiving from him was born, the link is wrong however well the name matches. Death
   years are not shown; use what you know.
-- **The book's conventions matter.** «علي بن إبراهيم» opening a chain in al-Kāfī is ʿAlī b.
-  Ibrāhīm b. Hāshim al-Qummī; «محمد بن يحيى» there is al-ʿAṭṭār; «أحمد بن محمد» after him is
-  Ibn ʿĪsā al-Ashʿarī, while «أحمد بن محمد» after «علي بن إبراهيم» is usually al-Barqī. Where
-  a convention like this settles a `several`, say so — it is exactly what we want to learn.
+- **The book's conventions matter.** A compiler writes the men he received from in his own
+  shorthand, and a bare name standing at the head of one author's chains is regularly one
+  particular man even though several men of the books hold that name. Where a convention like
+  that settles a `several`, say so, and name the man — it is exactly what we want to learn.
+- **A claim resting on that practice is the one to test.** Some `because` lines say only that
+  the book in question reads this name as one man. That is a real kind of evidence and the
+  rijālī literature is full of it, but it is the weakest kind we use, and it is the kind this
+  audit most needs judged. Two questions, not one: is that in fact how this book reads the
+  name, and is this chain one of the places it holds? If the convention is real but this chain
+  is an exception to it, the link is `wrong` — name the man you mean.
 - **Shortened names.** A chain writes «صفوان» for «صفوان بن يحيى» and «ابن أبي عمير» for
   «محمد بن أبي عمير». A short form is not a wrong link; judge the man, not the spelling.
-- **The Imams.** «أبي عبد الله عليه السلام» in a chain is al-Ṣādiq, «أبي محمد» is al-ʿAskarī.
-  «أبي جعفر» is al-Bāqir or al-Jawād and «أبي الحسن» is al-Kāẓim, al-Riḍā or al-Hādī: if the
-  narrator receiving from him places him, say which and why; if nothing does, `ambiguous` is
-  the right answer.
+- **The Imams.** A kunya at the end of a chain names an Imam, not a man with an entry in the
+  books: «أبي عبد الله», «أبي جعفر», «أبي الحسن», «أبي محمد». Which Imam is a question of
+  layer — «أبي جعفر» is al-Bāqir or al-Jawād, «أبي الحسن» is al-Kāẓim, al-Riḍā or al-Hādī —
+  and the narrator receiving from him is what places him. Say which and why. If nothing in the
+  chain places him, `ambiguous` is the right answer and `wrong` is the right answer when we
+  have named the wrong one.
 
 ## Rules
 
