@@ -315,7 +315,22 @@ are two men and a pair the translations do reverse, so a name opening on an alif
 for it, the article is carried onto its word, «ibn» and «بن» fold to one token, and the first
 word has to agree on its own. That rule costs 4,200 links. Measured against the next name
 along — the pairing that is wrong by construction — the gate accepts 70,885 names the
-alignment pairs and 1,019 it does not, 1.4%. No auditor has read these yet.
+alignment pairs and 1,019 it does not, 1.4%.
+
+Audited 2026-10-15, run `en-505-e7f9409515951083`: 505 links, 4 auditors, controls clean —
+**10/10 moved links caught and 23/23 twins**. A moved link is one shifted onto the English name
+beside the right one, the single mistake the alignment can make on its own. **490 same, 5
+different: 99.0%.** The question put was deliberately narrow: not whether the right man was
+chosen, which the Arabic rounds measure, but whether the English words name the same man as the
+Arabic words the link came from. Multiplied through, a reader of the English site lands on the
+right man about **94.3%** of the time.
+
+All five failures share one cause, and it is not position: they are pairs the consonant
+skeleton cannot separate because it discards the long vowels. «الحسن» and «al-Husayn» both
+reduce to 'lhsn, «سعد» and «Sa'id» to s'd, «عمير» and «'Amir» to 'mr. Three of the five are
+*exact* skeleton matches, so a higher threshold catches none of them, and demanding an exact
+match would drop 10,096 links — 16.7% — to mend about 1%. The repair is to model a long vowel
+as a mark both scripts carry rather than a letter to throw away, and it is not done.
 
 #### An Imam is not a narrator
 
