@@ -335,6 +335,12 @@ def main():
     parser.add_argument("--orphans", action="store_true",
                         help="attach pages entry repair split off, asking again what the fused "
                              "entry was judged on")
+    parser.add_argument("--subject-file",
+                        help="with --attach: ask only about the person ids in this file, one "
+                             "per line. The pass otherwise asks about every person who holds "
+                             "no main entry, and the men a reader actually meets in the search "
+                             "are a small part of that — asking about them alone is a fifth of "
+                             "the work for the part of the fault anybody can see.")
     parser.add_argument("--dry-run", action="store_true", help="count tasks, write nothing")
     args = parser.parse_args()
 
@@ -349,6 +355,10 @@ def main():
                     else ("group", "xform2" if args.non_main else "xform"))
     if args.attach or args.orphans or args.second_opinion:
         subjects = None
+        if args.subject_file:
+            with open(args.subject_file) as handle:
+                subjects = {line.strip() for line in handle if line.strip()}
+            counts["subjects_asked_for"] = len(subjects)
         if args.orphans:
             with open(os.path.join(args.identity_dir, "membership.json")) as handle:
                 subjects = orphan_people(record_path, json.load(handle))
