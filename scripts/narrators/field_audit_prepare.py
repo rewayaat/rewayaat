@@ -67,7 +67,7 @@ def documents(host, index, ids):
     for start in range(0, len(ids), 200):
         body = {"size": 200, "query": {"terms": {"person_id": ids[start:start + 200]}},
                 "_source": ["person_id", "display_ar", "display_en", "entries", "life",
-                            "generations", "books"]}
+                            "generations", "books", "where_books_stand"]}
         request = urllib.request.Request(f'{host}/{index}/_search',
                                          data=json.dumps(body).encode(),
                                          headers={"Content-Type": "application/json"})
@@ -87,9 +87,16 @@ def main():
     parser.add_argument("--batches", type=int, default=4)
     parser.add_argument("--controls", type=int, default=10)
     parser.add_argument("--seed", type=int, default=SEED)
+    parser.add_argument("--fields", default=",".join(FIELDS),
+                        help="only these fields, for re-measuring one of them closely")
+    parser.add_argument("--stated-only", action="store_true",
+                        help="only claims the page prints as a book's own position. The whole "
+                             "record holds 53,552 grade rows and a page states 2,584 of them; "
+                             "measuring the record measures what nobody is shown.")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
+    wanted = tuple(f.strip() for f in args.fields.split(",") if f.strip())
     rng = random.Random(args.seed)
     with open(args.people) as handle:
         people = {p["person_id"]: p for p in json.load(handle) if p.get("holds_entry")}
@@ -99,7 +106,7 @@ def main():
     for person in people.values():
         entry_keys = [k for k in person.get("source_keys") or []]
         pages_of = person.get("pages_of") or {}
-        for field in FIELDS:
+        for field in wanted:
             for item in person.get(field) or []:
                 value = item.get("value") or item.get("grade")
                 if not value:
@@ -111,11 +118,11 @@ def main():
                 if key:
                     claims[field].append((person["person_id"], value, key,
                                           item.get("source_pages") or []))
-    for field in FIELDS:
+    for field in wanted:
         print(f"  {len(claims[field]):7,}  statements of {field} that reached a page")
 
     drawn = []
-    for field in FIELDS:
+    for field in wanted:
         pool = claims[field]
         drawn += [(field,) + row for row in rng.sample(pool, min(args.per_field, len(pool)))]
     rng.shuffle(drawn)
@@ -126,6 +133,12 @@ def main():
         page = pages.get(person_id)
         if not page:
             continue
+        if args.stated_only and field == "reliability_grades":
+            stated = {position["grade"]
+                      for book in page.get("where_books_stand") or []
+                      for position in book["positions"]}
+            if value not in stated:
+                continue
         entry = next((e for e in page.get("entries") or [] if e.get("source_key") == key), None)
         if not entry:
             continue
