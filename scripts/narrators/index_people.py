@@ -38,6 +38,7 @@ import imams  # noqa: E402
 import relation_evidence  # noqa: E402
 from narrator_schema import imam_generations, normalize_arabic, normalize_english  # noqa: E402
 import transliterate  # noqa: E402
+import field_check  # noqa: E402
 
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 TMP = os.path.join(REPO, "tmp")
@@ -725,6 +726,16 @@ def document(person, source, headless):
     corrected = DEATH_YEARS.get(person["person_id"])
     if corrected and death_year == corrected.get("was"):
         death_year = corrected["year"]
+    # Every entry's own words, to test a claim against. The same test `field_check.py` runs
+    # over the corpus — grades have had one since the beginning and relations too; a city, a
+    # kunya and a title were printed and searched with nothing behind them.
+    passages = [e.get("text_ar") or "" for e in entries]
+    passages.append(person.get("primary_arabic_name") or "")
+
+    # A city the entry does not bear out joins the ones that were never traceable: shown as
+    # reported, never as stated.
+    if city and field_check.borne_out(city, city_ar(city), passages) == "not in the passage":
+        said_cities, city = list(cities), None
     said_city = (Counter(said_cities).most_common(1)[0][0]
                  if said_cities and not city else None)
     said_death = said_died[0] if said_died and not died else None
@@ -862,6 +873,21 @@ def document(person, source, headless):
     names_en = [n["value"] for n in values(person, "english_aliases") if n.get("value")]
 
     display_ar = anchor.get("primary_arabic_name") or person.get("primary_arabic_name")
+    def split_by_evidence(raw):
+        """What the entry's words hold, and what only a record says."""
+        held, said = [], []
+        for value in sorted(raw):
+            (held if field_check.borne_out(value, value, passages) != "not in the passage"
+             else said).append(value)
+        return held, said
+
+    kunyahs, kunyahs_said = split_by_evidence(
+        {whole for whole in (whole_kunya(k["value"], set(names_ar) | headings_ar)
+                             for k in values(person, "kunyahs_arabic") if k.get("value"))
+         if whole})
+    titles, titles_said = split_by_evidence(
+        {t["value"] for t in values(person, "titles") if t.get("value")})
+
     clean = name_only(display_ar)
     if clean != display_ar:
         # Prefer a heading of his own that was never contaminated, and only cut when there
@@ -892,11 +918,13 @@ def document(person, source, headless):
         "names_en": sorted(set(names_en)),
         "normalized_ar": sorted({normalize_arabic(n) for n in names_ar}),
         "normalized_en": sorted({n.lower() for n in names_en}),
-        "kunyahs_ar": sorted({whole for whole in
-                              (whole_kunya(k["value"], set(names_ar) | headings_ar)
-                               for k in values(person, "kunyahs_arabic") if k.get("value"))
-                              if whole}),
-        "titles": sorted({t["value"] for t in values(person, "titles") if t.get("value")}),
+        "kunyahs_ar": kunyahs,
+        "titles": titles,
+        # Said by a record whose entry does not hold the words: kept, because a book did say
+        # it, but out of the fields a search matches on. A title nobody's entry bears out
+        # makes a man findable under a name that is not his.
+        "kunyahs_reported_ar": kunyahs_said,
+        "titles_reported": titles_said,
         "books": sorted({k.split(":")[0] for k in entry_keys}, key=lambda b: BOOK_ORDER.get(b, 99)),
         "entries": entries,
         "entry_count": len(entries),
@@ -968,6 +996,8 @@ MAPPING = {
         "imam_ordinals": {"type": "integer"},
         "holds_entry": {"type": "boolean"},
         "display_en_made": {"type": "boolean"},
+        "kunyahs_reported_ar": {"type": "text"},
+        "titles_reported": {"type": "text"},
         # set only on a document that is really somebody else's, so a search can leave it out
         # with `must_not exists` and a page can send the reader on
         "moved_to": {"type": "keyword"},
