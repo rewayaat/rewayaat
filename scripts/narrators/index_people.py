@@ -923,6 +923,9 @@ def main():
     parser.add_argument("--dry-run", action="store_true", help="build the documents only")
     parser.add_argument("--all", action="store_true", help="index people holding no entry too")
     parser.add_argument("--show", help="print one person's document")
+    parser.add_argument("--dump", help="write the documents to this file, which is what the "
+                                       "chain resolver reads; it must be rebuilt whenever "
+                                       "people merge, or a link can point at a retired id")
     parser.add_argument("--recreate", action="store_true",
                         help="drop the index first: needed when a field changes shape, since "
                              "a mapping inferred once (narrated_from as text) rejects the new "
@@ -969,6 +972,11 @@ def main():
             counts["entries shown"] += doc["entry_count"]
             counts["verdicts shown"] += len(doc["verdicts"])
             counts["verdicts traced to an entry"] += sum(1 for v in doc["verdicts"] if v["source_key"])
+    if documents and args.dump:
+        with open(args.dump + ".part", "w") as handle:
+            json.dump(documents, handle, ensure_ascii=False)
+        os.replace(args.dump + ".part", args.dump)
+        print(f"dumped {len(documents):,} people -> {args.dump}")
     if documents:
         roster = roster_documents(documents[0])
         documents += roster
