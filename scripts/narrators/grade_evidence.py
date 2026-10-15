@@ -95,7 +95,18 @@ def _needle(word):
 # Read from the sense of a passage, never from a word.
 GRADE_EVIDENCE_AR["very_weak"] = (GRADE_EVIDENCE_AR["very_weak"]
                                   + GRADE_EVIDENCE_AR["daif"])
-BY_SENSE = {"mukhtalaf_fih"}
+# «Disputed» was exempt from the word test and so was printed as a book's own position
+# without one: 642 of the 2,584 positions a page states, a quarter of them, and the field
+# audit of 2026-10-15 put stated grades at 73.7% with almost exactly that shortfall. The
+# auditors found them resting on «مخلط», on a refutation written against the man, or on
+# nothing — none of which is a book saying the Shīʿa differ over him. It is testable like
+# every other grade now: the passage has to say there is a dispute.
+GRADE_EVIDENCE_AR["mukhtalaf_fih"] = (
+    "مختلف فيه", "مختلف فيها", "اختلف فيه", "اختلفوا فيه", "فيه خلاف", "فيه كلام",
+    "اختلف اصحابنا", "اختلف أصحابنا", "اختلف الأصحاب", "اختلف الاصحاب",
+    "وقع الخلاف", "محل خلاف", "موضع خلاف",
+)
+BY_SENSE = set()
 # Claims that the books say nothing: a silent passage is the evidence, not the absence of it.
 NO_VERDICT = {"majhul", "muhmal", "not_assessed", "unknown", "assessed", "unknown (majhul)"}
 ANY_EVIDENCE = sorted({n for words in GRADE_EVIDENCE_AR.values() for n in words},

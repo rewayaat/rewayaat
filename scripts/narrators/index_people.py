@@ -228,6 +228,26 @@ NOT_A_MAN = re.compile(r'^(?:في\s|باب\s|ذكر\s|[اأإ]خوة\s|بنو\s|
                        r'ما\s|[اأ]صحاب\s|فيمن\s|تسمية\s|من\s(?:اسمه|كنيته)\s)')
 
 
+# «عبد» means «servant of» and never stands alone: a kunya ending there has been cut off
+# mid-name. 133 of them print «أبو عبد» where the entry reads «أبو عبد الله» or «أبو عبد
+# الرحمن», and the field audit called every one it met contradicted. Completed from a name
+# the man himself carries where one extends it, and otherwise dropped, because half a kunya
+# claims a man is called something nobody calls him.
+HANGING = ("عبد", "ابو", "أبو", "ابي", "أبي", "ابا", "أبا", "ام", "أم", "ابن")
+
+
+def whole_kunya(kunya, names):
+    tokens = normalize_arabic(kunya).split()
+    if not tokens or tokens[-1] not in HANGING:
+        return kunya
+    for name in sorted(names, key=len, reverse=True):
+        folded = normalize_arabic(name).split()
+        for start in range(len(folded) - len(tokens) + 1):
+            if folded[start:start + len(tokens)] == tokens and len(folded) > start + len(tokens):
+                return ' '.join(name.split()[start:start + len(tokens) + 1])
+    return ""
+
+
 def name_only(heading):
     """A heading with the prose cut off it, or the heading unchanged when it carries none."""
     if not heading:
@@ -379,6 +399,7 @@ def imam_years():
 
 YEARS = None
 TRANSLITERATION = {}
+DEATH_YEARS = {}
 HOLDERS = {}
 
 
@@ -697,6 +718,13 @@ def document(person, source, headless):
     died = cited("death_years")
     said_cities, said_died = reported("city_or_tribe"), reported("death_years")
     city = Counter(cities).most_common(1)[0][0] if cities else None
+    # A year read out of the entry by rule beats a year an agent read in phase 1, where the
+    # two differ in the way a misreading differs — «إحدى وثلاثمائة» is 301, not 311. The
+    # table holds only those, each one checked by hand; see arabic_years.py.
+    death_year = died[0] if died else None
+    corrected = DEATH_YEARS.get(person["person_id"])
+    if corrected and death_year == corrected.get("was"):
+        death_year = corrected["year"]
     said_city = (Counter(said_cities).most_common(1)[0][0]
                  if said_cities and not city else None)
     said_death = said_died[0] if said_died and not died else None
@@ -704,8 +732,8 @@ def document(person, source, headless):
             "imams_ar": imams_named_ar,
             "city": city,
             "city_ar": city_ar(city),
-            "died": died[0] if died else None,
-            "died_ar": arabic_digits(died[0]) if died else None,
+            "died": death_year,
+            "died_ar": arabic_digits(death_year) if death_year else None,
             # Said by a record we cannot show a passage for, and only where the traced field
             # is empty. The page must print these differently: they are reported, not shown.
             "city_reported": said_city,
@@ -864,7 +892,10 @@ def document(person, source, headless):
         "names_en": sorted(set(names_en)),
         "normalized_ar": sorted({normalize_arabic(n) for n in names_ar}),
         "normalized_en": sorted({n.lower() for n in names_en}),
-        "kunyahs_ar": sorted({k["value"] for k in values(person, "kunyahs_arabic") if k.get("value")}),
+        "kunyahs_ar": sorted({whole for whole in
+                              (whole_kunya(k["value"], set(names_ar) | headings_ar)
+                               for k in values(person, "kunyahs_arabic") if k.get("value"))
+                              if whole}),
         "titles": sorted({t["value"] for t in values(person, "titles") if t.get("value")}),
         "books": sorted({k.split(":")[0] for k in entry_keys}, key=lambda b: BOOK_ORDER.get(b, 99)),
         "entries": entries,
@@ -1020,6 +1051,12 @@ def main():
     global YEARS, HOLDERS, TRANSLITERATION
     YEARS = imam_years()
     TRANSLITERATION = transliterate.load()
+    try:
+        with open(os.path.join(REPO, "scripts/data/narrators/death_years.json")) as handle:
+            DEATH_YEARS.update(json.load(handle)["years"])
+    except (FileNotFoundError, KeyError):
+        pass
+    print(f"{len(DEATH_YEARS):,} death years their own passage contradicts, corrected by rule")
     print(f"{len(TRANSLITERATION):,} Arabic words the corpus prints in English, for the men "
           f"no book names in English")
     people = load(os.path.join(IDENTITY, "people.json"))
