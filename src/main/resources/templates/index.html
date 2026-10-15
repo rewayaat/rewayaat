@@ -162,7 +162,8 @@
              him before the narrations start. -->
         <div class="narrator-strip" v-if="narratorMatches.length">
             <div class="narrator-strip__label">
-                {{ narratorMatches.length === 1 ? 'A narrator by this name' : 'Narrators by this name' }}
+                {{ t(narratorMatches.length === 1 ? 'js.narratorStrip.one' : 'js.narratorStrip.many',
+                     narratorMatches.length === 1 ? 'A narrator by this name' : 'Narrators by this name') }}
             </div>
             <div class="narrator-strip__cards">
                 <a class="narrator-strip__card" v-for="narrator in narratorMatches"
@@ -173,10 +174,9 @@
                         <span class="narrator-strip__standing"
                               :class="'narrator-strip__standing--' + narrator.standing"
                               v-if="narrator.standing && narrator.standing !== 'unstated'">
-                            {{ narrator.standing === 'disputed' ? 'the books disagree'
-                               : narrator.standing === 'trusted' ? 'held reliable' : 'held weak' }}
+                            {{ t('narrator.standing.' + narrator.standing, narrator.standing) }}
                         </span>
-                        <span>{{ narrator.entry_count }} entries</span>
+                        <span>{{ t('narrators.entries', '{0} entries').replace('{0}', narrator.entry_count) }}</span>
                         <span v-if="narrator.life && narrator.life.imams && narrator.life.imams.length">
                             {{ narrator.life.imams.join(', ') }}
                         </span>

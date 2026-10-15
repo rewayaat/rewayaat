@@ -4887,6 +4887,12 @@ function setupVue(query, page, sortFields) {
             }
         },
         methods: {
+            // The page's own strings reach the template through here. t() is a module
+            // function and a template can only call a method, so the narrator strip was
+            // carrying its English inline — on a site that serves Arabic.
+            t: function(key, fallback) {
+                return t(key, fallback);
+            },
             loadTaxonomy: function() {
                 var self = this;
                 return fetchTaxonomyMap()
@@ -5852,6 +5858,15 @@ function setupVue(query, page, sortFields) {
                     .then(function(response) { return response.ok ? response.json() : null; })
                     .then(function(payload) {
                         var found = (payload && payload.narrators) || [];
+                        // A name three thousand men share names nobody. «muhammad» matched
+                        // 3,685 and the strip offered three obscure ones as though the
+                        // reader had asked for them; «zurara» matches 25 and «bazanti» 3.
+                        // Past this many the query is a word, not a man, and the strip is
+                        // worse than nothing above the narrations.
+                        if ((payload && payload.total) > 150) {
+                            self.narratorMatches = [];
+                            return;
+                        }
                         self.narratorMatches = found.filter(function(narrator) {
                             return narrator && narrator.entry_count > 0;
                         }).slice(0, 3);
