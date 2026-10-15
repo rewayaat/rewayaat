@@ -111,7 +111,7 @@ def load_people(path, books):
         people = json.load(handle)
     headings, aliases = defaultdict(set), defaultdict(set)
     teachers, students, by_id = {}, {}, {}
-    imams_of, fathers = {}, {}
+    imams_of, fathers, is_imam = {}, {}, {}
     for person in people:
         if books and not books & set(person.get("books") or []):
             continue
@@ -136,6 +136,15 @@ def load_people(path, books):
                          for r in person.get(field) or []}
         teachers[pid].discard("")
         students[pid].discard("")
+        # A rijālī who catalogues the companions catalogues the Imams among them, so a few
+        # of the fourteen hold narrator records: al-Ṭūsī files al-Riḍā, and a chain naming
+        # him in ʿUyūn — the book written about him — was landing on a three-entry stub
+        # instead of his own page. Recorded here and swapped at the end of a chain, rather
+        # than read off the name: «علي» and «جعفر بن محمد» name an Imam in some chains and
+        # an ordinary narrator in a great many others, and only the record settles it.
+        found = imams.identify(key(person.get("display_ar") or ""))
+        if len(found) == 1:
+            is_imam[pid] = found[0]
         imams_of[pid] = set()
         for field in ("imams_from", "imams_to"):
             for relation in person.get(field) or []:
@@ -143,7 +152,8 @@ def load_people(path, books):
                 imams_of[pid] |= imams.from_relation(name, key(name))
         fathers[pid] = father_name(person)
     return {"headings": headings, "aliases": aliases, "teachers": teachers,
-            "students": students, "by_id": by_id, "imams_of": imams_of, "fathers": fathers}
+            "students": students, "by_id": by_id, "imams_of": imams_of, "fathers": fathers,
+            "is_imam": is_imam}
 
 
 def held_by(folded, data):
@@ -341,6 +351,14 @@ def resolve_chain(mentions, data, book="", table=None):
             row["because"] = f"the nasab of the man before him names his father «{name}»"
         else:
             row["target"], row["outcome"], row["candidates"] = "narrator", "several", candidates
+
+    # Last, because any of the passes above can have landed on one: a record that is one of
+    # the fourteen is not a narrator page, whatever the books filed it as.
+    for row in rows:
+        imam = data["is_imam"].get(row.get("person_id"))
+        if imam:
+            row.pop("person_id")
+            row["target"], row["imam_id"] = "imam", imam
 
     return rows
 

@@ -854,6 +854,9 @@ MAPPING = {
         "mention_count": {"type": "integer"},
         "imam_ordinals": {"type": "integer"},
         "holds_entry": {"type": "boolean"},
+        # set only on a document that is really somebody else's, so a search can leave it out
+        # with `must_not exists` and a page can send the reader on
+        "moved_to": {"type": "keyword"},
         "entries": {"type": "object", "properties": {
             "source_key": {"type": "keyword"}, "book": {"type": "keyword"},
             "text_ar": {"type": "text", "analyzer": "arabic_names"},
@@ -948,6 +951,18 @@ def main():
     documents = []
     for person in people:
         doc = document(person, source, headless)
+        # A man who is one of the fourteen is not a narrator the books assess. The extraction
+        # let a few through all the same — al-Ṭūsī lists ʿAlī, al-Ḥasan and al-Riḍā among the
+        # companions he catalogues, and Khoei's index carries «علي بن أبي طالب» three separate
+        # times — so the search answered a query with three cards for the first Imam and a
+        # chain naming al-Riḍā in the book written about him landed on a three-entry stub.
+        # They keep their documents, so no link 404s, and point at the roster page instead.
+        # Their entries are not moved onto it: an entry headed «علي» may be any ʿAlī, and
+        # publishing it under the Imam's name would be a worse error than not showing it.
+        moved = imams.identify(normalize_arabic(doc.get("display_ar") or ""))
+        if len(moved) == 1:
+            doc["moved_to"] = moved[0]
+            counts["one of the fourteen, moved to the roster page"] += 1
         counts["holds an entry" if doc["holds_entry"] else "no entry, left out"] += 1
         if doc["holds_entry"] or args.all:
             documents.append(doc)

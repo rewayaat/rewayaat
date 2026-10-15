@@ -124,6 +124,20 @@ public class NarratorPageController {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
             return null;
         }
+        // One of the fourteen, filed under a narrator's identifier because a rijālī catalogued
+        // him among the companions he was assessing. The page he deserves is the roster's, and
+        // the link that brought the reader here goes on working.
+        String movedTo = text(narrator.get("moved_to"));
+        if (!movedTo.isEmpty() && !movedTo.equals(id)) {
+            Map<String, Object> roster = narratorService.getNarrator(movedTo);
+            if (roster != null) {
+                String rosterSlug = text(roster.get("slug"));
+                RedirectView moved = new RedirectView(locale.prefix() + "/narrator/" + movedTo
+                        + (rosterSlug.isEmpty() ? "" : "/" + rosterSlug));
+                moved.setStatusCode(HttpStatus.MOVED_PERMANENTLY);
+                return moved;
+            }
+        }
         String canonicalSlug = text(narrator.get("slug"));
         if (!canonicalSlug.isEmpty() && !canonicalSlug.equals(slug)) {
             String query = request.getQueryString();

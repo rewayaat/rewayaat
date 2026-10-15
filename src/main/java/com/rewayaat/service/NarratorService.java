@@ -108,7 +108,13 @@ public class NarratorService {
                     // guide to which one a reader means, so the score is weighted by how many
                     // entries he holds — by its logarithm, so that eleven entries count for more
                     // than one without a famous man swallowing every query near his name.
-                    .query(q -> q.functionScore(fs -> fs
+                    // A document carrying «moved_to» is somebody else's — one of the fourteen
+                    // under a narrator's identifier. It stays in the index so its links keep
+                    // working and the page can send the reader to the roster, but a search
+                    // must not answer «zurara» or «ali» with three cards for the same man.
+                    .query(q -> q.bool(b -> b
+                            .mustNot(n -> n.exists(e -> e.field("moved_to")))
+                            .must(top -> top.functionScore(fs -> fs
                             .query(inner -> inner.multiMatch(m -> m
                                     .query(text)
                                     // «AUTO» allows two edits past five letters, and at two
@@ -129,7 +135,7 @@ public class NarratorService {
                                     .field("entry_count")
                                     .modifier(FieldValueFactorModifier.Log1p)
                                     .missing(1.0)))
-                            .boostMode(FunctionBoostMode.Multiply)))
+                            .boostMode(FunctionBoostMode.Multiply)))))
                     // a result row needs the names and the counts, not every entry's full text
                     .source(src -> src.filter(f -> f.excludes("entries", "narrated_from",
                             "narrated_to"))), Map.class);
