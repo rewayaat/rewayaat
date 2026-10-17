@@ -104,6 +104,15 @@ IMAM_NAMES_AR = ["النبي", "علي", "الحسن", "الحسين", "السج
 # The rijālīs who wrote within reach of the men they assess. A verdict of theirs is a
 # testimony; a verdict of al-Ardabīlī's or al-Khoei's is usually a reading of one.
 EARLY_BOOKS = {"najashi", "fihrist", "tusi", "kashshi"}
+# The compilers. Their books are indispensable and their own judgements are positions the
+# field argues with — al-Khoei's tawthīq through Kāmil al-Ziyārāt is cited in every seminary
+# — but their entries are built by quoting the early rijālīs first and adjudicating after.
+# «قال النجاشي: ثقة» inside the Muʿjam is al-Najāshī's testimony, not a second one, and a
+# page that counts it twice reports a consensus that does not exist.
+LATE_BOOKS = {"ardabili", "khoei", "mamaqani"}
+RELAYED = {"النجاشي": "najashi", "الفهرست": "fihrist", "رجال الشيخ": "tusi",
+           "الكشي": "kashshi", "ابن الغضائري": "duafa", "الغضائري": "duafa",
+           "ابن الغضائرى": "duafa"}
 BOOK_NOTE = {"duafa": "The ascription of this book to Ibn al-Ghaḍāʾirī is disputed; al-Khoei "
                       "held it unproven («الكتاب المنسوب إلى ابن الغضائري… لم يثبت»)."}
 
@@ -601,11 +610,21 @@ def document(person, source, headless):
             out.append(row)
         return out
 
+    # Only what a book says. 45,729 of the 53,552 rows this used to publish were read from a
+    # book's silence and then handed out under that book's name with its page numbers: 35,760
+    # «not_assessed», and 9,969 «majhul», which is a positive claim — the man is unknown —
+    # that no rijālī made. The connector already refused them («a grade read from a book's
+    # silence is not its verdict») and the page never showed them, but the REST API handed
+    # out the document whole, so an academic reading it would have found «Rijāl al-Najāshī:
+    # majhūl, pp. 5–6» where al-Najāshī wrote nothing of the sort. A book that says nothing
+    # produces no row; its silence is already in the entry, and in «no book grades him».
     verdicts = []
     for grade in values(person, "reliability_grades"):
+        if grade.get("grade") in UNSTATED:
+            continue
         book, pages = grade.get("source_book"), grade.get("source_pages") or []
         verdicts.append({"grade": grade.get("grade"), "said": grade.get("raw"),
-                         "stated": grade.get("grade") not in UNSTATED,
+                         "stated": True,
                          "book": book, "book_title": BOOK_TITLE.get(book, book),
                          "book_title_ar": BOOK_TITLE_AR.get(book), "pages": pages,
                          "book_note": BOOK_NOTE.get(book),
@@ -665,9 +684,19 @@ def document(person, source, headless):
             already["pages"] = sorted(set(already["pages"]) | set(verdict["pages"] or []))
             continue
         word, leaning = GRADE_WORDS.get(verdict["grade"], (verdict["said"], "mixed"))
+        # Whom a compiler is quoting, where his entry names an earlier rijālī. His position
+        # is still shown — he did take it — but it is not counted a second time as though
+        # another book had spoken.
+        relays = []
+        if book in LATE_BOOKS:
+            passage = normalize_arabic(text_of(source[verdict["source_key"]]) or "")
+            # Named for the reader, not keyed: «quoting Rijāl al-Najāshī», not «najashi».
+            relays = sorted({BOOK_TITLE.get(code, code) for name, code in RELAYED.items()
+                             if normalize_arabic(name) in passage})
         held["positions"].append({"grade": verdict["grade"], "said": word,
                                   "said_ar": GRADE_WORDS_AR.get(verdict["grade"]),
-                                  "leaning": leaning, "pages": list(verdict["pages"] or [])})
+                                  "leaning": leaning, "pages": list(verdict["pages"] or []),
+                                  "relays": relays})
     where_books_stand = []
     for book, *_rest in BOOKS:
         held = stands.get(book)
@@ -771,10 +800,18 @@ def document(person, source, headless):
 
     # Where the books leave him, in one word: a reader wants to know whether he is relied on
     # before reading eight entries, and the honest answer is often «they disagree».
+    def speaks_for_itself(book, position):
+        """A compiler quoting a book that has spoken here is that book, not another voice."""
+        if book["book"] not in LATE_BOOKS or not position.get("relays"):
+            return True
+        return not (set(position["relays"])
+                    & {b["book_title"] for b in where_books_stand})
+
     for_him = {b["book_title"] for b in where_books_stand
-               if any(p["leaning"] == "for" for p in b["positions"])}
+               for p in b["positions"] if p["leaning"] == "for" and speaks_for_itself(b, p)}
     against_him = {b["book_title"] for b in where_books_stand
-                   if any(p["leaning"] == "against" for p in b["positions"])}
+                   for p in b["positions"]
+                   if p["leaning"] == "against" and speaks_for_itself(b, p)}
     # the same two sets by book, so the Arabic sentence can name the books it means in Arabic
     # and keep the printed order of the eight rather than sorting them by a Latin title
     for_him_ar = [b["book_title_ar"] for b in where_books_stand if b.get("book_title_ar")
@@ -798,12 +835,22 @@ def document(person, source, headless):
                for p in b["positions"]
                if standing == "disputed" or p["leaning"] == (
                    "against" if standing == "weakened" else "for")}
+    # Whom the compilers were quoting, where no early book of ours states a position: the
+    # authority is early even though it reaches the reader through al-Khoei.
+    early_titles = {BOOK_TITLE[c] for c in EARLY_BOOKS if c in BOOK_TITLE}
+    relayed_early = {code for b in where_books_stand for p in b["positions"]
+                     for code in p.get("relays") or []
+                     if code in early_titles and (
+                         standing == "disputed"
+                         or p["leaning"] == ("against" if standing == "weakened" else "for"))}
     rests_on = ""
     if standing in ("trusted", "weakened", "disputed"):
         if said_it == {"duafa"}:
             rests_on = "duafa_only"
         elif said_it & EARLY_BOOKS:
             rests_on = "early"
+        elif relayed_early:
+            rests_on = "early_relayed"
         else:
             rests_on = "late"
 

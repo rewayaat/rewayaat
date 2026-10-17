@@ -287,6 +287,15 @@
                     <span class="narrator-stands__position" th:each="pos : ${stand.positions}"
                           th:classappend="'narrator-stands__position--' + ${pos.leaning}">
                         <span th:text="${pos.said}">thiqa — trustworthy</span>
+                        <!-- Whom a compiler is quoting. Al-Khoei's Muʿjam gathers the early
+                             rijālīs and then adjudicates, and 442 of his 615 positions here
+                             are a quotation. A scholar cites «al-Najāshī waththaqahu» and
+                             «al-Khoei waththaqahu» differently, so the table has to say
+                             which of the two it is holding. -->
+                        <span class="narrator-stands__relays"
+                              th:if="${!#lists.isEmpty(pos.relays)}"
+                              th:text="#{narrator.stands.relaying(${#strings.listJoin(pos.relays, ', ')})}">
+                            quoting al-Najāshī</span>
                         <span class="narrator-stands__page" th:if="${!#lists.isEmpty(pos.pages)}"
                               th:text="#{narrator.stands.page(${@localeDigits.of(pos.pages[0])})}">p. 183</span>
                     </span>
