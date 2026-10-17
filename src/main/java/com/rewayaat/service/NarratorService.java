@@ -194,10 +194,15 @@ public class NarratorService {
                     .index(ESClientProvider.INDEX)
                     .from(from)
                     .size(size)
+                    // «*_ar» as well, or the card asks for the Arabic of a book title and
+                    // finds nothing: an Arabic page was labelling «الكتاب» and then printing
+                    // «Man Lā Yaḥḍuruh al-Faqīh», «الباب» and «The Prayer of the Two Eids».
+                    // The translations are in the index; this query simply did not fetch them.
                     .source(src -> src.filter(f -> f.includes(
                             "book", "number", "english", "arabic", "notes", "volume", "part",
                             "section", "chapter", "source", "edition", "publisher",
-                            "topic_tags", "llm_similar")))
+                            "topic_tags", "llm_similar", "*_ar", "chain_links",
+                            "chain_links_en")))
                     .query(q -> q.bool(b -> {
                         for (String form : forms) {
                             b.should(sh -> sh.matchPhrase(m -> m.field("arabic").query(form)));

@@ -14377,6 +14377,24 @@ html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
     white-space: nowrap;
 }
 
+/* «الباقر» is six letters and «al-Bāqir» is eight wider ones, so a panel cut to fit the
+   Arabic clipped the English to «l-Bāqi» and let al-Riḍā collide with al-Jawād. The Latin
+   name takes the interface face at a smaller size, and is clipped rather than allowed to
+   spill into the panel beside it. */
+
+.chrono__cell-name[lang="en"] {
+    font-family: var(--font-ui);
+    font-size: 0.72rem;
+    letter-spacing: -0.01em;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chrono__cell {
+    overflow: hidden;
+}
+
 .chrono__cell-num {
     font-family: var(--font-arabic);
     font-size: 0.72rem;

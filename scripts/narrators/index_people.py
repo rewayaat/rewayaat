@@ -687,16 +687,20 @@ def document(person, source, headless):
         # Whom a compiler is quoting, where his entry names an earlier rijālī. His position
         # is still shown — he did take it — but it is not counted a second time as though
         # another book had spoken.
-        relays = []
+        relays, relays_ar = [], []
         if book in LATE_BOOKS:
             passage = normalize_arabic(text_of(source[verdict["source_key"]]) or "")
             # Named for the reader, not keyed: «quoting Rijāl al-Najāshī», not «najashi».
-            relays = sorted({BOOK_TITLE.get(code, code) for name, code in RELAYED.items()
+            # In both scripts: an Arabic page was printing «نقلاً عن Ikhtiyār Maʿrifat
+            # al-Rijāl», which is the leak this very feature introduced.
+            quoted = sorted({code for name, code in RELAYED.items()
                              if normalize_arabic(name) in passage})
+            relays = [BOOK_TITLE.get(c, c) for c in quoted]
+            relays_ar = [BOOK_TITLE_AR[c] for c in quoted if BOOK_TITLE_AR.get(c)]
         held["positions"].append({"grade": verdict["grade"], "said": word,
                                   "said_ar": GRADE_WORDS_AR.get(verdict["grade"]),
                                   "leaning": leaning, "pages": list(verdict["pages"] or []),
-                                  "relays": relays})
+                                  "relays": relays, "relays_ar": relays_ar})
     where_books_stand = []
     for book, *_rest in BOOKS:
         held = stands.get(book)
@@ -811,15 +815,18 @@ def document(person, source, headless):
             if row is None:
                 row = {"grade": position["grade"], "said": position["said"],
                        "said_ar": position["said_ar"], "leaning": position["leaning"],
-                       "books": [], "books_ar": [], "relayed": []}
+                       "books": [], "books_ar": [], "relayed": [], "relayed_ar": []}
                 said_by.append(row)
             if book["book_title"] not in row["books"]:
                 row["books"].append(book["book_title"])
                 if book.get("book_title_ar"):
                     row["books_ar"].append(book["book_title_ar"])
-            for quoted in position.get("relays") or []:
-                if quoted not in row["relayed"]:
-                    row["relayed"].append(quoted)
+            for title in position.get("relays") or []:
+                if title not in row["relayed"]:
+                    row["relayed"].append(title)
+            for title in position.get("relays_ar") or []:
+                if title not in row["relayed_ar"]:
+                    row["relayed_ar"].append(title)
     said_by.sort(key=lambda r: (r["leaning"] != "for", -len(r["books"])))
 
     def speaks_for_itself(book, position):

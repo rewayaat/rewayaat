@@ -72,7 +72,9 @@
                         + (${found.slug} != null and !${#strings.isEmpty(found.slug)} ? '/' + ${found.slug} : '')">
                 <div class="narrator-result__name" dir="rtl" lang="ar"
                      th:text="${found.display_ar}">اسم الراوي</div>
-                <div class="narrator-result__name-en" th:if="${found.display_en != null}"
+                <!-- Not on an Arabic page; see narrator.html. -->
+                <div class="narrator-result__name-en"
+                     th:if="${found.display_en != null and #locale.language != 'ar'}"
                      th:text="${found.display_en}">Transliterated</div>
                 <!-- A city or a year a record states but cannot show a passage for is
                      carried in its own field and printed faintly. «No book says where he

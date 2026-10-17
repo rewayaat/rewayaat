@@ -22,7 +22,10 @@
             <div class="hub-hero__eyebrow" th:text="#{narrator.eyebrow}">Narrator</div>
             <h1 class="hub-hero__title narrator-name-ar" dir="rtl" lang="ar"
                 th:text="${displayAr}">اسم الراوي</h1>
-            <p class="narrator-name-en" th:if="${!#strings.isEmpty(displayEn)}"
+            <!-- Not on an Arabic page: «زرارة بن أعين» followed by «Zurarah ibn A'yan» is
+                 a transliteration serving a reader who does not need one. -->
+            <p class="narrator-name-en"
+               th:if="${!#strings.isEmpty(displayEn) and #locale.language != 'ar'}"
                th:text="${displayEn}">Transliterated name</p>
 
             <!-- What the books say, in their own words and with their own names on them.
@@ -42,7 +45,9 @@
                                      #locale.language == 'ar' and !#lists.isEmpty(said['books_ar'])
                                      ? said['books_ar'] : said['books'], ' · ')}">Rijāl al-Najāshī</span>
                     <span class="narrator-said__relayed" th:if="${!#lists.isEmpty(said['relayed'])}"
-                          th:text="#{narrator.stands.relaying(${#strings.listJoin(said['relayed'], ', ')})}">
+                          th:text="#{narrator.stands.relaying(${#strings.listJoin(
+                                     #locale.language == 'ar' and !#lists.isEmpty(said['relayed_ar'])
+                                     ? said['relayed_ar'] : said['relayed'], '، ')})}">
                         quoting al-Najāshī</span>
                 </div>
             </div>
@@ -129,12 +134,13 @@
                     <span class="chrono__date"
                           th:classappend="${it.index % 2 == 1 ? 'is-low' : ''}"
                           th:style="|inset-inline-start:${era.leftPercent}%; --i:${it.index}|">
-                        <span class="chrono__date-year" th:text="${era.fromArabic()}">١١٤</span>
+                        <span class="chrono__date-year"
+                              th:text="${@localeDigits.of(era.fromAh)}">١١٤</span>
                         <span class="chrono__date-tick"></span>
                     </span>
                 </th:block>
                 <span class="chrono__date chrono__date--end">
-                    <span class="chrono__date-year">٥٠٠</span>
+                    <span class="chrono__date-year" th:text="${@localeDigits.of(500)}">٥٠٠</span>
                     <span class="chrono__date-tick"></span>
                 </span>
             </div>
@@ -156,11 +162,17 @@
                       th:title="#{narrator.chrono.era(${isArabic} ? ${era.shortAr} : ${era.nameEn},
                                  ${@localeDigits.of(era.fromAh)}, ${@localeDigits.of(era.toAh)})}">
                     <!-- A panel of six years cannot hold a name; it keeps its number, and the
-                         name is read from the panel's tooltip and the cartouche below. -->
-                    <span class="chrono__cell-name" dir="rtl" lang="ar"
-                          th:if="${era.widthPercent gt 3.0}" th:text="${era.shortAr}">الصادق</span>
+                         name is read from the panel's tooltip and the cartouche below.
+
+                         In the reader's own script. The band was «الصادق» and «١١٤» on both
+                         sites, so an English reader met a row of names and a ruler he could
+                         not read, under a death badge that said «150» in his own figures. -->
+                    <span class="chrono__cell-name"
+                          th:attr="dir=${isArabic} ? 'rtl' : 'ltr', lang=${isArabic} ? 'ar' : 'en'"
+                          th:if="${era.widthPercent gt 3.0}"
+                          th:text="${isArabic} ? ${era.shortAr} : ${era.shortEn}">الصادق</span>
                     <span class="chrono__cell-num" th:if="${era.widthPercent gt 1.6}"
-                          th:text="${era.isProphet()} ? '۞' : ${era.orderArabic()}">٦</span>
+                          th:text="${era.isProphet()} ? '۞' : ${@localeDigits.of(era.order)}">٦</span>
                 </span>
 
                 <!-- Past the twelfth imamate the axis keeps running, because men of the sixth
@@ -315,7 +327,9 @@
                              which of the two it is holding. -->
                         <span class="narrator-stands__relays"
                               th:if="${!#lists.isEmpty(pos.relays)}"
-                              th:text="#{narrator.stands.relaying(${#strings.listJoin(pos.relays, ', ')})}">
+                              th:text="#{narrator.stands.relaying(${#strings.listJoin(
+                                         #locale.language == 'ar' and !#lists.isEmpty(pos.relays_ar)
+                                         ? pos.relays_ar : pos.relays, '، ')})}">
                             quoting al-Najāshī</span>
                         <span class="narrator-stands__page" th:if="${!#lists.isEmpty(pos.pages)}"
                               th:text="#{narrator.stands.page(${@localeDigits.of(pos.pages[0])})}">p. 183</span>
@@ -425,7 +439,11 @@
                             th:text="${entry.text_ar}">نص الترجمة.</blockquote>
             </details>
 
-            <p class="narrator-entry__text-en" th:if="${entry.text_en != null}"
+            <!-- An Arabic page gives the book's own words and stops. The English rendering
+                 of al-Najāshī is for a reader who cannot read him, and on «/ar» it was
+                 putting whole English paragraphs under the Arabic. -->
+            <p class="narrator-entry__text-en"
+               th:if="${entry.text_en != null and #locale.language != 'ar'}"
                th:text="${entry.text_en}">The entry in English.</p>
 
             <p class="narrator-entry__generation" th:if="${!#lists.isEmpty(entry.under_imams)}">
