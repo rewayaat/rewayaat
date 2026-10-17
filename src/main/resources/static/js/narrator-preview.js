@@ -18,7 +18,10 @@
 (function () {
     "use strict";
 
-    var held = {};          // person_id -> the brief, fetched once a session
+    // person_id -> the brief, fetched once a session. Kept on window because the rijāl panel
+    // fetches the briefs of a whole chain in one request; filling this same map is what makes
+    // the card for any of those men open without asking again.
+    var held = window.narratorBriefs = window.narratorBriefs || {};
     var card = null;
     var openedFrom = null;
 

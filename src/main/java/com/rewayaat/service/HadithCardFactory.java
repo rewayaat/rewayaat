@@ -15,6 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Shapes one narration for the shared hadith card.
@@ -98,6 +99,7 @@ public class HadithCardFactory {
         row.put("tagSlugs", tagSlugs(source));
         row.put("similarCount", source.get("llm_similar") instanceof List<?> l ? l.size() : 0);
         row.put("shareUrl", baseUrl + "/hadith/" + id);
+        addChain(row, source.get("chain_people"), locale);
         // The generated share card, in the two themes the share menu offers. Dark is the
         // default and is what og:image points at; light exists for the newsletter, whose
         // templates are white.
@@ -106,6 +108,85 @@ public class HadithCardFactory {
                 "english", stripHtml(str(source.get("english"))),
                 "arabic", stripHtml(str(source.get("arabic"))))));
         return row;
+    }
+
+    /**
+     * The isnād as the rijāl panel draws it: one entry per link, in the order the chain
+     * says them, with the counts the panel's summary line is made of.
+     *
+     * <p>Nothing here is worked out from the narration text. The resolver decided offline
+     * who each phrase is and stored the answer as {@code chain_people}; this only sorts
+     * those answers into the four kinds of link the panel draws differently. A narration
+     * with no {@code chain_people} gets an empty list and no panel, rather than a panel
+     * that says it knows nothing.
+     *
+     * <p>A relative («أبيه») the resolver named a man for is drawn as that man. One it did
+     * not is drawn as an unidentified name, because that is what it is to a reader: a
+     * step in the chain that no book holds an entry for.
+     *
+     * <p>{@code open} marks a link whose connector to the one below is dashed, which is
+     * every step that touches a collective or an unidentified man on either side. The weak
+     * joint is a property of the pair, not of one link, so it is decided here once and the
+     * stylesheet only draws it.
+     */
+    private static void addChain(Map<String, Object> row, Object stored, PageLocale locale) {
+        List<Map<String, Object>> links = new ArrayList<>();
+        int identified = 0;
+        int notFound = 0;
+        int groups = 0;
+        int named = 0;
+        if (stored instanceof List<?> items) {
+            for (Object item : items) {
+                if (!(item instanceof Map<?, ?> raw)) {
+                    continue;
+                }
+                String words = str(raw.get("t"));
+                if (words.isBlank()) {
+                    continue;
+                }
+                String person = str(raw.get("p"));
+                String slug = str(raw.get("g"));
+                String declared = str(raw.get("k"));
+                String kind;
+                if ("collective".equals(declared)) {
+                    kind = "collective";
+                    groups++;
+                } else if ("imam".equals(declared) && !person.isBlank()) {
+                    kind = "imam";
+                } else if (!person.isBlank()) {
+                    kind = "man";
+                    identified++;
+                } else {
+                    kind = "unknown";
+                    notFound++;
+                }
+                if ("name".equals(declared)) {
+                    named++;
+                }
+                boolean open = "collective".equals(kind) || "unknown".equals(kind);
+                Map<String, Object> link = new LinkedHashMap<>();
+                link.put("words", words);
+                link.put("kind", kind);
+                link.put("person", person);
+                link.put("weak", open);
+                if (!person.isBlank() && !"collective".equals(kind)) {
+                    link.put("href", locale.prefix() + "/narrator/" + person
+                            + (slug.isBlank() ? "" : "/" + slug));
+                }
+                links.add(link);
+            }
+        }
+        for (int i = 0; i < links.size(); i++) {
+            boolean below = i + 1 < links.size() && (Boolean) links.get(i + 1).get("weak");
+            links.get(i).put("open", (Boolean) links.get(i).get("weak") || below);
+        }
+        row.put("chain", links);
+        row.put("chainNamed", named);
+        row.put("chainIdentified", identified);
+        row.put("chainNotFound", notFound);
+        row.put("chainGroups", groups);
+        row.put("chainIds", links.stream().map(l -> str(l.get("person")))
+                .filter(v -> !v.isBlank()).distinct().collect(Collectors.joining(",")));
     }
 
     /**

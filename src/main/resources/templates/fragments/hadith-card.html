@@ -35,6 +35,19 @@
                     <span class="hadith-sidecar__rail-label" th:text="#{sidecar.details}">DETAILS</span>
                     <span class="hadith-sidecar__rail-icon"><i class="fa fa-info-circle" aria-hidden="true"></i></span>
                 </button>
+                <!-- The chain as a chain: every link of the isnād in order, whose it is, and
+                     what the books say of him. Second in the rail because a reader judging
+                     a narration reaches for its men straight after its details. Omitted for
+                     a narration the resolver has not read an isnād out of. -->
+                <button type="button" class="hadith-sidecar__rail-btn" data-hub-panel="rijal"
+                        th:if="${!#lists.isEmpty(narration.chain)}"
+                        aria-selected="false" title="The men of the chain" th:title="#{rijal.title}">
+                    <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
+                    <span class="hadith-sidecar__rail-label" th:text="#{sidecar.rijal}">RIJAL</span>
+                    <span class="hadith-sidecar__rail-icon"><i class="fa fa-link" aria-hidden="true"></i></span>
+                    <span class="hadith-sidecar__rail-badge"
+                          th:text="${@localeDigits.of(narration.chainNamed)}">0</span>
+                </button>
                 <button type="button" class="hadith-sidecar__rail-btn" data-hub-panel="similar"
                         aria-selected="false" title="Similar narrations" th:title="#{sidecar.related}">
                     <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
@@ -80,6 +93,56 @@
                 <!-- Related and Tafsir load on demand from the same endpoints the search
                      card uses; rendering them for every narration up front would put two
                      more queries per hadith in front of every crawler. -->
+                <!-- The chain is drawn here by the server, so a crawler and a reader without
+                     script get every link and the page it leads to. rijal-chain.js adds what
+                     the books say of each man the first time the panel is opened. -->
+                <div class="hadith-sidecar__panel-body d-none rijal" data-hub-panel-body="rijal"
+                     th:if="${!#lists.isEmpty(narration.chain)}"
+                     th:attr="data-rijal-ids=${narration.chainIds}">
+                    <p class="rijal__summary">
+                        <strong th:text="${@counts.of(#lists.size(narration.chain), 'rijal.summary.links')}">8 links</strong>
+                        <span class="rijal__dot" aria-hidden="true">&middot;</span>
+                        <span th:text="${@counts.of(narration.chainIdentified, 'rijal.summary.identified')}">5 identified</span>
+                        <th:block th:if="${narration.chainNotFound > 0}">
+                            <span class="rijal__dot" aria-hidden="true">&middot;</span>
+                            <span th:text="${@counts.of(narration.chainNotFound, 'rijal.summary.notFound')}">1 not found</span>
+                        </th:block>
+                        <th:block th:if="${narration.chainGroups > 0}">
+                            <span class="rijal__dot" aria-hidden="true">&middot;</span>
+                            <span th:text="${@counts.of(narration.chainGroups, 'rijal.summary.groups')}">1 unnamed group</span>
+                        </th:block>
+                        <span class="rijal__ends" data-rijal-ends hidden>
+                            <span class="rijal__dot" aria-hidden="true">&middot;</span>
+                            <span data-rijal-ends-text></span>
+                        </span>
+                    </p>
+                    <p class="rijal__status" data-rijal-status role="status" hidden></p>
+                    <ol class="rijal__chain" th:aria-label="#{rijal.aria}" aria-label="The chain of narrators">
+                        <li th:each="link, state : ${narration.chain}"
+                            class="rijal-link"
+                            th:classappend="'rijal-link--' + ${link.kind} + (${link.open} ? ' is-open' : '')"
+                            th:attr="data-rijal-id=${link.person}, style='--i:' + ${state.index}">
+                            <span class="rijal-link__mark" aria-hidden="true"></span>
+                            <div class="rijal-link__card">
+                                <!-- Bracket notation again: only a link with a man behind it has an href. -->
+                                <a class="rijal-link__words chain-name arabic-text" dir="rtl" lang="ar"
+                                   th:if="${link['href'] != null}" th:href="${link['href']}"
+                                   th:text="${link.words}">words</a>
+                                <span class="rijal-link__words arabic-text" dir="rtl" lang="ar"
+                                      th:if="${link['href'] == null}" th:text="${link.words}">words</span>
+                                <p class="rijal-link__who" data-rijal-who hidden></p>
+                                <p class="rijal-link__said" data-rijal-said hidden></p>
+                                <p class="rijal-link__life" data-rijal-life hidden></p>
+                                <p class="rijal-link__note" th:if="${link.kind == 'unknown'}"
+                                   th:text="#{rijal.unknown}">No book holds an entry under this name</p>
+                                <p class="rijal-link__note" th:if="${link.kind == 'collective'}"
+                                   th:text="#{rijal.collective}">A step the compiler did not name</p>
+                                <p class="rijal-link__note" th:if="${link.kind == 'imam'}"
+                                   th:text="#{rijal.imam.note}">The books do not grade the Imams</p>
+                            </div>
+                        </li>
+                    </ol>
+                </div>
                 <div class="hadith-sidecar__panel-body d-none" data-hub-panel-body="similar"></div>
                 <div class="hadith-sidecar__panel-body d-none" data-hub-panel-body="quran"
                      th:unless="${isArabic}"></div>

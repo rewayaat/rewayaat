@@ -17,8 +17,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * The narrator API. The page itself is {@link com.rewayaat.controllers.NarratorPageController}.
@@ -29,6 +31,8 @@ import java.util.Map;
  */
 @Controller
 public class NarratorController {
+
+    private static final int MAX_BRIEFS = 40;
 
     @Autowired
     private NarratorService narratorService;
@@ -56,6 +60,58 @@ public class NarratorController {
             missing.put("ok", false);
             return new ResponseEntity<>(missing, HttpStatus.NOT_FOUND);
         }
+        Map<String, Object> brief = briefOf(narrator);
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("ok", true);
+        payload.put("narrator", brief);
+        return new ResponseEntity<>(payload, HttpStatus.OK);
+    }
+
+    /**
+     * The same brief for a whole isnād at once.
+     *
+     * <p>The rijāl panel draws every man a chain names, and asking for them one at a time
+     * would be eight round trips to show one narration. The projection is the preview's
+     * own, through the same helper, so a brief fetched here fills the preview card's cache
+     * and the card then costs nothing. An id no narrator holds is simply absent from the
+     * answer rather than failing the rest, and the list is capped because the parameter is
+     * a reader's to write: no real isnād is near forty names.
+     */
+    @CrossOrigin(origins = {"*"}, allowCredentials = "false")
+    @RequestMapping(value = "/v1/narrators/briefs", method = RequestMethod.GET,
+                    produces = "application/json")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> briefs(
+            @Parameter(name = "ids", description = "Comma-separated narrator ids, at most 40",
+                       required = true)
+            @RequestParam(value = "ids", defaultValue = "") String ids) {
+        Map<String, Object> found = new LinkedHashMap<>();
+        Set<String> wanted = new LinkedHashSet<>();
+        for (String id : ids.split(",")) {
+            String trimmed = id.trim();
+            if (!trimmed.isEmpty() && wanted.size() < MAX_BRIEFS) {
+                wanted.add(trimmed);
+            }
+        }
+        for (String id : wanted) {
+            Map<String, Object> narrator = narratorService.getNarrator(id);
+            if (narrator != null) {
+                found.put(id, briefOf(narrator));
+            }
+        }
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("ok", true);
+        payload.put("narrators", found);
+        return new ResponseEntity<>(payload, HttpStatus.OK);
+    }
+
+    /**
+     * The fields a card needs of a man, whichever endpoint is asking.
+     *
+     * <p>One list, because the preview card and the rijāl panel share a browser cache and
+     * a brief from either must be usable by both.
+     */
+    private static Map<String, Object> briefOf(Map<String, Object> narrator) {
         Map<String, Object> brief = new LinkedHashMap<>();
         for (String field : new String[]{"person_id", "display_ar", "display_en", "slug",
                                          "said_by", "standing", "standing_rests_on", "life",
@@ -65,10 +121,7 @@ public class NarratorController {
             }
         }
         brief.put("book_count", narrator.get("books") instanceof List<?> books ? books.size() : 0);
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("ok", true);
-        payload.put("narrator", brief);
-        return new ResponseEntity<>(payload, HttpStatus.OK);
+        return brief;
     }
 
     @CrossOrigin(origins = {"*"}, allowCredentials = "false")

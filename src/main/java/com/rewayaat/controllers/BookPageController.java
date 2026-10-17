@@ -436,7 +436,8 @@ public class BookPageController {
         List<String> translated = List.of("book", "part", "section", "chapter", "source",
                 "edition", "publisher", "notes");
         List<String> fields = new ArrayList<>(List.of(
-                "number", "english", "arabic", "volume", "topic_tags", "llm_similar"));
+                "number", "english", "arabic", "volume", "topic_tags", "llm_similar",
+                "chain_people"));
         for (String field : translated) {
             fields.add(field);
             fields.add(field + "_ar");

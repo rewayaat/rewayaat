@@ -15147,3 +15147,286 @@ a.ledger__cell:hover .ledger__note {
     background: var(--gold-bg, #fdf8ed);
     color: var(--gold-dark, #a07e28);
 }
+
+/* ── The rijāl tab ─────────────────────────────────────────────────────────────
+   The isnād drawn as a chain: a list item to a link, the visual chain being CSS over an
+   ordered list. The sidecar is navy, so a link is a pane of lighter navy with a hairline
+   edge, and the mark is what tells the four kinds apart at a glance — a filled gold
+   diamond for a man the books know, a hollow one for a name they do not, a hexagon for a
+   phrase that names nobody, a star for the Imam. Colour by standing lives here and
+   nowhere in the hadith text, which must read as the compiler wrote it. */
+.rijal {
+    --rijal-line: rgba(200, 162, 61, 0.7);
+    --rijal-gap: 0.95rem;
+    --rijal-mark: 1.5rem;
+    color: #eef3fa;
+}
+
+.rijal__summary {
+    margin: 0 0 0.75rem;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: rgba(238, 243, 250, 0.82);
+}
+
+.rijal__summary strong {
+    color: #fff0bf;
+    font-weight: 700;
+}
+
+.rijal__dot {
+    margin-inline: 0.3rem;
+    opacity: 0.55;
+}
+
+.rijal__status {
+    margin: 0 0 0.6rem;
+    font-size: 0.72rem;
+    color: rgba(238, 243, 250, 0.7);
+}
+
+.rijal__chain {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.rijal-link {
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--rijal-mark) minmax(0, 1fr);
+    column-gap: 0.5rem;
+    margin-block-start: var(--rijal-gap);
+}
+
+.rijal-link:first-child {
+    margin-block-start: 0;
+}
+
+/* The connector to the link below: a rule down the centre of the mark column, from this
+   link's own mark to the next one. */
+.rijal-link:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: calc(var(--rijal-mark) / 2 - 1px);
+    top: 0.9rem;
+    height: calc(100% + var(--rijal-gap) - 0.9rem + 0.8rem);
+    width: 0;
+    border-inline-start: 2px solid var(--rijal-line);
+    transform-origin: top;
+    transition: border-color 160ms ease;
+}
+
+/* Where the step is a collective or an unidentified man the chain is open, and the
+   connector says so without a word. */
+.rijal-link.is-open::before {
+    border-inline-start-style: dashed;
+    border-inline-start-color: rgba(238, 243, 250, 0.5);
+}
+
+.rijal-link__mark {
+    position: relative;
+    z-index: 1;
+    width: 1.05rem;
+    height: 1.05rem;
+    margin-block-start: 0.35rem;
+    justify-self: center;
+    background: var(--gold, #c8a23d);
+    transform: rotate(45deg) scale(0.82);
+    border-radius: 2px;
+    box-shadow: 0 0 0 3px rgba(17, 40, 68, 0.9);
+}
+
+.rijal-link--unknown .rijal-link__mark {
+    background: #183554;
+    border: 2px solid var(--gold, #c8a23d);
+}
+
+.rijal-link--collective .rijal-link__mark {
+    background: rgba(238, 243, 250, 0.55);
+    border: 0;
+    border-radius: 0;
+    transform: none;
+    width: 1.1rem;
+    height: 1.1rem;
+    clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0 50%);
+    box-shadow: none;
+}
+
+.rijal-link--imam .rijal-link__mark {
+    background: var(--gold, #c8a23d);
+    border: 0;
+    border-radius: 0;
+    transform: none;
+    width: 1.3rem;
+    height: 1.3rem;
+    margin-block-start: 0.2rem;
+    clip-path: polygon(50% 0, 62% 35%, 98% 38%, 70% 60%, 80% 95%, 50% 75%, 20% 95%, 30% 60%, 2% 38%, 38% 35%);
+    box-shadow: none;
+}
+
+.rijal-link__card {
+    min-width: 0;
+    padding: 0.55rem 0.7rem 0.6rem;
+    border: 1px solid rgba(238, 243, 250, 0.16);
+    border-radius: 8px;
+    background: rgba(238, 243, 250, 0.07);
+    transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.rijal-link--collective .rijal-link__card,
+.rijal-link--unknown .rijal-link__card {
+    border-style: dashed;
+}
+
+.rijal-link--imam .rijal-link__card {
+    border-color: rgba(200, 162, 61, 0.65);
+    background: rgba(200, 162, 61, 0.12);
+}
+
+.rijal-link:hover .rijal-link__card {
+    transform: translateY(-1px);
+    border-color: rgba(238, 243, 250, 0.34);
+}
+
+.rijal-link:hover::before {
+    border-inline-start-color: var(--gold, #c8a23d);
+}
+
+.rijal-link__card p {
+    margin: 0.2rem 0 0;
+}
+
+.rijal-link__words {
+    display: block;
+    font-size: 1.12rem;
+    line-height: 1.7;
+    color: #fff;
+    text-decoration: none;
+}
+
+a.rijal-link__words:hover,
+a.rijal-link__words:focus-visible {
+    color: #fff0bf;
+    text-decoration: underline;
+    text-decoration-color: rgba(200, 162, 61, 0.7);
+    text-underline-offset: 0.2em;
+}
+
+.rijal-link__who {
+    font-size: 0.8rem;
+    color: rgba(238, 243, 250, 0.82);
+}
+
+.rijal-link__said {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    font-size: 0.78rem;
+}
+
+.rijal-link__grade {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.1rem 0.5rem;
+}
+
+.rijal-link__word {
+    font-weight: 700;
+    color: #f3e5b8;
+}
+
+.rijal-link__grade--for .rijal-link__word {
+    color: #8fd3a4;
+}
+
+.rijal-link__grade--against .rijal-link__word {
+    color: #f4a097;
+}
+
+.rijal-link__said--none,
+.rijal-link__books,
+.rijal-link__life,
+.rijal-link__note {
+    font-size: 0.72rem;
+    color: rgba(238, 243, 250, 0.62);
+}
+
+.rijal-link__note {
+    font-style: italic;
+}
+
+[dir="rtl"] .rijal-link__note {
+    font-style: normal;
+}
+
+[dir="rtl"] .rijal-link__who {
+    font-size: 0.95rem;
+}
+
+[dir="rtl"] .rijal-link__said,
+[dir="rtl"] .rijal-link__said--none,
+[dir="rtl"] .rijal-link__books,
+[dir="rtl"] .rijal-link__life,
+[dir="rtl"] .rijal-link__note,
+[dir="rtl"] .rijal__summary,
+[dir="rtl"] .rijal__status {
+    font-size: 0.9rem;
+}
+
+/* The assembly. Every link and connector is in the page from the first frame; these only
+   animate it into place once, when the panel is first opened (rijal-chain.js adds
+   .is-assembling and takes it away again, so returning to the tab does not replay it). */
+@keyframes rijalLand {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rijalDraw {
+    from { transform: scaleY(0); }
+    to   { transform: scaleY(1); }
+}
+
+@keyframes rijalGlow {
+    from { top: -4rem; opacity: 0; }
+    12%  { opacity: 1; }
+    88%  { opacity: 1; }
+    to   { top: 100%; opacity: 0; }
+}
+
+.rijal.is-assembling .rijal-link {
+    animation: rijalLand 260ms ease-out backwards;
+    animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+.rijal.is-assembling .rijal-link:not(:last-child)::before {
+    animation: rijalDraw 260ms ease-out backwards;
+    animation-delay: calc((var(--i, 0) + 1) * 60ms);
+}
+
+.rijal.is-assembling .rijal__chain::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    height: 4rem;
+    top: -4rem;
+    pointer-events: none;
+    background: linear-gradient(180deg, transparent, rgba(243, 229, 184, 0.26), transparent);
+    animation: rijalGlow 900ms ease-in-out both;
+    animation-delay: calc(var(--n, 1) * 60ms + 200ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rijal.is-assembling .rijal-link,
+    .rijal.is-assembling .rijal-link:not(:last-child)::before,
+    .rijal.is-assembling .rijal__chain::after {
+        animation: none;
+    }
+
+    .rijal-link__card {
+        transition: none;
+    }
+}

@@ -889,11 +889,11 @@ function localeHref(path) {
                 body.classList.toggle('d-none', body.getAttribute('data-hub-panel-body') !== wanted);
             });
             // The card's own class drives the sidecar's width and colouring.
-            card.className = card.className.replace(/hadith-card--(metadata|similar|quran)/, 'hadith-card--' + wanted);
+            card.className = card.className.replace(/hadith-card--(metadata|rijal|similar|quran)/, 'hadith-card--' + wanted);
             // The sidecar panel's own class drives its layout per tab, as it does in Vue.
             var panel = card.querySelector('.hadith-sidecar__panel');
             if (panel) {
-                panel.className = panel.className.replace(/is-(metadata|similar|quran)/, 'is-' + wanted);
+                panel.className = panel.className.replace(/is-(metadata|rijal|similar|quran)/, 'is-' + wanted);
             }
             if (wanted === 'metadata') {
                 card.querySelectorAll('[data-hub-inline]').forEach(function (h) { h.classList.add('d-none'); });
