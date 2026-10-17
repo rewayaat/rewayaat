@@ -233,7 +233,9 @@ public class NarratorPageController {
             // With the locale. The four-argument build is English by definition, so an
             // Arabic narrator page was listing every one of his narrations with English book
             // names, English chapters and English metadata under an Arabic heading.
-            narrations.add(cards.build(String.valueOf(hit.get("id")), source, base, BASE_URL,
+            // `path`, not `base`: the card puts the locale prefix on a topic link itself,
+            // and handing it one that already carries it produced «/ar/ar/narrator/…».
+            narrations.add(cards.build(String.valueOf(hit.get("id")), source, path, BASE_URL,
                                        locale));
         }
         // the card shows a Quranic-insight count, so it has to be fetched as the other pages do

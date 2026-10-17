@@ -60,6 +60,18 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
     private List<String> queryFields = null;
     private final ObjectMapper mapper = new ObjectMapper();
 
+    /** «/ar» where the reader is reading Arabic, so a link does not drop him into English. */
+    private String linkPrefix = "";
+
+    public QueryStringQueryResult withLinkPrefix(String prefix) {
+        this.linkPrefix = prefix == null ? "" : prefix;
+        return this;
+    }
+
+    private static String text(Object value) {
+        return value == null ? "" : String.valueOf(value);
+    }
+
     public QueryStringQueryResult(String query, int page, int perPage,
             List<SortOptions> sortBuilders, boolean strictMatchMode, int maxResultWindow) {
         this(query, page, perPage, sortBuilders, strictMatchMode, maxResultWindow, Collections.emptyList(),
@@ -160,6 +172,16 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
             }
         }
         HadithDisplaySegmenter.enrich(result);
+        // The isnād carries its links here too. They were rendered on a hadith's own page
+        // and on a narrator's narrations, and not in search results — which is the page a
+        // reader actually arrives on, so the whole feature was invisible to most of them.
+        // A chain the search has highlighted keeps its highlight and loses its links: the
+        // spans are offsets into the stored text, and ChainLinks drops any whose covered
+        // text no longer matches rather than slicing a name in half.
+        result.put("arabicChain", ChainLinks.render(text(result.get("arabicChain")),
+                result.get("chain_links"), linkPrefix));
+        result.put("englishChain", ChainLinks.render(text(result.get("englishChain")),
+                result.get("chain_links_en"), linkPrefix));
         hadithes.add(mapper.convertValue(result, HadithObject.class));
     }
 

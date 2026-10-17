@@ -165,7 +165,10 @@ public class HadithController {
                 strictMatchMode,
                 0,
                 topicTags,
-                topicTagsAny).result();
+                topicTagsAny)
+                // so an isnād link on the Arabic site stays on the Arabic site
+                .withLinkPrefix(request == null ? "" : PageLocale.of(request).prefix())
+                .result();
         // Recorded after the answer exists, so the result count is part of the row and a
         // search that found nothing is as visible as a popular one. Never before: a reader
         // waits on the search, not on us keeping notes about it.
