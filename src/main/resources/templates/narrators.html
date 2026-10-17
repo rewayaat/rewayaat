@@ -101,11 +101,15 @@
                     <!-- Only where a book actually grades him. «No book grades him» on
                          fourteen cards of twenty is noise, and the silence is already told
                          by the absence of a verdict. -->
+                    <!-- The books' own word, not ours, and the book that says it. -->
                     <span class="narrator-result__standing"
-                          th:if="${standing != null and standing != 'unstated'
-                                   and standing != 'not_graded'}"
-                          th:classappend="'narrator-result__standing--' + ${standing}"
-                          th:text="#{'narrator.standing.' + ${standing}}">Held reliable</span>
+                          th:with="said=${found['said_by'] == null or #lists.isEmpty(found['said_by'])
+                                          ? null : found['said_by'][0]}"
+                          th:if="${said != null}"
+                          th:classappend="'narrator-result__standing--' + ${said['leaning']}"
+                          th:text="${said['said']} + ' · ' + ${said['books'][0]}
+                                   + (${#lists.size(said['books'])} > 1
+                                      ? ' +' + (${#lists.size(said['books'])} - 1) : '')">thiqa · Rijāl al-Najāshī</span>
                     <!-- A verdict that no early rijālī gives, or that rests on a book of
                          disputed ascription, says so here rather than passing as the rest. -->
                     <span class="narrator-result__standing narrator-result__said"

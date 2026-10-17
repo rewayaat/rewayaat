@@ -25,11 +25,28 @@
             <p class="narrator-name-en" th:if="${!#strings.isEmpty(displayEn)}"
                th:text="${displayEn}">Transliterated name</p>
 
-            <!-- Where the books leave him, in one word, before any of them is quoted. For most
-                 men the honest word is «divided». -->
-            <div class="narrator-standing" th:classappend="'narrator-standing--' + ${narrator.standing}">
-                <span th:text="#{'narrator.standing.' + ${narrator.standing}}">The books disagree about him</span>
+            <!-- What the books say, in their own words and with their own names on them.
+                 This used to read «Held reliable» — a word no rijālī wrote. A scholar wants
+                 «ثقة» and the book it stands in, because «al-Najāshī waththaqahu» and «we
+                 judge him reliable» are not the same claim and he will cite only the first.
+                 Where the books differ, each word keeps its own line and the disagreement
+                 shows itself without being announced. -->
+            <div class="narrator-said" th:if="${!#lists.isEmpty(narrator['said_by'])}">
+                <div class="narrator-said__row" th:each="said : ${narrator['said_by']}"
+                     th:classappend="'narrator-said__row--' + ${said['leaning']}">
+                    <span class="narrator-said__word" th:text="${said['said']}">thiqa — trustworthy</span>
+                    <span class="narrator-said__books"
+                          th:text="${#strings.listJoin(said['books'], ' · ')}">Rijāl al-Najāshī</span>
+                    <span class="narrator-said__relayed" th:if="${!#lists.isEmpty(said['relayed'])}"
+                          th:text="#{narrator.stands.relaying(${#strings.listJoin(said['relayed'], ', ')})}">
+                        quoting al-Najāshī</span>
+                </div>
             </div>
+            <!-- Only where no book grades him at all. The absence is the finding: 11,915 of
+                 15,518 men are never graded by any of the eight. -->
+            <div class="narrator-standing narrator-standing--unstated"
+                 th:if="${#lists.isEmpty(narrator['said_by'])}"
+                 th:text="#{'narrator.standing.' + ${narrator.standing}}">No book grades him</div>
             <!-- On whose word. The eight books are not eight equal voices: al-Najāshī and
                  al-Ṭūsī wrote within reach of these men, al-Ardabīlī and al-Khoei are reading
                  the same early books a reader of this page can read, and the ascription of

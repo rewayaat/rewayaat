@@ -800,6 +800,28 @@ def document(person, source, headless):
 
     # Where the books leave him, in one word: a reader wants to know whether he is relied on
     # before reading eight entries, and the honest answer is often «they disagree».
+    # What the books actually say, grouped by the word they say it with, so a page can quote
+    # them instead of pronouncing over them. «Held reliable» is nobody's word: the rijālī
+    # wrote «ثقة», and a reader — a scholar above all — wants that word and the book it
+    # stands in, not our summary of it.
+    said_by = []
+    for book in where_books_stand:
+        for position in book["positions"]:
+            row = next((r for r in said_by if r["grade"] == position["grade"]), None)
+            if row is None:
+                row = {"grade": position["grade"], "said": position["said"],
+                       "said_ar": position["said_ar"], "leaning": position["leaning"],
+                       "books": [], "books_ar": [], "relayed": []}
+                said_by.append(row)
+            if book["book_title"] not in row["books"]:
+                row["books"].append(book["book_title"])
+                if book.get("book_title_ar"):
+                    row["books_ar"].append(book["book_title_ar"])
+            for quoted in position.get("relays") or []:
+                if quoted not in row["relayed"]:
+                    row["relayed"].append(quoted)
+    said_by.sort(key=lambda r: (r["leaning"] != "for", -len(r["books"])))
+
     def speaks_for_itself(book, position):
         """A compiler quoting a book that has spoken here is that book, not another voice."""
         if book["book"] not in LATE_BOOKS or not position.get("relays"):
@@ -1022,6 +1044,7 @@ def document(person, source, headless):
         "against_him": sorted(against_him),
         "standing": standing,
         "standing_rests_on": rests_on,
+        "said_by": said_by,
         "life": life,
         "blurb": blurb.strip(),
         "blurb_ar": blurb_ar.strip(),
@@ -1084,6 +1107,7 @@ MAPPING = {
         "imam_ordinals": {"type": "integer"},
         "holds_entry": {"type": "boolean"},
         "standing_rests_on": {"type": "keyword"},
+        "said_by": {"type": "object", "enabled": False},
         "display_en_made": {"type": "boolean"},
         "kunyahs_reported_ar": {"type": "text"},
         "titles_reported": {"type": "text"},
