@@ -47,6 +47,12 @@ JOIN = re.compile(r"""
   | \bwho\s+has\s+said\b
   | \bin\s+a\s+marfu'\s+manner\b
   | \bfrom\b | \bsaid\b | \band\b | \bthat\b
+  # Muhsini's Mu'jam sets a chain with dashes rather than words — «Ibn Idris – his father –
+  # Ibn Hashim – Ibn Abi Umayr» — and without these the whole isnad was one slot, which can
+  # hold one link at most however many men it names.
+  # A plain hyphen is not among them: this corpus prints «'Abd al- Rahman» and «al- Abbas»
+  # with a space after the article, and cutting there cuts a man in half.
+  | \s[–—]\s | ;
 """, re.X | re.I)
 
 DIACRITIC = re.compile(r'[ؗ-ًؚ-ْـٰ]')
@@ -138,9 +144,21 @@ def same_man(english, arabic, agree):
         return False
     head_en = english.split()[0] if english.split() else ""
     head_ar = arabic.split()[0] if arabic.split() else ""
-    if head_en.startswith("'") != head_ar.startswith("'"):
-        return False
-    return alike(head_en, head_ar) >= 0.8
+    # «السندي بن محمد» is printed "Sindi bin Muhammed" as often as "al-Sindi", so the head is
+    # tried both with its article and without: the alif the article opens with is not the
+    # alif the reversal guard is looking for.
+    heads = {(head_en, head_ar), (without_article(head_en), without_article(head_ar))}
+    for one, other in heads:
+        if one.startswith("'") != other.startswith("'"):
+            continue
+        if alike(one, other) >= 0.8:
+            return True
+    return False
+
+
+def without_article(head):
+    """A name's head with «ال» taken off, where it had one."""
+    return head[2:] if head.startswith("'l") and len(head) > 3 else head
 
 
 def slots(chain):
@@ -162,14 +180,82 @@ def slots(chain):
     return kept
 
 
+def words_of(text, at):
+    """Every word of a slot with the place it stands in the chain."""
+    found = []
+    for match in re.finditer(r"[^\s]+", text):
+        word = match.group(0).strip(EDGE)
+        if word:
+            found.append((word, at + match.start(), at + match.start() + len(match.group(0))))
+    return found
+
+
+def windows_of(slot_words, longest):
+    """Every run of words in a slot, with its skeleton, computed once.
+
+    A chain asks the same slot about every name in it, and the skeleton of a run of words is
+    the same answer each time, so computing it per pair made the pass several times longer
+    than it needed to be.
+    """
+    made = []
+    for start in range(len(slot_words)):
+        piece = []
+        for end in range(start, min(start + longest, len(slot_words))):
+            piece.append(slot_words[end][0])
+            skeleton = skeleton_en(" ".join(piece))
+            if skeleton:
+                made.append((len(piece), skeleton, slot_words[start][1], slot_words[end][2]))
+    return made
+
+
+def best_window(windows, arabic):
+    """The run of words inside a slot that best answers one Arabic name.
+
+    A slot is whatever stands between two joining phrases, and that is often more than a
+    name: «My father, may Allah grant him mercy, said: We were told by Muhammed bin Yahya
+    al-'Attar» is one slot, and «Abu Ja'far, peace be upon him,» is another. Compared whole,
+    neither looks like the Arabic name inside it, so both were refused and the reader saw a
+    chain with its first and last men unlinked. Comparing every run of words instead finds
+    the name and nothing else, and hands back where it starts and ends so the link lands on
+    the name rather than on the sentence around it.
+
+    The run is bounded by the length of the Arabic name, give or take: a name of three words
+    is not hiding in a run of nine.
+    """
+    target = len(arabic.split()) or 1
+    shortest, longest = max(1, target - 2), target + 3
+    best = (0.0, None, None, "")
+    # One matcher with the Arabic side fixed, and difflib's two cheap bounds before the real
+    # comparison: a chain asks this question tens of thousands of times and all but a few of
+    # the answers are «not even close».
+    matcher = difflib.SequenceMatcher(None)
+    matcher.set_seq2(arabic)
+    for count, skeleton, start, end in windows:
+        if count < shortest or count > longest:
+            continue
+        matcher.set_seq1(skeleton)
+        if matcher.real_quick_ratio() <= best[0] or matcher.quick_ratio() <= best[0]:
+            continue
+        score = matcher.ratio()
+        if score > best[0]:
+            best = (score, start, end, skeleton)
+    return best
+
+
 def align(english, arabic):
+    """Pair two lists of skeletons up in order. Kept for the tests and for --show."""
+    scores = {(i, j): (alike(english[i], arabic[j]), 0, 0, english[i])
+              for i in range(len(english)) for j in range(len(arabic))}
+    return align_on(scores, len(english), len(arabic))
+
+
+def align_on(scores, rows, columns):
     """Pair the two sequences up in order, leaving a gap where one side has no partner.
 
-    Needleman-Wunsch on the skeletons. Order is what makes this safe: a chain is a sequence
+    Needleman-Wunsch on the scores. Order is what makes this safe: a chain is a sequence
     and the translation keeps it, so a name can only ever be matched to one that stands in the
     same place in the same order. A dropped name opens a gap instead of shifting the rest.
     """
-    rows, columns = len(english), len(arabic)
     best = [[0.0] * (columns + 1) for _ in range(rows + 1)]
     for i in range(1, rows + 1):
         best[i][0] = best[i - 1][0] + GAP
@@ -177,11 +263,11 @@ def align(english, arabic):
         best[0][j] = best[0][j - 1] + GAP
     for i in range(1, rows + 1):
         for j in range(1, columns + 1):
-            pair = best[i - 1][j - 1] + alike(english[i - 1], arabic[j - 1]) - 0.5
+            pair = best[i - 1][j - 1] + scores[(i - 1, j - 1)][0] - 0.5
             best[i][j] = max(pair, best[i - 1][j] + GAP, best[i][j - 1] + GAP)
     pairs, i, j = [], rows, columns
     while i and j:
-        pair = best[i - 1][j - 1] + alike(english[i - 1], arabic[j - 1]) - 0.5
+        pair = best[i - 1][j - 1] + scores[(i - 1, j - 1)][0] - 0.5
         if best[i][j] == pair:
             pairs.append((i - 1, j - 1))
             i, j = i - 1, j - 1
@@ -229,17 +315,25 @@ def main():
                 counts["nothing to align"] += 1
                 continue
             counts["chains aligned"] += 1
-            pairs = align([skeleton_en(chain[s:e]) for s, e in places],
-                          [skeleton_ar(m["text"]) for m in mentions])
+            arabic = [skeleton_ar(m["text"]) for m in mentions]
+            slot_words = [words_of(chain[s:e], s) for s, e in places]
+            widest = max((len(name.split()) for name in arabic), default=1) + 3
+            slot_windows = [windows_of(words, widest) for words in slot_words]
+            # One search per pair, kept, because the alignment asks for the same score it
+            # then reads back: a slot's worth to a name is the best name-sized run inside it.
+            windows = {}
+            for slot_at, slot in enumerate(slot_windows):
+                for mention_at, name in enumerate(arabic):
+                    windows[(slot_at, mention_at)] = best_window(slot, name)
+            pairs = align_on(windows, len(slot_words), len(arabic))
             links = []
             for slot, mention in pairs:
                 row_mention = mentions[mention]
-                start, end = places[slot]
+                score, start, end, skeleton = windows[(slot, mention)]
                 if row_mention["outcome"] not in LINKED:
                     continue
                 counts["Arabic links to carry over"] += 1
-                if not same_man(skeleton_en(chain[start:end]),
-                                skeleton_ar(row_mention["text"]), args.agree):
+                if start is None or not same_man(skeleton, arabic[mention], args.agree):
                     counts["the two names are not the same name"] += 1
                     continue
                 person = row_mention.get("person_id") or row_mention.get("imam_id")
