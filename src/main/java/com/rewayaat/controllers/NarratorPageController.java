@@ -230,7 +230,11 @@ public class NarratorPageController {
             Map<?, ?> hit = (Map<?, ?>) row;
             @SuppressWarnings("unchecked")
             Map<String, Object> source = (Map<String, Object>) hit.get("source");
-            narrations.add(cards.build(String.valueOf(hit.get("id")), source, base, BASE_URL));
+            // With the locale. The four-argument build is English by definition, so an
+            // Arabic narrator page was listing every one of his narrations with English book
+            // names, English chapters and English metadata under an Arabic heading.
+            narrations.add(cards.build(String.valueOf(hit.get("id")), source, base, BASE_URL,
+                                       locale));
         }
         // the card shows a Quranic-insight count, so it has to be fetched as the other pages do
         Map<String, Integer> insightCounts = quranicInsights.insightCounts(

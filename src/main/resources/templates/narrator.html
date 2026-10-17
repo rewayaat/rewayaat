@@ -399,8 +399,31 @@
             <p class="narrator-entry__note" th:if="${entry.book_note != null}"
                th:text="${entry.book_note}">A note about this book.</p>
 
+            <!-- Al-Kashshī's Ikhtiyār is not a biographical notice; it is every report he
+                 could find about the man. Zurāra's runs to 38 printed pages, and al-Khoei's
+                 to 44, so this page was emptying 91,000 characters onto the screen of the
+                 man a reader is likeliest to look up. 234 entries are over 5,000 characters
+                 and 27 over 20,000, and they belong to exactly the famous men.
+
+                 Folded, not cut: a disclosure keeps every word in the markup, so a reader
+                 without scripts and a crawler both still have the whole entry. The summary
+                 says what is inside — how many pages the book spends on him — because that
+                 is itself a fact a scholar wants. -->
             <blockquote class="narrator-entry__text" dir="rtl" lang="ar"
-                        th:if="${entry.text_ar != null}" th:text="${entry.text_ar}">نص الترجمة.</blockquote>
+                        th:if="${entry.text_ar != null
+                                 and #strings.length(entry.text_ar) &lt;= 4000}"
+                        th:text="${entry.text_ar}">نص الترجمة.</blockquote>
+            <details class="narrator-entry__long"
+                     th:if="${entry.text_ar != null
+                             and #strings.length(entry.text_ar) &gt; 4000}">
+                <summary th:text="${#lists.size(entry.pages) > 1
+                                    ? #messages.msg('narrator.entries.longPages',
+                                        @localeDigits.of(#lists.size(entry.pages)))
+                                    : #messages.msg('narrator.entries.long')}">
+                    38 pages of reports — show them</summary>
+                <blockquote class="narrator-entry__text" dir="rtl" lang="ar"
+                            th:text="${entry.text_ar}">نص الترجمة.</blockquote>
+            </details>
 
             <p class="narrator-entry__text-en" th:if="${entry.text_en != null}"
                th:text="${entry.text_en}">The entry in English.</p>

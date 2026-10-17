@@ -13779,6 +13779,26 @@ html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
     opacity: 0.82;
 }
 
+/* A long entry folded away. The summary is a line a reader chooses to open, not a control
+   that looks like a button: this is a book's own text, and the page should not dress it up. */
+
+.narrator-entry__long > summary {
+    cursor: pointer;
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    color: var(--gold-dark);
+    padding: 0.45rem 0;
+    list-style-position: inside;
+}
+
+.narrator-entry__long > summary:hover {
+    text-decoration: underline;
+}
+
+.narrator-entry__long[open] > summary {
+    margin-bottom: 0.4rem;
+}
+
 .narrator-result__source {
     font-family: var(--font-ui);
     font-size: 0.74rem;
