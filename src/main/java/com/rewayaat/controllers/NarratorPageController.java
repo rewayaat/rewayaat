@@ -6,6 +6,7 @@ import com.rewayaat.service.LocaleDigits;
 import com.rewayaat.service.NarratorArabic;
 import com.rewayaat.service.PageLocale;
 import com.rewayaat.service.QuranicInsightsService;
+import com.rewayaat.service.TopicLabelSource;
 import com.rewayaat.service.Chronology;
 import com.rewayaat.service.NarratorSeal;
 import com.rewayaat.service.NarratorService;
@@ -53,6 +54,10 @@ public class NarratorPageController {
 
     @Autowired
     private QuranicInsightsService quranicInsights;
+
+    /** The Arabic of a topic slug, the same source the cards' own pills read. */
+    @Autowired
+    private TopicLabelSource topicLabels;
 
     @Autowired
     private MessageSource messages;
@@ -265,7 +270,8 @@ public class NarratorPageController {
                 + (tag == null || tag.isBlank() ? "" : "&tag=" + encode(tag)));
         model.addAttribute("bookFacets",
                 bookFacets(locale, naming.get("books"), narrationsBase, tag, book));
-        model.addAttribute("tagFacets", tagFacets(naming.get("tags"), narrationsBase, tag, book));
+        model.addAttribute("tagFacets",
+                tagFacets(locale, naming.get("tags"), narrationsBase, tag, book));
         model.addAttribute("activeTag", tag == null || tag.isBlank() ? null : tag);
         model.addAttribute("clearTagUrl", narrationsBase);
         model.addAttribute("narrationsPage", page);
@@ -288,17 +294,20 @@ public class NarratorPageController {
     }
 
     /** The tag pills: each a link that filters these narrations, keeping the book filter. */
-    private List<Map<String, Object>> tagFacets(Object buckets, String base, String active,
-                                                String book) {
+    private List<Map<String, Object>> tagFacets(PageLocale locale, Object buckets, String base,
+                                                String active, String book) {
         String keep = book == null || book.isBlank() ? "" : "&book=" + encode(book);
         List<Map<String, Object>> facets = new ArrayList<>();
         for (Object row : buckets instanceof List<?> list ? list : List.of()) {
             Map<?, ?> bucket = (Map<?, ?>) row;
-            String label = String.valueOf(bucket.get("label"));
-            facets.add(Map.of("label", label,
+            // The chip is read; the filter is queried. They are the same topic under two
+            // names, exactly as the book facets below handle it — and this one was printing
+            // the slug, so an Arabic page offered «marriage ١١٧» beside its Arabic pills.
+            String slug = String.valueOf(bucket.get("label"));
+            facets.add(Map.of("label", topicLabels.label(slug, locale),
                     "count", bucket.get("count"),
-                    "url", base + keep + "&tag=" + encode(label),
-                    "active", label.equals(active)));
+                    "url", base + keep + "&tag=" + encode(slug),
+                    "active", slug.equals(active)));
         }
         return facets;
     }
