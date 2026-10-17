@@ -131,6 +131,29 @@ def alike(one, other):
     return difflib.SequenceMatcher(None, one, other).ratio() if one and other else 0.0
 
 
+def comparable(skeleton):
+    """A skeleton written to the rule the other script uses.
+
+    Two differences are spelling, not identity. A mention cut at «ابن مسكان» keeps the
+    connector the translation leaves off — "Muskan" — and «عبد الله» is two words in Arabic
+    and one in most transliterations. Both sides are reduced to one shape before they are
+    compared, so that «ابن مسكان» against "Muskan" is a name against the same name rather
+    than a name against two thirds of one.
+    """
+    words = skeleton.split()
+    if words and words[0] == "bn" and len(words) > 1:
+        words = words[1:]
+    joined, at = [], 0
+    while at < len(words):
+        if words[at] in ("'bd", "'bdl") and at + 1 < len(words):
+            joined.append(words[at] + words[at + 1])
+            at += 2
+            continue
+        joined.append(words[at])
+        at += 1
+    return " ".join(joined)
+
+
 def same_man(english, arabic, agree):
     """Whether two skeletons are the same name — not merely the same letters in some order.
 
@@ -140,13 +163,32 @@ def same_man(english, arabic, agree):
     agree on its own, and the mark a name opens with — the alif of «أحمد» against the mīm of
     «محمد» — is what decides it.
     """
-    if alike(english, arabic) < agree:
+    # A chain names a man as long or as short as it likes: «عبد الله بن ميمون» against
+    # "Abdallah ibn Maymun al-Qaddah" is one nisba apart, and comparing the whole of each
+    # put a name against a name and a half. The shorter one's length is what they are
+    # compared over; the head test below is what keeps a prefix from matching the wrong man.
+    one, other = comparable(english), comparable(arabic)
+    words = min(len(one.split()), len(other.split()))
+    best = max(alike(english, arabic), alike(one, other),
+               alike(" ".join(one.split()[:words]), " ".join(other.split()[:words])))
+    if best < agree:
         return False
-    head_en = english.split()[0] if english.split() else ""
-    head_ar = arabic.split()[0] if arabic.split() else ""
+    head_en = heading_word(comparable(english))
+    head_ar = heading_word(comparable(arabic))
     # «السندي بن محمد» is printed "Sindi bin Muhammed" as often as "al-Sindi", so the head is
     # tried both with its article and without: the alif the article opens with is not the
     # alif the reversal guard is looking for.
+    # On a short name the head is half the evidence, and «حماد بن عثمان» against "Hammad
+    # ibn Isa" shares it: two men the chains keep apart. Where there is nothing after the
+    # patronymic to tell them apart, the patronymic itself has to agree.
+    mine, theirs = one.split(), other.split()
+    if mine and theirs and min(len(mine), len(theirs)) <= 3:
+        # Over the shorter name's length, so that a trailing nisba the translation adds —
+        # "Abdallah ibn Maymun al-Qaddah" for «عبد الله بن ميمون» — is not read as the
+        # patronymic disagreeing.
+        at = min(len(mine), len(theirs)) - 1
+        if alike(mine[at], theirs[at]) < 0.7:
+            return False
     heads = {(head_en, head_ar), (without_article(head_en), without_article(head_ar))}
     for one, other in heads:
         if one.startswith("'") != other.startswith("'"):
@@ -154,6 +196,19 @@ def same_man(english, arabic, agree):
         if alike(one, other) >= 0.8:
             return True
     return False
+
+
+def heading_word(skeleton):
+    """The word a name is headed by, which is not always its first.
+
+    Two shapes get in the way of comparing heads. A mention cut at «ابن مسكان» keeps the
+    connector, and the translation prints "Muskan" without it, so the heads being compared
+    were «bn» against «mskn». And «عبد الله» is two words in Arabic and one in most
+    transliterations — "Abdallah" — so the heads were «'bd» against «'bdlh». Both are the
+    same name written to a different rule, and both were being read as two names.
+    """
+    words = skeleton.split()
+    return words[0] if words else ""
 
 
 def without_article(head):

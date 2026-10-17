@@ -67,6 +67,12 @@ CHAIN_LINK = re.compile(r'<a class="chain-name" href="([^"]+)"[^>]*>(.*?)</a>', 
 ARABIC_LETTER = re.compile(r'[\u0600-\u06ff]')
 
 
+def chains_of(site, hadith):
+    """What the index holds for one narration: its links, and the men its chain names."""
+    url = f"{site}/v1/hadith/{urllib.parse.quote(hadith, safe='')}"
+    return url
+
+
 def measure(html, person):
     """Per card: was he linked in the Arabic chain, and in the English one.
 
