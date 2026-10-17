@@ -952,10 +952,16 @@ def document(person, source, headless):
                    if p["leaning"] == "against" and speaks_for_itself(b, p)}
     # the same two sets by book, so the Arabic sentence can name the books it means in Arabic
     # and keep the printed order of the eight rather than sorting them by a Latin title
+    # Through the same filter as the English, which it did not use to run through: the
+    # Arabic page was counting al-Khoei quoting al-Najashi as a fourth voice for Zurara
+    # where the English counted three, so the two pages gave a reader two different answers
+    # to «how many books hold him reliable».
     for_him_ar = [b["book_title_ar"] for b in where_books_stand if b.get("book_title_ar")
-                  and any(p["leaning"] == "for" for p in b["positions"])]
+                  and any(p["leaning"] == "for" and speaks_for_itself(b, p)
+                          for p in b["positions"])]
     against_him_ar = [b["book_title_ar"] for b in where_books_stand if b.get("book_title_ar")
-                      and any(p["leaning"] == "against" for p in b["positions"])]
+                      and any(p["leaning"] == "against" and speaks_for_itself(b, p)
+                              for p in b["positions"])]
     standing = ("disputed" if for_him and against_him else "trusted" if for_him
                 else "weakened" if against_him else "unstated")
 
@@ -1166,7 +1172,13 @@ def document(person, source, headless):
         "blurb_ar": blurb_ar.strip(),
         "for_him_ar": for_him_ar,
         "against_him_ar": against_him_ar,
-        "generations": traced("generations"),
+        # The books' own words only. A phase 1 agent reading al-Najashi wrote «Companion of
+        # al-Sadiq» in English, and under a heading that says «what the books state» that is
+        # two wrongs: it is our sentence, not al-Najashi's, and on the Arabic page it printed
+        # in Latin. Where a book heads a man under a chapter — «أصحاب أبي عبد الله جعفر بن
+        # محمد الصادق» — that chapter is the book speaking and it stays.
+        "generations": [row for row in traced("generations")
+                        if ARABIC_RANGE.search(str(row.get("value", "")))],
         "imam_ordinals": sorted(imams),
         "cities_or_tribes": traced("city_or_tribe"),
         "death_years": traced("death_years"),
@@ -1187,9 +1199,12 @@ def document(person, source, headless):
         "teacher_count": len(narrated_from),
         "student_count": len(narrated_to),
         "chain_only_count": len(chain_from) + len(chain_to),
-        # the years his imamates cover, first to last
+        # The years his imamates cover, first to last — but never past his own death. The
+        # ledger reads this as «Active, AH», and al-Kazim's imamate running to 183 had
+        # Zurara, who died in 150, active for thirty-three years after it.
         "span_from": min((y[0] for y in spans), default=None),
-        "span_to": max((y[1] for y in spans), default=None),
+        "span_to": (min(max((y[1] for y in spans), default=0), death_year)
+                    if spans and death_year else max((y[1] for y in spans), default=None)),
         "sect_flags": traced("sect_flags"),
         "mention_count": len(keys) - len(entry_keys),
         "holds_entry": bool(entry_keys),

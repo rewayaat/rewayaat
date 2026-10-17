@@ -236,17 +236,23 @@ public class NarratorService {
                             "count", bucket.docCount()));
                 }
             }
+            long found = response.hits().total() == null ? hits.size()
+                    : response.hits().total().value();
             List<Map<String, Object>> books = new ArrayList<>();
             if (response.aggregations().get("books") != null) {
                 for (StringTermsBucket bucket : response.aggregations().get("books")
                         .sterms().buckets().array()) {
+                    // The share was hard-wired to nought here while the overview worked it
+                    // out, so the same man's ledger read «61% in Al-Kāfi» on one tab and
+                    // «0% in Al-Kāfi» on the next.
                     books.add(Map.of("book", bucket.key().stringValue(),
-                            "count", bucket.docCount(), "share", 0));
+                            "count", bucket.docCount(),
+                            "share", found == 0 ? 0
+                                    : Math.round(bucket.docCount() * 100.0 / found)));
                 }
             }
             Map<String, Object> out = new LinkedHashMap<>();
-            out.put("total", response.hits().total() == null ? hits.size()
-                    : response.hits().total().value());
+            out.put("total", found);
             out.put("hits", hits);
             out.put("tags", tags);
             out.put("books", books);
