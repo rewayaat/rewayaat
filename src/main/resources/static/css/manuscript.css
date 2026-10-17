@@ -13779,6 +13779,12 @@ html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
     opacity: 0.82;
 }
 
+.narrator-result__source {
+    font-family: var(--font-ui);
+    font-size: 0.74rem;
+    color: var(--text-secondary);
+}
+
 .narrator-result__said {
     opacity: 0.72;
     border-bottom: 1px dotted currentColor;

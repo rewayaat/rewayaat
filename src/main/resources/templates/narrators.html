@@ -64,6 +64,8 @@
                         whereSaid=${found['life'] == null ? null
                                    : (#locale.language == 'ar' ? found['life']['city_reported_ar']
                                                                : found['life']['city_reported'])},
+                        said=${found['said_by'] == null or #lists.isEmpty(found['said_by'])
+                               ? null : found['said_by'][0]},
                         died=${found['life'] == null ? null : found['life']['died']},
                         diedSaid=${found['life'] == null ? null : found['life']['died_reported']}"
                th:href="${arPrefix} + '/narrator/' + ${found.person_id}
@@ -102,14 +104,17 @@
                          fourteen cards of twenty is noise, and the silence is already told
                          by the absence of a verdict. -->
                     <!-- The books' own word, not ours, and the book that says it. -->
-                    <span class="narrator-result__standing"
-                          th:with="said=${found['said_by'] == null or #lists.isEmpty(found['said_by'])
-                                          ? null : found['said_by'][0]}"
-                          th:if="${said != null}"
+                    <span class="narrator-result__standing" th:if="${said != null}"
                           th:classappend="'narrator-result__standing--' + ${said['leaning']}"
-                          th:text="${said['said']} + ' · ' + ${said['books'][0]}
+                          th:text="${#locale.language == 'ar' and said['said_ar'] != null
+                                     ? said['said_ar'] : said['said']}">thiqa</span>
+                    <!-- The book keeps its own capitals: «RIJĀL AL-NAJĀSHĪ» shouts a title
+                         that is only there to say whose word the grade is. -->
+                    <span class="narrator-result__source" th:if="${said != null}"
+                          th:text="${(#locale.language == 'ar' and !#lists.isEmpty(said['books_ar'])
+                                      ? said['books_ar'][0] : said['books'][0])}
                                    + (${#lists.size(said['books'])} > 1
-                                      ? ' +' + (${#lists.size(said['books'])} - 1) : '')">thiqa · Rijāl al-Najāshī</span>
+                                      ? ' +' + (${#lists.size(said['books'])} - 1) : '')">Rijāl al-Najāshī</span>
                     <!-- A verdict that no early rijālī gives, or that rests on a book of
                          disputed ascription, says so here rather than passing as the rest. -->
                     <span class="narrator-result__standing narrator-result__said"
