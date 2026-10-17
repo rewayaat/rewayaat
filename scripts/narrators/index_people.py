@@ -304,6 +304,66 @@ def name_only(heading):
     return heading
 
 
+NOT_A_NAME_WORD = {"بن", "ابن", "أبو", "أبي", "أبا", "ال", "عن", "مولى"}
+
+
+def another_mans_name(person, alias):
+    """Is this «alias» the full name of somebody else, read out of the subject's entry?
+
+    al-Khoei's entry on Zurara names Muhammad b. Muslim in the course of discussing a
+    report, and phase 1 recorded «محمد بن مسلم» as a name of Zurara. The chain search was
+    taught to ignore the aliases for exactly this reason, but his Names tab went on offering
+    another man's name as his, which to a rijali reads as a merge we have made and cannot
+    defend.
+
+    A name is somebody else's when all three hold: it is a full name rather than a kunya or
+    a bare ism — «أبو سعيد» and «أسلم» are how the books legitimately name a man by
+    something his own heading does not contain — it is the heading some other person is
+    filed under, and it shares no word with any name this person is headed by. 309 aliases
+    in the corpus answer to that, from al-Khoei and Mamaqani above all, which is where a
+    long discursive entry names the most other men.
+    """
+    words = normalize_arabic(alias).split()
+    if len(words) < 3 or not ({"بن", "ابن"} & set(words)):
+        return False
+    form = normalize_arabic(alias)
+    own = {normalize_arabic(n["value"]) for n in (person.get("primary_names") or [])
+           if n.get("value")}
+    if person.get("primary_arabic_name"):
+        own.add(normalize_arabic(person["primary_arabic_name"]))
+    if form in own:
+        return False
+    # «محمد بن مسلم مضمرة» is «محمد بن مسلم» with a word about the form of the report stuck
+    # on the end, so the first three words of a name are what is looked up: the man they
+    # belong to is filed under them whatever follows.
+    if not (HOLDERS.get(form) or PREFIXES.get(" ".join(words[:3]))):
+        return False
+    mine = {word for name in own for word in name.split()
+            if word not in NOT_A_NAME_WORD and len(word) > 1}
+    theirs = {word for word in words if word not in NOT_A_NAME_WORD and len(word) > 1}
+    return not (mine & theirs)
+
+
+def another_mans_english(person, alias):
+    """The same rule on the transliterated side, where «Muhammad bin Muslim» sat under
+    Zurara for the same reason its Arabic did."""
+    words = fold_english(alias).split()
+    if len(words) < 3 or not ({"ibn", "bin", "b"} & set(words)):
+        return False
+    form = fold_english(alias)
+    own = {fold_english(person.get("primary_english_name") or "")}
+    own |= {fold_english(n["value"]) for n in (person.get("english_aliases") or [])
+            if n.get("value") and n["value"] == person.get("primary_english_name")}
+    if form in own:
+        return False
+    if not (ENGLISH_HOLDERS.get(form) or ENGLISH_PREFIXES.get(" ".join(words[:3]))):
+        return False
+    skip = {"ibn", "bin", "b", "abu", "abi", "al", "bint"}
+    mine = {word for name in own for word in name.split() if word not in skip and len(word) > 1}
+    theirs = {word for word in words if word not in skip and len(word) > 1}
+    return not (mine & theirs)
+
+
 def whole_arabic(name):
     """The full Arabic of a name where the corpus itself can give it, else None."""
     if ARABIC_RANGE.search(name):
@@ -471,6 +531,9 @@ YEARS = None
 TRANSLITERATION = {}
 DEATH_YEARS = {}
 HOLDERS = {}
+ENGLISH_HOLDERS = {}
+PREFIXES = {}
+ENGLISH_PREFIXES = {}
 
 
 def profiles():
@@ -1087,7 +1150,7 @@ def document(person, source, headless):
     narrated_to, chain_to, imams_to, unsaid_to = split(all_to)
 
     names_ar = [n["value"] for n in values(person, "primary_names") + values(person, "arabic_aliases")
-                if n.get("value")]
+                if n.get("value") and not another_mans_name(person, n["value"])]
     # The names a book actually headed an entry with, apart from every name merely written
     # inside one. The chain search uses these and not the aliases: Khoei's entry on Zurara
     # carries «محمد بن مسلم» among the names in its text — one of them «محمد بن مسلم مضمرة»,
@@ -1101,7 +1164,8 @@ def document(person, source, headless):
     search_ar = searchable(sorted(headings_ar),
                            sorted({n["value"] for n in values(person, "arabic_aliases")
                                    if n.get("value")}), HOLDERS)
-    names_en = [n["value"] for n in values(person, "english_aliases") if n.get("value")]
+    names_en = [n["value"] for n in values(person, "english_aliases")
+                if n.get("value") and not another_mans_english(person, n["value"])]
 
     display_ar = anchor.get("primary_arabic_name") or person.get("primary_arabic_name")
     def split_by_evidence(raw):
@@ -1322,7 +1386,7 @@ def main():
     parser.add_argument("--index", default=INDEX)
     args = parser.parse_args()
 
-    global YEARS, HOLDERS, TRANSLITERATION
+    global YEARS, HOLDERS, ENGLISH_HOLDERS, PREFIXES, ENGLISH_PREFIXES, TRANSLITERATION
     YEARS = imam_years()
     TRANSLITERATION = transliterate.load()
     try:
@@ -1334,7 +1398,8 @@ def main():
     print(f"{len(TRANSLITERATION):,} Arabic words the corpus prints in English, for the men "
           f"no book names in English")
     people = load(os.path.join(IDENTITY, "people.json"))
-    HOLDERS = Counter()
+    HOLDERS, ENGLISH_HOLDERS = Counter(), Counter()
+    PREFIXES, ENGLISH_PREFIXES = Counter(), Counter()
     for person in people:
         if person.get("holds_entry") is False:
             continue
@@ -1344,6 +1409,14 @@ def main():
             forms.add(normalize_arabic(person["primary_arabic_name"]))
         for form in forms:
             HOLDERS[form] += 1
+            words = form.split()
+            if len(words) >= 3:
+                PREFIXES[" ".join(words[:3])] += 1
+        if person.get("primary_english_name"):
+            english = fold_english(person["primary_english_name"])
+            ENGLISH_HOLDERS[english] += 1
+            if len(english.split()) >= 3:
+                ENGLISH_PREFIXES[" ".join(english.split()[:3])] += 1
     source, headless = profiles(), not_entries(TMP)
     learned = learn_transliterations(source)
     print(f"{learned:,} English name forms mapped to Arabic from the books' own headings")
