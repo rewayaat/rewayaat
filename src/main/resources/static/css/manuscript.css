@@ -15775,3 +15775,165 @@ a.rijal-link__words:focus-visible {
     font-weight: 600;
     color: var(--gold-dark, #a07e28);
 }
+
+/* ===========================================================================
+   The citation layer.
+
+   A design review read this page as a rijālī would and found that everything he
+   would copy into a footnote — the page number, the author, the book a fact is
+   attributed to — was the faintest and smallest text on the screen: 12px at
+   around 3:1 against white, under every contrast floor there is. The page's
+   whole promise is that each verdict is quoted from the book named beside it,
+   and the naming was set as decoration.
+
+   So the apparatus is raised to the body's own grey and to a size it can be
+   read at. The grade word keeps its colour and its weight; what changes is that
+   the citation beside it is no longer a whisper.
+   =========================================================================== */
+.narrator-entry__author,
+.narrator-entry__page,
+.narrator-stands__page,
+.narrator-facts__source,
+.ledger__note {
+    color: var(--text-secondary, #4a5568);
+}
+
+.narrator-entry__author,
+.narrator-entry__page {
+    font-size: 0.845rem;
+}
+
+.narrator-stands__page {
+    font-size: 0.86rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.narrator-facts__source {
+    font-size: 0.845rem;
+}
+
+.ledger__note {
+    font-size: 0.78rem;
+}
+
+/* The page number is what a reader came for, so it sits on the chip rather than
+   trailing after it, and it does not wrap away from the word it belongs to. */
+.narrator-stands__position {
+    white-space: nowrap;
+}
+
+/* The books' own word, in the books' own script, on the English page too. A
+   reader of rijāl looks for «ثقة» — "thiqa — trustworthy" is a transliteration
+   of a lexeme he was never shown. */
+.narrator-stands__word-ar,
+.narrator-entry__word-ar,
+.narrator-said__word-ar {
+    margin-inline-end: 0.4rem;
+    font-family: var(--font-arabic);
+    font-size: 1.08em;
+    font-weight: 700;
+}
+
+/* ===========================================================================
+   The phone tab strip.
+
+   At 390px the strip scrolls, silently: «Overview | What the books say | Teache»
+   and nothing to say that Narrations and Names exist 300px to the right. The
+   two tabs a researcher reaches for are the two he cannot see, on the device he
+   is most likely to be holding during a lesson.
+
+   The counts make each tab self-explanatory, so they wrap instead of scrolling.
+   =========================================================================== */
+@media (max-width: 640px) {
+    .narrator-tabs {
+        flex-wrap: wrap;
+        overflow-x: visible;
+        gap: 0.3rem 0.2rem;
+        border-bottom: 0;
+    }
+
+    .narrator-tab {
+        flex: 1 1 calc(50% - 0.2rem);
+        justify-content: center;
+        padding: 0.6rem 0.5rem;
+        font-size: 0.82rem;
+        border: 1px solid var(--border, #e8ecf1);
+        border-radius: 8px;
+        background: var(--surface-cool, #f8fafc);
+    }
+
+    .narrator-tab.is-active {
+        border-color: var(--gold, #c8a23d);
+        background: var(--surface, #fff);
+    }
+
+    /* The gold cap belongs to a strip of tabs along an edge; wrapped into a grid
+       they are cards, and the cap reads as a crack across one of them. */
+    .narrator-tab.is-active::before {
+        display: none;
+    }
+
+    /* «men the books name →» wrapped the arrow onto a line of its own. */
+    .ledger__note {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+/* ===========================================================================
+   The chronology band.
+
+   257px of the hero, and at the widths that matter it loses the one thing it is
+   for: «al-Bā…», «al-J…», and under 500px no names at all, a row of digits one
+   to twelve. The axis runs to 500 AH whoever the man is, so Zurāra, who died in
+   150, gets 48% of the band as empty hatching and his three imamates share a
+   fifth of it. The ribbon beneath — LIVED UNDER … — already says it in words.
+
+   So: the names are given a size they can be read at, and on a phone the plot
+   gives way to the ribbon that was carrying the fact anyway.
+   =========================================================================== */
+.chrono__cell-name {
+    font-size: 0.8rem;
+    opacity: 0.88;
+}
+
+.chrono__date-year {
+    font-size: 0.76rem;
+    opacity: 0.8;
+}
+
+@media (max-width: 640px) {
+    .chrono__plot,
+    .chrono__dates,
+    .chrono__ground {
+        display: none;
+    }
+
+    .chrono {
+        padding-top: 0.25rem;
+        padding-bottom: 0.25rem;
+    }
+
+    .chrono__caption {
+        margin-top: 0;
+    }
+
+    .chrono__caption-label {
+        font-size: 0.72rem;
+        opacity: 0.9;
+    }
+}
+
+/* The band is shorter now that it carries fewer, wider cells: it was 257px of a
+   721px hero, which on a phone put the ledger below the first screen and on a
+   desktop made the least readable thing in the hero the largest. */
+.chrono {
+    padding-top: 0.9rem;
+    padding-bottom: 0.9rem;
+}
+
+.chrono__plot {
+    height: 74px;
+}

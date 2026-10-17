@@ -64,6 +64,15 @@ public class Chronology {
                     leftPercent, widthPercent, on);
         }
 
+        /** The same era measured against a shorter axis, and clipped to its end. */
+        public Era against(int axisFrom, int axisTo) {
+            double span = Math.max(1, axisTo - axisFrom);
+            double left = (Math.max(axisFrom, fromAh) - axisFrom) / span * 100.0;
+            double right = (Math.min(axisTo, toAh) - axisFrom) / span * 100.0;
+            return new Era(order, nameEn, nameAr, shortEn, shortAr, fromAh,
+                    Math.min(axisTo, toAh), left, Math.max(0, right - left), highlighted);
+        }
+
         /** {@code 0} is the Prophet, not an Imam; the page labels the two differently. */
         public boolean isProphet() {
             return order == 0;
@@ -154,20 +163,6 @@ public class Chronology {
     public Placement place(Collection<Integer> imamOrdinals, Collection<Integer> deathYears) {
         Set<Integer> marked = imamOrdinals == null ? Set.of() : new LinkedHashSet<>(imamOrdinals);
 
-        List<Era> placed = new ArrayList<>();
-        List<String> names = new ArrayList<>();
-        List<String> namesAr = new ArrayList<>();
-        for (Era era : eras) {
-            boolean on = marked.contains(era.order());
-            placed.add(era.highlight(on));
-            if (on) {
-                names.add(era.nameEn());
-                if (era.nameAr() != null && !era.nameAr().isBlank()) {
-                    namesAr.add(era.nameAr());
-                }
-            }
-        }
-
         Integer death = null;
         boolean disputed = false;
         if (deathYears != null) {
@@ -180,11 +175,54 @@ public class Chronology {
             }
         }
 
-        return new Placement(List.copyOf(placed), occultation, List.copyOf(names),
+        // The axis is cut to the man. Drawn to 500 AH for everybody, Zurāra — who died in
+        // 150 — got half the band as empty hatching and the three imamates he actually
+        // lived under shared a fifth of it, with their names truncated to «al-Bā…» for want
+        // of room. It now ends one imamate after the last thing it has to show, so the span
+        // a reader came to read is the span that gets the width.
+        int lastShown = axisFromAh;
+        for (Era era : eras) {
+            if (marked.contains(era.order())) {
+                lastShown = Math.max(lastShown, era.toAh());
+            }
+        }
+        if (death != null) {
+            lastShown = Math.max(lastShown, death);
+        }
+        int end = axisToAh;
+        for (Era era : eras) {
+            if (era.fromAh() > lastShown) {
+                end = Math.min(end, era.toAh());
+                break;
+            }
+        }
+        end = Math.max(end, lastShown);
+
+        List<Era> placed = new ArrayList<>();
+        List<String> names = new ArrayList<>();
+        List<String> namesAr = new ArrayList<>();
+        for (Era era : eras) {
+            boolean on = marked.contains(era.order());
+            if (era.fromAh() < end) {
+                placed.add(era.highlight(on).against(axisFromAh, end));
+            }
+            if (on) {
+                names.add(era.nameEn());
+                if (era.nameAr() != null && !era.nameAr().isBlank()) {
+                    namesAr.add(era.nameAr());
+                }
+            }
+        }
+
+        double span = Math.max(1, end - axisFromAh);
+        // The hatched Occultation is drawn only where the axis still reaches it.
+        return new Placement(List.copyOf(placed),
+                end >= axisToAh ? occultation : null, List.copyOf(names),
                 List.copyOf(namesAr),
                 death,
-                death == null ? null : percentOf(death),
-                death != null && death > axisToAh,
+                death == null ? null
+                        : (Math.max(axisFromAh, Math.min(end, death)) - axisFromAh) / span * 100.0,
+                death != null && death > end,
                 disputed);
     }
 

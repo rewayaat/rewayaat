@@ -30,9 +30,18 @@
             <div class="narrator-said" th:if="${!#lists.isEmpty(narrator['said_by'])}">
                 <div class="narrator-said__row" th:each="said : ${narrator['said_by']}"
                      th:classappend="'narrator-said__row--' + ${said['leaning']}">
-                    <span class="narrator-said__word"
-                          th:text="${#locale.language == 'ar' and said['said_ar'] != null
-                                     ? said['said_ar'] : said['said']}">thiqa — trustworthy</span>
+                    <!-- «ثقة» first, and on the English page too: a rijālī reads the
+                         lexeme, and "thiqa — trustworthy" transliterates a word he was
+                         never shown. The gloss follows it for everyone else. -->
+                    <span class="narrator-said__word">
+                        <span class="narrator-said__word-ar" dir="rtl" lang="ar"
+                              th:if="${said['said_ar'] != null}"
+                              th:text="${said['said_ar']}">ثقة</span>
+                        <span th:if="${#locale.language != 'ar'}"
+                              th:text="${said['said']}">thiqa — trustworthy</span>
+                        <span th:if="${#locale.language == 'ar' and said['said_ar'] == null}"
+                              th:text="${said['said']}">thiqa</span>
+                    </span>
                     <span class="narrator-said__books"
                           th:text="${#strings.listJoin(
                                      #locale.language == 'ar' and !#lists.isEmpty(said['books_ar'])
@@ -148,8 +157,11 @@
                         <span class="chrono__date-tick"></span>
                     </span>
                 </th:block>
-                <span class="chrono__date chrono__date--end">
-                    <span class="chrono__date-year" th:text="${@localeDigits.of(500)}">٥٠٠</span>
+                <!-- The axis ends where this man's band ends, which is no longer 500 for
+                     everybody: the last era drawn is the last era he reaches. -->
+                <span class="chrono__date chrono__date--end" th:if="${!#lists.isEmpty(placement.eras)}">
+                    <span class="chrono__date-year"
+                          th:text="${@localeDigits.of(placement.eras[#lists.size(placement.eras) - 1].toAh)}">٢٢٠</span>
                     <span class="chrono__date-tick"></span>
                 </span>
             </div>
@@ -346,7 +358,11 @@
                 <td>
                     <span class="narrator-stands__position" th:each="pos : ${stand.positions}"
                           th:classappend="'narrator-stands__position--' + ${pos.leaning}">
-                        <span th:text="${pos.said}">thiqa — trustworthy</span>
+                        <span class="narrator-stands__word-ar" dir="rtl" lang="ar"
+                              th:if="${pos['said_ar'] != null}"
+                              th:text="${pos['said_ar']}">ثقة</span>
+                        <span th:if="${#locale.language != 'ar' or pos['said_ar'] == null}"
+                              th:text="${pos.said}">thiqa — trustworthy</span>
                         <!-- Whom a compiler is quoting. Al-Khoei's Muʿjam gathers the early
                              rijālīs and then adjudicates, and 442 of his 615 positions here
                              are a quotation. A scholar cites «al-Najāshī waththaqahu» and
