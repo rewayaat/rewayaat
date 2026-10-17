@@ -169,17 +169,18 @@
                 <a class="narrator-strip__card" v-for="narrator in narratorMatches"
                    :key="narrator.person_id" :href="narratorUrl(narrator)">
                     <div class="narrator-strip__name" dir="rtl" lang="ar">{{ narrator.display_ar }}</div>
-                    <div class="narrator-strip__name-en" v-if="narrator.display_en">{{ narrator.display_en }}</div>
+                    <!-- The Arabic site stays Arabic: the Latin reading is for the English one. -->
+                    <div class="narrator-strip__name-en" v-if="narrator.display_en && !arabicSite">{{ narrator.display_en }}</div>
                     <div class="narrator-strip__meta">
+                        <!-- The book's own word, as everywhere else: «ثقة», not a
+                             standing this site worked out and wrote in its own voice. -->
                         <span class="narrator-strip__standing"
-                              :class="'narrator-strip__standing--' + narrator.standing"
-                              v-if="narrator.standing && narrator.standing !== 'unstated'">
-                            {{ t('narrator.standing.' + narrator.standing, narrator.standing) }}
+                              :class="'narrator-strip__standing--' + saidOf(narrator).leaning"
+                              v-if="saidOf(narrator).word">
+                            {{ saidOf(narrator).word }}
                         </span>
-                        <span>{{ t('narrators.entries', '{0} entries').replace('{0}', narrator.entry_count) }}</span>
-                        <span v-if="narrator.life && narrator.life.imams && narrator.life.imams.length">
-                            {{ narrator.life.imams.join(', ') }}
-                        </span>
+                        <span>{{ narratorCount(narrator.entry_count, 'narrators.entries') }}</span>
+                        <span v-if="imamLine(narrator)">{{ imamLine(narrator) }}</span>
                     </div>
                 </a>
             </div>
@@ -968,6 +969,7 @@
 <th:block th:replace="~{fragments/i18n-js :: i18n}"></th:block>
 <script src="/js/vue-components.js" th:src="@{/js/vue-components.js}"></script>
 <script src="/js/rewayaat.js" th:src="@{/js/rewayaat.js}"></script>
+<script src="/js/narrator-preview.js" th:src="@{/js/narrator-preview.js}" defer></script>
 <script src="/js/site-announcement.js" th:src="@{/js/site-announcement.js}"></script>
 <script src="/js/locale-preference.js" th:src="@{/js/locale-preference.js}"></script>
     <script src="/js/nav-menu.js" th:src="@{/js/nav-menu.js}" defer></script>

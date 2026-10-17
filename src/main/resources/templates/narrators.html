@@ -99,9 +99,9 @@
                           th:text="${whereSaid}">Kufa</span>
                 </div>
                 <div class="hub-card__meta">
-                    <span th:text="#{narrators.entries(${@localeDigits.of(found.entry_count)})}">5 entries</span>
+                    <span th:text="${@counts.of(found.entry_count, 'narrators.entries')}">5 entries</span>
                     <span th:if="${!#lists.isEmpty(found.books)}"
-                          th:text="#{narrators.books(${@localeDigits.of(#lists.size(found.books))})}">4 books</span>
+                          th:text="${@counts.of(#lists.size(found.books), 'narrators.books')}">4 books</span>
                     <!-- Only where a book actually grades him. «No book grades him» on
                          fourteen cards of twenty is noise, and the silence is already told
                          by the absence of a verdict. -->
@@ -116,7 +116,7 @@
                           th:text="${(#locale.language == 'ar' and !#lists.isEmpty(said['books_ar'])
                                       ? said['books_ar'][0] : said['books'][0])}
                                    + (${#lists.size(said['books'])} > 1
-                                      ? ' +' + (${#lists.size(said['books'])} - 1) : '')">Rijāl al-Najāshī</span>
+                                      ? ' +' + ${@localeDigits.of(#lists.size(said['books']) - 1)} : '')">Rijāl al-Najāshī</span>
                     <!-- A verdict that no early rijālī gives, or that rests on a book of
                          disputed ascription, says so here rather than passing as the rest. -->
                     <span class="narrator-result__standing narrator-result__said"

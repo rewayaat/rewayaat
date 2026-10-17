@@ -4932,6 +4932,39 @@ function setupVue(query, page, sortFields) {
             t: function(key, fallback) {
                 return t(key, fallback);
             },
+            // «1 books» is wrong in English and «١١ كتب» is wrong in Arabic. The rule
+            // lives in narrator-preview.js, which every page carrying a chain loads;
+            // without it the bare plural still reads.
+            narratorCount: function(howMany, base) {
+                if (typeof window.narratorCountPhrase === 'function') {
+                    return window.narratorCountPhrase(howMany, base);
+                }
+                return t(base, '{0}').replace('{0}', localeDigits(howMany));
+            },
+            // What the first book to grade him calls him, in that book's own word.
+            // Nothing here is this site's judgement, so nothing here is phrased as one.
+            saidOf: function(narrator) {
+                var rows = (narrator && narrator.said_by) || [];
+                if (!rows.length) {
+                    return {word: '', leaning: ''};
+                }
+                var first = rows[0];
+                var arabic = window.I18N_LOCALE === 'ar';
+                return {
+                    word: (arabic && first.said_ar) ? first.said_ar : first.said,
+                    leaning: first.leaning || ''
+                };
+            },
+            // The Imams he transmitted under, in the language of the page.
+            imamLine: function(narrator) {
+                var life = narrator && narrator.life;
+                if (!life) {
+                    return '';
+                }
+                var arabic = window.I18N_LOCALE === 'ar';
+                var names = (arabic ? life.imams_ar : life.imams) || [];
+                return names.join(arabic ? '\u060c ' : ', ');
+            },
             loadTaxonomy: function() {
                 var self = this;
                 return fetchTaxonomyMap()

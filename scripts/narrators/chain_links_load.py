@@ -115,8 +115,27 @@ def main():
                 links.append({"s": where[0], "e": where[1],
                               "t": chain[where[0]:where[1]], "p": person,
                               "g": slug_of.get(person, "")})
+            # Every name in the isnād, in order, linked or not — the rijāl view reads the
+            # chain as a sequence and a name nobody could identify is part of what it says.
+            # A chain of three men we know and three we do not is weaker evidence than one
+            # of six we know, and a reader can only see that if the gaps are drawn too.
+            people = []
+            for mention in row["mentions"]:
+                if mention["kind"] not in ("name", "imam", "collective", "relative"):
+                    continue
+                where = place((mention["start"], mention["end"]), mention["text"], chain,
+                              Counter())
+                if not where:
+                    continue
+                person = mention.get("person_id") or mention.get("imam_id") or ""
+                people.append({"s": where[0], "e": where[1], "t": chain[where[0]:where[1]],
+                               "p": person if mention["outcome"] in LINKED else "",
+                               "g": slug_of.get(person, "") if mention["outcome"] in LINKED else "",
+                               "k": mention["kind"], "o": mention["outcome"]})
+            people.sort(key=lambda row: row["s"])
             if links:
-                updates.append({"_id": row["id"], "chain_links": links})
+                updates.append({"_id": row["id"], "chain_links": links,
+                                "chain_people": people})
                 counts["links placed"] += len(links)
                 counts["narrations with at least one link"] += 1
             else:
@@ -131,7 +150,8 @@ def main():
     es = Elasticsearch(args.es_host, request_timeout=120)
     loaded, failed = helpers.bulk(
         es, ({"_op_type": "update", "_index": args.index, "_id": u["_id"],
-              "doc": {"chain_links": u["chain_links"]}} for u in updates),
+              "doc": {"chain_links": u["chain_links"],
+                      "chain_people": u.get("chain_people") or []}} for u in updates),
         chunk_size=500, raise_on_error=False)
     es.indices.refresh(index=args.index)
     print(f"\nwrote chain_links on {loaded:,} narrations in {args.index}"

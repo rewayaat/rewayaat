@@ -14837,3 +14837,286 @@ a.ledger__cell:hover .ledger__note {
     background: var(--gold-bg);
     color: var(--gold-dark);
 }
+
+/* ===========================================================================
+   The narrator preview — what a reader gets when he taps a name in an isnād.
+
+   Six lines and a way through: his name, what the books call him and which
+   books, when and where he lived, how much is written about him. It sits beside
+   the name on a desktop and rises from the bottom edge on a phone, where a
+   popover anchored to a word inside a line of Arabic has nowhere to go.
+
+   The grade word is allowed its colour here. Inside the hadith text the names
+   stay uncoloured - a chain must read as the compiler wrote it, not as this
+   site scores it - but a card the reader asked for is apparatus, and apparatus
+   may say which way a judgement leans.
+   =========================================================================== */
+.narrator-preview {
+    position: absolute;
+    z-index: 1090;
+    width: min(20rem, calc(100vw - 2rem));
+    padding: 0.95rem 1rem 1rem;
+    /* --surface is translucent in the later palette, and the hadith underneath read
+       straight through the card. A popover over running text must be opaque. */
+    background: var(--surface-warm, #fff);
+    border: 1px solid var(--border-strong, #d1d8e0);
+    border-top: 2px solid var(--gold, #c8a23d);
+    border-radius: var(--radius-sm, 6px);
+    box-shadow: 0 10px 30px -8px rgba(15, 36, 64, 0.3),
+                0 2px 6px -2px rgba(15, 36, 64, 0.18);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px) scale(0.985);
+    transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s;
+}
+
+.narrator-preview.is-open {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+}
+
+.narrator-preview.is-waiting {
+    /* The fetch is one small document; a spinner would flash and go. */
+    cursor: progress;
+}
+
+.narrator-preview .np__shut {
+    position: absolute;
+    top: 0.2rem;
+    right: 0.4rem;
+    padding: 0.1rem 0.35rem;
+    font-size: 1.25rem;
+    line-height: 1;
+    color: var(--text-muted, #94a3b8);
+    background: none;
+    border: 0;
+    cursor: pointer;
+}
+
+[dir="rtl"] .narrator-preview .np__shut {
+    right: auto;
+    left: 0.4rem;
+}
+
+.narrator-preview .np__shut:hover {
+    color: var(--text, #1a1a2e);
+}
+
+.narrator-preview .np__name {
+    margin: 0 0 0.1rem;
+    /* The name is RTL inside an LTR card, so its line starts at the right - where the
+       close button is. The inset keeps the two apart in either direction. */
+    padding-right: 1.5rem;
+    padding-left: 0.1rem;
+    font-family: var(--font-arabic);
+    font-size: 1.3rem;
+    line-height: 1.45;
+    color: var(--text, #1a1a2e);
+}
+
+.narrator-preview .np__name-en {
+    margin: 0 0 0.55rem;
+    font-size: 0.82rem;
+    letter-spacing: 0.01em;
+    color: var(--text-secondary, #4a5568);
+}
+
+.narrator-preview .np__said-rows {
+    margin: 0.55rem 0 0.6rem;
+    padding: 0.5rem 0.65rem;
+    background: var(--surface-cool, #f8fafc);
+    border-left: 3px solid var(--border-strong, #d1d8e0);
+    border-radius: 3px;
+}
+
+[dir="rtl"] .narrator-preview .np__said-rows {
+    border-left: 0;
+    border-right: 3px solid var(--border-strong, #d1d8e0);
+}
+
+.narrator-preview .np__said {
+    margin: 0;
+    font-size: 0.82rem;
+    line-height: 1.5;
+}
+
+.narrator-preview .np__said + .np__said {
+    margin-top: 0.3rem;
+}
+
+.narrator-preview .np__word {
+    display: inline;
+    font-weight: 600;
+    color: var(--text, #1a1a2e);
+}
+
+.narrator-preview .np__word[lang="ar"] {
+    font-family: var(--font-arabic);
+    font-size: 1.05rem;
+}
+
+/* The English reading of the term, following the term itself. */
+.narrator-preview .np__gloss {
+    margin-left: 0.4rem;
+    font-weight: 400;
+    color: var(--text-secondary, #4a5568);
+}
+
+.narrator-preview .np__gloss::before {
+    content: "\2014\00a0";
+    color: var(--text-faint, #cbd5e1);
+}
+
+.narrator-preview .np__said--for .np__word {
+    color: #0a7a5a;
+}
+
+.narrator-preview .np__said--against .np__word {
+    color: #a33a2a;
+}
+
+.narrator-preview .np__books,
+.narrator-preview .np__rests,
+.narrator-preview .np__unstated {
+    display: block;
+    font-size: 0.74rem;
+    color: var(--text-secondary, #4a5568);
+}
+
+.narrator-preview .np__rests {
+    margin: 0.35rem 0 0;
+    font-style: italic;
+}
+
+.narrator-preview .np__unstated {
+    margin: 0;
+}
+
+.narrator-preview .np__life,
+.narrator-preview .np__weight {
+    margin: 0 0 0.2rem;
+    font-size: 0.78rem;
+    color: var(--text-secondary, #4a5568);
+}
+
+.narrator-preview .np__weight {
+    color: var(--text-muted, #94a3b8);
+}
+
+.narrator-preview .np__dot {
+    padding: 0 0.4rem;
+    color: var(--text-faint, #cbd5e1);
+}
+
+.narrator-preview .np__go {
+    display: inline-block;
+    margin-top: 0.6rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--accent, #1e3a5f);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(200, 162, 61, 0.55);
+}
+
+.narrator-preview .np__go::after {
+    content: " \2192";
+}
+
+[dir="rtl"] .narrator-preview .np__go::after {
+    content: " \2190";
+}
+
+.narrator-preview .np__go:hover {
+    color: var(--gold-dark, #a07e28);
+    border-bottom-color: var(--gold, #c8a23d);
+}
+
+/* On a phone the card leaves the name behind and rises from the bottom edge,
+   where a thumb already is and where nothing has to be measured against the
+   width of one word in a line of Arabic. */
+.narrator-preview.is-sheet {
+    position: fixed;
+    top: auto !important;
+    left: 0 !important;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-height: 72vh;
+    overflow-y: auto;
+    padding: 1.05rem 1.15rem calc(1.2rem + env(safe-area-inset-bottom, 0px));
+    border: 0;
+    border-top: 2px solid var(--gold, #c8a23d);
+    border-radius: 14px 14px 0 0;
+    transform: translateY(100%);
+    box-shadow: 0 -8px 32px -8px rgba(15, 36, 64, 0.35);
+}
+
+.narrator-preview.is-sheet.is-open {
+    transform: none;
+}
+
+/* The grab bar a sheet is expected to have, even though this one is dismissed by
+   tapping away rather than by dragging. */
+.narrator-preview.is-sheet::before {
+    content: "";
+    display: block;
+    width: 2.4rem;
+    height: 4px;
+    margin: -0.35rem auto 0.7rem;
+    background: var(--border-strong, #d1d8e0);
+    border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .narrator-preview,
+    .narrator-preview.is-sheet {
+        transition: opacity 0.01s linear, visibility 0.01s;
+        transform: none;
+    }
+}
+
+/* A linked name should look reachable without turning the isnād into a row of
+   buttons. The dotted gold rule above stays; this adds a faint gold wash under
+   the word on hover, so the whole name lights rather than just its underline. */
+.hadith-chain .chain-name {
+    border-radius: 2px;
+    transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+
+.hadith-chain .chain-name:hover,
+.hadith-chain .chain-name:focus-visible {
+    background-color: rgba(200, 162, 61, 0.1);
+    box-shadow: 0 0 0 2px rgba(200, 162, 61, 0.1);
+}
+
+/* A grade is coloured by which way it leans - «ثقة» for the man, «كذاب» against him,
+   and everything the lists do not classify in neither hue. These names come from the
+   books' own words, which is what both cards now show; the older names kept their rules
+   above and are left where they are. */
+.narrator-result__standing--for {
+    color: #2f6b43;
+}
+
+.narrator-result__standing--against {
+    color: #9b3028;
+}
+
+.narrator-result__standing--mixed {
+    color: var(--gold-dark, #a07e28);
+}
+
+.narrator-strip__standing--for {
+    background: rgba(120, 190, 140, 0.22);
+    color: #2f6b45;
+}
+
+.narrator-strip__standing--against {
+    background: rgba(220, 120, 110, 0.18);
+    color: #8d3a32;
+}
+
+.narrator-strip__standing--mixed {
+    background: var(--gold-bg, #fdf8ed);
+    color: var(--gold-dark, #a07e28);
+}

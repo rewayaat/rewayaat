@@ -33,6 +33,44 @@ public class NarratorController {
     @Autowired
     private NarratorService narratorService;
 
+    /**
+     * The little the preview card needs, and nothing else.
+     *
+     * <p>A reader who taps a name in an isnād wants to know who the man was before deciding
+     * to leave the hadith. The full document answers that and also carries every entry: for
+     * Zurāra that is 91 KB, most of it al-Kashshī's thirty-eight pages, and no phone should
+     * fetch it to show six lines. This carries the name, what the books call him, where and
+     * when he lived, and how much is written about him.
+     */
+    @CrossOrigin(origins = {"*"}, allowCredentials = "false")
+    @RequestMapping(value = "/v1/narrators/{id}/preview", method = RequestMethod.GET,
+                    produces = "application/json")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> preview(
+            @Parameter(name = "id", description = "The permanent narrator id, «n000515»",
+                       required = true)
+            @PathVariable("id") String id) {
+        Map<String, Object> narrator = narratorService.getNarrator(id);
+        if (narrator == null) {
+            Map<String, Object> missing = new LinkedHashMap<>();
+            missing.put("ok", false);
+            return new ResponseEntity<>(missing, HttpStatus.NOT_FOUND);
+        }
+        Map<String, Object> brief = new LinkedHashMap<>();
+        for (String field : new String[]{"person_id", "display_ar", "display_en", "slug",
+                                         "said_by", "standing", "standing_rests_on", "life",
+                                         "entry_count", "kind", "moved_to"}) {
+            if (narrator.get(field) != null) {
+                brief.put(field, narrator.get(field));
+            }
+        }
+        brief.put("book_count", narrator.get("books") instanceof List<?> books ? books.size() : 0);
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("ok", true);
+        payload.put("narrator", brief);
+        return new ResponseEntity<>(payload, HttpStatus.OK);
+    }
+
     @CrossOrigin(origins = {"*"}, allowCredentials = "false")
     @Operation(summary = "Get a narrator by his permanent id")
     @ApiResponses(value = {
