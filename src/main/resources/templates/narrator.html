@@ -81,7 +81,9 @@
             <div class="hub-hero__stats">
                 <span class="hub-stat" th:if="${narrator.life.city != null}">
                     <span class="hub-stat__label" th:text="#{narrator.from}">From</span>
-                    <span class="hub-stat__value" th:text="${narrator.life.city}">Kufa</span>
+                    <span class="hub-stat__value"
+                          th:text="${isArabic and narrator.life.city_ar != null
+                                     ? narrator.life.city_ar : narrator.life.city}">Kufa</span>
                 </span>
                 <span class="hub-stat" th:if="${narrator.life.died != null}">
                     <span class="hub-stat__label" th:text="#{narrator.died}">Died</span>
@@ -448,7 +450,9 @@
 
             <p class="narrator-entry__generation" th:if="${!#lists.isEmpty(entry.under_imams)}">
                 <span class="narrator-entry__label" th:text="#{narrator.entries.listedUnder}">Listed under</span>
-                <span th:text="${#strings.listJoin(entry.under_imams, ', ')}">al-Jawād</span>
+                <span th:text="${#strings.listJoin(
+                                 isArabic and !#lists.isEmpty(entry.under_imams_ar)
+                                 ? entry.under_imams_ar : entry.under_imams, '، ')}">al-Jawād</span>
             </p>
         </article>
     </section>
@@ -466,22 +470,30 @@
             <th:block th:if="${!#lists.isEmpty(narrator.generations)}">
                 <dt th:text="#{narrator.facts.generation}">Generation</dt>
                 <dd th:each="fact : ${narrator.generations}">
-                    <span th:text="${fact.value}">a companion of al-Sadiq</span>
+                    <span th:text="${isArabic and fact['value_ar'] != null
+                                     ? fact['value_ar'] : fact.value}">a companion of al-Sadiq</span>
                     <span class="narrator-facts__source"
-                          th:text="#{narrator.facts.source(${fact.book_title})}">— book</span>
+                          th:text="#{narrator.facts.source(${isArabic and fact['book_title_ar'] != null
+                                     ? fact['book_title_ar'] : fact.book_title})}">— book</span>
                     <span class="narrator-facts__source" th:if="${!#lists.isEmpty(fact.also)}"
-                          th:text="#{narrator.facts.alsoIn(${#strings.listJoin(fact.also, ', ')})}">
+                          th:text="#{narrator.facts.alsoIn(${#strings.listJoin(
+                                     isArabic and !#lists.isEmpty(fact['also_ar'])
+                                     ? fact['also_ar'] : fact.also, '، ')})}">
                         and also in another book</span>
                 </dd>
             </th:block>
             <th:block th:if="${!#lists.isEmpty(narrator.cities_or_tribes)}">
                 <dt th:text="#{narrator.facts.cityOrTribe}">City or tribe</dt>
                 <dd th:each="fact : ${narrator.cities_or_tribes}">
-                    <span th:text="${fact.value}">Kufa</span>
+                    <span th:text="${isArabic and fact['value_ar'] != null
+                                     ? fact['value_ar'] : fact.value}">Kufa</span>
                     <span class="narrator-facts__source"
-                          th:text="#{narrator.facts.source(${fact.book_title})}">— book</span>
+                          th:text="#{narrator.facts.source(${isArabic and fact['book_title_ar'] != null
+                                     ? fact['book_title_ar'] : fact.book_title})}">— book</span>
                     <span class="narrator-facts__source" th:if="${!#lists.isEmpty(fact.also)}"
-                          th:text="#{narrator.facts.alsoIn(${#strings.listJoin(fact.also, ', ')})}">
+                          th:text="#{narrator.facts.alsoIn(${#strings.listJoin(
+                                     isArabic and !#lists.isEmpty(fact['also_ar'])
+                                     ? fact['also_ar'] : fact.also, '، ')})}">
                         and also in another book</span>
                 </dd>
             </th:block>
@@ -490,9 +502,12 @@
                 <dd th:each="fact : ${narrator.death_years}">
                     <span th:text="#{narrator.yearAh(${@localeDigits.of(fact.value)})}">260 AH</span>
                     <span class="narrator-facts__source"
-                          th:text="#{narrator.facts.source(${fact.book_title})}">— book</span>
+                          th:text="#{narrator.facts.source(${isArabic and fact['book_title_ar'] != null
+                                     ? fact['book_title_ar'] : fact.book_title})}">— book</span>
                     <span class="narrator-facts__source" th:if="${!#lists.isEmpty(fact.also)}"
-                          th:text="#{narrator.facts.alsoIn(${#strings.listJoin(fact.also, ', ')})}">
+                          th:text="#{narrator.facts.alsoIn(${#strings.listJoin(
+                                     isArabic and !#lists.isEmpty(fact['also_ar'])
+                                     ? fact['also_ar'] : fact.also, '، ')})}">
                         and also in another book</span>
                 </dd>
             </th:block>
@@ -511,8 +526,10 @@
             <li class="narrator-names__chip" th:each="name : ${narrator.names_ar}"
                 dir="rtl" lang="ar" th:text="${name}">اسم</li>
         </ul>
+        <!-- Not on an Arabic page: a Latin spelling of «زرارة» is for a reader who cannot
+             read «زرارة», and the chips above already give every Arabic form. -->
         <ul class="narrator-names__chips narrator-names__chips--latin"
-            th:if="${!#lists.isEmpty(narrator.names_en)}">
+            th:if="${!#lists.isEmpty(narrator.names_en) and !isArabic}">
             <li class="narrator-names__chip" th:each="name : ${narrator.names_en}"
                 th:text="${name}">A name</li>
         </ul>
@@ -558,7 +575,9 @@
                 <ul class="chains__list">
                     <li class="chains__row" th:each="man : ${narrator.narrated_to}">
                         <span class="chains__name" th:text="${man.name}">al-Kulaynī</span>
-                        <span class="chains__books" th:text="${#strings.listJoin(man.books, ' · ')}">Khoei</span>
+                        <span class="chains__books"
+                          th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
+                                     ? man['books_ar'] : man.books, ' · ')}">Khoei</span>
                     </li>
                 </ul>
             </div>
@@ -586,13 +605,21 @@
             <ul class="chains__list chains__list--indexed">
                 <li class="chains__row" th:each="man : ${narrator.unsaid_from}">
                     <span class="chains__dir" th:text="#{narrator.chains.dirFrom}">from</span>
-                    <span class="chains__name" th:text="${man.name}">اسم</span>
-                    <span class="chains__books" th:text="${#strings.listJoin(man.books, ' · ')}">Khoei</span>
+                    <span class="chains__name"
+                          th:text="${isArabic and man['name_ar'] != null
+                                     ? man['name_ar'] : man.name}">اسم</span>
+                    <span class="chains__books"
+                          th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
+                                     ? man['books_ar'] : man.books, ' · ')}">Khoei</span>
                 </li>
                 <li class="chains__row" th:each="man : ${narrator.unsaid_to}">
                     <span class="chains__dir" th:text="#{narrator.chains.dirTo}">to</span>
-                    <span class="chains__name" th:text="${man.name}">اسم</span>
-                    <span class="chains__books" th:text="${#strings.listJoin(man.books, ' · ')}">Khoei</span>
+                    <span class="chains__name"
+                          th:text="${isArabic and man['name_ar'] != null
+                                     ? man['name_ar'] : man.name}">اسم</span>
+                    <span class="chains__books"
+                          th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
+                                     ? man['books_ar'] : man.books, ' · ')}">Khoei</span>
                 </li>
             </ul>
         </section>
@@ -611,13 +638,21 @@
             <ul class="chains__list chains__list--indexed">
                 <li class="chains__row" th:each="man : ${narrator.chain_from}">
                     <span class="chains__dir" th:text="#{narrator.chains.dirFrom}">from</span>
-                    <span class="chains__name" th:text="${man.name}">اسم</span>
-                    <span class="chains__books" th:text="${#strings.listJoin(man.books, ' · ')}">Khoei</span>
+                    <span class="chains__name"
+                          th:text="${isArabic and man['name_ar'] != null
+                                     ? man['name_ar'] : man.name}">اسم</span>
+                    <span class="chains__books"
+                          th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
+                                     ? man['books_ar'] : man.books, ' · ')}">Khoei</span>
                 </li>
                 <li class="chains__row" th:each="man : ${narrator.chain_to}">
                     <span class="chains__dir" th:text="#{narrator.chains.dirTo}">to</span>
-                    <span class="chains__name" th:text="${man.name}">اسم</span>
-                    <span class="chains__books" th:text="${#strings.listJoin(man.books, ' · ')}">Khoei</span>
+                    <span class="chains__name"
+                          th:text="${isArabic and man['name_ar'] != null
+                                     ? man['name_ar'] : man.name}">اسم</span>
+                    <span class="chains__books"
+                          th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
+                                     ? man['books_ar'] : man.books, ' · ')}">Khoei</span>
                 </li>
             </ul>
         </section>

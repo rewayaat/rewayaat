@@ -67,7 +67,8 @@ def documents(host, index, ids):
     for start in range(0, len(ids), 200):
         body = {"size": 200, "query": {"terms": {"person_id": ids[start:start + 200]}},
                 "_source": ["person_id", "display_ar", "display_en", "entries", "life",
-                            "generations", "books", "where_books_stand"]}
+                            "generations", "books", "where_books_stand",
+                            "narrated_from", "narrated_to"]}
         request = urllib.request.Request(f'{host}/{index}/_search',
                                          data=json.dumps(body).encode(),
                                          headers={"Content-Type": "application/json"})
@@ -133,6 +134,13 @@ def main():
         page = pages.get(person_id)
         if not page:
             continue
+        if args.stated_only and field in ("narrated_from", "narrated_to"):
+            # Only the names a page asserts as a teacher or a pupil. The record holds 19,176
+            # more where the man merely stands beside him in an index of chains, and those
+            # are shown as what they are; measuring them would measure a claim nobody makes.
+            stated = {(r.get("name") or r.get("name_ar")) for r in page.get(field) or []}
+            if value not in stated:
+                continue
         if args.stated_only and field == "reliability_grades":
             stated = {position["grade"]
                       for book in page.get("where_books_stand") or []

@@ -262,6 +262,33 @@ def whole_kunya(kunya, names):
     return ""
 
 
+# The Imams as an English generation sentence names them, and as Arabic writes them.
+IMAM_EN_AR = {}
+for _imam in imams.ROSTER:
+    _short = _imam["name_en"].replace("Imam ", "").strip()
+    # The laqab alone: a chapter heading says «أصحاب الصادق», never «أصحاب جعفر بن محمد
+    # الصادق». The last word of the roster name is that laqab for the Imams, and the
+    # Prophet and Fāṭima keep their own.
+    _ar = _imam["name_ar"].split()[-1]
+    for _form in {_short, _short.replace("al-", "al"), _short.split()[-1]}:
+        if _form:
+            IMAM_EN_AR[_form.lower()] = _ar
+IMAM_EN_AR["the prophet"] = "النبي"
+IMAM_EN_AR["prophet"] = "النبي"
+
+
+def generation_ar(value):
+    """«Companion of al-Baqir and al-Sadiq» as «من أصحاب الباقر والصادق»."""
+    found = []
+    lowered = (value or "").lower()
+    for form, arabic in sorted(IMAM_EN_AR.items(), key=lambda kv: -len(kv[0])):
+        if form in lowered and arabic not in found:
+            found.append(arabic)
+    if not found:
+        return None
+    return "من أصحاب " + " و".join(found)
+
+
 def name_only(heading):
     """A heading with the prose cut off it, or the heading unchanged when it carries none."""
     if not heading:
@@ -374,6 +401,30 @@ def join_names_ar(names):
 # The city clause of the Arabic blurb, for the forms the books actually use. The field is free
 # text in eight books' hands — 5,700 distinct values, half of them tribes or nisbas — so
 # anything unmapped is left out of the Arabic sentence rather than transliterated back by guess.
+# The tribes and the towns the books name most often, in the Arabic they were named in.
+# These are not translations: «Ansar» and «Banu Asad» are English spellings of «الأنصار» and
+# «بني أسد», and an Arabic page printing the spelling back is the error. 2,588 city facts had
+# no Arabic at all, and these are the forms that account for most of them.
+TRIBES_AND_TOWNS_AR = {
+    "ansar": "الأنصار", "ansari": "الأنصاري", "hamdan": "همدان", "hamdani": "الهمداني",
+    "banu asad": "بنو أسد", "asad": "أسد", "asadi": "الأسدي",
+    "azd": "الأزد", "azdi": "الأزدي", "banu hashim": "بنو هاشم", "hashimi": "الهاشمي",
+    "quraysh": "قريش", "qurashi": "القرشي", "shayban": "شيبان", "shaybani": "الشيباني",
+    "banu shayban": "بنو شيبان", "tamim": "تميم", "tamimi": "التميمي",
+    "bajila": "بجيلة", "bajali": "البجلي", "khath'am": "خثعم", "kinda": "كندة",
+    "kindi": "الكندي", "khuza'a": "خزاعة", "khuzai": "الخزاعي", "juhayna": "جهينة",
+    "nakha": "النخع", "nakhai": "النخعي", "hadrami": "الحضرمي", "ijli": "العجلي",
+    "mosul": "الموصل", "mawsili": "الموصلي", "ray": "الري", "rayy": "الري",
+    "razi": "الرازي", "astarabad": "أستراباد", "astarabadi": "الأستراباذي",
+    "amili": "العاملي", "jabal amil": "جبل عامل", "hilla": "الحلة", "hilli": "الحلي",
+    "isfahan": "أصفهان", "isfahani": "الأصفهاني", "ahwaz": "الأهواز", "ahwazi": "الأهوازي",
+    "sana": "صنعاء", "yemen": "اليمن", "yaman": "اليمن", "yamani": "اليماني",
+    "tus": "طوس", "tusi": "الطوسي", "jurjan": "جرجان", "jurjani": "الجرجاني",
+    "sarakhs": "سرخس", "nishapur": "نيسابور", "naysaburi": "النيسابوري",
+    "wasit": "واسط", "wasiti": "الواسطي", "anbar": "الأنبار", "madain": "المدائن",
+    "sabat": "ساباط", "sabati": "الساباطي", "qummi": "قم", "baghdadi": "بغداد",
+}
+
 CITY_AR = {
     "kufa": "الكوفة", "kufan": "الكوفة", "kufi": "الكوفة", "basra": "البصرة", "basran": "البصرة",
     "qum": "قم", "qom": "قم", "qummi": "قم", "baghdad": "بغداد", "medina": "المدينة",
@@ -394,9 +445,13 @@ def city_ar(value):
         return None
     if re.search(r"[\u0600-\u06ff]", value):
         return value
+    # «Kufa / Shayban (Tribe)» is a city and a tribe joined by the extraction. The place
+    # comes first, so the first part is what a reader is told; the tribe is in the entry.
     key = re.sub(r"^(al-|el-)", "", value.strip().lower())
     key = re.sub(r"\s*\(.*\)\s*", "", key).strip(" .")
-    return CITY_AR.get(key)
+    key = key.split("/")[0].split(",")[0].strip(" .")
+    key = re.sub(r"^(al-|el-)", "", key)
+    return CITY_AR.get(key) or TRIBES_AND_TOWNS_AR.get(key)
 
 
 def load(path):
@@ -427,6 +482,13 @@ def profiles():
     return found
 
 
+# What the extraction left in the text and no reader should see: «PageV01P324» is a page
+# marker from the OpenITI source and «~:section:» is its own structural mark. 288 and 772 of
+# them stand inside entries, in both scripts, and a page printing a book's own words should
+# print the book's own words.
+LEFTOVER = re.compile(r'\s*(?:PageV\d+P\d+|~:[a-z_]+:)\s*')
+
+
 def text_of(profile, arabic=True):
     """The source's own words: the printed entry where there is one, else what was read."""
     said = profile.get("source_assessments") or []
@@ -434,7 +496,7 @@ def text_of(profile, arabic=True):
     printed = "printed_entry" in (profile.get("flags") or ())
     for assessment in (reversed(said) if printed else said):
         if (assessment or {}).get(field):
-            return assessment[field]
+            return LEFTOVER.sub(" ", assessment[field]).strip()
     return None
 
 
@@ -598,14 +660,22 @@ def document(person, source, headless):
             if same is not None:
                 if BOOK_TITLE.get(book, book) not in same["also"]:
                     same["also"].append(BOOK_TITLE.get(book, book))
+                    if BOOK_TITLE_AR.get(book):
+                        same["also_ar"].append(BOOK_TITLE_AR[book])
                 continue
             row = {key_name: value, "book": book, "book_title": BOOK_TITLE.get(book, book),
                    "book_title_ar": BOOK_TITLE_AR.get(book), "pages": pages,
-                   "source_key": key, "also": []}
+                   "source_key": key, "also": [], "also_ar": []}
             # the city in Arabic where CITY_AR vouches for it, so an Arabic page does not
             # print «Kufan (city)» in the middle of a line of Arabic
             if field == "city_or_tribe":
                 row["value_ar"] = city_ar(value)
+            # «Companion of al-Sadiq» is not a thing a book says; it is what the extraction
+            # made of a chapter the book wrote in Arabic. The Arabic is not translated back
+            # — it is composed from the Imams the sentence names, in the forms the roster
+            # carries, so an Arabic page reads «من أصحاب الباقر والصادق».
+            if field == "generations":
+                row["value_ar"] = generation_ar(value)
             seen[_same_value(value)] = row
             out.append(row)
         return out

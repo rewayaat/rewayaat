@@ -48,6 +48,18 @@ print that its own passage does not contain is the defect this audit exists to f
   the entry is reporting it. `daif` needs «ضعيف» or «كذاب», «غال», «مخلط» and the like;
   `majhul` needs the passage to say he is unknown, not merely to say little about him. **An
   entry that says nothing about his reliability is `not_in_passage`, however long it is.**
+- **When a relation is wrong, begin your note with one of these words**, because the remedy
+  differs and we cannot tell these apart from here:
+  - `tariq` — the name belongs to the author's own chain of transmission *to the man's book*,
+    not to the man's teachers. Al-Najāshī writes «أخبرنا عدة من أصحابنا عن أحمد بن محمد بن
+    يحيى قال حدثنا عبد الله بن جعفر», and that is his route to the book, not a pupil of the
+    subject. This is the shape that matters most.
+  - `chain` — the name stands in a chain quoted inside the entry, further up or down than the
+    man himself, so no transmission between the two is stated.
+  - `other-relation` — the entry names him as a brother, a son, a rival, the subject of an
+    anecdote: a person, but not a teacher or a pupil.
+  - `reversed` — the passage has the direction the other way round.
+  - `absent` — the name is not in the passage at all.
 - **A teacher or a student must be named as one.** `narrated_from` says this man learned from
   that one: «روى عن», «أخبرنا», or a chain in the entry where he stands directly after him.
   `narrated_to` is the reverse. A man merely named in the same entry — a brother, a rival, the
