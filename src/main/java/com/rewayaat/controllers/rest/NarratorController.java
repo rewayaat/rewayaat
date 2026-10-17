@@ -1,6 +1,7 @@
 package com.rewayaat.controllers.rest;
 
 import com.rewayaat.service.NarratorService;
+import com.rewayaat.service.UiMessages;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -36,6 +37,11 @@ public class NarratorController {
 
     @Autowired
     private NarratorService narratorService;
+
+    // Even an error a reader only meets as JSON is a string a reader meets, so it comes
+    // from the catalogue like every other one.
+    @Autowired
+    private UiMessages messages;
 
     /**
      * The little the preview card needs, and nothing else.
@@ -139,7 +145,7 @@ public class NarratorController {
         if (narrator == null) {
             Map<String, Object> missing = new LinkedHashMap<>();
             missing.put("ok", false);
-            missing.put("message", "No narrator of that id.");
+            missing.put("message", messages.say("api.narrator.notFound"));
             return new ResponseEntity<>(missing, HttpStatus.NOT_FOUND);
         }
         Map<String, Object> payload = new LinkedHashMap<>();

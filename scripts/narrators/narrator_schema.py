@@ -496,14 +496,27 @@ IMAM_ORDINALS = {
 _IMAM_PATTERNS = [
     # al-Tusi heads al-'Askari's chapter with his lineage, «الحسن بن علي بن محمد بن علي الرضا»:
     # read whole, or its tail is taken for al-Rida
-    ("askari", r"askar", ["الحسن بن علي بن محمد بن علي الرضا", "الحسن بن علي بن محمد",
-                          "الحسن العسكري", "أبي محمد العسكري", "العسكري"]),
-    ("hadi", r"hadi|naqi", ["علي بن محمد بن علي", "أبي الحسن الثالث", "علي بن محمد عليهم",
-                            "علي الهادي", "الهادي"]),
-    ("jawad", r"jawad|taqi", ["محمد بن علي الثاني", "أبي جعفر الثاني", "محمد بن علي بن موسى",
+    # The eleventh Imam is al-Hasan, and the second Imam is al-Hasan. Written out, «al-Hasan
+    # al-'Askari» holds both names, and matching «askar» alone leaves «al-hasan» behind for
+    # the second Imam's pattern to find: Safwan b. Yahya, who died in 210, was being shown as
+    # a companion of an Imam killed in 50. The whole title is matched here so that the whole
+    # title is consumed.
+    ("askari", r"(?:abu\s+muhammad\s+)?(?:al[\s\-']*)?hasan(?:\s+(?:b\.?|ibn|bin)\s+ali)?"
+               r"[\s\-'()]*(?:al[\s\-']*)?askari|askar",
+     ["الحسن بن علي بن محمد بن علي الرضا", "الحسن بن علي بن محمد",
+      "الحسن بن علي العسكري", "الحسن العسكري", "أبي محمد العسكري", "العسكري"]),
+    ("hadi", r"(?:abu\s*al[\s\-']*hasan\s+)?(?:al[\s\-']*)?(?:hadi|naqi)|"
+             r"abu\s*al[\s\-']*hasan\s+(?:al[\s\-']*)?thalith",
+     ["علي بن محمد بن علي", "أبي الحسن الثالث", "علي بن محمد عليهم",
+      "علي الهادي", "الهادي"]),
+    ("jawad", r"abu\s*ja.?far\s+(?:al[\s\-']*)?thani|jawad|taqi", ["محمد بن علي الثاني", "أبي جعفر الثاني", "محمد بن علي بن موسى",
                               "محمد الجواد", "الجواد"]),
-    ("rida", r"rida|ridha", ["علي بن موسى", "أبي الحسن الثاني", "الرضا"]),
-    ("kazim", r"kazim|kadhim", ["موسى بن جعفر", "أبي الحسن موسى", "الكاظم", "أبي الحسن الأول"]),
+    ("rida", r"(?:abu\s*al[\s\-']*hasan\s+)?(?:al[\s\-']*)?rid(?:a|ha)|"
+             r"abu\s*al[\s\-']*hasan\s+(?:al[\s\-']*)?thani",
+     ["علي بن موسى", "أبي الحسن الثاني", "الرضا"]),
+    ("kazim", r"(?:abu\s*al[\s\-']*hasan\s+)?musa(?:\s+(?:b\.?|ibn|bin)\s+ja.?far)?|"
+              r"abu\s*al[\s\-']*hasan\s+(?:al[\s\-']*)?awwal|kazim|kadhim",
+     ["موسى بن جعفر", "أبي الحسن موسى", "الكاظم", "أبي الحسن الأول"]),
     ("sadiq", r"sadiq", ["جعفر بن محمد", "أبي عبد الله جعفر", "الصادق"]),
     ("baqir", r"baqir", ["محمد بن علي بن الحسين", "أبي جعفر محمد بن علي", "الباقر"]),
     ("sajjad", r"sajjad|zayn al.?abidin|zayn ul.?abidin",
@@ -540,6 +553,15 @@ _IMAM_COMPILED = [(name, _fold_pattern(latin, arabic))
 _NO_IMAM = re.compile("|".join(normalize_arabic_raw_fold(p) for p in
                                ("لم يرو عن واحد من الأئمة", "لم يرو عنهم", "لم يروِ عن")))
 
+# «أبو الحسن» is the kunya of the seventh Imam, the eighth and the tenth, and of nobody in
+# particular when it stands alone. The Arabic side already refuses it — «من أصحاب أبي الحسن»
+# names no generation — and the transliterated side must refuse it too, instead of handing
+# the bare «hasan» inside it to the second Imam. Where a qualifier follows, the qualifier is
+# left standing and matched on its own.
+_AMBIGUOUS_KUNYA = re.compile(
+    r"abu[\s\-']*(?:al[\s\-']*)?hasan"
+    r"(?!\s*(?:al[\s\-']*)?(?:rid|musa|thalith|thani|awwal|hadi|naqi|kazim|kadhim))")
+
 
 def imam_generations(raw):
     """The Imams a generation statement names, as ordinals; empty when it names none."""
@@ -553,12 +575,38 @@ def imam_generations(raw):
         text = text.replace(fold, plain)
     if _NO_IMAM.search(text):
         return frozenset()
-    found, remaining = set(), text
+    found, remaining = set(), _AMBIGUOUS_KUNYA.sub(" ", text)
     for name, pattern in _IMAM_COMPILED:
         if pattern.search(remaining):
             found.add(IMAM_ORDINALS[name])
             remaining = pattern.sub(" ", remaining)
     return frozenset(found)
+
+
+# Phase 1 agents were asked what generation a man belongs to, and some of them reasoned
+# instead of reading: «Companion of al-Sadiq (implied by context…)», «Contemporary of
+# al-Mahdi or later (likely 4th century)». A statement hedged like that is the agent's
+# opinion, not the book's, and it must not place a man in time.
+_HEDGED = re.compile(r"implied|likel|probabl|possibl|perhaps|apparent|seem|uncertain|"
+                     r"presumab|or later|unclear|may have|might|assum|inferr|by context|"
+                     r"unknown|unidentified", re.I)
+
+
+def says_no_imam(raw):
+    """True where a book states he kept company with no Imam at all.
+
+    al-Tusi files such men under «باب ذكر أسماء من لم يرو عن واحد من الأئمة». That is a
+    statement about a man, not a silence about him, and a page should say it rather than
+    leave the line empty for a guess to fill.
+    """
+    if not raw:
+        return False
+    return bool(_NO_IMAM.search(normalize_arabic_raw_fold(str(raw))))
+
+
+def is_reasoned(raw):
+    """True where a generation statement is an agent's inference rather than a reading."""
+    return bool(raw) and bool(_HEDGED.search(str(raw)))
 
 
 def generation_distance(a, b):

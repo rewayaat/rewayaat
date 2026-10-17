@@ -36,7 +36,8 @@ from build_people import MAIN_BOOKS, is_entry, not_entries  # noqa: E402
 from grade_evidence import shown  # noqa: E402
 import imams  # noqa: E402
 import relation_evidence  # noqa: E402
-from narrator_schema import imam_generations, normalize_arabic, normalize_english  # noqa: E402
+from narrator_schema import (imam_generations, is_reasoned, normalize_arabic,  # noqa: E402
+                             normalize_english, says_no_imam)
 import transliterate  # noqa: E402
 import field_check  # noqa: E402
 import arabic_years  # noqa: E402
@@ -780,9 +781,39 @@ def document(person, source, headless):
         where_books_stand.append(held)
     reported_without_a_passage = [unsourced[b] for b, *_r in BOOKS if b in unsourced]
 
-    imams = set()
+    # Which Imams he kept company with, on the books' own say-so.
+    #
+    # A generation statement comes from one of two places. al-Tusi files a man under «من
+    # أصحاب الصادق» and that is the book speaking; a phase 1 agent, asked the same question,
+    # sometimes wrote reasoning instead — «Companion of al-Sadiq (implied by context, though
+    # the entry is about his father)», «Contemporary of al-Mahdi or later (likely 4th
+    # century)». Both were being read for Imam names and unioned, so Muhammad b. Yahya
+    # al-'Attar — whom al-Tusi files under «باب ذكر أسماء من لم يرو عن واحد من الأئمة»,
+    # among the men who narrated from no Imam at all — was printed as a companion of
+    # al-Sadiq, al-Kazim, al-Rida and the Mahdi, on the same page that quoted the chapter
+    # denying it.
+    #
+    # So the books rule. Where a book names an Imam, that is the answer and prose is not
+    # consulted. Where a book says he narrated from none, that settles it too, and the page
+    # says so instead of leaving a silence for a guess to fill. Prose answers only where no
+    # book speaks at all, and never when it is hedged.
+    from_books, from_prose, no_imam_books = set(), set(), []
     for statement in values(person, "generations"):
-        imams |= imam_generations(statement.get("value"))
+        said = statement.get("value")
+        if not said:
+            continue
+        if ARABIC_RANGE.search(str(said)):
+            if says_no_imam(said):
+                no_imam_books.append(statement.get("source_book"))
+            from_books |= imam_generations(said)
+        elif not is_reasoned(said):
+            from_prose |= imam_generations(said)
+    if from_books:
+        imams = set(from_books)
+    elif no_imam_books:
+        imams = set()
+    else:
+        imams = set(from_prose)
 
     # Who he was, in the terms the books use: the Imams he kept company with place a man in time
     # better than a date, and most men have no date at all. The city is the one the books name
@@ -870,7 +901,15 @@ def document(person, source, headless):
             "city_reported": said_city,
             "city_reported_ar": city_ar(said_city) if said_city else None,
             "died_reported": said_death,
-            "died_reported_ar": arabic_digits(said_death) if said_death else None}
+            "died_reported_ar": arabic_digits(said_death) if said_death else None,
+            # Said, not missing: a book that files him among those who narrated from no Imam
+            # has answered the question, and the page prints the answer rather than an empty
+            # line. Where another book does name an Imam the two stand together, because the
+            # books disagreeing is itself what a reader needs to know.
+            "no_imam": bool(no_imam_books),
+            "no_imam_books": [BOOK_TITLE.get(b, b) for b in sorted(set(no_imam_books)) if b],
+            "no_imam_books_ar": [BOOK_TITLE_AR[b] for b in sorted(set(no_imam_books))
+                                 if BOOK_TITLE_AR.get(b)]}
 
     # Where the books leave him, in one word: a reader wants to know whether he is relied on
     # before reading eight entries, and the honest answer is often «they disagree».

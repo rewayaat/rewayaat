@@ -130,16 +130,33 @@ function label(key, fallback) {
         });
     }
 
+    /** True the first time it is asked about a node, false every time after. */
+    function fresh(node) {
+        if (node.dataset.foldBound) {
+            return false;
+        }
+        node.dataset.foldBound = '1';
+        return true;
+    }
+
     function start() {
         var scrolls = document.querySelectorAll('.hadith-card .hadith-reading-scroll');
         for (var i = 0; i < scrolls.length; i++) {
-            attach(scrolls[i]);
+            if (fresh(scrolls[i])) {
+                attach(scrolls[i]);
+            }
         }
         var entries = document.querySelectorAll('.narrator-entry__text');
         for (var n = 0; n < entries.length; n++) {
-            attachEntry(entries[n]);
+            if (fresh(entries[n])) {
+                attachEntry(entries[n]);
+            }
         }
     }
+
+    // A narrator's tabs swap the page's main region in place rather than loading it again,
+    // and the entries that arrive that way need their folds.
+    document.addEventListener('rewayaat:view-swapped', start);
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', start);

@@ -90,6 +90,20 @@
                     <span class="hub-stat__value"
                           th:text="#{narrator.yearAh(${@localeDigits.of(narrator.life.died)})}">150 AH</span>
                 </span>
+                <!-- A book that files him among «من لم يرو عن واحد من الأئمة» has answered
+                     the question of when he lived, and the answer is that he kept company
+                     with no Imam. Printed here because the alternative - an empty line where
+                     the Imams would be - reads as though nobody had looked. -->
+                <span class="hub-stat" th:if="${narrator.life['no_imam']}">
+                    <span class="hub-stat__label" th:text="#{narrator.underImams}">Imams</span>
+                    <span class="hub-stat__value" th:text="#{narrator.noImam}">Narrated from no Imam</span>
+                    <span class="hub-stat__said"
+                          th:if="${!#lists.isEmpty(narrator.life['no_imam_books'])}"
+                          th:text="${#strings.listJoin(isArabic
+                                     and !#lists.isEmpty(narrator.life['no_imam_books_ar'])
+                                     ? narrator.life['no_imam_books_ar']
+                                     : narrator.life['no_imam_books'], '، ')}">Rijāl al-Ṭūsī</span>
+                </span>
                 <!-- «4 books, 5 entries» is one message rather than two counts with words
                      spliced between them: Arabic does not take that word order. -->
                 <span class="hub-stat" th:unless="${narrator['kind'] == 'imam'}">
@@ -306,6 +320,12 @@
                   th:text="${@localeDigits.of(#lists.size(narrator.names_ar))}">20</span>
         </a>
     </nav>
+
+    <!-- Everything below is what a tab switches: narrator-tabs.js replaces this region in
+         place, so the hero, the ledger and the chronology above it are not repainted. The
+         tabs stay ordinary links to ordinary URLs, which is what a crawler, a shared link
+         and a reader without script all need. -->
+    <div id="narrator-view" class="narrator-view">
 
     <!-- One row per book, not one per entry. A book read into several profiles used to repeat
          its verdict three times over; here each book states its position once, and a book that
@@ -756,6 +776,7 @@
        th:text="#{narrator.provenance(${@localeDigits.of(narrator.entry_count)})}">
         This page is assembled from 5 entries.
     </p>
+    </div>
 </main>
 
 <footer th:replace="~{fragments/site :: sitefooter}"></footer>
@@ -763,6 +784,7 @@
      the chapter pages use. Without it the page is long but whole. -->
 <script src="/js/narration-collapse.js" th:src="@{/js/narration-collapse.js}"></script>
 <script src="/js/narrator-preview.js" th:src="@{/js/narrator-preview.js}" defer></script>
+<script src="/js/narrator-tabs.js" th:src="@{/js/narrator-tabs.js}" defer></script>
 <script src="/js/rijal-chain.js" th:src="@{/js/rijal-chain.js}" defer></script>
 <script src="/js/chrono.js" th:src="@{/js/chrono.js}" defer></script>
 <th:block th:replace="~{fragments/site :: analytics}"></th:block>

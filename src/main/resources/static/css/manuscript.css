@@ -15430,3 +15430,20 @@ a.rijal-link__words:focus-visible {
         transition: none;
     }
 }
+
+/* The region a narrator's tabs switch. It is replaced in place rather than fetched as a
+   new page, and this is the only sign of that: a half-second of dimming if the request
+   takes long enough to notice, and nothing at all if it does not. */
+.narrator-view {
+    transition: opacity 0.18s ease;
+}
+
+.narrator-view.is-loading {
+    opacity: 0.45;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .narrator-view {
+        transition: none;
+    }
+}
