@@ -26,8 +26,13 @@ class HomeControllerTest {
         ResourceBundleMessageSource messages = new ResourceBundleMessageSource();
         messages.setBasename("messages");
         messages.setDefaultEncoding("UTF-8");
+        // Elasticsearch is not up in a unit test, and ProminentNarrators is built to answer
+        // with an empty list rather than throw when it cannot reach it, so the real one is
+        // safe here and keeps the test honest about what the page renders.
         return new HomeController(new BookCatalog(), messages,
-                new LegacyIdRedirects(Map.of("30611", "Ghurar-al-Hikam-Amidi:417")));
+                new LegacyIdRedirects(Map.of("30611", "Ghurar-al-Hikam-Amidi:417")),
+                new com.rewayaat.service.ProminentNarrators(
+                        new com.rewayaat.service.NarratorService()));
     }
 
     @Test

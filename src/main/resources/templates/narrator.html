@@ -9,16 +9,9 @@
 
     <header class="hub-hero hub-hero--split">
         <div class="hub-hero__identity">
-            <!--
-              His name in a roundel. Deliberately not a portrait: no likeness of these
-              people exists, there are more than sixteen thousand of them, and for the
-              Prophet and the Imams a depiction is prohibited outright. Calligraphy in an
-              ornamental frame is the tradition's own answer and needs no exceptions.
-            -->
-            <div class="narrator-seal" th:if="${seal != null}"
-                 th:classappend="'narrator-seal--v' + ${sealVariant}" aria-hidden="true">
-                <span class="narrator-seal__mark" dir="rtl" lang="ar" th:text="${seal}">زرارة</span>
-            </div>
+            <!-- There was a gold roundel here holding the first word of his name. It sat
+                 beside the full name it was taken from, so it said nothing the line below
+                 it did not, and a disc of ornament is not what a reader came for. -->
             <div class="hub-hero__eyebrow" th:text="#{narrator.eyebrow}">Narrator</div>
             <h1 class="hub-hero__title narrator-name-ar" dir="rtl" lang="ar"
                 th:text="${displayAr}">اسم الراوي</h1>
@@ -263,12 +256,24 @@
             <div class="ledger__note" th:text="#{narrator.ledger.narratedToNote}">men who take from him →</div>
         </a>
         <a class="ledger__cell" th:href="${booksUrl}" th:unless="${narrator['kind'] == 'imam'}">
-            <div class="ledger__value">
-                <span class="ledger__for" th:text="${@localeDigits.of(#lists.size(narrator.for_him))}">2</span>
-                <span class="ledger__slash">/</span>
-                <span class="ledger__against" th:text="${@localeDigits.of(#lists.size(narrator.against_him))}">5</span>
+            <div class="ledger__value ledger__value--verdicts">
+                <span class="ledger__verdict ledger__verdict--for"
+                      th:if="${!#lists.isEmpty(narrator.for_him)}">
+                    <span class="ledger__verdict-count"
+                          th:text="${@localeDigits.of(#lists.size(narrator.for_him))}">2</span>
+                    <span class="ledger__verdict-word" th:text="#{narrator.ledger.callHimReliable}">call him reliable</span>
+                </span>
+                <span class="ledger__verdict ledger__verdict--against"
+                      th:if="${!#lists.isEmpty(narrator.against_him)}">
+                    <span class="ledger__verdict-count"
+                          th:text="${@localeDigits.of(#lists.size(narrator.against_him))}">5</span>
+                    <span class="ledger__verdict-word" th:text="#{narrator.ledger.callHimWeak}">call him weak</span>
+                </span>
+                <span class="ledger__verdict ledger__verdict--none"
+                      th:if="${#lists.isEmpty(narrator.for_him) and #lists.isEmpty(narrator.against_him)}"
+                      th:text="#{narrator.standing.unstated}">No book grades him</span>
             </div>
-            <div class="ledger__label" th:text="#{narrator.ledger.reliableWeak}">Reliable / weak</div>
+            <div class="ledger__label" th:text="#{narrator.ledger.whatBooksSay}">What the books say</div>
             <div class="ledger__note" th:text="#{narrator.ledger.readEntries}">read the entries →</div>
         </a>
         <a class="ledger__cell" th:href="${narrationsUrl}">
@@ -762,6 +767,18 @@
             </a>
         </nav>
     </section>
+
+    <!-- Where a reader who knows better can say so. A rijāl page invites correction in a
+         way a narration does not: the entries are ours to have mis-read, and a scholar who
+         spots it should not have to hunt for an address. -->
+    <div class="narrator-report">
+        <a class="narrator-report__link" th:href="${reportHref}">
+            <i class="fa fa-flag" aria-hidden="true"></i>
+            <span th:text="#{narrator.report}">Report an issue with this page</span>
+        </a>
+        <span class="narrator-report__note" th:text="#{narrator.reportNote}">Tell us the book
+            and page it should follow.</span>
+    </div>
 
     <p class="narrator-provenance" th:if="${narrator['kind'] == 'imam'}"
        th:text="#{narrator.provenance.imam}">

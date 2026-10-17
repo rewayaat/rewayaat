@@ -8,7 +8,6 @@ import com.rewayaat.service.PageLocale;
 import com.rewayaat.service.QuranicInsightsService;
 import com.rewayaat.service.TopicLabelSource;
 import com.rewayaat.service.Chronology;
-import com.rewayaat.service.NarratorSeal;
 import com.rewayaat.service.NarratorService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -178,9 +177,11 @@ public class NarratorPageController {
         // appearing as 150 in the one Arabic sentence that quotes it.
         model.addAttribute("deathAh", LocaleDigits.in(locale, placement.deathAh()));
 
-        // A name in a roundel, never a face - see NarratorSeal.
-        model.addAttribute("seal", NarratorSeal.monogram(arabicNames(narrator), arabic));
-        model.addAttribute("sealVariant", NarratorSeal.variant(text(narrator.get("person_id"))));
+        // A reader who knows the books better than this index does needs somewhere to say
+        // so, and a rijāl page is where he will notice: a wrong verdict, a man fused with
+        // his son, a city the entry does not support. The mail carries the page and the
+        // permanent id so a report can be traced back to the record behind it.
+        model.addAttribute("reportHref", reportHref(id, arabic, english, path));
         String title = !english.isEmpty() ? english : arabic;
 
         model.addAttribute("narrator", narrator);
@@ -429,19 +430,35 @@ public class NarratorPageController {
         return out;
     }
 
-    /** The Arabic names the books record for him, shortest of which becomes the seal. */
-    @SuppressWarnings("unchecked")
-    private static List<String> arabicNames(Map<String, Object> narrator) {
-        Object raw = narrator.get("names_ar");
-        if (!(raw instanceof List<?> list)) {
-            return List.of();
-        }
-        List<String> out = new ArrayList<>();
-        for (Object item : list) {
-            if (item instanceof String name) {
-                out.add(name);
-            }
-        }
-        return out;
+    /**
+     * A prefilled report about one man, addressed to the same inbox the hadith cards use.
+     *
+     * <p>The corrections this page will attract are not typos: they are «this verdict is
+     * al-Khoei quoting al-Najashi, not his own», «these are two men», «the entry says Kufa
+     * and the page says Qum». Each of those is answerable only against the record behind
+     * the page, so the mail carries the permanent id and the address, and asks for the
+     * book and page the reader is reading from — a rijali correction without a citation
+     * cannot be acted on.
+     */
+    private static String reportHref(String id, String arabicName, String englishName,
+                                     String path) {
+        String named = !englishName.isEmpty() ? englishName : arabicName;
+        String subject = "Narrator report: " + (named.isEmpty() ? id : named) + " (" + id + ")";
+        String body = String.join("\n",
+                "Please review the narrator page linked below.", "",
+                "Narrator: " + named,
+                "Permanent id: " + id,
+                "Page: " + PageLocale.BASE_URL + path, "",
+                "What the page gets wrong:", "- ", "",
+                "The book and page it should follow:", "- ", "",
+                "Anything else (optional):", "- ");
+        return "mailto:rewayaat.org@gmail.com?subject=" + forMail(subject)
+                + "&body=" + forMail(body);
     }
+
+    /** As {@link #encode} but with real spaces: «+» reads as a plus in a mail body. */
+    private static String forMail(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
+    }
+
 }

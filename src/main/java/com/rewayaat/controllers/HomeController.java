@@ -31,16 +31,22 @@ public class HomeController {
 
     private static final Logger log = LoggerFactory.getLogger(HomeController.class);
 
+    /** The home page shows twelve of them, three rows of four at full width. */
+    private static final int PROMINENT = 12;
+
     private final BookCatalog catalog;
     private final org.springframework.context.MessageSource messages;
     private final LegacyIdRedirects legacyIds;
+    private final com.rewayaat.service.ProminentNarrators prominent;
 
     public HomeController(BookCatalog catalog,
                           org.springframework.context.MessageSource messages,
-                          LegacyIdRedirects legacyIds) {
+                          LegacyIdRedirects legacyIds,
+                          com.rewayaat.service.ProminentNarrators prominent) {
         this.messages = messages;
         this.catalog = catalog;
         this.legacyIds = legacyIds;
+        this.prominent = prominent;
     }
 
     /**
@@ -131,6 +137,11 @@ public class HomeController {
         // The constants stay: the JSON-LD above is the site's own description and is not
         // per-request. What a reader and a crawler see is the page's own language.
         PageLocale homeLocale = PageLocale.of(request);
+
+        // The men the books lean on most, counted rather than chosen. This is the way into
+        // the narrator pages from the home page: until now nothing above the chains linked
+        // to them at all.
+        model.addAttribute("prominentNarrators", prominent.top(PROMINENT, homeLocale));
         model.addAttribute("seoTitle",
                 messages.getMessage("seo.home.title", null, homeLocale.locale()));
         model.addAttribute("seoDescription",

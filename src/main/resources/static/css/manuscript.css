@@ -15447,3 +15447,331 @@ a.rijal-link__words:focus-visible {
         transition: none;
     }
 }
+
+/* ===========================================================================
+   Browse by Narrator — the other way into the corpus, built to stand beside
+   Browse by Book rather than under it: same grid, same card weight, same gold
+   top rule, and the counts in the same place. What differs is what a card is
+   about, so the Arabic name leads at reading size and the book's own word for
+   the man sits under it.
+   =========================================================================== */
+.browse-narrator-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.85rem;
+    margin-bottom: 1.2rem;
+}
+
+.browse-narrator-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-height: 132px;
+    padding: 1rem 1rem 0.9rem;
+    text-decoration: none;
+    color: inherit;
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(245, 248, 252, 0.98));
+    border: 1px solid rgba(30, 58, 95, 0.12);
+    border-top: 3px solid rgba(30, 58, 95, 0.7);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 10px 24px rgba(15, 23, 42, 0.05);
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease,
+                background 180ms ease;
+}
+
+.browse-narrator-card:hover,
+.browse-narrator-card:focus-visible {
+    border-color: rgba(26, 58, 107, 0.35);
+    border-top-color: #d5aa4d;
+    background: linear-gradient(180deg, #eef3fb, #dde8f7);
+    box-shadow: 0 8px 24px rgba(26, 58, 107, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+}
+
+/* The place in the order, which is the whole point of the section: these twelve
+   are not a selection, they are the top of a count. */
+.browse-narrator-rank {
+    position: absolute;
+    top: 0.55rem;
+    right: 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--text-faint, #cbd5e1);
+}
+
+[dir="rtl"] .browse-narrator-rank {
+    right: auto;
+    left: 0.75rem;
+}
+
+.browse-narrator-name {
+    font-family: var(--font-arabic);
+    font-size: 1.22rem;
+    line-height: 1.5;
+    color: var(--text, #1a1a2e);
+    padding-inline-end: 1.4rem;
+}
+
+.browse-narrator-latin {
+    font-size: 0.78rem;
+    line-height: 1.35;
+    color: var(--text-secondary, #4a5568);
+}
+
+.browse-narrator-said {
+    margin-top: 0.35rem;
+    font-size: 0.76rem;
+    line-height: 1.4;
+}
+
+.browse-narrator-word {
+    font-weight: 700;
+    color: var(--text, #1a1a2e);
+}
+
+.browse-narrator-said--for .browse-narrator-word {
+    color: #2f6b43;
+}
+
+.browse-narrator-said--against .browse-narrator-word {
+    color: #9b3028;
+}
+
+.browse-narrator-said--mixed .browse-narrator-word {
+    color: var(--gold-dark, #a07e28);
+}
+
+.browse-narrator-whose {
+    display: block;
+    color: var(--text-muted, #94a3b8);
+}
+
+.browse-narrator-count {
+    margin-top: auto;
+    padding-top: 0.5rem;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--primary-light, #2d5a8e);
+}
+
+/* The verdict cell of the ledger. «2 / 5» under «Reliable / weak» read as a fraction or a
+   score out of something; they are two counts of books, so each now carries its own word
+   and the slash is gone. */
+.ledger__value--verdicts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.1rem 0.9rem;
+    font-size: 1rem;
+    line-height: 1.3;
+}
+
+.ledger__verdict {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    white-space: nowrap;
+}
+
+.ledger__verdict-count {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.ledger__verdict-word {
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    opacity: 0.85;
+}
+
+.ledger__verdict--for {
+    color: #2f6b43;
+}
+
+.ledger__verdict--against {
+    color: #9b3028;
+}
+
+.ledger__verdict--none {
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: var(--text-muted, #94a3b8);
+}
+
+/* Reporting a mistake. Quiet, at the foot of the page, next to the line that says what the
+   page was assembled from - the two belong together: here is where this came from, and
+   here is how to tell us it is wrong. */
+.narrator-report {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 0.9rem;
+    margin: 2rem 0 0.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border, #e8ecf1);
+}
+
+.narrator-report__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--primary, #1e3a5f);
+    text-decoration: none;
+    background: var(--surface-cool, #f8fafc);
+    border: 1px solid var(--border-strong, #d1d8e0);
+    border-radius: 999px;
+    transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.narrator-report__link:hover,
+.narrator-report__link:focus-visible {
+    color: var(--gold-dark, #a07e28);
+    border-color: var(--gold, #c8a23d);
+    background: var(--gold-bg, #fdf8ed);
+}
+
+.narrator-report__note {
+    font-size: 0.78rem;
+    color: var(--text-muted, #94a3b8);
+}
+
+/* ===========================================================================
+   The narrator page's tab strip and its reading column.
+
+   Two faults, one of them silent: the template marks the open tab `is-active`
+   and the rules above style `.narrator-tab--active`, so for as long as the page
+   has existed no tab has ever looked open — five grey words in a row, and the
+   reader left to work out which one he was on from the content below. The
+   second is that the strip was styled like a form control rather than like the
+   spine of the page it heads.
+
+   So: the open tab now carries the page's surface and a gold rule along its
+   top, the strip scrolls rather than wraps on a narrow screen, and the column
+   of text under it is set to a width and a measure a scholar can read down.
+   =========================================================================== */
+.narrator-tabs {
+    gap: 0.15rem;
+    margin: 0 0 1.8rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    background: linear-gradient(180deg, rgba(238, 243, 250, 0), rgba(238, 243, 250, 0.55));
+}
+
+.narrator-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.narrator-tab {
+    position: relative;
+    flex: 0 0 auto;
+    padding: 0.7rem 1.15rem 0.65rem;
+    font-size: 0.86rem;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    border-radius: 8px 8px 0 0;
+    transition: color 150ms ease, background 150ms ease;
+}
+
+/* The open tab, which the stylesheet never matched: it lifts out of the strip,
+   takes the page's own surface, and is capped in gold so the eye finds it from
+   across the page. */
+.narrator-tab.is-active {
+    color: var(--primary, #1e3a5f);
+    font-weight: 700;
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #e8ecf1);
+    border-bottom-color: var(--surface, #fff);
+}
+
+.narrator-tab.is-active::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -1px;
+    right: -1px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold, #c8a23d), var(--gold-light, #f3e5b8));
+    border-radius: 8px 8px 0 0;
+}
+
+.narrator-tab.is-active .narrator-tab__count {
+    background: var(--gold-bg, #fdf8ed);
+    color: var(--gold-dark, #a07e28);
+}
+
+.narrator-tab:focus-visible {
+    outline: 2px solid var(--border-focus, #2563eb);
+    outline-offset: -2px;
+}
+
+/* The reading column. An entry from al-Kashshī runs for pages, and it was being
+   set the full width of a desktop window: ninety words to the line, which no
+   one reads twice. A measure, a larger size and more leading turn the tab into
+   something a reader stays inside. */
+.narrator-entry__text,
+.narrator-stands__note,
+.narrator-facts p,
+.narrator-provenance {
+    max-width: 68ch;
+}
+
+.narrator-entry__text {
+    font-size: 1.02rem;
+    line-height: 1.85;
+    color: var(--text, #1a1a2e);
+}
+
+.narrator-entry__text[dir="rtl"],
+.narrator-entry__text .arabic-text {
+    font-size: 1.28rem;
+    line-height: 2.1;
+}
+
+/* One entry from one book is one unit of reading, so it is given the edges of
+   one: a rule down its start side, air around it, and the book's name sitting
+   on that rule rather than floating above a wall of text. */
+.narrator-entry {
+    padding: 0.2rem 0 1.4rem 1.1rem;
+    border-inline-start: 2px solid var(--border, #e8ecf1);
+    margin-bottom: 1.6rem;
+}
+
+.narrator-entry:hover {
+    border-inline-start-color: var(--gold, #c8a23d);
+}
+
+.narrator-entry__head {
+    margin-bottom: 0.55rem;
+}
+
+/* An Arabic passage inside an English page: the measure above cut it to a column, and the
+   column then sat against the page's left edge while the words themselves ran to the
+   right, which reads as a mistake. A printed Arabic edition anchors the block to the right
+   margin, so this does the same — and because «right» is right in either page direction,
+   the margins here are deliberately physical rather than logical. */
+.narrator-entry__text[dir="rtl"] {
+    max-width: 46rem;
+    margin-left: auto;
+    margin-right: 0;
+}
+
+/* The translation sits under it on the other side, as a facing page would. */
+.narrator-entry__text-en {
+    max-width: 62ch;
+    margin-inline-end: auto;
+}
+
+/* «The books disagree about him» on a card: the one line that keeps a count from reading
+   as an endorsement. */
+.browse-narrator-divided {
+    display: block;
+    margin-top: 0.15rem;
+    font-weight: 600;
+    color: var(--gold-dark, #a07e28);
+}

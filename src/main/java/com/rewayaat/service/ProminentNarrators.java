@@ -1,0 +1,208 @@
+package com.rewayaat.service;
+
+import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.rewayaat.config.ESClientProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * The men these books lean on most.
+ *
+ * <p>«Prominent» could mean several things, and this picks the one the corpus can prove:
+ * how many of its narrations a man's name actually stands in, counted from the chain links
+ * the resolver stored on every narration. It is a fact with a number beside it, not a
+ * judgement of ours — which matters, because the page it feeds is the first thing a reader
+ * sees and the site's whole discipline is to report what the books say rather than rank men
+ * itself. The classical answer to the same question, al-Kashshī's eighteen Aṣḥāb al-Ijmāʿ,
+ * is a judgement to be quoted and attributed, and belongs in a section of its own.
+ *
+ * <p>The Imams are left out. al-Ṣādiq stands in 8,444 chains and would head any such list,
+ * but he is the source the chains run to, not a narrator among narrators.
+ *
+ * <p>One terms aggregation, cached: the home page is the most-requested page on the site
+ * and the answer changes only when the corpus is rebuilt.
+ */
+@Component
+public class ProminentNarrators {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProminentNarrators.class);
+    private static final Duration CACHE_TTL = Duration.ofHours(6);
+
+    /** Asked for twice as many as are shown, because Imams and strays are dropped after. */
+    private static final int ASK_FOR = 40;
+
+    private final NarratorService narrators;
+
+    private final Cache<Integer, List<Map<String, Object>>> cache = Caffeine.newBuilder()
+            .maximumSize(4)
+            .expireAfterWrite(CACHE_TTL)
+            .build();
+
+    @Value("${narrator.enabled:true}")
+    private boolean enabled;
+
+    public ProminentNarrators(NarratorService narrators) {
+        this.narrators = narrators;
+    }
+
+    /**
+     * The most-carrying narrators, heaviest first, each with what one book calls him.
+     *
+     * <p>Never throws and never returns null: the home page renders with this section
+     * missing rather than not at all.
+     */
+    public List<Map<String, Object>> top(int howMany, PageLocale locale) {
+        if (!enabled || howMany <= 0) {
+            return List.of();
+        }
+        List<Map<String, Object>> ranked = cache.get(howMany, size -> rank(size));
+        if (ranked == null) {
+            return List.of();
+        }
+        List<Map<String, Object>> shown = new ArrayList<>(ranked.size());
+        for (Map<String, Object> man : ranked) {
+            shown.add(forLocale(man, locale));
+        }
+        return shown;
+    }
+
+    private List<Map<String, Object>> rank(int howMany) {
+        List<Map<String, Object>> found = new ArrayList<>();
+        try (ESClientProvider provider = new ESClientProvider()) {
+            SearchResponse<Void> response = provider.client().search(s -> s
+                    .index(ESClientProvider.INDEX)
+                    .size(0)
+                    .aggregations("men", a -> a
+                            .terms(t -> t.field("chain_links.p.keyword").size(ASK_FOR))),
+                    Void.class);
+            List<StringTermsBucket> buckets =
+                    response.aggregations().get("men").sterms().buckets().array();
+            for (StringTermsBucket bucket : buckets) {
+                if (found.size() >= howMany) {
+                    break;
+                }
+                Map<String, Object> man = narrators.getNarrator(bucket.key().stringValue());
+                if (man == null || "imam".equals(man.get("kind")) || man.get("moved_to") != null) {
+                    continue;
+                }
+                found.add(card(man, bucket.docCount()));
+            }
+        } catch (Exception e) {
+            LOGGER.warn("Could not rank the narrators by weight: {}", e.getMessage());
+            return List.of();
+        }
+        return found;
+    }
+
+    /**
+     * As much of a name as a card can hold.
+     *
+     * <p>al-Najāshī heads Aḥmad b. Muḥammad b. ʿĪsā with eleven generations of lineage,
+     * and the full heading is the right thing on his own page and far too much on a tile
+     * among eleven others. Two «ibn» steps is how the books themselves refer to these men
+     * in a chain — «أحمد بن محمد بن عيسى» — so that is where this cuts. The whole name
+     * stays on the link's title, for anyone who hovers.
+     */
+    private static String shortened(Object value, Set<String> connectors) {
+        if (value == null) {
+            return null;
+        }
+        String[] words = String.valueOf(value).trim().split("\\s+");
+        StringBuilder out = new StringBuilder();
+        int steps = 0;
+        int kept = 0;
+        for (String word : words) {
+            if (connectors.contains(word)) {
+                steps++;
+                if (steps > 2) {
+                    break;
+                }
+            }
+            // Some headings carry two names joined by «و» and never reach a third «ibn»,
+            // so a word count stops those too.
+            if (kept >= 6) {
+                break;
+            }
+            out.append(out.length() == 0 ? "" : " ").append(word);
+            kept++;
+        }
+        // A cut that lands on «ibn» leaves the name hanging — «محمد بن أبي عمير زياد بن» —
+        // so the connector goes with it.
+        String shortened = out.toString().trim();
+        for (String connector : connectors) {
+            if (shortened.endsWith(" " + connector)) {
+                shortened = shortened.substring(0, shortened.length() - connector.length() - 1);
+            }
+        }
+        return shortened.isEmpty() ? String.valueOf(value) : shortened;
+    }
+
+    private static final Set<String> AR_CONNECTORS = Set.of("بن", "ابن");
+    private static final Set<String> EN_CONNECTORS = Set.of("ibn", "bin", "b.");
+
+    /** What a card needs, and nothing of the 91 KB document behind it. */
+    private static Map<String, Object> card(Map<String, Object> man, long narrations) {
+        Map<String, Object> row = new java.util.LinkedHashMap<>();
+        row.put("person_id", man.get("person_id"));
+        row.put("slug", man.get("slug"));
+        row.put("display_ar", man.get("display_ar"));
+        row.put("display_en", man.get("display_en"));
+        row.put("short_ar", shortened(man.get("display_ar"), AR_CONNECTORS));
+        row.put("short_en", shortened(man.get("display_en"), EN_CONNECTORS));
+        row.put("narrations", narrations);
+        if (man.get("said_by") instanceof List<?> said && !said.isEmpty()
+                && said.get(0) instanceof Map<?, ?> first) {
+            // Sahl b. Ziyad stands in 1,524 chains and the books do not agree about him:
+            // al-Tusi calls him thiqa and al-Najashi weak. Showing the first word alone
+            // would make this page take one side, so a card whose rows do not all lean the
+            // same way says that instead.
+            long leanings = said.stream()
+                    .filter(entry -> entry instanceof Map)
+                    .map(entry -> String.valueOf(((Map<?, ?>) entry).get("leaning")))
+                    .distinct().count();
+            row.put("divided", leanings > 1);
+            row.put("said", first.get("said"));
+            row.put("said_ar", first.get("said_ar"));
+            row.put("leaning", first.get("leaning"));
+            if (first.get("books") instanceof List<?> books && !books.isEmpty()) {
+                row.put("book", books.get(0));
+            }
+            if (first.get("books_ar") instanceof List<?> arabic && !arabic.isEmpty()) {
+                row.put("book_ar", arabic.get(0));
+            }
+        }
+        return row;
+    }
+
+    /**
+     * The same card in one language.
+     *
+     * <p>The Arabic site shows the Arabic name, the Arabic word and the Arabic title of the
+     * book that says it, and no transliteration at all; the English site shows the Arabic
+     * name with its Latin reading beneath. Choosing here rather than in the template keeps
+     * the rule in one place, where a missing Arabic form can fall back without the page
+     * printing Latin on an Arabic screen by accident.
+     */
+    private static Map<String, Object> forLocale(Map<String, Object> man, PageLocale locale) {
+        boolean arabic = locale != null && locale.isArabic();
+        Map<String, Object> row = new java.util.LinkedHashMap<>(man);
+        row.put("name", man.get("short_ar"));
+        row.put("full", arabic ? man.get("display_ar") : man.get("display_en"));
+        row.put("latin", arabic ? null : man.get("short_en"));
+        row.put("word", arabic ? man.get("said_ar") : man.get("said"));
+        Object book = arabic ? man.getOrDefault("book_ar", man.get("book")) : man.get("book");
+        row.put("whose", book);
+        return row;
+    }
+}
