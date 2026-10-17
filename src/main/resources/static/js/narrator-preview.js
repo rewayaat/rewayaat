@@ -158,14 +158,20 @@
                 + escaped(countPhrase(man.book_count, "narrators.books"))
                 + "</p>"
             : "";
-        return '<p class="np__name" dir="rtl" lang="ar">' + escaped(man.display_ar) + "</p>"
+        // The name sits on the dark panel the rest of the site names things on. A white
+        // card over a white page is a blur with a shadow; this gives it an edge to start at.
+        return '<div class="np__head">'
+            + '<p class="np__name" dir="rtl" lang="ar">' + escaped(man.display_ar) + "</p>"
             + (!arabic() && man.display_en
                 ? '<p class="np__name-en">' + escaped(man.display_en) + "</p>" : "")
+            + "</div>"
+            + '<div class="np__rest">'
             + '<div class="np__said-rows">' + saidRows(man.said_by) + caveat + "</div>"
             + '<p class="np__life">' + lifeLine(man.life) + "</p>"
             + weight
             + '<a class="np__go" href="' + escaped(href) + '">'
-            + escaped(t("js.preview.open", "Open his page")) + "</a>";
+            + escaped(t("js.preview.open", "Open his page")) + "</a>"
+            + "</div>";
     }
 
     function shut() {

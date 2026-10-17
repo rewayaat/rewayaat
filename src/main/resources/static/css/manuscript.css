@@ -14855,15 +14855,18 @@ a.ledger__cell:hover .ledger__note {
     position: absolute;
     z-index: 1090;
     width: min(20rem, calc(100vw - 2rem));
-    padding: 0.95rem 1rem 1rem;
+    overflow: hidden;
     /* --surface is translucent in the later palette, and the hadith underneath read
-       straight through the card. A popover over running text must be opaque. */
+       straight through the card. A popover over running text must be opaque — and a
+       white card on a near-white page is only a shadow, so it carries a dark head, a
+       drawn edge and a shadow deep enough to lift it off the text it covers. */
     background: var(--surface-warm, #fff);
-    border: 1px solid var(--border-strong, #d1d8e0);
-    border-top: 2px solid var(--gold, #c8a23d);
-    border-radius: var(--radius-sm, 6px);
-    box-shadow: 0 10px 30px -8px rgba(15, 36, 64, 0.3),
-                0 2px 6px -2px rgba(15, 36, 64, 0.18);
+    border: 1px solid rgba(15, 36, 64, 0.22);
+    border-radius: 8px;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset,
+                0 18px 40px -12px rgba(15, 36, 64, 0.45),
+                0 4px 12px -4px rgba(15, 36, 64, 0.28),
+                0 0 0 1px rgba(15, 36, 64, 0.06);
     opacity: 0;
     visibility: hidden;
     transform: translateY(-4px) scale(0.985);
@@ -14881,14 +14884,26 @@ a.ledger__cell:hover .ledger__note {
     cursor: progress;
 }
 
+/* The head, where the name is: the navy the rest of the site names things on, under a
+   gold rule. It is also what the card is recognised by at a glance. */
+.narrator-preview .np__head {
+    padding: 0.8rem 1rem 0.75rem;
+    background: linear-gradient(180deg, var(--primary, #1e3a5f), var(--primary-dark, #0f2440));
+    border-bottom: 2px solid var(--gold, #c8a23d);
+}
+
+.narrator-preview .np__rest {
+    padding: 0.8rem 1rem 1rem;
+}
+
 .narrator-preview .np__shut {
     position: absolute;
-    top: 0.2rem;
-    right: 0.4rem;
+    top: 0.25rem;
+    right: 0.45rem;
     padding: 0.1rem 0.35rem;
-    font-size: 1.25rem;
+    font-size: 1.3rem;
     line-height: 1;
-    color: var(--text-muted, #94a3b8);
+    color: rgba(255, 255, 255, 0.72);
     background: none;
     border: 0;
     cursor: pointer;
@@ -14900,11 +14915,11 @@ a.ledger__cell:hover .ledger__note {
 }
 
 .narrator-preview .np__shut:hover {
-    color: var(--text, #1a1a2e);
+    color: #fff;
 }
 
 .narrator-preview .np__name {
-    margin: 0 0 0.1rem;
+    margin: 0;
     /* The name is RTL inside an LTR card, so its line starts at the right - where the
        close button is. The inset keeps the two apart in either direction. */
     padding-right: 1.5rem;
@@ -14912,18 +14927,18 @@ a.ledger__cell:hover .ledger__note {
     font-family: var(--font-arabic);
     font-size: 1.3rem;
     line-height: 1.45;
-    color: var(--text, #1a1a2e);
+    color: #fff;
 }
 
 .narrator-preview .np__name-en {
-    margin: 0 0 0.55rem;
-    font-size: 0.82rem;
+    margin: 0.15rem 0 0;
+    font-size: 0.8rem;
     letter-spacing: 0.01em;
-    color: var(--text-secondary, #4a5568);
+    color: rgba(255, 255, 255, 0.72);
 }
 
 .narrator-preview .np__said-rows {
-    margin: 0.55rem 0 0.6rem;
+    margin: 0 0 0.6rem;
     padding: 0.5rem 0.65rem;
     background: var(--surface-cool, #f8fafc);
     border-left: 3px solid var(--border-strong, #d1d8e0);
@@ -15044,9 +15059,8 @@ a.ledger__cell:hover .ledger__note {
     width: 100%;
     max-height: 72vh;
     overflow-y: auto;
-    padding: 1.05rem 1.15rem calc(1.2rem + env(safe-area-inset-bottom, 0px));
+    padding: 0;
     border: 0;
-    border-top: 2px solid var(--gold, #c8a23d);
     border-radius: 14px 14px 0 0;
     transform: translateY(100%);
     box-shadow: 0 -8px 32px -8px rgba(15, 36, 64, 0.35);
@@ -15058,13 +15072,26 @@ a.ledger__cell:hover .ledger__note {
 
 /* The grab bar a sheet is expected to have, even though this one is dismissed by
    tapping away rather than by dragging. */
-.narrator-preview.is-sheet::before {
+.narrator-preview.is-sheet .np__head {
+    position: relative;
+    padding: 1.1rem 1.15rem 0.85rem;
+}
+
+.narrator-preview.is-sheet .np__rest {
+    padding: 0.95rem 1.15rem calc(1.2rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* The grab bar a sheet is expected to have, even though this one is dismissed by
+   tapping away rather than by dragging. */
+.narrator-preview.is-sheet .np__head::before {
     content: "";
-    display: block;
+    position: absolute;
+    top: 0.45rem;
+    left: 50%;
     width: 2.4rem;
     height: 4px;
-    margin: -0.35rem auto 0.7rem;
-    background: var(--border-strong, #d1d8e0);
+    margin-left: -1.2rem;
+    background: rgba(255, 255, 255, 0.4);
     border-radius: 2px;
 }
 
