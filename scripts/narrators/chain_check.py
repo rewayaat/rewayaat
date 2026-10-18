@@ -57,10 +57,16 @@ def people():
     """person_id → the names the books file him under, folded, and who he narrated from."""
     with open(PEOPLE) as handle:
         rows = json.load(handle)
-    names, teachers, students, display = {}, {}, {}, {}
+    names, teachers, students, display, tabaqa = {}, {}, {}, {}, {}
     for person in rows:
         pid = person["person_id"]
         display[pid] = person.get("display_ar") or pid
+        # Which Imams the books place him with, 0 for the Prophet through 12. Half the
+        # men here have it, and it dates a man far better than a death year does: only
+        # 133 of the 15,504 carry one of those.
+        held_imams = [o for o in (person.get("imam_ordinals") or []) if isinstance(o, int)]
+        if held_imams:
+            tabaqa[pid] = (min(held_imams), max(held_imams))
         held = {key(n) for n in (person.get("names_ar") or [])}
         held |= {key(n) for n in (person.get("headings_ar") or [])}
         if person.get("display_ar"):
@@ -72,7 +78,7 @@ def people():
         students[pid] = {key(r.get("name_ar") or r.get("name") or "")
                          for field in ("narrated_to", "chain_to", "unsaid_to")
                          for r in person.get(field) or []} - {""}
-    return names, teachers, students, display
+    return names, teachers, students, display, tabaqa
 
 
 def chains():
@@ -122,7 +128,7 @@ def main():
     parser.add_argument("--only", default="", help="run one check by name")
     args = parser.parse_args()
 
-    names, teachers, students, display = people()
+    names, teachers, students, display, tabaqa = people()
     printed = chains()
 
     found = Counter()
@@ -226,6 +232,18 @@ def main():
                 # «A عن B» makes B the teacher and A the student. The books are asked the
                 # same question: do they have A among B's students, or among his teachers?
                 # Both, or neither, says nothing. Only the second alone is a contradiction.
+                # A chain says A heard it from B, so A belongs to B's generation or a
+                # later one. Where the books place both men with Imams, a student whose
+                # latest Imam is two or more before his teacher's earliest cannot have
+                # met him: he was of an age with the teacher's grandfather. This is
+                # evidence apart from the teacher and student lists, so where the two
+                # agree the pair is wrong, and where they disagree the lists are.
+                if person and previous and not beside:
+                    student, teacher = tabaqa.get(previous), tabaqa.get(person)
+                    if student and teacher and student[1] < teacher[0] - 1:
+                        flag("too-early-for-his-shaykh", chain_id,
+                             f"{display.get(previous, previous)} (Imams {student[0]}–{student[1]})"
+                             f" ← {display.get(person, person)} (Imams {teacher[0]}–{teacher[1]})")
                 if (person and previous and not beside
                         and person in students and previous in names):
                     as_student = names[previous] & students[person]
@@ -256,7 +274,7 @@ def main():
 
     order = ["direction-confirmed", "side-by-side", "second-tariq",
              "span", "overlap", "name-not-his", "imam-kept-a-narrator",
-             "reversed", "self", "prose-linked",
+             "reversed", "too-early-for-his-shaykh", "self", "prose-linked",
              "joiner-in-link", "blessing-in-link", "prose-is-a-name",
              "same-words-different-men", "head-lost", "quoted-pointer", "empty"]
     print(f"\n  {len(printed):,} chains read, {sum(found.values()):,} flags\n")

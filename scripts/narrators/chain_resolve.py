@@ -386,6 +386,10 @@ def resolve_chain(mentions, data, book="", table=None, compiler=""):
                 row["outcome"] = "none"
             continue
         row["target"] = "imam"
+        # And it is read as an Imam from here on, not as a name that happens to answer
+        # to one: the card draws an Imam differently, and asks the rijāl books nothing
+        # about him.
+        row["kind"] = "imam"
         row.pop("candidates", None)
         row.pop("backed", None)
         # Whatever the narrators made of it is withdrawn. The loader reads person_id
