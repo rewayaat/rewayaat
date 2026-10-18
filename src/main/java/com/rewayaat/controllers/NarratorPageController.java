@@ -1,5 +1,6 @@
 package com.rewayaat.controllers;
 
+import com.rewayaat.service.ProminentNarrators;
 import com.rewayaat.service.ArabicNames;
 import com.rewayaat.service.HadithCardFactory;
 import com.rewayaat.service.LocaleDigits;
@@ -40,6 +41,9 @@ import java.util.Map;
 public class NarratorPageController {
 
     private static final String BASE_URL = HomeController.BASE_URL;
+    /** How many of the heaviest-carrying men the page offers when nothing is typed. */
+    private static final int BROWSE = 60;
+
     private static final int PER_PAGE = 20;
     /** A compact row is a sixth the height of a card, so a page of them can be longer. */
     private static final int COMPACT_PER_PAGE = 50;
@@ -59,6 +63,9 @@ public class NarratorPageController {
     /** The Arabic of a topic slug, the same source the cards' own pills read. */
     @Autowired
     private TopicLabelSource topicLabels;
+
+    @Autowired
+    private ProminentNarrators prominent;
 
     @Autowired
     private MessageSource messages;
@@ -81,6 +88,14 @@ public class NarratorPageController {
         long total = ((Number) found.getOrDefault("total", 0)).longValue();
 
         model.addAttribute("query", text);
+        // Landing here with nothing typed used to show a search box and an empty page, which
+        // tells a reader who does not already have a name in mind nothing at all. The books
+        // page lists its books; this lists the men these books lean on hardest, by the
+        // narrations they carry, so the page can be browsed as well as searched. Same cards
+        // the home page uses, so the two read as one site.
+        if (text.isEmpty()) {
+            model.addAttribute("prominentNarrators", prominent.top(BROWSE, locale));
+        }
         model.addAttribute("results", found.get("narrators"));
         model.addAttribute("total", total);
         model.addAttribute("page", Math.max(page, 1));
