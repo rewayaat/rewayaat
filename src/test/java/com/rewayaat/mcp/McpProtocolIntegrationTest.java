@@ -34,6 +34,8 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -49,7 +51,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
                 "quranic.insights.index=" + McpProtocolIntegrationTest.INSIGHTS_INDEX,
-                "quran.index=" + McpProtocolIntegrationTest.QURAN_INDEX
+                "quran.index=" + McpProtocolIntegrationTest.QURAN_INDEX,
+                "narrator.index=" + McpProtocolIntegrationTest.NARRATOR_INDEX
         })
 // The two index properties above give this class a different @SpringBootTest signature from
 // the rest of the suite, so Spring builds it a second application context instead of sharing
@@ -79,6 +82,7 @@ class McpProtocolIntegrationTest {
     private static final String INDEX = "rewayaat_mcp_test";
     static final String INSIGHTS_INDEX = "rewayaat_mcp_test_insights";
     static final String QURAN_INDEX = "rewayaat_mcp_test_quran";
+    static final String NARRATOR_INDEX = "rewayaat_mcp_test_narrators";
     private static final String MCP = "/mcp";
 
     @Autowired
@@ -180,11 +184,56 @@ class McpProtocolIntegrationTest {
                  "english":"A narration carrying the marker zzcorpus.","arabic":"رواية",
                  "history":"revised zzquux","topic_tags":["records"]}""");
         seedVerseIndices();
+        seedChains();
         client.indices().refresh(r -> r.index(INDEX));
+        client.indices().refresh(r -> r.index(NARRATOR_INDEX));
 
         sessionId = null;
         requestId = 0;
         initialize();
+    }
+
+    /**
+     * Real narrations with their resolved chains, and the narrators those chains name.
+     *
+     * <p>Both files were copied out of the live index: {@code real-chains.json} holds the
+     * chain fields of nine narrations exactly as Elasticsearch returned them, and
+     * {@code real-narrators.json} the name fields of the men they resolve to. They are
+     * indexed under their real ids, with the chain fields mapped dynamically as in
+     * production - which gives {@code chain_people.p} the {@code .keyword} subfield the
+     * narrator-to-narrations query depends on. Only {@code english} is replaced, by a fixed
+     * marker, so the real wording cannot change what an unrelated search in this class
+     * counts; the Arabic is kept because the chain's offsets refer to it.
+     */
+    private void seedChains() throws Exception {
+        if (client.indices().exists(ExistsRequest.of(b -> b.index(NARRATOR_INDEX))).value()) {
+            client.indices().delete(DeleteIndexRequest.of(b -> b.index(NARRATOR_INDEX)));
+        }
+        client.indices().create(CreateIndexRequest.of(b -> b.index(NARRATOR_INDEX)));
+
+        Map<String, Map<String, Object>> narrations = readFixture("/mcp/real-chains.json");
+        int n = 0;
+        for (Map.Entry<String, Map<String, Object>> entry : narrations.entrySet()) {
+            Map<String, Object> source = new java.util.LinkedHashMap<>(entry.getValue());
+            source.put("english", "Chain fixture narration " + (++n) + ".");
+            index(entry.getKey(), mapper.writeValueAsString(source));
+        }
+        for (Map.Entry<String, Map<String, Object>> entry
+                : readFixture("/mcp/real-narrators.json").entrySet()) {
+            index(NARRATOR_INDEX, entry.getKey(), mapper.writeValueAsString(entry.getValue()));
+        }
+        // A man who exists but stands in no chain here, so "linked to no narration" is a real
+        // case. Invented, and the only invented record in the fixtures.
+        index(NARRATOR_INDEX, "n000999", """
+                {"person_id":"n000999","display_ar":"رجل لا يظهر","display_en":"A Man In No Chain",
+                 "slug":"a-man-in-no-chain"}""");
+    }
+
+    private Map<String, Map<String, Object>> readFixture(String resource) throws Exception {
+        try (java.io.InputStream in = getClass().getResourceAsStream(resource)) {
+            assertNotNull(in, "missing test resource " + resource);
+            return mapper.readValue(in, new com.fasterxml.jackson.core.type.TypeReference<>() { });
+        }
     }
 
     /**
@@ -232,7 +281,7 @@ class McpProtocolIntegrationTest {
 
     @AfterEach
     void cleanup() throws Exception {
-        for (String index : List.of(INDEX, INSIGHTS_INDEX, QURAN_INDEX)) {
+        for (String index : List.of(INDEX, INSIGHTS_INDEX, QURAN_INDEX, NARRATOR_INDEX)) {
             if (client != null
                     && client.indices().exists(ExistsRequest.of(b -> b.index(index))).value()) {
                 client.indices().delete(DeleteIndexRequest.of(b -> b.index(index)));
@@ -674,6 +723,471 @@ class McpProtocolIntegrationTest {
             String path = java.net.URI.create(src).getPath();
             assertNotNull(getClass().getResource("/static" + path), "missing " + path);
         }
+    }
+
+    // ---- the chain of transmission ----
+
+    private static final String KAFI_10 = "Al-Kafi-Volume-1-Kulayni:10";
+    private static final String KAFI_969 = "Al-Kafi-Volume-2-Kulayni:969";
+    private static final String KAFI_878 = "Al-Kafi-Volume-1-Kulayni:878";
+    private static final String KAMIL_409 = "Kamil-al-Ziyarat-Qummi:409";
+    private static final String NAHJ_125 = "Nahj-al-Balagha-Radi:125";
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> isnadOf(Map<String, Object> fetched) {
+        return (Map<String, Object>) ((Map<String, Object>) fetched.get("metadata")).get("isnad");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Map<String, Object>> stepsOf(Map<String, Object> isnad) {
+        return (List<Map<String, Object>>) isnad.get("steps");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> narratorOf(Map<String, Object> step) {
+        return (Map<String, Object>) step.get("narrator");
+    }
+
+    @Test
+    void fetchCarriesTheChainWithEveryManNamedLinkedAndOrdered() throws Exception {
+        Map<String, Object> out = call("fetch", Map.of("id", KAFI_10));
+        Map<String, Object> isnad = isnadOf(out);
+        List<Map<String, Object>> steps = stepsOf(isnad);
+
+        assertEquals("en+ar", isnad.get("language"));
+        assertEquals(List.of("n000706", "n000034", "n029388", "n036590", "i06"),
+                steps.stream().map(step -> narratorOf(step).get("id")).toList(),
+                "Ali b. Ibrahim, his father, al-Nawfali, al-Sakuni, al-Sadiq, in printed order");
+        assertEquals(List.of("Ali ibn Ibrahim ibn Hashim", "Ibrahim ibn Hashim",
+                        "al-Husayn ibn Zayd al-Nawfali", "Ismail ibn Abi Ziyad al-Sakuni",
+                        "Jaʿfar al-Ṣādiq"),
+                steps.stream().map(step -> narratorOf(step).get("name")).toList());
+
+        String url = String.valueOf(narratorOf(steps.get(0)).get("url"));
+        assertTrue(url.contains("/narrator/n000706/ali-ibn-ibrahim-ibn-hashim"), url);
+        assertTrue(url.endsWith("?utm_source=other&utm_medium=ai-connector"
+                        + "&utm_campaign=hadith-connector&utm_content=fetch"),
+                "A narrator link is this site's link, so the connector tags it like any other: "
+                        + url);
+    }
+
+    @Test
+    void fetchSaysHowEachManWasReachedSoConventionIsNotPassedOffAsAPlainMatch() throws Exception {
+        List<Map<String, Object>> steps = stepsOf(isnadOf(call("fetch", Map.of("id", KAFI_10))));
+
+        assertEquals(List.of("convention", "context", "sole_name", "sole_name", "sole_name"),
+                steps.stream().map(step -> step.get("basis")).toList());
+        @SuppressWarnings("unchecked")
+        Map<String, String> legend = (Map<String, String>) isnadOf(
+                call("fetch", Map.of("id", KAFI_10))).get("legend");
+        assertTrue(legend.get("convention").contains("not on the name alone"));
+        assertTrue(legend.get("context").contains("weaker identification"));
+    }
+
+    @Test
+    void fetchMarksUnansweredStepsAndNamesNobodyForThem() throws Exception {
+        Map<String, Object> isnad = isnadOf(call("fetch", Map.of("id", KAFI_878)));
+        List<Map<String, Object>> steps = stepsOf(isnad);
+
+        assertEquals(List.of("ambiguous", "ambiguous", "unidentified", "unidentified",
+                        "unidentified", "group"),
+                steps.stream().map(step -> step.get("status")).toList());
+        for (Map<String, Object> step : steps) {
+            assertFalse(step.containsKey("narrator"),
+                    "step " + step.get("step") + " is unanswered and must name no one");
+        }
+        assertEquals("6 steps; 0 identified; 6 not identified (2 ambiguous, 3 unidentified, "
+                + "1 group).", isnad.get("summary"));
+    }
+
+    @Test
+    void fetchKeepsAnUnansweredStepInPlaceBetweenAnsweredOnes() throws Exception {
+        List<Map<String, Object>> steps = stepsOf(isnadOf(call("fetch", Map.of("id", KAMIL_409))));
+
+        assertEquals(List.of("identified", "identified", "identified", "group", "identified"),
+                steps.stream().map(step -> step.get("status")).toList());
+        assertEquals("i06", narratorOf(steps.get(4)).get("id"));
+    }
+
+    @Test
+    void fetchGivesTheEnglishWordsAndFallsBackToArabicForAStepTheTranslationDrops()
+            throws Exception {
+        Map<String, Object> isnad = isnadOf(call("fetch", Map.of("id", KAFI_969)));
+        List<Map<String, Object>> steps = stepsOf(isnad);
+
+        assertEquals("Al-Husayn ibn Muhammad", steps.get(0).get("words"));
+        assertEquals("Mu’alla ibn Muhammad", steps.get(1).get("words"));
+        assertFalse(steps.get(0).containsKey("words_language"));
+        assertEquals("ar", steps.get(5).get("words_language"),
+                "The English translation carries no Imam here; the step must say its words "
+                        + "are Arabic rather than present Arabic as English.");
+        assertEquals("i05", narratorOf(steps.get(5)).get("id"));
+        assertTrue(String.valueOf(isnad.get("note")).contains("given in Arabic"));
+    }
+
+    @Test
+    void fetchGivesEnglishWithTheArabicBesideItBecauseItsSchemaCannotTakeALanguage()
+            throws Exception {
+        Map<String, Object> isnad = isnadOf(call("fetch", Map.of("id", KAFI_969)));
+        List<Map<String, Object>> steps = stepsOf(isnad);
+
+        assertEquals("en+ar", isnad.get("language"));
+        assertEquals("Mu’alla ibn Muhammad", steps.get(1).get("words"));
+        assertEquals("معلى بن محمد", bare(steps.get(1).get("words_ar")));
+        assertEquals("Muḥammad al-Bāqir", narratorOf(steps.get(5)).get("name"));
+        assertEquals("محمد بن علي الباقر", narratorOf(steps.get(5)).get("name_ar"));
+    }
+
+    @Test
+    void searchInArabicGivesArabicWordsAndArabicNames() throws Exception {
+        Map<String, Object> out = call("search_hadith", Map.of("query", "fixture",
+                "book", "Al-Kāfi", "include_isnad", true, "language", "ar", "limit", 6));
+        Map<?, ?> row = ((List<?>) out.get("results")).stream().map(r -> (Map<?, ?>) r)
+                .filter(r -> KAFI_969.equals(r.get("id"))).findFirst().orElseThrow();
+        @SuppressWarnings("unchecked")
+        Map<String, Object> isnad = (Map<String, Object>) row.get("isnad");
+        List<Map<String, Object>> steps = stepsOf(isnad);
+
+        assertEquals("ar", isnad.get("language"));
+        assertEquals("محمد بن علي الباقر", narratorOf(steps.get(5)).get("name"));
+        assertEquals("معلى بن محمد", narratorOf(steps.get(1)).get("name"));
+        assertEquals("معلى بن محمد", bare(steps.get(1).get("words")),
+                "the words are the printed ones; only the vowel marks are ignored here");
+        assertNull(isnad.get("note"), "nothing falls back in Arabic");
+    }
+
+    @Test
+    void fetchOfANarrationWithNoChainSaysNoAnalysedChainNotNoChain() throws Exception {
+        Map<String, Object> isnad = isnadOf(call("fetch", Map.of("id", NAHJ_125)));
+
+        assertEquals(List.of(), isnad.get("steps"));
+        assertTrue(String.valueOf(isnad.get("note")).contains("does not mean it has none"));
+    }
+
+    @Test
+    void fetchOfANarrationBeforeAnyChainWasSeededStillWorks() throws Exception {
+        // Test-Book:1 has no chain fields at all, like the 5,900 narrations that predate or
+        // fall outside the analysis.
+        Map<String, Object> out = call("fetch", Map.of("id", "Test-Book:1"));
+        assertEquals(List.of(), stepsOf(isnadOf(out)));
+        assertTrue(String.valueOf(out.get("text")).contains("heavens wept"));
+    }
+
+    @Test
+    void searchRejectsALanguageItDoesNotHave() throws Exception {
+        Map<String, Object> result = callRaw("search_hadith",
+                Map.of("query", "wept", "include_isnad", true, "language", "fr"));
+
+        assertEquals(Boolean.TRUE, result.get("isError"));
+        assertTrue(contentText(result).contains("/language"),
+                "the protocol layer validates the enum from the published schema and names "
+                        + "the argument: " + contentText(result));
+    }
+
+    @Test
+    void fetchStillTakesOnlyIdAsRequiredSoChatGptsCallIsUnchanged() throws Exception {
+        assertEquals(List.of("id"), required(tool("fetch")));
+        @SuppressWarnings("unchecked")
+        Map<String, Object> properties = (Map<String, Object>) ((Map<String, Object>) tool("fetch")
+                .get("inputSchema")).get("properties");
+        assertEquals(java.util.Set.of("id"), properties.keySet(),
+                "ChatGPT's fixed schema: one argument, and ArchitectureRulesTest holds it there");
+    }
+
+    @Test
+    void fetchDoesNotLeakTheRawChainFields() throws Exception {
+        String json = mapper.writeValueAsString(call("fetch", Map.of("id", KAFI_10)));
+
+        for (String raw : List.of("chain_people", "chain_links", "chain_links_en")) {
+            assertFalse(json.contains(raw), raw + " is the store's shape; the tool returns steps");
+        }
+    }
+
+    @Test
+    void aSixStepChainWithNamesAndLinksStaysUnderAFixedCeiling()
+            throws Exception {
+        // Not a snapshot: a ceiling. The six-step chain of Kafi 969 with names and links is
+        // what a client pays on every fetch, and doubling it should fail here, not in a
+        // client's context window.
+        int size = mapper.writeValueAsString(isnadOf(call("fetch", Map.of("id", KAFI_969)))).length();
+        assertTrue(size < 4_500, "a six-step chain cost " + size + " characters");
+    }
+
+    // ---- the chain on lists: lean by default, opt-in ----
+
+    @Test
+    void searchResultsStayLeanByDefault() throws Exception {
+        Map<String, Object> out = call("search_hadith", Map.of("query", "fixture"));
+
+        assertEquals(8, ((Number) out.get("total_matches")).intValue());
+        for (Object row : (List<?>) out.get("results")) {
+            assertFalse(((Map<?, ?>) row).containsKey("isnad"),
+                    "a chain on every hit is what the default must not pay for");
+        }
+    }
+
+    @Test
+    void searchCanReturnChainsOnRequestAndThenCapsThePageSize() throws Exception {
+        Map<String, Object> out = call("search_hadith",
+                Map.of("query", "fixture", "include_isnad", true, "limit", 15));
+        List<?> results = (List<?>) out.get("results");
+
+        assertEquals(6, results.size(), "limit 15 is clamped to 6 when chains are included");
+        assertEquals(8, ((Number) out.get("total_matches")).intValue(),
+                "the true total is still reported, so a small page is not a lossy one");
+        for (Object row : results) {
+            Map<?, ?> isnad = (Map<?, ?>) ((Map<?, ?>) row).get("isnad");
+            assertNotNull(isnad, "every row carries its chain, even where it is empty");
+            assertTrue(isnad.containsKey("steps"));
+        }
+    }
+
+    @Test
+    void searchWithChainsShowsTheSameStepsFetchDoes() throws Exception {
+        Map<String, Object> out = call("search_hadith",
+                Map.of("query", "\"Chain fixture narration\"", "book", "Kāmil al-Ziyārāt",
+                        "include_isnad", true));
+        Map<?, ?> row = (Map<?, ?>) ((List<?>) out.get("results")).get(0);
+        assertEquals(KAMIL_409, row.get("id"));
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> steps = stepsOf((Map<String, Object>) row.get("isnad"));
+        assertEquals(List.of("identified", "identified", "identified", "group", "identified"),
+                steps.stream().map(step -> step.get("status")).toList());
+    }
+
+    @Test
+    void searchRejectsAnIncludeIsnadThatIsNotABoolean() throws Exception {
+        Map<String, Object> result = callRaw("search_hadith",
+                Map.of("query", "wept", "include_isnad", "perhaps"));
+        assertEquals(Boolean.TRUE, result.get("isError"));
+        assertTrue(contentText(result).contains("include_isnad"), contentText(result));
+    }
+
+    @Test
+    void getChapterCanReturnChainsOnRequest() throws Exception {
+        Map<String, Object> seeded = call("fetch", Map.of("id", KAFI_10));
+        Map<String, Object> metadata = asMap(seeded.get("metadata"));
+        Map<String, Object> out = call("get_chapter", Map.of(
+                "book", metadata.get("book"), "chapter", metadata.get("chapter"),
+                "include_isnad", true));
+
+        Map<?, ?> row = ((List<?>) out.get("narrations")).stream()
+                .map(n -> (Map<?, ?>) n)
+                .filter(n -> KAFI_10.equals(n.get("id")))
+                .findFirst().orElseThrow();
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> steps = stepsOf((Map<String, Object>) row.get("isnad"));
+        assertEquals("Ali ibn Ibrahim ibn Hashim", narratorOf(steps.get(0)).get("name"));
+    }
+
+    @Test
+    void getChapterIsLeanWithoutTheFlag() throws Exception {
+        Map<String, Object> metadata = asMap(call("fetch", Map.of("id", KAFI_10)).get("metadata"));
+        Map<String, Object> out = call("get_chapter", Map.of(
+                "book", metadata.get("book"), "chapter", metadata.get("chapter")));
+        for (Object row : (List<?>) out.get("narrations")) {
+            assertFalse(((Map<?, ?>) row).containsKey("isnad"));
+        }
+    }
+
+    // ---- from a narrator to his narrations ----
+
+    @Test
+    void hadithOfNarratorListsTheNarrationsWhoseChainNamesHimWithATrueTotal() throws Exception {
+        Map<String, Object> out = call("hadith_of_narrator", Map.of("id", "i06"));
+
+        assertEquals("i06", asMap(out.get("narrator")).get("id"));
+        assertEquals("Jaʿfar al-Ṣādiq", asMap(out.get("narrator")).get("name"));
+        assertEquals(2, ((Number) out.get("total_narrations")).intValue(),
+                "al-Sadiq closes the chains of Kafi 10 and Kamil 409 and no other seeded one");
+        List<?> rows = (List<?>) out.get("narrations");
+        assertEquals(List.of(KAFI_10, KAMIL_409),
+                rows.stream().map(r -> ((Map<?, ?>) r).get("id")).toList(),
+                "ordered by book then number: Al-Kāfi before Kāmil al-Ziyārāt");
+        assertTrue(String.valueOf(out.get("note")).contains("lower bound"));
+    }
+
+    @Test
+    void hadithOfNarratorSaysWhereHeStandsAndHowHeWasIdentifiedThere() throws Exception {
+        Map<String, Object> out = call("hadith_of_narrator", Map.of("id", "n000034"));
+
+        assertEquals(1, ((Number) out.get("total_narrations")).intValue());
+        Map<?, ?> row = (Map<?, ?>) ((List<?>) out.get("narrations")).get(0);
+        assertEquals(KAFI_10, row.get("id"));
+        assertTrue(String.valueOf(row.get("english")).startsWith("Chain fixture"),
+                "the row is a full narration, not an id");
+        List<?> places = (List<?>) row.get("his_place");
+        assertEquals(1, places.size());
+        Map<?, ?> place = (Map<?, ?>) places.get(0);
+        assertEquals(2, ((Number) place.get("step")).intValue());
+        assertEquals(5, ((Number) place.get("of")).intValue());
+        assertEquals("context", place.get("basis"),
+                "Ibrahim b. Hashim is reached here through «his father», an inference");
+        assertEquals("relative", place.get("kind"));
+        assertEquals("ar", place.get("words_language"));
+    }
+
+    @Test
+    void hadithOfNarratorSurfacesAConventionAsAConvention() throws Exception {
+        Map<String, Object> out = call("hadith_of_narrator", Map.of("id", "n000706"));
+        Map<?, ?> place = (Map<?, ?>) ((List<?>) ((Map<?, ?>) ((List<?>) out.get("narrations"))
+                .get(0)).get("his_place")).get(0);
+
+        assertEquals("convention", place.get("basis"));
+        assertEquals("Ali ibn Ibrahim", place.get("words"));
+        assertTrue(asMap(out.get("legend")).containsKey("convention"),
+                "the legend travels with the codes the page uses");
+    }
+
+    @Test
+    void hadithOfNarratorMatchesTheManAndNotTheWords() throws Exception {
+        // Muhammad b. Yahya appears as a bare name in two chains of the seed, but only the
+        // one resolved to al-Attar (n034836) is his. A text search for the words would find
+        // every Muhammad b. Yahya; the id finds the man the resolver decided on.
+        Map<String, Object> out = call("hadith_of_narrator", Map.of("id", "n034836"));
+        assertEquals(1, ((Number) out.get("total_narrations")).intValue());
+        assertEquals("Al-Kafi-Volume-6-Kulayni:1308",
+                ((Map<?, ?>) ((List<?>) out.get("narrations")).get(0)).get("id"));
+        Map<?, ?> place = (Map<?, ?>) ((List<?>) ((Map<?, ?>) ((List<?>) out.get("narrations"))
+                .get(0)).get("his_place")).get(0);
+        assertEquals("back_reference", place.get("kind"));
+        assertEquals("convention", place.get("basis"));
+    }
+
+    @Test
+    void hadithOfNarratorNarrowsByBookAndPages() throws Exception {
+        Map<String, Object> inBook = call("hadith_of_narrator",
+                Map.of("id", "i06", "book", "Kāmil al-Ziyārāt"));
+        assertEquals(1, ((Number) inBook.get("total_narrations")).intValue());
+        assertEquals(KAMIL_409, ((Map<?, ?>) ((List<?>) inBook.get("narrations")).get(0)).get("id"));
+
+        Map<String, Object> second = call("hadith_of_narrator",
+                Map.of("id", "i06", "limit", 1, "offset", 1));
+        assertEquals(2, ((Number) second.get("total_narrations")).intValue());
+        assertEquals(KAMIL_409, ((Map<?, ?>) ((List<?>) second.get("narrations")).get(0)).get("id"));
+
+        Map<String, Object> first = call("hadith_of_narrator", Map.of("id", "i06", "limit", 1));
+        assertEquals(KAFI_10, ((Map<?, ?>) ((List<?>) first.get("narrations")).get(0)).get("id"));
+        assertTrue(String.valueOf(first.get("note")).contains("Page with `offset`"));
+    }
+
+    @Test
+    void hadithOfNarratorInArabicNamesHimAndQuotesTheArabicWords() throws Exception {
+        Map<String, Object> out = call("hadith_of_narrator", Map.of("id", "n029388", "language", "ar"));
+
+        assertEquals("الحسين بن يزيد بن محمد بن عبد الملك النوفلي نوفل النخع",
+                asMap(out.get("narrator")).get("name"));
+        Map<?, ?> place = (Map<?, ?>) ((List<?>) ((Map<?, ?>) ((List<?>) out.get("narrations"))
+                .get(0)).get("his_place")).get(0);
+        assertEquals("النوفلي", bare(place.get("words")));
+        assertNull(place.get("words_language"));
+    }
+
+    @Test
+    void aManWhoStandsInNoChainGetsAZeroThatSaysItIsNotAFinding() throws Exception {
+        Map<String, Object> out = call("hadith_of_narrator", Map.of("id", "n000999"));
+
+        assertEquals(0, ((Number) out.get("total_narrations")).intValue());
+        assertEquals(List.of(), out.get("narrations"));
+        String note = String.valueOf(out.get("note"));
+        assertTrue(note.contains("lower bound"), note);
+        assertTrue(note.contains("can stand in many chains and show none here"), note);
+    }
+
+    @Test
+    void hadithOfNarratorRejectsANameBecauseAnIdIsWhatItTakes() throws Exception {
+        Map<String, Object> result = callRaw("hadith_of_narrator", Map.of("id", "Zurara"));
+
+        assertEquals(Boolean.TRUE, result.get("isError"));
+        assertTrue(contentText(result).contains("lookup_narrator"), contentText(result));
+    }
+
+    @Test
+    void hadithOfNarratorRejectsAnIdThatLooksRightButIsNotInTheIndex() throws Exception {
+        Map<String, Object> result = callRaw("hadith_of_narrator", Map.of("id", "n123456"));
+
+        assertEquals(Boolean.TRUE, result.get("isError"));
+        assertTrue(contentText(result).contains("No narrator with id 'n123456'"));
+    }
+
+    @Test
+    void hadithOfNarratorRequiresAnId() throws Exception {
+        Map<String, Object> result = callRaw("hadith_of_narrator", Map.of("limit", 3));
+
+        assertEquals(Boolean.TRUE, result.get("isError"));
+        assertTrue(contentText(result).contains("id"), contentText(result));
+        assertEquals(List.of("id"), required(tool("hadith_of_narrator")));
+    }
+
+    @Test
+    void hadithOfNarratorRejectsALimitThatIsNotANumber() throws Exception {
+        Map<String, Object> result = callRaw("hadith_of_narrator",
+                Map.of("id", "i06", "limit", "many"));
+        assertEquals(Boolean.TRUE, result.get("isError"));
+        assertTrue(contentText(result).contains("limit"), contentText(result));
+    }
+
+    @Test
+    void theNarratorToolsDescribeTheirLimitsAndPointAtEachOther() throws Exception {
+        String hadithOf = String.valueOf(tool("hadith_of_narrator").get("description"));
+        assertTrue(hadithOf.contains("floor, not a census"));
+        assertTrue(hadithOf.contains("`basis`"));
+        assertTrue(hadithOf.contains("lookup_narrator"));
+
+        assertTrue(String.valueOf(tool("lookup_narrator").get("description"))
+                        .contains("hadith_of_narrator"),
+                "a model that has just looked a man up must be told where his narrations are");
+        assertTrue(String.valueOf(tool("search_hadith").get("description"))
+                        .contains("hadith_of_narrator"),
+                "search_hadith used to tell a model that searching a name was a poor way to "
+                        + "find a narrator's narrations, with nothing better to offer");
+
+        String fetch = String.valueOf(tool("fetch").get("description"));
+        assertTrue(fetch.contains("`identified`") || fetch.contains("identified"));
+        assertTrue(fetch.contains("unanswered on purpose"));
+    }
+
+    /** Arabic with its vowel marks removed, for comparing words without depending on mark order. */
+    private static String bare(Object arabic) {
+        return String.valueOf(arabic).replaceAll("[\\u064B-\\u0652\\u0670]", "").trim();
+    }
+
+    @Autowired
+    private McpToolCatalog catalog;
+
+    @Test
+    void theToolsRejectBadArgumentsThemselvesWhenCalledWithoutTheProtocol() {
+        // The website's chatbot calls the catalog directly, so the schema check the MCP
+        // transport performs is not there. The tools must refuse on their own, in the same
+        // way - an IllegalArgumentException the catalog turns into a readable tool error.
+        assertThrows(IllegalArgumentException.class, () -> catalog.invoke("search_hadith",
+                Map.of("query", "wept", "language", "fr")));
+        assertThrows(IllegalArgumentException.class, () -> catalog.invoke("fetch", Map.of()));
+        assertThrows(IllegalArgumentException.class, () -> catalog.invoke("search_hadith",
+                Map.of("query", "wept", "include_isnad", "perhaps")));
+        assertThrows(IllegalArgumentException.class, () -> catalog.invoke("hadith_of_narrator", Map.of()));
+        assertThrows(IllegalArgumentException.class, () -> catalog.invoke("hadith_of_narrator",
+                Map.of("id", "Zurara")));
+        assertThrows(IllegalArgumentException.class, () -> catalog.invoke("hadith_of_narrator",
+                Map.of("id", "i06", "limit", "many")));
+        assertThrows(IllegalArgumentException.class, () -> catalog.invoke("hadith_of_narrator",
+                Map.of("id", "i06", "language", "fr")));
+        assertThrows(IllegalArgumentException.class, () -> catalog.invoke("hadith_of_narrator",
+                Map.of("id", "n123456")));
+    }
+
+    @Test
+    void theCatalogServesTheSameChainWithoutTheProtocolOrTheLinkTagging() throws Exception {
+        Map<String, Object> out = catalog.invoke("fetch", Map.of("id", KAFI_10));
+        Map<String, Object> first = stepsOf(isnadOf(out)).get(0);
+
+        assertFalse(String.valueOf(narratorOf(first).get("url")).contains("utm_"),
+                "the site's own chatbot is not connector traffic");
+        assertEquals("n000706", narratorOf(first).get("id"));
+    }
+
+    private static String contentText(Map<String, Object> result) {
+        return String.valueOf(((Map<?, ?>) ((List<?>) result.get("content")).get(0)).get("text"));
     }
 
     // ---- protocol plumbing ----

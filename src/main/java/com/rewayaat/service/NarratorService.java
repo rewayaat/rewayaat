@@ -50,6 +50,11 @@ public class NarratorService {
             .expireAfterWrite(Duration.ofHours(6))
             .build();
 
+    private final Cache<String, Map<String, Object>> nameCache = Caffeine.newBuilder()
+            .maximumSize(5000)
+            .expireAfterWrite(Duration.ofHours(6))
+            .build();
+
     /** One narrator by his permanent id, or null where the index does not hold him. */
     public Map<String, Object> getNarrator(String personId) {
         if (!enabled || personId == null || personId.trim().isEmpty()) {
@@ -75,6 +80,57 @@ public class NarratorService {
             LOGGER.warn("Could not read narrator {}: {}", id, e.getMessage());
             return null;
         }
+    }
+
+    /**
+     * The names and page slugs of several narrators at once, without their entries.
+     *
+     * <p>A chain of twelve steps needs twelve names, and a narrator document is mostly
+     * entries - the books' own words, page after page - none of which a chain wants. One
+     * multi-get that includes only the name fields costs the same round trip as fetching a
+     * single man and a fraction of the bytes. An id the index does not hold is left out of
+     * the answer rather than mapped to null, so a caller can tell "unknown" from "unnamed".
+     */
+    public Map<String, Map<String, Object>> names(java.util.Collection<String> personIds) {
+        Map<String, Map<String, Object>> found = new LinkedHashMap<>();
+        if (!enabled || personIds == null || personIds.isEmpty()) {
+            return found;
+        }
+        List<String> missing = new ArrayList<>();
+        for (String id : new java.util.LinkedHashSet<>(personIds)) {
+            if (id == null || id.isBlank()) {
+                continue;
+            }
+            Map<String, Object> known = nameCache.getIfPresent(id);
+            if (known != null) {
+                found.put(id, known);
+            } else {
+                missing.add(id);
+            }
+        }
+        if (missing.isEmpty()) {
+            return found;
+        }
+        try (ESClientProvider provider = new ESClientProvider()) {
+            co.elastic.clients.elasticsearch.core.MgetResponse<Map> response = provider.client()
+                    .mget(m -> m.index(indexName).ids(missing).sourceIncludes(
+                            List.of("person_id", "display_ar", "display_en", "slug", "moved_to")),
+                            Map.class);
+            for (co.elastic.clients.elasticsearch.core.mget.MultiGetResponseItem<Map> item
+                    : response.docs()) {
+                if (item.isFailure() || item.result() == null || !item.result().found()
+                        || item.result().source() == null) {
+                    continue;
+                }
+                @SuppressWarnings("unchecked")
+                Map<String, Object> source = (Map<String, Object>) item.result().source();
+                nameCache.put(item.result().id(), source);
+                found.put(item.result().id(), source);
+            }
+        } catch (Exception e) {
+            LOGGER.warn("Could not read narrator names {}: {}", missing, e.getMessage());
+        }
+        return found;
     }
 
     /**

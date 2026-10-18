@@ -33,7 +33,7 @@ public class LookupNarratorTool implements McpTool {
     private final String baseUrl;
 
     public LookupNarratorTool(NarratorService narrators,
-                              @Value("${rewayaat.canonical-url:https://hadith.academyofislam.com}")
+                              @Value("${rewayaat.canonical-url:https://rewayaat.info}")
                               String baseUrl) {
         this.narrators = narrators;
         this.baseUrl = baseUrl;
@@ -64,7 +64,10 @@ public class LookupNarratorTool implements McpTool {
                 + "books themselves say — a quotation reproduced, a citation by number, a "
                 + "cross-reference — not by name alone. Absence means absent from these eight "
                 + "books, not that no such narrator existed; and a man the books mention only "
-                + "in a chain, with no entry anywhere, has no page here.";
+                + "in a chain, with no entry anywhere, has no page here.\n\n"
+                + "This is about what the Rijal books say of a man, not about what he "
+                + "narrates. For the narrations he transmits, pass his `id` to "
+                + "`hadith_of_narrator`; for the men in one narration's chain, use `fetch`.";
     }
 
     @Override

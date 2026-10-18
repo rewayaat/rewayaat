@@ -1,9 +1,11 @@
 package com.rewayaat.mcp.tools;
 
+import com.rewayaat.mcp.ChainView;
 import com.rewayaat.mcp.CorpusScope;
 import com.rewayaat.mcp.McpTool;
 import com.rewayaat.mcp.NarrationRepository;
 import com.rewayaat.mcp.NarrationView;
+import com.rewayaat.service.NarratorService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -35,13 +37,17 @@ public class GetChapterTool implements McpTool {
     // the caller how much is left, so a small page costs nothing but a second call.
     private static final int DEFAULT_LIMIT = 10;
     private static final int MAX_LIMIT = 20;
+    // See SearchHadithTool: a chain is several hundred tokens a narration.
+    private static final int MAX_LIMIT_WITH_ISNAD = 6;
 
     private final NarrationRepository repository;
+    private final NarratorService narrators;
     private final String baseUrl;
 
-    public GetChapterTool(NarrationRepository repository,
+    public GetChapterTool(NarrationRepository repository, NarratorService narrators,
                           @Value("${rewayaat.canonical-url:https://rewayaat.info}") String baseUrl) {
         this.repository = repository;
+        this.narrators = narrators;
         this.baseUrl = baseUrl;
     }
 
@@ -67,7 +73,11 @@ public class GetChapterTool implements McpTool {
                 + "with `offset` when `chapter_size` exceeds what you received.\n\n"
                 + "Note that chapter titles are an unreliable guide to contents - narrations "
                 + "sit under headings that do not describe them. Do not infer a chapter's "
-                + "subject from its title without reading it.";
+                + "subject from its title without reading it.\n\n"
+                + "Narrations come without their chains of transmission. Set `include_isnad` "
+                + "to add each one's chain, with narrators resolved where the books allow and "
+                + "a status on every step; it makes the page much larger, so `limit` is "
+                + "capped at " + MAX_LIMIT_WITH_ISNAD + " when it is on.";
     }
 
     @Override
@@ -92,7 +102,17 @@ public class GetChapterTool implements McpTool {
                                         + ", max " + MAX_LIMIT + ")."),
                         "offset", Map.of(
                                 "type", "integer",
-                                "description", "Narrations to skip.")),
+                                "description", "Narrations to skip."),
+                        "include_isnad", Map.of(
+                                "type", "boolean",
+                                "description", "Also return each narration's chain of "
+                                        + "transmission. Default false; caps `limit` at "
+                                        + MAX_LIMIT_WITH_ISNAD + "."),
+                        "language", Map.of(
+                                "type", "string",
+                                "enum", List.of("en", "ar"),
+                                "description", "Language of the chain's words and narrator "
+                                        + "names when `include_isnad` is set (default 'en').")),
                 "required", List.of("book", "chapter"));
     }
 
@@ -101,14 +121,20 @@ public class GetChapterTool implements McpTool {
         String book = ToolArguments.requiredString(arguments, "book");
         String chapter = ToolArguments.requiredString(arguments, "chapter");
         String volume = ToolArguments.optionalString(arguments, "volume", "");
-        int limit = ToolArguments.boundedInt(arguments, "limit", DEFAULT_LIMIT, 1, MAX_LIMIT);
+        boolean withIsnad = ToolArguments.optionalBoolean(arguments, "include_isnad");
+        String language = ToolArguments.language(arguments);
+        int limit = ToolArguments.boundedInt(arguments, "limit", DEFAULT_LIMIT, 1,
+                withIsnad ? MAX_LIMIT_WITH_ISNAD : MAX_LIMIT);
         int offset = ToolArguments.boundedInt(arguments, "offset", 0, 0, 9_000);
 
-        NarrationRepository.Page page = repository.chapter(book, chapter, volume, offset, limit);
+        NarrationRepository.Page page = repository.chapter(book, chapter, volume, offset, limit, withIsnad);
 
         List<Map<String, Object>> narrations = new ArrayList<>();
         for (NarrationRepository.Narration narration : page.narrations()) {
             narrations.add(NarrationView.summary(narration.id(), narration.source(), baseUrl));
+        }
+        if (withIsnad) {
+            ChainView.attach(page.narrations(), narrations, language, narrators, baseUrl);
         }
 
         Map<String, Object> out = new LinkedHashMap<>();
