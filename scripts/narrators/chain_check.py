@@ -26,7 +26,7 @@ W = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from chain_mentions import BLESSINGS, FUNCTION, JOINERS, OPENERS, bare  # noqa: E402
-from chain_resolve import GLUE, RELATIVE, key  # noqa: E402
+from chain_resolve import COMPILER_DIED, GLUE, RELATIVE, key  # noqa: E402
 
 TMP = f'{W}/tmp/narrators_chains'
 CHAINS = f'{TMP}/chains.jsonl'
@@ -57,10 +57,14 @@ def people():
     """person_id → the names the books file him under, folded, and who he narrated from."""
     with open(PEOPLE) as handle:
         rows = json.load(handle)
-    names, teachers, students, display, tabaqa = {}, {}, {}, {}, {}
+    names, teachers, students, display, tabaqa, died = {}, {}, {}, {}, {}, {}
     for person in rows:
         pid = person["person_id"]
         display[pid] = person.get("display_ar") or pid
+        years = [y.get("value") for y in (person.get("death_years") or [])]
+        years = [y for y in years if isinstance(y, int)]
+        if years:
+            died[pid] = min(years)
         # Which Imams the books place him with, 0 for the Prophet through 12. Half the
         # men here have it, and it dates a man far better than a death year does: only
         # 133 of the 15,504 carry one of those.
@@ -78,7 +82,7 @@ def people():
         students[pid] = {key(r.get("name_ar") or r.get("name") or "")
                          for field in ("narrated_to", "chain_to", "unsaid_to")
                          for r in person.get(field) or []} - {""}
-    return names, teachers, students, display, tabaqa
+    return names, teachers, students, display, tabaqa, died
 
 
 def chains():
@@ -89,6 +93,18 @@ def chains():
             row = json.loads(line)
             if row.get("chain_ar"):
                 held[row["id"]] = row["chain_ar"]
+    return held
+
+
+def compilers():
+    """id → when the man who wrote the book down died, where that year is settled."""
+    held = {}
+    with open(CHAINS) as handle:
+        for line in handle:
+            row = json.loads(line)
+            limit = COMPILER_DIED.get(row.get("source") or "")
+            if limit is not None:
+                held[row["id"]] = limit
     return held
 
 
@@ -126,10 +142,13 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--show", type=int, default=4, help="examples to print per check")
     parser.add_argument("--only", default="", help="run one check by name")
+    parser.add_argument("--resolved", default=RESOLVED,
+                        help="check a candidate run before it replaces the live file")
     args = parser.parse_args()
 
-    names, teachers, students, display, tabaqa = people()
+    names, teachers, students, display, tabaqa, died = people()
     printed = chains()
+    limits = compilers()
 
     found = Counter()
     examples = defaultdict(list)
@@ -142,7 +161,7 @@ def main():
         if len(examples[check]) < args.show:
             examples[check].append(f"{chain_id}  {detail}")
 
-    with open(RESOLVED) as handle:
+    with open(args.resolved) as handle:
         for line in handle:
             row = json.loads(line)
             chain_id = row["id"]
@@ -226,6 +245,16 @@ def main():
                     found["side-by-side"] += 1
                 if person and previous and person == previous and not beside:
                     flag("self", chain_id, f"{display.get(person, person)} narrating from himself")
+                # The one fact about an isnād that needs no rijālī to adjudicate it: a book
+                # cannot name a man who outlived the author who wrote it down. Where both
+                # years are known this is arithmetic, and it answers over the books' own
+                # relation lists, over our conventions and over an audit's agreement.
+                limit = limits.get(chain_id)
+                if person and limit is not None and died.get(person, 0) > limit:
+                    flag("outlived-the-compiler", chain_id,
+                         f"{display.get(person, person)} d.{died[person]}, "
+                         f"after the compiler d.{limit}"
+                         + (f" — {mention['because']}" if mention.get("because") else ""))
                 # The books' own word on the direction. A chain says A heard it from B; if
                 # every book that mentions the pair says B heard it from A, one of them is
                 # wrong, and it is worth a reader's eye either way.
@@ -274,7 +303,8 @@ def main():
 
     order = ["direction-confirmed", "side-by-side", "second-tariq",
              "span", "overlap", "name-not-his", "imam-kept-a-narrator",
-             "reversed", "too-early-for-his-shaykh", "self", "prose-linked",
+             "reversed", "too-early-for-his-shaykh", "outlived-the-compiler", "self",
+             "prose-linked",
              "joiner-in-link", "blessing-in-link", "prose-is-a-name",
              "same-words-different-men", "head-lost", "quoted-pointer", "empty"]
     print(f"\n  {len(printed):,} chains read, {sum(found.values()):,} flags\n")

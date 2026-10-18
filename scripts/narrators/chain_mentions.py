@@ -352,6 +352,13 @@ def segment(chain):
                     saluted = True
             if not blessed and bare(word[2]):
                 named.append(word)
+        # A name never opens on a function word, so one standing in front of it is not part
+        # of it: «كتبت إلى موسى بن جعفر عليه السلام» names the seventh Imam, and the link was
+        # being drawn over «إلى موسى بن جعفر» — the right man under an anchor that reads "to
+        # Mūsā b. Jaʿfar". 166 links were shaped that way. Only the front of the run is
+        # trimmed; a function word anywhere else still makes the whole run prose.
+        while named and bare(named[0][2]) in FUNCTION:
+            named.pop(0)
         if named:
             # The span stops at the last Arabic letter, so «محمّد بن الحسن؛» is linked as
             # «محمّد بن الحسن» and the semicolon is left outside the anchor.

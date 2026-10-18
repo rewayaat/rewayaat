@@ -315,6 +315,48 @@ def by_convention(table, book, folded):
     return "", "", 0
 
 
+# When each compiler died, for the books in this corpus. A chain cannot name a man who
+# outlived the author who wrote it down, so this is a hard limit on every link in a book —
+# the one fact about an isnād that needs no rijālī to adjudicate it.
+#
+# It caught a convention we had promoted ourselves. «محمد بن الحسن» in al-Ṣadūq's books is
+# Ibn al-Walīd, which eight auditors agreed on and which is right; the promotion rule then
+# carried that reading into every book, and al-Kāfī's 113 occurrences of the name were
+# answered with a man who died in 343 — fourteen years after al-Kulaynī, and who was
+# al-Ṣadūq's own teacher, a generation downstream. In al-Kāfī the name is al-Ṣaffār's
+# (d. 290) or Ibn Shamūn's (d. 258); the chains cannot say which, so it now says neither.
+# This is the same failure the kunya promotion made and the same guard answers it.
+#
+# Only compilers whose death year is settled and uncontested are listed. Ḥusayn b. Saʿīd
+# al-Ahwāzī and al-Ghaḍāʾirī are left out because theirs are not, and a limit we are unsure
+# of would refuse good links: on a guessed 254 for al-Ahwāzī this check called Ibn Abī
+# al-Khaṭṭāb (d. 262) impossible in Kitāb al-Zuhd, which he is not. Al-Muḥsinī is modern
+# and constrains nobody.
+COMPILER_DIED = {
+    "Shaykh Muḥammad b. Yaʿqūb al-Kulaynī": 329,
+    "Shaykh Muḥammad b. ʿAlī al-Ṣaduq": 381,
+    "al-Sharīf al-Raḍī": 406,
+    "Shaykh Muḥammad b. al-Ḥasan al-Ṭūsī": 460,
+    "Shaykh Jaʿfar b. Muḥammad al-Qummī": 368,
+    "Abū ʿAbd Allah Muḥammad b. Ibrāhīm al-Nuʿmānī": 360,
+    "Shaykh Muḥammad b. Muḥammad al-Mufīd": 413,
+}
+
+
+def outlived(pid, compiler, data):
+    """Whether this man died after the compiler did, so no chain of his can reach him.
+
+    The earliest year any rijālī gives is the one tested, and a man with no recorded year
+    is never refused: the point is to throw out the impossible, not to demand a date.
+    """
+    limit = COMPILER_DIED.get(compiler)
+    if limit is None:
+        return False
+    years = [y.get("value") for y in (data["by_id"].get(pid, {}).get("death_years") or [])]
+    years = [y for y in years if isinstance(y, int)]
+    return bool(years) and min(years) > limit
+
+
 # Whose father «حدثني أبي» is, at the head of a chain. The phrase is the compiler's own
 # voice — it is first person, and it stands first — so the answer is a fact about the book,
 # not about the chain: in al-Ṣadūq's books it is ʿAlī b. al-Ḥusayn b. Mūsā b. Bābawayh, and
@@ -349,6 +391,11 @@ def resolve_chain(mentions, data, book="", table=None, compiler=""):
             continue
         row["target"] = "narrator"
         candidates = held_by(keys[position], data)
+        # Dating is evidence like any other, and the cheapest kind: a candidate who outlived
+        # the compiler is not a reading of the name, so he is taken out before the others are
+        # weighed. Where he was the only candidate the name goes unanswered, which is the
+        # right answer — somebody holds that name and it is not a man this book could reach.
+        candidates = [pid for pid in candidates if not outlived(pid, compiler, data)]
         before = keys[position - 1] if position else ""
         after = keys[position + 1] if position + 1 < len(keys) else ""
         if not candidates:
@@ -428,6 +475,14 @@ def resolve_chain(mentions, data, book="", table=None, compiler=""):
             # chains. A single voice does not outrank a heading match.
             person, why, voices = by_convention(table, book, keys[position])
             if row["outcome"] == "chosen" and filed[position] and voices < 2:
+                continue
+            # A convention is the auditors' reading of one author's practice, and the
+            # promotion rule carries a reading seen in two books into all of them. Dating is
+            # what tells it where it may not go: no agreement among readers can put a man in
+            # a book written before he died. This is the gate that keeps al-Ṣadūq's Ibn
+            # al-Walīd out of al-Kulaynī's chains.
+            if person and outlived(person, compiler, data):
+                row["refused"] = "the man outlived the compiler"
                 continue
             if person and person != (row.get("person_id") or row.get("imam_id")):
                 row["outcome"] = "convention"
