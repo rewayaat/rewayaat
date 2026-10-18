@@ -42,23 +42,10 @@ public class Counts {
         } else if (number >= 3 && number <= 10) {
             key = base + "Few";
         }
-        String phrase = ui.say(key, grouped(number));
+        String phrase = ui.say(key, digits.grouped(number));
         // UiMessages hands back the key itself when it is missing, which means this base
         // has not been split into forms. The bare key always exists.
-        return phrase.equals(key) ? ui.say(base, grouped(number)) : phrase;
-    }
-
-    /**
-     * The number as the page's language writes it.
-     *
-     * <p>«4915 narrations» is a string of digits a reader has to count; «4,915» he reads at
-     * a glance. Arabic groups the same way and marks it with its own separator, ٬ rather
-     * than a comma, so the grouping is done first and the mark swapped after.
-     */
-    private String grouped(long number) {
-        String western = String.format("%,d", number);
-        String localised = digits.of(western);
-        return localised.equals(western) ? western : localised.replace(',', '\u066c');
+        return phrase.equals(key) ? ui.say(base, digits.grouped(number)) : phrase;
     }
 
     private static long asNumber(Object value) {

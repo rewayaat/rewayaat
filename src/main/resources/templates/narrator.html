@@ -108,12 +108,12 @@
                 </span>
                 <!-- «4 books, 5 entries» is one message rather than two counts with words
                      spliced between them: Arabic does not take that word order. -->
-                <span class="hub-stat" th:unless="${narrator['kind'] == 'imam'}">
+                <a class="hub-stat" th:href="${booksUrl}" th:unless="${narrator['kind'] == 'imam'}">
                     <span class="hub-stat__label" th:text="#{narrator.writtenAboutIn}">Written about in</span>
                     <span class="hub-stat__value"
                           th:text="#{narrator.booksEntries(${@localeDigits.of(#lists.size(books))},
-                                    ${@localeDigits.of(narrator.entry_count)})}">4 books, 5 entries</span>
-                </span>
+                                    ${@localeDigits.grouped(narrator.entry_count)})}">4 books, 5 entries</span>
+                </a>
             </div>
         </div>
 
@@ -258,12 +258,12 @@
         <!-- A roster page has no entries to count from, so the three figures that come
              out of entries are left off rather than printed as noughts. -->
         <a class="ledger__cell" th:href="${chainsUrl}" th:unless="${narrator['kind'] == 'imam'}">
-            <div class="ledger__value" th:text="${@localeDigits.of(narrator.teacher_count)}">37</div>
+            <div class="ledger__value" th:text="${@localeDigits.grouped(narrator.teacher_count)}">37</div>
             <div class="ledger__label" th:text="#{narrator.ledger.narratesFrom}">Narrates from</div>
             <div class="ledger__note" th:text="#{narrator.ledger.narratesFromNote}">men the books name →</div>
         </a>
         <a class="ledger__cell" th:href="${chainsUrl}" th:unless="${narrator['kind'] == 'imam'}">
-            <div class="ledger__value" th:text="${@localeDigits.of(narrator.student_count)}">26</div>
+            <div class="ledger__value" th:text="${@localeDigits.grouped(narrator.student_count)}">26</div>
             <div class="ledger__label" th:text="#{narrator.ledger.narratedTo}">Narrated to</div>
             <div class="ledger__note" th:text="#{narrator.ledger.narratedToNote}">men who take from him →</div>
         </a>
@@ -290,13 +290,15 @@
         </a>
         <a class="ledger__cell" th:href="${narrationsUrl}">
             <div class="ledger__value"
-                 th:text="${#numbers.formatInteger(narrationTotal, 0, 'COMMA')}">1,504</div>
+                 th:text="${@localeDigits.grouped(narrationTotal)}">1,504</div>
             <div class="ledger__label" th:text="#{narrator.ledger.narrations}">Narrations</div>
             <div class="ledger__note" th:if="${!#lists.isEmpty(narrationBooks)}"
                  th:text="#{narrator.ledger.shareIn(${@localeDigits.of(narrationBooks[0].share)},
                            ${narrationBooks[0].book})}">93% in Al-Kāfi →</div>
         </a>
-        <a class="ledger__cell" th:href="${overviewUrl}" th:if="${narrator.span_from != null}">
+        <!-- Not a link: this is the page the reader is already on, and a cell that offers
+             to take him where he is only teaches him that the others may not mean it. -->
+        <div class="ledger__cell" th:if="${narrator.span_from != null}">
             <div class="ledger__value">
                 <span th:text="${@localeDigits.of(narrator.span_from)}">203</span>–<span
                       th:text="${@localeDigits.of(narrator.span_to)}">260</span>
@@ -304,7 +306,7 @@
             <div class="ledger__label" th:text="#{narrator.ledger.activeAh}">Active, AH</div>
             <div class="ledger__note"
                  th:text="#{narrator.ledger.imamates(${@localeDigits.of(#lists.size(narrator.life.imams))})}">3 imamates</div>
-        </a>
+        </div>
     </section>
 
     <!-- Two tabs, in the URL rather than in script: what the books say of him is one reading,
@@ -316,19 +318,19 @@
         <a class="narrator-tab" th:href="${booksUrl}"
            th:classappend="${view == 'books'} ? 'is-active' : ''">
             <span th:text="#{narrator.tab.books}">What the books say</span>
-            <span class="narrator-tab__count" th:text="${@localeDigits.of(narrator.entry_count)}">10</span>
+            <span class="narrator-tab__count" th:text="${@localeDigits.grouped(narrator.entry_count)}">10</span>
         </a>
         <a class="narrator-tab" th:href="${chainsUrl}"
            th:classappend="${view == 'chains'} ? 'is-active' : ''">
             <span th:text="#{narrator.tab.chains}">Teachers &amp; students</span>
             <span class="narrator-tab__count"
-                  th:text="${@localeDigits.of(narrator.teacher_count + narrator.student_count)}">63</span>
+                  th:text="${@localeDigits.grouped(narrator.teacher_count + narrator.student_count)}">63</span>
         </a>
         <a class="narrator-tab" th:href="${narrationsUrl}"
            th:classappend="${view == 'narrations'} ? 'is-active' : ''">
             <span th:text="#{narrator.tab.narrations}">Narrations</span>
             <span class="narrator-tab__count"
-                  th:text="${#numbers.formatInteger(narrationTotal, 0, 'COMMA')}">1,504</span>
+                  th:text="${@localeDigits.grouped(narrationTotal)}">1,504</span>
         </a>
         <a class="narrator-tab" th:href="${namesUrl}"
            th:classappend="${view == 'names'} ? 'is-active' : ''">
@@ -439,8 +441,13 @@
                       th:text="${entry.book_author}">Author</span>
                 <span class="narrator-entry__page" th:if="${entry.page_first != null}"
                       th:text="#{narrator.stands.page(${@localeDigits.of(entry.page_first)})}">p. 183</span>
+                <!-- The entry carries the grade's key but not which way it leans. (Two double underscores in one expression read as a Thymeleaf preprocessor pair, which is why the class names are built in two steps.) The overview's
+                     «said_by» rows pair every key with the leaning the indexer gave it, so the
+                     tint is read from there rather than from a second list of words kept here. -->
                 <span class="narrator-entry__grade" th:if="${entry.grade_said != null}"
-                      th:classappend="'narrator-verdict__grade--' + ${entry.grade}"
+                      th:with="held = ${narrator['said_by'].?[grade == #vars.entry.grade]},
+                              tint = ${#lists.isEmpty(held) ? '' : 'narrator-entry__grade--' + held[0].leaning}"
+                      th:classappend="'narrator-verdict__grade--' + ${entry.grade} + ' ' + ${tint}"
                       th:text="${entry.grade_said}">thiqa — trustworthy</span>
             </header>
 
@@ -590,7 +597,7 @@
                 <h2 class="hub-group__label">
                     <span th:text="#{narrator.ledger.narratesFrom}">Narrates from</span>
                     <span class="hub-group__note"
-                          th:text="${@localeDigits.of(narrator.teacher_count)}">37</span>
+                          th:text="${@localeDigits.grouped(narrator.teacher_count)}">37</span>
                 </h2>
                 <p class="chains__note" th:if="${#lists.isEmpty(narrator.narrated_from)}"
                    th:text="#{narrator.chains.noTeachers}">
@@ -607,7 +614,7 @@
                 <h2 class="hub-group__label">
                     <span th:text="#{narrator.ledger.narratedTo}">Narrated to</span>
                     <span class="hub-group__note"
-                          th:text="${@localeDigits.of(narrator.student_count)}">26</span>
+                          th:text="${@localeDigits.grouped(narrator.student_count)}">26</span>
                 </h2>
                 <p class="chains__note" th:if="${#lists.isEmpty(narrator.narrated_to)}"
                    th:text="#{narrator.chains.noStudents}">

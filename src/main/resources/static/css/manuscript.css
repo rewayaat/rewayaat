@@ -15937,3 +15937,90 @@ a.rijal-link__words:focus-visible {
 .chrono__plot {
     height: 74px;
 }
+
+/* ==========================================================================
+   Narrator page: legibility and what looks clickable
+   ========================================================================== */
+
+/* The ledger's cell for the span he was active in is the page the reader is already on, so
+   it is a div. It keeps the look of its linked neighbours and none of their hover, which
+   would promise a destination that is not there. */
+div.ledger__cell {
+    color: inherit;
+}
+
+/* The label sat at 10.9px in gold on a pale ground, about 4.0:1 and short of AA for text
+   this small. It is the navy of the page at 70% and a touch larger: a label that is read
+   before the figure under it is understood, not an ornament. */
+.ledger__label {
+    font-size: 0.74rem;
+    color: color-mix(in srgb, var(--primary) 70%, transparent);
+}
+
+/* «Narrator» over the title, 11px at three-quarters opacity on navy. A little larger and
+   nearer to opaque, still smaller and quieter than the name beneath it. */
+.hub-hero__eyebrow {
+    font-size: 0.82rem;
+    color: rgba(243, 229, 184, 0.92);
+}
+
+/* The hero's facts were rounded, bordered, gold-valued pills, which is what a button looks
+   like, and two of the three do nothing when clicked. A fact is plain type: a muted gold
+   label, a white value, no outline. The one that does lead somewhere, the books that wrote
+   about him, is an anchor and keeps only an underline on hover to say so. */
+.hub-hero .hub-stat {
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: none;
+}
+
+.hub-hero .hub-stat__label {
+    opacity: 1;
+    color: rgba(243, 229, 184, 0.78);
+}
+
+.hub-hero .hub-stat__value {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.hub-hero a.hub-stat:hover {
+    background: none;
+    border: none;
+}
+
+.hub-hero a.hub-stat:hover .hub-stat__value {
+    color: #fff;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+}
+
+@media (max-width: 480px) {
+    /* Three facts side by side, wrapping only when they must, instead of three rows each
+       the width of the screen. */
+    .hub-hero .hub-hero__stats {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.35rem 1rem;
+    }
+
+    .hub-hero .hub-stat {
+        gap: 0.3rem;
+        font-size: 0.72rem;
+    }
+
+    .hub-hero .hub-stat__value {
+        font-size: 0.84rem;
+    }
+}
+
+/* The same grade word, tinted as it is in the overview's table: green for a book that
+   speaks for him, red for one that speaks against, nothing for a word the indexer leaves
+   undecided. The tint is the table's own, so one word is never two colours. */
+.narrator-entry__grade--for {
+    background: rgba(120, 190, 140, 0.2);
+}
+
+.narrator-entry__grade--against {
+    background: rgba(220, 120, 110, 0.18);
+}
