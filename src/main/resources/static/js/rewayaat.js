@@ -6184,7 +6184,7 @@ function setupVue(query, page, sortFields) {
                 }
                 var loadingStartedAt = Date.now();
                 narration.similarCountLoading = true;
-                fetch('/v1/narrations/similar?id=' + encodeURIComponent(sourceId) + '&per_page=0')
+                fetch('/v1/narrations/similar?lang=' + (window.I18N_LOCALE || 'en') + '&id=' + encodeURIComponent(sourceId) + '&per_page=0')
                     .then(function(resp) { return resp.json(); })
                     .then(function(data) {
                         var total = Number(data && data.totalResultSetSize);
@@ -6216,7 +6216,7 @@ function setupVue(query, page, sortFields) {
                 }
                 narration.similarError = '';
                 var size = perPage || 10;
-                var reqUrl = '/v1/narrations/similar?id=' + encodeURIComponent(sourceId);
+                var reqUrl = '/v1/narrations/similar?lang=' + (window.I18N_LOCALE || 'en') + '&id=' + encodeURIComponent(sourceId);
                 if (includeAll) {
                     reqUrl += '&all=true';
                 } else {

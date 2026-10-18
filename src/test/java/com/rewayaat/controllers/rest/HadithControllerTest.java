@@ -57,16 +57,24 @@ class HadithControllerTest {
 
     @Test
     void similarHadith_clampsInputsAndDelegates() throws Exception {
-        controller.similarHadith("hadith-1", 0, 99, false);
+        controller.similarHadith("hadith-1", 0, 99, false, "");
 
-        org.mockito.Mockito.verify(similarHadithService).findSimilar("hadith-1", 0, 25);
+        org.mockito.Mockito.verify(similarHadithService).findSimilar("hadith-1", 0, 25, "");
     }
 
     @Test
     void similarHadith_allBypassesPaginationClamp() throws Exception {
-        controller.similarHadith("hadith-1", 1, 8, true);
+        controller.similarHadith("hadith-1", 1, 8, true, "");
 
-        org.mockito.Mockito.verify(similarHadithService).findSimilar("hadith-1", 0, Integer.MAX_VALUE);
+        org.mockito.Mockito.verify(similarHadithService)
+                .findSimilar("hadith-1", 0, Integer.MAX_VALUE, "");
+    }
+
+    @Test
+    void similarHadith_arabicReaderGetsArabicNarratorLinks() throws Exception {
+        controller.similarHadith("hadith-1", 1, 8, false, "ar");
+
+        org.mockito.Mockito.verify(similarHadithService).findSimilar("hadith-1", 0, 8, "/ar");
     }
 
     @Test

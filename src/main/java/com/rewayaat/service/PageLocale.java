@@ -2,8 +2,14 @@ package com.rewayaat.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.ui.Model;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -186,6 +192,9 @@ public enum PageLocale {
                 // whole rather than half-translated - which is the bar this allowlist keeps.
                 || strippedPath.equals("/narrators")
                 || strippedPath.startsWith("/narrator/")
+                // The chain conventions. Both languages are written into the content file
+                // side by side, so a page cannot ship half-translated.
+                || strippedPath.startsWith("/isnad/")
                 || strippedPath.equals("/privacy")
                 || strippedPath.equals("/search_tips.html")
                 || strippedPath.equals("/signin.html")
@@ -225,6 +234,14 @@ public enum PageLocale {
     }
 
     /**
+     * The query parameters that name what the reader is looking at, in the order a URL
+     * reads most naturally. Everything else is dropped; see {@link #carriedQuery()}.
+     */
+    private static final List<String> CARRIED =
+            List.of("q", "match_mode", "sort_fields", "tag", "book", "page", "tab", "layout",
+                    "chain", "full");
+
+    /**
      * Publishes this page's canonical, its alternates and its text direction.
      *
      * <p>Controllers call this instead of setting {@code canonicalUrl} by hand, so that a
@@ -246,8 +263,52 @@ public enum PageLocale {
         // not, and an absolute one would carry a visitor on the rewayaat.info mirror - or a
         // developer on localhost - onto a different host mid-visit.
         PageLocale other = isArabic() ? ENGLISH : ARABIC;
-        model.addAttribute("switchLocalePath", other.prefix + normalise(path));
+        model.addAttribute("switchLocalePath", other.prefix + normalise(path) + carriedQuery());
         model.addAttribute("switchLocaleTag", other.tag);
+    }
+
+    /**
+     * The part of the current query string the language toggle should carry across.
+     *
+     * <p>The toggle is the one link on the page that means "the same thing, in the other
+     * language", and {@code path} alone cannot say what the reader is looking at: a search
+     * lives entirely in {@code ?q=}, and a narrator's books tab in {@code ?tab=}. Dropping
+     * them sent every reader of a result list to the Arabic home page, which is where this
+     * started. The canonical above still gets the bare path - a query string in a canonical
+     * would split one page's ranking across every query that reaches it.
+     *
+     * <p>Named parameters only, and read from the parsed query rather than copied from the
+     * raw string: {@code token} is a sign-in secret and must not be reflected into any
+     * link, {@code lang} would argue with the switch itself, and anything a crawler or a
+     * campaign appended is not part of what the reader is reading.
+     */
+    private static String carriedQuery() {
+        HttpServletRequest request = currentRequest();
+        if (request == null) {
+            return "";
+        }
+        StringBuilder query = new StringBuilder();
+        for (String name : CARRIED) {
+            String[] values = request.getParameterValues(name);
+            if (values == null) {
+                continue;
+            }
+            for (String value : values) {
+                if (value == null || value.isEmpty()) {
+                    continue;
+                }
+                query.append(query.length() == 0 ? '?' : '&')
+                        .append(name).append('=')
+                        .append(URLEncoder.encode(value, StandardCharsets.UTF_8));
+            }
+        }
+        return query.toString();
+    }
+
+    private static HttpServletRequest currentRequest() {
+        RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
+        return attributes instanceof ServletRequestAttributes servlet
+                ? servlet.getRequest() : null;
     }
 
     private static String normalise(String path) {

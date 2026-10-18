@@ -133,8 +133,6 @@
                                 <p class="rijal-link__who" data-rijal-who hidden></p>
                                 <p class="rijal-link__said" data-rijal-said hidden></p>
                                 <p class="rijal-link__life" data-rijal-life hidden></p>
-                                <p class="rijal-link__note" th:if="${link.kind == 'unknown'}"
-                                   th:text="#{rijal.unknown}">No book holds an entry under this name</p>
                                 <p class="rijal-link__note" th:if="${link.kind == 'collective'}"
                                    th:text="#{rijal.collective}">A step the compiler did not name</p>
                                 <p class="rijal-link__note" th:if="${link.kind == 'imam'}"

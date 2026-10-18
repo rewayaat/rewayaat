@@ -22,6 +22,9 @@ import java.util.Map;
 public final class ChainLinks {
 
     private static final String CLASS = "chain-name";
+    private static final String CONVENTION_CLASS = "chain-convention";
+    private static final java.util.regex.Pattern ARABIC_LETTER =
+            java.util.regex.Pattern.compile("[\\u0621-\\u064A]");
 
     private ChainLinks() {
     }
@@ -31,25 +34,62 @@ public final class ChainLinks {
         if (chain == null || chain.isBlank()) {
             return chain == null ? "" : chain;
         }
-        List<Span> spans = spans(chain, stored);
+        List<Span> spans = merge(chain, spans(chain, stored));
         if (spans.isEmpty()) {
             return escape(chain);
         }
+        String base = prefix == null ? "" : prefix;
         StringBuilder out = new StringBuilder(chain.length() + spans.size() * 48);
         int at = 0;
         for (Span span : spans) {
             out.append(escape(chain.substring(at, span.start)));
-            out.append("<a class=\"").append(CLASS).append("\" href=\"")
-                    .append(escape(prefix == null ? "" : prefix)).append("/narrator/")
-                    .append(escape(span.person))
-                    .append(span.slug.isEmpty() ? "" : "/" + escape(span.slug))
-                    .append("\">")
+            out.append("<a class=\"")
+                    .append(span.person.isEmpty() ? CONVENTION_CLASS : CLASS)
+                    .append("\" href=\"").append(escape(base));
+            if (span.person.isEmpty()) {
+                out.append(escape(span.slug));  // a convention: the slug holds the whole path
+            } else {
+                out.append("/narrator/").append(escape(span.person))
+                        .append(span.slug.isEmpty() ? "" : "/" + escape(span.slug));
+            }
+            out.append("\">")
                     .append(escape(chain.substring(span.start, span.end)))
                     .append("</a>");
             at = span.end;
         }
         out.append(escape(chain.substring(at)));
         return out.toString();
+    }
+
+    /**
+     * The resolved names, plus the unnamed steps that have a page of their own.
+     *
+     * <p>A name wins every overlap. The conventions are found by pattern and the names by
+     * stored offset, and where the two disagree the resolver is the one that read the
+     * chain: «عدة من أصحابنا» inside what the resolver decided is a man's name means the
+     * pattern has caught something that is not the convention, and dropping it is right.
+     */
+    private static List<Span> merge(String chain, List<Span> names) {
+        boolean arabic = ARABIC_LETTER.matcher(chain).find();
+        List<ChainConventions.Span> conventions = ChainConventions.spans(chain, arabic);
+        if (conventions.isEmpty()) {
+            return names;
+        }
+        List<Span> all = new ArrayList<>(names);
+        for (ChainConventions.Span convention : conventions) {
+            boolean clash = false;
+            for (Span name : names) {
+                if (convention.start() < name.end && name.start < convention.end()) {
+                    clash = true;
+                    break;
+                }
+            }
+            if (!clash) {
+                all.add(new Span(convention.start(), convention.end(), "", convention.href()));
+            }
+        }
+        all.sort(Comparator.comparingInt(span -> span.start));
+        return all;
     }
 
     private static List<Span> spans(String chain, Object stored) {

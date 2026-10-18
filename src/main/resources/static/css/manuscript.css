@@ -16456,3 +16456,681 @@ div.ledger__cell {
         border-color: var(--primary);
     }
 }
+
+/* ===========================================================================
+   The verdict chips.
+
+   «ثقة thiqa — trustworthy» was set as a pastel wash behind a word: readable, but it
+   read as a highlighter mark rather than as a thing the page is asserting. A grade is
+   the most consequential word on a narrator's page — a reader scans for it and stops —
+   so it is set as a chip with an edge: a jewelled green that holds its own beside the
+   gold, a hairline border, and an inner highlight that lifts it off the paper.
+
+   Four surfaces carry the same word and two of them are navy, so the tokens come in
+   pairs. Nothing here changes which word is shown or which colour it earns; that is
+   decided by the book, upstream.
+   =========================================================================== */
+
+:root {
+    /* Jade rather than the generic --success green: this sits next to gold on navy. */
+    --verdict-for-ink:        #0c5138;
+    --verdict-for-face:       linear-gradient(180deg, #f1fbf6 0%, #e2f4ea 100%);
+    --verdict-for-edge:       #9bd2b6;
+
+    --verdict-against-ink:    #8a2e25;
+    --verdict-against-face:   linear-gradient(180deg, #fdf4f3 0%, #f8e6e3 100%);
+    --verdict-against-edge:   #e0aaa3;
+
+    --verdict-plain-ink:      var(--text-secondary);
+    --verdict-plain-face:     linear-gradient(180deg, #f9fbfd 0%, #eff3f8 100%);
+    --verdict-plain-edge:     var(--border-strong);
+
+    /* On the navy hero and in the rijāl panel, where the paper is dark. */
+    --verdict-for-ink-dark:    #c8efda;
+    --verdict-for-face-dark:   linear-gradient(180deg, rgba(32,116,82,0.60) 0%, rgba(18,78,55,0.72) 100%);
+    --verdict-for-edge-dark:   rgba(150, 221, 183, 0.55);
+
+    --verdict-against-ink-dark:  #f6cdc7;
+    --verdict-against-face-dark: linear-gradient(180deg, rgba(140,52,44,0.58) 0%, rgba(104,36,30,0.72) 100%);
+    --verdict-against-edge-dark: rgba(230, 160, 150, 0.5);
+
+    --verdict-plain-ink-dark:    rgba(238, 243, 250, 0.82);
+    --verdict-plain-face-dark:   linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.07) 100%);
+    --verdict-plain-edge-dark:   rgba(200, 162, 61, 0.42);
+}
+
+/* The chip itself, on light paper. A pill, because a grade is a label and not a heading. */
+.narrator-entry__grade,
+.narrator-said__word {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    padding: 0.2rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid var(--verdict-plain-edge);
+    background: var(--verdict-plain-face);
+    color: var(--verdict-plain-ink);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    font-family: var(--font-ui);
+    font-weight: 650;
+    letter-spacing: 0.03em;
+    text-transform: none;
+    white-space: nowrap;
+}
+
+.narrator-said__row--for .narrator-said__word,
+.narrator-entry__grade--for {
+    border-color: var(--verdict-for-edge);
+    background: var(--verdict-for-face);
+    color: var(--verdict-for-ink);
+}
+
+.narrator-said__row--against .narrator-said__word,
+.narrator-entry__grade--against {
+    border-color: var(--verdict-against-edge);
+    background: var(--verdict-against-face);
+    color: var(--verdict-against-ink);
+}
+
+/* Where the books divide on one man, the chip carries both edges rather than picking
+   a side: a gold hairline, which is the page's colour for «it depends who you follow». */
+.narrator-entry__grade--mixed {
+    border-color: rgba(200, 162, 61, 0.55);
+    background: linear-gradient(180deg, #fefaf0 0%, #faf2df 100%);
+    color: #7a5c14;
+}
+
+/* The books' own word keeps its script and its weight inside the chip. */
+.narrator-said__word-ar,
+.narrator-entry__word-ar,
+.narrator-stands__word-ar {
+    font-size: 1.04em;
+    opacity: 0.92;
+}
+
+/* The navy hero, where the same chips sit on dark paper. */
+.narrator-verdict__grade {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    padding: 0.16rem 0.65rem;
+    border-radius: 999px;
+    border: 1px solid var(--verdict-plain-edge-dark);
+    background: var(--verdict-plain-face-dark);
+    color: var(--verdict-plain-ink-dark);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 1px 2px rgba(6, 18, 34, 0.3);
+    letter-spacing: 0.03em;
+}
+
+.narrator-verdict__grade--thiqa,
+.narrator-verdict__grade--saduq,
+.narrator-verdict__grade--hasan {
+    border-color: var(--verdict-for-edge-dark);
+    background: var(--verdict-for-face-dark);
+    color: var(--verdict-for-ink-dark);
+}
+
+.narrator-verdict__grade--daif,
+.narrator-verdict__grade--very_weak,
+.narrator-verdict__grade--kadhdhab,
+.narrator-verdict__grade--non_existent {
+    border-color: var(--verdict-against-edge-dark);
+    background: var(--verdict-against-face-dark);
+    color: var(--verdict-against-ink-dark);
+}
+
+/* The rijāl panel on a hadith card: the same word, the same chip, a size down, because
+   there it sits inside a chain step rather than under a name. */
+.rijal-link__word {
+    display: inline-flex;
+    align-items: baseline;
+    padding: 0.08rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid var(--verdict-plain-edge-dark);
+    background: var(--verdict-plain-face-dark);
+    color: var(--verdict-plain-ink-dark);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    font-weight: 650;
+}
+
+.rijal-link__grade--for .rijal-link__word {
+    border-color: var(--verdict-for-edge-dark);
+    background: var(--verdict-for-face-dark);
+    color: var(--verdict-for-ink-dark);
+}
+
+.rijal-link__grade--against .rijal-link__word {
+    border-color: var(--verdict-against-edge-dark);
+    background: var(--verdict-against-face-dark);
+    color: var(--verdict-against-ink-dark);
+}
+
+/* ===========================================================================
+   The one link in a chain that is not a person.
+
+   «عدة من أصحابنا» has no man behind it, so it must not look like the names around it,
+   which are solid links to a page about somebody. It is marked the way a glossed term is
+   marked in a printed edition: the text unchanged, a dotted gold rule beneath it.
+   =========================================================================== */
+
+.chain-convention {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted var(--gold-dark);
+    padding-bottom: 1px;
+}
+
+.chain-convention:hover,
+.chain-convention:focus-visible {
+    color: var(--gold-dark);
+    border-bottom-style: solid;
+}
+
+.hadith-chain--arabic .chain-convention,
+.rijal-link__card .chain-convention {
+    border-bottom-color: rgba(200, 162, 61, 0.75);
+}
+
+/* ===========================================================================
+   A convention of the isnād, explained.
+
+   One page per phrase that stands where a name should. It is read the way a journal
+   article is read — straight down, once — so it is one column, measured for the line
+   length prose wants, with the evidence set apart from the argument: quotations in the
+   books' own script, the counts as figures, and the rosters as cards a reader can go
+   into.
+   =========================================================================== */
+
+.isnad {
+    --isnad-measure: 68ch;
+}
+
+.isnad-hero {
+    margin: 0 auto 1.6rem;
+    padding: 2rem 1.5rem 1.8rem;
+    max-width: var(--isnad-measure);
+    text-align: center;
+}
+
+.isnad-hero__kicker {
+    font-family: var(--font-ui);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold-dark);
+}
+
+.isnad-hero__phrase {
+    margin: 0.7rem 0 0.4rem;
+    font-family: var(--font-arabic);
+    font-size: clamp(2rem, 6vw, 3.1rem);
+    font-weight: 700;
+    line-height: 1.5;
+    color: var(--primary-dark);
+}
+
+.isnad-hero__translit {
+    margin: 0 0 1rem;
+    font-family: var(--font-ui);
+    font-size: 0.88rem;
+    color: var(--text-muted);
+}
+
+.isnad-hero__translit-ar {
+    font-style: italic;
+}
+
+.isnad-hero__translit-sep {
+    margin: 0 0.5rem;
+    opacity: 0.6;
+}
+
+.isnad-hero__standfirst {
+    margin: 0;
+    font-size: 1.05rem;
+    line-height: 1.75;
+    color: var(--text-secondary);
+}
+
+.isnad-body {
+    max-width: var(--isnad-measure);
+    margin: 0 auto;
+}
+
+.isnad-section {
+    margin: 0 0 2.6rem;
+    scroll-margin-top: 5rem;
+}
+
+.isnad-section__heading {
+    margin: 0 0 0.9rem;
+    font-family: var(--font-ui);
+    font-size: 1.12rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    color: var(--primary);
+}
+
+.isnad-prose {
+    margin: 0 0 1rem;
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--text);
+}
+
+.isnad-prose em {
+    font-style: italic;
+}
+
+/* A classical text, quoted. Warm paper and a gold rule on the leading edge: the page's
+   own mark for «these are not our words». */
+.isnad-quote {
+    margin: 1.3rem 0;
+    padding: 1.1rem 1.3rem 0.9rem;
+    background: var(--gold-bg);
+    border-inline-start: 3px solid var(--gold);
+    border-radius: 0 6px 6px 0;
+}
+
+[dir="rtl"] .isnad-quote {
+    border-radius: 6px 0 0 6px;
+}
+
+.isnad-quote__text {
+    margin: 0;
+    font-family: var(--font-arabic);
+    font-size: 1.12rem;
+    line-height: 2.1;
+    color: var(--text);
+}
+
+.isnad-quote__cite {
+    margin-top: 0.7rem;
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.isnad-quote__cite a {
+    color: var(--text-secondary);
+    text-decoration-color: var(--gold);
+}
+
+/* The page's own evidence, counted over the corpus. */
+.isnad-figures {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: 0.8rem;
+    margin: 1.4rem 0;
+    padding: 1.1rem 1rem;
+    background: var(--surface-cool);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.isnad-figure {
+    text-align: center;
+}
+
+.isnad-figure__value {
+    font-family: var(--font-ui);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    line-height: 1.2;
+}
+
+.isnad-figure__label {
+    margin-top: 0.2rem;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: var(--text-muted);
+}
+
+/* One card per ʿidda: the man it leads to, then the men the books put in it. */
+.isnad-rosters {
+    display: grid;
+    gap: 1rem;
+    margin: 1.4rem 0;
+}
+
+.isnad-roster {
+    padding: 1.1rem 1.2rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(30, 58, 95, 0.05);
+}
+
+.isnad-roster__head {
+    padding-bottom: 0.7rem;
+    margin-bottom: 0.8rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.isnad-roster__lede {
+    font-family: var(--font-ui);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.isnad-roster__to {
+    display: block;
+    margin-top: 0.25rem;
+    text-decoration: none;
+}
+
+.isnad-roster__to-ar {
+    display: block;
+    font-family: var(--font-arabic);
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.isnad-roster__to-en {
+    display: block;
+    font-family: var(--font-ui);
+    font-size: 0.86rem;
+    color: var(--text-secondary);
+}
+
+.isnad-roster__to:hover .isnad-roster__to-ar {
+    color: var(--primary-light);
+}
+
+.isnad-roster__count {
+    margin-top: 0.3rem;
+    font-family: var(--font-ui);
+    font-size: 0.76rem;
+    color: var(--gold-dark);
+}
+
+.isnad-roster__men {
+    list-style: none;
+    counter-reset: isnad-man;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.5rem;
+}
+
+.isnad-man {
+    counter-increment: isnad-man;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.2rem 0.6rem;
+    padding-inline-start: 1.9rem;
+    position: relative;
+}
+
+.isnad-man::before {
+    content: counter(isnad-man);
+    position: absolute;
+    inset-inline-start: 0;
+    top: 0.1rem;
+    width: 1.3rem;
+    text-align: center;
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--gold-dark);
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    line-height: 1.3rem;
+}
+
+.isnad-man__name {
+    text-decoration: none;
+}
+
+.isnad-man__ar {
+    font-family: var(--font-arabic);
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.isnad-man__en {
+    margin-inline-start: 0.5rem;
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+}
+
+a.isnad-man__name:hover .isnad-man__ar,
+a.isnad-man__name:hover .isnad-man__en {
+    color: var(--primary-light);
+}
+
+/* A man the books name and we hold nothing for. Shown, because leaving him out would
+   quietly shorten a list the books give in full. */
+.isnad-man--unheld .isnad-man__ar,
+.isnad-man--unheld .isnad-man__en {
+    color: var(--text-muted);
+}
+
+.isnad-man__note {
+    flex-basis: 100%;
+    font-size: 0.76rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+[dir="rtl"] .isnad-man__note {
+    font-style: normal;
+}
+
+/* Two readings of the same evidence, side by side, neither of them ours. */
+.isnad-sides {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 1rem;
+    margin: 1.3rem 0;
+}
+
+.isnad-side {
+    padding: 1rem 1.1rem;
+    background: var(--surface-warm);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--gold);
+    border-radius: 0 0 6px 6px;
+}
+
+.isnad-side__label {
+    margin: 0 0 0.5rem;
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--primary);
+}
+
+.isnad-side__body {
+    margin: 0;
+    font-size: 0.92rem;
+    line-height: 1.75;
+    color: var(--text-secondary);
+}
+
+/* The neighbouring forms, as a table, because a reader compares them. */
+.isnad-table-wrap {
+    margin: 1.3rem 0;
+    overflow-x: auto;
+}
+
+.isnad-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.86rem;
+}
+
+.isnad-table th {
+    padding: 0.5rem 0.7rem;
+    text-align: start;
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border-strong);
+}
+
+.isnad-table td {
+    padding: 0.6rem 0.7rem;
+    vertical-align: top;
+    border-bottom: 1px solid var(--border);
+    line-height: 1.6;
+}
+
+.isnad-table__form {
+    font-family: var(--font-arabic);
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: var(--primary);
+    white-space: nowrap;
+}
+
+.isnad-table__reads {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+[dir="rtl"] .isnad-table__reads {
+    font-style: normal;
+}
+
+.isnad-table__count {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    color: var(--gold-dark);
+    white-space: nowrap;
+}
+
+.isnad-table__says {
+    color: var(--text-secondary);
+}
+
+.isnad-onward {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    justify-content: center;
+    max-width: var(--isnad-measure);
+    margin: 2.2rem auto 1rem;
+}
+
+.isnad-onward__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1.1rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--surface);
+    font-family: var(--font-ui);
+    font-size: 0.84rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+
+.isnad-onward__link:hover {
+    border-color: var(--gold);
+    color: var(--primary);
+}
+
+/* A name in the other script, inside a line that reads the page's way. Isolated rather
+   than given dir="rtl": the glyphs still order themselves, but the block stays aligned
+   with the English around it instead of jumping to the right margin. */
+.isnad-roster__to-ar,
+.isnad-man__ar,
+.isnad-table__form {
+    unicode-bidi: isolate;
+}
+
+/* ===========================================================================
+   The verdict chips, placed on the right paper.
+
+   The block above assumed the hero's chips were .narrator-verdict__grade. They are not:
+   the hero renders .narrator-said__word, which sits on navy, and the light treatment put
+   a near-white pill on a dark card. The table under «Where each book stands» is the one
+   on paper, and it renders .narrator-stands__position, which the block above never named.
+
+   So: .narrator-said__word and .rijal-link__word are dark-paper chips, and
+   .narrator-stands__position, .narrator-entry__grade and the ledger's word are light.
+   =========================================================================== */
+
+/* On the navy hero. */
+.narrator-said__word {
+    border: 1px solid var(--verdict-plain-edge-dark);
+    background: var(--verdict-plain-face-dark);
+    color: var(--verdict-plain-ink-dark);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 1px 2px rgba(6, 18, 34, 0.32);
+    text-transform: none;
+    font-size: 0.8rem;
+    letter-spacing: 0.02em;
+}
+
+.narrator-said__row--for .narrator-said__word {
+    border-color: var(--verdict-for-edge-dark);
+    background: var(--verdict-for-face-dark);
+    color: var(--verdict-for-ink-dark);
+}
+
+.narrator-said__row--against .narrator-said__word {
+    border-color: var(--verdict-against-edge-dark);
+    background: var(--verdict-against-face-dark);
+    color: var(--verdict-against-ink-dark);
+}
+
+/* On paper: the table of where each book stands, and the entries tab. */
+.narrator-stands__position {
+    padding: 0.2rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid var(--verdict-plain-edge);
+    background: var(--verdict-plain-face);
+    color: var(--verdict-plain-ink);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    font-weight: 600;
+}
+
+.narrator-stands__position--for {
+    border-color: var(--verdict-for-edge);
+    background: var(--verdict-for-face);
+    color: var(--verdict-for-ink);
+}
+
+.narrator-stands__position--against {
+    border-color: var(--verdict-against-edge);
+    background: var(--verdict-against-face);
+    color: var(--verdict-against-ink);
+}
+
+/* A grade with no passage behind it keeps its deliberate colourlessness: it is not
+   evidence until there is a page under it, and a chip must not make it look like one. */
+.narrator-stands__position--unsourced {
+    border-color: var(--border-strong);
+    background: linear-gradient(180deg, #fafafa 0%, #f1f2f4 100%);
+    color: var(--text-muted);
+    box-shadow: none;
+}
+
+/* The ledger cell. «1 call him reliable» is a count and a verdict in one line, so the
+   word takes the chip's colour without its box — a pill around a running phrase would
+   fight the number beside it. */
+.ledger__verdict--for .ledger__verdict-word,
+.ledger__verdict--for .ledger__verdict-count {
+    color: var(--verdict-for-ink);
+}
+
+.ledger__verdict--against .ledger__verdict-word,
+.ledger__verdict--against .ledger__verdict-count {
+    color: var(--verdict-against-ink);
+}

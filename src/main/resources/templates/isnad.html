@@ -1,0 +1,184 @@
+<!doctype html>
+<html th:lang="${htmlLang} ?: 'en'" th:dir="${htmlDir} ?: 'ltr'" lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/site :: sitehead}"></head>
+<body>
+<nav th:replace="~{fragments/site :: sitenav}"></nav>
+
+<!--/*
+    A convention of the isnād, explained. The content is a JsonNode tree read from
+    isnad_conventions.json, and `lang` is «_en» or «_ar»: every field is asked for by its
+    base name plus that suffix, so the Arabic and the English cannot drift into different
+    shapes. `path(...)` rather than `get(...)` throughout, because a missing field must
+    render empty rather than throw.
+
+    The Arabic phrase itself is set in Arabic in both languages — it is the subject of the
+    page, not a label — so it carries lang="ar" and dir="rtl" even on the English page.
+*/-->
+<main class="container py-3 isnad">
+    <nav th:replace="~{fragments/site :: crumbtrail}"></nav>
+
+    <header class="isnad-hero">
+        <div class="isnad-hero__kicker"
+             th:text="${convention.path('kicker' + lang).asText('')}">A convention of the isnād</div>
+        <h1 class="isnad-hero__phrase" dir="rtl" lang="ar"
+            th:text="${convention.path('phrase_ar').asText('')}">عدة من أصحابنا</h1>
+        <p class="isnad-hero__translit">
+            <span class="isnad-hero__translit-ar"
+                  th:text="${convention.path('translit').asText('')}">ʿidda min aṣḥābinā</span>
+            <span class="isnad-hero__translit-sep" aria-hidden="true">&middot;</span>
+            <span th:text="${convention.path('title_en').asText('')}">a number of our companions</span>
+        </p>
+        <p class="isnad-hero__standfirst"
+           th:text="${convention.path('standfirst' + lang).asText('')}">What the phrase claims.</p>
+    </header>
+
+    <div th:replace="~{fragments/site :: ornament}"></div>
+
+    <!--/* The sections run down the page in the order the file gives them, and each one is
+           an anchor: a chain link can point at the form it found rather than at the top. */-->
+    <article class="isnad-body">
+        <section class="isnad-section" th:each="section : ${convention.path('sections')}"
+                 th:id="${section.path('id').asText('')}">
+            <h2 class="isnad-section__heading"
+                th:text="${section.path('heading' + lang).asText('')}">Heading</h2>
+
+            <th:block th:each="block : ${section.path('blocks')}">
+
+                <!--/* Prose. `utext` because the file carries <em> and <strong>: the content
+                       is ours, shipped in the jar, not anything a reader can supply. */-->
+                <th:block th:if="${block.path('kind').asText('') == 'prose'}">
+                    <p class="isnad-prose" th:each="para : ${block.path(lang.substring(1))}"
+                       th:utext="${para.asText('')}">A paragraph.</p>
+                </th:block>
+
+                <!--/* A classical text, quoted. Always Arabic, with the book it is from and,
+                       where we hold that book's entry, a link to the man it is about. */-->
+                <figure class="isnad-quote" th:if="${block.path('kind').asText('') == 'quote'}">
+                    <blockquote class="isnad-quote__text arabic-text" dir="rtl" lang="ar"
+                                th:text="${block.path('ar').asText('')}">نص</blockquote>
+                    <figcaption class="isnad-quote__cite">
+                        <a th:if="${!block.path('slug').asText('').isEmpty()}"
+                           th:href="${arPrefix} + '/narrator/' + ${block.path('person').asText('')}
+                                    + '/' + ${block.path('slug').asText('')}"
+                           th:utext="${block.path('cite' + lang).asText('')}">Source</a>
+                        <span th:if="${block.path('slug').asText('').isEmpty()}"
+                              th:utext="${block.path('cite' + lang).asText('')}">Source</span>
+                    </figcaption>
+                </figure>
+
+                <!--/* Three measured numbers. They are the page's own evidence, so they are
+                       set apart from the prose rather than buried in it. */-->
+                <div class="isnad-figures" th:if="${block.path('kind').asText('') == 'figures'}">
+                    <div class="isnad-figure" th:each="item : ${block.path('items')}">
+                        <div class="isnad-figure__value"
+                             th:text="${item.path('value').asText('')}">98%</div>
+                        <div class="isnad-figure__label"
+                             th:text="${item.path('label' + lang).asText('')}">of them</div>
+                    </div>
+                </div>
+
+                <!--/* The rosters: one card per ʿidda, headed by the man it leads to, and
+                       every member linked to his own page where we hold one. A man with no
+                       page is shown all the same, with the reason — leaving him out would
+                       quietly shorten a list the books give in full. */-->
+                <div class="isnad-rosters" th:if="${block.path('kind').asText('') == 'roster'}">
+                    <section class="isnad-roster" th:each="list : ${block.path('lists')}">
+                        <header class="isnad-roster__head">
+                            <div class="isnad-roster__lede" th:text="#{isnad.roster.lede}">
+                                an ʿidda, then
+                            </div>
+                            <a class="isnad-roster__to"
+                               th:href="${arPrefix} + '/narrator/' + ${list.path('to').asText('')}
+                                        + '/' + ${list.path('to_slug').asText('')}">
+                                <span class="isnad-roster__to-ar arabic-text" lang="ar"
+                                      th:text="${list.path('to_ar').asText('')}">الاسم</span>
+                                <span class="isnad-roster__to-en"
+                                      th:if="${#locale.language != 'ar'}"
+                                      th:text="${list.path('to_en').asText('')}">The name</span>
+                            </a>
+                            <div class="isnad-roster__count"
+                                 th:text="${@counts.of(list.path('count').asInt(0), 'isnad.roster.chains')}">
+                                858 chains
+                            </div>
+                        </header>
+                        <ol class="isnad-roster__men">
+                            <li class="isnad-man" th:each="man : ${list.path('men')}"
+                                th:classappend="${man.path('p').asText('').isEmpty()} ? ' isnad-man--unheld' : ''">
+                                <a class="isnad-man__name"
+                                   th:if="${!man.path('p').asText('').isEmpty()}"
+                                   th:href="${arPrefix} + '/narrator/' + ${man.path('p').asText('')}
+                                            + '/' + ${man.path('slug').asText('')}">
+                                    <span class="isnad-man__ar arabic-text" lang="ar"
+                                          th:text="${man.path('ar').asText('')}">الاسم</span>
+                                    <span class="isnad-man__en" th:if="${#locale.language != 'ar'}"
+                                          th:text="${man.path('en').asText('')}">The name</span>
+                                </a>
+                                <span class="isnad-man__name"
+                                      th:if="${man.path('p').asText('').isEmpty()}">
+                                    <span class="isnad-man__ar arabic-text" lang="ar"
+                                          th:text="${man.path('ar').asText('')}">الاسم</span>
+                                    <span class="isnad-man__en" th:if="${#locale.language != 'ar'}"
+                                          th:text="${man.path('en').asText('')}">The name</span>
+                                </span>
+                                <span class="isnad-man__note"
+                                      th:if="${!man.path('note' + lang).asText('').isEmpty()}"
+                                      th:text="${man.path('note' + lang).asText('')}">note</span>
+                            </li>
+                        </ol>
+                    </section>
+                </div>
+
+                <!--/* Two readings, side by side, neither of them the page's own. */-->
+                <div class="isnad-sides" th:if="${block.path('kind').asText('') == 'two'}">
+                    <div class="isnad-side" th:each="side : ${block.path('sides')}">
+                        <h3 class="isnad-side__label"
+                            th:text="${side.path('label' + lang).asText('')}">A reading</h3>
+                        <p class="isnad-side__body"
+                           th:utext="${side.path(lang.substring(1)).asText('')}">The argument.</p>
+                    </div>
+                </div>
+
+                <!--/* The neighbouring forms. A table because a reader compares them. */-->
+                <div class="isnad-table-wrap" th:if="${block.path('kind').asText('') == 'table'}">
+                    <table class="isnad-table">
+                        <thead>
+                            <tr>
+                                <th th:each="head : ${block.path('head' + lang)}"
+                                    th:text="${head.asText('')}">Form</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="row : ${block.path('rows')}">
+                                <td class="isnad-table__form arabic-text" lang="ar"
+                                    th:text="${row.path('ar').asText('')}">الصيغة</td>
+                                <td class="isnad-table__reads"
+                                    th:text="${row.path('en').asText('')}">reads</td>
+                                <td class="isnad-table__count"
+                                    th:text="${row.path('n').asText('')}">0</td>
+                                <td class="isnad-table__says"
+                                    th:text="${row.path('says' + lang).asText('')}">what it claims</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </th:block>
+        </section>
+    </article>
+
+    <nav class="isnad-onward">
+        <a class="isnad-onward__link" th:href="${arPrefix} + '/narrators'">
+            <i class="fa fa-users" aria-hidden="true"></i>
+            <span th:text="#{isnad.onward.narrators}">Search the narrators</span>
+        </a>
+        <a class="isnad-onward__link" th:href="${arPrefix} + '/?q=%22' + ${convention.path('title_ar').asText('')} + '%22'">
+            <i class="fa fa-magnifying-glass" aria-hidden="true"></i>
+            <span th:text="#{isnad.onward.chains}">Every chain that uses it</span>
+        </a>
+    </nav>
+</main>
+
+<footer th:replace="~{fragments/site :: sitefooter}"></footer>
+<th:block th:replace="~{fragments/site :: analytics}"></th:block>
+</body>
+</html>

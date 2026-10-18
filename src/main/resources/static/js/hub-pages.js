@@ -859,7 +859,7 @@ function localeHref(path) {
     }
 
     var PANELS = {
-        similar: {url: function (id) { return '/v1/narrations/similar?id=' + encodeURIComponent(id) + '&per_page=10'; },
+        similar: {url: function (id) { return '/v1/narrations/similar?lang=' + (window.I18N_LOCALE || 'en') + '&id=' + encodeURIComponent(id) + '&per_page=10'; },
                   render: renderSimilar,
                   items: function (d) { return (d && d.collection) || []; }},
         quran:   {url: function (id) { return '/v1/narrations/quranic_insights?id=' + encodeURIComponent(id) + '&all=true'; },

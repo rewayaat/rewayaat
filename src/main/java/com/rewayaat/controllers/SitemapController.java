@@ -93,6 +93,7 @@ public class SitemapController {
 
     private final BookCatalog catalog;
     private final ArabicIndexing arabicIndexing;
+    private final IsnadPageController isnad;
 
     /**
      * @param firstScanDelay    quiet start: no scan before this long after boot
@@ -101,12 +102,14 @@ public class SitemapController {
      * @param retryAfterFailure how long a failed scan blocks the next one
      */
     public SitemapController(BookCatalog catalog, ArabicIndexing arabicIndexing,
+                             IsnadPageController isnad,
                              @Value("${rewayaat.sitemap.first-scan-delay:PT10M}") Duration firstScanDelay,
                              @Value("${rewayaat.sitemap.first-scan-jitter:PT10M}") Duration firstScanJitter,
                              @Value("${rewayaat.sitemap.rescan-jitter:PT60M}") Duration rescanJitter,
                              @Value("${rewayaat.sitemap.retry-after-failure:PT15M}") Duration retryAfterFailure) {
         this.catalog = catalog;
         this.arabicIndexing = arabicIndexing;
+        this.isnad = isnad;
         this.schedule = SitemapScanSchedule.system(CACHE_TTL, firstScanDelay, firstScanJitter,
                 rescanJitter, retryAfterFailure);
     }
@@ -185,6 +188,12 @@ public class SitemapController {
         // sitemap at all - neither half. Nothing failed; it was simply never listed,
         // which is the failure mode a sitemap written by hand has.
         appendLocalisedUrl(xml, "/privacy", "0.3", "yearly");
+        // The chain conventions. Each is a page a chain links into thousands of times, so
+        // a crawler would reach them anyway; listing them says which they are and that
+        // both languages exist.
+        for (String slug : isnad.slugs()) {
+            appendLocalisedUrl(xml, IsnadPageController.PATH + slug, "0.6", "monthly");
+        }
 
         xml.append("</urlset>");
         return ResponseEntity.ok()

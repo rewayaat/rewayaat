@@ -1,0 +1,449 @@
+{
+  "measured_on": "2026-10",
+  "measured_over": 32519,
+  "conventions": [
+    {
+      "slug": "idda-min-ashabina",
+      "phrase_ar": "عِدَّةٌ مِنْ أَصْحَابِنَا",
+      "translit": "ʿidda min aṣḥābinā",
+      "title_en": "A number of our companions",
+      "title_ar": "عدة من أصحابنا",
+      "kicker_en": "A convention of the isnād",
+      "kicker_ar": "من اصطلاحات الإسناد",
+      "standfirst_en": "The commonest unnamed step in Shia hadith. What the phrase claims, whose companions it means, who the books say they were, and what it does — and does not do — to a grade.",
+      "standfirst_ar": "أشهرُ خطوةٍ مُهمَلةِ الاسم في الإسناد الشيعي. ما تُثبِته العبارة، وأصحابُ مَن هم، ومَن سمّتهم الكتب، وما يترتّب عليها — وما لا يترتّب — في الحكم على السند.",
+      "seo_title_en": "«عدة من أصحابنا» — a number of our companions: al-Kulaynī's ʿidda explained",
+      "seo_title_ar": "عدة من أصحابنا — بيان عِدّة الكليني ومَن هم",
+      "seo_description_en": "What «عدة من أصحابنا» means in an isnād, whose teachers al-Kulaynī meant by it, the three lists reported for it, and whether an ʿidda chain is reliable — with the classical texts quoted and every man linked.",
+      "seo_description_ar": "معنى «عدة من أصحابنا» في الإسناد، ومَن هم مشايخ الكليني المقصودون بها، والقوائم الثلاث المنقولة في تعيينهم، وحكم السند المشتمل عليها — بنصوص الرجاليين وروابط تراجم الرجال.",
+      "sections": [
+        {
+          "id": "what",
+          "heading_en": "The step that names nobody",
+          "heading_ar": "الخطوة التي لا تسمّي أحداً",
+          "blocks": [
+            {
+              "kind": "prose",
+              "en": [
+                "An isnād names every man it passes through. This step names none of them. <bdi lang=\"ar\">«عدة من أصحابنا»</bdi> — <em>ʿidda min aṣḥābinā</em>, a number of our companions — reports that a group of transmitters carried the narration, and leaves the group unnamed.",
+                "It is not damage to a manuscript, and not an editor's ellipsis. It is how the compiler wrote. The phrase stands 2,731 times in the chains held here, 2,675 of them in al-Kāfī, which is more often than all but a handful of named narrators appear.",
+                "The word matters. An <em>ʿidda</em> is a number — a plurality — not «some» and not «someone». The phrase asserts that more than one man carried this report, which is more than a single name asserts. Read strictly, it is a claim about strength that happens to withhold identities, rather than an admission of ignorance."
+              ],
+              "ar": [
+                "الإسنادُ يسمّي كلَّ مَن مرّ به، وهذه الخطوةُ لا تسمّي أحداً. فـ«عدة من أصحابنا» تُخبِر أنّ جماعةً من الرواة حملوا الرواية، ثم تترك الجماعةَ بلا تسمية.",
+                "وليست هذه خَرْماً في نسخةٍ ولا حذفاً من محقّق، بل هي طريقةُ المصنّف في الكتابة. وقد وردت العبارةُ ٢٧٣١ مرّةً في الأسانيد المحفوظة هنا، منها ٢٦٧٥ في الكافي، أي أكثرَ مما يَرِد فيه أكثرُ الرواة المسمّين.",
+                "وفي اللفظ نفسِه فائدة: «العِدّة» عددٌ وكثرة، لا «بعض» ولا «واحد مجهول». فالعبارةُ تُثبِت أنّ أكثرَ من واحدٍ حَمَل هذا الخبر، وهذا أكثرُ مما يُثبِته الاسمُ الواحد. فهي عند التحقيق دعوى قوّةٍ كَتَمَت الأسماء، لا إقرارٌ بجهالة."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "whose",
+          "heading_en": "Whose companions",
+          "heading_ar": "أصحابُ مَن؟",
+          "blocks": [
+            {
+              "kind": "prose",
+              "en": [
+                "The phrase belongs to whoever is writing, not to a school. In al-Kāfī it names al-Kulaynī's own teachers — the step immediately below him. In al-Ṭūsī's <em>Fihrist</em> and al-Najāshī's <em>Rijāl</em> the same four words name <em>their</em> shaykhs, four generations later and an entirely different group of men. Al-Ṭūsī sometimes names a few of his own:"
+              ],
+              "ar": [
+                "العبارةُ لصاحب الكتاب، لا لمذهبٍ أو طبقة. فهي في الكافي تسمّي مشايخَ الكليني أنفسهم، أي الطبقةَ التي تليه مباشرة. وهي في فهرست الطوسي ورجال النجاشي تسمّي مشايخَ هذين، بعد أربعة أجيال، وهم قومٌ آخرون بالكلّية. والطوسيُّ قد يُسمّي بعضَ عِدّته:"
+              ]
+            },
+            {
+              "kind": "quote",
+              "ar": "أخبرنا بجميع كتبه ورواياته عدة من أصحابنا، منهم الحسين بن عبيد الله وابن أبي جيد، عن أحمد بن محمد بن يحيى العطار، عن أبيه وسعد بن عبد الله، عنه.",
+              "cite_en": "al-Ṭūsī, <em>al-Fihrist</em>, in the entry on Aḥmad ibn Muḥammad ibn ʿĪsā",
+              "cite_ar": "الطوسي، الفهرست، في ترجمة أحمد بن محمد بن عيسى",
+              "person": "n000220",
+              "slug": "ahmad-ibn-muhammad-ibn-isa-ibn-abd-allah-ibn-sad-ibn-malik-i"
+            },
+            {
+              "kind": "prose",
+              "en": [
+                "So the first question to ask in front of an ʿidda is never «who were they» but «whose book is this». The identifications below are al-Kulaynī's, and they transfer to nobody else."
+              ],
+              "ar": [
+                "فأوّلُ ما يُسأل عند «عدة من أصحابنا» ليس «مَن هم»، بل «لِمَن هذا الكتاب». والتعييناتُ الآتية خاصّةٌ بعِدّة الكليني، لا تتعدّى إلى غيره."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "position",
+          "heading_en": "Where it stands, and why it mends nothing",
+          "heading_ar": "موضعُها من السند، ولماذا لا تُصلِح ما بعدها",
+          "blocks": [
+            {
+              "kind": "figures",
+              "items": [
+                {
+                  "value": "94.9%",
+                  "label_en": "stand at the head of the chain",
+                  "label_ar": "في صدر السند"
+                },
+                {
+                  "value": "98.2%",
+                  "label_en": "are followed by one of three men",
+                  "label_ar": "يليها أحد ثلاثة"
+                },
+                {
+                  "value": "2,731",
+                  "label_en": "ʿidda steps in the corpus",
+                  "label_ar": "موضعاً في هذه المجموعة"
+                }
+              ]
+            },
+            {
+              "kind": "prose",
+              "en": [
+                "Counted over the whole corpus: 2,592 of the 2,731 ʿidda steps stand at the first position, immediately below the compiler. The rest are inside chains the compiler is quoting from someone else's book.",
+                "And what follows the phrase is almost always one of three men. Sahl ibn Ziyād al-Ādamī in 1,070 of them, Aḥmad ibn Muḥammad ibn ʿĪsā al-Ashʿarī in 858, and Aḥmad ibn Muḥammad ibn Khālid al-Barqī in 754 — 98.2% between the three. The classical identification of al-Kulaynī's ʿidda is organised around exactly these three names, and the corpus bears the arrangement out independently of the reports that transmit it.",
+                "The consequence is the one most often missed. The ʿidda stands <em>above</em> the named man, never below him, so it cannot mend him. An ʿidda before Sahl ibn Ziyād is still a narration through Sahl ibn Ziyād, whose standing the books here put at everything from <em>thiqa</em> to <em>kadhdhāb</em>. Whatever one decides about the ʿidda settles one step of the chain and no other."
+              ],
+              "ar": [
+                "بالإحصاء على المجموعة كلّها: ٢٥٩٢ من مواضع العِدّة الـ٢٧٣١ تقع في الموضع الأوّل، أي تلي المصنّفَ مباشرة. والباقي داخلٌ في أسانيدَ ينقلها المصنّف عن كتاب غيره.",
+                "والذي يلي العبارةَ هو في الغالب أحدُ ثلاثة: سهل بن زياد الآدمي في ١٠٧٠ موضعاً، وأحمد بن محمد بن عيسى الأشعري في ٨٥٨، وأحمد بن محمد بن خالد البرقي في ٧٥٤، فهؤلاء الثلاثة ٩٨٪ من المواضع. والتعيينُ المشهور لعِدّة الكليني مبنيٌّ على هذه الأسماء الثلاثة بعينها، والمجموعةُ تشهد لهذا الترتيب شهادةً مستقلّةً عن الأخبار الناقلة له.",
+                "وهنا الأثرُ الذي كثيراً ما يُغفَل: العِدّةُ تقع <em>فوق</em> الرجل المسمّى لا تحته، فلا تُصلِحه. فالسندُ الذي فيه عِدّةٌ عن سهل بن زياد سندٌ عن سهل بن زياد، وهو مَن تتراوح أقوالُ الكتب فيه هنا بين التوثيق والتكذيب. فما يُنتهى إليه في العِدّة يفصل في خطوةٍ واحدة من السند لا في غيرها."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "why",
+          "heading_en": "Why he writes it instead of naming them",
+          "heading_ar": "لِمَ كتبها ولم يُسمِّهم",
+          "blocks": [
+            {
+              "kind": "prose",
+              "en": [
+                "Neither concealment nor forgetfulness. Several of al-Kulaynī's shaykhs had transmitted to him the same body of material from the same man — the books of Aḥmad ibn Muḥammad ibn ʿĪsā, the <em>Maḥāsin</em> of al-Barqī — by the hundreds of reports rather than one at a time. Naming four or five of them at the head of every one of those chains would have swollen the book without adding anything a reader could use.",
+                "There is a second reason, and it is the better one. Writing «a number» records something no single name records: that the report reached him by more than one route. A compiler who had it from one teacher cannot write it, and one who writes it is reporting corroboration. Dāwūd ibn Kūra, named in the first list, is the man who arranged Aḥmad ibn Muḥammad ibn ʿĪsā's <em>Kitāb al-Nawādir</em> into chapters; the ʿidda for Aḥmad is not a vague crowd but the Qummī circle through which Aḥmad's corpus came down."
+              ],
+              "ar": [
+                "لا كتماناً ولا نسياناً. فقد حدّث الكلينيَّ عددٌ من مشايخه بالمادّة الواحدة عن الرجل الواحد — كتبِ أحمد بن محمد بن عيسى، ومحاسنِ البرقي — في مئات الأخبار لا في الخبر الواحد. فتسميةُ أربعةٍ أو خمسةٍ في صدر كلّ سندٍ من تلك الأسانيد تُثقِل الكتاب ولا تُفيد القارئَ شيئاً.",
+                "وثَمّ وجهٌ ثانٍ وهو الأوجه: أنّ قولَه «عِدّة» يُثبِت ما لا يُثبِته اسمٌ واحد، وهو أنّ الخبرَ وصله من غير طريق. فمَن سمعه من شيخٍ واحدٍ لا يسعه أن يكتبها، ومَن كتبها فإنّما يُخبِر عن تعدّد الطريق. وداود بن كورة، وهو من أهل القائمة الأولى، هو الذي بوّب كتابَ النوادر لأحمد بن محمد بن عيسى؛ فعِدّةُ أحمد ليست جَمْعاً مبهماً بل هي الحلقةُ القمّية التي نزل بها تراثُ أحمد."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "who",
+          "heading_en": "Who the books say they were",
+          "heading_ar": "مَن سمّتهم الكتب",
+          "blocks": [
+            {
+              "kind": "prose",
+              "en": [
+                "The identification is reported, not stated in al-Kāfī. Al-ʿAllāma al-Ḥillī gives it in the third <em>fāʾida</em> of the <em>khātima</em> of <em>Khulāṣat al-aqwāl</em>, as al-Kulaynī's own words: three lists, each belonging to the man that ʿidda leads to.",
+                "Each name below links to what the books here say of him. The grades are theirs, not ours."
+              ],
+              "ar": [
+                "التعيينُ منقولٌ لا منصوصٌ في الكافي. أورده العلّامةُ الحلّي في الفائدة الثالثة من خاتمة خلاصة الأقوال، حكايةً عن الكليني نفسه: ثلاثُ قوائم، كلٌّ منها للرجل الذي تنتهي إليه تلك العِدّة.",
+                "وكلُّ اسمٍ فيما يلي موصولٌ بما قالته الكتبُ فيه. والأحكامُ أحكامُها لا أحكامُنا."
+              ]
+            },
+            {
+              "kind": "roster",
+              "lists": [
+                {
+                  "to": "n000220",
+                  "to_en": "Aḥmad ibn Muḥammad ibn ʿĪsā al-Ashʿarī",
+                  "to_ar": "أحمد بن محمد بن عيسى الأشعري",
+                  "count": 858,
+                  "men": [
+                    {
+                      "p": "n034836",
+                      "en": "Muḥammad ibn Yaḥyā al-ʿAṭṭār",
+                      "ar": "محمد بن يحيى العطار",
+                      "slug": "muhammad-ibn-yahya-al-attar"
+                    },
+                    {
+                      "p": "n002882",
+                      "en": "ʿAlī ibn Mūsā al-Kamandānī",
+                      "ar": "علي بن موسى الكمنداني",
+                      "slug": "ali-ibn-musa-al-kamandani"
+                    },
+                    {
+                      "p": "n000442",
+                      "en": "Dāwūd ibn Kūra",
+                      "ar": "داود بن كورة",
+                      "slug": "dawud-ibn-kawra"
+                    },
+                    {
+                      "p": "n000250",
+                      "en": "Aḥmad ibn Idrīs",
+                      "ar": "أحمد بن إدريس",
+                      "slug": "ahmad-ibn-idris-ibn-ahmad"
+                    },
+                    {
+                      "p": "n000706",
+                      "en": "ʿAlī ibn Ibrāhīm ibn Hāshim",
+                      "ar": "علي بن إبراهيم بن هاشم",
+                      "slug": "ali-ibn-ibrahim-ibn-hashim"
+                    }
+                  ],
+                  "to_slug": "ahmad-ibn-muhammad-ibn-isa-ibn-abd-allah-ibn-sad-ibn-malik-i"
+                },
+                {
+                  "to": "n000205",
+                  "to_en": "Aḥmad ibn Muḥammad ibn Khālid al-Barqī",
+                  "to_ar": "أحمد بن محمد بن خالد البرقي",
+                  "count": 754,
+                  "men": [
+                    {
+                      "p": "n000706",
+                      "en": "ʿAlī ibn Ibrāhīm ibn Hāshim",
+                      "ar": "علي بن إبراهيم بن هاشم",
+                      "slug": "ali-ibn-ibrahim-ibn-hashim"
+                    },
+                    {
+                      "p": "",
+                      "en": "ʿAlī ibn Muḥammad ibn ʿAbdallāh ibn Udhayna",
+                      "ar": "علي بن محمد بن عبد الله بن أذينة",
+                      "note_en": "no entry in any book held here",
+                      "note_ar": "لا ترجمة له في الكتب المحفوظة هنا",
+                      "slug": ""
+                    },
+                    {
+                      "p": "n017847",
+                      "en": "Aḥmad ibn ʿAbdallāh ibn Umayya",
+                      "ar": "أحمد بن عبد الله بن أمية",
+                      "slug": "ahmad-ibn-abd-allah-ibn-umayyah"
+                    },
+                    {
+                      "p": "n057432",
+                      "en": "ʿAlī ibn al-Ḥusayn al-Saʿdābādī",
+                      "ar": "علي بن الحسين السعدآبادي",
+                      "note_en": "the Khulāṣa's «ʿAlī ibn al-Ḥasan», generally read as a copyist's slip for this man",
+                      "note_ar": "هو «علي بن الحسن» في الخلاصة، والمشهور أنّه تصحيفٌ عن هذا",
+                      "slug": "ali-ibn-al-husayn-al-sadabadi"
+                    }
+                  ],
+                  "to_slug": "ahmad-ibn-muhammad-ibn-khalid-al-barqi"
+                },
+                {
+                  "to": "n000515",
+                  "to_en": "Sahl ibn Ziyād al-Ādamī",
+                  "to_ar": "سهل بن زياد الآدمي",
+                  "count": 1070,
+                  "men": [
+                    {
+                      "p": "n000708",
+                      "en": "ʿAlī ibn Muḥammad ibn ʿAllān",
+                      "ar": "علي بن محمد بن علّان",
+                      "slug": "ali-ibn-muhammad-ibn-ibrahim-ibn-aban-al-razi-al-kalini"
+                    },
+                    {
+                      "p": "",
+                      "en": "Muḥammad ibn Abī ʿAbdallāh",
+                      "ar": "محمد بن أبي عبد الله",
+                      "note_en": "a kunya; read as al-Asadī, not settled",
+                      "note_ar": "كنية، والمشهور أنّه الأسدي، ولم يُحقَّق",
+                      "slug": ""
+                    },
+                    {
+                      "p": "n000974",
+                      "en": "Muḥammad ibn al-Ḥasan al-Ṣaffār",
+                      "ar": "محمد بن الحسن الصفار",
+                      "note_en": "the Khulāṣa has «Muḥammad ibn al-Ḥasan»; read as al-Ṣaffār on the Mīrzā's judgement",
+                      "note_ar": "في الخلاصة «محمد بن الحسن»، وعيّنه الميرزا بالصفّار",
+                      "slug": "muhammad-ibn-al-hasan-ibn-furukh-al-saffar"
+                    },
+                    {
+                      "p": "n003129",
+                      "en": "Muḥammad ibn ʿAqīl al-Kulaynī",
+                      "ar": "محمد بن عقيل الكليني",
+                      "slug": "muhammad-b-aqil-al-kulayni"
+                    }
+                  ],
+                  "to_slug": "sahl-ibn-ziyad"
+                }
+              ]
+            },
+            {
+              "kind": "prose",
+              "en": [
+                "<strong>What corroborates the lists.</strong> Al-ʿAllāma wrote three centuries after al-Kulaynī, and the report reaches him with no chain, so taken by itself it is <em>mursal</em>. But it does not stand by itself. Al-Najāshī, in the entry on Aḥmad ibn Muḥammad ibn ʿĪsā, closes with his own isnād for Aḥmad's books:"
+              ],
+              "ar": [
+                "<strong>ما يشهد للقوائم.</strong> كتب العلّامةُ بعد الكليني بثلاثة قرون، وبلغه الخبرُ بغير إسناد، فهو في نفسه مُرسَل. لكنّه لا يقوم وحده؛ فالنجاشيُّ يَختِم ترجمةَ أحمد بن محمد بن عيسى بإسناده إلى كتبه:"
+              ]
+            },
+            {
+              "kind": "quote",
+              "ar": "وقال لي أبو العباس أحمد بن علي بن نوح: أخبرنا بها أبو الحسن بن داود عن محمد بن يعقوب عن علي بن إبراهيم ومحمد بن يحيى وعلي بن موسى بن جعفر وداود بن كورة وأحمد بن إدريس عن أحمد بن محمد بن عيسى بكتبه.",
+              "cite_en": "al-Najāshī, <em>al-Rijāl</em>, in the entry on Aḥmad ibn Muḥammad ibn ʿĪsā — held here in full",
+              "cite_ar": "النجاشي، الرجال، في ترجمة أحمد بن محمد بن عيسى — والنصُّ محفوظٌ هنا بتمامه",
+              "person": "n000220",
+              "slug": "ahmad-ibn-muhammad-ibn-isa-ibn-abd-allah-ibn-sad-ibn-malik-i"
+            },
+            {
+              "kind": "prose",
+              "en": [
+                "That is not a report that al-Kulaynī said something. It is al-Najāshī's own chain, and it names al-Kulaynī taking Aḥmad's books from exactly the five men of the first list. It also settles a spelling: al-Najāshī writes «ʿAlī ibn Mūsā ibn Jaʿfar», where the Khulāṣa's name is read as «al-Kamandānī» and in some copies «al-Kūrānī» — and al-Khūʾī, naming him in full as «ʿAlī ibn Mūsā ibn Jaʿfar ibn Abī Jaʿfar al-Kamandānī», says of him in so many words that he is «one of the ʿidda al-Kulaynī narrates from, from Aḥmad ibn Muḥammad ibn ʿĪsā — al-Najāshī mentioned him in the entry on Muḥammad ibn Yaʿqūb».",
+                "The third list has the same kind of support. Al-Najāshī on Sahl ibn Ziyād: «his <em>Kitāb al-Nawādir</em> — Muḥammad ibn Muḥammad informed us of it, saying: Jaʿfar ibn Muḥammad narrated to us, from Muḥammad ibn Yaʿqūb, who said: ʿAlī ibn Muḥammad narrated to us, from Sahl ibn Ziyād» — al-Kulaynī reaching Sahl through ʿAlī ibn Muḥammad, the first name on that list.",
+                "<strong>What does not hold up.</strong> Two names in the Barqī list are thin: Ibn Udhayna has no entry in any book held here, and Aḥmad ibn ʿAbdallāh ibn Umayya has one entry carrying no verdict. In the first list, three of the five — Muḥammad ibn Yaḥyā, Aḥmad ibn Idrīs and ʿAlī ibn Ibrāhīm — are called <em>thiqa</em> by al-Najāshī himself; the other two carry a tawthīq only from late authors, al-Kamandānī from <em>Jāmiʿ al-Ruwāt</em> and Dāwūd ibn Kūra from <em>Tanqīḥ al-Maqāl</em>, which is the substance behind the old observation that two of the ʿidda have «neither praise nor blame» in the early books."
+              ],
+              "ar": [
+                "وهذا ليس خبراً بأنّ الكلينيَّ قال شيئاً، بل هو إسنادُ النجاشي نفسِه، وفيه الكلينيُّ يأخذ كتبَ أحمد عن الخمسة الذين في القائمة الأولى بأعيانهم. وفيه أيضاً فصلٌ في الرسم: فالنجاشيُّ يكتب «علي بن موسى بن جعفر»، حيث يُقرأ اسمُ الخلاصة «الكمنداني» وفي بعض النسخ «الكوراني». والخوئيُّ يسمّيه بتمامه «علي بن موسى بن جعفر بن أبي جعفر الكمنداني» ويقول فيه نصّاً: «هو أحد العِدّة الذين يروي محمد بن يعقوب عنهم، عن أحمد بن محمد بن عيسى، ذكره النجاشي في ترجمة محمد بن يعقوب».",
+                "وللقائمة الثالثة شاهدٌ من جنسه؛ قال النجاشي في سهل بن زياد: «وله كتاب النوادر، أخبرناه محمد بن محمد قال: حدثنا جعفر بن محمد، عن محمد بن يعقوب قال: حدثنا علي بن محمد، عن سهل بن زياد» — فالكلينيُّ يصل إلى سهلٍ بعليِّ بن محمد، وهو أوّلُ تلك القائمة.",
+                "<strong>وما لا يَصفو.</strong> في قائمة البرقي اسمان ضعيفا الأثر: ابنُ أذينة لا ترجمةَ له في شيءٍ من الكتب المحفوظة هنا، وأحمد بن عبد الله بن أمية له ترجمةٌ واحدةٌ لا حكمَ فيها. وفي القائمة الأولى ثلاثةٌ من الخمسة — محمد بن يحيى وأحمد بن إدريس وعلي بن إبراهيم — وثّقهم النجاشيُّ بنفسه؛ والاثنان الآخران لم يَرِد توثيقُهما إلا عند المتأخّرين: الكمنداني في جامع الرواة، وداود بن كورة في تنقيح المقال. وهذا هو أصلُ ما قيل قديماً من أنّ اثنين من العِدّة «لم نقف لهما على مدحٍ ولا ذمّ» في كتب المتقدّمين."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "grade",
+          "heading_en": "What it does to a grade",
+          "heading_ar": "أثرُها في الحكم على السند",
+          "blocks": [
+            {
+              "kind": "prose",
+              "en": [
+                "Two readings are current, and the difference between them is not about the facts."
+              ],
+              "ar": [
+                "في المسألة قولان متداولان، والخلافُ بينهما ليس في الوقائع."
+              ]
+            },
+            {
+              "kind": "two",
+              "sides": [
+                {
+                  "label_en": "The plurality argument",
+                  "label_ar": "دليل التعدّد",
+                  "en": "An ʿidda is at least three men. Al-Kulaynī's known shaykhs are, as the books have them, overwhelmingly men those books trust; he rarely narrates from Aḥmad ibn Muḥammad ibn ʿĪsā except with Muḥammad ibn Yaḥyā among them. It is improbable that an unnamed group of his own teachers was composed of unknowns, and more improbable still that he would have rested hundreds of reports on them without remark. On this reading an ʿidda chain is <em>muʿtabar</em>, and most of the mutaʾakhkhirūn treat it so.",
+                  "ar": "العِدّةُ ثلاثةٌ على الأقلّ. ومشايخُ الكليني المعروفون — كما في الكتب — جُمهورُهم ممّن توثّقه تلك الكتب، وقلَّ أن يروي عن أحمد بن محمد بن عيسى إلا ومعهم محمد بن يحيى. فيُستبعد أن تكون جماعةٌ غيرُ مسمّاةٍ من مشايخه مجاهيلَ بأجمعهم، ويُستبعد أكثرُ أن يَبني مئاتِ الأخبار عليهم من غير تنبيه. فالسندُ على هذا معتبرٌ، وعليه أكثرُ المتأخّرين."
+                },
+                {
+                  "label_en": "The strict argument",
+                  "label_ar": "دليل التوقّف",
+                  "en": "Tawthīq attaches to named men. An unnamed group cannot be graded, and the lists that name them are themselves unchained — a probability about a group is not a verdict on a transmitter. On this reading the step is <em>majhūl</em> and the chain is weak at it, whatever one thinks likely about who stood there.",
+                  "ar": "التوثيقُ يتعلّق بالمسمَّى. والجماعةُ المبهمة لا تُوثَّق، والقوائمُ المسمّية لها غيرُ مُسنَدة؛ والظنُّ بالجماعة ليس حكماً على الراوي. فالخطوةُ على هذا مجهولةٌ والسندُ ضعيفٌ بها، وإن غَلَب على الظنّ مَن كان فيها."
+                }
+              ]
+            },
+            {
+              "kind": "prose",
+              "en": [
+                "What both sides agree on is worth stating on its own: the question is confined to that one step. These pages take no side. Each man gets what the books say of him, book by book, and the chain is shown as it is written — the unnamed step included, in its place, and counted."
+              ],
+              "ar": [
+                "والذي يتّفق عليه الفريقان يستحقّ أن يُفرَد: أنّ الكلامَ محصورٌ في تلك الخطوة وحدها. وهذه الصفحاتُ لا تنتصر لأحد القولين؛ فلكلّ رجلٍ ما قالته فيه الكتب، كتاباً كتاباً، والسندُ يُعرَض كما كُتِب، والخطوةُ المبهمةُ فيه في موضعها معدودة."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "neighbours",
+          "heading_en": "The neighbouring forms",
+          "heading_ar": "النظائر",
+          "blocks": [
+            {
+              "kind": "prose",
+              "en": [
+                "An ʿidda is one of several ways a chain declines to name a step, and they do not claim the same thing. Counts are of the chains held here."
+              ],
+              "ar": [
+                "العِدّةُ واحدةٌ من صيغٍ يَعدِل بها السندُ عن تسمية الخطوة، وليست دعواها واحدة. والأعدادُ من الأسانيد المحفوظة هنا."
+              ]
+            },
+            {
+              "kind": "table",
+              "head_en": [
+                "Form",
+                "Reads",
+                "Times",
+                "What it claims"
+              ],
+              "head_ar": [
+                "الصيغة",
+                "ترجمتها",
+                "العدد",
+                "ما تُثبِته"
+              ],
+              "rows": [
+                {
+                  "ar": "عدة من أصحابنا",
+                  "en": "a number of our companions",
+                  "n": "2,731",
+                  "says_en": "A plurality, the compiler's own teachers.",
+                  "says_ar": "جماعةٌ، وهم مشايخُ المصنّف نفسِه."
+                },
+                {
+                  "ar": "بعض أصحابنا",
+                  "en": "some of our companions",
+                  "n": "459",
+                  "says_en": "No plurality claimed; read by most as one unnamed man. Weaker than an ʿidda for that reason.",
+                  "says_ar": "لا تَدّعي تعدّداً، وأكثرُهم يقرؤها رجلاً واحداً مبهماً، فهي بذلك أضعفُ من العِدّة."
+                },
+                {
+                  "ar": "بعض أصحابه",
+                  "en": "some of his companions",
+                  "n": "383",
+                  "says_en": "The same, said of the man before it rather than of the compiler.",
+                  "says_ar": "مثلُها، لكنّها في الرجل الذي قبلها لا في المصنّف."
+                },
+                {
+                  "ar": "غير واحد",
+                  "en": "more than one",
+                  "n": "151",
+                  "says_en": "A plurality, stated even more plainly, but without «our companions» it does not say whose.",
+                  "says_ar": "تعدّدٌ مصرَّحٌ به، لكنّها بغير «أصحابنا» لا تُعيّن لِمَن."
+                },
+                {
+                  "ar": "رجل / رجل من أصحابنا",
+                  "en": "a man, a man of our companions",
+                  "n": "317",
+                  "says_en": "One unnamed man. The chain is in effect broken at him.",
+                  "says_ar": "رجلٌ واحدٌ مبهم، والسندُ منقطعٌ به في الحقيقة."
+                },
+                {
+                  "ar": "بعض رجاله",
+                  "en": "some of his men",
+                  "n": "68",
+                  "says_en": "Said of a compiler's own authorities by a later writer quoting him.",
+                  "says_ar": "تُقال في رجال المصنّف على لسان مَن ينقل عنه."
+                },
+                {
+                  "ar": "جماعة",
+                  "en": "a group",
+                  "n": "66",
+                  "says_en": "A plurality, unnamed and unattributed.",
+                  "says_ar": "جماعةٌ مبهمةٌ غيرُ منسوبة."
+                },
+                {
+                  "ar": "ذكره",
+                  "en": "he mentioned it",
+                  "n": "316",
+                  "says_en": "Not a group at all: the compiler reports the matter without naming the route he had it by.",
+                  "says_ar": "ليست جماعةً أصلاً، بل إخبارٌ بالمضمون من غير تسمية الطريق."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "here",
+          "heading_en": "How these pages read it",
+          "heading_ar": "كيف تُعرَض هنا",
+          "blocks": [
+            {
+              "kind": "prose",
+              "en": [
+                "A step with no man behind it is shown as a step: in the chain, in its place, without a link, and counted in the chain summary as an unnamed step. It is not dropped, and the chain is not called broken.",
+                "The three men an ʿidda leads to each have a page, and so do ten of the twelve named in the lists above. Click the phrase in any chain and it comes back here."
+              ],
+              "ar": [
+                "الخطوةُ التي لا رجلَ وراءها تُعرَض خطوةً: في السند، في موضعها، بغير رابط، ومعدودةً في ملخّص السند خطوةً مبهمة. فلا تُحذَف، ولا يُقال إنّ السندَ منقطع.",
+                "والثلاثةُ الذين تنتهي إليهم العِدّةُ لكلٍّ منهم صفحة، وكذلك عشرةٌ من الاثني عشر المسمّين في القوائم أعلاه. وبالنقر على العبارة في أيّ سندٍ يُرجَع إلى هذه الصفحة."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
