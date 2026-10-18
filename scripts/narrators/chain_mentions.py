@@ -44,6 +44,18 @@ _FOLD = str.maketrans({"أ": "ا", "إ": "ا", "آ": "ا", "ٱ": "ا", "ى": "ي
                        "ی": "ي", "ک": "ك", "ۀ": "ه", "ە": "ه", "ھ": "ه"})
 _NOT_ARABIC = re.compile(r"[^ء-ي]")
 
+# What separates one word of a chain from the next. Whitespace, and three things that are
+# invisible or that no name contains: the bidi marks, which the scans leave behind as the
+# only gap between two words — «قالَ‏عَلِيِّ» is «قال» and then «علي» — a colon, which
+# glues «قال:حدثني» into one word no joiner list can recognise, and the brackets an editor
+# puts round a reading he is unsure of. Left as one word, the joiner inside is invisible,
+# the run never closes, and the names on both sides of it are read as prose for being
+# too long. 1,006 runs were lost that way.
+WORD = re.compile(r"[^\s\u200b-\u200f\u202a-\u202e\u2066-\u2069:\[\]()]+")
+
+# The tail of a link should be the last letter of the name, not the comma after it.
+_TRAILING = re.compile(r"[^ء-يًٌٍَُِّْٰ]+$")
+
 # Words that join one name to the next, or end the chain. None of them is part of a name.
 JOINERS = {
     # the relation itself
@@ -60,7 +72,9 @@ JOINERS = {
     "الاسناد", "الاسنادين", "مثله", "نحوه", "جميعا", "معا", "كلهم", "قالا", "قالوا",
     # the words that end a chain and open the body
     "قال", "فقال", "قالت", "قلت", "يقول", "انه", "اني", "ان", "في", "ثم", "وقال",
-    "دخلت", "سالت", "وسالته", "سالته", "كنت", "ذكر", "وذكر", "يقال",
+    "دخلت", "سالت", "وسالته", "سالته", "كنت", "ذكر", "وذكر", "يقال", "سال", "وسال", "اخاه", "اخاها",
+    # The year a man was heard from is not a step: «بالأهواز سنة سبع وعشرين ومائتين».
+    "سنة", "وسنة",
 }
 
 # «عليه السلام» and its kin: not names, but their presence marks the mention as an Imam's.
@@ -88,7 +102,8 @@ MAX_NAME_WORDS = 5
 
 # A name only in relation to the man before it.
 RELATIVE = {"ابيه", "ابيها", "ابويه", "عمه", "جده", "اخيه", "ابنه", "عمته", "خاله", "امه",
-            "عميه", "جدي", "ابي", "ابوه", "اخوه", "ابايه", "ابائه", "اجداده", "ابويها"}
+            "عميه", "جدي", "ابي", "ابوه", "اخوه", "ابايه", "ابائه", "اجداده", "ابويها",
+            "اخاه", "اخاها", "عمها", "جدها"}
 
 # و-prefixed co-narrator: «محمد بن يحيى وأحمد بن محمد» is two men, but «وهب» is one name
 # that merely starts with the same letter. We split only before a word whose remainder after
@@ -116,6 +131,43 @@ RELATIVE = {bare(w) for w in RELATIVE}
 OPENERS = {bare(w) for w in OPENERS}
 
 
+LINK = {"بن", "ابن"}
+
+# The year of a hearing, once «سنة» has closed the name before it: «سنة سبع وعشرين
+# ومائتين» is left behind as a run of its own, and a run of numbers is not a man.
+NUMBERS = {
+    "واحد", "اثنين", "اثنتين", "ثنتين", "ثلاث", "ثلاثة", "اربع", "اربعة", "خمس", "خمسة",
+    "ست", "ستة", "سبع", "سبعة", "ثمان", "ثمانية", "ثماني", "تسع", "تسعة", "عشر", "عشرة",
+    "عشرين", "ثلاثين", "اربعين", "خمسين", "ستين", "سبعين", "ثمانين", "تسعين",
+    "مائة", "مئة", "مائتين", "مئتين", "ثلاثمائة", "ثلاثمئة", "اربعمائة", "خمسمائة", "الف",
+}
+NUMBERS = {bare(w) for w in NUMBERS}
+
+
+def counted(folded):
+    """Whether every word of a run is a number, with or without the «و» that joins them."""
+    return bool(folded) and all(
+        word in NUMBERS or (word.startswith("و") and word[1:] in NUMBERS) for word in folded)
+
+
+def outside_nasab(folded):
+    """The words of a run that a nasab does not account for.
+
+    A nasab is one man's name however long it runs — «موسى بن إسماعيل بن موسى بن جعفر بن
+    محمد بن علي بن الحسين بن علي بن أبي طالب» is a single narrator — so counting its
+    generations against a cap meant for prose read the longest names in these books as
+    prose and dropped them. 957 runs were lost that way, and the words inside them are
+    «علي», «محمد», «الله», «جعفر», «بابويه»: names, not sentences. The cap is there to
+    catch a name sitting in a clause, so only the words the nasab does not account for
+    are counted against it.
+    """
+    covered = [False] * len(folded)
+    for i, word in enumerate(folded):
+        if word in LINK and 0 < i < len(folded) - 1:
+            covered[i - 1] = covered[i] = covered[i + 1] = True
+    return [w for w, held in zip(folded, covered) if not held and w not in NAME_GLUE]
+
+
 def kind_of(words, blessed):
     """What sort of mention a run of words is — the kinds that must not become links."""
     folded = [bare(w) for w in words]
@@ -125,7 +177,9 @@ def kind_of(words, blessed):
         return "relative"
     if any(w in FUNCTION for w in folded):
         return "text"
-    if len([w for w in folded if w not in NAME_GLUE]) > MAX_NAME_WORDS:
+    if counted(folded):
+        return "text"
+    if len(outside_nasab(folded)) > MAX_NAME_WORDS:
         return "text"
     if blessed and "بن" not in folded and "ابن" not in folded and len(folded) <= 4:
         # «أبي عبد الله عليه السلام», «الصادق عليه السلام» — an Imam, named by kunya or
@@ -207,7 +261,7 @@ def segment(chain):
     """
     opening = cited(chain)
     words = [(opening + m.start(), opening + m.end(), m.group())
-             for m in re.finditer(r"\S+", chain[opening:])]
+             for m in WORD.finditer(chain[opening:])]
     mentions, run = [], []
 
     # The hadith number and the dash before it are not words of the chain.
@@ -230,8 +284,14 @@ def segment(chain):
             if not blessed and bare(word[2]):
                 named.append(word)
         if named:
-            mentions.append({"start": named[0][0], "end": named[-1][1],
-                             "text": chain[named[0][0]:named[-1][1]],
+            # The span stops at the last Arabic letter, so «محمّد بن الحسن؛» is linked as
+            # «محمّد بن الحسن» and the semicolon is left outside the anchor.
+            covered = chain[named[0][0]:named[-1][1]]
+            trailing = _TRAILING.search(covered)
+            last = named[-1][1] - (len(trailing.group()) if trailing else 0)
+            last = max(last, named[0][0] + 1)
+            mentions.append({"start": named[0][0], "end": last,
+                             "text": chain[named[0][0]:last],
                              "blessed": blessed,
                              "kind": kind_of([w[2] for w in named], blessed)})
         run.clear()

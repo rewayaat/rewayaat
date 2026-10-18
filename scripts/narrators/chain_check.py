@@ -39,6 +39,16 @@ LINKED = ("one", "chosen", "convention")
 # Kinds whose text is not meant to be the person's name: a convention stands in for him.
 BY_CONVENTION = ("relative", "backref_man", "backref_chain", "collective")
 
+# What can stand between two names. A relation makes the second the first one's shaykh;
+# «و» and «جميعا» make them co-narrators, two men at the same step who heard it from the
+# same man below, and reading those as a pair invents a teacher. Al-Ṣadūq writes whole
+# chains that way — «عن أبي؛ و محمد بن الحسن بن أحمد بن الوليد عن سعد بن عبد الله؛ و عبد
+# الله بن جعفر الحميري جميعا عن يعقوب بن يزيد» is three steps, not six.
+RELATION = {"عن", "وعن", "فعن", "عنه", "وعنه", "عمن", "حدثنا", "وحدثنا", "حدثني", "وحدثني",
+            "اخبرنا", "واخبرنا", "اخبرني", "سمعت", "سمعته", "رفعه", "يرفعه", "قال",
+            "روى", "وروى", "رواه", "باسناده", "عنهما", "عنهم"}
+BESIDE = {"و", "جميعا", "معا", "كلهم", "جميعهم", "قالا", "قالوا"}
+
 
 def people():
     """person_id → the names the books file him under, folded, and who he narrated from."""
@@ -110,7 +120,7 @@ def main():
             text = printed.get(chain_id, "")
             steps = [m for m in row["mentions"] if m["kind"] != "text"]
             taken = []
-            previous = None
+            previous, previous_end = None, None
 
             if text and not steps:
                 flag("empty", chain_id, "a chain with words in it and no step cut out of it")
@@ -160,7 +170,18 @@ def main():
                     if mention["kind"] not in BY_CONVENTION:
                         resolves_to[key(mention["text"])][person] += 1
 
-                if person and previous and person == previous:
+                # Co-narrators are not a pair: nothing but «و» between two names means
+                # they stand at the same step, so neither the self check nor the
+                # direction check has anything to say about them.
+                beside = False
+                if previous_end is not None:
+                    between = [bare(w) for w in text[previous_end:start].split()]
+                    between = [w for w in between if w]
+                    if between and all(w in BESIDE for w in between):
+                        beside = True
+                if beside:
+                    found["side-by-side"] += 1
+                if person and previous and person == previous and not beside:
                     flag("self", chain_id, f"{display.get(person, person)} narrating from himself")
                 # The books' own word on the direction. A chain says A heard it from B; if
                 # every book that mentions the pair says B heard it from A, one of them is
@@ -168,7 +189,8 @@ def main():
                 # «A عن B» makes B the teacher and A the student. The books are asked the
                 # same question: do they have A among B's students, or among his teachers?
                 # Both, or neither, says nothing. Only the second alone is a contradiction.
-                if person and previous and person in students and previous in names:
+                if (person and previous and not beside
+                        and person in students and previous in names):
                     as_student = names[previous] & students[person]
                     as_teacher = names[previous] & teachers[person]
                     if as_student and not as_teacher:
@@ -179,6 +201,7 @@ def main():
                              f" but the books have that pair the other way")
                 if linked or mention["kind"] in BY_CONVENTION:
                     previous = person or None
+                    previous_end = end
 
             if row.get("head_lost"):
                 flag("head-lost", chain_id, "opens with a reporting verb whose name got away")
@@ -192,7 +215,7 @@ def main():
                 shown = ", ".join(f"{display.get(p, p)} ×{n}" for p, n in who.most_common(3))
                 examples["same-words-different-men"].append(f"«{folded}» → {shown}")
 
-    order = ["direction-confirmed",
+    order = ["direction-confirmed", "side-by-side",
              "span", "overlap", "name-not-his", "reversed", "self", "prose-linked",
              "joiner-in-link", "blessing-in-link", "prose-is-a-name",
              "same-words-different-men", "head-lost", "quoted-pointer", "empty"]
