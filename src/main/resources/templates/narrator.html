@@ -443,21 +443,17 @@
     <section class="narrator-stands narrator-stands--unsourced"
              th:if="${!#lists.isEmpty(narrator.reported_without_a_passage)}">
         <h2 class="hub-group__label" th:text="#{narrator.unsourced.heading}">
-            Reported of him without a passage we can show</h2>
-        <!-- One sentence on the page and the whole explanation behind it. The full text ran four
-             lines on every narrator, above a table that is sometimes three rows; every word of
-             it is still here, in the disclosure. -->
+            Attributed, not quoted</h2>
+        <!-- This said «these grades are in our records, but there is no passage here to read
+             them against», which tells a rijālī about our database and nothing about the
+             books. What he needs is the attribution, the book it is made to, and the fact
+             that no text of that book is quoted for it; whether we hold the entry is our
+             business. One line, in the books' terms, and the table carries the rest. -->
         <p class="narrator-stands__note narrator-stands__note--short"
            th:text="#{narrator.unsourced.short}">
-            These grades are in our records, but there is no passage here to read them against.
+            Attributed to these books, with no passage of them quoted here, and so not
+            counted among the positions above.
         </p>
-        <details class="narrator-stands__more">
-            <summary th:text="#{narrator.unsourced.more}">Why they are set aside</summary>
-            <p class="narrator-stands__note" th:text="#{narrator.unsourced.note}">
-                These grades sit in our records for these books, but not in any entry of theirs
-                that we hold, so there is nothing here for you to read them against.
-            </p>
-        </details>
         <table class="narrator-stands__table">
             <tbody>
             <tr th:each="stand : ${narrator.reported_without_a_passage}">

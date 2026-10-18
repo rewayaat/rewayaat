@@ -4941,6 +4941,56 @@ function setupVue(query, page, sortFields) {
                 }
                 return t(base, '{0}').replace('{0}', localeDigits(howMany));
             },
+            // The chain of one narration, shaped the way the server shapes it for the card
+            // it renders: the same four kinds of link, the same «open» joint where the
+            // chain is broken, so one stylesheet and one script serve both.
+            chainOf: function(narration) {
+                var people = (narration && narration.chain_people) || [];
+                var prefix = (window.I18N_LOCALE === 'ar') ? '/ar' : '';
+                var links = [];
+                for (var i = 0; i < people.length; i++) {
+                    var one = people[i] || {};
+                    var words = one.t || '';
+                    if (!words) {
+                        continue;
+                    }
+                    var person = one.p || '';
+                    var kind = one.k === 'collective' ? 'collective'
+                        : (one.k === 'imam' && person) ? 'imam'
+                        : person ? 'man' : 'unknown';
+                    var weak = kind === 'collective' || kind === 'unknown';
+                    links.push({
+                        words: words, kind: kind, person: person, weak: weak, open: weak,
+                        href: (person && kind !== 'collective')
+                            ? prefix + '/narrator/' + person + (one.g ? '/' + one.g : '')
+                            : ''
+                    });
+                }
+                // A joint is open when either end of it is, which is a property of the pair.
+                for (var at = 0; at < links.length; at++) {
+                    var below = at + 1 < links.length && links[at + 1].weak;
+                    links[at].open = links[at].weak || below;
+                }
+                return links;
+            },
+            chainIdsOf: function(narration) {
+                var seen = [];
+                this.chainOf(narration).forEach(function(link) {
+                    if (link.person && seen.indexOf(link.person) < 0) {
+                        seen.push(link.person);
+                    }
+                });
+                return seen.join(',');
+            },
+            namedInChain: function(narration) {
+                var people = (narration && narration.chain_people) || [];
+                return people.filter(function(one) { return one && one.k === 'name'; }).length;
+            },
+            identifiedInChain: function(narration) {
+                return this.chainOf(narration).filter(function(link) {
+                    return link.kind === 'man';
+                }).length;
+            },
             // What the first book to grade him calls him, in that book's own word.
             // Nothing here is this site's judgement, so nothing here is phrased as one.
             saidOf: function(narrator) {
@@ -6012,7 +6062,10 @@ function setupVue(query, page, sortFields) {
                     return 'metadata';
                 }
                 var activeTab = String(narration.sidecarActiveTab || 'metadata').trim();
-                if (activeTab !== 'similar' && activeTab !== 'quran') {
+                // The panels this card knows. «rijal» was added when the chain panel came
+                // to the search results, and leaving it out of the list here is what made
+                // the tab light up and the panel stay on metadata.
+                if (['similar', 'quran', 'rijal'].indexOf(activeTab) < 0) {
                     return 'metadata';
                 }
                 return activeTab;
@@ -6022,7 +6075,7 @@ function setupVue(query, page, sortFields) {
                     return;
                 }
                 var nextTab = String(tab || 'metadata').trim();
-                if (nextTab !== 'similar' && nextTab !== 'quran') {
+                if (['similar', 'quran', 'rijal'].indexOf(nextTab) < 0) {
                     nextTab = 'metadata';
                 }
                 if (this.isNarrationSidecarTabDisabled(narration, nextTab)) {
@@ -6058,6 +6111,12 @@ function setupVue(query, page, sortFields) {
                     return narration.quranicInsightsCountLoading
                         || narration.quranicInsightsCount === null
                         || Number(narration.quranicInsightsCount) <= 0;
+                }
+                // The chain is on the narration already — nothing is fetched to decide
+                // whether there is one — so the panel is open whenever the resolver read an
+                // isnād out of it. Anything else this card does not know is still refused.
+                if (tab === 'rijal') {
+                    return !this.chainOf(narration).length;
                 }
                 return true;
             },

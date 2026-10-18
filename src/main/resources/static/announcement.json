@@ -1,12 +1,12 @@
 {
-  "id": "mcp-connector-2026-09",
+  "id": "rijal-2026-10",
   "active": true,
-  "icon": "fa-plug",
-  "label": "New for researchers:",
-  "text": "search all 50,038 narrations from inside Claude and ChatGPT, with every source linked.",
+  "icon": "fa-link",
+  "label": "New:",
+  "text": "every name in a chain is now a link to the man — what the rijāl books say of him, in their own words.",
   "linkText": "See how",
-  "linkUrl": "/updates.html#connector",
-  "label_ar": "جديد للباحثين:",
-  "text_ar": "ابحث في ٥٠٬٠٣٨ رواية من داخل Claude وChatGPT، مع رابط لكل مصدر.",
+  "linkUrl": "/updates.html#rijal",
+  "label_ar": "جديد:",
+  "text_ar": "كلُّ اسمٍ في السند صار رابطًا إلى صاحبه، وفيه ما قالته كتب الرجال فيه بألفاظها.",
   "linkText_ar": "كيف يعمل"
 }

@@ -392,6 +392,29 @@
                                         <span class="hadith-sidecar__rail-label" th:text="#{sidecar.details}">DETAILS</span>
                                         <span class="hadith-sidecar__rail-icon"><i class="fa fa-info-circle" aria-hidden="true"></i></span>
                                     </button>
+                                    <!-- The chain as a chain. The server-rendered card has
+                                         carried this panel since the rijāl tab was built;
+                                         the search results are drawn here in the browser
+                                         instead, from the same chain_people the API already
+                                         sends, so a reader searching for a man met his
+                                         narrations with no way into their isnāds. -->
+                                    <button type="button"
+                                            class="hadith-sidecar__rail-btn"
+                                            data-hub-panel="rijal"
+                                            v-bind:data-rijal-for="narration._id"
+                                            v-if="chainOf(narration).length"
+                                            v-bind:class="{'is-active': isNarrationSidecarTabActive(narration, 'rijal')}"
+                                            v-bind:aria-selected="isNarrationSidecarTabActive(narration, 'rijal') ? 'true' : 'false'"
+                                            v-bind:title="t('rijal.title', 'The men of the chain')"
+                                            v-on:click="setNarrationSidecarTab(narration, 'rijal')">
+                                        <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
+                                        <span class="hadith-sidecar__rail-label" th:text="#{sidecar.rijal}">RIJĀL</span>
+                                        <span class="hadith-sidecar__rail-icon"><i class="fa fa-link" aria-hidden="true"></i></span>
+                                        <span class="hadith-sidecar__rail-badge"
+                                              v-bind:class="{'is-zero': namedInChain(narration) === 0}">
+                                            {{ namedInChain(narration) }}
+                                        </span>
+                                    </button>
                                     <button type="button"
                                             class="hadith-sidecar__rail-btn"
                                             v-bind:class="{'is-active': isNarrationSidecarTabActive(narration, 'similar')}"
@@ -433,6 +456,45 @@
                                          v-if="activeNarrationSidecarTab(narration) === 'metadata'">
                                         <hadith-details v-bind:narration="narration"
                                                         v-bind:hadith-number="narration.number"></hadith-details>
+                                    </div>
+                                    <!-- The same markup the server renders, so rijal-chain.js
+                                         fills it here exactly as it does there: it reads the
+                                         ids off the panel and asks for the briefs once. -->
+                                    <div class="hadith-sidecar__panel-body rijal"
+                                         v-if="activeNarrationSidecarTab(narration) === 'rijal'"
+                                         v-bind:data-rijal-for="narration._id"
+                                         v-bind:data-rijal-ids="chainIdsOf(narration)">
+                                        <p class="rijal__summary">
+                                            <strong>{{ narratorCount(chainOf(narration).length, 'rijal.summary.links') }}</strong>
+                                            <span class="rijal__dot" aria-hidden="true">·</span>
+                                            <span>{{ narratorCount(identifiedInChain(narration), 'rijal.summary.identified') }}</span>
+                                            <span class="rijal__ends" data-rijal-ends hidden>
+                                                <span class="rijal__dot" aria-hidden="true">·</span>
+                                                <span data-rijal-ends-text></span>
+                                            </span>
+                                        </p>
+                                        <p class="rijal__status" data-rijal-status role="status" hidden></p>
+                                        <ol class="rijal__chain">
+                                            <li v-for="(link, at) in chainOf(narration)"
+                                                class="rijal-link"
+                                                v-bind:class="'rijal-link--' + link.kind + (link.open ? ' is-open' : '')"
+                                                v-bind:data-rijal-id="link.person"
+                                                v-bind:style="'--i:' + at">
+                                                <span class="rijal-link__mark" aria-hidden="true"></span>
+                                                <div class="rijal-link__card">
+                                                    <a v-if="link.href" class="rijal-link__words chain-name arabic-text"
+                                                       dir="rtl" lang="ar" v-bind:href="link.href">{{ link.words }}</a>
+                                                    <span v-else class="rijal-link__words arabic-text"
+                                                          dir="rtl" lang="ar">{{ link.words }}</span>
+                                                    <p class="rijal-link__who" data-rijal-who hidden></p>
+                                                    <p class="rijal-link__said" data-rijal-said hidden></p>
+                                                    <p class="rijal-link__life" data-rijal-life hidden></p>
+                                                    <p class="rijal-link__note" v-if="link.kind === 'unknown'">{{ t('rijal.unknown', '') }}</p>
+                                                    <p class="rijal-link__note" v-if="link.kind === 'collective'">{{ t('rijal.collective', '') }}</p>
+                                                    <p class="rijal-link__note" v-if="link.kind === 'imam'">{{ t('rijal.imam.note', '') }}</p>
+                                                </div>
+                                            </li>
+                                        </ol>
                                     </div>
                                     <div class="hadith-sidecar__panel-body hadith-sidecar__panel-body--split"
                                          v-else-if="activeNarrationSidecarTab(narration) === 'similar'">
@@ -970,6 +1032,9 @@
 <script src="/js/vue-components.js" th:src="@{/js/vue-components.js}"></script>
 <script src="/js/rewayaat.js" th:src="@{/js/rewayaat.js}"></script>
 <script src="/js/narrator-preview.js" th:src="@{/js/narrator-preview.js}" defer></script>
+<!-- The chain panel on a search result is drawn by Vue from chain_people; this is
+     what fills it with what the books say of each man, the same as on a hadith page. -->
+<script src="/js/rijal-chain.js" th:src="@{/js/rijal-chain.js}" defer></script>
 <script src="/js/site-announcement.js" th:src="@{/js/site-announcement.js}"></script>
 <script src="/js/locale-preference.js" th:src="@{/js/locale-preference.js}"></script>
     <script src="/js/nav-menu.js" th:src="@{/js/nav-menu.js}" defer></script>

@@ -20,6 +20,28 @@
     ]
   },
   {
+    "id": "rijal",
+    "date": "2026-10-18",
+    "title": "Every Name in a Chain, and the Man Behind It",
+    "summary": "The narrators are a part of the site now: 15,518 men from the classical rijāl books, each with what the books say of him in their own words, and the names in an isnād are links to them.",
+    "highlights": [
+      "Tap a name in a chain and a card opens in place — the book's own word for him, «ثقة» or «كذاب», with the book that says it, when and where he lived, and how much is written about him",
+      "A RIJĀL panel on every narration draws the chain link by link, showing where it is solid and where it is open: a man no book names, or a step the compiler left unnamed",
+      "A page for each narrator: what each book says, whom he narrates from and to, his narrations, and the entries quoted with book, page, entry number and edition",
+      "Where the books disagree the page says so and quotes both; nothing is graded in this site's own voice",
+      "69,677 names in English chains and 88,020 in Arabic are now links"
+    ],
+    "title_ar": "كلُّ اسمٍ في السند، والرجلُ من ورائه",
+    "summary_ar": "صار الرجال جزءًا من الموقع: ١٥٬٥١٨ رجلًا من كتب الرجال، لكلٍّ منهم ما قالته الكتب فيه بألفاظها، وأسماء السند صارت روابط إليهم.",
+    "highlights_ar": [
+      "انقر اسمًا في السند تنفتح بطاقة في مكانها: لفظ الكتاب فيه «ثقة» أو «كذاب»، والكتاب القائل، وزمانه وبلده، ومقدار ما كُتب عنه",
+      "لوحة «الرجال» في كل رواية ترسم السند حلقةً حلقة، وتُظهر مواضع قوّته ومواضع انقطاعه: راوٍ لا ترجمة له، أو حلقة لم يسمِّها المصنِّف",
+      "صفحة لكل راوٍ: مواقف الكتب، ومن يروي عنهم ومن يروون عنه، ورواياته، ونصوص التراجم بالكتاب والصفحة ورقم الترجمة والطبعة",
+      "وحيث تختلف الكتب تقول الصفحة ذلك وتنقل القولين؛ ولا يُحكَم على أحد بصوت الموقع",
+      "٦٩٬٦٧٧ اسمًا في الأسانيد الإنجليزية و٨٨٬٠٢٠ في العربية صارت روابط"
+    ]
+  },
+  {
     "id": "connector",
     "date": "2026-09-13",
     "title": "Answers You Can Check, Inside Claude and ChatGPT",

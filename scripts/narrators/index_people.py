@@ -679,6 +679,7 @@ HOLDERS = {}
 ENGLISH_HOLDERS = {}
 PREFIXES = {}
 ENGLISH_PREFIXES = {}
+BOOKS_WITH_TEXT = set()
 
 
 def profiles():
@@ -1049,7 +1050,17 @@ def document(person, source, headless):
     stands, unsourced = {}, {}
 
     def set_aside(verdict, reason):
-        """A grade the page holds but cannot show the reader a passage for."""
+        """A grade the page holds but cannot show the reader a passage for.
+
+        «No passage quoted» covers two different situations and a reader is owed the
+        difference. Tanqih al-Maqal is not in this corpus at all — not one of its entries
+        was ever extracted, though 736 grades are attributed to it — so no passage of it
+        exists here to quote and none ever will until the book is added. That is a fact
+        about the corpus and it is said as one. The rest are books we do hold, where the
+        entry we stored does not carry the word.
+        """
+        if reason == "no_entry" and verdict["book"] not in BOOKS_WITH_TEXT:
+            reason = "book_not_held"
         held = unsourced.setdefault(verdict["book"], {
             "book": verdict["book"], "book_title": verdict["book_title"],
             "book_title_ar": verdict["book_title_ar"],
@@ -1702,6 +1713,17 @@ def main():
             if len(english.split()) >= 3:
                 ENGLISH_PREFIXES[" ".join(english.split()[:3])] += 1
     source, headless = profiles(), not_entries(TMP)
+    # Which books the corpus holds printed entries of, so a grade attributed to a book never
+    # extracted can say that rather than look like a gap in our reading of it. Māmaqānī has
+    # profiles in the record — names and verdicts gathered from other books quoting him —
+    # and not one printed entry of his own, which is exactly the distinction a reader needs.
+    # «Holds the book» means the same thing here as everywhere else in the build — is_entry,
+    # the rule that decides what becomes an entry at all — rather than any proxy for it.
+    # Māmaqānī has 15,740 profiles in the record, gathered from books that quote him, and
+    # not one entry of his own; Kitāb al-Ḍuʿafāʾ has 218 entries and not one profile flagged
+    # printed. A proxy gets one of those two wrong whichever one you pick.
+    BOOKS_WITH_TEXT.update(key.split(":", 1)[0] for key, profile in source.items()
+                           if is_entry(key, profile, headless))
     learned = learn_transliterations(source)
     print(f"{learned:,} English name forms mapped to Arabic from the books' own headings")
     counts = Counter()

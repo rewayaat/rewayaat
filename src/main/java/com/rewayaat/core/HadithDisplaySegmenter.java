@@ -404,6 +404,14 @@ public final class HadithDisplaySegmenter {
         if (visible.isEmpty()) {
             return;
         }
+        if (arabic) {
+            SplitResult route = splitMashyakha(raw, visible, visibleText);
+            if (route.hasSplit()) {
+                source.put(field + "Chain", route.chain());
+                source.put(field + "Content", route.content());
+                return;
+            }
+        }
         int visibleSplit = arabic ? findArabicSplit(visible) : findEnglishSplit(visible);
         if (visibleSplit <= 0) {
             return;
@@ -415,6 +423,69 @@ public final class HadithDisplaySegmenter {
         }
         source.put(field + "Chain", split.chain());
         source.put(field + "Content", split.content());
+    }
+
+    /**
+     * al-Ṣadūq's mashyakha, where the chain stands after what it is a chain for.
+     *
+     * <p>Every other entry in the corpus runs isnād then matn, and the whole splitter is
+     * built on finding where the first ends. The Faqīh's fifth volume runs the other way
+     * round: «و ما كان فيه عن بشير النبّال فقد رويته عن محمّد بن عليّ ماجيلويه عن محمّد بن
+     * يحيى العطّار عن إبراهيم بن هاشم عن محمّد بن سنان عن بشير النبّال» — first the men
+     * whose narrations the route covers, then «فقد رويته عن» and the route itself. There is
+     * no matn at all; the entry is nothing but a ṭarīq.
+     *
+     * <p>So it cannot be reached by a split marker, which always keeps the head as the
+     * chain, and these 377 entries came out with no chain at all. They are the ṭuruq a
+     * rijālī reaches for — al-Khoei's method leans on them — and leaving them unread was
+     * the largest recoverable gap in the chain links.
+     *
+     * <p>The clause that names whom the route is for becomes the content, and everything
+     * from «رويته عن» onward becomes the chain, so the offsets a link carries are offsets
+     * into the route and nothing else.
+     */
+    private static SplitResult splitMashyakha(String raw, String visible, VisibleText visibleText) {
+        ArabicMatchText matchText = normalizeArabicForMatching(visible);
+        String normalized = matchText.normalized();
+        if (normalized.isEmpty()) {
+            return SplitResult.none();
+        }
+        // «و ما كان فيه عن فلان» is the usual opening, and «ما كان في هذا الكتاب عن فلان»
+        // the fuller one. The clause has to stand at the head of the entry: the same words
+        // in the middle of a narration are somebody talking, not al-Ṣadūq listing a route.
+        int opening = -1;
+        for (String cue : new String[] { "ما كان فيه عن ", "ما كان في هذا الكتاب عن ",
+                                         "ما كان فيه من ", "ما كان في هذا الكتاب من " }) {
+            int at = normalized.indexOf(cue);
+            if (at >= 0 && at <= 40 && (opening < 0 || at < opening)) {
+                opening = at;
+            }
+        }
+        if (opening < 0) {
+            return SplitResult.none();
+        }
+        int route = -1;
+        for (String cue : new String[] { " فقد رويته عن ", " رويته عن ", " فقد رويت ذلك عن " }) {
+            int at = normalized.indexOf(cue, opening);
+            if (at >= 0 && (route < 0 || at < route)) {
+                route = at + cue.length() - " عن ".length();
+            }
+        }
+        if (route < 0) {
+            return SplitResult.none();
+        }
+        int visibleBoundary = matchText.toRawBoundary(route);
+        int rawBoundary = moveSplitBoundaryOutsideHtml(raw, visibleText.toRawBoundary(visibleBoundary));
+        if (rawBoundary <= 0 || rawBoundary >= raw.length()) {
+            return SplitResult.none();
+        }
+        String content = trimContent(raw.substring(0, rawBoundary));
+        String chain = trimChain(raw.substring(rawBoundary));
+        if (visibleLength(chain) < MIN_CHAIN_VISIBLE_CHARS
+                || visibleLength(content) < MIN_CONTENT_VISIBLE_CHARS) {
+            return SplitResult.none();
+        }
+        return new SplitResult(chain, content);
     }
 
     private static int findEnglishSplit(String raw) {

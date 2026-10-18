@@ -240,11 +240,16 @@ public class NarratorPageController {
             case "books", "chains", "narrations" -> tab;
             default -> "overview";
         };
-        // The narrations tab is an index by default: a thousand full cards at about 570px
-        // each made it a landing page. «?layout=cards» keeps the full card one click away, and
-        // it lives in the URL rather than in a stored preference so that a link to either
-        // presentation shows the reader what the sender saw.
-        boolean cardLayout = "cards".equals(layout);
+        // The card by default, and «?layout=index» for the compact list.
+        //
+        // It was the other way round for a day, because a thousand cards at 570px each read
+        // as a landing page rather than an index. But the card is what carries the rijāl
+        // panel — the chain drawn link by link, which is the point of this whole system —
+        // and a compact row has no sidecar to put it in. Losing it on the one tab where a
+        // reader is looking at a man's own narrations was too much to pay for the scrolling.
+        // The index is still a click away and still in the URL, so a link shows the reader
+        // what the sender saw.
+        boolean cardLayout = !"index".equals(layout);
         int perPage = cardLayout ? PER_PAGE : COMPACT_PER_PAGE;
         Map<String, Object> naming = "narrations".equals(view)
                 ? narratorService.narrationsNaming(names, tag, book, page, perPage)
@@ -272,7 +277,7 @@ public class NarratorPageController {
         long narrationTotal = ((Number) naming.getOrDefault("total", 0)).longValue();
         String narrationsUrl = base + "?tab=narrations";
         // Every link inside the tab keeps the presentation the reader chose.
-        String narrationsBase = narrationsUrl + (cardLayout ? "&layout=cards" : "");
+        String narrationsBase = narrationsUrl + (cardLayout ? "" : "&layout=index");
         String withTag = tag == null || tag.isBlank() ? "" : "&tag=" + encode(tag);
         String withBook = book == null || book.isBlank() ? "" : "&book=" + encode(book);
 
@@ -288,10 +293,11 @@ public class NarratorPageController {
         model.addAttribute("chainsUrl", base + "?tab=chains");
         model.addAttribute("narrationsUrl", narrationsUrl);
         model.addAttribute("cardLayout", cardLayout);
-        model.addAttribute("layoutToggleUrl", cardLayout ? narrationsUrl
+        // From the cards the toggle offers the index, and from the index the cards.
+        model.addAttribute("layoutToggleUrl", cardLayout ? narrationsUrl + "&layout=index"
                 + (tag == null || tag.isBlank() ? "" : "&tag=" + encode(tag))
                 + (book == null || book.isBlank() ? "" : "&book=" + encode(book))
-                : narrationsUrl + "&layout=cards"
+                : narrationsUrl
                 + (tag == null || tag.isBlank() ? "" : "&tag=" + encode(tag))
                 + (book == null || book.isBlank() ? "" : "&book=" + encode(book)));
         model.addAttribute("activeBook", book == null || book.isBlank() ? null : book);

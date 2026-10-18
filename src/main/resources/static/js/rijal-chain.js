@@ -231,8 +231,35 @@
             return;
         }
         var card = button.closest(".hadith-card");
-        var body = card && card.querySelector('[data-hub-panel-body="rijal"]');
-        if (!body || body.getAttribute("data-rijal-opened")) {
+        // The server renders the panel with the page; the search results draw it in the
+        // browser a tick after the click, from the same chain_people. So the panel is
+        // looked for by its ids attribute as well as by its hub name, and if it is not
+        // there yet it is waited for rather than given up on.
+        var body = card && (card.querySelector('[data-hub-panel-body="rijal"]')
+                || card.querySelector('[data-rijal-ids]'));
+        if (!body) {
+            // Vue replaces the card's subtree when it draws the panel, so the card element
+            // caught at click time is detached a moment later and anything found through it
+            // is found in a document fragment nobody is looking at. The button and the panel
+            // carry the narration's own id for that reason, and the panel is looked up by it.
+            var mine = button.getAttribute("data-rijal-for");
+            var waited = 0;
+            var waiting = window.setInterval(function () {
+                var late = mine
+                    ? document.querySelector('[data-rijal-for="' + mine + '"][data-rijal-ids]')
+                    : (card && card.querySelector('[data-rijal-ids]'));
+                if (late && !late.getAttribute("data-rijal-opened")) {
+                    window.clearInterval(waiting);
+                    late.setAttribute("data-rijal-opened", "1");
+                    assemble(late);
+                    fetchBriefs(late);
+                } else if (++waited > 40) {
+                    window.clearInterval(waiting);
+                }
+            }, 25);
+            return;
+        }
+        if (body.getAttribute("data-rijal-opened")) {
             return;
         }
         body.setAttribute("data-rijal-opened", "1");
