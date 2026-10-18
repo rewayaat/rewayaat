@@ -58,7 +58,11 @@ def narrators(es, top, sample, seed):
 
 
 def page_of(site, person, slug, tab="narrations"):
-    return get(f"{site}/narrator/{person}/{urllib.parse.quote(slug)}?tab={tab}")
+    # The cards, not the compact index the tab now opens on: a compact row carries one
+    # chain in the page's own language, and this measures both chains of the same
+    # narration, which is what the figures before the redesign counted.
+    return get(f"{site}/narrator/{person}/{urllib.parse.quote(slug)}"
+               f"?tab={tab}&layout=cards")
 
 
 # A link in a chain, with the words it was put on. The rijal panel's links carry the same
