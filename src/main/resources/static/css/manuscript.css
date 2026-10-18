@@ -16241,3 +16241,218 @@ div.ledger__cell {
 .narrator-filter[open] > .tag-filter-bar__head {
     margin-bottom: 0.6rem;
 }
+
+/* ==========================================================================
+   The narrator page, last pass: the citation apparatus, the grouped names, the Imams and
+   the indexed lists, and a quieter use of gold.
+   ========================================================================== */
+
+/* The apparatus under an entry's heading line. A footnote needs the entry number and, for
+   al-Khoei, the volume, so they are stated, but in small type: they are how a reader finds
+   the passage in print, not what the entry says. */
+.narrator-entry__cite,
+.narrator-entry__edition,
+.narrator-entry__series {
+    margin: 0.25rem 0 0;
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: var(--text-secondary, #4a5568);
+}
+
+.narrator-entry__cite span + span::before {
+    content: "·";
+    margin: 0 0.45rem;
+    color: var(--text-muted);
+}
+
+.narrator-entry__edition {
+    color: var(--text-muted);
+    font-size: 0.76rem;
+}
+
+/* Al-Khoei heads one man three times on one page; the note says so in a sentence the
+   reader meets before the text, so a second discussion is not read as a second book. */
+.narrator-entry__series {
+    margin-bottom: 0.6rem;
+}
+
+.narrator-entry__series-heading {
+    font-family: var(--font-arabic);
+    font-size: 1rem;
+    margin-inline-end: 0.35rem;
+    color: var(--text);
+}
+
+.narrator-entry__cite + .narrator-entry__edition,
+.narrator-entry__cite + .narrator-entry__series,
+.narrator-entry__edition + .narrator-entry__series {
+    margin-top: 0.1rem;
+}
+
+.narrator-entry__cite {
+    margin-bottom: 0.1rem;
+}
+
+/* A grade that leans both ways takes the same warm neutral the overview's table gives it,
+   so one word is never two colours. Sahl b. Ziyād's «كذاب» has no said_by row at all and
+   was grey until the tint came from the entry's own leaning. */
+.narrator-entry__grade--mixed {
+    background: var(--bg-subtle);
+    color: var(--gold-dark, #a07e28);
+}
+
+/* Family and epithet, each on a row of its own under a small label. «آل أعين» is a house,
+   not a spelling of his name, and set among the chips it read as one. */
+.narrator-names__group {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.2rem 0.8rem;
+    margin-top: 0.3rem;
+}
+
+.narrator-names__group-label {
+    flex: 0 0 5.5rem;
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+[dir="rtl"] .narrator-names__group-label {
+    letter-spacing: 0.02em;
+    font-size: 0.82rem;
+}
+
+.narrator-names__chips--group {
+    flex: 1 1 12rem;
+    margin-bottom: 0.3rem;
+}
+
+.narrator-names__chip--latin {
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+}
+
+/* The Imams under the same two-column rows as the teachers: one Imam to a row, the roster
+   name, and the books that say it. */
+.chains__imams {
+    max-width: 34rem;
+    margin: 0 0 2rem;
+}
+
+/* The indexed lists were 50 rows each with «from» or «to» alone in a left column and the
+   name centred in what was left. The direction is now a small label inside the name's own
+   cell, the row is the teachers' row, and the list runs in two columns so a long one is
+   half as tall. */
+.chains__who {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.chains__dir {
+    flex: 0 0 auto;
+    font-family: var(--font-ui);
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+[dir="rtl"] .chains__dir {
+    letter-spacing: 0;
+    font-size: 0.78rem;
+}
+
+.chains__list--indexed {
+    column-count: 2;
+    column-gap: 2.5rem;
+}
+
+.chains__list--indexed .chains__row {
+    break-inside: avoid;
+}
+
+@media (max-width: 767.98px) {
+    .chains__list--indexed {
+        column-count: 1;
+    }
+
+    .narrator-names__group-label {
+        flex-basis: 100%;
+    }
+}
+
+/* Gold keeps the chronology and the ornament. The section rules, the open tab's cap and
+   its count had all been gold as well, so nothing on the page was marked by it. The rule
+   under a section label is the page's own hairline here, and the open tab is capped in the
+   navy its label is set in. The hadith pages and the home page use gold the same sparing
+   way, for a mark and not for structure. */
+.narrator-view .hub-group__label::after {
+    background: var(--border);
+}
+
+.narrator-tab.is-active::before {
+    background: var(--primary);
+}
+
+.narrator-tab.is-active .narrator-tab__count,
+.narrator-tab--active .narrator-tab__count {
+    background: var(--bg-subtle);
+    color: var(--primary);
+}
+
+/* The series note is two short lines, not one run of prose: set inline, Arabic headings
+   and an English sentence flipped each other's punctuation in al-Khoei's three entries on
+   Muhammad b. Yahya. Each heading is isolated, and the note is kept off the entry's text. */
+.narrator-entry__series {
+    margin: 0.2rem 0 0.9rem;
+}
+
+.narrator-entry__series-line {
+    margin: 0;
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: var(--text-secondary, #4a5568);
+}
+
+.narrator-entry__series-heading + .narrator-entry__series-heading::before {
+    content: "·";
+    margin-inline-end: 0.35rem;
+    color: var(--text-muted);
+}
+
+.narrator-entry__edition {
+    margin-bottom: 0.2rem;
+}
+
+/* The Imams' rows are as wide as the teachers' are, and the books wrap rather than push
+   the name into a three-line column, which is what Jaʿfar al-Ṣādiq's six books did. */
+.chains__imams {
+    max-width: 52rem;
+}
+
+.chains__imams .chains__name {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+.chains__imams .chains__books {
+    flex: 1 1 auto;
+}
+
+/* The wrapped tab grid on a phone outlined the open tab in gold; it takes the same navy
+   the open tab has on a desktop. */
+@media (max-width: 640px) {
+    .narrator-tab.is-active {
+        border-color: var(--primary);
+    }
+}

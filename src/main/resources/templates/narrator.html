@@ -351,7 +351,9 @@
          man. It was a tab of its own, and a tab holding one row of chips is a page that looks
          broken. One chip each: run together with separators they read as one long unbroken
          name. -->
-    <section class="narrator-names" id="also-named" th:if="${!#lists.isEmpty(narrator.names_ar)}">
+    <section class="narrator-names" id="also-named"
+             th:if="${!#lists.isEmpty(narrator.names_ar) or !#lists.isEmpty(narrator['names_group_ar'])
+                     or (!isArabic and !#lists.isEmpty(narrator['names_group_en']))}">
         <h2 class="hub-group__label" th:text="#{narrator.names.heading}">Also named</h2>
         <ul class="narrator-names__chips">
             <li class="narrator-names__chip" th:each="name : ${narrator.names_ar}"
@@ -364,6 +366,25 @@
             <li class="narrator-names__chip" th:each="name : ${narrator.names_en}"
                 th:text="${name}">A name</li>
         </ul>
+        <!-- «آل أعين» is a house and «المحدّث» an epithet; neither is a name he answered to,
+             and run in with the chips above they read as two more spellings of Zurāra. Each
+             kind is a labelled row of its own, Arabic first and, on an English page only,
+             its Latin rendering after it. -->
+        <th:block th:each="kind : ${ {'family', 'title'} }">
+          <th:block th:with="ar = ${narrator['names_group_ar'].?[kind == #vars.kind]},
+                             en = ${isArabic ? {} : narrator['names_group_en'].?[kind == #vars.kind]}">
+            <div class="narrator-names__group" th:if="${!#lists.isEmpty(ar) or !#lists.isEmpty(en)}">
+                <span class="narrator-names__group-label"
+                      th:text="${kind == 'family'} ? #{narrator.names.family} : #{narrator.names.title}">Family</span>
+                <ul class="narrator-names__chips narrator-names__chips--group">
+                    <li class="narrator-names__chip" th:each="g : ${ar}"
+                        dir="rtl" lang="ar" th:text="${g['value']}">آل</li>
+                    <li class="narrator-names__chip narrator-names__chip--latin" th:each="g : ${en}"
+                        th:text="${g['value']}">Banu</li>
+                </ul>
+            </div>
+          </th:block>
+        </th:block>
     </section>
 
     <section class="narrator-stands" th:if="${!#lists.isEmpty(narrator.where_books_stand)}">
@@ -465,22 +486,67 @@
     <h2 class="hub-group__label" th:text="#{narrator.entries.heading}">In the Rijal books</h2>
 
     <section class="narrator-entries">
-        <article class="narrator-entry" th:each="entry : ${narrator.entries}">
+        <article class="narrator-entry" th:each="entry, st : ${narrator.entries}">
             <header class="narrator-entry__head">
                 <h3 class="narrator-entry__book" th:text="${entry.book_title}">Rijāl al-Najāshī</h3>
                 <span class="narrator-entry__author" th:if="${entry.book_author != null}"
                       th:text="${entry.book_author}">Author</span>
                 <span class="narrator-entry__page" th:if="${entry.page_first != null}"
                       th:text="#{narrator.stands.page(${@localeDigits.of(entry.page_first)})}">p. 183</span>
-                <!-- The entry carries the grade's key but not which way it leans. (Two double underscores in one expression read as a Thymeleaf preprocessor pair, which is why the class names are built in two steps.) The overview's
-                     «said_by» rows pair every key with the leaning the indexer gave it, so the
-                     tint is read from there rather than from a second list of words kept here. -->
+                <!-- The tint comes from the entry's own «grade_leaning». It used to be read out
+                     of the page's «said_by» rows, which have no row for 492 graded entries;
+                     Sahl b. Ziyād's «كذاب» is one of them and rendered grey. The class names are joined from halves because two double underscores in one expression read as a Thymeleaf preprocessor pair. -->
                 <span class="narrator-entry__grade" th:if="${entry.grade_said != null}"
-                      th:with="held = ${narrator['said_by'].?[grade == #vars.entry.grade]},
-                              tint = ${#lists.isEmpty(held) ? '' : 'narrator-entry__grade--' + held[0].leaning}"
-                      th:classappend="'narrator-verdict__grade--' + ${entry.grade} + ' ' + ${tint}"
-                      th:text="${entry.grade_said}">thiqa — trustworthy</span>
+                      th:classappend="${'narrator-verdict_' + '_grade--' + entry.grade
+                                      + (entry.grade_leaning != null ? ' narrator-entry_' + '_grade--' + entry.grade_leaning : '')}"
+                      th:text="${isArabic and entry.grade_said_ar != null ? entry.grade_said_ar : entry.grade_said}">thiqa — trustworthy</span>
             </header>
+
+
+            <!-- The citation apparatus. A page number alone cannot be cited in print: the
+                 entry number and, for al-Khoei, the volume are what a footnote needs, and the
+                 edition is stated once per book, on its first entry, because the same line
+                 under each of Ṭūsī's three would be noise. Where the record holds no edition
+                 (Jāmiʿ, Māmaqānī, Ḍuʿafāʾ) nothing is printed rather than a guess. -->
+            <p class="narrator-entry__cite"
+               th:if="${entry.entry_number != null or entry.volume != null}">
+                <span th:if="${entry.volume != null}"
+                      th:text="#{narrator.entries.volume(${@localeDigits.of(entry.volume)})}">Vol. 19</span>
+                <span th:if="${entry.entry_number != null}"
+                      th:text="#{narrator.entries.number(${@localeDigits.of(entry.entry_number)})}">Entry no. 12010</span>
+            </p>
+            <p class="narrator-entry__edition"
+               th:if="${(st.index == 0 or narrator.entries[st.index - 1].book != entry.book)
+                        and (isArabic ? entry.edition_ar != null : entry.edition_en != null)}"
+               th:text="#{narrator.entries.edition(${isArabic ? entry.edition_ar : entry.edition_en})}">Edition</p>
+
+            <!-- Entries of one book can share a page under different headings. Two
+                 discussions of «محمد بن يحيى» in Khoei's volume 19 are not two books agreeing,
+                 so each says which of the book's entries it is, under what heading, and what
+                 else the book heads him with. -->
+            <div class="narrator-entry__series"
+                 th:if="${entry.book_entry_total != null and entry.book_entry_total > 1}">
+                <p class="narrator-entry__series-line">
+                    <span th:text="#{narrator.entries.nth(
+                            ${#messages.msgOrNull('narrator.ordinal.' + entry.book_entry_index) != null
+                              ? #messages.msg('narrator.ordinal.' + entry.book_entry_index)
+                              : @localeDigits.of(entry.book_entry_index)},
+                            ${@localeDigits.of(entry.book_entry_total)})}">The second of 3 entries on him in this book</span>
+                    <span th:if="${entry.heading_ar != null}" th:text="#{narrator.entries.under}">under</span>
+                    <bdi dir="rtl" lang="ar" class="narrator-entry__series-heading"
+                         th:if="${entry.heading_ar != null}" th:text="${entry.heading_ar}">الاسم</bdi><span>.</span>
+                    <span th:if="${!#lists.isEmpty(entry.shares_page_with)}" th:text="#{narrator.entries.sharesPage}">It stands on the same page as another of them.</span>
+                </p>
+                <th:block th:with="others = ${entry.same_work_other_headings.?[#this != #vars.entry.heading_ar]}">
+                    <p class="narrator-entry__series-line" th:if="${!#lists.isEmpty(others)}">
+                        <span th:text="#{narrator.entries.otherHeadings}">His other headings there:</span>
+                        <th:block th:each="h, hs : ${others}">
+                            <bdi dir="rtl" lang="ar" class="narrator-entry__series-heading"
+                                 th:if="${others.indexOf(h) == hs.index}" th:text="${h}">اسم</bdi>
+                        </th:block>
+                    </p>
+                </th:block>
+            </div>
 
             <!-- A book heads the same man differently — «سهل بن زياد» in one, «سهل بن زياد
                  الآدمي الرازي» in another — and the heading is part of what that book says.
@@ -492,6 +558,7 @@
                th:text="${entry.heading_ar}">الاسم كما يذكره الكتاب</p>
 
             <p class="narrator-entry__note" th:if="${entry.book_note != null}"
+               th:attr="lang=${isArabic} ? 'en' : null, dir=${isArabic} ? 'ltr' : null"
                th:text="${entry.book_note}">A note about this book.</p>
 
             <!-- Al-Kashshī's Ikhtiyār is not a biographical notice; it is every report he
@@ -616,8 +683,13 @@
                 </p>
                 <ul class="chains__list">
                     <li class="chains__row" th:each="man : ${narrator.narrated_from}">
-                        <span class="chains__name" th:text="${man.name}">Ibn Abī ʿUmayr</span>
-                        <span class="chains__books" th:text="${#strings.listJoin(man.books, ' · ')}">al-Najāshī</span>
+                        <span class="chains__name"
+                          th:attr="lang=${isArabic and #strings.toString(man.name).matches('.*[A-Za-z].*')} ? 'en' : null,
+                                   dir=${isArabic and #strings.toString(man.name).matches('.*[A-Za-z].*')} ? 'ltr' : null"
+                          th:text="${man.name}">Ibn Abī ʿUmayr</span>
+                        <span class="chains__books"
+                          th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
+                                     ? man['books_ar'] : man.books, ' · ')}">al-Najāshī</span>
                     </li>
                 </ul>
             </div>
@@ -633,7 +705,10 @@
                 </p>
                 <ul class="chains__list">
                     <li class="chains__row" th:each="man : ${narrator.narrated_to}">
-                        <span class="chains__name" th:text="${man.name}">al-Kulaynī</span>
+                        <span class="chains__name"
+                          th:attr="lang=${isArabic and #strings.toString(man.name).matches('.*[A-Za-z].*')} ? 'en' : null,
+                                   dir=${isArabic and #strings.toString(man.name).matches('.*[A-Za-z].*')} ? 'ltr' : null"
+                          th:text="${man.name}">al-Kulaynī</span>
                         <span class="chains__books"
                           th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
                                      ? man['books_ar'] : man.books, ' · ')}">Khoei</span>
@@ -643,10 +718,23 @@
         </section>
         <!-- The Imams, apart. Everyone transmits from them, so mixed into the list above they
              bury the names that actually identify a man. -->
-        <p class="chains__imams" th:if="${!#lists.isEmpty(narrator.imams_from)}">
-            <span class="narrator-entry__label" th:text="#{narrator.chains.fromImams}">Narrated from the Imams</span>
-            <span th:text="${#strings.listJoin(narrator.imams_from.![name], ' · ')}">al-Ṣādiq</span>
-        </p>
+        <section class="chains__imams" th:if="${!#lists.isEmpty(narrator.imams_from)}">
+            <h2 class="hub-group__label" th:text="#{narrator.chains.fromImams}">Narrated from the Imams</h2>
+            <!-- One row per Imam under his roster name, set in one script: the Latin form on
+                 an English page, the Arabic on an Arabic one. The same Imam under six
+                 spellings, Arabic and Latin alternating on one baseline, was the wall this
+                 replaces. -->
+            <ul class="chains__list">
+                <li class="chains__row" th:each="imam : ${narrator.imams_from}">
+                    <span class="chains__name"
+                          th:attr="dir=${isArabic} ? 'rtl' : null, lang=${isArabic} ? 'ar' : null"
+                          th:text="${isArabic and imam['name_ar'] != null ? imam['name_ar'] : imam.name}">Jaʿfar al-Ṣādiq</span>
+                    <span class="chains__books"
+                          th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(imam['books_ar'])
+                                     ? imam['books_ar'] : imam.books, ' · ')}">al-Najāshī</span>
+                </li>
+            </ul>
+        </section>
 
         <!-- Names our records attach to him out of an entry that does not contain them. The
              audit put a single relation name at 34.4% upheld; where the cited entry names
@@ -663,19 +751,23 @@
             </p>
             <ul class="chains__list chains__list--indexed">
                 <li class="chains__row" th:each="man : ${narrator.unsaid_from}">
-                    <span class="chains__dir" th:text="#{narrator.chains.dirFrom}">from</span>
+                    <span class="chains__who"><span class="chains__dir" th:text="#{narrator.chains.dirFrom}">from</span>
                     <span class="chains__name"
+                          th:attr="lang=${isArabic and man['name_ar'] == null} ? 'en' : null,
+                                   dir=${isArabic and man['name_ar'] == null} ? 'ltr' : null"
                           th:text="${isArabic and man['name_ar'] != null
-                                     ? man['name_ar'] : man.name}">اسم</span>
+                                     ? man['name_ar'] : man.name}">اسم</span></span>
                     <span class="chains__books"
                           th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
                                      ? man['books_ar'] : man.books, ' · ')}">Khoei</span>
                 </li>
                 <li class="chains__row" th:each="man : ${narrator.unsaid_to}">
-                    <span class="chains__dir" th:text="#{narrator.chains.dirTo}">to</span>
+                    <span class="chains__who"><span class="chains__dir" th:text="#{narrator.chains.dirTo}">to</span>
                     <span class="chains__name"
+                          th:attr="lang=${isArabic and man['name_ar'] == null} ? 'en' : null,
+                                   dir=${isArabic and man['name_ar'] == null} ? 'ltr' : null"
                           th:text="${isArabic and man['name_ar'] != null
-                                     ? man['name_ar'] : man.name}">اسم</span>
+                                     ? man['name_ar'] : man.name}">اسم</span></span>
                     <span class="chains__books"
                           th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
                                      ? man['books_ar'] : man.books, ' · ')}">Khoei</span>
@@ -696,19 +788,23 @@
             </p>
             <ul class="chains__list chains__list--indexed">
                 <li class="chains__row" th:each="man : ${narrator.chain_from}">
-                    <span class="chains__dir" th:text="#{narrator.chains.dirFrom}">from</span>
+                    <span class="chains__who"><span class="chains__dir" th:text="#{narrator.chains.dirFrom}">from</span>
                     <span class="chains__name"
+                          th:attr="lang=${isArabic and man['name_ar'] == null} ? 'en' : null,
+                                   dir=${isArabic and man['name_ar'] == null} ? 'ltr' : null"
                           th:text="${isArabic and man['name_ar'] != null
-                                     ? man['name_ar'] : man.name}">اسم</span>
+                                     ? man['name_ar'] : man.name}">اسم</span></span>
                     <span class="chains__books"
                           th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
                                      ? man['books_ar'] : man.books, ' · ')}">Khoei</span>
                 </li>
                 <li class="chains__row" th:each="man : ${narrator.chain_to}">
-                    <span class="chains__dir" th:text="#{narrator.chains.dirTo}">to</span>
+                    <span class="chains__who"><span class="chains__dir" th:text="#{narrator.chains.dirTo}">to</span>
                     <span class="chains__name"
+                          th:attr="lang=${isArabic and man['name_ar'] == null} ? 'en' : null,
+                                   dir=${isArabic and man['name_ar'] == null} ? 'ltr' : null"
                           th:text="${isArabic and man['name_ar'] != null
-                                     ? man['name_ar'] : man.name}">اسم</span>
+                                     ? man['name_ar'] : man.name}">اسم</span></span>
                     <span class="chains__books"
                           th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
                                      ? man['books_ar'] : man.books, ' · ')}">Khoei</span>
