@@ -105,6 +105,19 @@ public final class HadithDisplaySegmenter {
             " that they mentioned ",
             " that they saw ",
             " that they heard ",
+            // al-Saduq's translator closes a chain on the last link and runs straight into
+            // the matn: «… on the authority of Ali (s) that God's Prophet said …». No marker
+            // reached that, so those narrations came out with no English isnad at all and
+            // not one of their names could be linked. A bare «that» was tried first and
+            // measured: it gained 301 chains and reshaped 2,971, reading Ibn al-Ghada'iri's
+            // preface and Ali's own words in Nahj al-Balagha as isnads. What is safe is the
+            // blessing before it — «(s) that», «(as) that» — which closes a name and cannot
+            // open a sermon.
+            " (s) that ",
+            " (as) that ",
+            " (a.s.) that ",
+            " (sa) that ",
+            " (saw) that ",
             // Split marker for "It has been narrated/reported that [name] [action]"
             // When followed by proper name + action (not "said"), split at "that"
             "it has been narrated that ",
@@ -666,6 +679,12 @@ public final class HadithDisplaySegmenter {
         // Allow up to 2 tail chain signals to avoid rejecting the split point prematurely.
         if (normalized.contains("said") && !normalized.contains("that he said")) {
             return 2;
+        }
+        // A bare «that» is admitted only where the matn after it carries no chain language
+        // at all, which is the whole of its safety: «on the authority of Ali (s) that God's
+        // Prophet said» passes, and «Ahmad narrated that Ibrahim quoted» does not.
+        if (normalized.endsWith(") that ")) {
+            return 0;
         }
         // "that he said" pattern: allow 0 tail chain signals to ensure the split is at
         // the actual chain→content boundary, not mid-chain between narrators.
