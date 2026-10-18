@@ -41,7 +41,35 @@
       "وحيث تختلف الكتب تقول الصفحة ذلك وتنقل القولين؛ ولا يُحكَم على أحد بصوت الموقع",
       "٧٢٬٤٩٥ اسمًا في الأسانيد الإنجليزية و٩٨٬٠٠٤ في العربية صارت روابط، في ٢٦٬٦٠٥ رواية من ٣٢٬٥١٩",
       "وصار Claude وChatGPT يقرآن السند أيضًا: تُرجَع كل رواية بسندها، وتُبيّن كل حلقة هل عُرف صاحبها باسمه وحده، أم بمن حوله في السند، أم بعادة المصنِّف في كتابه — ويمكن سرد روايات الراوي بمعرِّفه لا باسم يشترك فيه عدة رجال"
-    ]
+    ],
+    "why": {
+      "title": "What a chain looks like once every name is resolved",
+      "intro": "The clip opens the RIJĀL panel on a narration, follows one name into the card the rijāl books write for him, and ends on his own page.",
+      "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/rijal/chain-v1.mp4",
+      "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/rijal/chain-v1.jpg",
+      "videoAspect": "1000 / 950",
+      "videoAlt": "The RIJAL panel opening on a narration, a narrator's card, and his page",
+      "points": [
+        "<strong>15,518 men</strong> from the classical rijāl books; 98,004 linked names in Arabic chains and 72,495 in English, across 26,605 of the 32,519 narrations",
+        "<strong>A name is linked only where the books settle it.</strong> 1,676 readings of «أحمد بن محمد» were withdrawn rather than guessed: al-Kulaynī runs two ʿiddas, and the name on its own does not say which man is meant",
+        "<strong>Where a name stays open, the panel says so</strong> — a man no book names, or a step the compiler left unnamed — instead of filling it in"
+      ],
+      "source": "Counted against the live index on 19 October 2026."
+    },
+    "why_ar": {
+      "title": "كيف يبدو السند حين يُنسب كلُّ اسمٍ فيه إلى راويه",
+      "intro": "يفتح المقطع لوحة «الرجال» في رواية، ثم يتبع اسمًا واحدًا إلى بطاقته كما كتبتها كتب الرجال، وينتهي عند صفحته.",
+      "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/rijal/chain-v1.mp4",
+      "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/rijal/chain-v1.jpg",
+      "videoAspect": "1000 / 950",
+      "videoAlt": "لوحة «الرجال» تنفتح في رواية، ثم بطاقة الراوي، ثم صفحته",
+      "points": [
+        "<strong>١٥٬٥١٨ رجلًا</strong> من كتب الرجال، و٩٨٬٠٠٤ اسمًا موصولًا في الأسانيد العربية و٧٢٬٤٩٥ في الإنجليزية، في ٢٦٬٦٠٥ رواية من ٣٢٬٥١٩",
+        "<strong>ولا يُوصَل الاسم إلا حيث تُثبته الكتب.</strong> سُحبت ١٬٦٧٦ قراءةً لـ«أحمد بن محمد» ولم تُخمَّن: فللكليني عدّتان، والاسم وحده لا يعيّن أيَّهما أراد",
+        "<strong>وحيث يبقى الاسم مبهمًا تقول اللوحة ذلك</strong> — راوٍ لا ترجمة له، أو حلقة لم يسمِّها المصنِّف — ولا تملؤه بالظنّ"
+      ],
+      "source": "قياسٌ على الفهرس الحيّ في ١٩ أكتوبر ٢٠٢٦."
+    }
   },
   {
     "id": "connector",
