@@ -27,6 +27,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from chain_mentions import BLESSINGS, FUNCTION, JOINERS, OPENERS, bare  # noqa: E402
 from chain_resolve import COMPILER_DIED, GLUE, RELATIVE, key  # noqa: E402
+from imams import ROSTER  # noqa: E402
 
 TMP = f'{W}/tmp/narrators_chains'
 CHAINS = f'{TMP}/chains.jsonl'
@@ -51,6 +52,25 @@ BESIDE = {"و", "جميعا", "معا", "كلهم", "جميعهم", "قالا", 
 # «و رويته عن …» starts the chain again by another route. The last man of the first
 # ṭarīq and the first of the second never met; they are not a pair of any kind.
 RESTART = {"رويته", "ورويته", "رويت", "وقد", "وفي"}
+
+# A name only tells two people apart if it belongs to few of them. «احمد بن محمد» is
+# filed under 20 different men, «ابو عبد الله» under dozens, so finding that string in some
+# man's list of teachers says nothing about which Aḥmad b. Muḥammad is meant, and a chain
+# that is right was flagged against a stranger. A form counts as evidence of identity when
+# no more than this many person records hold it, or when it runs to this many words, since
+# a nasab that long names one man far more often than not.
+MAX_HOLDERS = 3
+SPECIFIC_WORDS = 4
+
+# How far apart two men's Imams may be, in years, before no single life could span both.
+# The rijāl books say which Imams a man met, not how long he went on living, so «companion
+# of al-Ṣādiq» is a floor under when he was active and never a ceiling over it. Only a gap
+# longer than a human lifespan is a contradiction; the value is chosen on the table that
+# `--sensitivity` prints.
+LIFESPAN_GAP = 120
+# ordinal → the year that Imam died. The twelfth has none: he did not die within the record.
+IMAM_DIED = {imam["ordinal"]: imam["died"] for imam in ROSTER
+             if imam.get("ordinal") is not None and imam.get("died") is not None}
 
 
 def people():
@@ -83,6 +103,20 @@ def people():
                          for field in ("narrated_to", "chain_to", "unsaid_to")
                          for r in person.get(field) or []} - {""}
     return names, teachers, students, display, tabaqa, died
+
+
+def holders_of(names):
+    """folded name-form → how many person records hold it."""
+    held = Counter()
+    for forms in names.values():
+        held.update(forms)
+    return held
+
+
+def discriminating(forms, holders):
+    """The forms among these that identify a man rather than a kind of man."""
+    return {f for f in forms
+            if holders[f] <= MAX_HOLDERS or len(f.split()) >= SPECIFIC_WORDS}
 
 
 def chains():
@@ -142,6 +176,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--show", type=int, default=4, help="examples to print per check")
     parser.add_argument("--only", default="", help="run one check by name")
+    parser.add_argument("--sensitivity", action="store_true",
+                        help="print how the two direction checks move with their settings")
     parser.add_argument("--resolved", default=RESOLVED,
                         help="check a candidate run before it replaces the live file")
     args = parser.parse_args()
@@ -149,6 +185,10 @@ def main():
     names, teachers, students, display, tabaqa, died = people()
     printed = chains()
     limits = compilers()
+    holders = holders_of(names)
+    # Kept only for --sensitivity: every pair's shared forms as (holders, words), and every
+    # too-early candidate with its gap and whether the books confirm the pair by name.
+    pair_log, gap_log = [], []
 
     found = Counter()
     examples = defaultdict(list)
@@ -267,16 +307,41 @@ def main():
                 # met him: he was of an age with the teacher's grandfather. This is
                 # evidence apart from the teacher and student lists, so where the two
                 # agree the pair is wrong, and where they disagree the lists are.
+                # The Imams a man met are a floor under when he lived, not a ceiling over
+                # it. A rijāl book that files a man with al-Ṣādiq says he was of age by
+                # al-Ṣādiq's time; it does not say he died with him, and a long-lived
+                # companion went on transmitting for forty years more. Reading his latest
+                # Imam as the end of his life flagged him against every later shaykh, and
+                # when the ordinals were re-derived more carefully the count went up by 249
+                # — better data, more flags, which is what a wrong rule looks like. So the
+                # test is in years: the shaykh's earliest Imam died so long after the
+                # student's latest that nobody could have lived across both. Anything
+                # shorter is a long life and not a contradiction.
                 if person and previous and not beside:
                     student, teacher = tabaqa.get(previous), tabaqa.get(person)
-                    if student and teacher and student[1] < teacher[0] - 1:
+                    late, early = IMAM_DIED.get(student[1]) if student else None, \
+                        IMAM_DIED.get(teacher[0]) if teacher else None
+                    if late is not None and early is not None and early - late > LIFESPAN_GAP:
                         flag("too-early-for-his-shaykh", chain_id,
-                             f"{display.get(previous, previous)} (Imams {student[0]}–{student[1]})"
-                             f" ← {display.get(person, person)} (Imams {teacher[0]}–{teacher[1]})")
+                             f"{display.get(previous, previous)} (Imams {student[0]}–{student[1]},"
+                             f" last d.{late}) ← {display.get(person, person)}"
+                             f" (Imams {teacher[0]}–{teacher[1]}, first d.{early})")
+                    if args.sensitivity and late is not None and early is not None \
+                            and early - late > 0:
+                        confirmed = bool(discriminating(names.get(previous, set()), holders)
+                                         & students.get(person, set()))
+                        gap_log.append((early - late, confirmed))
                 if (person and previous and not beside
                         and person in students and previous in names):
-                    as_student = names[previous] & students[person]
-                    as_teacher = names[previous] & teachers[person]
+                    # Both sides are held to the same standard: a generic form must not
+                    # contradict a pair any more than it may confirm one.
+                    shared = discriminating(names[previous], holders)
+                    as_student = shared & students[person]
+                    as_teacher = shared & teachers[person]
+                    if args.sensitivity:
+                        pair_log.append((
+                            [(holders[f], len(f.split())) for f in names[previous] & students[person]],
+                            [(holders[f], len(f.split())) for f in names[previous] & teachers[person]]))
                     if as_student and not as_teacher:
                         found["direction-confirmed"] += 1
                     elif as_teacher and not as_student:
@@ -308,6 +373,24 @@ def main():
              "joiner-in-link", "blessing-in-link", "prose-is-a-name",
              "same-words-different-men", "head-lost", "quoted-pointer", "empty"]
     print(f"\n  {len(printed):,} chains read, {sum(found.values()):,} flags\n")
+    if args.sensitivity:
+        print("  too-early, by the gap in years between the two Imams' deaths")
+        print("  gap>   flags  confirmed-by-a-discriminating-name  false-positive-rate")
+        for limit in (0, 40, 60, 80, 100, 120, 150, 200):
+            hit = [c for g, c in gap_log if g > limit]
+            print(f"  {limit:4}  {len(hit):6}  {sum(hit):6}  {sum(hit) / max(len(hit), 1):7.1%}")
+        print("\n  reversed / direction-confirmed, by what counts as a discriminating form")
+        print("  holders<=  words>=  reversed  confirmed")
+        for holders_max in (1, 2, 3, 5, 10, 10 ** 9):
+            for words_min in (3, 4, 5, 10 ** 9):
+                rev = con = 0
+                for st, te in pair_log:
+                    a = any(h <= holders_max or w >= words_min for h, w in st)
+                    b = any(h <= holders_max or w >= words_min for h, w in te)
+                    con += a and not b
+                    rev += b and not a
+                print(f"  {holders_max if holders_max < 10 ** 9 else 'any':>9}  "
+                      f"{words_min if words_min < 10 ** 9 else 'never':>7}  {rev:8}  {con:9}")
     for check in order:
         if args.only and args.only != check:
             continue
