@@ -184,6 +184,14 @@ def main():
                     if any(w in FUNCTION for w in folded):
                         flag("prose-linked", chain_id, f"«{mention['text']}»")
 
+                    # «عليه السلام» is said of an Imam and of nobody else in these books.
+                    # A name the text salutes that way must not be drawn as a narrator,
+                    # and must not keep a narrator id behind an Imam's answer.
+                    if mention.get("saluted") and mention.get("imam_id") \
+                            and mention.get("person_id"):
+                        flag("imam-kept-a-narrator", chain_id,
+                             f"«{mention['text']}» answers to an Imam and to "
+                             f"{display.get(mention['person_id'], '')}")
                     # A name mention is linked because the words matched a name the books
                     # file him under. If they do not, the link came from somewhere else.
                     if mention["kind"] == "name" and person in names:
@@ -247,7 +255,8 @@ def main():
                 examples["same-words-different-men"].append(f"«{folded}» → {shown}")
 
     order = ["direction-confirmed", "side-by-side", "second-tariq",
-             "span", "overlap", "name-not-his", "reversed", "self", "prose-linked",
+             "span", "overlap", "name-not-his", "imam-kept-a-narrator",
+             "reversed", "self", "prose-linked",
              "joiner-in-link", "blessing-in-link", "prose-is-a-name",
              "same-words-different-men", "head-lost", "quoted-pointer", "empty"]
     print(f"\n  {len(printed):,} chains read, {sum(found.values()):,} flags\n")

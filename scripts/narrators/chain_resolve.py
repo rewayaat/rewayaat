@@ -367,17 +367,31 @@ def resolve_chain(mentions, data, book="", table=None, compiler=""):
                     row["backed"] = [pid for pid, _ in backed]
 
     for position, row in enumerate(rows):
-        if row["kind"] != "imam" and not (keys[position] in imams.CHAIN_FORMS
-                                          and row.get("outcome") in ("several", "none")):
+        # A name the text salutes with «عليه السلام» is an Imam's, and the roster is
+        # asked before the narrators are. «موسى بن جعفر عليهما السلام» was being matched
+        # against the 15,518 and coming back as Mūsā b. Jaʿfar al-Baghdādī, because the
+        # Imams were only looked for behind a kunya — «أبي عبد الله», «الصادق» — and never
+        # behind a full name. The salutation is the text's own word for who this is.
+        saluted = row.get("saluted") and imams.identify(keys[position])
+        if row["kind"] != "imam" and not saluted and not (
+                keys[position] in imams.CHAIN_FORMS
+                and row.get("outcome") in ("several", "none")):
             continue
         found = imams.identify(keys[position])
         if not found:
-            # blessed, but not one of the fourteen: «أبي ذر رضي الله عنه», «جبريل عليه السلام»
-            row["outcome"] = "none"
+            # saluted, but not one of the fourteen: «جبريل عليه السلام», «فاطمة عليها
+            # السلام». A name mention keeps whatever the narrators made of it; only a
+            # mention read as an Imam and answering to none is left with nobody.
+            if row["kind"] == "imam":
+                row["outcome"] = "none"
             continue
         row["target"] = "imam"
         row.pop("candidates", None)
         row.pop("backed", None)
+        # Whatever the narrators made of it is withdrawn. The loader reads person_id
+        # before imam_id, so leaving it would draw the link to Mūsā b. Jaʿfar
+        # al-Baghdādī while the row said, correctly, that this is the seventh Imam.
+        row.pop("person_id", None)
         if len(found) == 1:
             row["outcome"], row["imam_id"] = "one", found[0]
             continue

@@ -77,10 +77,21 @@ JOINERS = {
     "سنة", "وسنة",
 }
 
-# «عليه السلام» and its kin: not names, but their presence marks the mention as an Imam's.
+# «عليه السلام» and its kin: not names, but their presence ends the name they follow.
 BLESSINGS = {
     "عليه", "عليها", "عليهم", "عليهما", "السلام", "صلى", "واله", "وسلم", "وعلى", "رضي",
     "رحمه", "تعالى", "ع", "عج", "عليهالسلام", "صلواته", "صلوات", "اجمعين", "لعنه",
+}
+
+# Not all of them say the same thing. «عليه السلام» is said of an Imam and of nobody else
+# here; «رضي الله عنه» and «رحمه الله» are said of al-Ṣadūq's shaykhs. Reading them alike
+# made «العطار رضي الله عنه» an Imam, which identifies as nobody and so dropped a narrator
+# who was perfectly well named — and it left «موسى بن جعفر عليهما السلام» to be matched
+# against the narrators, where it became Mūsā b. Jaʿfar al-Baghdādī instead of the
+# seventh Imam.
+SALUTATION = {
+    "عليه", "عليها", "عليهم", "عليهما", "السلام", "صلى", "واله", "وسلم", "وعلى",
+    "ع", "عج", "عليهالسلام", "صلواته", "صلوات",
 }
 
 # Chain conventions standing for unnamed people. Nobody to link.
@@ -124,6 +135,7 @@ def bare(word):
 # text, so they are folded once here («صلى» would otherwise never match «صلي»).
 JOINERS = {bare(w) for w in JOINERS}
 BLESSINGS = {bare(w) for w in BLESSINGS}
+SALUTATION = {bare(w) for w in SALUTATION}
 COLLECTIVE = {bare(w) for w in COLLECTIVE if " " not in w}
 FUNCTION = {bare(w) for w in FUNCTION}
 NAME_GLUE = {bare(w) for w in NAME_GLUE}
@@ -168,9 +180,11 @@ def outside_nasab(folded):
     return [w for w, held in zip(folded, covered) if not held and w not in NAME_GLUE]
 
 
-def kind_of(words, blessed):
+def kind_of(words, blessed, saluted=None):
     """What sort of mention a run of words is — the kinds that must not become links."""
     folded = [bare(w) for w in words]
+    if saluted is None:
+        saluted = blessed
     if any(w in COLLECTIVE for w in folded):
         return "collective"
     if " ".join(folded) in RELATIVE:
@@ -181,7 +195,7 @@ def kind_of(words, blessed):
         return "text"
     if len(outside_nasab(folded)) > MAX_NAME_WORDS:
         return "text"
-    if blessed and "بن" not in folded and "ابن" not in folded and len(folded) <= 4:
+    if saluted and "بن" not in folded and "ابن" not in folded and len(folded) <= 4:
         # «أبي عبد الله عليه السلام», «الصادق عليه السلام» — an Imam, named by kunya or
         # title rather than by name, and «أبي جعفر» alone is two different Imams.
         return "imam"
@@ -277,10 +291,12 @@ def segment(chain):
     def close():
         if not run:
             return
-        named, blessed = [], False
+        named, blessed, saluted = [], False, False
         for word in run:
             if bare(word[2]) in BLESSINGS:
                 blessed = True
+                if bare(word[2]) in SALUTATION:
+                    saluted = True
             if not blessed and bare(word[2]):
                 named.append(word)
         if named:
@@ -292,8 +308,8 @@ def segment(chain):
             last = max(last, named[0][0] + 1)
             mentions.append({"start": named[0][0], "end": last,
                              "text": chain[named[0][0]:last],
-                             "blessed": blessed,
-                             "kind": kind_of([w[2] for w in named], blessed)})
+                             "blessed": blessed, "saluted": saluted,
+                             "kind": kind_of([w[2] for w in named], blessed, saluted)})
         run.clear()
 
     for start, end, word in words:
