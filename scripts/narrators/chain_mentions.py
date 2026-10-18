@@ -64,6 +64,11 @@ JOINERS = {
     "حدثنا", "وحدثنا", "فحدثنا", "حدثني", "وحدثني", "حدثن", "حدثناه", "اخبرنا", "واخبرنا",
     "اخبرني", "واخبرني", "انبانا", "سمعت", "وسمعت", "سمعته", "قرات", "كتبت", "كتب", "اجازة",
     "املاء", "قراءة", "رفعه", "يرفعه", "مرفوعا", "باسناده", "وباسناده", "باسنادنا", "بهذا",
+    # «أبو القاسم عبد الله بن أحمد الفقيه فيما أجازه لي ببلخ» — how al-Ṣadūq received a
+    # book, written after the name of the man who licensed it. «إجازة» was already read as
+    # a joiner but the verb was not, so the clause stayed inside the run and six of his
+    # shaykhs were read as prose.
+    "اجاز", "واجاز", "اجازه", "اجازها", "اجازني", "اجازنا", "اجازته", "فيما", "وفيما", "لي",
     # «ما رواه سعد بن عبد الله عن…» and «وروى هذا الخبر أحمد بن علي الرازي». Without these
     # the run keeps «ما», which is a function word, and the whole opening — the first man of
     # the chain — was read as prose. 139 chains say it this way, al-Ṭūsī's Ghayba most of
@@ -76,6 +81,21 @@ JOINERS = {
     # The year a man was heard from is not a step: «بالأهواز سنة سبع وعشرين ومائتين».
     "سنة", "وسنة",
 }
+
+# «و هو يعرف بكذا» — the words a rijālī uses to give a man a second name. They do not join
+# two men, but they do close the name before them and open another reading of the same man,
+# and read as part of one run they pushed it past the length a name may be: «محمد بن قادة
+# القاسم المعروف بأبي الحسن المفسر الجرجاني» counted nine words and was dropped as prose,
+# taking with it a narrator the chain names in full. «مصنف هذا الكتاب» is the same shape in
+# the compiler's own voice — «محمد بن علي بن الحسين بن موسى بن بابويه القمي الفقيه مصنف هذا
+# الكتاب» is al-Ṣadūq naming himself, and it was refused for the «هذا» at the end of it.
+#
+# These are kept apart from the joiners because one of them is also a man: «العباس بن
+# المعروف» is al-ʿAbbās b. Maʿrūf al-Qummī, and cutting his name in half cost a link that
+# was already being made. A word standing inside a nasab — «بن» on either side of it — is
+# part of the name whatever else it can mean.
+ALIAS = {"المعروف", "والمعروف", "المعروفة", "يعرف", "ويعرف", "يكني", "ويكني", "المكني",
+         "الملقب", "ويلقب", "مصنف", "ومصنف"}
 
 # «عليه السلام» and its kin: not names, but their presence ends the name they follow.
 BLESSINGS = {
@@ -105,7 +125,8 @@ COLLECTIVE = {"بعض", "عدة", "اصحابنا", "اصحابه", "اصحاب�
 FUNCTION = {"الذي", "التي", "الذين", "يا", "ايها", "كيف", "لم", "لا", "ما", "هل", "اذا",
             "كان", "وكان", "كانت", "مع", "عند", "بين", "قد", "كذا", "الي", "في", "من",
             "هذا", "هذه", "هو", "هي", "انا", "نحن", "لك", "له", "لها", "به", "بها", "عليك",
-            "يصلح", "يطاف", "ارايت", "اراه", "تلد", "يتزوج", "فقلت", "حتي", "او", "ايضا"}
+            "يصلح", "يطاف", "ارايت", "اراه", "تلد", "يتزوج", "فقلت", "حتي", "او", "ايضا",
+            "اعلم", "اظن", "يظن", "احسب", "احسبه", "قراه"}
 
 # The words that hold a name together and so do not count towards its length.
 NAME_GLUE = {"بن", "ابن", "ابي", "ابو", "ابا", "بنت", "عبد", "ال", "مولي", "اخي", "ام"}
@@ -135,6 +156,12 @@ def bare(word):
 # text, so they are folded once here («صلى» would otherwise never match «صلي»).
 JOINERS = {bare(w) for w in JOINERS}
 BLESSINGS = {bare(w) for w in BLESSINGS}
+ALIAS = {bare(w) for w in ALIAS}
+
+# «رحمة الله» is said over a man the way «رحمه الله» is, and it ends his name the same way;
+# 13 chains spell it with the tāʾ. But «رحمة» on its own is a given name — «أبو جمعة رحمة
+# بن صدقة» — so it is a blessing only in front of «الله», never by itself.
+CONDITIONAL_BLESSING = {bare("رحمة"): {bare("الله"), bare("اللّه")}}
 SALUTATION = {bare(w) for w in SALUTATION}
 COLLECTIVE = {bare(w) for w in COLLECTIVE if " " not in w}
 FUNCTION = {bare(w) for w in FUNCTION}
@@ -154,6 +181,26 @@ NUMBERS = {
     "مائة", "مئة", "مائتين", "مئتين", "ثلاثمائة", "ثلاثمئة", "اربعمائة", "خمسمائة", "الف",
 }
 NUMBERS = {bare(w) for w in NUMBERS}
+
+
+def two_joiners(folded):
+    """Whether one printed word is two joining words with the space left out of it.
+
+    These books are typeset by hand and the space between a joiner and the one after it is
+    sometimes missing: «قالَحَدَّثَنا» for «قال حدثنا», «عنهقال» for «عنه قال». 83 words in
+    the corpus are shaped this way, and because neither half is recognised the boundary
+    between the chain and the body goes unseen — the name on the far side of it is swallowed
+    into a run that then reads as prose, and a narrator the book names plainly is dropped.
+    Both halves have to be joiners for this to fire, so nothing that could be a name is cut.
+
+    What is lost is the «عنه» of «عنهقال»: the word becomes a boundary rather than a pointer
+    back, so those 16 chains keep their shape and give up their backref. They gave up both
+    before.
+    """
+    for at in range(3, len(folded) - 2):
+        if folded[:at] in JOINERS and folded[at:] in JOINERS:
+            return True
+    return False
 
 
 def counted(folded):
@@ -292,10 +339,16 @@ def segment(chain):
         if not run:
             return
         named, blessed, saluted = [], False, False
-        for word in run:
-            if bare(word[2]) in BLESSINGS:
+        folded_run = [bare(word[2]) for word in run]
+        for at, word in enumerate(run):
+            held = CONDITIONAL_BLESSING.get(folded_run[at])
+            if held is not None and not (
+                    at + 1 < len(folded_run) and folded_run[at + 1] in held):
+                named.append(word)   # «رحمة بن صدقة» — the name, not the blessing
+                continue
+            if folded_run[at] in BLESSINGS or held is not None:
                 blessed = True
-                if bare(word[2]) in SALUTATION:
+                if folded_run[at] in SALUTATION:
                     saluted = True
             if not blessed and bare(word[2]):
                 named.append(word)
@@ -312,11 +365,18 @@ def segment(chain):
                              "kind": kind_of([w[2] for w in named], blessed, saluted)})
         run.clear()
 
-    for start, end, word in words:
-        folded = bare(word)
+    folded_all = [bare(word) for _, _, word in words]
+    for at, (start, end, word) in enumerate(words):
+        folded = folded_all[at]
         if not folded:
             continue
-        if folded in JOINERS:
+        if folded in JOINERS or two_joiners(folded):
+            close()
+            continue
+        # An alias marker ends the name before it, unless a nasab runs through it.
+        if folded in ALIAS and not (
+                (at and folded_all[at - 1] in LINK)
+                or (at + 1 < len(folded_all) and folded_all[at + 1] in LINK)):
             close()
             continue
         if folded == "و" or (folded.startswith("و") and folded[1:] in OPENERS and run):
