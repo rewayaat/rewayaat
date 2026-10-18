@@ -41,6 +41,8 @@ public class NarratorPageController {
 
     private static final String BASE_URL = HomeController.BASE_URL;
     private static final int PER_PAGE = 20;
+    /** A compact row is a sixth the height of a card, so a page of them can be longer. */
+    private static final int COMPACT_PER_PAGE = 50;
 
     @Autowired
     private NarratorService narratorService;
@@ -120,6 +122,7 @@ public class NarratorPageController {
                                @RequestParam(value = "tag", required = false) String tag,
                                @RequestParam(value = "book", required = false) String book,
                                @RequestParam(value = "page", defaultValue = "1") int page,
+                               @RequestParam(value = "layout", required = false) String layout,
                                Model model, HttpServletRequest request,
                                HttpServletResponse response) throws IOException {
         PageLocale locale = PageLocale.of(request);
@@ -224,12 +227,27 @@ public class NarratorPageController {
         // the entries, the names, the narrations — so a reader scrolled past three sections to
         // reach the one he came for, and the counters above led nowhere. Each tab is a URL, and
         // each figure in the ledger is a link into the tab that explains it.
+        // «?tab=names» was a tab of its own until its chips moved into the overview as «Also
+        // named». The address has been shared and bookmarked, so it goes to the section that
+        // replaced it, permanently, instead of answering 404 or quietly showing the overview
+        // with the reader unsure whether he has the page he asked for.
+        if ("names".equals(tab)) {
+            RedirectView renamed = new RedirectView(base + "#also-named");
+            renamed.setStatusCode(HttpStatus.MOVED_PERMANENTLY);
+            return renamed;
+        }
         String view = switch (tab == null ? "" : tab) {
-            case "books", "chains", "narrations", "names" -> tab;
+            case "books", "chains", "narrations" -> tab;
             default -> "overview";
         };
+        // The narrations tab is an index by default: a thousand full cards at about 570px
+        // each made it a landing page. «?layout=cards» keeps the full card one click away, and
+        // it lives in the URL rather than in a stored preference so that a link to either
+        // presentation shows the reader what the sender saw.
+        boolean cardLayout = "cards".equals(layout);
+        int perPage = cardLayout ? PER_PAGE : COMPACT_PER_PAGE;
         Map<String, Object> naming = "narrations".equals(view)
-                ? narratorService.narrationsNaming(names, tag, book, page, PER_PAGE)
+                ? narratorService.narrationsNaming(names, tag, book, page, perPage)
                 : summaryOf(names);
         List<Map<String, Object>> narrations = new ArrayList<>();
         for (Object row : (List<?>) naming.getOrDefault("hits", List.of())) {
@@ -241,8 +259,10 @@ public class NarratorPageController {
             // names, English chapters and English metadata under an Arabic heading.
             // `path`, not `base`: the card puts the locale prefix on a topic link itself,
             // and handing it one that already carries it produced «/ar/ar/narrator/…».
-            narrations.add(cards.build(String.valueOf(hit.get("id")), source, path, BASE_URL,
-                                       locale));
+            Map<String, Object> card = cards.build(String.valueOf(hit.get("id")), source, path,
+                                                   BASE_URL, locale);
+            card.putAll(compactFields(card, locale));
+            narrations.add(card);
         }
         // the card shows a Quranic-insight count, so it has to be fetched as the other pages do
         Map<String, Integer> insightCounts = quranicInsights.insightCounts(
@@ -250,7 +270,9 @@ public class NarratorPageController {
         narrations.forEach(card -> card.put("quranCount",
                 insightCounts.getOrDefault(String.valueOf(card.get("id")), 0)));
         long narrationTotal = ((Number) naming.getOrDefault("total", 0)).longValue();
-        String narrationsBase = base + "?tab=narrations";
+        String narrationsUrl = base + "?tab=narrations";
+        // Every link inside the tab keeps the presentation the reader chose.
+        String narrationsBase = narrationsUrl + (cardLayout ? "&layout=cards" : "");
         String withTag = tag == null || tag.isBlank() ? "" : "&tag=" + encode(tag);
         String withBook = book == null || book.isBlank() ? "" : "&book=" + encode(book);
 
@@ -264,8 +286,14 @@ public class NarratorPageController {
         model.addAttribute("overviewUrl", base);
         model.addAttribute("booksUrl", base + "?tab=books");
         model.addAttribute("chainsUrl", base + "?tab=chains");
-        model.addAttribute("namesUrl", base + "?tab=names");
-        model.addAttribute("narrationsUrl", narrationsBase);
+        model.addAttribute("narrationsUrl", narrationsUrl);
+        model.addAttribute("cardLayout", cardLayout);
+        model.addAttribute("layoutToggleUrl", cardLayout ? narrationsUrl
+                + (tag == null || tag.isBlank() ? "" : "&tag=" + encode(tag))
+                + (book == null || book.isBlank() ? "" : "&book=" + encode(book))
+                : narrationsUrl + "&layout=cards"
+                + (tag == null || tag.isBlank() ? "" : "&tag=" + encode(tag))
+                + (book == null || book.isBlank() ? "" : "&book=" + encode(book)));
         model.addAttribute("activeBook", book == null || book.isBlank() ? null : book);
         model.addAttribute("clearBookUrl", narrationsBase
                 + (tag == null || tag.isBlank() ? "" : "&tag=" + encode(tag)));
@@ -280,8 +308,58 @@ public class NarratorPageController {
                 narrationsBase + withTag + withBook + "&page=" + (page + 1));
         model.addAttribute("narrationsPrevUrl",
                 narrationsBase + withTag + withBook + "&page=" + (page - 1));
-        model.addAttribute("narrationsHasMore", (long) page * PER_PAGE < narrationTotal);
+        model.addAttribute("narrationsHasMore", (long) page * perPage < narrationTotal);
         return "narrator";
+    }
+
+    /**
+     * What one row of the compact narrations list prints: the isnād, the opening of the text
+     * and the citation. The opening is cut at a word, because a scholar scanning forty rows
+     * for one he half remembers reads the first words and a cut inside a word reads as a
+     * broken page; and it is read in the page's language with the other as the fallback,
+     * since a narration with no English text still has to show something.
+     */
+    private Map<String, Object> compactFields(Map<String, Object> card, PageLocale locale) {
+        boolean arabic = locale.isArabic();
+        String chainPrimary = text(card.get(arabic ? "arabicChain" : "englishChain"));
+        // The Arabic page never falls back to English: narration 605 has no Arabic isnād
+        // segment, and the fallback printed «Hadith.605 - Zurarah ibn A'yan narrated…» in
+        // Latin under an Arabic heading. A row without a chain is better than a wrong script.
+        String chainFallback = arabic ? "" : text(card.get("arabicChain"));
+        boolean chainInArabic = arabic || chainPrimary.isBlank();
+        String matnPrimary = plain(text(card.get(arabic ? "arabic" : "english")));
+        String matnFallback = arabic ? "" : plain(text(card.get("arabic")));
+        boolean matnInArabic = arabic || matnPrimary.isBlank();
+        String matn = matnPrimary.isBlank() ? matnFallback : matnPrimary;
+        if (matn.length() > COMPACT_MATN) {
+            int cut = matn.lastIndexOf(' ', COMPACT_MATN);
+            matn = matn.substring(0, cut > COMPACT_MATN / 2 ? cut : COMPACT_MATN) + "\u2026";
+        }
+        String volume = "";
+        if (card.get("metadata") instanceof List<?> rows) {
+            for (Object row : rows) {
+                if (row instanceof Map<?, ?> item
+                        && String.valueOf(item.get("icon")).contains("layer-group")) {
+                    volume = text(item.get("value"));
+                }
+            }
+        }
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("compactChain", chainPrimary.isBlank() ? chainFallback : chainPrimary);
+        out.put("compactChainArabic", chainInArabic);
+        out.put("compactMatn", matn);
+        out.put("compactMatnArabic", matnInArabic);
+        out.put("compactVolume", volume);
+        return out;
+    }
+
+    private static final int COMPACT_MATN = 120;
+
+    /** Text with its markup and its runs of whitespace taken out. */
+    private static String plain(String html) {
+        return org.springframework.web.util.HtmlUtils.htmlUnescape(html.replaceAll("<[^>]*>", " "))
+                .replace('\u00a0', ' ')
+                .replaceAll("\\s+", " ").trim();
     }
 
     /** The narrations tab's count, and where those narrations sit, for the counters. */

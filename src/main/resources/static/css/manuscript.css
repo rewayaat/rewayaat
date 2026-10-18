@@ -16024,3 +16024,220 @@ div.ledger__cell {
 .narrator-entry__grade--against {
     background: rgba(220, 120, 110, 0.18);
 }
+
+/* ===========================================================================
+   The narrator page, second reading.
+
+   A design review read the page the way a scholar who cites rijāl entries does and found
+   five things; this block is the CSS half of them. It is appended rather than folded into
+   the blocks above because those repeat by design.
+   =========================================================================== */
+
+/* Scheherazade sets small for its nominal size: at 20.48px a line of al-Kashshī read as
+   fine print. 22px with 1.85 leading is 40.7px a line, a little tighter than the 43px it
+   replaces because the larger face carries more of the space itself. The measure is given
+   in em of the new size, not rem, so that it follows the type: an entry with no English
+   beside it, which Zurāra's al-Najāshī entry is, would otherwise run the whole width of the
+   card at a size that no longer fits its 46rem. */
+.narrator-entry__text[dir="rtl"],
+.narrator-entry__text .arabic-text {
+    font-size: 1.375rem;
+    line-height: 1.85;
+}
+
+.narrator-entry__text[dir="rtl"] {
+    max-width: 34em;
+}
+
+/* The explanation of the set-aside grades is one sentence with the rest behind a
+   disclosure. It ran four lines above a table that is sometimes three rows. */
+.narrator-stands__note--short {
+    margin-block-end: 0.3rem;
+}
+
+.narrator-stands__more {
+    margin: 0 0 0.9rem;
+    max-width: 62ch;
+}
+
+.narrator-stands__more > summary {
+    cursor: pointer;
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    color: var(--text-secondary, #4a5568);
+}
+
+.narrator-stands__more > .narrator-stands__note {
+    margin-block-start: 0.4rem;
+}
+
+/* A grade chip is the word and its page on one line, and the quoted scholar sits beneath
+   it. Inside the chip the relay note on the Arabic page («نقلاً عن …») stacked a word to a
+   line at 390px, which made one chip a block six lines tall. */
+.narrator-stands__entry {
+    display: inline-block;
+    vertical-align: top;
+    margin-inline-end: 0.8rem;
+    margin-block-end: 0.15rem;
+}
+
+.narrator-stands__entry > .narrator-stands__position {
+    margin-inline-end: 0;
+}
+
+.narrator-stands__entry > .narrator-stands__relays {
+    display: block;
+    margin-block-start: 0.15rem;
+    padding-inline-start: 0.5rem;
+    white-space: normal;
+}
+
+/* Under 640px the row is a stack: the book's name, then its chips. Beside the name the
+   chips had only what the 16rem name column left them. */
+@media (max-width: 640px) {
+    .narrator-stands__table,
+    .narrator-stands__table tbody,
+    .narrator-stands__table tr,
+    .narrator-stands__table th,
+    .narrator-stands__table td {
+        display: block;
+        width: 100%;
+    }
+
+    .narrator-stands__table th {
+        padding: 0.6rem 0 0.1rem;
+        border-bottom: 0;
+        text-align: start;
+    }
+
+    .narrator-stands__table td {
+        padding: 0.1rem 0 0.6rem;
+    }
+}
+
+/* The narrations tab as an index: the chain, the opening of the text, the citation and a
+   way through. A full card is about 570px and Zurāra has 1,233 narrations, which made the
+   tab a landing page. */
+.narration-index {
+    list-style: none;
+    margin: 0 0 1.5rem;
+    padding: 0;
+}
+
+.narration-index__row {
+    padding: 0.8rem 0;
+    border-bottom: 1px solid var(--border, #e8ecf1);
+}
+
+.narration-index__chain {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: var(--text-secondary, #4a5568);
+}
+
+.narration-index__chain[dir="rtl"] {
+    font-family: var(--font-arabic);
+    font-size: 1rem;
+    line-height: 1.8;
+}
+
+.narration-index__matn {
+    margin: 0.25rem 0 0.35rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.narration-index__matn[dir="rtl"] {
+    font-family: var(--font-arabic);
+    font-size: 1.15rem;
+    line-height: 1.8;
+}
+
+.narration-index__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.2rem 1rem;
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    color: var(--text-secondary, #4a5568);
+}
+
+.narration-index__cite {
+    font-weight: 600;
+}
+
+.narration-index__open {
+    margin-inline-start: auto;
+    font-weight: 600;
+}
+
+.narrator-layout {
+    margin: 0 0 0.4rem;
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    text-align: end;
+}
+
+/* The filters and the list of names searched are folded so that the first narration is
+   close to the top. The summary keeps the label the open block used to carry. */
+.narrator-filter > summary,
+.narrator-narrations__names > summary {
+    cursor: pointer;
+    list-style: none;
+}
+
+.narrator-filter > summary::-webkit-details-marker,
+.narrator-narrations__names > summary::-webkit-details-marker {
+    display: none;
+}
+
+.narrator-filter > summary::before,
+.narrator-narrations__names > summary::before {
+    content: "\25B8";
+    display: inline-block;
+    margin-inline-end: 0.4rem;
+    transition: transform 0.15s ease;
+}
+
+.narrator-filter[open] > summary::before,
+.narrator-narrations__names[open] > summary::before {
+    transform: rotate(90deg);
+}
+
+[dir="rtl"] .narrator-filter > summary::before,
+[dir="rtl"] .narrator-narrations__names > summary::before {
+    content: "\25C2";
+}
+
+.narrator-narrations__names > summary {
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    color: var(--text-secondary, #4a5568);
+}
+
+.narrator-filter:not([open]) {
+    margin-bottom: 0.4rem !important;
+}
+
+/* A folded filter is one line, not a card. The shared filter bar is padded and shadowed for
+   a block of pills, and folded it was a 90px slab holding a single label pushed to the far
+   edge by the bar's space-between. */
+.tag-filter-bar.narrator-filter {
+    padding: 0.55rem 0.9rem;
+    border-radius: 12px;
+    box-shadow: none;
+}
+
+.narrator-filter > .tag-filter-bar__head {
+    justify-content: flex-start;
+    margin-bottom: 0;
+}
+
+.narrator-filter[open] > .tag-filter-bar__head {
+    margin-bottom: 0.6rem;
+}
