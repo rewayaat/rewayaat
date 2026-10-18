@@ -48,6 +48,9 @@ RELATION = {"عن", "وعن", "فعن", "عنه", "وعنه", "عمن", "حدث�
             "اخبرنا", "واخبرنا", "اخبرني", "سمعت", "سمعته", "رفعه", "يرفعه", "قال",
             "روى", "وروى", "رواه", "باسناده", "عنهما", "عنهم"}
 BESIDE = {"و", "جميعا", "معا", "كلهم", "جميعهم", "قالا", "قالوا"}
+# «و رويته عن …» starts the chain again by another route. The last man of the first
+# ṭarīq and the first of the second never met; they are not a pair of any kind.
+RESTART = {"رويته", "ورويته", "رويت", "وقد", "وفي"}
 
 
 def people():
@@ -81,6 +84,26 @@ def chains():
             if row.get("chain_ar"):
                 held[row["id"]] = row["chain_ar"]
     return held
+
+
+def his_name(folded, held):
+    """Whether a chain's words are one of this man's names, shortened or entire.
+
+    A chain shortens. Al-Ṣadūq writes «محمد بن الحسن» for «محمد بن الحسن بن أحمد بن
+    الوليد» 621 times, and a shortened nasab is the same name, not another one — so the
+    test is whether the words could be his, not whether a book spells him that way. A
+    prefix of a name he is filed under is his; so is a subset of its words, which covers
+    «محمد العطار» for «محمد بن يحيى أبو جعفر العطار القمي». Anything else is a man the
+    chain does not name.
+    """
+    if folded in held:
+        return True
+    words = folded.split()
+    for name in held:
+        spelled = name.split()
+        if spelled[:len(words)] == words or set(words) <= set(spelled):
+            return True
+    return False
 
 
 def name_shaped(words):
@@ -164,7 +187,7 @@ def main():
                     # A name mention is linked because the words matched a name the books
                     # file him under. If they do not, the link came from somewhere else.
                     if mention["kind"] == "name" and person in names:
-                        if key(mention["text"]) not in names[person]:
+                        if not his_name(key(mention["text"]), names[person]):
                             flag("name-not-his", chain_id,
                                  f"«{mention['text']}» → {display.get(person, person)}")
                     if mention["kind"] not in BY_CONVENTION:
@@ -173,12 +196,18 @@ def main():
                 # Co-narrators are not a pair: nothing but «و» between two names means
                 # they stand at the same step, so neither the self check nor the
                 # direction check has anything to say about them.
-                beside = False
+                beside = restart = False
                 if previous_end is not None:
                     between = [bare(w) for w in text[previous_end:start].split()]
                     between = [w for w in between if w]
                     if between and all(w in BESIDE for w in between):
                         beside = True
+                    if any(w in RESTART for w in between):
+                        restart = True
+                if restart:
+                    found["second-tariq"] += 1
+                    previous, previous_end = None, end
+                    continue
                 if beside:
                     found["side-by-side"] += 1
                 if person and previous and person == previous and not beside:
@@ -199,9 +228,11 @@ def main():
                         flag("reversed", chain_id,
                              f"{display.get(previous, previous)} ← {display.get(person, person)},"
                              f" but the books have that pair the other way")
-                if linked or mention["kind"] in BY_CONVENTION:
-                    previous = person or None
-                    previous_end = end
+                # Every step moves the cursor, named or not. Skipping an unidentified man
+                # would pair the two names on either side of him, who never met: three of
+                # the four pairs this check flagged were invented that way.
+                previous = person or None
+                previous_end = end
 
             if row.get("head_lost"):
                 flag("head-lost", chain_id, "opens with a reporting verb whose name got away")
@@ -215,7 +246,7 @@ def main():
                 shown = ", ".join(f"{display.get(p, p)} ×{n}" for p, n in who.most_common(3))
                 examples["same-words-different-men"].append(f"«{folded}» → {shown}")
 
-    order = ["direction-confirmed", "side-by-side",
+    order = ["direction-confirmed", "side-by-side", "second-tariq",
              "span", "overlap", "name-not-his", "reversed", "self", "prose-linked",
              "joiner-in-link", "blessing-in-link", "prose-is-a-name",
              "same-words-different-men", "head-lost", "quoted-pointer", "empty"]
