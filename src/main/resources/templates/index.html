@@ -492,10 +492,11 @@
                                                     <p class="rijal-link__life" data-rijal-life hidden></p>
                                                     <p class="rijal-link__note" v-if="link.kind === 'collective'">{{ t('rijal.collective', '') }}</p>
                                                     <p class="rijal-link__note" v-if="link.kind === 'backref'">
-                                                        <a v-if="link.href" v-bind:href="link.href">{{ t('rijal.backref', '').replace('{0}', link.number) }}</a>
+                                                        <span v-if="link.quotedFrom">{{ t('rijal.backref.quoted', '') }}
+                                                            <bdi lang="ar">{{ link.quotedFrom }}</bdi></span>
+                                                        <a v-else-if="link.href" v-bind:href="link.href">{{ t('rijal.backref', '').replace('{0}', link.number) }}</a>
                                                         <span v-else>{{ t('rijal.backref.unknown', '') }}</span>
                                                     </p>
-                                                    <p class="rijal-link__note" v-if="link.kind === 'imam'">{{ t('rijal.imam.note', '') }}</p>
                                                 </div>
                                             </li>
                                         </ol>

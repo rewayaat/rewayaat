@@ -180,6 +180,11 @@ public class SitemapController {
 
         appendLocalisedUrl(xml, "/", "1.0", "weekly");
         appendLocalisedUrl(xml, "/books", "0.9", "weekly");
+        // The narrator index, the hub every one of the 15,518 narrator pages hangs off.
+        // It carries its own lede and SEO copy in both languages and was listed nowhere,
+        // the same omission /privacy had. The query form of it is a search, not a page,
+        // and only the bare path is listed.
+        appendLocalisedUrl(xml, "/narrators", "0.8", "weekly");
         appendLocalisedUrl(xml, "/updates.html", "0.6", "weekly");
         // A static file rather than a template, so it exists in English only:
         // PageLocale.hasArabicVersion says so and this emits the single entry.

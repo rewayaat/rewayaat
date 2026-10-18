@@ -143,12 +143,14 @@
                                      a man. The note names it and links to it, because
                                      «by this chain» is unreadable without the chain. -->
                                 <p class="rijal-link__note" th:if="${link.kind == 'backref'}">
-                                    <span th:if="${link['href'] == null}" th:text="#{rijal.backref.unknown}">The chain of the narration before this one</span>
+                                    <span th:if="${link['quotedFrom'] != null}">
+                                        <span th:text="#{rijal.backref.quoted}">Points back inside the book this is quoted from:</span>
+                                        <bdi lang="ar" th:text="${link['quotedFrom']}">الكافي</bdi>
+                                    </span>
+                                    <span th:if="${link['href'] == null and link['quotedFrom'] == null}" th:text="#{rijal.backref.unknown}">The chain of the narration before this one</span>
                                     <a th:if="${link['href'] != null}" th:href="${link['href']}"
                                        th:text="#{rijal.backref(${link['number']})}">The chain of narration 592</a>
                                 </p>
-                                <p class="rijal-link__note" th:if="${link.kind == 'imam'}"
-                                   th:text="#{rijal.imam.note}">The books do not grade the Imams</p>
                             </div>
                         </li>
                     </ol>

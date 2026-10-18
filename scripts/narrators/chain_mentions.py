@@ -52,6 +52,11 @@ JOINERS = {
     "حدثنا", "وحدثنا", "فحدثنا", "حدثني", "وحدثني", "حدثن", "حدثناه", "اخبرنا", "واخبرنا",
     "اخبرني", "واخبرني", "انبانا", "سمعت", "وسمعت", "سمعته", "قرات", "كتبت", "كتب", "اجازة",
     "املاء", "قراءة", "رفعه", "يرفعه", "مرفوعا", "باسناده", "وباسناده", "باسنادنا", "بهذا",
+    # «ما رواه سعد بن عبد الله عن…» and «وروى هذا الخبر أحمد بن علي الرازي». Without these
+    # the run keeps «ما», which is a function word, and the whole opening — the first man of
+    # the chain — was read as prose. 139 chains say it this way, al-Ṭūsī's Ghayba most of
+    # them, and a pointer in the chain below was then answered with the second man.
+    "روى", "وروى", "رواه", "ورواه",
     "الاسناد", "الاسنادين", "مثله", "نحوه", "جميعا", "معا", "كلهم", "قالا", "قالوا",
     # the words that end a chain and open the body
     "قال", "فقال", "قالت", "قلت", "يقول", "انه", "اني", "ان", "في", "ثم", "وقال",
@@ -143,6 +148,17 @@ def cited(chain):
     return found.end() if found else 0
 
 
+# The book a quoted chain is quoted from. Muḥsinī's Muʿjam prints «[231/2] الكافي:» and then
+# al-Kāfī's own isnād; a footnote on a pointer inside it has to be able to name that book.
+CITED_BOOK = re.compile(r"^\s*\d*\s*[-ـ]?\s*\[[^\]]{1,14}\]\s*([^:：]{1,40}?)\s*[:：]")
+
+
+def cited_book(chain):
+    """The title a quoted chain is quoted from, or an empty string."""
+    found = CITED_BOOK.match(chain)
+    return found.group(1).strip() if found else ""
+
+
 # A chain that opens by pointing at the one before it instead of naming anybody. Two kinds,
 # and they do not mean the same thing: «عنه» is one man — the shaykh the previous chain
 # opens with — while «بهذا الإسناد» is the whole of that chain over again. Both are read as
@@ -162,6 +178,23 @@ def backref(folded):
             if tuple(folded[:len(form)]) == form:
                 return len(form), kind
     return 0, ""
+
+
+# A chain can name its first man behind a reporting verb — «ما رواه سعد بن عبد الله عن…»,
+# «وروى هذا الخبر أحمد بن علي الرازي» — and in 237 chains here the name after the verb is
+# not held as a mention. That is a loss on its own page, but it is worse for the chain
+# below: «عنه» would then be answered with the *second* man of the chain above. A chain
+# whose opening is lost this way is marked, so no pointer is allowed to rest on it.
+REPORTING = re.compile(r"^\s*\d*\s*[-ـ]?\s*(?:ما\s+رواه|وروى|روى|رواه|وأخبرنا|أخبرنا"
+                       r"|اخبرنا|وحدثنا|حدثنا|حدثني)\s")
+
+
+def head_lost(chain, mentions):
+    """True where the chain opens with a reporting verb and the name after it got away."""
+    found = REPORTING.match(chain[cited(chain):])
+    if not found or not mentions:
+        return False
+    return mentions[0]["start"] - (cited(chain) + found.end()) > 3
 
 
 def segment(chain):
@@ -250,9 +283,14 @@ def main():
             # Volume and number travel with the mentions because the resolver has to read
             # the book in printed order: a chain that opens «عنه» means the narration
             # above it, and the export comes back in whatever order the index scrolls.
+            # Two facts about the chain as printed that the resolver cannot see from the
+            # mentions alone, and that decide whether a pointer in or at this chain can
+            # be answered at all.
             rows.append({"id": row["id"], "book": row["book"],
                          "source": row.get("source", ""),
                          "volume": row.get("volume", ""), "number": row.get("number", ""),
+                         "quoted": cited_book(row["chain_ar"]),
+                         "head_lost": head_lost(row["chain_ar"], mentions),
                          "mentions": mentions})
 
     total = sum(kinds.values())

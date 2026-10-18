@@ -150,6 +150,21 @@ public class HadithCardFactory {
                 String slug = str(raw.get("g"));
                 String declared = str(raw.get("k"));
                 String kind;
+                // A pointer inside a quoted chain. Muḥsinī's Muʿjam prints «[231/2] الكافي:»
+                // and then al-Kāfī's own isnād, so its «وعنه» reaches back inside al-Kāfī,
+                // where this book has printed nothing. There is no narration here to link
+                // it to, so the step names the book that holds the answer instead.
+                String quotedFrom = str(raw.get("qf"));
+                if (!quotedFrom.isBlank()) {
+                    Map<String, Object> quoted = new LinkedHashMap<>();
+                    quoted.put("words", words);
+                    quoted.put("kind", "backref");
+                    quoted.put("person", "");
+                    quoted.put("weak", false);
+                    quoted.put("quotedFrom", quotedFrom);
+                    links.add(quoted);
+                    continue;
+                }
                 // «وبهذا الإسناد» — the chain above, repeated. Not a man and not an
                 // unnamed one either: it points at a narration, and the step says which.
                 if ("backref_chain".equals(declared)) {

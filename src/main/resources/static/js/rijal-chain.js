@@ -124,29 +124,26 @@
         // words; on the Arabic site it is the Arabic display name, and nothing Latin.
         show(who, name(brief));
         var rows = gradeRows(brief);
-        if (said) {
+        // No grade is not a finding worth a line in a box this size: the absence of
+        // any word under his name says it, and a sentence saying it only costs room.
+        if (said && rows.length) {
             said.textContent = "";
-            if (!rows.length) {
-                said.textContent = t("narrator.standing.unstated", "No book grades him");
-                said.className = "rijal-link__said rijal-link__said--none";
-            } else {
-                said.className = "rijal-link__said";
-                rows.forEach(function (row) {
-                    var line = document.createElement("span");
-                    line.className = "rijal-link__grade rijal-link__grade--" + row.leaning;
-                    var word = document.createElement("span");
-                    word.className = "rijal-link__word";
-                    word.textContent = row.word;
-                    line.appendChild(word);
-                    if (row.books) {
-                        var books = document.createElement("span");
-                        books.className = "rijal-link__books";
-                        books.textContent = row.books;
-                        line.appendChild(books);
-                    }
-                    said.appendChild(line);
-                });
-            }
+            said.className = "rijal-link__said";
+            rows.forEach(function (row) {
+                var line = document.createElement("span");
+                line.className = "rijal-link__grade rijal-link__grade--" + row.leaning;
+                var word = document.createElement("span");
+                word.className = "rijal-link__word";
+                word.textContent = row.word;
+                line.appendChild(word);
+                if (row.books) {
+                    var books = document.createElement("span");
+                    books.className = "rijal-link__books";
+                    books.textContent = row.books;
+                    line.appendChild(books);
+                }
+                said.appendChild(line);
+            });
             said.hidden = false;
         }
         show(life, lifeLine(brief.life));

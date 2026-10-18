@@ -120,9 +120,10 @@
 
     /** What the books say, in their own words, with the books that say it. */
     function saidRows(said) {
+        // An ungraded man gets no line about it; the empty space is the same statement
+        // and the box is small.
         if (!said || !said.length) {
-            return '<p class="np__unstated">'
-                + escaped(t("narrator.standing.unstated", "No book grades him")) + "</p>";
+            return "";
         }
         return said.slice(0, 3).map(function (row) {
             var books = (arabic() && row.books_ar && row.books_ar.length)
@@ -169,7 +170,8 @@
                 ? '<p class="np__name-en">' + escaped(man.display_en) + "</p>" : "")
             + "</div>"
             + '<div class="np__rest">'
-            + '<div class="np__said-rows">' + saidRows(man.said_by) + caveat + "</div>"
+            + (saidRows(man.said_by) + caveat
+                ? '<div class="np__said-rows">' + saidRows(man.said_by) + caveat + "</div>" : "")
             + '<p class="np__life">' + lifeLine(man.life) + "</p>"
             + weight
             + '<a class="np__go" href="' + escaped(href) + '">'

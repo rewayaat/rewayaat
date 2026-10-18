@@ -451,12 +451,6 @@ class HadithCardParityTest {
     void bothCardsOfferTheSameSidecarPanels() throws IOException {
         Set<String> server = new java.util.TreeSet<>(matches(SERVER_PANEL, read(SERVER_CARD)));
         Set<String> search = matches(SEARCH_PANEL, readSearchCard());
-        // The rijāl panel is drawn from the chain_people the server reads off the narration
-        // document, and the search results do not carry that field yet. It is the one panel
-        // that is deliberately on the server card alone, until the search card is given the
-        // chain; remove this line then, and the test holds the two together again.
-        server.remove("rijal");
-
         assertEquals(server, search,
                 "the two cards offer different sidecar panels.\n"
                         + "  server card: " + server + "\n"

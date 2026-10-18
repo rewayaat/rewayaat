@@ -502,6 +502,20 @@ def follow_backrefs(rows, by_id):
 
     A pointer resolves against the last chain that had a head of its own, so a run of them
     — «عنه» after «عنه» — all reach the same man, which is what the printed page means.
+
+    Two books' worth of exceptions, because the form does not mean the same thing everywhere:
+
+    A chain that is *quoted* answers to the book it came from, not to this one. Muḥsinī's
+    Muʿjam al-Aḥādīth al-Muʿtabara prints «[231/2] الكافي:» and then al-Kāfī's isnād, and the
+    «وعنه» in it is al-Kulaynī's pointer to whatever stands at al-Kāfī 2/231 — not to the
+    narration Muḥsinī happens to have put above it, which is quoted from al-Kāfī 1/320 or
+    from al-Tahdhīb. 22 of 26 pointers in that book crossed from one cited book into
+    another before this guard; the chain they point at is not printed here at all, so they
+    are left unanswered and the page says which book holds the answer.
+
+    A chain whose own first man got away — «ما رواه سعد بن عبد الله عن جعفر بن محمد بن مالك»,
+    where the cutter holds Jaʿfar and not Saʿd — must not serve as a head either, or «عنه»
+    below it is answered with the second man of the chain above instead of the first.
     """
     def ordered(row):
         try:
@@ -520,6 +534,16 @@ def follow_backrefs(rows, by_id):
         for row in sequence:
             mentions = row["mentions"]
             pointer = mentions[0] if mentions and mentions[0]["kind"] in ANAPHOR else None
+            if row.get("quoted"):
+                # Quoted, so neither end of the pointer belongs to this book: it cannot be
+                # answered from here, and it cannot answer for the chain below it.
+                head, head_id, printed = "", "", ""
+                if pointer is not None:
+                    pointer["quoted_from"] = row["quoted"]
+                    pointer["because"] = (f"quoted from «{row['quoted']}», and it points back "
+                                          f"inside that book, not inside this one")
+                    settled["pointing inside the book it is quoted from"] += 1
+                continue
             if pointer is None:
                 # An ordinary chain: its own first man is what the next pointer refers
                 # back to. The first *man* — a collective is skipped, because «عنه» is
@@ -528,6 +552,11 @@ def follow_backrefs(rows, by_id):
                 # left standing: a pointer must not reach over him to the chain before.
                 printed = row["id"]
                 head, head_id = "", ""
+                if row.get("head_lost"):
+                    # The chain is here and «بهذا الإسناد» may point at it, but we do not
+                    # hold its first man, so «عنه» must not be answered from it.
+                    settled["chain kept, but its first man got away"] += 1
+                    continue
                 for mention in mentions:
                     if mention["kind"] not in ("name", "imam", "relative"):
                         continue
@@ -609,6 +638,8 @@ def main():
             rows.append({"id": row["id"], "book": row["book"],
                          "source": row.get("source", ""),
                          "volume": row.get("volume", ""), "number": row.get("number", ""),
+                         "quoted": row.get("quoted", ""),
+                         "head_lost": row.get("head_lost", False),
                          "mentions": resolved})
 
     pointed = follow_backrefs(rows, by_id)

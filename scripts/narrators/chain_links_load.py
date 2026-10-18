@@ -150,6 +150,11 @@ def main():
                 if mention.get("refers_to"):
                     step["r"] = mention["refers_to"]
                     step["rn"] = numbered.get(mention["refers_to"], "")
+                # A pointer inside a quoted chain points back inside the book it was
+                # quoted from. There is nothing here to link it to, so it carries the
+                # name of that book and the page says so rather than guessing.
+                if mention.get("quoted_from"):
+                    step["qf"] = mention["quoted_from"]
                 people.append(step)
             people.sort(key=lambda row: row["s"])
             # Written whenever the chain has steps at all, not only when one of them is a
