@@ -233,6 +233,25 @@ def load_people(path, books):
                 name = relation.get("name_ar") or relation.get("name") or ""
                 imams_of[pid] |= imams.from_relation(name, key(name))
 
+    # Every shorter reading of a name, for the men the books connect to somebody. A rijālī
+    # often files one man twice — al-Ṭūsī's one-line «الحسين بن محمد بن عمران» beside
+    # al-Najāshī's «الحسين بن محمد بن عمران بن أبي بكر الأشعري القمي» — and the short filing,
+    # having no relations recorded against it, is the one that owns the short name. This maps
+    # a short name to the fuller records that spell it out, so a stub can be looked past.
+    # Only men with a teacher or a student are indexed: the point is to find a record that
+    # can be checked against the chain, and a second stub answers nothing.
+    extends = defaultdict(set)
+    for pid, person in by_id.items():
+        if not (teachers.get(pid) or students.get(pid)):
+            continue
+        forms = set(person.get("headings_ar") or []) | set(person.get("names_ar") or [])
+        if person.get("display_ar"):
+            forms.add(person["display_ar"])
+        for name in forms:
+            words = key(name).split()
+            for count in range(2, len(words)):
+                extends[" ".join(words[:count])].add(pid)
+
     # Whose father is whom, read off the nasabs once the headings are all in. A second
     # pass because it needs the whole index: the father is identified by being filed under
     # a name the son's own heading spells out.
@@ -250,7 +269,7 @@ def load_people(path, books):
             break
     return {"headings": headings, "aliases": aliases, "teachers": teachers,
             "students": students, "by_id": by_id, "imams_of": imams_of, "fathers": fathers,
-            "is_imam": is_imam}
+            "is_imam": is_imam, "extends": extends}
 
 
 def held_by(folded, data):
@@ -281,6 +300,80 @@ def support(pid, before, after, teachers, students):
         if name not in RELATIVE and same_name(name, before):
             return f"narrated to {name}"
     return ""
+
+
+def past_the_stub(folded, lone, before, after, data):
+    """A fuller record of the same man, where the only one filed is a stub nobody connects.
+
+    A single candidate is normally the end of the matter: one man holds the name, so he is
+    the answer. But `one` is the one outcome that asks for no corroboration at all, and that
+    is exactly wrong when the single record is a stub — a rijālī's one-line notice with not
+    one teacher and not one student recorded against it. Nothing about such a record can be
+    checked, and nothing about it was.
+
+    «الحسين بن محمد» in al-Kāfī is the case that found this. 608 chains answered it with a
+    three-entry Ṭūsī notice, «الحسين بن محمد بن عمران», holding no relations whatever, while
+    al-Najāshī's record of the same man — «الحسين بن محمد بن عمران بن أبي بكر الأشعري القمي»
+    — says in so many words that he narrated to al-Kulaynī, and the chains have him handing
+    on to Muʿallā b. Muḥammad and ʿAbd Allāh b. ʿĀmir, both of them in his own list.
+
+    So the stub is looked past, but only where the chain itself vouches for the alternative:
+    a fuller record spelling out the same name, which a book puts beside the very man
+    standing next to him here. One such record or none — two would be a question, not an
+    answer.
+
+    Three conditions keep this to a truncated filing and away from two men who merely share
+    a name, each of them learnt from a reading this rule got wrong:
+
+    - The name must be a nasab. «أبي بصير» is a kunya borne by Yaḥyā b. al-Qāsim al-Asadī
+      and by Layth al-Murādī, two men the rijālīs argue over, and nothing about one record
+      lacking relations settles which of them a chain means. Kunyas are refused outright.
+    - The fuller record must spell out the stub's own fullest name, not merely the short key.
+      «الحسين بن محمد بن عمران» opens al-Najāshī's «الحسين بن محمد بن عمران بن أبي بكر
+      الأشعري القمي», so they are one man; «الحسين بن يزيد بن محمد النوفلي» is a different
+      man an alias had filed under the same short form.
+    - The stub must be the lone holder of the short name, which is the caller's condition.
+    """
+    if data["teachers"].get(lone) or data["students"].get(lone):
+        return "", ""
+    if "بن" not in folded.split():
+        return "", ""
+    stub = data["by_id"].get(lone) or {}
+    forms = [key(n) for n in [stub.get("display_ar") or ""]
+             + list(stub.get("headings_ar") or []) + list(stub.get("names_ar") or [])]
+    # Three generations of nasab, «س بن ص بن ع», is enough to say two filings are one man.
+    # Two is not: «محمد بن إسماعيل» is borne by al-Kulaynī's own shaykh al-Nīsābūrī and by
+    # Ibn Bazīʿ a century before him, and a short record of the one must not be read as a
+    # short record of the other. Any of the stub's own readings may carry the match, not
+    # merely its longest — al-Ṭūsī files this man as «الحسين بن محمد بن عمران كوفي», and a
+    # trailing nisba one book adds is not a reason to miss the nasab they share.
+    # A man's ism does not change between two filings of him, so a reading that opens on a
+    # different name is an alias the books attached in error, not a shorter form of him:
+    # «إبراهيم بن عبد الله القاري» is filed with «عبيد الله بن عبد الله الدهقان» among his
+    # names, and without this the one would have been read as a short form of the other.
+    ism = key(stub.get("display_ar") or "").split()[:1]
+    specific = [f for f in forms if len(f.split()) >= 5 and f.split()[:1] == ism]
+    if not specific:
+        return "", ""
+    backed = []
+    for pid in sorted(data["extends"].get(folded, ())):
+        other = data["by_id"].get(pid) or {}
+        if pid == lone or not any(spells_out(f, other) for f in specific):
+            continue
+        why = support(pid, before, after, data["teachers"], data["students"])
+        if why:
+            backed.append((pid, why))
+    return backed[0] if len(backed) == 1 else ("", "")
+
+
+def spells_out(fullest, person):
+    """Whether this record's name carries the stub's fullest name word for word, and goes on."""
+    want = fullest.split()
+    for name in ([person.get("display_ar") or ""] + list(person.get("headings_ar") or [])):
+        words = key(name).split()
+        if len(words) > len(want) and words[:len(want)] == want:
+            return True
+    return False
 
 
 def one_of(candidates, data):
@@ -402,6 +495,11 @@ def resolve_chain(mentions, data, book="", table=None, compiler=""):
             row["outcome"] = "none"
         elif len(candidates) == 1:
             row["outcome"], row["person_id"] = "one", candidates[0]
+            fuller, why = past_the_stub(keys[position], candidates[0], before, after, data)
+            if fuller:
+                row["outcome"], row["person_id"] = "chosen", fuller
+                row["because"] = (f"{why}; the one man filed under this name alone is a "
+                                  f"notice with no teacher and no student recorded")
         else:
             backed = [(pid, support(pid, before, after, data["teachers"], data["students"]))
                       for pid in candidates]
