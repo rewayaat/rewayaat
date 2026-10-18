@@ -118,6 +118,42 @@ BOOK_NOTE = {"duafa": "The ascription of this book to Ibn al-Ghaḍāʾirī is d
                       "held it unproven («الكتاب المنسوب إلى ابن الغضائري… لم يثبت»)."}
 
 
+# Which printed edition a page number belongs to, where the record knows. It knows for exactly
+# five books, and only because their pages were read from an OpenITI digitisation whose header
+# names the edition it was typed from (#META# 040.EdEDITOR, 041.EdNUMBER, 045.EdYEAR; for
+# al-Najāshī the Shamela record line «المحقق … الناشر … الطبعة»). The page numbers on a
+# printed entry are that digitisation's own page markers, so they are that edition's pages and
+# nobody else's. Nothing is added to what the headers say: al-Najāshī's header leaves the
+# edition number and year empty and so does this table. Jāmiʿ al-Ruwāt's header is NODATA in
+# every edition field, and Māmaqānī and the Ḍuʿafāʾ were read by agents from files that name
+# none, so those three carry no edition at all, and a page citing them cannot be placed in a
+# printed copy from what this record holds. The same goes for any entry of a listed book that
+# was not read from the digitisation (is_printed_entry false): its page came from somewhere
+# unrecorded, and it is given no edition rather than a borrowed one.
+EDITIONS = {
+    "najashi": {"en": "ed. Mūsā al-Shubayrī al-Zanjānī, Muʾassasat al-Nashr al-Islāmī (Qom); "
+                      "edition number and year not stated in the source",
+                "ar": "تحقيق السيد موسى الشبيري الزنجاني، مؤسسة النشر الإسلامي (قم)؛ "
+                      "رقم الطبعة وسنتها غير مذكورين في المصدر",
+                "file": "najashi_rijal.txt"},
+    "fihrist": {"en": "ed. Jawād al-Qayyūmī, 1st edition, Shaʿbān 1417 AH",
+                "ar": "تحقيق الشيخ جواد القيومي، الطبعة الأولى، شعبان المعظم ١٤١٧",
+                "file": "fihrist_pri.mARkdown"},
+    "tusi": {"en": "ed. Jawād al-Qayyūmī al-Iṣfahānī, 1st edition, Ramaḍān 1415 AH",
+             "ar": "تحقيق جواد القيومي الإصفهاني، الطبعة الأولى، رمضان المبارك ١٤١٥",
+             "file": "tusi_rijal_pri.mARkdown"},
+    "kashshi": {"en": "ed. Mahdī al-Rijāʾī (taḥqīq), with Mīr Dāmād al-Astarābādī "
+                      "(taṣḥīḥ and taʿlīq), 1404 AH; edition number not stated",
+                "ar": "تصحيح وتعليق: مير داماد الأسترابادي / تحقيق: السيد مهدي الرجائي، ١٤٠٤",
+                "file": "kashshi_pri.mARkdown"},
+    "khoei": {"en": "5th edition, 1413 AH / 1992 CE; editor and publisher not stated in the source",
+              "ar": "الطبعة الخامسة، ١٤١٣ هـ / ١٩٩٢ م",
+              "file": "khoei_mujam.txt"},
+}
+ENTRY_NUMBER = re.compile(r"printed entry (\d+)")
+ENTRY_VOLUME = re.compile(r"الجزء (\d+)")
+
+
 def slugify(name):
     """«Sahl ibn Ziyād» -> «sahl-ibn-ziyad», for a URL that says who it is about.
 
@@ -437,6 +473,115 @@ def sources_by_name(statements, stated_keys, key_of, text_for):
                                        -len(x["books"]), x["name"]))[:200]
 
 
+# One Imam, one row. A man's Imams used to be listed exactly as each book spelled them, so
+# Zurāra's «Narrated from the Imams» line carried fifteen rows for four people —
+# «أبي عبد الله (ع)», «Abu Abdullah (al-Sadiq)», «al-Sadiq», «الصادق», «Imam al-Sadiq» and
+# «Ja'far al-Sadiq» all for the sixth — and meanwhile the bare «أبي جعفر», which in his chains
+# is al-Bāqir, stood among his human teachers because relation_kind() declines to call a bare
+# kunya an Imam. That caution is right in general (a bare «أبو عبد الله» in a stranger's list
+# is often a man) and wrong for a companion of the Imams listing the man he narrated from, so
+# the kunya is read against the Imams the subject himself kept company with: «أبي جعفر» is
+# al-Bāqir or al-Jawād, and for a man whom the books place under al-Bāqir and al-Ṣādiq only
+# al-Bāqir is possible. Where the subject's own Imams do not leave exactly one, the kunya
+# stays a person, because the books leave it open too (imams.py: «left undecided»). It is
+# applied to the teachers side only: an Imam never narrates from a narrator, so «أبو جعفر» in
+# the list of a man's pupils (24 times) is a man, and is left alone.
+BLESSING = re.compile(r"عليه السلام|عليهما السلام|عليهم السلام|عليه السّلام|\(ع\)|\(عج\)|"
+                      r"صلى الله عليه وآله|صلى الله عليه وآله وسلم|^الإمام\s+|^الامام\s+|^امام\s+")
+PAREN = re.compile(r"\(([^)]*)\)")
+IMAM_STATS = Counter()
+
+
+def _imam_ids(name):
+    """Which Imams a relation name could mean: (ids from the base, ids it is qualified with).
+
+    A qualifier in brackets outranks the rest of the name, because «Ali bin al-Husayn
+    (al-Sajjad)» contains «al-Husayn» and would otherwise name the third Imam as well.
+    """
+    inside = " ".join(PAREN.findall(name))
+    base = BLESSING.sub(" ", PAREN.sub(" ", name))
+    ids = set(imams.identify(normalize_arabic(base)))
+
+    def hints(text):
+        found = set()
+        low = text.lower()
+        for imam in imams.ROSTER:
+            if any(re.search(rf"(?<![a-z]){re.escape(h)}(?![a-z])", low) for h in imam["en"]):
+                found.add(imam["id"])
+        found |= set(imams.identify(normalize_arabic(BLESSING.sub(" ", text))))
+        return found
+
+    hinted = hints(inside) if inside else set()
+    if not hinted and not ARABIC_RANGE.search(name):
+        hinted = hints(name)
+    return ids, hinted
+
+
+def which_imam(name, subject_imams):
+    """The one Imam this relation name means for this subject, or None."""
+    ids, hinted = _imam_ids(name)
+    found = ((hinted & ids) or hinted) if hinted else ids
+    if len(found) == 1:
+        return next(iter(found))
+    if found and subject_imams:
+        mine = {i for i in found if imams.BY_ID[i]["ordinal"] in subject_imams}
+        if len(mine) == 1:
+            return next(iter(mine))
+    return None
+
+
+def settle_imams(rows, subject_imams, teachers_side):
+    """Move an Imam out of the human rows and give each Imam one row under one name."""
+    out, held = [], {}
+    # An Imam the books already name outright on this side is one the man is known to have
+    # narrated from, even where his companionship list does not include him: Zurāra's own
+    # generations stop at al-Kāẓim, while al-Fihrist says «عن علي بن الحسين (السجاد)», and the
+    # bare «علي بن الحسين» beside it is the same man, not a second teacher.
+    named = {imams.BY_ID[i]["ordinal"] for i in (which_imam(r["name"], subject_imams)
+                                                 for r in rows if r["kind"] == "imam") if i}
+    subject_imams = set(subject_imams) | named
+    for row in rows:
+        iid = None
+        if row["kind"] == "imam":
+            iid = which_imam(row["name"], subject_imams)
+        elif teachers_side and subject_imams and row["kind"] in ("person", "bare"):
+            ids, hinted = _imam_ids(row["name"])
+            # a parenthesis that is not an Imam's name («Ahmad ibn Muhammad's father») marks a
+            # man, and a name with a qualifier the roster does not know is left as written
+            if PAREN.search(row["name"]) and not hinted:
+                iid = None
+            else:
+                iid = which_imam(row["name"], subject_imams)
+                # a name that is also an ordinary man's («علي بن الحسين», «جعفر بن محمد») is
+                # taken for the Imam only when the subject's own books put him in that Imam's
+                # company; otherwise it is whichever man of that name the book meant
+                if iid and imams.BY_ID[iid]["ordinal"] not in subject_imams:
+                    iid = None
+            if iid:
+                IMAM_STATS["a human teacher row that was an Imam"] += 1
+        if not iid:
+            out.append(row)
+            continue
+        imam = imams.BY_ID[iid]
+        mate = held.get(iid)
+        if mate is None:
+            mate = dict(row, name=imam["name_en"], name_ar=imam["name_ar"], kind="imam",
+                        imam_id=iid, books=[], books_ar=[], stated=False, unsaid=True)
+            held[iid] = mate
+            out.append(mate)
+        else:
+            IMAM_STATS["Imam rows folded into one"] += 1
+        for book in row["books"]:
+            if book not in mate["books"]:
+                mate["books"].append(book)
+        for book in row.get("books_ar") or []:
+            if book not in mate["books_ar"]:
+                mate["books_ar"].append(book)
+        mate["stated"] = mate["stated"] or row["stated"]
+        mate["unsaid"] = mate["unsaid"] and row["unsaid"]
+    return out
+
+
 def join_names(names):
     """«A, B and C» — a list as a sentence reads it."""
     names = list(names)
@@ -551,6 +696,31 @@ def profiles():
 # them stand inside entries, in both scripts, and a page printing a book's own words should
 # print the book's own words.
 LEFTOVER = re.compile(r'\s*(?:PageV\d+P\d+|~:[a-z_]+:)\s*')
+# More of the same OpenITI apparatus, measured over the 32,614 entries before it was stripped.
+# «ms0115» is the digitiser's manuscript-page milestone, 599 of them in 597 Jāmiʿ al-Ruwāt
+# entries, each standing between two spaces inside a sentence («محمد بن علي ms0115 بن محبوب»),
+# so a reader of al-ʿAṭṭār's entry met a Latin token in the middle of a name; extract_openiti.py
+# already counts the same token as noise in the books it re-read. «|PARATEXT|» (5, Kashshī) and
+# «NoteV00P195N2441» (3, Ṭūsī) are the digitiser's tags for a colophon and a footnote anchor,
+# «[empty]» (1) is its placeholder, and «&quot;» (14, Jāmiʿ) is an HTML entity for a quotation
+# mark. The «$» (467 in 194 Khoei entries) is OpenITI's record mark and is followed by a digit
+# every single time («الحديث $ 417», «$ 1 - أنه روى»): the number is the book's, the dollar is
+# not, so only the dollar goes.
+# What is NOT removed, deliberately: the sigla «(جش)», «(لم)», «[ست]», «(ق)». They look like
+# noise and are not. Jāmiʿ al-Ruwāt writes them itself, as its abbreviations for the book it is
+# quoting (جش al-Najāshī, ست al-Fihrist, كش al-Kashshī, صه al-Khulāṣa, ق al-Ṣādiq's chapter in
+# al-Ṭūsī), 6,527 times in 4,554 entries; Khoei repeats them when he quotes Jāmiʿ or Mamaqani
+# («م - كش - جش - جخ»). They are the provenance of each clause, and a scholar reading «ثقة (جش)»
+# is reading the author's own citation. link_entry_books.py reads them as such.
+OPENITI_MARKS = re.compile(r'\s*(?:ms\d{3,4}|NoteV\d+P\d+N\d+|\|PARATEXT\||\[empty\])\s*')
+
+
+def clean_text(text):
+    """The entry's words without the digitiser's marks in them (see OPENITI_MARKS)."""
+    text = LEFTOVER.sub(" ", text)
+    text = OPENITI_MARKS.sub(" ", text)
+    text = re.sub(r"\$\s*(?=\d)", "", text)
+    return text.replace("&quot;", '"').strip()
 
 
 def text_of(profile, arabic=True):
@@ -560,7 +730,7 @@ def text_of(profile, arabic=True):
     printed = "printed_entry" in (profile.get("flags") or ())
     for assessment in (reversed(said) if printed else said):
         if (assessment or {}).get(field):
-            return LEFTOVER.sub(" ", assessment[field]).strip()
+            return clean_text(assessment[field])
     return None
 
 
@@ -612,6 +782,44 @@ COMMON_ISM = {normalize_arabic(n) for n in (
     "داود", "زيد", "صالح", "عيسى", "هارون", "سليمان", "يعقوب", "يوسف", "أبان", "بكر")}
 
 
+# A name that names a group or a rank rather than a man. Measured over the 38,977 Arabic names
+# the index holds: family and tribe names are rare (5 names on 4 people: «آل أعين» on Zurāra and
+# on his brother Ḥumrān, «بنو جعفر», «بني عدى»; and 5 English ones, «Banu Ayn»), while bare title
+# words are commoner (27 names on 20 people: «القاضي» 8, «الشيخ» 4, «الشريف» 3, «السيد» 2,
+# «المحدث», «المفسر», «الفقيه», «النسابة», «الثقة», «مولى»). Neither is wrong to hold. «آل أعين»
+# is exactly how the books refer to Zurāra's clan, and «الشيخ» is how al-Mufīd and al-Ṭūsī are
+# both cited, so a reader who searches either must still land on the man, and deleting them
+# would also erase the fact that a book used them. But listed among «names» they read as
+# something he was called, and «المحدّث» is not what anybody called Zurāra: it is a descriptor
+# a book attached to him. So they are kept, in their own labelled list (`names_group_ar`,
+# `names_group_en`), kept in the searched forms (`normalized_ar`, `normalized_en`), and left out
+# of `names_ar` and `names_en`, which are the names he bore.
+# Not in the list on purpose: «الصدوق» (a laqab that really is one man's name, Ibn Bābawayh's),
+# and any word that is part of this man's own heading, because then it is his ism: the Sayyid
+# b. Muḥammad whose filing name is «السيد بن محمد» keeps «السيد».
+FAMILY_EN = re.compile(r"^(?:banu|bani|banī|aal|ahl|awlad|house of|family of|sons of)\b", re.I)
+TITLE_WORDS_AR = {normalize_arabic(w) for w in (
+    "المحدث", "الفقيه", "المفسر", "النسابة", "الثقة", "القاضي", "الشيخ", "السيد", "الشريف",
+    "مولى", "الراوي", "العالم", "الإمام", "الأديب", "المتكلم")}
+
+
+def not_a_personal_name(value, headings_folded, english=False):
+    """«family» or «title» if this alias names a group or a rank, else None."""
+    if english:
+        return "family" if FAMILY_EN.match(value.strip()) else None
+    text = value.strip()
+    # «ال» alone is the article, so «الكوفي» must not read as a family: the family prefixes
+    # need a following word, and «آل» is matched before normalisation, which would fold it to «ال»
+    if re.match(r"^(?:آل|بنو|بني|بنى|أولاد|اولاد|أهل|اهل)\s+\S", text):
+        return "family"
+    folded = normalize_arabic(text)
+    if folded in TITLE_WORDS_AR:
+        own = {w for h in headings_folded for w in h.split()}
+        if folded not in own:
+            return "title"
+    return None
+
+
 def searchable(headings, aliases, holders):
     """The names safe to search the chains by.
 
@@ -655,6 +863,58 @@ def searchable(headings, aliases, holders):
     return out
 
 
+def where_in_the_book(book, profile):
+    """What lets a reader find this entry in a printed copy: its number, volume and edition.
+
+    The number is the one the edition prints before the entry («printed entry 945» is
+    al-Najāshī's 945), which extract_openiti.py recorded in the profile's notes when it read the
+    heading; only a profile read from the digitisation (flag printed_entry) has one, and the
+    other entries of a book are given none rather than the number an agent once wrote down.
+    For al-Ṭūsī and al-Fihrist it is the edition's running number, not the per-chapter number
+    al-Khoei cites them by. The volume is stated for al-Khoei («الجزء 19», of twenty-four, where
+    a bare page 32 is ambiguous across the set) and for Māmaqānī (source_volume); the other
+    books are one volume or do not say.
+    """
+    printed = "printed_entry" in (profile.get("flags") or ())
+    notes = profile.get("notes") or ""
+    number = ENTRY_NUMBER.search(notes) if printed else None
+    volume = ENTRY_VOLUME.search(notes) if printed and book == "khoei" else None
+    edition = EDITIONS.get(book) if printed else None
+    return {
+        "entry_number": int(number.group(1)) if number else None,
+        "volume": (int(volume.group(1)) if volume
+                   else profile.get("source_volume") if book == "mamaqani" else None),
+        "edition_en": edition["en"] if edition else None,
+        "edition_ar": edition["ar"] if edition else None,
+        "edition_file": edition["file"] if edition else None,
+    }
+
+
+def mark_same_work(entries):
+    """Say so when two entries of one man are the same book, rather than two books.
+
+    al-Khoei files Muḥammad b. Yaḥyā al-ʿAṭṭār under «العطار», under «الأشعري» and again under
+    «أبو جعفر العطار», three headings with three different texts (571, 590 and 2,993
+    characters), two of them on p. 32. They are not one entry shown twice, so they are not
+    merged: merging would splice three of a compiler's separate discussions into a text he
+    never wrote. But a page listing «Muʿjam Rijāl al-Ḥadīth p. 32» twice, unmarked, reads as two
+    books. Each entry therefore carries which of the book's entries for this man it is, how
+    many there are, and the headings the others are filed under, so the page can print «a
+    second heading in the same work».
+    """
+    by_book = defaultdict(list)
+    for entry in entries:
+        by_book[entry["book"]].append(entry)
+    for group in by_book.values():
+        for n, entry in enumerate(group, 1):
+            entry["book_entry_index"] = n
+            entry["book_entry_total"] = len(group)
+            entry["same_work_other_headings"] = [o["heading_ar"] for o in group
+                                                 if o is not entry and o["heading_ar"]]
+            entry["shares_page_with"] = [o["source_key"] for o in group if o is not entry
+                                         and set(o["pages"] or ()) & set(entry["pages"] or ())]
+
+
 def document(person, source, headless):
     """One narrator, as a page will read him."""
     keys = sorted(person["source_keys"],
@@ -685,6 +945,12 @@ def document(person, source, headless):
             # vocabulary showing through, not the book's
             "grade_said": GRADE_WORDS.get(profile.get("reliability_grade"), (None, None))[0],
             "grade_said_ar": GRADE_WORDS_AR.get(profile.get("reliability_grade")),
+            # The entry's own leaning («for», «against», «mixed»), from the same table said_by
+            # uses, so a chip can be tinted from the entry itself. said_by is built only from
+            # verdicts traced to a passage that holds the grade's word, so an entry can carry a
+            # grade (Sahl b. Ziyād's «كذاب») that has no said_by row at all, and a chip that
+            # looked its colour up there rendered grey beside green thiqa and red daif.
+            "grade_leaning": GRADE_WORDS.get(profile.get("reliability_grade"), (None, None))[1],
             # Which Imam this entry places him under, in short. The raw statement is the book's
             # chapter heading — «أصحاب أبي جعفر محمد بن علي الثاني عليهما السلام» — and printed
             # under all three of al-Tusi's listings it said the same thing three times in the
@@ -697,7 +963,9 @@ def document(person, source, headless):
                                if n < len(IMAM_NAMES_AR)],
             "generation": profile.get("generation"),
             "is_printed_entry": "printed_entry" in (profile.get("flags") or ()),
+            **where_in_the_book(book, profile),
         })
+    mark_same_work(entries)
 
     def traced(field, key_name="value"):
         """What the books state about him, each line attributed to the entry that states it.
@@ -1146,11 +1414,20 @@ def document(person, source, headless):
                 [m for m in links if m["kind"] == "imam" and not m["unsaid"]],
                 [m for m in links if m["unsaid"]])
 
+    all_from = settle_imams(all_from, imams, True)
+    all_to = settle_imams(all_to, imams, False)
     narrated_from, chain_from, imams_from, unsaid_from = split(all_from)
     narrated_to, chain_to, imams_to, unsaid_to = split(all_to)
 
-    names_ar = [n["value"] for n in values(person, "primary_names") + values(person, "arabic_aliases")
-                if n.get("value") and not another_mans_name(person, n["value"])]
+    all_names_ar = [n["value"] for n in values(person, "primary_names") + values(person, "arabic_aliases")
+                    if n.get("value") and not another_mans_name(person, n["value"])]
+    own_headings = [normalize_arabic(n["value"]) for n in values(person, "primary_names")
+                    if n.get("value")]
+    own_headings += [normalize_arabic(e["heading_ar"]) for e in entries if e.get("heading_ar")]
+    group_kind = {n: not_a_personal_name(n, own_headings) for n in set(all_names_ar)}
+    names_ar = [n for n in all_names_ar if not group_kind[n]]
+    names_group_ar = [{"value": n, "kind": group_kind[n]} for n in sorted(set(all_names_ar))
+                      if group_kind[n]]
     # The names a book actually headed an entry with, apart from every name merely written
     # inside one. The chain search uses these and not the aliases: Khoei's entry on Zurara
     # carries «محمد بن مسلم» among the names in its text — one of them «محمد بن مسلم مضمرة»,
@@ -1164,8 +1441,11 @@ def document(person, source, headless):
     search_ar = searchable(sorted(headings_ar),
                            sorted({n["value"] for n in values(person, "arabic_aliases")
                                    if n.get("value")}), HOLDERS)
-    names_en = [n["value"] for n in values(person, "english_aliases")
-                if n.get("value") and not another_mans_english(person, n["value"])]
+    all_names_en = [n["value"] for n in values(person, "english_aliases")
+                    if n.get("value") and not another_mans_english(person, n["value"])]
+    names_en = [n for n in all_names_en if not not_a_personal_name(n, [], english=True)]
+    names_group_en = [{"value": n, "kind": "family"} for n in sorted(set(all_names_en))
+                      if not_a_personal_name(n, [], english=True)]
 
     display_ar = anchor.get("primary_arabic_name") or person.get("primary_arabic_name")
     def split_by_evidence(raw):
@@ -1211,8 +1491,12 @@ def document(person, source, headless):
         "headings_ar": sorted(headings_ar),
         "search_ar": sorted(search_ar),
         "names_en": sorted(set(names_en)),
-        "normalized_ar": sorted({normalize_arabic(n) for n in names_ar}),
-        "normalized_en": sorted({n.lower() for n in names_en}),
+        # Family and title forms stay in the searched fields: a reader looking up «آل أعين» must
+        # find Zurāra even though the page no longer lists it among his names.
+        "names_group_ar": names_group_ar,
+        "names_group_en": names_group_en,
+        "normalized_ar": sorted({normalize_arabic(n) for n in all_names_ar}),
+        "normalized_en": sorted({n.lower() for n in all_names_en}),
         "kunyahs_ar": kunyahs,
         "titles": titles,
         # Said by a record whose entry does not hold the words: kept, because a book did say
@@ -1455,6 +1739,8 @@ def main():
         documents += roster
         counts["the fourteen, who hold no entry anywhere"] = len(roster)
     for label, n in counts.most_common():
+        print(f"  {n:7d}  {label}")
+    for label, n in IMAM_STATS.most_common():
         print(f"  {n:7d}  {label}")
 
     if args.show:
