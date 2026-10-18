@@ -233,6 +233,26 @@ def load_people(path, books):
                 name = relation.get("name_ar") or relation.get("name") or ""
                 imams_of[pid] |= imams.from_relation(name, key(name))
 
+    # A name with its trailing nisbas taken off. A chain writes a man as short as it likes,
+    # and the books file him as long as they like: al-Kāfī opens 58 chains «الحسين بن محمد
+    # الأشعري» while al-Najāshī files that man as «الحسين بن محمد الأشعري القمي», so the one
+    # word «القمي» put him out of reach and the name went instead to a Hāshimī of Ibn ʿAbd
+    # al-Muṭṭalib's line who carries «الحسين بن محمّد الأشعري» as a stray alias.
+    #
+    # Only nisbas come off, never a «بن». «أحمد بن محمد» must not reach «أحمد بن محمد بن
+    # عيسى», because dropping a generation is how five different men collapse into one — the
+    # whole difficulty this corpus has with that name. So the walk stops at the last «بن».
+    shortened = defaultdict(set)
+    for pid, person in by_id.items():
+        forms = set(person.get("headings_ar") or []) | set(person.get("names_ar") or [])
+        if person.get("display_ar"):
+            forms.add(person["display_ar"])
+        for name in forms:
+            words = key(name).split()
+            core = max((at for at, word in enumerate(words) if word in LINK), default=-1) + 2
+            for count in range(max(core, 3), len(words)):
+                shortened[" ".join(words[:count])].add(pid)
+
     # Every shorter reading of a name, for the men the books connect to somebody. A rijālī
     # often files one man twice — al-Ṭūsī's one-line «الحسين بن محمد بن عمران» beside
     # al-Najāshī's «الحسين بن محمد بن عمران بن أبي بكر الأشعري القمي» — and the short filing,
@@ -269,7 +289,7 @@ def load_people(path, books):
             break
     return {"headings": headings, "aliases": aliases, "teachers": teachers,
             "students": students, "by_id": by_id, "imams_of": imams_of, "fathers": fathers,
-            "is_imam": is_imam, "extends": extends}
+            "is_imam": is_imam, "extends": extends, "shortened": shortened}
 
 
 def held_by(folded, data):
@@ -374,6 +394,34 @@ def spells_out(fullest, person):
         if len(words) > len(want) and words[:len(want)] == want:
             return True
     return False
+
+
+def past_the_nisba(folded, lone, before, after, data):
+    """The man the name reaches once a nisba his filing keeps is taken off it.
+
+    A chain writes a man as short as it likes and the books file him as long as they like.
+    Al-Kāfī opens 58 chains «الحسين بن محمد الأشعري»; al-Najāshī files that man as «الحسين بن
+    محمد الأشعري القمي», and the one word «القمي» put him out of reach — so the name went to a
+    Hāshimī of Ibn ʿAbd al-Muṭṭalib's line who carries «الحسين بن محمّد الأشعري» as a stray
+    alias and whom no book places beside anyone in these chains.
+
+    This is a rescue and not a wider net. Admitting every nisba-shortened reading as a
+    candidate turned good answers into ambiguous ones — 55 of Ibn Faḍḍāl's links went
+    unanswered because a longer filing of the same man started competing with him — and it
+    let «علي بن الصلت» be read as «عبد الله بن الصلت». So it fires only where the answer we
+    have is unattested here and exactly one shortened reading is attested, and it can
+    re-point an answer but never take one away.
+    """
+    if support(lone, before, after, data["teachers"], data["students"]):
+        return "", ""
+    backed = []
+    for pid in sorted(data.get("shortened", {}).get(folded, ())):
+        if pid == lone:
+            continue
+        why = support(pid, before, after, data["teachers"], data["students"])
+        if why:
+            backed.append((pid, why))
+    return backed[0] if len(backed) == 1 else ("", "")
 
 
 def one_of(candidates, data):
@@ -531,6 +579,9 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
         elif len(candidates) == 1:
             row["outcome"], row["person_id"] = "one", candidates[0]
             fuller, why = past_the_stub(keys[position], candidates[0], before, after, data)
+            if not fuller:
+                fuller, why = past_the_nisba(keys[position], candidates[0],
+                                             before, after, data)
             if fuller:
                 row["outcome"], row["person_id"] = "chosen", fuller
                 row["because"] = (f"{why}; the one man filed under this name alone is a "
