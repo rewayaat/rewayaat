@@ -29,6 +29,7 @@ import difflib
 import json
 import os
 import re
+import unicodedata
 
 W = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 TMP = f'{W}/tmp'
@@ -103,6 +104,21 @@ def skeleton_ar(text):
 def skeleton_en(text):
     """The same for a transliteration, so the two can be compared at all."""
     text = text.lower()
+    # A scholarly transliteration writes the letters Arabic distinguishes with a mark over or
+    # under a Latin one — «Muḥammad ibn Yaḥyā» — and `isalpha()` is true of every one of them,
+    # so they came through the vowel strip below and were compared as consonants: «Muḥammad»
+    # reduced to mḥmd where «محمد» reduces to mhmd, and the two disagree at the letter that
+    # decides. 1,323 of the 25,508 English chains print at least one of these marks, Kāmil
+    # al-Ziyārāt most of them, and every marked name in them was unreachable — 1,661 links.
+    #
+    # Decomposing and dropping the combining marks folds all of them at once, including ones
+    # nobody listed: ā to a and so into the vowels, ḥ to h, ḍ to d, ṣ to s, ṭ to t, and the
+    # caron this typesetter uses for ṯ and ḏ to t and d, which is where the digraph pairs
+    # would have put them anyway. It runs before those pairs and before the vowel strip so
+    # that both still see plain letters. «ʿ» and «ʾ» are letters in their own right rather
+    # than marks, so they survive this and go on being read as the hamza just below.
+    text = ''.join(c for c in unicodedata.normalize('NFD', text)
+                   if unicodedata.category(c) != 'Mn')
     for mark in "’‘`ʿʾ":
         text = text.replace(mark, "'")
     for mark in "-.,":
@@ -344,6 +360,9 @@ def main():
     parser.add_argument("--live", action="store_true", help="write the field")
     parser.add_argument("--dry-run", action="store_true", help="count, write nothing")
     parser.add_argument("--show", type=int, default=0, help="print N aligned chains")
+    parser.add_argument("--dump", help="write every link placed to this file, so that a "
+                                       "change to the alignment can be diffed against a run "
+                                       "made before it")
     args = parser.parse_args()
 
     from chain_links_load import slugs
@@ -409,6 +428,14 @@ def main():
                         print(f"      «{link['t']}» -> {link['p']} {link['g'][:30]}")
             else:
                 counts["narrations with no English link"] += 1
+
+    if args.dump:
+        with open(args.dump, "w") as handle:
+            for update in updates:
+                for link in update["chain_links_en"]:
+                    handle.write(json.dumps({"id": update["_id"], **link},
+                                            ensure_ascii=False) + "\n")
+        print(f"  wrote every link to {args.dump}")
 
     for label, count in counts.most_common():
         print(f"  {count:7,}  {label}")
