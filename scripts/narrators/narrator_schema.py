@@ -502,24 +502,25 @@ _IMAM_PATTERNS = [
     # a companion of an Imam killed in 50. The whole title is matched here so that the whole
     # title is consumed.
     ("askari", r"(?:abu\s+muhammad\s+)?(?:al[\s\-']*)?hasan(?:\s+(?:b\.?|ibn|bin)\s+ali)?"
-               r"[\s\-'()]*(?:al[\s\-']*)?askari|askar",
+               r"[\s\-'()]*(?:al[\s\-']*)?askari|askari",
      ["الحسن بن علي بن محمد بن علي الرضا", "الحسن بن علي بن محمد",
       "الحسن بن علي العسكري", "الحسن العسكري", "أبي محمد العسكري", "العسكري"]),
-    ("hadi", r"(?:abu\s*al[\s\-']*hasan\s+)?(?:al[\s\-']*)?(?:hadi|naqi)|"
+    ("hadi", r"(?:abu\s*al[\s\-']*hasan\s+|ali\s+)?(?:al[\s\-']*)?(?:hadi|naqi)|"
              r"abu\s*al[\s\-']*hasan\s+(?:al[\s\-']*)?thalith",
      ["علي بن محمد بن علي", "أبي الحسن الثالث", "علي بن محمد عليهم",
       "علي الهادي", "الهادي"]),
     ("jawad", r"abu\s*ja.?far\s+(?:al[\s\-']*)?thani|jawad|taqi", ["محمد بن علي الثاني", "أبي جعفر الثاني", "محمد بن علي بن موسى",
                               "محمد الجواد", "الجواد"]),
-    ("rida", r"(?:abu\s*al[\s\-']*hasan\s+)?(?:al[\s\-']*)?rid(?:a|ha)|"
+    ("rida", r"ali\s+(?:b\.?|ibn|bin)\s+musa|(?:abu\s*al[\s\-']*hasan\s+|ali\s+)?(?:al[\s\-']*)?rid(?:a|ha)|"
              r"abu\s*al[\s\-']*hasan\s+(?:al[\s\-']*)?thani",
      ["علي بن موسى", "أبي الحسن الثاني", "الرضا"]),
     ("kazim", r"(?:abu\s*al[\s\-']*hasan\s+)?musa(?:\s+(?:b\.?|ibn|bin)\s+ja.?far)?|"
               r"abu\s*al[\s\-']*hasan\s+(?:al[\s\-']*)?awwal|kazim|kadhim",
      ["موسى بن جعفر", "أبي الحسن موسى", "الكاظم", "أبي الحسن الأول"]),
-    ("sadiq", r"sadiq", ["جعفر بن محمد", "أبي عبد الله جعفر", "الصادق"]),
+    ("sadiq", r"ja.?far\s+(?:b\.?|ibn|bin)\s+muhammad|sadiq", ["جعفر بن محمد", "أبي عبد الله جعفر", "الصادق"]),
     ("baqir", r"baqir", ["محمد بن علي بن الحسين", "أبي جعفر محمد بن علي", "الباقر"]),
-    ("sajjad", r"sajjad|zayn al.?abidin|zayn ul.?abidin",
+    ("sajjad", r"ali\s+(?:b\.?|ibn|bin)\s+(?:al[\s\-]*)?(?:husayn|husain|hussain)|"
+               r"(?:ali\s+)?(?:al[\s\-]*)?sajjad|zayn al.?abidin|zayn ul.?abidin",
      ["علي بن الحسين", "أبي محمد علي بن الحسين", "السجاد", "زين العابدين"]),
     # Khoei names the second and third Imams and the first bare: «من أصحاب الحسن عليه السلام»
     ("husayn", r"husayn|husain|hussain", ["الحسين بن علي", "أبي عبد الله الحسين",
@@ -536,7 +537,9 @@ _IMAM_PATTERNS = [
 
 def _fold_pattern(latin, arabic):
     """One pattern per Imam, its Arabic alternatives folded as a name is folded."""
-    parts = [latin] if latin else []
+    # The Latin side is matched as whole words: «hadi» must not be found inside «hadith», nor
+    # «musa» inside «Musawi». The Arabic side is left exactly as it was.
+    parts = ["(?<![a-z])(?:" + latin + ")(?![a-z])"] if latin else []
     for phrase in arabic:
         tail = ""
         if phrase.endswith(")"):                      # keep a lookahead out of the folding
@@ -563,24 +566,138 @@ _AMBIGUOUS_KUNYA = re.compile(
     r"(?!\s*(?:al[\s\-']*)?(?:rid|musa|thalith|thani|awwal|hadi|naqi|kazim|kadhim))")
 
 
+# An Imam's name is also the opening of many a narrator's longer one: «al-Hasan b. Ali b.
+# Faddal», «Ali b. Abd al-Ali», «Muhammad Baqir al-Majlisi», «Hasan b. al-Shahid al-Thani».
+# A match is therefore accepted only when it is the whole name. What may follow an Imam's own
+# name is his own recorded nasab, listed here; a further «b. X» beyond it, or a nisba that is not
+# one of the Imams' titles, makes it somebody else, and the whole name is consumed unread so that
+# the «Ali» inside it is not then taken for the first Imam.
+_B = r"(?:b\.?|ibn|bin)"
+_ALI_ABI = _B + r"\s+abi\s+talib"
+_ALI_TAIL = re.compile(r"(?:\s+" + _B + r"\s+ali(?:\s+" + _ALI_ABI + r")?)?")
+_OWN_TAIL = {
+    1: re.compile(r"(?:\s+" + _ALI_ABI + r")?"),
+    2: _ALI_TAIL, 3: _ALI_TAIL, 4: _ALI_TAIL,
+    6: re.compile(r"(?:\s+" + _B + r"\s+ali(?:\s+" + _B + r"\s+(?:al[\s\-]*)?husayn)?)?"),
+    7: re.compile(r"(?:\s+" + _B + r"\s+muhammad(?:\s+" + _B + r"\s+ali)?)?"),
+    8: re.compile(r"(?:\s+" + _B + r"\s+ja.?far(?:\s+" + _B + r"\s+muhammad)?)?"),
+}
+# The same, in Arabic: the alternatives above end wherever the book's own heading did, and an
+# alternative like «أبي عبد الله الحسين» is followed by the rest of the Imam's name.
+_BN = normalize_arabic_raw_fold("بن")
+_ALI_AR = r"(?:\s+" + _BN + r"\s+" + normalize_arabic_raw_fold("علي") + r"(?:\s+" + _BN + r"\s+" + \
+          normalize_arabic_raw_fold("أبي طالب") + r")?)?"
+_OWN_TAIL_AR = {
+    2: re.compile(_ALI_AR), 3: re.compile(_ALI_AR), 4: re.compile(_ALI_AR),
+    5: re.compile(r"(?:\s+" + _BN + r"\s+" + normalize_arabic_raw_fold("الحسين") + r")?"),
+    7: re.compile(r"(?:\s+" + _BN + r"\s+" + normalize_arabic_raw_fold("جعفر") + r")?"),
+    8: re.compile(r"(?:\s+" + _BN + r"\s+" + normalize_arabic_raw_fold("موسى") + r")?"),
+}
+_NASAB_MORE = re.compile(r"\s*(?:b\.?|ibn|bin|" + normalize_arabic_raw_fold("بن") +
+                         r")(?=\s)\s+(?:al[\s\-]*)?\S+")
+_NASAB_BEFORE = re.compile(r"(?:\b(?:b\.?|ibn|bin)|\babu|\babd|\bbint)\s+(?:al[\s\-]*)?$")
+_NISBA_AFTER = re.compile(r"\s+al[\s\-]+([a-z]+)")
+# Titles that may follow an Imam's name without making it a different man's.
+_TITLE_OK = {"murtada", "mujtaba", "rida", "ridha", "hadi", "naqi", "askari", "sajjad", "kazim",
+             "kadhim", "baqir", "sadiq", "jawad", "taqi", "mahdi", "qaim", "shahid", "imam",
+             "awwal", "thani", "thalith", "abidin", "abideen"}
+
+# «Father of», «Student of», «Shaykh of»: a relation to a man, not companionship with an Imam.
+# These are the heads that occur in the data. A son, daughter, brother, uncle, servant or agent
+# of an Imam himself lived in that Imam's time, so those keep the Imam when he is the object
+# and nothing else stands between: «Servant of al-Rida», but not «Son of a companion of
+# al-Baqir», who is a generation later.
+_ROLE_HEAD = re.compile(r"^\s*(?:late\s+|former\s+)?(shaykh|sheikh|student|teacher|son|daughter|"
+                        r"father|brother|uncle|servant|agent|successor)\s+of\b(.*)$", re.S)
+_ROLE_KEEPS_IMAM_OBJECT = {"son", "daughter", "brother", "uncle", "servant", "agent"}
+_PLAIN_HEAD = re.compile(r"^\s*(?:late\s+)?(?:companion|contemporary|narrat\w*|associate|"
+                         r"disciple|met)\b")
+_IMAM_PREFIX = re.compile(r"\s*(?:the\s+)?(?:imam\s+)?")
+
+
+def _clauses(text):
+    """Split at commas and semicolons outside brackets."""
+    out, depth, cur = [], 0, []
+    for ch in text:
+        depth += (ch in "([") - (ch in ")]")
+        if ch in ",;" and depth <= 0:
+            out.append("".join(cur))
+            cur = []
+        else:
+            cur.append(ch)
+    out.append("".join(cur))
+    return out
+
+
+def _named(working, arabic):
+    """(start, ordinal) of every Imam named as a whole name in one clause."""
+    found = []
+    for name, pattern in _IMAM_COMPILED:
+        ordinal, pos = IMAM_ORDINALS[name], 0
+        while True:
+            m = pattern.search(working, pos)
+            if not m:
+                break
+            start, end = m.span()
+            reject = (not arabic) and bool(_NASAB_BEFORE.search(working[:start]))
+            tail = (_OWN_TAIL_AR if arabic else _OWN_TAIL).get(ordinal)
+            if tail and not reject:
+                end = tail.match(working, end).end()
+            if not reject and _NASAB_MORE.match(working, end):
+                reject = True
+            if not reject and not arabic:
+                nisba = _NISBA_AFTER.match(working, end)
+                if nisba and nisba.group(1) not in _TITLE_OK:
+                    reject, end = True, nisba.end()
+            if reject:
+                more = _NASAB_MORE.match(working, end)
+                while more:
+                    end = more.end()
+                    more = _NASAB_MORE.match(working, end)
+            else:
+                found.append((start, ordinal))
+            working = working[:start] + " " * (end - start) + working[end:]
+            pos = end
+    return found
+
+
 def imam_generations(raw):
     """The Imams a generation statement names, as ordinals; empty when it names none."""
     if not raw:
         return frozenset()
-    text = normalize_arabic_raw_fold(str(raw)).lower() if any(
-        "؀" <= ch <= "ۿ" for ch in str(raw)) else str(raw).lower()
+    arabic = any("؀" <= ch <= "ۿ" for ch in str(raw))
+    text = normalize_arabic_raw_fold(str(raw)).lower() if arabic else str(raw).lower()
+    text = re.sub(r"['’]s\b", "", text)          # «al-Rida's time» names al-Rida
     text = re.sub(r"[ʿʾ`'’]", "", text)
     for fold, plain in (("ā", "a"), ("ī", "i"), ("ū", "u"), ("ṣ", "s"), ("ḍ", "d"), ("ṭ", "t"),
                         ("ẓ", "z"), ("ḥ", "h"), ("ḳ", "k"), ("ġ", "g"), ("š", "sh")):
         text = text.replace(fold, plain)
     if _NO_IMAM.search(text):
         return frozenset()
-    found, remaining = set(), _AMBIGUOUS_KUNYA.sub(" ", text)
-    for name, pattern in _IMAM_COMPILED:
-        if pattern.search(remaining):
-            found.add(IMAM_ORDINALS[name])
-            remaining = pattern.sub(" ", remaining)
-    return frozenset(found)
+    if arabic:
+        return frozenset(o for _s, o in _named(_AMBIGUOUS_KUNYA.sub(" ", text), True))
+    result, role = set(), None
+    for clause in _clauses(text):
+        head = _ROLE_HEAD.match(clause)
+        if head:
+            role = head.group(1)
+        elif _PLAIN_HEAD.match(clause):
+            role = None
+        working = _AMBIGUOUS_KUNYA.sub(" ", clause)
+        found = _named(working, False)
+        if not role:
+            result |= {o for _s, o in found}
+        elif head and role in _ROLE_KEEPS_IMAM_OBJECT:
+            # the object follows «of»; an Imam is kept only when he stands right there
+            at = _IMAM_PREFIX.match(working, _ROLE_HEAD.match(working).start(2)).end()
+            first = min((s for s, _o in found), default=None)
+            gap = working[at:first] if first is not None else " of "
+            # «Son of Ja'far al-Sadiq» has a given name before the title; «Son of a companion
+            # of al-Baqir» has another man.
+            if first is not None and first >= at and len(gap.split()) <= 3 and not re.search(
+                    r"\b(?:of|a|an|companions?|students?|followers?|disciples?)\b", gap):
+                result |= {o for _s, o in found}
+    return frozenset(result)
 
 
 # Phase 1 agents were asked what generation a man belongs to, and some of them reasoned
