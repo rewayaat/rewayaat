@@ -129,6 +129,41 @@ def kind_of(words, blessed):
     return "name"
 
 
+# Muʿjam al-Aḥādīth al-Muʿtabara prints the book it is quoting before the isnād, with the
+# volume and page in brackets: «[6/162] رجال الكشي: حمدويه، عن محمد بن عيسى …». That is a
+# citation, not a step, and the cutter read «رجال الكشي حمدويه» as one run — «رجال» is in
+# COLLECTIVE, so the whole thing became an unnamed group and Ḥamdawayh never became a link.
+# 551 chains open this way; the names after the colon are ordinary names.
+CITATION = re.compile(r"^\s*\d*\s*[-ـ]?\s*\[[^\]]{1,14}\]\s*[^:：]{1,40}?\s*[:：]")
+
+
+def cited(chain):
+    """Where the isnād starts, past a «[vol/page] Book:» citation if there is one."""
+    found = CITATION.match(chain)
+    return found.end() if found else 0
+
+
+# A chain that opens by pointing at the one before it instead of naming anybody. Two kinds,
+# and they do not mean the same thing: «عنه» is one man — the shaykh the previous chain
+# opens with — while «بهذا الإسناد» is the whole of that chain over again. Both are read as
+# joiners anywhere else in a chain, which is right; only at the head do they stand for a
+# step. 1,548 chains here begin this way, and until now they began with nothing at all.
+BACKREF_MAN = (("وعنه",), ("عنه",))
+BACKREF_CHAIN = (("وبهذا", "الاسناد"), ("بهذا", "الاسناد"),
+                 ("وبهذا", "الاسنادين"), ("بهذا", "الاسنادين"),
+                 ("وبالاسناد",), ("بالاسناد",), ("وباسناده",), ("باسناده",),
+                 ("وبه",), ("به",))
+
+
+def backref(folded):
+    """How many opening words point backwards, and at what — a man or a whole chain."""
+    for forms, kind in ((BACKREF_MAN, "backref_man"), (BACKREF_CHAIN, "backref_chain")):
+        for form in forms:
+            if tuple(folded[:len(form)]) == form:
+                return len(form), kind
+    return 0, ""
+
+
 def segment(chain):
     """Cut one chain into mentions, each with its offsets into the chain text as rendered.
 
@@ -137,8 +172,20 @@ def segment(chain):
     aside rather than read as part of the name. The span stops at the last name word, because
     that is what a link should cover.
     """
-    words = [(m.start(), m.end(), m.group()) for m in re.finditer(r"\S+", chain)]
+    opening = cited(chain)
+    words = [(opening + m.start(), opening + m.end(), m.group())
+             for m in re.finditer(r"\S+", chain[opening:])]
     mentions, run = [], []
+
+    # The hadith number and the dash before it are not words of the chain.
+    first = next((i for i, w in enumerate(words) if bare(w[2])), len(words))
+    taken, pointing = backref([bare(w[2]) for w in words[first:]])
+    if taken:
+        span = words[first:first + taken]
+        mentions.append({"start": span[0][0], "end": span[-1][1],
+                         "text": chain[span[0][0]:span[-1][1]],
+                         "blessed": False, "kind": pointing})
+        words = words[first + taken:]
 
     def close():
         if not run:
@@ -200,7 +247,13 @@ def main():
             for mention in mentions:
                 kinds[mention["kind"]] += 1
                 forms[(mention["kind"], " ".join(bare(w) for w in mention["text"].split()))] += 1
-            rows.append({"id": row["id"], "book": row["book"], "mentions": mentions})
+            # Volume and number travel with the mentions because the resolver has to read
+            # the book in printed order: a chain that opens «عنه» means the narration
+            # above it, and the export comes back in whatever order the index scrolls.
+            rows.append({"id": row["id"], "book": row["book"],
+                         "source": row.get("source", ""),
+                         "volume": row.get("volume", ""), "number": row.get("number", ""),
+                         "mentions": mentions})
 
     total = sum(kinds.values())
     print(f"  {chains:7,}  chains with an Arabic isnād")

@@ -51,6 +51,16 @@ def slugs(host, index="rewayaat_narrators"):
         after = hits[-1]["sort"]
 
 
+def numbers(path):
+    """id → the narration's number, for naming the one a chain points back at."""
+    found = {}
+    with open(path) as handle:
+        for line in handle:
+            row = json.loads(line)
+            found[row["id"]] = row.get("number") or ""
+    return found
+
+
 def served_chains(path):
     """The chain text as the index the site reads actually holds it."""
     chains = {}
@@ -89,6 +99,7 @@ def main():
     args = parser.parse_args()
 
     chains = served_chains(args.served)
+    numbered = numbers(f'{TMP}/narrators_chains/chains.jsonl')
     slug_of = slugs(args.es_host)
     print(f"  {len(slug_of):7,}  people the links can point at")
     print(f"  {len(chains):7,}  narrations in the index the site reads")
@@ -121,25 +132,40 @@ def main():
             # of six we know, and a reader can only see that if the gaps are drawn too.
             people = []
             for mention in row["mentions"]:
-                if mention["kind"] not in ("name", "imam", "collective", "relative"):
+                if mention["kind"] not in ("name", "imam", "collective", "relative",
+                                           "backref_man", "backref_chain"):
                     continue
                 where = place((mention["start"], mention["end"]), mention["text"], chain,
                               Counter())
                 if not where:
                     continue
                 person = mention.get("person_id") or mention.get("imam_id") or ""
-                people.append({"s": where[0], "e": where[1], "t": chain[where[0]:where[1]],
-                               "p": person if mention["outcome"] in LINKED else "",
-                               "g": slug_of.get(person, "") if mention["outcome"] in LINKED else "",
-                               "k": mention["kind"], "o": mention["outcome"]})
+                step = {"s": where[0], "e": where[1], "t": chain[where[0]:where[1]],
+                        "p": person if mention["outcome"] in LINKED else "",
+                        "g": slug_of.get(person, "") if mention["outcome"] in LINKED else "",
+                        "k": mention["kind"], "o": mention["outcome"]}
+                # «وبهذا الإسناد» is the chain above repeated, not a man. It carries the
+                # narration it points at so the page can name it instead of leaving the
+                # reader with a step that says nothing.
+                if mention.get("refers_to"):
+                    step["r"] = mention["refers_to"]
+                    step["rn"] = numbered.get(mention["refers_to"], "")
+                people.append(step)
             people.sort(key=lambda row: row["s"])
-            if links:
+            # Written whenever the chain has steps at all, not only when one of them is a
+            # link. A chain of four men no book identifies is still a chain, and a reader
+            # is better served seeing it than seeing nothing — and «وبهذا الإسناد» with an
+            # unidentifiable name after it was dropping the pointer along with the name.
+            if links or people:
                 updates.append({"_id": row["id"], "chain_links": links,
                                 "chain_people": people})
                 counts["links placed"] += len(links)
-                counts["narrations with at least one link"] += 1
+                if links:
+                    counts["narrations with at least one link"] += 1
+                else:
+                    counts["narrations drawn with no link in them"] += 1
             else:
-                counts["narrations with no link"] += 1
+                counts["narrations with no chain to draw"] += 1
 
     for label, count in counts.most_common():
         print(f"  {count:7,}  {label}")

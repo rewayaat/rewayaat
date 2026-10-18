@@ -125,7 +125,11 @@
                             <span class="rijal-link__mark" aria-hidden="true"></span>
                             <div class="rijal-link__card">
                                 <!-- Bracket notation again: only a link with a man behind it has an href. -->
-                                <a class="rijal-link__words chain-name arabic-text" dir="rtl" lang="ar"
+                                <!-- «chain-name» is what the preview card binds to, and a
+                                     backref points at a narration rather than at a man, so
+                                     it is left off that one. -->
+                                <a class="rijal-link__words arabic-text" dir="rtl" lang="ar"
+                                   th:classappend="${link.kind == 'backref'} ? '' : ' chain-name'"
                                    th:if="${link['href'] != null}" th:href="${link['href']}"
                                    th:text="${link.words}">words</a>
                                 <span class="rijal-link__words arabic-text" dir="rtl" lang="ar"
@@ -135,11 +139,29 @@
                                 <p class="rijal-link__life" data-rijal-life hidden></p>
                                 <p class="rijal-link__note" th:if="${link.kind == 'collective'}"
                                    th:text="#{rijal.collective}">A step the compiler did not name</p>
+                                <!-- A step that points at another narration rather than at
+                                     a man. The note names it and links to it, because
+                                     «by this chain» is unreadable without the chain. -->
+                                <p class="rijal-link__note" th:if="${link.kind == 'backref'}">
+                                    <span th:if="${link['href'] == null}" th:text="#{rijal.backref.unknown}">The chain of the narration before this one</span>
+                                    <a th:if="${link['href'] != null}" th:href="${link['href']}"
+                                       th:text="#{rijal.backref(${link['number']})}">The chain of narration 592</a>
+                                </p>
                                 <p class="rijal-link__note" th:if="${link.kind == 'imam'}"
                                    th:text="#{rijal.imam.note}">The books do not grade the Imams</p>
                             </div>
                         </li>
                     </ol>
+                    <!-- The Imam the report rests on, where the isnād did not name him and
+                         the narration does. Below the chain rather than inside it: he is
+                         not a step, and the counts above count steps. -->
+                    <p class="rijal__in-body" th:if="${narration['chainEndsInBody'] != null}">
+                        <span class="rijal__in-body-lede" th:text="#{rijal.inBody.lede}">Reported from</span>
+                        <a class="rijal__in-body-name"
+                           th:href="${narration['chainEndsInBody']['href']}"
+                           th:text="${narration['chainEndsInBody']['words']}">Ja'far al-Sadiq</a>
+                        <span class="rijal__in-body-note" th:text="#{rijal.inBody.note}">named in the narration, not in the chain</span>
+                    </p>
                 </div>
                 <div class="hadith-sidecar__panel-body d-none" data-hub-panel-body="similar"></div>
                 <div class="hadith-sidecar__panel-body d-none" data-hub-panel-body="quran"

@@ -17134,3 +17134,49 @@ a.isnad-man__name:hover .isnad-man__en {
 .ledger__verdict--against .ledger__verdict-count {
     color: var(--verdict-against-ink);
 }
+
+/* The Imam the report rests on, where the isnād did not name him. Below the chain and
+   quieter than a step, because he is not one: he stands in the narration's own words. */
+.rijal__in-body {
+    margin: 0.75rem 0 0;
+    padding-top: 0.6rem;
+    border-top: 1px dashed rgba(200, 162, 61, 0.35);
+    font-size: 0.76rem;
+    line-height: 1.6;
+    color: rgba(238, 243, 250, 0.72);
+}
+
+.rijal__in-body-lede {
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-size: 0.68rem;
+    color: rgba(238, 243, 250, 0.52);
+}
+
+.rijal__in-body-name {
+    color: #f3e5b8;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(200, 162, 61, 0.5);
+}
+
+.rijal__in-body-name:hover {
+    color: #fff;
+}
+
+.rijal__in-body-note {
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 0.7rem;
+    font-style: italic;
+    color: rgba(238, 243, 250, 0.5);
+}
+
+[dir="rtl"] .rijal__in-body-note {
+    font-style: normal;
+}
+
+[dir="rtl"] .rijal__in-body-lede {
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 0.74rem;
+}

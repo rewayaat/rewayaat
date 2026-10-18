@@ -4955,6 +4955,17 @@ function setupVue(query, page, sortFields) {
                         continue;
                     }
                     var person = one.p || '';
+                    /* «وبهذا الإسناد» points at a narration rather than at a man, so it
+                       gets that narration's URL and not a narrator's. The server twin of
+                       this is HadithCardFactory.addChain. */
+                    if (one.k === 'backref_chain') {
+                        links.push({
+                            words: words, kind: 'backref', person: '', weak: false, open: false,
+                            number: one.rn || '',
+                            href: one.r ? prefix + '/hadith/' + encodeURIComponent(one.r) : ''
+                        });
+                        continue;
+                    }
                     var kind = one.k === 'collective' ? 'collective'
                         : (one.k === 'imam' && person) ? 'imam'
                         : person ? 'man' : 'unknown';
@@ -5004,6 +5015,15 @@ function setupVue(query, page, sortFields) {
                     word: (arabic && first.said_ar) ? first.said_ar : first.said,
                     leaning: first.leaning || ''
                 };
+            },
+            /* The Imam a chain ends on without naming him, in the language of the page.
+               Both forms come from the server, which decided which Imam it is; this only
+               picks the one the reader is reading. */
+            imamWords: function(ends) {
+                if (!ends) {
+                    return '';
+                }
+                return (window.I18N_LOCALE === 'ar' && ends.wordsAr) ? ends.wordsAr : ends.words;
             },
             // The Imams he transmitted under, in the language of the page.
             imamLine: function(narrator) {

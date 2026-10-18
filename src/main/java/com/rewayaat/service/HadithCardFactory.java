@@ -3,6 +3,7 @@ package com.rewayaat.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rewayaat.core.ChainLinks;
 import com.rewayaat.core.HadithDisplaySegmenter;
+import com.rewayaat.core.ImamInBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
@@ -99,7 +100,7 @@ public class HadithCardFactory {
         row.put("tagSlugs", tagSlugs(source));
         row.put("similarCount", source.get("llm_similar") instanceof List<?> l ? l.size() : 0);
         row.put("shareUrl", baseUrl + "/hadith/" + id);
-        addChain(row, source.get("chain_people"), locale);
+        addChain(row, source.get("chain_people"), str(row.get("arabic")), locale);
         // The generated share card, in the two themes the share menu offers. Dark is the
         // default and is what og:image points at; light exists for the newsletter, whose
         // templates are white.
@@ -129,7 +130,8 @@ public class HadithCardFactory {
      * joint is a property of the pair, not of one link, so it is decided here once and the
      * stylesheet only draws it.
      */
-    private static void addChain(Map<String, Object> row, Object stored, PageLocale locale) {
+    private static void addChain(Map<String, Object> row, Object stored, String body,
+                                 PageLocale locale) {
         List<Map<String, Object>> links = new ArrayList<>();
         int identified = 0;
         int notFound = 0;
@@ -148,6 +150,22 @@ public class HadithCardFactory {
                 String slug = str(raw.get("g"));
                 String declared = str(raw.get("k"));
                 String kind;
+                // «وبهذا الإسناد» — the chain above, repeated. Not a man and not an
+                // unnamed one either: it points at a narration, and the step says which.
+                if ("backref_chain".equals(declared)) {
+                    Map<String, Object> back = new LinkedHashMap<>();
+                    back.put("words", words);
+                    back.put("kind", "backref");
+                    back.put("person", "");
+                    back.put("weak", false);
+                    String refers = str(raw.get("r"));
+                    if (!refers.isBlank()) {
+                        back.put("href", locale.prefix() + "/hadith/" + refers);
+                        back.put("number", str(raw.get("rn")));
+                    }
+                    links.add(back);
+                    continue;
+                }
                 if ("collective".equals(declared)) {
                     kind = "collective";
                     groups++;
@@ -179,6 +197,18 @@ public class HadithCardFactory {
         for (int i = 0; i < links.size(); i++) {
             boolean below = i + 1 < links.size() && (Boolean) links.get(i + 1).get("weak");
             links.get(i).put("open", (Boolean) links.get(i).get("weak") || below);
+        }
+        // Where the isnād does not name an Imam, the narration itself often does: «… قال:
+        // سمعت أبا عبد الله جعفر بن محمد عليهما السلام يقول». The report rests on him
+        // either way, and a panel that stopped at the last narrator was showing a chain
+        // that looked truncated. He is not added as a step — he is not in the chain, and
+        // the counts above are counts of the chain — but the panel says where it ends.
+        Map<String, String> ends = ImamInBody.endsInBody(stored, body, locale.prefix());
+        if (ends != null) {
+            if (locale.isArabic()) {
+                ends.put("words", ends.get("wordsAr"));
+            }
+            row.put("chainEndsInBody", ends);
         }
         row.put("chain", links);
         row.put("chainNamed", named);

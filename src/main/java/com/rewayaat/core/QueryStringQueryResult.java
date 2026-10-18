@@ -182,6 +182,15 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                 result.get("chain_links"), linkPrefix));
         result.put("englishChain", ChainLinks.render(text(result.get("englishChain")),
                 result.get("chain_links_en"), linkPrefix));
+        // Where the isnād names no Imam and the narration does, say where the chain ends.
+        // Computed here rather than in the browser so that the roster of the fourteen
+        // stays in one place: the search card draws its chain from chain_people in JS,
+        // and a second copy of «which kunya is which Imam» is how the two come to differ.
+        Object endsInBody = ImamInBody.endsInBody(result.get("chain_people"),
+                text(result.get("arabicContent")), linkPrefix);
+        if (endsInBody != null) {
+            result.put("chainEndsInBody", endsInBody);
+        }
         hadithes.add(mapper.convertValue(result, HadithObject.class));
     }
 

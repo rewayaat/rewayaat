@@ -81,21 +81,103 @@ RELATIVE = {"ابيه", "ابيها", "عمه", "جده", "اخيه", "ابنه"
             "ابوه", "اخوه", "ابويه", "عمته", "خاله", "عميه", "ابائه", "اجداده"}
 
 
-def father_name(person):
-    """The father's name as the book itself wrote it: what stands after the first «بن».
+GLUE = {"بن", "ابن", "ابي", "ابو", "ابا", "عبد", "ال", "بنت", "ام"}
+LINK = ("بن", "ابن")
 
-    A man's own heading carries his father — «علي بن إبراهيم بن هاشم» names Ibrāhīm b. Hāshim
-    — so «عن أبيه» after him needs no guess, only the nasab the rijālī already recorded.
-    """
-    longest = ""
+
+def nasabs(person):
+    """What each of a man's headings says his father was called, as token lists."""
+    out = []
     for name in list(person.get("headings_ar") or []) + [person.get("display_ar") or ""]:
-        folded = key(name)
-        if len(folded.split()) > len(longest.split()):
-            longest = folded
-    tokens = longest.split()
-    if "بن" not in tokens:
-        return ""
-    return " ".join(tokens[tokens.index("بن") + 1:])
+        tokens = key(name).split()
+        if "بن" in tokens:
+            out.append(tokens[tokens.index("بن") + 1:])
+    return out
+
+
+def generations(tokens):
+    """A nasab as a list of generations, each the set of words naming it.
+
+    «محمد بن عيسى بن عبيد اليقطيني» -> [{محمد}, {عيسى}, {عبيد, اليقطيني}]. Sets rather than
+    first words, because one book writes a generation «إبراهيم» and another «أبو إسحاق
+    إبراهيم», and those are the same man.
+    """
+    gens, current = [], []
+    for token in tokens:
+        if token in LINK:
+            if current:
+                gens.append(set(current))
+            current = []
+        else:
+            current.append(token)
+    if current:
+        gens.append(set(current))
+    return gens
+
+
+def father_names(person):
+    """Every reading of «his father» the man's own nasab supports, longest first.
+
+    The rule here used to take the longest heading and everything after its first «بن»,
+    which is the worst of both: the longest heading is the one most likely to carry the
+    son's own kunya and nisba, and they ended up inside his father's name. «على بن إبراهيم
+    بن هاشم القمي أبو الحسن» yielded «ابراهيم بن هاشم القمي ابو الحسن», whom nobody is
+    filed under — so «عن أبيه» after ʿAlī b. Ibrāhīm, 3,745 of them, named nobody at all.
+
+    Every heading contributes instead, and each contributes the prefixes of its remainder
+    that drop only a trailing nisba or kunya. A cut before a «بن» is refused: dropping a
+    generation does not shorten a name, it names somebody else.
+    """
+    found = []
+    for rest in nasabs(person):
+        for cut in range(len(rest), 0, -1):
+            if cut < len(rest) and rest[cut] in LINK:
+                continue
+            candidate = rest[:cut]
+            if candidate[-1] in ("بن", "ابن", "ابي", "ابو"):
+                continue
+            if len([t for t in candidate if t not in GLUE]) < 2:
+                continue
+            phrase = " ".join(candidate)
+            if phrase not in found:
+                found.append(phrase)
+    found.sort(key=lambda phrase: -len(phrase.split()))
+    return found
+
+
+def could_be_father(person, candidate, father):
+    """Whether this man can be the father, given what both their own nasabs say.
+
+    Two ways he cannot be. He may *contradict* the son: the son's fullest nasab gives his
+    father as «محمد بن عيسى بن عبد الله بن سعد …», and the man filed under the bare «محمد
+    بن عيسى» is «… بن عبيد اليقطيني». They share no word at the third generation, so he is
+    a different Muḥammad b. ʿĪsā and the link would have been confidently wrong.
+
+    Or he may say *less* than the son's shortest reading requires: «علي بن محمد بن إبراهيم
+    بن أبان» names a grandfather Ibrāhīm b. Abān, and a man filed under a bare «محمد بن
+    إبراهيم» has not been shown to be him.
+    """
+    readings = [generations(rest) for rest in nasabs(person)]
+    if not readings:
+        return False
+    if len(generations(candidate.split())) < min(len(r) for r in readings):
+        return False
+    longest = max(readings, key=len)
+    # The son's nasab has to name his father with a grandfather behind him. «القاسم بن
+    # محمد الجوهري» says only «his father is Muḥammad the jeweller», which cannot pick one
+    # Muḥammad out of the books — and picking one gave him a father called al-Qāsim b. Yaḥyā.
+    if len(longest) < 2:
+        return False
+    names = list(father.get("headings_ar") or []) + [father.get("display_ar") or ""]
+    his = max((generations(key(name).split()) for name in names if name), key=len, default=[])
+    if not his:
+        return False
+    # Only the first three generations are compared. They are where the discrimination is —
+    # al-Yaqṭīnī parts from al-Ashʿarī at the third — and below that the books themselves
+    # transpose names: al-Ḥimyarī's forebears Jāmiʿ and Mālik stand in one order in his
+    # son's heading and the other in his own.
+    depth = min(len(his), len(longest), 3)
+    return all(his[i] & longest[i] for i in range(depth))
 
 
 def load_people(path, books):
@@ -150,7 +232,22 @@ def load_people(path, books):
             for relation in person.get(field) or []:
                 name = relation.get("name_ar") or relation.get("name") or ""
                 imams_of[pid] |= imams.from_relation(name, key(name))
-        fathers[pid] = father_name(person)
+
+    # Whose father is whom, read off the nasabs once the headings are all in. A second
+    # pass because it needs the whole index: the father is identified by being filed under
+    # a name the son's own heading spells out.
+    for pid, person in by_id.items():
+        for candidate in father_names(person):
+            held = headings.get(candidate)
+            if not held:
+                continue
+            fits = [who for who in sorted(held)
+                    if who != pid and could_be_father(person, candidate, by_id[who])]
+            if len(fits) == 1:
+                fathers[pid] = fits[0]
+            # Only the fullest reading anyone is filed under is tried. Falling through to
+            # a shorter one would trade a father nobody holds for a namesake somebody does.
+            break
     return {"headings": headings, "aliases": aliases, "teachers": teachers,
             "students": students, "by_id": by_id, "imams_of": imams_of, "fathers": fathers,
             "is_imam": is_imam}
@@ -218,7 +315,21 @@ def by_convention(table, book, folded):
     return "", "", 0
 
 
-def resolve_chain(mentions, data, book="", table=None):
+# Whose father «حدثني أبي» is, at the head of a chain. The phrase is the compiler's own
+# voice — it is first person, and it stands first — so the answer is a fact about the book,
+# not about the chain: in al-Ṣadūq's books it is ʿAlī b. al-Ḥusayn b. Mūsā b. Bābawayh, and
+# in Kāmil al-Ziyārāt it is Muḥammad b. Qūlūya. 1,461 chains open this way.
+#
+# Keyed by the compiler rather than the book, because Al-Amālī here is two different men's.
+# Al-Mufīd and al-Ṭūsī are deliberately absent: their fathers are not narrators the books
+# file, so «أبي» in their chains stays unnamed rather than being guessed at.
+COMPILERS_FATHER = {
+    "Shaykh Muḥammad b. ʿAlī al-Ṣaduq": "n000710",
+    "Shaykh Jaʿfar b. Muḥammad al-Qummī": "n001996",
+}
+
+
+def resolve_chain(mentions, data, book="", table=None, compiler=""):
     """Give each mention in one chain an outcome, in three passes over the same chain.
 
     Names first, because the other two kinds are read off their neighbours: an Imam's kunya is
@@ -327,6 +438,17 @@ def resolve_chain(mentions, data, book="", table=None):
         if folded not in ("ابيه", "ابيها", "ابي", "جده", "جدي", "ابوه"):
             row["outcome"] = "relative"
             continue
+        if position == 0 and folded == "ابي":
+            # «حدثني أبي» with nobody before it: the compiler is speaking, so this is his
+            # father and not anyone in the chain. Only at the head — further down, «أبي»
+            # inside a chain the compiler is quoting belongs to whoever is quoted.
+            father = COMPILERS_FATHER.get(compiler, "")
+            if father and father in data["by_id"]:
+                row["target"], row["outcome"], row["person_id"] = "narrator", "convention", father
+                row["because"] = f"«أبي» at the head of a chain in a book by {compiler}"
+            else:
+                row["outcome"] = "relative"
+            continue
         previous = rows[position - 1] if position else {}
         if previous.get("imam_id"):
             imam = previous["imam_id"]
@@ -339,18 +461,16 @@ def resolve_chain(mentions, data, book="", table=None):
                                   f"{imams.BY_ID[previous['imam_id']]['name_en']}")
                 continue
         pid = previous.get("person_id")
-        name = data["fathers"].get(pid, "") if pid else ""
-        for _ in range(steps - 1):
-            tokens = name.split()
-            name = " ".join(tokens[tokens.index("بن") + 1:]) if "بن" in tokens else ""
-        candidates = held_by(name, data) if name else []
-        if not candidates:
+        # «جده» is his father's father, so the same answer applied twice.
+        for _ in range(steps):
+            pid = data["fathers"].get(pid, "") if pid else ""
+        if not pid:
             row["outcome"] = "relative"
-        elif len(candidates) == 1:
-            row["target"], row["outcome"], row["person_id"] = "narrator", "chosen", candidates[0]
-            row["because"] = f"the nasab of the man before him names his father «{name}»"
-        else:
-            row["target"], row["outcome"], row["candidates"] = "narrator", "several", candidates
+            continue
+        row["target"], row["outcome"], row["person_id"] = "narrator", "chosen", pid
+        kin = "father" if steps == 1 else "grandfather"
+        row["because"] = (f"the nasab of the man before him names his {kin} "
+                          f"«{data['by_id'][pid].get('display_ar', '')}»")
 
     # Last, because any of the passes above can have landed on one: a record that is one of
     # the fourteen is not a narrator page, whatever the books filed it as.
@@ -361,6 +481,88 @@ def resolve_chain(mentions, data, book="", table=None):
             row["target"], row["imam_id"] = "imam", imam
 
     return rows
+
+
+ANAPHOR = ("backref_man", "backref_chain")
+LINKED_OUTCOMES = ("one", "chosen", "convention")
+
+
+def follow_backrefs(rows, by_id):
+    """Settle the chains that open by pointing at the narration before them.
+
+    «عنه» at the head of a chain is al-Kulaynī's own shorthand: *from him*, the shaykh the
+    chain above opens with, not repeated. «وبهذا الإسناد» is the whole of that chain over
+    again. Al-Khūʾī calls the form taʿlīq and reads it the same way — «سهل مبدوء به الكلام
+    وتعليق على سابقه، فيكون الراوي عنه عدة من أصحابنا». Neither can be settled from inside
+    its own chain, which is why this runs over the book in order rather than per chain.
+
+    The sequence is keyed by compiler as well as by book: two different books here are
+    called Kitāb al-Ghayba, al-Ṭūsī's and al-Nuʿmānī's, and reading one as the continuation
+    of the other pointed a chain at a man in somebody else's work.
+
+    A pointer resolves against the last chain that had a head of its own, so a run of them
+    — «عنه» after «عنه» — all reach the same man, which is what the printed page means.
+    """
+    def ordered(row):
+        try:
+            return int(re.sub(r"\D", "", row.get("number") or "") or -1)
+        except ValueError:
+            return -1
+
+    books = defaultdict(list)
+    for row in rows:
+        books[(row["book"], row.get("source", ""), row.get("volume", ""))].append(row)
+
+    settled = Counter()
+    for sequence in books.values():
+        sequence.sort(key=ordered)
+        head, head_id, printed = "", "", ""
+        for row in sequence:
+            mentions = row["mentions"]
+            pointer = mentions[0] if mentions and mentions[0]["kind"] in ANAPHOR else None
+            if pointer is None:
+                # An ordinary chain: its own first man is what the next pointer refers
+                # back to. The first *man* — a collective is skipped, because «عنه» is
+                # singular and «عدة من أصحابنا عن سهل» is picked up by «عنه» at Sahl. And
+                # if that man is one no book identifies, the head is cleared rather than
+                # left standing: a pointer must not reach over him to the chain before.
+                printed = row["id"]
+                head, head_id = "", ""
+                for mention in mentions:
+                    if mention["kind"] not in ("name", "imam", "relative"):
+                        continue
+                    who = mention.get("person_id") or mention.get("imam_id")
+                    if who and mention["outcome"] in LINKED_OUTCOMES:
+                        head, head_id = who, row["id"]
+                    break
+                continue
+            if pointer["kind"] == "backref_chain":
+                # The chain above, entire. Which narration that is does not depend on
+                # whether we could name the men in it, so this is answered wherever there
+                # is a printed chain to point at.
+                if printed:
+                    pointer["refers_to"] = printed
+                    settled["«بهذا الإسناد» pointed at its chain"] += 1
+                else:
+                    settled["pointing at nothing we hold"] += 1
+                continue
+            if not head:
+                settled["pointing at nothing we hold"] += 1
+                continue
+            pointer["refers_to"] = head_id
+            if pointer["kind"] == "backref_man":
+                pointer["outcome"] = "convention"
+                pointer["target"] = "imam" if head in imams.BY_ID else "narrator"
+                pointer["imam_id" if head in imams.BY_ID else "person_id"] = head
+                name = (imams.BY_ID[head]["name_ar"] if head in imams.BY_ID
+                        else by_id.get(head, {}).get("display_ar", ""))
+                pointer["because"] = f"the chain before this one opens with «{name}»"
+                settled["«عنه» given the man above"] += 1
+            # the pointer inherits the head, so a run of them all reach the same man
+
+    for label, count in settled.most_common():
+        print(f"  {count:7,}  {label}")
+    return settled
 
 
 def main():
@@ -394,7 +596,8 @@ def main():
         for line in handle:
             row = json.loads(line)
             chains += 1
-            resolved = resolve_chain(row["mentions"], data, row["book"], table)
+            resolved = resolve_chain(row["mentions"], data, row["book"], table,
+                                     row.get("source", ""))
             for mention in resolved:
                 outcomes[mention["outcome"]] += 1
                 by_kind[(mention["kind"], mention["outcome"])] += 1
@@ -403,7 +606,12 @@ def main():
                 pool = examples[mention["outcome"]]
                 if len(pool) < max(args.show, 0):
                     pool.append((row["book"], mention))
-            rows.append({"id": row["id"], "book": row["book"], "mentions": resolved})
+            rows.append({"id": row["id"], "book": row["book"],
+                         "source": row.get("source", ""),
+                         "volume": row.get("volume", ""), "number": row.get("number", ""),
+                         "mentions": resolved})
+
+    pointed = follow_backrefs(rows, by_id)
 
     names = sum(outcomes[k] for k in ("one", "chosen", "convention", "several", "none"))
     print(f"\n  {chains:7,}  chains, {sum(outcomes.values()):,} mentions, {names:,} of them names")

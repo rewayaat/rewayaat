@@ -96,6 +96,12 @@ public final class ChainExportTool {
                         ObjectNode row = MAPPER.createObjectNode();
                         row.put("id", id);
                         row.put("book", str(source.get("book")));
+                        // Who compiled this narration, which is not the same question as
+                        // which book it is in: Al-Amālī here is al-Ṣadūq's in 1,082 of its
+                        // narrations and al-Mufīd's in 387. «حدثني أبي» at the head of a
+                        // chain is the compiler's own father, so the resolver has to know
+                        // whose book it is standing in.
+                        row.put("source", str(source.get("source")));
                         row.put("volume", str(source.get("volume")));
                         row.put("number", str(source.get("number")));
                         row.put("chain_ar", chainAr);
@@ -125,6 +131,7 @@ public final class ChainExportTool {
         source.add("book");
         source.add("volume");
         source.add("number");
+        source.add("source");
         body.set("query", MAPPER.createObjectNode().set("match_all", MAPPER.createObjectNode()));
         return postJson("/" + encode(index) + "/_search?scroll=" + encode(SCROLL_KEEPALIVE), body.toString());
     }
