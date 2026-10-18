@@ -381,6 +381,39 @@ def one_of(candidates, data):
     return candidates[0] if len(candidates) == 1 else ""
 
 
+def contexts(path):
+    """What each book's own fuller forms say about reading its bare ones.
+
+    Built by `chain_contexts.py` from the corpus itself rather than written by hand: where
+    al-Kāfī spells «أحمد بن محمد بن خالد» out in a slot 113 times and never spells Ibn ʿĪsā
+    there, the bare name in that slot is al-Barqī on the book's own word. See that script for
+    why this is narrow on purpose.
+    """
+    try:
+        with open(path) as handle:
+            table = json.load(handle)
+    except FileNotFoundError:
+        return {"contexts": {}, "disambiguated": set()}
+    return {"contexts": table.get("contexts") or {},
+            "disambiguated": set(table.get("disambiguated") or ())}
+
+
+def neighbours(mentions):
+    """Each step's neighbours among the named steps, the way chain_contexts.py counts them.
+
+    Only named steps, because that is what the table was built over; reading them differently
+    here would look the answers up under keys nobody filed them under.
+    """
+    named = [at for at, m in enumerate(mentions) if m.get("kind") != "text"]
+    found = {}
+    for place, at in enumerate(named):
+        before = key(mentions[named[place - 1]]["text"]) if place else "<head>"
+        after = (key(mentions[named[place + 1]]["text"])
+                 if place + 1 < len(named) else "<end>")
+        found[at] = (before, after)
+    return found
+
+
 def conventions(path):
     """The chain conventions the auditors named, as the resolver reads them.
 
@@ -464,7 +497,7 @@ COMPILERS_FATHER = {
 }
 
 
-def resolve_chain(mentions, data, book="", table=None, compiler=""):
+def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
     """Give each mention in one chain an outcome, in three passes over the same chain.
 
     Names first, because the other two kinds are read off their neighbours: an Imam's kunya is
@@ -472,6 +505,8 @@ def resolve_chain(mentions, data, book="", table=None, compiler=""):
     is settled by whose father he is.
     """
     keys = [key(m["text"]) for m in mentions]
+    seen = seen or {"contexts": {}, "disambiguated": set()}
+    near = neighbours(mentions)
     rows = [dict(m) for m in mentions]
     table = table or {}
     # Whether each name was matched under somebody's own heading or only among the names
@@ -571,6 +606,36 @@ def resolve_chain(mentions, data, book="", table=None, compiler=""):
             # «محمد بن يحيى» opening a chain in al-Kāfī, which fifteen of them named, was
             # going to al-Khazzāz, a Kufan of al-Ṣādiq's generation, in 160 of al-Kulaynī's
             # chains. A single voice does not outrank a heading match.
+            # Three readings can speak here, and they do not rank equally.
+            #
+            # A `settles` entry is this book's own auditors on this book's own practice —
+            # «محمد بن يحيى» opening a chain in al-Kāfī is al-ʿAṭṭār, which fifteen of them
+            # named — and nothing below outranks that. An `everywhere` entry is a reading
+            # promoted from the books that *did* vote into every book that did not, and for
+            # «أحمد بن محمد» the voters were four books holding 125 occurrences between them
+            # while al-Kāfī, holding 3,158, was never examined. That is the one a book's own
+            # usage may overrule.
+            #
+            # So: the auditors first, then what the book writes out, and where the book
+            # disambiguates this name for itself but not in this slot, its silence stands.
+            # «عدة من أصحابنا عن أحمد بن محمد عن علي بن الحكم» is 19 Ibn ʿĪsā against 14
+            # al-Barqī in al-Kāfī's own hand, and it is not ours to call.
+            where = near.get(position)
+            audited = f"{book}\t{keys[position]}" in (table.get("settles") or {})
+            if where is not None and seen["contexts"] and not audited:
+                found = seen["contexts"].get("\t".join((book, keys[position], *where)))
+                if found:
+                    row["outcome"] = "convention"
+                    row["because"] = f"{book} writes this name out where it stands here"
+                    row.pop("candidates", None)
+                    row.pop("backed", None)
+                    row.pop("imam_id", None)
+                    row["target"] = "narrator"
+                    row["person_id"] = found["person_id"]
+                    continue
+                if f"{book}\t{keys[position]}" in seen["disambiguated"]:
+                    row["refused"] = "the book writes this name out, but not here"
+                    continue
             person, why, voices = by_convention(table, book, keys[position])
             if row["outcome"] == "chosen" and filed[position] and voices < 2:
                 continue
@@ -772,6 +837,7 @@ def main():
     parser.add_argument("--people", default=PEOPLE)
     parser.add_argument("--out", default=f'{TMP}/narrators_chains/resolved.jsonl')
     parser.add_argument("--conventions", default=CONVENTIONS)
+    parser.add_argument("--contexts", default=f'{W}/scripts/data/narrators/chain_contexts.json')
     parser.add_argument("--all-books", action="store_true",
                         help="let Khoei-only and Māmaqānī-only records be link targets too")
     parser.add_argument("--show", type=int, default=0, help="print N of each outcome")
@@ -781,6 +847,7 @@ def main():
     books = set() if args.all_books else CLASSICAL
     data = load_people(args.people, books)
     table = conventions(args.conventions)
+    seen = contexts(args.contexts)
     print(f"  {len(table.get('settles') or {}):7,}  names a book's own practice settles, "
           f"{len(table.get('everywhere') or {}):,} of them in every book")
     by_id = data["by_id"]
@@ -797,7 +864,7 @@ def main():
             row = json.loads(line)
             chains += 1
             resolved = resolve_chain(row["mentions"], data, row["book"], table,
-                                     row.get("source", ""))
+                                     row.get("source", ""), seen)
             for mention in resolved:
                 outcomes[mention["outcome"]] += 1
                 by_kind[(mention["kind"], mention["outcome"])] += 1
