@@ -33,8 +33,7 @@ import sys
 
 W = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 sys.path.insert(0, f'{W}/scripts/narrators')
-from chain_links_en import (JOIN, align, skeleton_ar, skeleton_en,  # noqa: E402
-                            same_man, slots, AGREE, LINKED)
+from chain_links_en import link_chain, slots, AGREE  # noqa: E402
 from identity import write_json_atomic  # noqa: E402
 
 TMP = f'{W}/tmp'
@@ -42,25 +41,21 @@ SEED = 41
 MAX_LINKS = 7
 
 
-def placed(row, chain_en, agree):
-    """The links this narration's English chain carries, with the Arabic each came from."""
+def placed(row, chain_en, agree, slug_of):
+    """The links this narration's English chain carries, with the Arabic each came from.
+
+    Taken from `link_chain`, the one that writes them, rather than worked out again here. This
+    read the slots and aligned them itself until 2026-10-19, which was already a cruder
+    placement than the linker's — a slot held one name at most — and once the linker placed
+    names one at a time the two were answering different questions. An audit of a placement
+    nobody ships measures nothing, however careful the auditors are.
+    """
     mentions = [m for m in row["mentions"] if m["kind"] != "text"]
     places = slots(chain_en)
     if not places or not mentions:
         return []
-    english = [skeleton_en(chain_en[s:e]) for s, e in places]
-    arabic = [skeleton_ar(m["text"]) for m in mentions]
-    out = []
-    for slot, mention in align(english, arabic):
-        if mentions[mention]["outcome"] not in LINKED:
-            continue
-        start, end = places[slot]
-        if not same_man(english[slot], arabic[mention], agree):
-            continue
-        out.append({"english": chain_en[start:end].strip(),
-                    "arabic": mentions[mention]["text"].strip(),
-                    "slot": slot, "places": places})
-    return out
+    return [{"english": link["t"].strip(), "arabic": link["a"], "person": link["p"]}
+            for link in link_chain(chain_en, places, mentions, agree, slug_of, Counter())]
 
 
 def main():
@@ -69,6 +64,7 @@ def main():
     parser.add_argument("--resolved", default=f'{TMP}/narrators_chains/resolved.jsonl')
     parser.add_argument("--served", default=f'{TMP}/narrators_chains/chains_served.jsonl')
     parser.add_argument("--out-dir", default=f'{TMP}/narrators_audit/chain_en')
+    parser.add_argument("--es-host", default="http://localhost:9200")
     parser.add_argument("--chains", type=int, default=160)
     parser.add_argument("--batches", type=int, default=4)
     parser.add_argument("--controls", type=int, default=10)
@@ -78,6 +74,8 @@ def main():
     args = parser.parse_args()
 
     rng = random.Random(args.seed)
+    from chain_links_load import slugs
+    slug_of = slugs(args.es_host)
     english, arabic_of = {}, {}
     with open(args.served) as handle:
         for line in handle:
@@ -96,7 +94,7 @@ def main():
             chain_en = english.get(row["id"])
             if not chain_en:
                 continue
-            links = placed(row, chain_en, args.agree)
+            links = placed(row, chain_en, args.agree, slug_of)
             if not links or len(links) > MAX_LINKS:
                 continue
             by_book[row["book"]].append((row, chain_en, links))
