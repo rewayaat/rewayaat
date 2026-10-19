@@ -13,6 +13,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.util.List;
 
 import com.rewayaat.service.BookCatalog;
+import com.rewayaat.service.BookShelf;
 
 import com.rewayaat.service.PageLocale;
 import jakarta.servlet.http.HttpServletRequest;
@@ -109,6 +110,7 @@ public class HomeController {
         // page its first internal links into the book hubs.
         List<BookCatalog.Book> books = catalog.books();
         model.addAttribute("books", books);
+        model.addAttribute("shelf", BookShelf.arrange(books));
         model.addAttribute("totalNarrations", books.stream().mapToLong(BookCatalog.Book::count).sum());
 
         // The constants stay: the JSON-LD above is the site's own description and is not

@@ -54,11 +54,16 @@
     --info-bg:          #f0f9ff;
 
     /* Typography */
-    --font-body:        "Inter", "Segoe UI", system-ui, sans-serif;
-    --font-display:     "Inter", "Segoe UI", system-ui, sans-serif;
-    --font-ui:          "Inter", "Segoe UI", system-ui, sans-serif;
-    --font-reference:   "Source Serif 4", Georgia, serif;
-    --font-ornament:    "Cormorant Garamond", "Source Serif 4", serif;
+    /* Each Latin face is followed by the Arabic face that plays its part: Inter has
+       no Arabic, so Arabic text in a UI stack is set in IBM Plex Sans Arabic, and in
+       a serif stack in Noto Naskh Arabic, rather than in whatever the device falls
+       back to. Google Fonts serves those two by unicode-range, so a page without
+       Arabic in them never downloads them. */
+    --font-body:        "Inter", "IBM Plex Sans Arabic", "Segoe UI", system-ui, sans-serif;
+    --font-display:     "Inter", "IBM Plex Sans Arabic", "Segoe UI", system-ui, sans-serif;
+    --font-ui:          "Inter", "IBM Plex Sans Arabic", "Segoe UI", system-ui, sans-serif;
+    --font-reference:   "Source Serif 4", "Noto Naskh Arabic", Georgia, serif;
+    --font-ornament:    "Cormorant Garamond", "Noto Naskh Arabic", "Source Serif 4", serif;
     --font-arabic:      "Scheherazade New", "Amiri", serif;
     --font-mono:        "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
 
@@ -305,7 +310,7 @@ a:hover {
     flex-shrink: 0;
 }
 .eid-banner__text {
-    font-family: 'Source Serif 4', serif;
+    font-family: var(--font-reference);
     font-size: 0.82rem;
     font-weight: 500;
     color: #1a2a3a;
@@ -406,12 +411,18 @@ a:hover {
    built-in margin and wants no negative inline start to sit against the edge. Square, so
    one asset serves the phone and the desktop rather than a wordmark plus an icon. */
 .brand-logo--emblem {
-    height: 42px;
+    height: 36px;
     width: auto;
     display: block;
     transition: opacity 150ms ease;
 }
 .brand-logo--emblem:hover { opacity: 0.85; }
+/* On a wide screen the emblem was what set the bar's height, and it filled it to
+   within 6px top and bottom. The brand keeps that 42px so the bar stays as it was,
+   and the emblem sits smaller inside it with room around it. */
+@media (min-width: 993px) {
+    .navbar-brand:has(.brand-logo--emblem) { min-height: 42px; }
+}
 
 /* ── Search Bar ─────────────────────────────────────────────────────────── */
 #queryBar {
@@ -4805,7 +4816,7 @@ code.welcome {
 @media (max-width: 768px) {
     .brand-logo--full { height: 38px; }
     .brand-logo--icon { height: 30px; }
-    .brand-logo--emblem { height: 34px; }
+    .brand-logo--emblem { height: 30px; }
 
     .site-nav { padding-top: 0.45rem; padding-bottom: 0.5rem; }
 
@@ -10111,7 +10122,7 @@ body.is-search-mode .site-nav .search-entry-shell {
     }
 
     .brand-logo--icon { height: 30px; }
-    .brand-logo--emblem { height: 34px; }
+    .brand-logo--emblem { height: 30px; }
     .navbar-brand { align-self: center; }
 
     .navbar-top {
@@ -10196,7 +10207,7 @@ body.is-search-mode .site-nav .search-entry-shell {
 /* Sits on the dark hero card, so it takes the hero's palette rather than the
    page's body colours the way the rest of the home page prose does. */
 .home-hero__lede {
-    font-family: 'Source Serif 4', Georgia, serif;
+    font-family: var(--font-reference);
     font-size: 1rem;
     line-height: 1.7;
     color: rgba(245, 236, 214, 0.82);
@@ -10547,7 +10558,7 @@ body.is-search-mode .site-nav .search-entry-shell {
 
 .hub-hero__intro-text {
     margin: 0;
-    font-family: 'Source Serif 4', Georgia, serif;
+    font-family: var(--font-reference);
     /* Smaller than body copy on purpose. At 1rem a 150-word overview pushed the banner
        past the fold on a laptop; at 0.86 it reads as the standfirst it is, and the volume
        grid stays on the first screen. Line height stays generous to keep it readable at
@@ -13123,4 +13134,225 @@ body.is-authed .nav-menu__item--signin {
 [dir="rtl"] .site-nav .search-entry-shell.nav-search__shell .ts-wrapper.form-control .ts-control {
     padding-left: var(--search-entry-side-pad) !important;
     padding-right: 0.25rem !important;
+}
+
+/* The nav bar's placeholder is a hint, not a heading. At the input's own 1.02rem it
+   read as large as the page title beside it, so in English it steps down a size and
+   recedes. Only the placeholder: what the reader types keeps the full size. Arabic
+   is left as it was, which already reads right. */
+html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
+    font-size: 0.86rem;
+    letter-spacing: 0.01em;
+    color: rgba(226, 232, 240, 0.4) !important;
+}
+
+/* ── The book in its pages: covers on the cards, stars on the numbers ────────
+   The bookcase on /books is where a reader picks a book; these carry it down the
+   levels below, so a volume page of al-Kāfi still looks like al-Kāfi. Each page's
+   <main> carries the book's leather as --leather (BookShelf.thumb).
+
+   A volume or part card starts with the book itself, drawn small and standing
+   face on, its page block as thick as the share of the book the card holds -
+   al-Kāfi's 594-chapter eighth volume is a fat one, its 165-chapter seventh a
+   slimmer one. The fore-edge is on the left because these are Arabic books,
+   bound on the right, whichever language the page is in. */
+.hub-card--book {
+    flex-direction: row;
+    align-items: center;
+    gap: 1.1rem;
+    padding-inline-start: 1.15rem;
+    border-top-color: color-mix(in srgb, var(--leather, #1e3a5f) 80%, transparent);
+}
+
+.hub-card__text {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    align-self: stretch;
+    justify-content: center;
+}
+
+.hub-card__book {
+    position: relative;
+    z-index: 1;
+    flex: none;
+    width: 46px;
+    aspect-ratio: 2 / 3;
+    margin-inline-start: var(--pages, 4px);
+    border-radius: 2px 3px 3px 2px;
+    background: var(--leather, #16213d);
+    filter: drop-shadow(0 5px 6px rgba(15, 23, 42, 0.28));
+    transform: rotate(-1.5deg);
+    transition: transform 220ms ease, filter 220ms ease;
+}
+
+/* The page block, showing past the fore-edge. */
+.hub-card__book::before {
+    content: "";
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    right: 100%;
+    width: var(--pages, 4px);
+    border-radius: 2px 0 0 2px;
+    background: repeating-linear-gradient(90deg, #efe5cb 0 1px, #cdb98d 1px 2px);
+}
+
+.hub-card__book img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+}
+
+/* The joint at the spine and the rounding of the board, so the cover is not flat. */
+.hub-card__book::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(270deg, rgba(0, 0, 0, 0.4), rgba(255, 255, 255, 0.14) 7%, transparent 14%,
+        transparent 88%, rgba(0, 0, 0, 0.18));
+    pointer-events: none;
+}
+
+.hub-card--book:hover .hub-card__book {
+    transform: rotate(0deg) translateY(-3px) scale(1.06);
+    filter: drop-shadow(0 9px 10px rgba(15, 23, 42, 0.3));
+}
+
+/* The volume number, on a leather label across the lower cover. */
+.hub-card__book-no {
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    bottom: 13%;
+    min-width: 20px;
+    padding: 1px 5px;
+    transform: translateX(-50%);
+    border: 1px solid rgba(226, 196, 120, 0.85);
+    border-radius: 2px;
+    background: var(--leather, #16213d);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+    font-family: var(--font-ornament);
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.15;
+    text-align: center;
+    color: #e9cf8a;
+}
+
+/* The ۞ in the corner was there so a card was not just a rectangle; the book does
+   that now. */
+.hub-card--book::after {
+    content: none;
+}
+
+.hub-card--book .hub-card__title {
+    flex: none;
+    margin-bottom: 0.45rem;
+    padding-right: 0;
+}
+
+/* Chapters and narrations are numbered inside an eight-pointed star, the ۞ the site
+   already uses for ornament: a faint gold outline at rest, and on hover it fills
+   with the book's leather and the number turns gold, as the book's own gilding does
+   on the shelf. The star is two masks, a filled one for the leather and an outline
+   for the gold, so the colour can come from --leather. */
+.hub-chapter {
+    align-items: flex-start;
+}
+
+.hub-chapter__index {
+    display: grid;
+    place-items: center;
+    width: 2.15rem;
+    min-width: 0;
+    height: 2.15rem;
+    /* Centred on the title's first line: (line height - star) / 2. */
+    margin-top: calc((0.98rem * 1.5 - 2.15rem) / 2);
+    /* Digits carry their ink above the middle of the line box, in Inter and in the
+       system Arabic face alike; measured, this puts them in the middle of the star. */
+    padding-top: 2px;
+    font-size: 0.66rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.hub-chapter__index::before,
+.hub-chapter__index::after,
+.hadith-static-list .hadith-card__result-num::before {
+    content: "";
+    -webkit-mask: var(--star-mask) center / contain no-repeat;
+    mask: var(--star-mask) center / contain no-repeat;
+}
+
+.hub-chapter__index::before,
+.hub-chapter__index::after {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    transition: background 150ms ease;
+}
+
+.hub-chapter__index::before,
+.hadith-static-list .hadith-card__result-num::before {
+    --star-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='4.5' y='4.5' width='15' height='15'/%3E%3Crect x='4.5' y='4.5' width='15' height='15' transform='rotate(45 12 12)'/%3E%3C/svg%3E");
+}
+
+.hub-chapter__index::before {
+    background: color-mix(in srgb, var(--leather, #1e3a5f) 6%, transparent);
+}
+
+.hub-chapter__index::after {
+    --star-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.1'%3E%3Crect x='4.5' y='4.5' width='15' height='15'/%3E%3Crect x='4.5' y='4.5' width='15' height='15' transform='rotate(45 12 12)'/%3E%3C/svg%3E");
+    background: rgba(200, 162, 61, 0.55);
+}
+
+.hub-chapter:hover .hub-chapter__index {
+    color: #ecd391;
+}
+
+.hub-chapter:hover .hub-chapter__index::before {
+    background: var(--leather, #1e3a5f);
+}
+
+.hub-chapter:hover .hub-chapter__index::after {
+    background: #d9b65c;
+}
+
+[dir="rtl"] .hub-chapter__index { font-size: 0.74rem; }
+
+/* A narration's number in a chapter carries the same star, filled, in the book's
+   leather. Only on the chapter page: the card is shared with the search results,
+   where narrations from many books sit side by side. */
+.hadith-static-list .hadith-card__result-num {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.hadith-static-list .hadith-card__result-num::before {
+    flex: none;
+    width: 0.95rem;
+    height: 0.95rem;
+    background: var(--leather, #1e3a5f);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hub-card__book {
+        transition: none;
+    }
+}
+
+/* The Arabic chapter title is set larger and looser (1.12rem at 1.6), so its first
+   line is taller and the star centres on that instead. */
+[dir="rtl"] .hub-chapter__index {
+    margin-top: calc((1.12rem * 1.6 - 2.15rem) / 2);
 }

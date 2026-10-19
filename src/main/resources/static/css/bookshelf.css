@@ -1,0 +1,213 @@
+/*
+ * The bookcase on the home page and on /books (templates/fragments/bookshelf.html).
+ *
+ * A library case. Each book carries its own stretch of back wall, shelf board and
+ * brass label, half a gap either side, so every row joins into one compartment whatever
+ * the column count. Choosing a book (hover, keyboard focus, or a first tap on touch)
+ * draws it forward toward the reader and lights only its gilding: the gold is a separate
+ * image (--gilt, set per book by BookShelf) laid over the cover, and it is only fetched
+ * once a book is chosen.
+ *
+ * The covers themselves are drawn by scripts/book-covers.
+ */
+.bookcase {
+  /* The case is lacquered in the site's navy, framed like the page's hero panels, so it
+     belongs to the page rather than sitting on it; the brass and lamplight carry the gold. */
+  --frame-hi: #234a75;
+  --frame: #0f2440;
+  --frame-lo: #0a1628;
+  --back-top: #0f2240;
+  --back: #071326;
+  --board-back: #050c17;
+  --board-1: #0d1d33;
+  --board-2: #152b4a;
+  --board: #1d3658;
+  --board-front: #284a73;
+  --lip-hi: #3a5f8c;
+  --lip: #1a3253;
+  --lip-dark: #0f213a;
+  --lip-lo: #07111f;
+  --grain: 170, 200, 240;     /* the light stripe of the grain */
+  --sheen: 200, 220, 250;     /* catch-light along top edges */
+  --case-radius: var(--radius-xl, 20px);
+  --case-shadow: 0 8px 16px rgba(0, 0, 0, .15), 0 24px 48px -12px rgba(10, 22, 40, .45);
+  --brass-hi: #efd896;
+  --brass: #b8913f;
+  --brass-lo: #7d5a1f;
+  --engrave: #2b1b08;
+  --lamp: 255, 206, 128;
+  --paper: #e9dcbc;
+  --gap: 34px;
+  font-family: var(--font-reference, 'Source Serif 4', Georgia, serif);
+}
+
+/* the case: a heavy frame round the compartments */
+.bookcase {
+  padding: 20px; border-radius: var(--case-radius);
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .1) 0 1px, transparent 1px 9px, rgba(var(--grain), .04) 9px 10px, transparent 10px 27px),
+    linear-gradient(160deg, var(--frame-hi), var(--frame) 45%, var(--frame-lo));
+  box-shadow: var(--case-shadow), inset 0 1px 0 rgba(var(--sheen), .18), inset 0 0 0 1px rgba(0, 0, 0, .4);
+}
+.bookcase__shelf {
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+  column-gap: var(--gap); row-gap: 0; padding-inline: calc(var(--gap) / 2);
+  overflow: clip; border-radius: 2px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .5), inset 0 0 24px rgba(0, 0, 0, .6);
+}
+@media (max-width: 900px) {
+  .bookcase__shelf { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
+  .bookcase { --gap: 18px; }
+  .bookcase { padding: 10px; }
+  .bookcase__shelf { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.shelf-book { position: relative; display: flex; flex-direction: column; color: inherit; text-decoration: none; outline: none; }
+.shelf-book:hover, .shelf-book:focus-visible, .shelf-book.is-open { z-index: 5; }
+
+/* back wall of the compartment: a thin lamp strip tucked under the shelf above washes light down it */
+.shelf-book__stand { position: relative; display: flex; justify-content: center; padding: 30px 0 13px; isolation: isolate; }
+.shelf-book__stand::before {
+  content: ""; position: absolute; inset: 0 calc(var(--gap) / -2); z-index: -3;
+  background:
+    linear-gradient(rgba(0, 0, 0, .78) 0 4px, transparent 4px),
+    linear-gradient(transparent 4px, rgba(var(--lamp), .12) 5px, rgba(255, 236, 196, .38) 5.5px 6.5px, rgba(var(--lamp), .12) 7px, transparent 8px),
+    linear-gradient(transparent 4px, rgba(var(--lamp), .1) 7px, rgba(var(--lamp), .035) 22%, transparent 45%),
+    radial-gradient(ellipse 90% 55% at 50% 92%, rgba(0, 0, 0, .28), transparent 70%),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .1) 0 1px, transparent 1px 13px, rgba(var(--grain), .025) 13px 14px, transparent 14px 31px),
+    linear-gradient(var(--back-top), var(--back) 60%);
+  background-attachment: scroll, scroll, scroll, scroll, fixed, scroll;   /* grain anchored to the page, so neighbouring books' wood lines up */
+}
+/* top of the shelf board, seen receding to the back wall; books stand a little in from its front edge */
+.shelf-book__stand::after {
+  content: ""; position: absolute; left: calc(var(--gap) / -2); right: calc(var(--gap) / -2); bottom: 0; height: 26px; z-index: -1;
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .08) 0 1px, transparent 1px 12px, rgba(var(--grain), .04) 12px 13px, transparent 13px 29px),
+    linear-gradient(var(--board-back), var(--board-1) 22%, var(--board-2) 62%, var(--board) 88%, var(--board-front));
+  background-attachment: fixed, scroll;
+  box-shadow: 0 -12px 16px -8px rgba(0, 0, 0, .55);   /* the corner where wall meets board falls into shadow */
+}
+/* front edge of the shelf, carrying the brass label */
+.shelf-book__lip { flex: 1; position: relative; z-index: 1; display: flex; justify-content: center; align-items: flex-start; padding: 9px 4px 14px; }
+.shelf-book__lip::before {
+  content: ""; position: absolute; inset: 0 calc(var(--gap) / -2); z-index: -1;
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .07) 0 2px, transparent 2px 11px, rgba(var(--grain), .05) 11px 12px, transparent 12px 23px),
+    linear-gradient(var(--lip-hi), var(--lip) 10%, var(--lip-dark) 82%, var(--lip-lo));
+  background-attachment: fixed, scroll;
+  box-shadow: inset 0 1px 0 rgba(var(--sheen), .32), inset 0 -2px 3px rgba(0, 0, 0, .45);
+}
+.shelf-book__plate {
+  position: relative; display: grid; gap: 1px; max-width: 94%; padding: 5px 14px 6px; text-align: center;
+  border-radius: 2px;
+  background: linear-gradient(var(--brass-hi), var(--brass) 48%, var(--brass-lo));
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .6), inset 0 0 0 1px rgba(70, 45, 10, .55), inset 0 1px 0 rgba(255, 245, 210, .6);
+  transition: filter .45s ease, box-shadow .45s ease;
+}
+.shelf-book__plate::before, .shelf-book__plate::after {   /* the two pins holding the label on */
+  content: ""; position: absolute; top: 50%; width: 4px; height: 4px; margin-top: -2px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #f6e8bd, #6b4b16 75%);
+}
+.shelf-book__plate::before { left: 4px; } .shelf-book__plate::after { right: 4px; }
+.shelf-book__title { font-weight: 600; font-size: 13.5px; line-height: 1.2; color: var(--engrave); text-wrap: balance; text-shadow: 0 1px 0 rgba(255, 240, 200, .45); }
+.shelf-book__count { font-size: 11.5px; color: #33230a; font-variant-numeric: tabular-nums; text-shadow: 0 1px 0 rgba(255, 240, 200, .35); }
+
+/* the book itself: smaller collections are shorter and thinner, all on one baseline */
+.shelf-book__slot {
+  position: relative; width: min(100%, 180px); aspect-ratio: 2 / 3;
+  display: flex; align-items: flex-end; justify-content: center;
+  transition: filter .45s ease;
+}
+.shelf-book__slot::after {      /* contact shadow on the board */
+  content: ""; position: absolute; left: 6%; right: 2%; bottom: -6px; height: 12px; z-index: -1;
+  background: radial-gradient(ellipse at 50% 40%, rgba(5, 2, 0, .7), transparent 70%);
+  transition: opacity .5s ease, transform .5s ease;
+}
+.shelf-book__body {
+  position: relative; width: calc(var(--scale, 1) * 100%); aspect-ratio: 2 / 3; flex: none;
+  transform-origin: 50% 100%;
+  transition: transform .6s cubic-bezier(.2, .8, .2, 1);
+}
+.shelf-book__block {            /* the page block, fore-edge on the left as in an Arabic book */
+  position: absolute; inset: 1.6% 0 1.6% 1.4%; border-radius: 3px 1px 1px 3px; background: var(--paper);
+  box-shadow: var(--edges, -1px 1px 0 #ddcca6, -2px 2px 0 #bfa97c, -3px 3px 0 #d8c59c);
+}
+.shelf-book__front, .shelf-book__gilt, .shelf-book__shine { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 5px; }
+.shelf-book__front { display: block; filter: drop-shadow(0 8px 10px rgba(5, 2, 0, .55)) drop-shadow(10px -6px 14px rgba(0, 0, 0, .45)); transition: filter .6s ease; }
+/* the gilding alone, laid over the cover: it brightens and blooms when the book is chosen */
+.shelf-book__gilt { pointer-events: none; opacity: 0; background: none center / 100% 100% no-repeat; filter: brightness(1.1); transition: opacity .45s ease, filter .45s ease; }
+.shelf-book__shine {
+  pointer-events: none; opacity: 0;
+  background: linear-gradient(112deg, transparent 38%, rgba(255, 250, 225, .7) 47%, rgba(255, 236, 180, .3) 52%, transparent 60%) 140% 0 / 260% 100% no-repeat;
+}
+/* lamplight pooling on the board under the chosen book */
+.shelf-book__glow {
+  position: absolute; left: -20%; right: -20%; top: 0; bottom: 0; z-index: -2; pointer-events: none;
+  background:
+    radial-gradient(ellipse 50% 9% at 50% 98%, rgba(var(--lamp), .55), transparent 75%),
+    radial-gradient(ellipse 48% 42% at 50% 62%, rgba(var(--lamp), .16), transparent 72%);
+  opacity: 0; transition: opacity .5s ease;
+}
+
+/* chosen: the book tips off the shelf toward the reader and its gold lights up */
+.shelf-book:hover .shelf-book__body, .shelf-book:focus-visible .shelf-book__body, .shelf-book.is-open .shelf-book__body {
+  /* a flat lift and enlarge, not a 3D move: Chrome keeps a 3D-animated layer at its starting
+     resolution, so the lettering of the chosen book went soft exactly when it was meant to be read */
+  transform: translateY(-12px) scale(1.09);
+}
+.shelf-book:hover .shelf-book__front, .shelf-book:focus-visible .shelf-book__front, .shelf-book.is-open .shelf-book__front {
+  filter: drop-shadow(0 26px 22px rgba(5, 2, 0, .6));
+}
+.shelf-book:hover .shelf-book__gilt, .shelf-book:focus-visible .shelf-book__gilt, .shelf-book.is-open .shelf-book__gilt {
+  opacity: 1; background-image: var(--gilt);
+  filter: brightness(1.3) contrast(1.1) drop-shadow(0 0 .5px rgba(255, 228, 165, .7)) drop-shadow(0 0 5px rgba(255, 190, 90, .22));
+}
+.shelf-book:hover .shelf-book__shine, .shelf-book:focus-visible .shelf-book__shine, .shelf-book.is-open .shelf-book__shine {
+  /* the passing light is masked by the gilding, so only the gold catches it */
+  -webkit-mask: var(--gilt) center / 100% 100% no-repeat; mask: var(--gilt) center / 100% 100% no-repeat;
+  animation: shelf-book-shine .9s .1s ease-out both;
+}
+@keyframes shelf-book-shine { 0% { opacity: 1; background-position: 140% 0; } 85% { opacity: 1; } 100% { opacity: 0; background-position: -40% 0; } }
+.shelf-book:hover .shelf-book__glow, .shelf-book:focus-visible .shelf-book__glow, .shelf-book.is-open .shelf-book__glow { opacity: 1; }
+.shelf-book:hover .shelf-book__slot::after, .shelf-book:focus-visible .shelf-book__slot::after, .shelf-book.is-open .shelf-book__slot::after { opacity: .45; transform: scaleX(1.12); }
+.shelf-book:hover .shelf-book__plate, .shelf-book:focus-visible .shelf-book__plate, .shelf-book.is-open .shelf-book__plate {
+  filter: brightness(1.12); box-shadow: 0 0 14px rgba(var(--lamp), .45), 0 1px 2px rgba(0, 0, 0, .6), inset 0 0 0 1px rgba(70, 45, 10, .55), inset 0 1px 0 rgba(255, 245, 210, .7);
+}
+.shelf-book:focus-visible .shelf-book__plate { outline: 2px solid var(--brass-hi); outline-offset: 3px; }
+/* the rest of the case falls back into shadow */
+.bookcase__shelf:has(.shelf-book:hover, .shelf-book:focus-visible, .shelf-book.is-open) .shelf-book:not(:hover, :focus-visible, .is-open) .shelf-book__slot { filter: brightness(.8) saturate(.9); }
+
+@media (prefers-reduced-motion: reduce) {
+  .shelf-book__body, .shelf-book__slot, .shelf-book__slot::after, .shelf-book__front, .shelf-book__gilt, .shelf-book__glow, .shelf-book__plate { transition: none; }
+  .shelf-book:hover .shelf-book__body, .shelf-book:focus-visible .shelf-book__body, .shelf-book.is-open .shelf-book__body { transform: none; }
+  .shelf-book:hover .shelf-book__shine, .shelf-book:focus-visible .shelf-book__shine, .shelf-book.is-open .shelf-book__shine { animation: none; }
+}
+
+/* Empty places that finish the last row, so its wall and shelf run the full width.
+   The fragment renders enough for each column count and marks which ones it needs. */
+.shelf-book--gap { display: none; pointer-events: none; }
+.shelf-book--gap .shelf-book__slot::after { content: none; }
+@media (min-width: 901px) { .shelf-gap--5 { display: flex; } }
+@media (min-width: 521px) and (max-width: 900px) { .shelf-gap--4 { display: flex; } }
+@media (max-width: 520px) { .shelf-gap--2 { display: flex; } }
+
+/* a book whose cover has not been drawn yet: plain leather with its name in gold */
+.shelf-book__front--plain {
+  display: flex; align-items: center; justify-content: center; padding: 18% 12%; text-align: center;
+  background: radial-gradient(ellipse at 50% 40%, #3a1f17, #1c0f0b 75%);
+  box-shadow: inset 0 0 0 6px rgba(0, 0, 0, .25), inset 0 0 0 7px rgba(200, 160, 80, .35);
+  font-family: 'Amiri', 'Scheherazade New', serif; font-weight: 700; font-size: 22px; line-height: 1.5; color: #d9b65e;
+}
+
+/* Arabic pages: the labels carry the Arabic names */
+[dir="rtl"] .shelf-book__title { font-family: 'Scheherazade New', 'Amiri', serif; font-size: 15px; line-height: 1.35; }
+
+/* home page: a phone shows the first books and a toggle for the rest */
+.browse-shelf { margin-bottom: 1.2rem; }
+@media (max-width: 768px) {
+  .browse-shelf:not(.is-expanded) .shelf-book--overflow,
+  .browse-shelf:not(.is-expanded) .shelf-book--gap { display: none; }
+  .browse-shelf .browse-book-drawer-toggle { margin-top: 0.75rem; }
+}

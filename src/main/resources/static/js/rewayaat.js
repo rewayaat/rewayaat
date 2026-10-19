@@ -4283,47 +4283,14 @@ function populateBrowseBooks(books) {
     }
     populateBookSelect(heroBookSelect, books, t('filter.allBooks', 'All Books'));
     populateBookSelect(bookSelect, books, t('filter.selectBook', 'Select a book'));
-    if (bookList) {
-        bookList.innerHTML = '';
-    }
+    // The bookcase itself is drawn by the server (fragments/bookshelf.html), covers and
+    // all, so it is not rebuilt here. A phone shows the first four books and this toggle.
     var MOBILE_BOOK_LIMIT = 4;
-    books.forEach(function(item, idx) {
-        var name = item.name || item.key || '';
-        // The list is built here, so the Arabic name has to travel with the data;
-        // /v1/browse/books carries it as nameAr.
-        var displayName = (window.I18N_LOCALE === 'ar' && item.nameAr) ? item.nameAr : name;
-        if (!name) {
-            return;
-        }
-        var count = item.count || 0;
-        if (bookList) {
-            // An anchor, not a div with a click handler: the card is a link to the book's
-            // own page, which the server also renders into this list before this runs, and
-            // a crawler has to be able to follow it. The slug comes from the API rather
-            // than being derived here, so it cannot drift from the routes.
-            var card = document.createElement('a');
-            card.className = 'browse-book-card';
-            if (idx >= MOBILE_BOOK_LIMIT) {
-                card.className += ' browse-book-card--overflow';
-            }
-            card.setAttribute('data-book', name);
-            card.setAttribute('href', localeHref('/books/' + encodeURIComponent(item.slug || '')));
-            card.innerHTML = '<div class=\"browse-book-head\">' +
-                '<span class=\"browse-book-icon\" aria-hidden=\"true\"><i class=\"fa fa-book\"></i></span>' +
-                '<div class=\"browse-book-copy\">' +
-                '<div class=\"browse-book-title\">' + escapeHtml(displayName) + '</div>' +
-                '<div class=\"browse-book-count\">'
-                    + count.toLocaleString(window.I18N_LOCALE === 'ar' ? 'ar-EG' : undefined)
-                    + ' ' + t('books.card.narrations', 'narrations') + '</div>' +
-                '</div></div>';
-            bookList.appendChild(card);
-        }
-    });
-    if (bookList && books.length > MOBILE_BOOK_LIMIT) {
+    if (bookList && books.length > MOBILE_BOOK_LIMIT && !bookList.querySelector('.browse-book-drawer-toggle')) {
         var toggle = document.createElement('button');
         toggle.className = 'browse-book-drawer-toggle';
         toggle.type = 'button';
-        toggle.textContent = t('js.showAllBooks', 'Show all {0} books').replace('{0}', books.length);
+        toggle.textContent = t('js.showAllBooks', 'Show all {0} books').replace('{0}', localeDigits(books.length));
         toggle.addEventListener('click', function() {
             var expanded = bookList.classList.toggle('is-expanded');
             toggle.textContent = expanded

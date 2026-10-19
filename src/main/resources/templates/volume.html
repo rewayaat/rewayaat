@@ -4,7 +4,7 @@
 <body>
 <nav th:replace="~{fragments/site :: sitenav}"></nav>
 
-<main class="container py-3">
+<main class="container py-3" th:style="${shelfBook != null} ? |--leather:${shelfBook.leather}|">
     <nav th:replace="~{fragments/site :: crumbtrail}"></nav>
 
     <!-- Splits only where there is a note to put in the second column. Most volume and
@@ -35,11 +35,14 @@
     <section class="hub-group" th:if="${!#lists.isEmpty(parts)}">
         <h2 class="hub-group__label" th:text="#{book.parts}">Parts</h2>
         <div class="hub-grid">
-            <a class="hub-card" th:each="part : ${parts}" th:href="${arPrefix} + ${part.url}">
-                <div class="hub-card__title" th:text="${isArabic} ? (${part.titleAr} ?: ${part.title}) : ${part.title}">Part 1</div>
-                <div class="hub-card__meta">
-                    <span><strong th:text="${#numbers.formatInteger(part.chapterCount, 0, 'COMMA')}">100</strong> <span th:text="#{books.card.chapters}">chapters</span></span>
-                </div>
+            <a class="hub-card hub-card--book" th:each="part : ${parts}" th:href="${arPrefix} + ${part.url}">
+                <span th:replace="~{fragments/bookshelf :: cardbook(${part.chapterCount}, null)}"></span>
+                <span class="hub-card__text">
+                    <span class="hub-card__title" th:text="${isArabic} ? (${part.titleAr} ?: ${part.title}) : ${part.title}">Part 1</span>
+                    <span class="hub-card__meta">
+                        <span><strong th:text="${#numbers.formatInteger(part.chapterCount, 0, 'COMMA')}">100</strong> <span th:text="#{books.card.chapters}">chapters</span></span>
+                    </span>
+                </span>
             </a>
         </div>
     </section>
@@ -54,7 +57,7 @@
             <li class="hub-chapter-row" th:each="chapter, it : ${chapters}">
                 <a class="hub-chapter" th:href="${arPrefix} + ${chapter.url}">
                     <span class="hub-chapter__index"
-                          th:text="${isArabic} ? ${#numbers.formatInteger(it.count, 0)} : (${it.count} + '.')">1.</span>
+                          th:text="${#numbers.formatInteger(it.count, 0)}">1</span>
                     <span class="hub-chapter__title" th:text="${isArabic} ? (${chapter.titleAr} ?: ${chapter.title}) : ${chapter.title}">Chapter title</span>
                     <!-- Labelled, not a bare number: the ordinal on the left is also a
                          bare number, and across two or three columns the two were
