@@ -3,6 +3,7 @@ package com.rewayaat.config;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import jakarta.servlet.DispatcherType;
 import jakarta.servlet.Filter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -73,10 +74,19 @@ public class StaticAssetConfig implements WebMvcConfigurer {
      * Rewrites the plain paths in {@code th:href="@{/css/...}"} to their fingerprinted
      * form. Spring Boot registers this filter itself only when the resource chain is
      * switched on through properties, and the chain above is configured in code.
+     *
+     * <p>On forwards as well as requests, because the whole Arabic site is a forward:
+     * ArabicSiteConfig strips {@code /ar} and forwards before this filter's turn on the
+     * original request, so registered for requests alone it never saw an Arabic page.
+     * Those pages went out with plain {@code /js/rewayaat.js}, which browsers cache by
+     * guesswork, and a returning Arabic reader kept the previous release's script.
      */
     @Bean
     public FilterRegistrationBean<ResourceUrlEncodingFilter> resourceUrlEncodingFilter() {
-        return new FilterRegistrationBean<>(new ResourceUrlEncodingFilter());
+        FilterRegistrationBean<ResourceUrlEncodingFilter> registration =
+                new FilterRegistrationBean<>(new ResourceUrlEncodingFilter());
+        registration.setDispatcherTypes(DispatcherType.REQUEST, DispatcherType.FORWARD);
+        return registration;
     }
 
     /**
