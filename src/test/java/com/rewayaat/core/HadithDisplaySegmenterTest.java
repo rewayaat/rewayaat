@@ -2980,4 +2980,43 @@ class HadithDisplaySegmenterTest {
         assertFalse(chain.contains("نور"), "Chain should not include the saying");
         assertTrue(content.contains("نور"), "Content should include the saying");
     }
+
+    @Test
+    void readsTheChainThatEndsOnTwoMenAnsweringTogether() {
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "11- أَحْمَدُ بْنُ مُحَمَّدٍ عَنِ ابْنِ أَبِي نَجْرَانَ عَمَّنْ ذَكَرَهُ "
+                + "عَنْ أَبِي عَبْدِ اللهِ (عَلَيْهِ السَّلام) وَيَزِيدَ بْنِ حَمَّادٍ وَغَيْرِهِ "
+                + "عَنْ أَبِي جَمِيلَةَ عَنْ أَبِي جَعْفَرٍ وَأَبِي عَبْدِ اللهِ (عَلَيْهِ السَّلام) "
+                + "قَالا مَا مِنْ أَحَدٍ إِلا وَهُوَ يُصِيبُ حَظّاً مِنَ الزِّنَى.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain, "A chain ending on the dual «قالا» must still be read");
+        assertNotNull(content);
+        assertTrue(chain.contains("ابْنِ أَبِي نَجْرَانَ"));
+        assertTrue(chain.contains("أَبِي جَمِيلَةَ"));
+        assertTrue(content.contains("مَا مِنْ أَحَدٍ"));
+        assertFalse(chain.contains("يُصِيبُ حَظّاً"));
+    }
+
+    @Test
+    void stopsTheChainAtTheDualVerbRatherThanTheNextSingularOne() {
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "6ـ حَمَّادٌ عَنْ حَرِيزٍ عَنْ زُرَارَةَ وَالْفُضَيْلِ قَالاَ قُلْنَا لَهُ "
+                + "الصَّلَوَاتُ فِي جَمَاعَةٍ فَرِيضَةٌ هِيَ فَقَالَ الصَّلَوَاتُ فَرِيضَةٌ.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("زُرَارَةَ وَالْفُضَيْلِ"));
+        // Before the dual was a marker the chain had to wait for «فَقَالَ» and swallowed
+        // the question the two men asked.
+        assertFalse(chain.contains("قُلْنَا لَهُ"), "The chain must end at the dual verb");
+        assertTrue(content.contains("قُلْنَا لَهُ"));
+    }
 }

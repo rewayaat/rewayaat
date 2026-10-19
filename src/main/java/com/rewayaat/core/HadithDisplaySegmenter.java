@@ -199,6 +199,15 @@ public final class HadithDisplaySegmenter {
             "قالوا ",
             "فقالوا:",
             "فقالوا ",
+            // The dual. Two men at the end of a chain answer together — «عن أبي جعفر وأبي
+            // عبد الله (عليهما السلام) قالا» — and «قالا» is neither «قال» nor «قالوا», so
+            // 92 chains of this shape found no marker at all and came out with no chain.
+            "قالا:",
+            "قالا ",
+            "فقالا:",
+            "فقالا ",
+            "قالتا:",
+            "قالتا ",
             " قالت:",
             " قالت ",
             " فقالت:",
@@ -207,6 +216,12 @@ public final class HadithDisplaySegmenter {
             " قالوا ",
             " فقالوا:",
             " فقالوا ",
+            " قالا:",
+            " قالا ",
+            " فقالا:",
+            " فقالا ",
+            " قالتا:",
+            " قالتا ",
             "قال:",
             "قال ",
             "فقال:",
@@ -1285,8 +1300,10 @@ public final class HadithDisplaySegmenter {
             if (isArabicDiacritic(ch) || ch == '\u0640') {
                 continue;
             }
-            // Strip brackets so [قال] matches split markers
-            if (ch == '[' || ch == ']' || ch == '(' || ch == ')' || ch == '\u300A' || ch == '\u300B') {
+            // Strip brackets so [قال] matches split markers, and sentence punctuation so
+            // «قال.بعث» — an edition setting no space after the verb — still matches «قال ».
+            if (ch == '[' || ch == ']' || ch == '(' || ch == ')' || ch == '\u300A' || ch == '\u300B'
+                    ) {
                 normalized.append(' ');
                 rawIndexByNormalized[normalizedLength] = i;
                 normalizedLength++;
