@@ -112,7 +112,10 @@ def bulk_update_tags(es_url, index, assignments, parent_map, allowed):
         return 0
 
     data = ("\n".join(lines) + "\n").encode("utf-8")
-    resp = es_request(es_url, "/_bulk", "POST", data, content_type="application/x-ndjson")
+    resp = es_request(es_url, "POST", "/_bulk", data, content_type="application/x-ndjson")
+    if "items" not in resp:
+        # A rejected request has no items to count, so it used to pass as a full success.
+        raise RuntimeError(f"bulk update rejected: {json.dumps(resp)[:300]}")
     errors = []
     for item in resp.get("items", []):
         result = item.get("update", {})
