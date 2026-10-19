@@ -78,6 +78,7 @@ BOOKS = [
         "publisher_ar": None,
         "part_field": "section",
         "cites": False,
+        "edition": True,
     },
 ]
 
@@ -381,8 +382,51 @@ def apply_repairs(docs, repairs):
             by_id[target]["chapter_ar_source"] = REVIEW_SOURCE if fields["chapter_ar"] else ""
 
 
+NUMBERED_TITLE = re.compile(r"^(section|chapter)\s+(\d+)\s*-\s*(?:on\s+)?", re.IGNORECASE)
+
+
+def numbered_title(english: str) -> str:
+    """'CHAPTER 11 - On Concealing Faith1' -> 'Chapter 11 - On Concealing Faith'."""
+    m = NUMBERED_TITLE.match(english)
+    if not m:
+        return english
+    rest = re.sub(r"(?<=[a-z])\d{1,2}$", "", english[m.end():].strip())
+    return f"{m.group(1).capitalize()} {m.group(2)} - On {rest[:1].upper()}{rest[1:]}"
+
+
+def apply_edition(docs, edition, excluded):
+    """Arabic text and headings from a clean edition, for a book whose v1 Arabic is damaged.
+
+    align_mishkat_openiti.py pairs each v1 narration with the edition's. A pair is used
+    when the alignment is unambiguous ("auto") or a reader approved it; a reader may also
+    have narrowed the Arabic to the span the English translates. Every other narration of
+    the book is left out: its v1 Arabic is the damaged text this replaces.
+    """
+    kept = []
+    for doc in docs:
+        if not doc["spec"].get("edition"):
+            kept.append(doc)
+            continue
+        record = edition.get("narrations", {}).get(doc["id"])
+        if not record or record.get("rejected") or not (record["verdict"] == "auto" or record.get("approved")):
+            excluded.append({"v1_id": doc["v1"]["_id"], "book": doc["spec"]["book"],
+                             "reason": "no-verified-edition-arabic", "english": doc["english"]})
+            continue
+        doc["arabic"] = unicodedata.normalize("NFC", record["arabic"])
+        doc["arabic_source"] = edition["edition"]
+        part_ar = edition["headings"]["part"].get(doc["part"])
+        chapter_ar = edition["headings"]["chapter"].get(f"{doc['part']}\u0000{doc['chapter']}")
+        if part_ar:
+            doc["part_ar"] = part_ar
+        if chapter_ar:
+            doc["chapter_ar"], doc["chapter_ar_source"] = chapter_ar, edition["edition"]
+        doc["part"], doc["chapter"] = numbered_title(doc["part"]), numbered_title(doc["chapter"])
+        kept.append(doc)
+    return kept
+
+
 def convert(rows, overrides, fixes=None, exclusions=None, hold_back=(), title_fixes=None,
-            repairs=None):
+            repairs=None, edition=None):
     fixes, exclusions, title_fixes, repairs = fixes or {}, exclusions or {}, title_fixes or {}, repairs or {}
     picked = [(book_for(r.get("book")), r) for r in rows]
     picked = [(spec, r) for spec, r in picked if spec]
@@ -477,6 +521,7 @@ def convert(rows, overrides, fixes=None, exclusions=None, hold_back=(), title_fi
         excluded.append({"v1_id": doc["v1"]["_id"], "book": doc["spec"]["book"],
                          "reason": exclusions[doc["v1"]["_id"]], "english": doc["english"]})
     docs = [d for d in docs if d["v1"]["_id"] not in exclusions]
+    docs = apply_edition(docs, edition or {}, excluded)
 
     out, v1_ids = [], {}
     for doc in docs:
@@ -492,6 +537,8 @@ def convert(rows, overrides, fixes=None, exclusions=None, hold_back=(), title_fi
             "arabic": doc["arabic"], "english": doc["english"],
             "source": spec["source"], "source_ar": spec["source_ar"],
         }
+        if doc.get("arabic_source"):
+            source["arabic_source"] = doc["arabic_source"]
         if doc["chapter_ar"]:
             source["chapter_ar"] = doc["chapter_ar"]
             source["chapter_ar_source"] = doc.get("chapter_ar_source") or ARABIC_SOURCE
@@ -553,6 +600,9 @@ def main() -> int:
                         help="whole-title spacing and mark repairs, by field")
     parser.add_argument("--repairs", default=str(Path(__file__).with_name("v1_restore_repairs.json")),
                         help="English moved to its own narration, and narrations re-filed under existing labels")
+    parser.add_argument("--edition", default=str(Path(__file__).with_name("v1_restore_mishkat_edition.json")),
+                        help="clean-edition Arabic for a book whose v1 Arabic is damaged "
+                             "(align_mishkat_openiti.py); a book with an edition and no file is left out")
     parser.add_argument("--hold-back", action="append", default=[],
                         help="a book (new name) to leave out whole; repeatable")
     args = parser.parse_args()
@@ -563,8 +613,10 @@ def main() -> int:
     exclusions = json.loads(Path(args.exclusions).read_text(encoding="utf-8"))
     title_fixes = json.loads(Path(args.title_fixes).read_text(encoding="utf-8"))
     repairs = json.loads(Path(args.repairs).read_text(encoding="utf-8"))
+    edition_path = Path(args.edition)
+    edition = json.loads(edition_path.read_text(encoding="utf-8")) if edition_path.exists() else {}
     docs, v1_ids, excluded, report = convert(rows, overrides, fixes, exclusions, set(args.hold_back),
-                                             title_fixes, repairs)
+                                             title_fixes, repairs, edition)
     write_outputs(docs, v1_ids, excluded, report, Path(args.out_dir), Path(args.report_dir))
     print(json.dumps({"documents": len(docs), "excluded": len(excluded),
                       "blocking": len(report["blocking"]),

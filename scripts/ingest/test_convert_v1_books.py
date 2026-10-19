@@ -78,7 +78,7 @@ class ConvertTest(unittest.TestCase):
         docs, v1_ids, excluded, _ = c.convert([
             row("7331", book, 1, "CHAPTER 1 - On Unity of God / في التوحيد", section="SECTION 1 / الباب"),
             row("16481", book, 1, "CHAPTER 4 - On Rights / في الحقوق", arabic="", section="SECTION 2 / الباب"),
-        ], NO_OVERRIDES)
+        ], NO_OVERRIDES, edition=edition({"Mishkat-al-Anwar-Tabrisi:1": {"verdict": "auto", "arabic": "عربي"}}))
         self.assertEqual(list(v1_ids), ["7331"])
         self.assertEqual(excluded[0]["v1_id"], "16481")
         self.assertEqual(excluded[0]["reason"], "list-fragment")
@@ -392,6 +392,59 @@ class CitationCleanTest(unittest.TestCase):
         self.assertEqual(c.clean_citation("Ghurar al-Hikam,. number:2142"), "Ghurar al-Hikam, number:2142")
         self.assertEqual(c.clean_citation("AeIlal al-Sharaia , p. 227, number:2"), "AeIlal al-Sharaia, p. 227, number:2")
 
+
+
+MISHKAT_V1 = "Mishkat Al-Anwar Fi Ghurar il-Akhbar / مشكاة الأنوار في غرر الأخبار"
+
+
+def edition(narrations, part=None, chapter=None):
+    return {"edition": "openiti:test", "narrations": narrations,
+            "headings": {"part": part or {}, "chapter": chapter or {}}}
+
+
+def mishkat_row(v1_id="7331", number=1):
+    return row(v1_id, MISHKAT_V1, number, "CHAPTER 11 - On Concealing Faith1 / في التقية",
+               arabic="قال الصادق م لا دين لمن", section="SECTION 1 - ON FAITH / الباب الأول")
+
+
+class EditionTest(unittest.TestCase):
+    """Mishkat's v1 Arabic is damaged; its Arabic comes from a clean edition instead."""
+
+    def test_an_aligned_narration_takes_the_editions_arabic_and_headings(self):
+        docs, _, _, _ = c.convert([mishkat_row()], NO_OVERRIDES, edition=edition(
+            {"Mishkat-al-Anwar-Tabrisi:1": {"verdict": "auto", "arabic": "قال الصادق (عليه السلام): لا دين لمن لا تقية له."}},
+            part={"Section 1 - on Faith": "الباب الأول في الإيمان"},
+            chapter={"Section 1 - on Faith\u0000CHAPTER 11 - On Concealing Faith1": "الفصل الحادي عشر في التقية"}))
+        src = docs[0]["_source"]
+        self.assertEqual(src["arabic"], "قال الصادق (عليه السلام): لا دين لمن لا تقية له.")
+        self.assertEqual(src["arabic_source"], "openiti:test")
+        self.assertEqual((src["part"], src["part_ar"]), ("Section 1 - On Faith", "الباب الأول في الإيمان"))
+        self.assertEqual((src["chapter"], src["chapter_ar"]), ("Chapter 11 - On Concealing Faith", "الفصل الحادي عشر في التقية"))
+        self.assertEqual(src["chapter_ar_source"], "openiti:test")
+
+    def test_a_pair_needing_review_is_left_out_until_approved(self):
+        narrations = {"Mishkat-al-Anwar-Tabrisi:1": {"verdict": "weak", "arabic": "عربي"}}
+        docs, _, excluded, _ = c.convert([mishkat_row()], NO_OVERRIDES, edition=edition(narrations))
+        self.assertEqual(docs, [])
+        self.assertEqual(excluded[0]["reason"], "no-verified-edition-arabic")
+        narrations["Mishkat-al-Anwar-Tabrisi:1"]["approved"] = True
+        docs, _, _, _ = c.convert([mishkat_row()], NO_OVERRIDES, edition=edition(narrations))
+        self.assertEqual(len(docs), 1)
+
+    def test_a_rejected_pair_is_left_out_even_when_auto(self):
+        narrations = {"Mishkat-al-Anwar-Tabrisi:1": {"verdict": "auto", "arabic": "عربي", "rejected": True}}
+        docs, _, _, _ = c.convert([mishkat_row()], NO_OVERRIDES, edition=edition(narrations))
+        self.assertEqual(docs, [])
+
+    def test_without_an_edition_the_book_is_left_out(self):
+        docs, _, excluded, _ = c.convert([mishkat_row()], NO_OVERRIDES)
+        self.assertEqual(docs, [])
+        self.assertEqual(excluded[0]["reason"], "no-verified-edition-arabic")
+
+    def test_numbered_titles(self):
+        self.assertEqual(c.numbered_title("CHAPTER 11 - On Concealing Faith1"), "Chapter 11 - On Concealing Faith")
+        self.assertEqual(c.numbered_title("Section 1 - on Faith, Islam"), "Section 1 - On Faith, Islam")
+        self.assertEqual(c.numbered_title("Parents"), "Parents")
 
 if __name__ == "__main__":
     unittest.main()
