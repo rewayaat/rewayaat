@@ -1,7 +1,7 @@
 /*
  * The bookcase on the home page and on /books (templates/fragments/bookshelf.html).
  *
- * A walnut library case. Each book carries its own stretch of back wall, shelf board and
+ * A library case. Each book carries its own stretch of back wall, shelf board and
  * brass label, half a gap either side, so every row joins into one compartment whatever
  * the column count. Choosing a book (hover, keyboard focus, or a first tap on touch)
  * draws it forward toward the reader and lights only its gilding: the gold is a separate
@@ -11,11 +11,26 @@
  * The covers themselves are drawn by scripts/book-covers.
  */
 .bookcase {
-  --frame: #2a180c;
-  --back: #23140a;
-  --board: #6b4529;
-  --lip: #5a3920;
-  --lip-dark: #34200f;
+  /* The case is lacquered in the site's navy, framed like the page's hero panels, so it
+     belongs to the page rather than sitting on it; the brass and lamplight carry the gold. */
+  --frame-hi: #234a75;
+  --frame: #0f2440;
+  --frame-lo: #0a1628;
+  --back-top: #0f2240;
+  --back: #071326;
+  --board-back: #050c17;
+  --board-1: #0d1d33;
+  --board-2: #152b4a;
+  --board: #1d3658;
+  --board-front: #284a73;
+  --lip-hi: #3a5f8c;
+  --lip: #1a3253;
+  --lip-dark: #0f213a;
+  --lip-lo: #07111f;
+  --grain: 170, 200, 240;     /* the light stripe of the grain */
+  --sheen: 200, 220, 250;     /* catch-light along top edges */
+  --case-radius: var(--radius-xl, 20px);
+  --case-shadow: 0 8px 16px rgba(0, 0, 0, .15), 0 24px 48px -12px rgba(10, 22, 40, .45);
   --brass-hi: #efd896;
   --brass: #b8913f;
   --brass-lo: #7d5a1f;
@@ -26,13 +41,13 @@
   font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
 }
 
-/* the case: a heavy walnut frame round the compartments */
+/* the case: a heavy frame round the compartments */
 .bookcase {
-  padding: 16px; border-radius: 6px;
+  padding: 20px; border-radius: var(--case-radius);
   background:
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, .1) 0 1px, transparent 1px 9px, rgba(255, 220, 170, .04) 9px 10px, transparent 10px 27px),
-    linear-gradient(160deg, #4a2d17, var(--frame) 45%, #3b2312);
-  box-shadow: 0 34px 60px -30px rgba(10, 5, 0, .7), inset 0 1px 0 rgba(255, 225, 180, .18), inset 0 0 0 1px rgba(0, 0, 0, .4);
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .1) 0 1px, transparent 1px 9px, rgba(var(--grain), .04) 9px 10px, transparent 10px 27px),
+    linear-gradient(160deg, var(--frame-hi), var(--frame) 45%, var(--frame-lo));
+  box-shadow: var(--case-shadow), inset 0 1px 0 rgba(var(--sheen), .18), inset 0 0 0 1px rgba(0, 0, 0, .4);
 }
 .bookcase__shelf {
   display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -61,16 +76,16 @@
     linear-gradient(transparent 4px, rgba(var(--lamp), .12) 5px, rgba(255, 236, 196, .38) 5.5px 6.5px, rgba(var(--lamp), .12) 7px, transparent 8px),
     linear-gradient(transparent 4px, rgba(var(--lamp), .1) 7px, rgba(var(--lamp), .035) 22%, transparent 45%),
     radial-gradient(ellipse 90% 55% at 50% 92%, rgba(0, 0, 0, .28), transparent 70%),
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, .1) 0 1px, transparent 1px 13px, rgba(255, 220, 170, .025) 13px 14px, transparent 14px 31px),
-    linear-gradient(#3a2412, var(--back) 60%);
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .1) 0 1px, transparent 1px 13px, rgba(var(--grain), .025) 13px 14px, transparent 14px 31px),
+    linear-gradient(var(--back-top), var(--back) 60%);
   background-attachment: scroll, scroll, scroll, scroll, fixed, scroll;   /* grain anchored to the page, so neighbouring books' wood lines up */
 }
 /* top of the shelf board, seen receding to the back wall; books stand a little in from its front edge */
 .shelf-book__stand::after {
   content: ""; position: absolute; left: calc(var(--gap) / -2); right: calc(var(--gap) / -2); bottom: 0; height: 26px; z-index: -1;
   background:
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, .08) 0 1px, transparent 1px 12px, rgba(255, 220, 170, .04) 12px 13px, transparent 13px 29px),
-    linear-gradient(#140a04, #2e1c0e 22%, #4f331d 62%, var(--board) 88%, #84593a);
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .08) 0 1px, transparent 1px 12px, rgba(var(--grain), .04) 12px 13px, transparent 13px 29px),
+    linear-gradient(var(--board-back), var(--board-1) 22%, var(--board-2) 62%, var(--board) 88%, var(--board-front));
   background-attachment: fixed, scroll;
   box-shadow: 0 -12px 16px -8px rgba(0, 0, 0, .55);   /* the corner where wall meets board falls into shadow */
 }
@@ -79,10 +94,10 @@
 .shelf-book__lip::before {
   content: ""; position: absolute; inset: 0 calc(var(--gap) / -2); z-index: -1;
   background:
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, .07) 0 2px, transparent 2px 11px, rgba(255, 220, 170, .05) 11px 12px, transparent 12px 23px),
-    linear-gradient(#946541, var(--lip) 10%, var(--lip-dark) 82%, #1f1208);
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .07) 0 2px, transparent 2px 11px, rgba(var(--grain), .05) 11px 12px, transparent 12px 23px),
+    linear-gradient(var(--lip-hi), var(--lip) 10%, var(--lip-dark) 82%, var(--lip-lo));
   background-attachment: fixed, scroll;
-  box-shadow: inset 0 1px 0 rgba(255, 225, 180, .32), inset 0 -2px 3px rgba(0, 0, 0, .45);
+  box-shadow: inset 0 1px 0 rgba(var(--sheen), .32), inset 0 -2px 3px rgba(0, 0, 0, .45);
 }
 .shelf-book__plate {
   position: relative; display: grid; gap: 1px; max-width: 94%; padding: 5px 14px 6px; text-align: center;
