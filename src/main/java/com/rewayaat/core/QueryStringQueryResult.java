@@ -439,8 +439,9 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
     private static final List<String> SEARCHABLE_FIELDS = List.of(
             "english", "arabic", "chapter", "notes",
             "book.text", "volume.text", "part.text", "section.text",
-            "source.text", "publisher.text",
+            "source.text", "publisher.text", "cited_from.text",
             "book_ar", "chapter_ar.text", "part_ar.text", "section_ar.text", "source_ar.text",
+            "cited_from_ar.text",
             "topic_tags");
 
     /**
@@ -495,7 +496,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
 
     private static final List<String> METADATA_TEXT_FIELDS =
             List.of("book.text", "volume.text", "part.text", "section.text",
-                    "source.text", "publisher.text");
+                    "source.text", "publisher.text", "cited_from.text");
 
     /**
      * Sorts a metadata match above a matn match without changing what matches.

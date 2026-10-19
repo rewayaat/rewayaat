@@ -140,6 +140,25 @@
      }
     }
    },
+   "cited_from": {
+    "type": "keyword",
+    "fields": {
+     "text": {
+      "type": "text",
+      "analyzer": "english_fold",
+      "search_analyzer": "english_fold_search"
+     }
+    }
+   },
+   "cited_from_ar": {
+    "type": "keyword",
+    "fields": {
+     "text": {
+      "type": "text",
+      "analyzer": "arabic_norm"
+     }
+    }
+   },
    "daily_candidate": {
     "type": "boolean"
    },
@@ -243,6 +262,15 @@
       "type": "text",
       "analyzer": "english_fold",
       "search_analyzer": "english_fold_search"
+     }
+    }
+   },
+   "publisher_ar": {
+    "type": "keyword",
+    "fields": {
+     "text": {
+      "type": "text",
+      "analyzer": "arabic_norm"
      }
     }
    },
