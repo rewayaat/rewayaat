@@ -13,6 +13,8 @@ public final class HadithDisplaySegmenter {
     private static final int MATN_LOOKAHEAD_CHARS = 220;
     private static final int MIN_CHAIN_VISIBLE_CHARS = 12;
     private static final int MIN_CONTENT_VISIBLE_CHARS = 8;
+    private static final int NEAR_AN_OPENING_CHARS = 60;
+    private static final int NAMED_WORDS = 3;
 
     private static final Pattern HTML_TAG_PATTERN = Pattern.compile("<[^>]+>");
     private static final Pattern MULTISPACE_PATTERN = Pattern.compile("\\s+");
@@ -292,6 +294,10 @@ public final class HadithDisplaySegmenter {
             " روي ",
             " وروي ",
             " روى ",
+            " رواه ",
+            " ورواه ",
+            " رفعه ",
+            " رفعاه ",
             " سمعت "
     };
 
@@ -322,6 +328,52 @@ public final class HadithDisplaySegmenter {
             " وبإسناده ",
             " باسناده ",
             " وباسناده "
+    };
+
+    // How an entry opens, where the opening is itself the whole of what the book offers by
+    // way of a chain. A prefix that begins this way needs one chain signal rather than two.
+    private static final String[] ARABIC_CHAIN_OPENINGS = new String[] {
+            "وعن",
+            "عن",
+            "عنه",
+            "وبإسناده",
+            "بإسناده",
+            "وباسناده",
+            "باسناده",
+            "وبهذا الاسناد",
+            "بهذا الاسناد",
+            "وبهذا الإسناد",
+            "بهذا الإسناد",
+            "حدثنا",
+            "حدّثنا",
+            "حدثني",
+            "حدّثني",
+            "أخبرنا",
+            "اخبرنا",
+            "أخبرني",
+            "اخبرني",
+            "روي",
+            "وروي",
+            "روى",
+            "وروى"
+    };
+
+    // A route the book quotes rather than walks: «و رواه صافي البرقي عن أبي عبد الله (ع)»,
+    // «و في رواية زرارة عن أبي جعفر (عليه السلام)». Admitted on the same terms, but only
+    // near the head of the entry — see minArabicChainScore.
+    private static final String[] ARABIC_QUOTED_ROUTE_OPENINGS = new String[] {
+            "رواه",
+            "ورواه",
+            "في رواية",
+            "وفي رواية"
+    };
+
+    // Written over a name rather than about a man, so none of it counts towards the
+    // narration having begun — see saidByThePersonNamed.
+    private static final String[] ARABIC_BLESSING_WORDS = new String[] {
+            "الله", "عليه", "عليها", "عليهم", "عليهما", "السلام", "صلي", "صلوات", "وسلم",
+            "واله", "اله", "و", "ع", "ص", "رحمه", "رحمة", "تعالي", "عز", "جل", "رضي",
+            "عنه", "ره", "قدس", "سره", "لعنه", "عليك"
     };
 
     private static final String[] ARABIC_DIALOGUE_CUES = new String[] {
@@ -577,6 +629,10 @@ public final class HadithDisplaySegmenter {
         if (normalized.isEmpty()) {
             return -1;
         }
+        int formula = findArabicOpeningFormulaBoundary(raw, matchText, normalized);
+        if (formula > 0) {
+            return formula;
+        }
         int bestSplit = -1;
         int bestIndex = -1;
         int fallbackSplit = -1;
@@ -647,6 +703,112 @@ public final class HadithDisplaySegmenter {
         return bestSplit;
     }
 
+    /**
+     * The shorthand a book puts where a chain of names would stand, and the clause after it.
+     *
+     * <p>«10ـ وبهذا الإسناد أنّ أمير المؤمنين (عليه السلام) اشتكى عينه فعاده النبيّ (صلى الله
+     * عليه وآله) فإذا هو يصيح فقال…» — «وبهذا الإسناد» is the whole of the isnād here, and
+     * everything from «أنّ» is the narration. Read by markers alone the entry ends up with a
+     * chain that runs to the Prophet's reply, because those two words satisfy the score gate
+     * and the first «قال» is a hundred characters away. So where an entry opens on one of
+     * these formulas and «أنّ» follows it directly, that is the boundary, ahead of any verb.
+     *
+     * <p>A formula followed by a name is an ordinary chain and is left alone: «و رواه صافي
+     * البرقي عن أبي عبد الله (ع) قال» ends at the verb like every other chain does.
+     */
+    private static int findArabicOpeningFormulaBoundary(String raw, ArabicMatchText matchText,
+                                                        String normalized) {
+        for (String formula : new String[] { "وبهذا الاسناد", "و بهذا الاسناد",
+                                             "بهذا الاسناد", "وباسناده", "و باسناده",
+                                             "باسناده", "وروي", "و روي", "روي",
+                                             "ورواه", "و رواه", "رواه" }) {
+            int at = normalized.indexOf(formula);
+            if (at < 0 || at > 12 || !hasCueBoundary(normalized, at, formula.length())) {
+                continue;
+            }
+            int end = at + formula.length();
+            // The editions set a colon, a guillemet or a dash between the formula and the
+            // clause, and some set nothing at all. The boundary stays at the formula, so
+            // the punctuation opens the narration as it does on every other entry.
+            int clauseAt = end;
+            while (clauseAt < normalized.length()
+                    && " :«»\"'-\u2014\u2013".indexOf(normalized.charAt(clauseAt)) >= 0) {
+                clauseAt++;
+            }
+            for (String clause : new String[] { "انهما ", "انهم ", "انها ", "انه ", "ان " }) {
+                if (!normalized.startsWith(clause, clauseAt)) {
+                    continue;
+                }
+                // «و بهذا الإسناد أنّ النبيّ (صلى الله عليه وآله) قال» names whom the
+                // narration comes from, the way «عن أبي عبد الله (عليه السلام) قال» does,
+                // and he belongs on the chain with everyone else a reader can follow. So
+                // where a verb of saying stands close behind the clause, this stands aside
+                // and lets the ordinary markers take the boundary after it.
+                if (saidByThePersonNamed(normalized, clauseAt + clause.length())) {
+                    break;
+                }
+                // A boundary maps back to the last letter it kept, which would leave the
+                // vowel printed on «رُوِيَ» on the far side of the cut and drop it from
+                // both, so the cut is taken past whatever is written over that letter.
+                int split = matchText.toRawBoundary(end);
+                while (split < raw.length()
+                        && (isArabicDiacritic(raw.charAt(split)) || raw.charAt(split) == '\u0640')) {
+                    split++;
+                }
+                split = moveSplitBoundaryOutsideHtml(raw, split);
+                if (buildSplit(raw, split).hasSplit()) {
+                    return split;
+                }
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Whether the clause names a man and then has him speak, with nothing else in between.
+     *
+     * <p>«أنّ النبيّ (صلى الله عليه وآله) قال» is the book saying whom the narration comes
+     * from, the way «عن أبي عبد الله (عليه السلام) قال» is, and he belongs on the chain with
+     * everyone else a reader can follow. «أنّ عليّاً (عليه السلام) مرّ على منارة طويلة فأمر
+     * بهدمها، ثمّ قال» is the narration itself, and the verb at the end of it says nothing
+     * about where the isnād stopped. Distance does not tell them apart — both reach a verb
+     * of saying inside sixty characters — but what stands between does: a name and the
+     * blessing said over it, or a man doing things.
+     */
+    private static boolean saidByThePersonNamed(String normalized, int from) {
+        int end = Math.min(normalized.length(), from + NEAR_AN_OPENING_CHARS);
+        if (from >= end) {
+            return false;
+        }
+        String window = normalized.substring(from, end);
+        int said = -1;
+        for (String verb : new String[] { "قال", "قالت", "قالوا", "قالا", "فقال", "يقول" }) {
+            int at = findCueIndex(window, verb, 0);
+            if (at >= 0 && (said < 0 || at < said)) {
+                said = at;
+            }
+        }
+        if (said < 0) {
+            return false;
+        }
+        int named = 0;
+        for (String word : window.substring(0, said).trim().split("\\s+")) {
+            if (!word.isEmpty() && !isBlessing(word)) {
+                named++;
+            }
+        }
+        return named > 0 && named <= NAMED_WORDS;
+    }
+
+    private static boolean isBlessing(String word) {
+        for (String blessing : ARABIC_BLESSING_WORDS) {
+            if (word.equals(blessing)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static int maxArabicTailSignals(String marker) {
         if (marker == null || marker.isEmpty()) {
             return 1;
@@ -667,11 +829,13 @@ public final class HadithDisplaySegmenter {
         }
         int bestSplit = -1;
         int bestIndex = -1;
-        for (String marker : new String[] { " أنه ", " انه ", " أن ", " ان " }) {
+        for (String marker : new String[] { " أنه ", " انه ", " انها ", " انهم ", " انهما ",
+                                            " أن ", " ان " }) {
             int index = normalized.indexOf(marker);
             while (index >= 0 && index <= MAX_SCAN_CHARS) {
                 String prefix = normalized.substring(0, index);
-                if (arabicChainSignalScore(prefix) >= 3 && prefix.length() <= 200) {
+                if ((arabicChainSignalScore(prefix) >= 3 || isBareOpeningFormula(prefix))
+                        && prefix.length() <= 200) {
                     int split = matchText.toRawBoundary(index + marker.length());
                     String tail = trimContent(raw.substring(Math.min(split, raw.length())));
                     if (!startsWithAnyCue(tail, ARABIC_CHAIN_CUES)) {
@@ -687,6 +851,36 @@ public final class HadithDisplaySegmenter {
             }
         }
         return bestSplit;
+    }
+
+    /**
+     * Whether a prefix is nothing but a book's shorthand for an isnād it has already given.
+     *
+     * <p>«و بهذا الإسناد», «و بإسناده», «و روي» — two or three words standing where a chain
+     * of names would stand. They carry one chain signal and no nasab, so they can never
+     * reach the three a reported clause normally asks for, and the clause after them is the
+     * narration itself.
+     */
+    private static boolean isBareOpeningFormula(String prefix) {
+        String trimmed = stripLeadingNarrationPrefix(normalizeSignalText(prefix)).trim();
+        if (trimmed.startsWith("و ")) {
+            trimmed = trimmed.substring(2).trim();
+        }
+        if (trimmed.length() > NEAR_AN_OPENING_CHARS) {
+            return false;
+        }
+        for (String[] openings : new String[][] { ARABIC_CHAIN_OPENINGS,
+                                                  ARABIC_QUOTED_ROUTE_OPENINGS }) {
+            for (String opening : openings) {
+                // Not «عن» or «عنه»: those open a chain of names, which reaches three
+                // signals on its own and does not need this.
+                if (opening.length() > 4
+                        && (trimmed.equals(opening) || trimmed.startsWith(opening + " "))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private static int findArabicColonBoundary(String raw) {
@@ -1029,29 +1223,28 @@ public final class HadithDisplaySegmenter {
         }
         String simplified = stripLeadingNarrationPrefix(normalized);
         String trimmed = simplified.trim();
-        if (trimmed.startsWith("وعن")
-                || trimmed.startsWith("عن")
-                || trimmed.startsWith("عنه")
-                || trimmed.startsWith("وبإسناده")
-                || trimmed.startsWith("بإسناده")
-                || trimmed.startsWith("وباسناده")
-                || trimmed.startsWith("باسناده")
-                || trimmed.startsWith("وبهذا الاسناد")
-                || trimmed.startsWith("بهذا الاسناد")
-                || trimmed.startsWith("وبهذا الإسناد")
-                || trimmed.startsWith("بهذا الإسناد")
-                || trimmed.startsWith("حدثنا")
-                || trimmed.startsWith("حدّثنا")
-                || trimmed.startsWith("حدثني")
-                || trimmed.startsWith("حدّثني")
-                || trimmed.startsWith("أخبرنا")
-                || trimmed.startsWith("اخبرنا")
-                || trimmed.startsWith("أخبرني")
-                || trimmed.startsWith("اخبرني")
-                || trimmed.startsWith("روي")
-                || trimmed.startsWith("وروي")
-                || trimmed.startsWith("روى")
-                || trimmed.startsWith("وروى")) {
+        if (opensOn(trimmed, ARABIC_CHAIN_OPENINGS)) {
+            return 1;
+        }
+        // The editions set the conjunction loose — «و باسناده», «و بهذا الاسناد», «و روى
+        // أحمد بن عائذ» — where these openings were written joined, so an entry opening on
+        // its own route scored as ordinary prose. One waw is not a different opening.
+        //
+        // But a formula of two or three words vouches for a boundary standing next to it,
+        // not for one far down the entry: «و روي: «أن عليا (عليه السلام) مر على منارة
+        // طويلة فأمر بهدمها، ثم قال»» would otherwise read the whole act as isnād on the
+        // strength of its first two words. So the licence the loose conjunction earns is
+        // bounded, and the colon after «و روي» is left to be found instead.
+        if (trimmed.startsWith("و ")) {
+            String pastWaw = trimmed.substring(2).trim();
+            if (pastWaw.length() <= NEAR_AN_OPENING_CHARS
+                    && (opensOn(pastWaw, ARABIC_CHAIN_OPENINGS)
+                        || opensOn(pastWaw, ARABIC_QUOTED_ROUTE_OPENINGS))) {
+                return 1;
+            }
+        }
+        if (opensOn(trimmed, ARABIC_QUOTED_ROUTE_OPENINGS)
+                && trimmed.length() <= NEAR_AN_OPENING_CHARS) {
             return 1;
         }
         // For very long prefixes (likely book prefaces), require stronger chain signals
@@ -1060,6 +1253,15 @@ public final class HadithDisplaySegmenter {
             return 5;
         }
         return 2;
+    }
+
+    private static boolean opensOn(String trimmed, String[] openings) {
+        for (String opening : openings) {
+            if (trimmed.startsWith(opening)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static String stripLeadingNarrationPrefix(String normalized) {

@@ -3019,4 +3019,67 @@ class HadithDisplaySegmenterTest {
         assertFalse(chain.contains("قُلْنَا لَهُ"), "The chain must end at the dual verb");
         assertTrue(content.contains("قُلْنَا لَهُ"));
     }
+
+    @Test
+    void readsTheRouteABookQuotesRatherThanWalks() {
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "4 وَ رَوَاهُ صَافِي الْبَرْقِيُّ عَنْ أَبِي عَبْدِ اللَّهِ (ع) قَالَ "
+                + "مَنْ زَارَ أَبَا عَبْدِ اللَّهِ (ع) ثَلَاثَ سِنِينَ مُتَوَالِيَاتٍ غَفَرَ اللَّهُ لَهُ ذُنُوبَهُ.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        assertNotNull(chain, "«و رواه فلان عن فلان» is a chain the book quotes");
+        assertTrue(chain.contains("صَافِي الْبَرْقِيُّ"));
+        assertFalse(chain.contains("ثَلَاثَ سِنِينَ"));
+    }
+
+    @Test
+    void readsTheConjunctionLooseBeforeAnOpeningFormula() {
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "1161 - وَ فِي رِوَايَةِ زُرَارَةَ عَنْ أَبِي جَعْفَرٍ عَلَيْهِ اَلسَّلاَمُ قَالَ "
+                + "«وَ إِنْ كُنْتَ خَلْفَ إِمَامٍ فَلاَ تَقْرَأَنَّ شَيْئاً فِي اَلْأَوَّلَتَيْنِ».");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        assertNotNull(chain, "«و في رواية» is the same opening as «وفي رواية»");
+        assertTrue(chain.contains("زُرَارَةَ"));
+        assertFalse(chain.contains("خَلْفَ إِمَامٍ"));
+    }
+
+    @Test
+    void anOpeningFormulaDoesNotVouchForADistantVerb() {
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "722 - وَ رُوِيَ: «أَنَّ عَلِيّاً عَلَيْهِ اَلسَّلاَمُ مَرَّ عَلَى مَنَارَةٍ "
+                + "طَوِيلَةٍ فَأَمَرَ بِهَدْمِهَا، ثُمَّ قَالَ «لاَ تُرْفَعُ اَلْمَنَارَةُ إِلاَّ مَعَ سَطْحِ اَلْمَسْجِدِ».");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        // Two words of formula must not read what the Imam did as isnād on their strength.
+        assertFalse(chain.contains("مَنَارَةٍ"), "The chain ends at the formula");
+        assertTrue(content.contains("مَنَارَةٍ"));
+    }
+
+    @Test
+    void readsTheClauseAfterABookShorthandForAChainAlreadyGiven() {
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "10ـ وَبِهَذَا الإِسْنَادِ أَنَّ أَمِيرَ الْمُؤْمِنِينَ (عَلَيْهِ الْسَّلام) "
+                + "اشْتَكَى عَيْنُهُ فَعَادَهُ النَّبِيُّ (صلّى اللهُ عَلَيْهِ وَآلِه) فَإِذَا هُوَ يَصِيحُ فَقَالَ "
+                + "أَمَا وَاللهِ لَوْ كَانَ وَجَعُكَ بِي لَصَبَرْتُ.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain, "«وبهذا الإسناد» is the whole chain al-Kulaynī gives here");
+        assertNotNull(content);
+        assertTrue(chain.contains("وَبِهَذَا الإِسْنَادِ"));
+        assertFalse(chain.contains("اشْتَكَى"), "What follows «أنّ» is the narration");
+        assertTrue(content.contains("اشْتَكَى"));
+    }
 }
