@@ -44,8 +44,8 @@ def main():
     skipped_snippets = 0
 
     for hit in helpers.scan(es, index=INDEX, query={"query": {"match_all": {}}},
-                            _source=["hadith_id", "hadith_english", "hadith_arabic",
-                                     "candidates.verse_key", "candidates.verse_text",
+                            _source=["hadith_id", "hadith_english",
+                                     "candidates.verse_key", "candidates.text_english",
                                      "candidates.surah_name_english",
                                      "candidates.tafsir_snippets"]):
         src = hit["_source"]
@@ -58,7 +58,7 @@ def main():
 
         for c in src.get("candidates", []):
             vk = c.get("verse_key", "")
-            vt = c.get("verse_text", "")
+            vt = c.get("text_english", "")
             snips_out = []
 
             for s in c.get("tafsir_snippets", []):
