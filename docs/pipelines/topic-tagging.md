@@ -11,12 +11,18 @@ python3 scripts/tagging/import_tags_to_es.py --es-url http://localhost:9200 --in
 
 Validate before importing: every output holds exactly its input's ids, and every slug exists and is taggable.
 
+## Batches
+
+The export's 500-narration JSON arrays are too large for an agent to read: the first attempt (2026-10-19) came back in 25 seconds with fewer tokens spent than the input holds, and 45% of one batch untagged — the agents had matched keywords with a script. The pass therefore runs on 250-narration JSON-lines batches (`id`, `chapter`, `english` ≤ 700 chars, `arabic` ≤ 450 chars) and a compact list of the 206 taggable slugs (`taggable_slugs.tsv`: slug, English, Arabic, parent), and the prompt forbids code. An output whose agent spent fewer tokens than its input holds is discarded and rerun.
+
 ## Prompt
 
 `{INPUT}` and `{OUTPUT}` are filled per batch.
 
-> You assign topic tags to hadith narrations. Read `{INPUT}` (a JSON array; each item has `_id`, `english`, `arabic`, `book`, `chapter`, `section`) and the taxonomy `/home/zir0/git/rewayaat-lost-books/src/main/resources/static/taxonomy.json` (a list of `{slug, en, ar, category, parent?, taggable?}`). A slug is taggable unless its entry has `"taggable": false`.
+> You assign topic tags to hadith narrations, by reading them. Read the tag list `{SLUGS}` (tab-separated: slug, English name, Arabic name, parent topic) and then `{INPUT}` (one JSON object per line: `id`, `chapter`, `english`, `arabic`), in chunks of 50 lines (Read with offset/limit).
 >
-> For each narration, choose the taggable slugs that name what the narration is *about*, judged by its English and Arabic text — usually 1 to 3, at most 6, and none when nothing fits. Prefer the most specific slug (a child over its parent: the parent is added automatically). The chapter title is a hint, not the answer: tag what the narration itself says. Never use a slug whose `taggable` is false, and never invent one.
+> For each narration, choose the slugs from the list that name what the narration is *about*, judged by its English and Arabic text — usually 1 to 3, at most 6. Leave it empty only when no topic in the list fits at all; most narrations fit one. Prefer the most specific slug (its parent is added automatically). The chapter title is a hint, not the answer: tag what the narration itself says. Use only slugs from the list, exactly as written.
 >
-> Write `{OUTPUT}` as `{"assignments": [{"id": "<_id>", "tags": ["<slug>", ...]}]}`, one entry per input narration, in input order, every `_id` exactly once. Read the input in chunks (Read with offset/limit, about 800 lines at a time) and build the output as you go, writing it with Write at the end. Do not use the web. Do not modify the input. Final reply: one line of JSON `{"narrations": N, "tagged": N, "untagged": N}`.
+> **Do not write or run any code, script or search to assign tags** — no python, no grep, no keyword matching. Read every narration and decide yourself. You may use Bash only to append your result lines to the output file.
+>
+> Write `{OUTPUT}` as JSON lines, one per input line in the same order: `{"id": "<id>", "tags": ["<slug>", ...]}`. After each chunk of 50, append that chunk's 50 lines (e.g. `cat >> {OUTPUT} <<'EOF'`). Do not use the web. Do not modify the input. Final reply: one line of JSON `{"narrations": N, "tagged": N, "untagged": N}`.
