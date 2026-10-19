@@ -113,7 +113,7 @@ public class FetchTool implements McpTool {
 
     private static Map<String, Object> metadata(Map<String, Object> source) {
         Map<String, Object> metadata = new LinkedHashMap<>();
-        for (String field : List.of("book", "volume", "part", "section", "chapter", "number")) {
+        for (String field : List.of("book", "volume", "part", "section", "chapter", "number", "source", "cited_from")) {
             String value = NarrationView.str(source.get(field));
             if (!value.isEmpty()) {
                 metadata.put(field, value);

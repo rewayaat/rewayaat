@@ -394,6 +394,29 @@ class HadithCardParityTest {
         return html.contains("'" + cls + "'") || html.contains("\"" + cls + "\"");
     }
 
+    /**
+     * The citation row exists on both cards, and the search card's publisher row is
+     * localised and escaped like its neighbours.
+     *
+     * <p>The publisher row once handed {@code this.narration.publisher} to {@code v-html}
+     * as it was: no Arabic on the Arabic site, and no escaping. No narration had a
+     * publisher, so nothing showed it until the restored books brought one.
+     */
+    @Test
+    void bothCardsRenderTheCitationRow() throws IOException {
+        String vue = readSearchCard();
+        assertTrue(vue.contains("key: 'cited_from'"), "the search card has no citation row");
+        assertTrue(vue.contains("localeField(this.narration, 'cited_from')"),
+                "the search card's citation row is not localised");
+        assertTrue(vue.contains("localeField(this.narration, 'publisher')"),
+                "the search card's publisher row is not localised");
+        assertFalse(vue.contains("html: this.narration.publisher"),
+                "the search card's publisher row is unescaped");
+
+        String server = read(Path.of("src/main/java/com/rewayaat/service/HadithCardFactory.java"));
+        assertTrue(server.contains("\"js.citedFrom\""), "the server card has no citation row");
+    }
+
     private static String readSearchCard() throws IOException {
         StringBuilder combined = new StringBuilder();
         for (Path path : SEARCH_CARD) {

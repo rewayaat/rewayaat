@@ -223,6 +223,15 @@
                                 clickable: false
                             });
                         }
+                        if (this.isRealValue(this.narration.cited_from)) {
+                            items.push({
+                                key: 'cited_from',
+                                icon: 'fa fa-quote-right',
+                                label: t('js.citedFrom', 'Cited from'),
+                                html: this.escapeHtml(localeField(this.narration, 'cited_from')),
+                                clickable: false
+                            });
+                        }
                         if (this.isRealValue(this.narration.edition)) {
                             items.push({
                                 key: 'edition',
@@ -237,7 +246,7 @@
                                 key: 'publisher',
                                 icon: 'fa fa-building',
                                 label: t('js.publisher', 'Publisher'),
-                                html: this.narration.publisher,
+                                html: this.escapeHtml(localeField(this.narration, 'publisher')),
                                 clickable: false
                             });
                         }

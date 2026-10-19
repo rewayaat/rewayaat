@@ -45,4 +45,27 @@ class HadithObjectSerializationTest {
         assertEquals(List.of("charity"), restored.getTopicTags());
         assertTrue(restored.getTags().isEmpty());
     }
+
+    /**
+     * The edit path re-indexes a narration from a HadithObject, so a field the class does
+     * not declare survives only through its additional properties. The citation must.
+     */
+    @Test
+    void anEditKeepsTheCitation() {
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> source = new HashMap<>();
+        source.put("english", "before");
+        source.put("cited_from", "Kanz al-Ummal, number:29331");
+        source.put("cited_from_ar", "كنز العمال، ح 29331");
+
+        HadithObject hadith = mapper.convertValue(source, HadithObject.class);
+        Map<String, Object> merged = mapper.convertValue(hadith, new TypeReference<Map<String, Object>>() { });
+        merged.put("english", "after");
+        Map<String, Object> saved = mapper.convertValue(mapper.convertValue(merged, HadithObject.class),
+                new TypeReference<Map<String, Object>>() { });
+
+        assertEquals("after", saved.get("english"));
+        assertEquals("Kanz al-Ummal, number:29331", saved.get("cited_from"));
+        assertEquals("كنز العمال، ح 29331", saved.get("cited_from_ar"));
+    }
 }
