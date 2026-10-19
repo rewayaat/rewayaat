@@ -368,6 +368,30 @@ class RepairsTest(unittest.TestCase):
         self.assertEqual(by["Mizan-al-Hikma-Rayshahri:1"]["english"], "Do not betray.")
         self.assertEqual([e["v1_id"] for e in excluded], ["2"])
 
+    def test_a_reader_retitle_sets_the_title_and_marks_its_source(self):
+        repairs = {"retitles": {"Mizan-al-Hikma-Rayshahri:3": {"chapter": "Grief", "chapter_ar": "الغم"}}}
+        docs, _, _, _ = c.convert(self.rows(), NO_OVERRIDES, repairs=repairs)
+        src = {d["_id"]: d["_source"] for d in docs}["Mizan-al-Hikma-Rayshahri:3"]
+        self.assertEqual((src["chapter"], src["chapter_ar"], src["chapter_ar_source"]), ("Grief", "الغم", "rewayaat-review"))
+
+    def test_a_retitle_can_drop_a_wrong_arabic_title(self):
+        repairs = {"retitles": {"Mizan-al-Hikma-Rayshahri:3": {"chapter_ar": None}}}
+        docs, _, _, _ = c.convert(self.rows(), NO_OVERRIDES, repairs=repairs)
+        src = {d["_id"]: d["_source"] for d in docs}["Mizan-al-Hikma-Rayshahri:3"]
+        self.assertNotIn("chapter_ar", src)
+
+    def test_a_retitle_may_only_touch_title_fields(self):
+        with self.assertRaises(ValueError):
+            c.convert(self.rows(), NO_OVERRIDES, repairs={"retitles": {"Mizan-al-Hikma-Rayshahri:3": {"arabic": "x"}}})
+
+
+class CitationCleanTest(unittest.TestCase):
+
+    def test_stray_brackets_and_punctuation_leave_a_citation(self):
+        self.assertEqual(c.clean_citation("[Kan z al-Ummal, number:28666"), "Kan z al-Ummal, number:28666")
+        self.assertEqual(c.clean_citation("Ghurar al-Hikam,. number:2142"), "Ghurar al-Hikam, number:2142")
+        self.assertEqual(c.clean_citation("AeIlal al-Sharaia , p. 227, number:2"), "AeIlal al-Sharaia, p. 227, number:2")
+
 
 if __name__ == "__main__":
     unittest.main()

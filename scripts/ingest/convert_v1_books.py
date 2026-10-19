@@ -40,6 +40,7 @@ TITLE_MAX_CHARS = 100
 BATCH_SIZE = 200
 VOLUME = "1"
 ARABIC_SOURCE = "rewayaat-v1"
+REVIEW_SOURCE = "rewayaat-review"
 
 BOOKS = [
     {
@@ -307,6 +308,14 @@ def book_for(v1_book: str | None) -> dict | None:
     return None
 
 
+def clean_citation(text: str | None) -> str:
+    """Stray brackets and punctuation out of a Mizan citation; the words are left as printed."""
+    out = re.sub(r"[\[\]]", "", clean(text))
+    out = re.sub(r",\s*\.", ",", out)
+    out = re.sub(r"\s+,", ",", out)
+    return re.sub(r"\s+", " ", out).strip(" ,.")
+
+
 def body_text(text: str | None) -> str:
     return LINE_BREAK.sub("\n", text or "").strip()
 
@@ -358,6 +367,18 @@ def apply_repairs(docs, repairs):
             raise ValueError(f"{target}: relabel to a label the book does not use: {key[1:]}")
         doc["part"], doc["chapter"] = key[1], key[2]
         doc["part_ar"], doc["chapter_ar"] = labels[key]
+
+    # Titles a reader corrected after checking the narrations under them. Titles are
+    # metadata, so this may change letters; it may not touch the narration text.
+    for target, fields in repairs.get("retitles", {}).items():
+        if target not in by_id:
+            continue
+        if set(fields) - {"part", "part_ar", "chapter", "chapter_ar"}:
+            raise ValueError(f"{target}: a retitle may only set part, part_ar, chapter or chapter_ar")
+        for field, value in fields.items():
+            by_id[target][field] = value or ""
+        if "chapter_ar" in fields:
+            by_id[target]["chapter_ar_source"] = REVIEW_SOURCE if fields["chapter_ar"] else ""
 
 
 def convert(rows, overrides, fixes=None, exclusions=None, hold_back=(), title_fixes=None,
@@ -439,7 +460,7 @@ def convert(rows, overrides, fixes=None, exclusions=None, hold_back=(), title_fi
         doc["id"] = f"{doc['spec']['id_prefix']}:{doc['v1']['number']}"
         doc["arabic"] = clean_arabic(body_text(doc["v1"].get("arabic")), book)
         doc["english"] = clean_english(body_text(doc["v1"].get("english")), book, english_headings[book])
-        doc["cited_from"] = clean(doc["v1"].get("source")) if doc["spec"]["cites"] else ""
+        doc["cited_from"] = clean_citation(doc["v1"].get("source")) if doc["spec"]["cites"] else ""
         for fix in fixes.get(doc["id"], []):
             field = fix["field"]
             known = sorted(headings[book]["ar" if field == "arabic" else "en"])
@@ -473,7 +494,7 @@ def convert(rows, overrides, fixes=None, exclusions=None, hold_back=(), title_fi
         }
         if doc["chapter_ar"]:
             source["chapter_ar"] = doc["chapter_ar"]
-            source["chapter_ar_source"] = ARABIC_SOURCE
+            source["chapter_ar_source"] = doc.get("chapter_ar_source") or ARABIC_SOURCE
         if doc["part"]:
             source["part"] = doc["part"]
             if doc["part_ar"]:
