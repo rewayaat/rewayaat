@@ -30,7 +30,7 @@ from chain_resolve import COMPILER_DIED, GLUE, RELATIVE, key  # noqa: E402
 from imams import ROSTER  # noqa: E402
 
 TMP = f'{W}/tmp/narrators_chains'
-CHAINS = f'{TMP}/chains.jsonl'
+CHAINS = f'{TMP}/chains_served.jsonl'
 RESOLVED = f'{TMP}/resolved.jsonl'
 PEOPLE = f'{TMP}/people_index.json'
 

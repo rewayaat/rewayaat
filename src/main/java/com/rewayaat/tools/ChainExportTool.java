@@ -34,7 +34,7 @@ import java.util.Map;
  * <p>Nothing is written back to Elasticsearch. Usage:
  *
  * <pre>
- * REWAYAAT_INDEX=rewayaat_updated CHAIN_EXPORT_OUT=tmp/narrators_chains/chains.jsonl \
+ * REWAYAAT_INDEX=rewayaat_hadith CHAIN_EXPORT_OUT=tmp/narrators_chains/chains_served.jsonl \
  *   java -cp "target/classes:$(cat /tmp/rewayaat.cp)" com.rewayaat.tools.ChainExportTool
  * </pre>
  */
@@ -44,7 +44,7 @@ public final class ChainExportTool {
     private static final Duration REQUEST_TIMEOUT = Duration.ofMinutes(2);
     private static final int BATCH_SIZE = readInt("CHAIN_EXPORT_BATCH_SIZE", 500);
     private static final String SCROLL_KEEPALIVE = readString("CHAIN_EXPORT_SCROLL", "5m");
-    private static final String OUT_PATH = readString("CHAIN_EXPORT_OUT", "tmp/narrators_chains/chains.jsonl");
+    private static final String OUT_PATH = readString("CHAIN_EXPORT_OUT", "tmp/narrators_chains/chains_served.jsonl");
 
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))

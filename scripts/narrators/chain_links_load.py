@@ -102,7 +102,7 @@ def main():
     args = parser.parse_args()
 
     chains = served_chains(args.served)
-    numbered = numbers(f'{TMP}/narrators_chains/chains.jsonl')
+    numbered = numbers(f'{TMP}/narrators_chains/chains_served.jsonl')
     slug_of = slugs(args.es_host)
     print(f"  {len(slug_of):7,}  people the links can point at")
     print(f"  {len(chains):7,}  narrations in the index the site reads")

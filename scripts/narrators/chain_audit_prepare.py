@@ -109,7 +109,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--resolved", default=f'{TMP}/narrators_chains/resolved.jsonl')
-    parser.add_argument("--chains-file", default=f'{TMP}/narrators_chains/chains.jsonl')
+    parser.add_argument("--chains-file", default=f'{TMP}/narrators_chains/chains_served.jsonl')
     parser.add_argument("--people", default=f'{TMP}/narrators_chains/people_index.json')
     parser.add_argument("--out-dir", default=f'{TMP}/narrators_audit/chain')
     parser.add_argument("--chains", type=int, default=200, help="chains to draw")

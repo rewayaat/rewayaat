@@ -34,7 +34,7 @@ W = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '.
 sys.path.insert(0, f'{W}/scripts/narrators')
 
 TMP = f'{W}/tmp'
-CHAINS = f'{TMP}/narrators_chains/chains.jsonl'
+CHAINS = f'{TMP}/narrators_chains/chains_served.jsonl'
 
 _TASHKEEL = re.compile(r"[ً-ْٰـ­ۖ-ۭ]")
 # ی and ک are the Persian letters: the Qom editions of several of these books are typeset
