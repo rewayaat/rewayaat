@@ -246,7 +246,25 @@ def _removed_span_is_heading(old: str, new: str, headings) -> bool:
     return False
 
 
-def validate_fix(field: str, original: str, old: str, new: str, headings=()) -> str:
+# The only speakers a reader may correct a narration's opening attribution to, and the only
+# shape that attribution may have. A speaker fix touches the attribution and nothing after it.
+SPEAKERS_AR = {"الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)"}
+SPEAKERS_EN = {"Imam Ali (AS)"}
+SPEAKER_PREFIX_AR = re.compile(r"^\s*(رسول\s*الل[ّ]?ه|الإمام\s+\S+)\s*\([^)]*\)\s*$")
+SPEAKER_PREFIX_EN = re.compile(r"^(The Prophet|The Messenger of Allah|Imam [\w\-’' ]+?)\s*\((SAWA|AS|SAW)\)$")
+
+
+def _validate_speaker(field: str, original: str, old: str, new: str) -> str:
+    if not original.lstrip().startswith(old):
+        raise ValueError("a speaker fix must replace the opening attribution")
+    if field == "arabic" and SPEAKER_PREFIX_AR.match(DIACRITICS.sub("", old)) and new in SPEAKERS_AR:
+        return "review"
+    if field == "english" and SPEAKER_PREFIX_EN.match(old) and new in SPEAKERS_EN:
+        return "review"
+    raise ValueError(f"not a speaker attribution: {old[:40]!r} -> {new[:40]!r}")
+
+
+def validate_fix(field: str, original: str, old: str, new: str, headings=(), kind: str = "text") -> str:
     """'auto' when a fix provably changes no word, 'review' when it needs a reader; raises otherwise."""
     if field in TITLE_FIELDS:
         raise ValueError("titles are corrected through the title overrides, not text fixes")
@@ -257,6 +275,8 @@ def validate_fix(field: str, original: str, old: str, new: str, headings=()) -> 
         original, old, new = (unicodedata.normalize("NFC", t) for t in (original, old, new))
     if not old or original.count(old) != 1:
         raise ValueError(f"'old' must occur exactly once in {field}")
+    if kind == "speaker":
+        return _validate_speaker(field, original, old, new)
     if field == "arabic":
         if skeleton(new) == skeleton(old):
             return "auto"
@@ -306,17 +326,52 @@ def resolve_title(spec, field, raw, overrides, anomalies):
     return english, arabic, False
 
 
-def convert(rows, overrides, fixes=None, exclusions=None, hold_back=(), title_fixes=None):
-    fixes, exclusions, title_fixes = fixes or {}, exclusions or {}, title_fixes or {}
+def apply_repairs(docs, repairs):
+    """Moves English (and its citation) to the narration it translates, and re-files a narration
+    under a label its book already uses. Neither writes a word: both only move existing text."""
+    by_id = {d["id"]: d for d in docs}
+    moves = repairs.get("english_moves", {})
+    taken = Counter(m["english_from"] for m in moves.values() if m.get("english_from"))
+    if any(n > 1 for n in taken.values()):
+        raise ValueError(f"an English assigned twice: {[k for k, n in taken.items() if n > 1]}")
+    snapshot = {i: (d["english"], d["cited_from"]) for i, d in by_id.items()}
+    for target, move in moves.items():
+        if target not in by_id:
+            continue
+        for field, key, slot in (("english", "english_from", 0), ("cited_from", "cited_from_from", 1)):
+            source = move.get(key)
+            if not source:
+                continue
+            if source not in snapshot or by_id[source]["spec"]["book"] != by_id[target]["spec"]["book"]:
+                raise ValueError(f"{target}: {key} {source} is not a narration of the same book")
+            by_id[target][field] = snapshot[source][slot]
+
+    labels = {}
+    for d in docs:
+        labels.setdefault((d["spec"]["book"], d["part"], d["chapter"]), (d["part_ar"], d["chapter_ar"]))
+    for target, label in repairs.get("relabels", {}).items():
+        if target not in by_id:
+            continue
+        doc = by_id[target]
+        key = (doc["spec"]["book"], label.get("part") or "", label["chapter"])
+        if key not in labels:
+            raise ValueError(f"{target}: relabel to a label the book does not use: {key[1:]}")
+        doc["part"], doc["chapter"] = key[1], key[2]
+        doc["part_ar"], doc["chapter_ar"] = labels[key]
+
+
+def convert(rows, overrides, fixes=None, exclusions=None, hold_back=(), title_fixes=None,
+            repairs=None):
+    fixes, exclusions, title_fixes, repairs = fixes or {}, exclusions or {}, title_fixes or {}, repairs or {}
     picked = [(book_for(r.get("book")), r) for r in rows]
     picked = [(spec, r) for spec, r in picked if spec]
-    held = [(spec, r) for spec, r in picked
-            if spec["book"] in hold_back or r["_id"] in exclusions]
+    # Excluded records are dropped only after the repairs: one may still hold the English
+    # that belongs to a neighbour. Held-back books leave here, whole.
+    held = [(spec, r) for spec, r in picked if spec["book"] in hold_back]
     picked = [p for p in picked if p not in held]
 
     numbers = Counter((spec["book"], str(r.get("number"))) for spec, r in picked)
-    excluded = [{"v1_id": r["_id"], "book": spec["book"],
-                 "reason": exclusions.get(r["_id"], "held-back"),
+    excluded = [{"v1_id": r["_id"], "book": spec["book"], "reason": "held-back",
                  "english": clean(r.get("english"))} for spec, r in held]
     kept = []
     for spec, r in picked:
@@ -379,23 +434,33 @@ def convert(rows, overrides, fixes=None, exclusions=None, hold_back=(), title_fi
         headings[book]["ar"].update(t for t in (doc["part_ar"], doc["chapter_ar"]) if t)
 
     english_headings = {book: tuple(sorted(h["en"])) for book, h in headings.items()}
-    out, v1_ids = [], {}
     for doc in docs:
-        spec, r = doc["spec"], doc["v1"]
-        new_id = f"{spec['id_prefix']}:{r['number']}"
-        book = spec["book"]
-        doc["arabic"] = clean_arabic(body_text(r.get("arabic")), book)
-        doc["english"] = clean_english(body_text(r.get("english")), book, english_headings[book])
-        for fix in fixes.get(new_id, []):
+        book = doc["spec"]["book"]
+        doc["id"] = f"{doc['spec']['id_prefix']}:{doc['v1']['number']}"
+        doc["arabic"] = clean_arabic(body_text(doc["v1"].get("arabic")), book)
+        doc["english"] = clean_english(body_text(doc["v1"].get("english")), book, english_headings[book])
+        doc["cited_from"] = clean(doc["v1"].get("source")) if doc["spec"]["cites"] else ""
+        for fix in fixes.get(doc["id"], []):
             field = fix["field"]
             known = sorted(headings[book]["ar" if field == "arabic" else "en"])
-            verdict = validate_fix(field, doc[field], fix["old"], fix["new"], known)
+            verdict = validate_fix(field, doc[field], fix["old"], fix["new"], known,
+                                   fix.get("kind", "text"))
             if verdict == "review" and not fix.get("approved"):
-                raise ValueError(f"{new_id}: fix needs review approval: {fix['old'][:40]!r}")
+                raise ValueError(f"{doc['id']}: fix needs review approval: {fix['old'][:40]!r}")
             old, new = fix["old"], fix["new"]
             if field == "arabic":
                 old, new = unicodedata.normalize("NFC", old), unicodedata.normalize("NFC", new)
             doc[field] = re.sub(r"[ \t]+", " ", doc[field].replace(old, new, 1)).strip()
+    apply_repairs(docs, repairs)
+    for doc in [d for d in docs if d["v1"]["_id"] in exclusions]:
+        excluded.append({"v1_id": doc["v1"]["_id"], "book": doc["spec"]["book"],
+                         "reason": exclusions[doc["v1"]["_id"]], "english": doc["english"]})
+    docs = [d for d in docs if d["v1"]["_id"] not in exclusions]
+
+    out, v1_ids = [], {}
+    for doc in docs:
+        spec, r = doc["spec"], doc["v1"]
+        new_id = f"{spec['id_prefix']}:{r['number']}"
         if new_id in v1_ids.values():
             raise ValueError(f"duplicate id {new_id}")
         v1_ids[r["_id"]] = new_id
@@ -416,8 +481,8 @@ def convert(rows, overrides, fixes=None, exclusions=None, hold_back=(), title_fi
         if spec["publisher"]:
             source["publisher"] = spec["publisher"]
             source["publisher_ar"] = spec["publisher_ar"]
-        if spec["cites"] and clean(r.get("source")):
-            source["cited_from"] = clean(r.get("source"))
+        if spec["cites"] and doc["cited_from"]:
+            source["cited_from"] = doc["cited_from"]
         out.append({"_id": new_id, "_source": source})
 
     blocking = {k: sorted(v & BLOCKING) for k, v in anomalies.items() if v & BLOCKING}
@@ -465,6 +530,8 @@ def main() -> int:
                         help="v1 ids to leave out, with the reason")
     parser.add_argument("--title-fixes", default=str(Path(__file__).with_name("v1_restore_title_fixes.json")),
                         help="whole-title spacing and mark repairs, by field")
+    parser.add_argument("--repairs", default=str(Path(__file__).with_name("v1_restore_repairs.json")),
+                        help="English moved to its own narration, and narrations re-filed under existing labels")
     parser.add_argument("--hold-back", action="append", default=[],
                         help="a book (new name) to leave out whole; repeatable")
     args = parser.parse_args()
@@ -474,8 +541,9 @@ def main() -> int:
     fixes = json.loads(Path(args.fixes).read_text(encoding="utf-8"))
     exclusions = json.loads(Path(args.exclusions).read_text(encoding="utf-8"))
     title_fixes = json.loads(Path(args.title_fixes).read_text(encoding="utf-8"))
+    repairs = json.loads(Path(args.repairs).read_text(encoding="utf-8"))
     docs, v1_ids, excluded, report = convert(rows, overrides, fixes, exclusions, set(args.hold_back),
-                                             title_fixes)
+                                             title_fixes, repairs)
     write_outputs(docs, v1_ids, excluded, report, Path(args.out_dir), Path(args.report_dir))
     print(json.dumps({"documents": len(docs), "excluded": len(excluded),
                       "blocking": len(report["blocking"]),

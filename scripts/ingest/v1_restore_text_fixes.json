@@ -3683,6 +3683,26 @@
    "type": "ocr-arabic"
   }
  ],
+ "Mizan-al-Hikma-Rayshahri:1092": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "speaker",
+   "new": "Imam Ali (AS)",
+   "old": "The Prophet (SAWA)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1093": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "speaker",
+   "new": "Imam Ali (AS)",
+   "old": "The Prophet (SAWA)",
+   "type": "speaker"
+  }
+ ],
  "Mizan-al-Hikma-Rayshahri:111": [
   {
    "approved": true,
@@ -3842,6 +3862,16 @@
    "type": "ocr-arabic"
   }
  ],
+ "Mizan-al-Hikma-Rayshahri:1333": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "speaker",
+   "new": "Imam Ali (AS)",
+   "old": "Imam al-Sadiq (AS)",
+   "type": "speaker"
+  }
+ ],
  "Mizan-al-Hikma-Rayshahri:1338": [
   {
    "field": "arabic",
@@ -3936,6 +3966,26 @@
    "new": "للّهِ، فَقَالَ",
    "old": "للّهِ،فَقَالَ",
    "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1554": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1555": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
   }
  ],
  "Mizan-al-Hikma-Rayshahri:1561": [
@@ -4091,6 +4141,16 @@
    "type": "ocr-arabic"
   }
  ],
+ "Mizan-al-Hikma-Rayshahri:1837": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "speaker",
+   "new": "Imam Ali (AS)",
+   "old": "The Prophet (SAWA)",
+   "type": "speaker"
+  }
+ ],
  "Mizan-al-Hikma-Rayshahri:1858": [
   {
    "field": "arabic",
@@ -4117,6 +4177,16 @@
    "new": "هُوَ المُظهِرَ",
    "old": "هُوَالمُظهِرَ",
    "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1866": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "الإمامُ الصّادقُ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
   }
  ],
  "Mizan-al-Hikma-Rayshahri:1881": [
@@ -4469,6 +4539,14 @@
    "new": "لأنّهُ",
    "old": "لأ نّهُ",
    "type": "ocr-arabic"
+  },
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "speaker",
+   "new": "Imam Ali (AS)",
+   "old": "Imam al-Sadiq (AS)",
+   "type": "speaker"
   }
  ],
  "Mizan-al-Hikma-Rayshahri:2838": [
@@ -4844,6 +4922,126 @@
    "type": "ocr-arabic"
   }
  ],
+ "Mizan-al-Hikma-Rayshahri:3433": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3441": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3442": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3443": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3444": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3445": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3446": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3448": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3449": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3450": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3451": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3452": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
  "Mizan-al-Hikma-Rayshahri:3471": [
   {
    "field": "arabic",
@@ -4972,6 +5170,34 @@
    "type": "ocr-arabic"
   }
  ],
+ "Mizan-al-Hikma-Rayshahri:3642": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "speaker",
+   "new": "Imam Ali (AS)",
+   "old": "Imam al-Sadiq (AS)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3643": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  },
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "speaker",
+   "new": "Imam Ali (AS)",
+   "old": "Imam al-Sadiq (AS)",
+   "type": "speaker"
+  }
+ ],
  "Mizan-al-Hikma-Rayshahri:3655": [
   {
    "field": "arabic",
@@ -5027,6 +5253,16 @@
    "new": "Imam",
    "old": "ImÁm",
    "type": "english-defect"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3783": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
   }
  ],
  "Mizan-al-Hikma-Rayshahri:3817": [

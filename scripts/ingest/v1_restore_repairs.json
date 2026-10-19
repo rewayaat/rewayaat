@@ -1,0 +1,158 @@
+{
+ "english_moves": {
+  "Mizan-al-Hikma-Rayshahri:134": {
+   "cited_from_from": "Mizan-al-Hikma-Rayshahri:137",
+   "english_from": "Mizan-al-Hikma-Rayshahri:137"
+  },
+  "Mizan-al-Hikma-Rayshahri:137": {
+   "cited_from_from": "Mizan-al-Hikma-Rayshahri:136",
+   "english_from": "Mizan-al-Hikma-Rayshahri:136"
+  },
+  "Mizan-al-Hikma-Rayshahri:2081": {
+   "cited_from_from": "Mizan-al-Hikma-Rayshahri:2080",
+   "english_from": "Mizan-al-Hikma-Rayshahri:2080"
+  },
+  "Mizan-al-Hikma-Rayshahri:2412": {
+   "cited_from_from": "Mizan-al-Hikma-Rayshahri:2413",
+   "english_from": "Mizan-al-Hikma-Rayshahri:2413"
+  },
+  "Mizan-al-Hikma-Rayshahri:2413": {
+   "cited_from_from": "Mizan-al-Hikma-Rayshahri:2412",
+   "english_from": "Mizan-al-Hikma-Rayshahri:2412"
+  },
+  "Mizan-al-Hikma-Rayshahri:2949": {
+   "cited_from_from": "Mizan-al-Hikma-Rayshahri:2951",
+   "english_from": "Mizan-al-Hikma-Rayshahri:2951"
+  },
+  "Mizan-al-Hikma-Rayshahri:2950": {
+   "cited_from_from": "Mizan-al-Hikma-Rayshahri:2949",
+   "english_from": "Mizan-al-Hikma-Rayshahri:2949"
+  },
+  "Mizan-al-Hikma-Rayshahri:2951": {
+   "cited_from_from": "Mizan-al-Hikma-Rayshahri:2950",
+   "english_from": "Mizan-al-Hikma-Rayshahri:2950"
+  },
+  "Mizan-al-Hikma-Rayshahri:385": {
+   "cited_from_from": "Mizan-al-Hikma-Rayshahri:386",
+   "english_from": "Mizan-al-Hikma-Rayshahri:386"
+  },
+  "Mizan-al-Hikma-Rayshahri:386": {
+   "cited_from_from": "Mizan-al-Hikma-Rayshahri:387",
+   "english_from": "Mizan-al-Hikma-Rayshahri:387"
+  },
+  "Mizan-al-Hikma-Rayshahri:387": {
+   "cited_from_from": "Mizan-al-Hikma-Rayshahri:385",
+   "english_from": "Mizan-al-Hikma-Rayshahri:385"
+  },
+  "Mizan-al-Hikma-Rayshahri:4298": {
+   "cited_from_from": "Mizan-al-Hikma-Rayshahri:4299",
+   "english_from": "Mizan-al-Hikma-Rayshahri:4299"
+  },
+  "Mizan-al-Hikma-Rayshahri:4299": {
+   "cited_from_from": "Mizan-al-Hikma-Rayshahri:4300",
+   "english_from": "Mizan-al-Hikma-Rayshahri:4300"
+  },
+  "Mizan-al-Hikma-Rayshahri:4300": {
+   "cited_from_from": "Mizan-al-Hikma-Rayshahri:4301",
+   "english_from": "Mizan-al-Hikma-Rayshahri:4301"
+  },
+  "Mizan-al-Hikma-Rayshahri:4301": {
+   "cited_from_from": "Mizan-al-Hikma-Rayshahri:4302",
+   "english_from": "Mizan-al-Hikma-Rayshahri:4302"
+  },
+  "Mizan-al-Hikma-Rayshahri:4302": {
+   "cited_from_from": "Mizan-al-Hikma-Rayshahri:4303",
+   "english_from": "Mizan-al-Hikma-Rayshahri:4303"
+  },
+  "Mizan-al-Hikma-Rayshahri:4303": {
+   "cited_from_from": "Mizan-al-Hikma-Rayshahri:4304",
+   "english_from": "Mizan-al-Hikma-Rayshahri:4304"
+  },
+  "Mizan-al-Hikma-Rayshahri:4304": {
+   "cited_from_from": "Mizan-al-Hikma-Rayshahri:4305",
+   "english_from": "Mizan-al-Hikma-Rayshahri:4305"
+  },
+  "Mizan-al-Hikma-Rayshahri:4305": {
+   "cited_from_from": "Mizan-al-Hikma-Rayshahri:4306",
+   "english_from": "Mizan-al-Hikma-Rayshahri:4306"
+  },
+  "Mizan-al-Hikma-Rayshahri:4306": {
+   "cited_from_from": "Mizan-al-Hikma-Rayshahri:4298",
+   "english_from": "Mizan-al-Hikma-Rayshahri:4298"
+  }
+ },
+ "relabels": {
+  "Mizan-al-Hikma-Rayshahri:3901": {
+   "chapter": "The Most Honoured Seating",
+   "part": "The Sitting and the Assembly"
+  },
+  "Mizan-al-Hikma-Rayshahri:3921": {
+   "chapter": "With Whom Must We Sit?",
+   "part": "Sitting Company"
+  },
+  "Mizan-al-Hikma-Rayshahri:3940": {
+   "chapter": "The Etiquette of Social Interaction with People",
+   "part": "Social Interaction"
+  },
+  "Mizan-al-Hikma-Rayshahri:3953": {
+   "chapter": "Sorrow",
+   "part": "Sorrow"
+  },
+  "Mizan-al-Hikma-Rayshahri:3978": {
+   "chapter": "The Spirit",
+   "part": "The Spirit"
+  },
+  "Mizan-al-Hikma-Rayshahri:3986": {
+   "chapter": "Prohibition of Following Up Peoples Flaws",
+   "part": "Spying"
+  },
+  "Mizan-al-Hikma-Rayshahri:3993": {
+   "chapter": "What Must Be Given The Benefit Of The Doubt",
+   "part": "Squandering"
+  },
+  "Mizan-al-Hikma-Rayshahri:4005": {
+   "chapter": "Staying Awake at Night",
+   "part": "Staying Awake at Night"
+  },
+  "Mizan-al-Hikma-Rayshahri:4013": {
+   "chapter": "Factors that Cause One to Stray (from the Straight Path)",
+   "part": "Straying from the Straight Path"
+  },
+  "Mizan-al-Hikma-Rayshahri:4022": {
+   "chapter": "Submission",
+   "part": "Submission"
+  },
+  "Mizan-al-Hikma-Rayshahri:4028": {
+   "chapter": "Suckling",
+   "part": "Suckling"
+  },
+  "Mizan-al-Hikma-Rayshahri:4034": {
+   "chapter": "Supplication",
+   "part": "Supplication"
+  },
+  "Mizan-al-Hikma-Rayshahri:575": {
+   "chapter": "Charity is the Key to (Increased) Sustenance",
+   "part": "Charity"
+  },
+  "Mizan-al-Hikma-Rayshahri:964": {
+   "chapter": "The Most Eloquent Speech",
+   "part": "Eloquence"
+  },
+  "Mizan-al-Hikma-Rayshahri:965": {
+   "chapter": "The Most Eloquent Speech",
+   "part": "Eloquence"
+  },
+  "Mizan-al-Hikma-Rayshahri:966": {
+   "chapter": "The Most Eloquent Speech",
+   "part": "Eloquence"
+  },
+  "Mizan-al-Hikma-Rayshahri:967": {
+   "chapter": "The Most Eloquent Speech",
+   "part": "Eloquence"
+  },
+  "Mizan-al-Hikma-Rayshahri:968": {
+   "chapter": "The Most Eloquent Speech",
+   "part": "Eloquence"
+  }
+ }
+}

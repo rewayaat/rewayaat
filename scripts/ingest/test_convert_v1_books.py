@@ -301,5 +301,73 @@ class TitleFixesTest(unittest.TestCase):
         self.assertEqual((docs[0]["_source"]["chapter"], docs[0]["_source"]["part"]), ("This World", "Ashura"))
 
 
+class SpeakerFixTest(unittest.TestCase):
+
+    def test_an_approved_arabic_speaker_prefix_is_corrected(self):
+        text = "رسولُ اللهِ (عَلَيهِ الّسَلامُ): العِلمُ نورٌ"
+        self.assertEqual(c.validate_fix("arabic", text, "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+                                        "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)", kind="speaker"), "review")
+
+    def test_a_speaker_fix_may_not_reach_past_the_prefix(self):
+        text = "رسولُ اللهِ (عَلَيهِ الّسَلامُ): العِلمُ نورٌ"
+        with self.assertRaises(ValueError):
+            c.validate_fix("arabic", text, "العِلمُ نورٌ", "العِلمُ ظلامٌ", kind="speaker")
+
+    def test_an_english_speaker_is_corrected_only_to_a_known_speaker(self):
+        text = "The Prophet (SAWA) said, Knowledge is light."
+        self.assertEqual(c.validate_fix("english", text, "The Prophet (SAWA)", "Imam Ali (AS)",
+                                        kind="speaker"), "review")
+        with self.assertRaises(ValueError):
+            c.validate_fix("english", text, "The Prophet (SAWA)", "Someone else", kind="speaker")
+
+
+class RepairsTest(unittest.TestCase):
+
+    def rows(self):
+        return [row("1", "Mizan Al-Hikmah", 1, "Trust الأمانة", arabic="لا تَخُنْ", english="Return the trust.",
+                    section="TRUST الأمانة", source="Al-Kafi, number:1"),
+                row("2", "Mizan Al-Hikmah", 2, "Trust الأمانة", arabic="أدُّوا الأمانةَ", english="Do not betray.",
+                    section="TRUST الأمانة", source="Al-Kafi, number:2"),
+                row("3", "Mizan Al-Hikmah", 3, "Sorrow الحزن", arabic="الحُزنُ", english="Sorrow.",
+                    section="SORROW الحزن", source="Bihar, number:3")]
+
+    def test_english_and_citation_move_between_records(self):
+        repairs = {"english_moves": {
+            "Mizan-al-Hikma-Rayshahri:1": {"english_from": "Mizan-al-Hikma-Rayshahri:2", "cited_from_from": "Mizan-al-Hikma-Rayshahri:2"},
+            "Mizan-al-Hikma-Rayshahri:2": {"english_from": "Mizan-al-Hikma-Rayshahri:1", "cited_from_from": "Mizan-al-Hikma-Rayshahri:1"}}}
+        docs, _, _, _ = c.convert(self.rows(), NO_OVERRIDES, repairs=repairs)
+        by = {d["_id"]: d["_source"] for d in docs}
+        self.assertEqual(by["Mizan-al-Hikma-Rayshahri:1"]["english"], "Do not betray.")
+        self.assertEqual(by["Mizan-al-Hikma-Rayshahri:2"]["cited_from"], "Al-Kafi, number:1")
+
+    def test_one_english_cannot_go_to_two_records(self):
+        repairs = {"english_moves": {
+            "Mizan-al-Hikma-Rayshahri:1": {"english_from": "Mizan-al-Hikma-Rayshahri:3"},
+            "Mizan-al-Hikma-Rayshahri:2": {"english_from": "Mizan-al-Hikma-Rayshahri:3"}}}
+        with self.assertRaises(ValueError):
+            c.convert(self.rows(), NO_OVERRIDES, repairs=repairs)
+
+    def test_relabel_takes_an_existing_label_with_its_arabic(self):
+        repairs = {"relabels": {"Mizan-al-Hikma-Rayshahri:2": {"part": "Sorrow", "chapter": "Sorrow"}}}
+        docs, _, _, _ = c.convert(self.rows(), NO_OVERRIDES, repairs=repairs)
+        src = {d["_id"]: d["_source"] for d in docs}["Mizan-al-Hikma-Rayshahri:2"]
+        self.assertEqual((src["part"], src["part_ar"], src["chapter"], src["chapter_ar"]),
+                         ("Sorrow", "الحزن", "Sorrow", "الحزن"))
+
+    def test_relabel_to_an_unknown_label_is_refused(self):
+        with self.assertRaises(ValueError):
+            c.convert(self.rows(), NO_OVERRIDES,
+                      repairs={"relabels": {"Mizan-al-Hikma-Rayshahri:2": {"part": "Invented", "chapter": "New"}}})
+
+    def test_an_excluded_record_can_still_hand_its_english_on(self):
+        repairs = {"english_moves": {"Mizan-al-Hikma-Rayshahri:1": {"english_from": "Mizan-al-Hikma-Rayshahri:2"}}}
+        docs, _, excluded, _ = c.convert(self.rows(), NO_OVERRIDES, exclusions={"2": "english-belongs-to-no-record"},
+                                         repairs=repairs)
+        by = {d["_id"]: d["_source"] for d in docs}
+        self.assertNotIn("Mizan-al-Hikma-Rayshahri:2", by)
+        self.assertEqual(by["Mizan-al-Hikma-Rayshahri:1"]["english"], "Do not betray.")
+        self.assertEqual([e["v1_id"] for e in excluded], ["2"])
+
+
 if __name__ == "__main__":
     unittest.main()
