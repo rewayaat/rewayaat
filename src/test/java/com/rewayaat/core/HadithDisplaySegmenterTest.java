@@ -3133,4 +3133,73 @@ class HadithDisplaySegmenterTest {
 
         assertNull(source.get("arabicChain"), "A verdict on a man is not a chain");
     }
+    @Test
+    void doesNotReadTheTranslatedMatnAsIsnadBecauseItSaysFrom() {
+        Map<String, Object> source = new HashMap<>();
+        // al-Kāfī 7:321. The chain ends on «قال»; the English says so at character 137 and
+        // then runs into inheritance law, whose every clause says «from the father» and
+        // «from father and mother». The tail test counts those words, refused the right
+        // boundary, and took the last «said, ‘» in the entry — 982 characters later.
+        source.put("arabic", "مُحَمَّدُ بْنُ يَحْيَى عَنْ أَحْمَدَ بْنِ مُحَمَّدٍ عَنِ الْحَسَنِ بْنِ عَلِيٍّ عَنْ "
+                + "عَبْدِ اللهِ بْنِ الْمُغِيرَةِ عَنْ مُوسَى بْنِ بَكْرٍ قَالَ قُلْتُ لِزُرَارَةَ إِنَّ "
+                + "بُكَيْراً حَدَّثَنِي عَنْ أَبِي جَعْفَرٍ (عَلَيْهِ السَّلام) أَنَّ الإخْوَةَ لِلأبِ "
+                + "وَالأخَوَاتِ لِلأبِ وَالأمِّ يُزَادُونَ وَيُنْقَصُونَ لأنَّهُنَّ لا يَكُنَّ أَكْثَرَ "
+                + "نَصِيباً مِنَ الإخْوَةِ وَالأخَوَاتِ لِلأبِ وَالأمِّ لَوْ كَانُوا مَكَانَهُنَّ لأنَّ "
+                + "اللهَ عَزَّ وَجَلَّ يَقُولُ إِنِ امْرُؤٌ هَلَكَ لَيْسَ لَهُ وَلَدٌ وَلَهُ أُخْتٌ فَلَها "
+                + "نِصْفُ ما تَرَكَ وَهُوَ يَرِثُها إِنْ لَمْ يَكُنْ لَها وَلَدٌ يَقُولُ يَرِثُ جَمِيعَ "
+                + "مَالِهَا إِنْ لَمْ يَكُنْ لَهَا وَلَدٌ فَأَعْطَوْا مَنْ سَمَّى اللهُ لَهُ النِّصْفَ "
+                + "كَمَلا وَعَمَدُوا فَأَعْطَوُا الَّذِي سَمَّى اللهُ لَهُ الْمَالَ كُلَّهُ أَقَلَّ مِنَ "
+                + "النِّصْفِ وَالْمَرْأَةُ لا تَكُونُ أَبَداً أَكْثَرَ نَصِيباً مِنْ رَجُلٍ لَوْ كَانَ "
+                + "مَكَانَهَا قَالَ فَقَالَ زُرَارَةُ وَهَذَا قَائِمٌ عِنْدَ أَصْحَابِنَا لإ يَخْتَلِفُونَ "
+                + "فِيهِ.");
+        source.put("english", "9. Muhammad ibn Yahya has narrated from Ahmad ibn Muhammad from al-Flassan ibn Ali from "
+                + "‘Abd Allah ibn al-Mughirah from Musa ibn Bakr who has narrated the following: “I once "
+                + "said to Zurarah that ibn Bukayr has narrated to me from abu Ja‘far (a.s.), that the "
+                + "shares of brothers from the father and sisters from father and mother increase and "
+                + "decrease. It is because their shares are not greater than the share of brothers and "
+                + "sisters from father and mother if they were in their place. Allah, most Majestic, most "
+                + "Glorious, says, ‘. . . if a man dies who does not leave behind a child and he has a "
+                + "sister, she receives one-half of the legacy and he receives the entire legacy if she "
+                + "does not leave behind any children.’ He says that he receives the entire legacy, which "
+                + "she leaves behind if she does not leave behind a child. Despite this, they give complete"
+                + " to one whose share Allah has mentioned as One-half and they give less than One-half to "
+                + "one whom Allah has given the entire legacy. The share of woman is never more than the "
+                + "share of man if he was in her place. He (the narrator) has said that Zurarah then said, "
+                + "‘This is applied by our people without any difference.’”");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("englishChain");
+        String content = (String) source.get("englishContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("Musa ibn Bakr"), "The last man of the chain belongs to it");
+        assertFalse(chain.contains("Zurarah"), "What he said is the narration");
+        assertTrue(content.contains("Zurarah"));
+    }
+
+    @Test
+    void readsTheWholeEnglishChainWhereItWasCutAfterOneName() {
+        Map<String, Object> source = new HashMap<>();
+        // Maʿānī al-Akhbār 27. The old boundary stopped after the first of six names,
+        // leaving an English chain two fifths the length of the Arabic one — shorter than
+        // the chain of any narration where the two languages agree. The band's lower end
+        // is also what keeps the rescue from cutting there: al-Ṣadūq's translator repeats
+        // «that he said:» between every link, and the first of them is three names early.
+        source.put("arabic", "حدثنا محمد بن موسى بن المتوكل، قال: حدثنا علي بن الحسين السعد آبادي، عن أحمد بن أبي عبد "
+                + "الله البرقي، عن أبيه، عن ربيع الوراق، عن صالح بن سهل عن أبي عبد الله عليه السلام في قول "
+                + "الله عز وجل \" كل شئ هالك إلا وجهه \" قال: نحن.");
+        source.put("english", "2.      We were told by Muhammed bin Musa bin Mutawakkil, that he said: We were told by "
+                + "Ali bin Husain al-Sa’d-Abadi, from Ahmad bin Abi Abdillah al-Barqi, from his father, "
+                + "from Rabee’ al-Warraq, from Salih bin Sahl, from Abu Abdillah, peace be upon him, with "
+                + "regards to the saying of Allah, Exalted and Glorious is He: «Everything is to perish, "
+                + "except for His Face» (28:88). He said: Us.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("englishChain");
+        assertNotNull(chain);
+        assertTrue(chain.contains("Salih bin Sahl"),
+                "The man who heard the Imam belongs to the chain, not only the first name");
+    }
 }

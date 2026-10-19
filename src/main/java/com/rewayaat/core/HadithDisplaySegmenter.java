@@ -16,6 +16,9 @@ public final class HadithDisplaySegmenter {
     private static final int NEAR_AN_OPENING_CHARS = 60;
     private static final int NAMED_WORDS = 3;
     private static final int MAX_CHAIN_HEAD_CHARS = 400;
+    private static final double CHAIN_BAND_LOW = 0.6;
+    private static final double CHAIN_BAND_HIGH = 4.0;
+    private static final int CHAIN_BAND_FLOOR = 200;
 
     private static final Pattern HTML_TAG_PATTERN = Pattern.compile("<[^>]+>");
     private static final Pattern MULTISPACE_PATTERN = Pattern.compile("\\s+");
@@ -468,8 +471,11 @@ public final class HadithDisplaySegmenter {
         if (source == null || source.isEmpty()) {
             return;
         }
-        splitAndAttach(source, "english", false);
+        // The Arabic goes first because the English split is measured against it: the
+        // English isnād is a translation of the Arabic one, not a second discovery, so its
+        // length is known within a factor before a single marker is looked for.
         splitAndAttach(source, "arabic", true);
+        splitAndAttach(source, "english", false);
     }
 
     private static void splitAndAttach(Map<String, Object> source, String field, boolean arabic) {
@@ -494,7 +500,8 @@ public final class HadithDisplaySegmenter {
                 return;
             }
         }
-        int visibleSplit = arabic ? findArabicSplit(visible) : findEnglishSplit(visible);
+        int visibleSplit = arabic ? findArabicSplit(visible)
+                : findEnglishSplit(visible, arabicChainChars(source));
         if (visibleSplit <= 0) {
             return;
         }
@@ -570,7 +577,7 @@ public final class HadithDisplaySegmenter {
         return new SplitResult(chain, content);
     }
 
-    private static int findEnglishSplit(String raw) {
+    private static int findEnglishSplit(String raw, int arabicChainChars) {
         String lower = raw.toLowerCase(Locale.ROOT);
         int bestSplit = -1;
         int bestIndex = -1;
@@ -632,10 +639,95 @@ public final class HadithDisplaySegmenter {
         if (adjustedBoundary > 0 && adjustedBoundary < bestSplit) {
             SplitResult adjusted = buildSplit(raw, adjustedBoundary);
             if (adjusted.hasSplit()) {
-                return adjustedBoundary;
+                bestSplit = adjustedBoundary;
+            }
+        }
+        // Every marker above is a verb of saying or a formula of transmission, and English
+        // matn is full of both, so the first one the gates admit can sit a thousand
+        // characters into the narration: al-Tawhīd 362 read al-Ridā's whole answer on the
+        // creation of the Empyrean as isnād, 2,006 characters of it, because the only
+        // «said:» the gates let through was the last one. The tail test cannot tell that
+        // apart — it counts the words an isnād is made of, and a translated matn carries
+        // them too: «who seeks sustenance from Allah for the birds» scores three on its own.
+        //
+        // What does tell it apart is the Arabic. The English isnād is a translation of the
+        // Arabic one, so its length is settled before any marker is looked for: across the
+        // narrations where the two agree, the English runs between two thirds and twice the
+        // Arabic, and only one in two hundred falls outside two thirds to four times. A
+        // boundary outside that is not the end of this chain, and the chain's end is looked
+        // for again among the candidates that are.
+        if (!inChainBand(bestSplit, arabicChainChars)) {
+            int rescued = findEnglishBandedBoundary(raw, lower, arabicChainChars);
+            if (rescued > 0) {
+                return rescued;
             }
         }
         return bestSplit;
+    }
+
+    /** Whether a chain of this length is one the Arabic chain vouches for. */
+    private static boolean inChainBand(int chainChars, int arabicChainChars) {
+        if (arabicChainChars <= 0 || chainChars <= 0) {
+            return true;            // nothing to measure against
+        }
+        int most = Math.max(CHAIN_BAND_FLOOR, (int) (CHAIN_BAND_HIGH * arabicChainChars));
+        return chainChars >= CHAIN_BAND_LOW * arabicChainChars && chainChars <= most;
+    }
+
+    /** The visible length of the Arabic chain this narration has already been given. */
+    private static int arabicChainChars(Map<String, Object> source) {
+        Object chain = source.get("arabicChain");
+        return chain instanceof String ? visibleLength((String) chain) : 0;
+    }
+
+    /**
+     * The earliest boundary the Arabic chain's length vouches for.
+     *
+     * <p>Only consulted where the boundary the ordinary route found is outside that length,
+     * so it cannot reshape a narration the two languages already agree on. The lower end of
+     * the band is what keeps this from cutting mid-chain: al-Ṣadūq's translator repeats
+     * «that he said:» between every link, and the first of five is a boundary three names
+     * early — and far too short for the Arabic beside it.
+     */
+    private static int findEnglishBandedBoundary(String raw, String lower, int arabicChainChars) {
+        int best = -1;
+        int fallback = -1;
+        for (String marker : ENGLISH_SPLIT_MARKERS) {
+            int index = lower.indexOf(marker);
+            while (index >= 0 && index <= MAX_SCAN_CHARS) {
+                String prefix = lower.substring(0, index);
+                int split = " that a man ".equals(marker)
+                        ? index + " that ".length() : index + marker.length();
+                if (englishChainSignalScore(prefix) >= minEnglishChainScore(prefix)
+                        && !isSubsumedByLongerMarker(lower, index, marker)
+                        && inChainBand(split, arabicChainChars)
+                        && buildSplit(raw, split).hasSplit()) {
+                    if (isLikelyMatnBoundary(lower, split, ENGLISH_CHAIN_CUES,
+                            maxEnglishTailSignals(marker))) {
+                        if (best < 0 || split < best) {
+                            best = split;
+                        }
+                    } else if (fallback < 0 || split < fallback) {
+                        fallback = split;
+                    }
+                }
+                index = lower.indexOf(marker, index + marker.length());
+            }
+        }
+        if (best > 0) {
+            return best;
+        }
+        // A colon or an opening quote closes an isnād the marker list has no word for —
+        // «Hadith.1397 - It is narrated:», «… from Abu al-Hasan Imam Musa ibn Jafar (as):» —
+        // and both routes carry their own stricter gate.
+        for (int candidate : new int[] { findEnglishQuotedBoundary(raw, lower),
+                                         findEnglishColonBoundary(lower) }) {
+            if (candidate > 0 && inChainBand(candidate, arabicChainChars)
+                    && buildSplit(raw, candidate).hasSplit()) {
+                return candidate;
+            }
+        }
+        return fallback;
     }
 
     private static int findArabicSplit(String raw) {
