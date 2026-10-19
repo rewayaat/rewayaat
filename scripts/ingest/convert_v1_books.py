@@ -24,6 +24,7 @@ import json
 import re
 import sys
 from collections import Counter, defaultdict
+from functools import lru_cache
 from pathlib import Path
 
 ARABIC = re.compile(r"[؀-ۿݐ-ݿﭐ-﷿ﹰ-﻿]")
@@ -134,6 +135,140 @@ def title_problems(english: str, arabic: str) -> list[str]:
     return problems
 
 
+DIACRITICS = re.compile(r"[\u064B-\u0652\u0670]")
+TATWEEL = "\u0640"
+RLM = "\u200f"
+HONORIFICS = ["عليه السلام", "عليهم السلام", "عليها السلام", "صلى الله عليه وآله",
+              "صلى الله عليه وآله وسلم"]
+# What a font's honorific glyph turned into when the PDF was extracted: Latin letters,
+# digits, a slash, or a و followed by a colon.
+GLYPH = re.compile(r"[A-Za-z0-9/]+|و:")
+MIZAN_GHURAR_CITATION = re.compile(r"\s*\(غرر الح[كک]م\s*:[^()]*\)")
+FOOTNOTE_DIGIT = re.compile(r"([A-Za-z”’)])\d{1,2}\b")
+HEADING_NUMBER = re.compile(r"^(section|chapter)\s+\d+\s*-\s*", re.IGNORECASE)
+UNVOCALISED_BOOKS = {"Mishkāt al-Anwār"}
+FOOTNOTED_BOOKS = {"Mishkāt al-Anwār"}
+HEADING_BLEED_BOOKS = {"Mishkāt al-Anwār"}
+NARRATION_END = re.compile(r"[.!?”\"’)\]]$")
+CITING_BOOKS = {"Mīzān al-Ḥikma"}
+TITLE_FIELDS = {"chapter", "chapter_ar", "part", "part_ar"}
+
+
+def skeleton(text: str | None) -> str:
+    """The Arabic letters of a text and nothing else: what no repair may change."""
+    bare = DIACRITICS.sub("", (text or "").replace(TATWEEL, ""))
+    return re.sub(r"[^\u0621-\u064A]", "", bare)
+
+
+def clean_arabic(text: str, book: str) -> str:
+    """Repairs what a rule can repair in an Arabic body, and proves it changed no letter."""
+    if book in CITING_BOOKS:
+        # A citation the export pasted into the text. The English omits it and
+        # cited_from carries it; it is not part of the narration.
+        text = MIZAN_GHURAR_CITATION.sub("", text)
+    # A case vowel the export pushed behind an RLM, onto the next word: «اللّه \u200fُبعَبدٍ».
+    out = re.sub(r" ?" + RLM + r"([\u064B-\u0652]+)(?=[\u0621-\u064A])", r"\1 ", text)
+    out = re.sub(r" ?" + RLM + r"([\u064B-\u0652]+)", r"\1", out)
+    out = re.sub(r"([\u064B-\u0652])\1+", r"\1", out)
+    out = re.sub(RLM + r"(?=[\u0621-\u064A])", " ", out)
+    out = re.sub(r"(?<=\S) +(?= )", "", out.replace(RLM, "").replace("\u200e", ""))
+    out = re.sub(r"(?<=[\u0621-\u064A\u064B-\u0652])" + TATWEEL + r"(?=[\u0621-\u064A])", "", out)
+    if book in UNVOCALISED_BOOKS:
+        out = DIACRITICS.sub("", out)
+    out = re.sub(r"(\S) ء(?=[\s،.:؛]|$)", r"\1ء", out)
+    out = re.sub(r"(^|\s)أ (ن)", r"\1أ\2", out)
+    out = re.sub(r"[ \t]+", " ", out).strip()
+    if skeleton(out) != skeleton(text):
+        raise ValueError(f"clean_arabic changed the skeleton of: {text[:60]}")
+    return out
+
+
+def _normalise_words(text: str) -> list[str]:
+    return re.sub(r"[^a-z0-9 ]", " ", text.lower()).split()
+
+
+def _heading_words(headings) -> list[list[str]]:
+    out = []
+    for heading in headings:
+        words = _normalise_words(HEADING_NUMBER.sub("", heading or ""))
+        if len(words) >= 3:
+            out.append(words)
+    return out
+
+
+def clean_english(text: str, book: str, headings) -> str:
+    """Spacing, glued footnote digits and pasted headings; never a word of the translation."""
+    out = text
+    if book in FOOTNOTED_BOOKS:
+        out = FOOTNOTE_DIGIT.sub(r"\1", out)
+    out = re.sub(r"[ \t]{2,}", " ", out)
+    out = re.sub(r" +([,.;:!?])", r"\1", out).strip()
+    if book not in HEADING_BLEED_BOOKS:
+        return out
+    known = _heading_set(tuple(headings))
+    if not known:
+        return out
+    # A heading the PDF extraction ran into the text sits after the narration has
+    # ended, and carries no full stop of its own. A sentence that merely ends in a
+    # heading's words ("…the adornment of the human being.") is neither.
+    words = out.split(" ")
+    longest = max(len(h) for h in known) + 3
+    for k in range(min(len(words) - 1, longest), 0, -1):
+        tail, rest = " ".join(words[-k:]), " ".join(words[:-k])
+        if (tuple(_normalise_words(tail)) in known and NARRATION_END.search(rest)
+                and not NARRATION_END.search(tail)):
+            return rest.strip()
+    return out
+
+
+@lru_cache(maxsize=8)
+def _heading_set(headings: tuple) -> frozenset:
+    return frozenset(tuple(words) for words in _heading_words(headings))
+
+
+def _english_tokens(text: str) -> list[str]:
+    return re.findall(r"[^\W_]+|[^\w\s]", text)
+
+
+def _removed_span_is_heading(old: str, new: str, headings) -> bool:
+    if new and new not in old:
+        return False
+    removed = skeleton(old.replace(new, "", 1) if new else old)
+    for heading in headings:
+        h = skeleton(heading)
+        words = (heading or "").split()
+        prefixes = [skeleton(" ".join(words[:i])) for i in range(3, len(words) + 1)]
+        if removed and (removed == h or removed in prefixes or (removed in h and len(removed) >= 12)):
+            return True
+    return False
+
+
+def validate_fix(field: str, original: str, old: str, new: str, headings=()) -> str:
+    """'auto' when a fix provably changes no word, 'review' when it needs a reader; raises otherwise."""
+    if field in TITLE_FIELDS:
+        raise ValueError("titles are corrected through the title overrides, not text fixes")
+    if field not in ("arabic", "english"):
+        raise ValueError(f"no fixes for field {field}")
+    if not old or original.count(old) != 1:
+        raise ValueError(f"'old' must occur exactly once in {field}")
+    if field == "arabic":
+        if skeleton(new) == skeleton(old):
+            return "auto"
+        if _removed_span_is_heading(old, new, headings):
+            return "auto"
+        if GLYPH.search(old):
+            bare_old = skeleton(GLYPH.sub("", old))
+            for honorific in HONORIFICS:
+                if honorific in new and skeleton(new.replace(honorific, "", 1)) == bare_old:
+                    return "review"
+        raise ValueError(f"arabic fix changes the skeleton: {old[:40]!r} -> {new[:40]!r}")
+    if _english_tokens(old) == _english_tokens(new):
+        return "auto"
+    if not new.strip() and _heading_words(headings) and _normalise_words(old) in _heading_words(headings):
+        return "auto"
+    raise ValueError(f"english fix changes the words: {old[:40]!r} -> {new[:40]!r}")
+
+
 def book_for(v1_book: str | None) -> dict | None:
     for spec in BOOKS:
         if (v1_book or "").startswith(spec["v1_prefix"]):
@@ -160,12 +295,19 @@ def resolve_title(spec, field, raw, overrides, anomalies):
     return english, arabic, False
 
 
-def convert(rows, overrides):
+def convert(rows, overrides, fixes=None, exclusions=None, hold_back=()):
+    fixes, exclusions = fixes or {}, exclusions or {}
     picked = [(book_for(r.get("book")), r) for r in rows]
     picked = [(spec, r) for spec, r in picked if spec]
+    held = [(spec, r) for spec, r in picked
+            if spec["book"] in hold_back or r["_id"] in exclusions]
+    picked = [p for p in picked if p not in held]
 
     numbers = Counter((spec["book"], str(r.get("number"))) for spec, r in picked)
-    excluded, kept = [], []
+    excluded = [{"v1_id": r["_id"], "book": spec["book"],
+                 "reason": exclusions.get(r["_id"], "held-back"),
+                 "english": clean(r.get("english"))} for spec, r in held]
+    kept = []
     for spec, r in picked:
         fragment = numbers[(spec["book"], str(r.get("number")))] > 1 and not clean(r.get("arabic"))
         if fragment:
@@ -210,10 +352,27 @@ def convert(rows, overrides):
             disambiguated.append({"book": doc["spec"]["book"], "from": doc["chapter"], "to": title})
             doc["chapter"] = title
 
+    headings = defaultdict(lambda: {"en": set(), "ar": set()})
+    for doc in docs:
+        book = doc["spec"]["book"]
+        headings[book]["en"].update(t for t in (doc["part"], doc["chapter"]) if t)
+        headings[book]["ar"].update(t for t in (doc["part_ar"], doc["chapter_ar"]) if t)
+
+    english_headings = {book: tuple(sorted(h["en"])) for book, h in headings.items()}
     out, v1_ids = [], {}
     for doc in docs:
         spec, r = doc["spec"], doc["v1"]
         new_id = f"{spec['id_prefix']}:{r['number']}"
+        book = spec["book"]
+        doc["arabic"] = clean_arabic(body_text(r.get("arabic")), book)
+        doc["english"] = clean_english(body_text(r.get("english")), book, english_headings[book])
+        for fix in fixes.get(new_id, []):
+            field = fix["field"]
+            known = sorted(headings[book]["ar" if field == "arabic" else "en"])
+            verdict = validate_fix(field, doc[field], fix["old"], fix["new"], known)
+            if verdict == "review" and not fix.get("approved"):
+                raise ValueError(f"{new_id}: fix needs review approval: {fix['old'][:40]!r}")
+            doc[field] = re.sub(r"[ \t]+", " ", doc[field].replace(fix["old"], fix["new"], 1)).strip()
         if new_id in v1_ids.values():
             raise ValueError(f"duplicate id {new_id}")
         v1_ids[r["_id"]] = new_id
@@ -221,7 +380,7 @@ def convert(rows, overrides):
             "book": spec["book"], "book_ar": spec["book_ar"],
             "number": str(r["number"]), "volume": VOLUME,
             "chapter": doc["chapter"],
-            "arabic": body_text(r.get("arabic")), "english": body_text(r.get("english")),
+            "arabic": doc["arabic"], "english": doc["english"],
             "source": spec["source"], "source_ar": spec["source_ar"],
         }
         if doc["chapter_ar"]:
@@ -277,11 +436,19 @@ def main() -> int:
     parser.add_argument("--overrides", required=True, help="title overrides JSON")
     parser.add_argument("--out-dir", required=True, help="where the batch files go")
     parser.add_argument("--report-dir", required=True, help="where the id map and reports go")
+    parser.add_argument("--fixes", default=str(Path(__file__).with_name("v1_restore_text_fixes.json")),
+                        help="validated text fixes, keyed by new id")
+    parser.add_argument("--exclusions", default=str(Path(__file__).with_name("v1_restore_exclusions.json")),
+                        help="v1 ids to leave out, with the reason")
+    parser.add_argument("--hold-back", action="append", default=[],
+                        help="a book (new name) to leave out whole; repeatable")
     args = parser.parse_args()
 
     rows = [json.loads(line) for line in open(args.dump, encoding="utf-8") if line.strip()]
     overrides = json.loads(Path(args.overrides).read_text(encoding="utf-8"))
-    docs, v1_ids, excluded, report = convert(rows, overrides)
+    fixes = json.loads(Path(args.fixes).read_text(encoding="utf-8"))
+    exclusions = json.loads(Path(args.exclusions).read_text(encoding="utf-8"))
+    docs, v1_ids, excluded, report = convert(rows, overrides, fixes, exclusions, set(args.hold_back))
     write_outputs(docs, v1_ids, excluded, report, Path(args.out_dir), Path(args.report_dir))
     print(json.dumps({"documents": len(docs), "excluded": len(excluded),
                       "blocking": len(report["blocking"]),
