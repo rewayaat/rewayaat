@@ -484,7 +484,39 @@ def bare_word(word):
     return ''.join(c for c in word if c.isalpha())
 
 
-def best_window(windows, arabic, agree=None, veto=None):
+def written_out(english, arabic, slug, agree):
+    """Whether the English writes out in full the man the Arabic names shortly.
+
+    The Arabic says «سهل» and the translation «Sahl ibn Ziyad»; «إبراهيم بن هاشم», and the
+    translation "Ali ibn Ibrahim ibn Hashim", where the father's name is the tail of the
+    son's. Neither passes a skeleton comparison, and the guards that stop a name being read
+    out of the middle of a longer one refuse both. But the pipeline already said who the
+    Arabic one is, and his own name is on hand in the slug, so the question can be put to
+    him rather than guessed: are these English words his name, and is the Arabic the front
+    of it?
+
+    Both halves are needed. Without the first, any tail of any patronymic would do — which
+    is how «أبي عبد الله» was read out of "Ahmad ibn Abi Abdillah al-Barqi". Without the
+    second, "Ahmad ibn Muhammad" would answer for every one of the five men written that
+    way, since each of their slugs opens on it.
+    """
+    if not slug:
+        return False
+    asked, said = arabic.split(), english.split()
+    # The English has to open on the very name the Arabic gives and carry on past it. This
+    # is the half that was missing at first, and without it `same_man` — which drops «بن»
+    # before comparing — read "ibn Muhammad" as «محمد بن أحمد», and the guard being lifted
+    # here was the only thing that had been stopping it. 189 links, most of them fragments.
+    if len(said) < len(asked) or not same_man(" ".join(said[:len(asked)]), arabic, agree):
+        return False
+    known = skeleton_en(slug.replace("-", " "))
+    if not known or not same_man(english, known, agree):
+        return False
+    opens = known.split()
+    return len(asked) <= len(opens) and opens[:len(asked)] == asked
+
+
+def best_window(windows, arabic, agree=None, veto=None, slug=""):
     """The run of words inside a slot that best answers one Arabic name.
 
     A slot is whatever stands between two joining phrases, and that is often more than a
@@ -521,7 +553,8 @@ def best_window(windows, arabic, agree=None, veto=None):
         if (fathered and len(skeleton.split()) == 1 and not from_for_ibn
                 and without_article(skeleton) in COMMON):
             continue
-        if whole and of_a_son:
+        vouched = agree is not None and written_out(skeleton, arabic, slug, agree)
+        if whole and of_a_son and not vouched:
             continue
         if runs_on and not names_a_son:
             continue
@@ -531,7 +564,7 @@ def best_window(windows, arabic, agree=None, veto=None):
         score = matcher.ratio()
         # The best run that is the same name, not the best run: "Zurara who" outscores
         # "Zurara" against «زرارة» for the h of "who", and is then no name at all.
-        if score > best[0] and (agree is None or same_man(skeleton, arabic, agree)):
+        if score > best[0] and (agree is None or vouched or same_man(skeleton, arabic, agree)):
             if veto is None or not veto(start, end):
                 best = (score, start, end, skeleton)
     return best
@@ -699,7 +732,7 @@ def link_chain(chain, places, mentions, agree, slug_of, counts, missed=None):
 
         found = []
         for slot in slot_windows:
-            score, start, end, skeleton = best_window(slot, name, agree, veto)
+            score, start, end, skeleton = best_window(slot, name, agree, veto, slug)
             if start is not None:
                 found.append((score, start, end, skeleton))
         candidates.append(found)
