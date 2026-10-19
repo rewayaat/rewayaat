@@ -21,6 +21,7 @@ See [../docs/data-pipeline.md](../docs/data-pipeline.md) for how these fit toget
 | `thaqalayn_import.py` | Pull the corpus from the Thaqalayn API |
 | `import_hadith_batches.py` | Bulk-import `batches/*.jsonl` into `rewayaat_updated` |
 | `export_hadith_batches.py` | Export hadith back out to JSONL |
+| `convert_v1_books.py` | Convert the three books the v2 rebuild lost from the v1 snapshot dump into `batches/v1-restored/` |
 | `backfill_metadata.py` | Enrich docs with volume, part, section, gradings, source |
 | `download_full_quran.py` | Quran text + Sahih International translation from quran.com |
 | `download_quran_*.sh` | Older shell variants of the same download |
