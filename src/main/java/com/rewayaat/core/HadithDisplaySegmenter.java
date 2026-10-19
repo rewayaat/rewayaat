@@ -19,6 +19,7 @@ public final class HadithDisplaySegmenter {
     private static final double CHAIN_BAND_LOW = 0.6;
     private static final double CHAIN_BAND_HIGH = 4.0;
     private static final int CHAIN_BAND_FLOOR = 120;
+    private static final int CHAIN_CUE_SPACING = 120;
 
     private static final Pattern HTML_TAG_PATTERN = Pattern.compile("<[^>]+>");
     private static final Pattern MULTISPACE_PATTERN = Pattern.compile("\\s+");
@@ -663,12 +664,36 @@ public final class HadithDisplaySegmenter {
                 return rescued;
             }
         }
+        // Where the Arabic splitter found no chain at all there is nothing to measure
+        // against, and 96 narrations took that silence as licence: al-Tawhīd's opening
+        // praise of God, Nahj al-Balāgha's sermons, al-Ṭūsī's own argument for the Mahdī's
+        // birth, the Faqīh's instructions for entering the Kaaba, and a chapter heading
+        // were each read as isnād end to end, because a verb of saying stands somewhere
+        // inside them all.
+        //
+        // Length alone does not tell those from a chain — ʿUyūn 38-1 names nine men over
+        // 570 characters — but what fills the space does. An isnād is a list, and a list
+        // says «on the authority of» or «from» every few words; a sermon of the same length
+        // says it once or not at all.
+        if (arabicChainChars <= 0 && bestSplit > MAX_CHAIN_HEAD_CHARS
+                && !readsLikeAChain(lower, bestSplit)) {
+            return -1;
+        }
         return bestSplit;
+    }
+
+    /** Whether the words before a boundary are packed close enough to be a list of names. */
+    private static boolean readsLikeAChain(String lower, int boundary) {
+        int cues = chainSignalScore(lower.substring(0, boundary), ENGLISH_CHAIN_CUES);
+        return cues > 0 && boundary <= cues * CHAIN_CUE_SPACING;
     }
 
     /** Whether a chain of this length is one the Arabic chain vouches for. */
     private static boolean inChainBand(int chainChars, int arabicChainChars) {
-        if (arabicChainChars <= 0 || chainChars <= 0) {
+        if (chainChars <= 0) {
+            return true;
+        }
+        if (arabicChainChars <= 0) {
             return true;            // nothing to measure against
         }
         int most = Math.max(CHAIN_BAND_FLOOR, (int) (CHAIN_BAND_HIGH * arabicChainChars));

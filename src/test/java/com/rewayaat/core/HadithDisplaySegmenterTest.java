@@ -3334,4 +3334,41 @@ class HadithDisplaySegmenterTest {
         assertTrue(chain.contains("who has said the following"));
         assertFalse(chain.contains("Most Majestic"), "The chain is not lengthened to fit");
     }
+    @Test
+    void doesNotReadASermonAsAnIsnadWhereTheArabicFoundNone() {
+        Map<String, Object> source = new HashMap<>();
+        // al-Khiṣāl 27-4 is a list of al-Ṣādiq's sayings with no chain at all, and the
+        // Arabic splitter says so. The English one found a verb of saying somewhere inside
+        // it and read 1,536 characters as isnād. Ninety-six narrations came out that way —
+        // al-Tawḥīd's opening praise of God, Nahj al-Balāgha's sermons, the Faqīh's own
+        // instructions for entering the Kaaba, and a chapter heading among them.
+        source.put("arabic", "27-4 انتظروا الفرج، ولا تيأسوا من روح الله، فان أحب الاعمال إلى الله عز وجل انتظار "
+                + "الفرج ما دام عليه العبد المؤمنتوكلوا على الله عز وجل عند ركعتي الفجر اذا صليتموها، "
+                + "ففيها تعطوا الرغائبلا تخرجوا بالسيوف إلى الحرم. ولا يصلين أحدكم وبين يديه سيف فان "
+                + "القبلة أمنأتموا برسول الله صلى الله عليه وآله حجكم إذا خرجتم إلى بيت الله، فان تركه "
+                + "جفاء وبذلك أمرتم، [وأتموا] بالقبور التي ألزمكم الله عز وجل حقها وزيارتها، واطلبوا "
+                + "الرزق عندهاولا تستصغروا قليل الآثام، فان الصغير يحصى ويرجع إلى الكبيروأطيلوا السجود، "
+                + "فما من عمل أشد على إبليس من أن يرى ابن آدم ساجدا، لانه أمر بالسجود فعصى، وهذا امر "
+                + "بالسجود فأطاع فنجاأكثروا ذكر الموت ويوم خروجكم من القبور وقيامكم بين يدي الله عز وجل "
+                + "تهون عليكم المصائبإذا اشتكى أحدكم عينيه فليقرأ آية الكرسي وليضمر في نفسه أنها تبرأ، "
+                + "فانه يعافي إن شاء اللهتوقوا الذنوب فما من بلية ولا نقص رزق إلا بذنب حتى الخدش والكبوة "
+                + "والمصيبةقال الله عز وجل: \"وَمَا أَصَابَكُمْ مِنْ مُصِيبَةٍ فَبِ");
+        source.put("english", "27-4 Be hopeful. Do not lose hopes in God’s Mercy. The best deed in the sight of the "
+                + "Honorable the Exalted God is being hopeful for relief so that one can survive with "
+                + "that hope.You should seek God’s help by reliance on Him when you say your morning "
+                + "prayers, since that is the time when the rewards are bestowed.Do not enter a shrine "
+                + "with a sword.You should not put the sword in front of you while you pray, since the "
+                + "Qibla (prayer direction) is a secure turning point.Whenever you go on the Hajj "
+                + "pilgrimage, you should also go and visit the shrine of God’s Prophet (MGB). It would "
+                + "be ungrateful not to do so.You should also visit other shrines which the Honorable the"
+                + " Exalted God has made it incumbent upon you to visit. You should ask for your share of"
+                + " daily bread there.Do not underestimate minor sins since they might lead to major "
+                + "sins.Lengthen your prostration because nothing is harsher for Sa");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        assertNull(source.get("arabicChain"), "There is no chain in this entry");
+        assertNull(source.get("englishChain"),
+                "And an English verb of saying does not make one");
+    }
 }
