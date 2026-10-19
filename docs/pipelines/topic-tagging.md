@@ -9,7 +9,7 @@ python3 scripts/tagging/export_for_tagging.py --es-url http://localhost:9200 --i
 python3 scripts/tagging/import_tags_to_es.py --es-url http://localhost:9200 --index rewayaat_hadith --indir <work>/output
 ```
 
-Validate before importing: every output holds exactly its input's ids, and every slug exists and is taggable.
+Validate before importing: `scripts/tagging/collect_tag_outputs.py --work-dir <work>` checks that every output holds exactly its input's ids in order and only taggable slugs, and writes the `tags_batch_NNNN.json` files the importer reads. A failing batch is listed and left out, to be rerun.
 
 ## Batches
 
