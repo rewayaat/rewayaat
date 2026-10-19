@@ -13124,3 +13124,13 @@ body.is-authed .nav-menu__item--signin {
     padding-left: var(--search-entry-side-pad) !important;
     padding-right: 0.25rem !important;
 }
+
+/* The nav bar's placeholder is a hint, not a heading. At the input's own 1.02rem it
+   read as large as the page title beside it, so in English it steps down a size and
+   recedes. Only the placeholder: what the reader types keeps the full size. Arabic
+   is left as it was, which already reads right. */
+html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
+    font-size: 0.86rem;
+    letter-spacing: 0.01em;
+    color: rgba(226, 232, 240, 0.4) !important;
+}
