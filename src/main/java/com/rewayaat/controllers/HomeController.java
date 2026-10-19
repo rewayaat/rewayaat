@@ -58,10 +58,10 @@ public class HomeController {
      * was a {@code keywords} meta, which Google has ignored since 2009.
      */
     static final String HOME_TITLE =
-            "Shia Hadith Database — Search 48,000+ Narrations in Arabic & English";
+            "Shia Hadith Database — Search 50,000+ Narrations in Arabic & English";
 
     static final String HOME_DESCRIPTION =
-            "Search 48,000+ Shia hadith in Arabic and English. Browse Al-Kafi, Nahj al-Balagha, "
+            "Search 50,000+ Shia hadith in Arabic and English. Browse Al-Kafi, Nahj al-Balagha, "
             + "Man La Yahduruh al-Faqih and more, with similar narrations and Quranic insights.";
 
     /**

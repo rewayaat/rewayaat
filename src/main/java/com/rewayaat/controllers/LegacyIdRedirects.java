@@ -17,9 +17,9 @@ import java.util.regex.Pattern;
  * Where the v1 narration URLs of the restored books now live.
  *
  * <p>Before {@code /hadith/{id}} a narration's address was {@code /?q=_id:30611}, and
- * Search Console still holds some of them. Ghurar al-Ḥikam and Mīzān al-Ḥikma came back
- * from the v1 snapshot with their old ids, so for those - and only those - the old
- * address has an exact new one. Every other v1 id stays unmapped: a redirect to the
+ * Search Console still holds some of them. Ghurar al-Ḥikam, Mīzān al-Ḥikma and Mishkāt
+ * al-Anwār came back from the v1 snapshot with their old ids, so for those - and only
+ * those - the old address has an exact new one. Every other v1 id stays unmapped: a redirect to the
  * wrong narration is worse than a dead link.
  */
 @Component

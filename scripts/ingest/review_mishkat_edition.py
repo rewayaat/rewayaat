@@ -79,7 +79,9 @@ def merge(args) -> int:
         for line in path.open(encoding="utf-8"):
             row = json.loads(line)
             inputs[row["id"]] = row
-    english = {d["_id"]: d["_source"]["english"] for d in read_narrations(Path(args.batches))}
+    docs = read_narrations(Path(args.batches))
+    english = {d["_id"]: d["_source"]["english"] for d in docs}
+    headings = sorted({d["_source"][f] for d in docs for f in ("part", "chapter") if d["_source"].get(f)})
 
     verdicts, problems, english_fixes = Counter(), [], 0
     seen = set()
@@ -116,12 +118,15 @@ def merge(args) -> int:
                 record["review_note"] = ruling["note"]
             for fix in ruling.get("english_fixes") or []:
                 try:
-                    if validate_fix("english", english[doc_id], fix["old"], fix["new"]) != "auto":
-                        raise ValueError("needs approval")
+                    verdict_fix = validate_fix("english", english[doc_id], fix["old"], fix["new"], headings)
+                    if verdict_fix == "review" and not args.approve_footnotes:
+                        raise ValueError("a footnote removal needs --approve-footnotes")
                 except (KeyError, ValueError) as e:
                     problems.append({"id": doc_id, "problem": f"english fix refused: {e}", "fix": fix})
                     continue
                 entry = {"field": "english", "old": fix["old"], "new": fix["new"], "type": "mishkat-review"}
+                if verdict_fix == "review":
+                    entry.update(kind="footnote", approved=True)
                 if entry not in fixes.setdefault(doc_id, []):
                     fixes[doc_id].append(entry)
                     english_fixes += 1
@@ -147,6 +152,9 @@ def main() -> int:
     m = sub.add_parser("merge")
     m.add_argument("--batches", required=True)
     m.add_argument("--work-dir", required=True)
+    m.add_argument("--approve-footnotes", action="store_true",
+                   help="accept the translator-footnote removals; only after a reader has read "
+                        "them (a first run without this lists them in merge-problems.json)")
     args = parser.parse_args()
     return prepare(args) if args.mode == "prepare" else merge(args)
 

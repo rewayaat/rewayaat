@@ -235,6 +235,20 @@ def _english_tokens(text: str) -> list[str]:
     return re.findall(r"[^\W_]+|[^\w\s]", text)
 
 
+FOOTNOTE_MARK = re.compile(r"\d{1,2}|Ι")
+
+
+def _removed_run(old_tokens: list[str], new_tokens: list[str]) -> list[str]:
+    """The one contiguous run of tokens `new` lacks, or [] when the change is anything else."""
+    if len(new_tokens) >= len(old_tokens):
+        return []
+    start = 0
+    while start < len(new_tokens) and old_tokens[start] == new_tokens[start]:
+        start += 1
+    cut = len(old_tokens) - len(new_tokens)
+    return old_tokens[start:start + cut] if old_tokens[start + cut:] == new_tokens[start:] else []
+
+
 def _removed_span_is_heading(old: str, new: str, headings) -> bool:
     if new and new not in old:
         return False
@@ -295,6 +309,16 @@ def validate_fix(field: str, original: str, old: str, new: str, headings=(), kin
     if not new.strip() and _heading_words(headings) and _normalise_words(old) in _heading_words(headings):
         return "auto"
     old_tokens, new_tokens = _english_tokens(old), _english_tokens(new)
+    removed = _removed_run(old_tokens, new_tokens)
+    if removed:
+        # A running header the PDF dropped mid-sentence: «remarked: On Faith, Islam, and
+        # Related Issues “On …».
+        if _normalise_words(" ".join(removed)) in _heading_words(headings):
+            return "auto"
+        # A translator's footnote, marker and all, run into the text: «… blessings.” 1 and
+        # see how much wealth they have». Its words leave the narration, so a reader decides.
+        if FOOTNOTE_MARK.fullmatch(removed[0]):
+            return "review"
     if BROKEN_ENCODING.search(old) and len(old.split()) == len(new.split()):
         pattern = "^" + BROKEN_ENCODING.sub(".?", re.escape(old).replace(r"\?", "?")) + "$"
         if re.match(pattern.replace("?.?", ".?"), new, re.IGNORECASE):

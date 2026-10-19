@@ -448,3 +448,23 @@ class EditionTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class MishkatEnglishRepairTest(unittest.TestCase):
+    HEADINGS = ["Section 1 - on Faith, Islam and Related Issues", "CHAPTER 1 - On Unity of God"]
+
+    def test_a_running_header_inside_a_sentence_is_removed(self):
+        text = "The Prophet remarked: On Faith, Islam, and Related Issues “On the Day …”"
+        self.assertEqual(c.validate_fix("english", text, "remarked: On Faith, Islam, and Related Issues “On",
+                                        "remarked: “On", self.HEADINGS), "auto")
+
+    def test_a_footnote_run_into_the_text_needs_a_reader(self):
+        text = "“… blessings.” 1 and see how much wealth they have"
+        self.assertEqual(c.validate_fix("english", text, "blessings.” 1 and see how much wealth they have",
+                                        "blessings.”", self.HEADINGS), "review")
+
+    def test_removing_words_without_a_footnote_mark_is_refused(self):
+        text = "He said: “Be patient and grateful.”"
+        with self.assertRaises(ValueError):
+            c.validate_fix("english", text, "patient and grateful", "patient", self.HEADINGS)
+
