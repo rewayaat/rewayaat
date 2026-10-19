@@ -168,10 +168,6 @@ class BookBlurbs {
      * COMPREHENSIVE COMPILATION OF RELIABLE NARRATIONS" to a page called
      * mu-jam-al-ahadith-al-mu-tabara. Both blurbs existed in both languages and neither
      * had ever rendered. Nothing failed, so nothing said so.
-     *
-     * <p>The fallback stays for the three entries that describe books this corpus does
-     * not hold — Mizan al-Hikmah, Ghurar al-Hikam, Mishkat al-Anwar — which have no
-     * catalogue slug to name and so can key only to themselves.
      */
     private static Map<String, String> load(String field) {
         Map<String, String> loaded = new LinkedHashMap<>();
