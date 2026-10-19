@@ -1,0 +1,45 @@
+<!--
+  The bookcase on the home page and on /books: every book standing on a shelf in its own
+  cover, sized by its number of narrations, with a brass label carrying its name.
+
+  Expects ${shelf} (BookShelf.arrange) in the model. `limit` is how many books a phone
+  shows before the "show all" toggle; 0 shows them all. Styles are css/bookshelf.css, and
+  js/bookshelf.js handles touch, where the first tap takes a book from the shelf and the
+  second opens it. The gilding is a separate image, fetched only when a book is chosen.
+-->
+<th:block th:fragment="bookcase(limit)" xmlns:th="http://www.thymeleaf.org">
+<div class="bookcase">
+    <div class="bookcase__shelf">
+        <a class="shelf-book" th:each="item, it : ${shelf}" th:with="book=${item.book}"
+           th:href="@{${(arPrefix ?: '') + '/books/' + book.slug}}"
+           th:classappend="${limit > 0 and it.index >= limit} ? 'shelf-book--overflow' : ''"
+           th:style="${item.style}">
+            <div class="shelf-book__stand">
+                <span class="shelf-book__glow" aria-hidden="true"></span>
+                <div class="shelf-book__slot"><div class="shelf-book__body">
+                    <span class="shelf-book__block" aria-hidden="true"></span>
+                    <th:block th:if="${item.hasCover}">
+                        <img class="shelf-book__front"
+                             th:src="@{/img/books/covers/{s}-400.webp(s=${book.slug})}"
+                             th:srcset="|/img/books/covers/${book.slug}-400.webp 400w, /img/books/covers/${book.slug}.webp 600w|"
+                             sizes="(max-width: 520px) 42vw, 180px"
+                             width="600" height="900" alt="" loading="lazy" decoding="async"/>
+                        <span class="shelf-book__gilt" aria-hidden="true"></span>
+                        <span class="shelf-book__shine" aria-hidden="true"></span>
+                    </th:block>
+                    <span th:unless="${item.hasCover}" class="shelf-book__front shelf-book__front--plain" aria-hidden="true">
+                        <span th:text="${book.nameAr} ?: ${book.name}">الكافي</span>
+                    </span>
+                </div></div>
+            </div>
+            <div class="shelf-book__lip">
+                <span class="shelf-book__plate">
+                    <span class="shelf-book__title" th:text="${isArabic} ? (${book.nameAr} ?: ${book.name}) : ${book.name}">Al-Kafi</span>
+                    <span class="shelf-book__count"><span th:text="${#numbers.formatInteger(book.count, 0, 'COMMA')}">14,242</span> <span th:text="#{books.card.narrations}">narrations</span></span>
+                </span>
+            </div>
+        </a>
+    </div>
+</div>
+<script src="/js/bookshelf.js" th:src="@{/js/bookshelf.js}" defer></script>
+</th:block>

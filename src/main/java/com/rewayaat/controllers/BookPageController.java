@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rewayaat.config.ESClientProvider;
 import com.rewayaat.core.HadithDisplaySegmenter;
 import com.rewayaat.service.BookCatalog;
+import com.rewayaat.service.BookShelf;
 import com.rewayaat.service.HadithCardFactory;
 import com.rewayaat.service.QuranicInsightsService;
 import com.rewayaat.service.TopicLabelSource;
@@ -81,6 +82,7 @@ public class BookPageController {
         List<BookCatalog.Book> books = catalog.books();
 
         model.addAttribute("books", books);
+        model.addAttribute("shelf", BookShelf.arrange(books));
         model.addAttribute("totalNarrations", books.stream().mapToLong(BookCatalog.Book::count).sum());
         PageLocale locale = PageLocale.of(request);
         model.addAttribute("seoTitle", msg(locale, "seo.books.title"));

@@ -103,22 +103,11 @@
                th:utext="#{home.browseSubtitle(${all})}">Open a collection to read it by volume and chapter, or <a href="/books">see all books</a>.</p>
         </div>
     </div>
-    <!-- Rendered by the server so the links exist without scripts; populateBrowseBooks
-         replaces these with the same links once the browse data loads. -->
-    <div id="browseBookList" class="browse-book-list">
-        <a class="browse-book-card" th:each="book, it : ${books}"
-           th:href="@{'/books/' + ${book.slug}}"
-           th:classappend="${it.index >= 4} ? 'browse-book-card--overflow' : ''">
-            <div class="browse-book-head">
-                <span class="browse-book-icon" aria-hidden="true"><i class="fa fa-book"></i></span>
-                <div class="browse-book-copy">
-                    <div class="browse-book-title" th:text="${isArabic} ? (${book.nameAr} ?: ${book.name}) : ${book.name}">Al-Kafi</div>
-                    <div class="browse-book-count">
-                        <span th:text="${#numbers.formatInteger(book.count, 0, 'COMMA')}">14,242</span> narrations
-                    </div>
-                </div>
-            </div>
-        </a>
+    <!-- The bookcase is rendered by the server, so the links exist without scripts.
+         populateBrowseBooks only adds the toggle a phone uses to show the books past
+         the first four. -->
+    <div id="browseBookList" class="browse-shelf">
+        <th:block th:replace="~{fragments/bookshelf :: bookcase(4)}"></th:block>
     </div>
     <div id="browseFacetPanel" class="browse-panel is-hidden">
         <div id="browseBookField" class="browse-field is-hidden">

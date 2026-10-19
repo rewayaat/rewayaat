@@ -29,16 +29,7 @@
 
     <div th:replace="~{fragments/site :: ornament}"></div>
 
-    <div class="hub-grid">
-        <a class="hub-card" th:each="book : ${books}"
-           th:href="@{${arPrefix} ?: '' } + '/books/' + ${book.slug}">
-            <div class="hub-card__title" th:text="${isArabic} ? (${book.nameAr} ?: ${book.name}) : ${book.name}">Book name</div>
-            <div class="hub-card__meta">
-                <span><strong th:text="${#numbers.formatInteger(book.count, 0, 'COMMA')}">1,000</strong> <span th:text="#{books.card.narrations}">narrations</span></span>
-                <span><strong th:text="${#numbers.formatInteger(#lists.size(book.chapters), 0, 'COMMA')}">100</strong> <span th:text="#{books.card.chapters}">chapters</span></span>
-            </div>
-        </a>
-    </div>
+    <th:block th:replace="~{fragments/bookshelf :: bookcase(0)}"></th:block>
 </main>
 
 <footer th:replace="~{fragments/site :: sitefooter}"></footer>
