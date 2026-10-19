@@ -35,10 +35,13 @@
   box-shadow: 0 34px 60px -30px rgba(10, 5, 0, .7), inset 0 1px 0 rgba(255, 225, 180, .18), inset 0 0 0 1px rgba(0, 0, 0, .4);
 }
 .bookcase__shelf {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
   column-gap: var(--gap); row-gap: 0; padding-inline: calc(var(--gap) / 2);
   overflow: clip; border-radius: 2px;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .5), inset 0 0 24px rgba(0, 0, 0, .6);
+}
+@media (max-width: 900px) {
+  .bookcase__shelf { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 @media (max-width: 520px) {
   .bookcase { --gap: 18px; }
@@ -167,6 +170,14 @@
   .shelf-book:hover .shelf-book__shine, .shelf-book:focus-visible .shelf-book__shine, .shelf-book.is-open .shelf-book__shine { animation: none; }
 }
 
+/* Empty places that finish the last row, so its wall and shelf run the full width.
+   The fragment renders enough for each column count and marks which ones it needs. */
+.shelf-book--gap { display: none; pointer-events: none; }
+.shelf-book--gap .shelf-book__slot::after { content: none; }
+@media (min-width: 901px) { .shelf-gap--5 { display: flex; } }
+@media (min-width: 521px) and (max-width: 900px) { .shelf-gap--4 { display: flex; } }
+@media (max-width: 520px) { .shelf-gap--2 { display: flex; } }
+
 /* a book whose cover has not been drawn yet: plain leather with its name in gold */
 .shelf-book__front--plain {
   display: flex; align-items: center; justify-content: center; padding: 18% 12%; text-align: center;
@@ -181,6 +192,7 @@
 /* home page: a phone shows the first books and a toggle for the rest */
 .browse-shelf { margin-bottom: 1.2rem; }
 @media (max-width: 768px) {
-  .browse-shelf:not(.is-expanded) .shelf-book--overflow { display: none; }
+  .browse-shelf:not(.is-expanded) .shelf-book--overflow,
+  .browse-shelf:not(.is-expanded) .shelf-book--gap { display: none; }
   .browse-shelf .browse-book-drawer-toggle { margin-top: 0.75rem; }
 }

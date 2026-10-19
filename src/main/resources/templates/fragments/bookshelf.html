@@ -3,7 +3,8 @@
   cover, sized by its number of narrations, with a brass label carrying its name.
 
   Expects ${shelf} (BookShelf.arrange) in the model. `limit` is how many books a phone
-  shows before the "show all" toggle; 0 shows them all. Styles are css/bookshelf.css, and
+  shows before the "show all" toggle; 0 shows them all. Rows hold five books, four on a
+  tablet and two on a phone. Styles are css/bookshelf.css, and
   js/bookshelf.js handles touch, where the first tap takes a book from the shelf and the
   second opens it. The gilding is a separate image, fetched only when a book is chosen.
 -->
@@ -39,6 +40,12 @@
                 </span>
             </div>
         </a>
+        <div class="shelf-book shelf-book--gap" aria-hidden="true"
+             th:each="i : ${#numbers.sequence(0, 3)}" th:with="n=${#lists.size(shelf)}"
+             th:classappend="|${(5 - n % 5) % 5 > i ? 'shelf-gap--5' : ''} ${(4 - n % 4) % 4 > i ? 'shelf-gap--4' : ''} ${n % 2 > i ? 'shelf-gap--2' : ''}|">
+            <div class="shelf-book__stand"><div class="shelf-book__slot"></div></div>
+            <div class="shelf-book__lip"></div>
+        </div>
     </div>
 </div>
 <script src="/js/bookshelf.js" th:src="@{/js/bookshelf.js}" defer></script>
