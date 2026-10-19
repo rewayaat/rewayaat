@@ -77,3 +77,25 @@ Batches are cut from the cleaned converter output. The rule-based cleaners have 
   - review (glyph → honorific) → listed for approval
   - refused or low confidence → listed with the reason
 - Semantic issues and title verdicts → `review.md`, for the person who decides keep, exclude or hand-fix.
+
+## Mishkāt: checking the edition pairs
+
+Mishkāt's v1 Arabic is replaced by the OpenITI edition's (`scripts/ingest/align_mishkat_openiti.py`). An agent then checks that each v1 English translates the edition Arabic it was paired with. `scripts/ingest/review_mishkat_edition.py prepare` cuts 20 batches of 96 into `quality-full/mishkat/`, and `merge` applies the verdicts (the script's docstring lists what each verdict does). One line per narration is required, so a batch with a missing line can be resumed by finding the ids.
+
+> You check pairs of an English translation and an Arabic hadith text from *Mishkāt al-Anwār fī Ghurar al-Akhbār* (al-Ṭabrisī). The English is the published translation ("The Lamp Niche for the Best Traditions"). The Arabic comes from a clean edition, and was paired with the English by machine. Your job is to rule on each pair. You do NOT rewrite the translation.
+>
+> Input: `{INPUT}`. One JSON object per line: id, number, chapter, kind (how the machine paired it: auto, weak, positional, shared, span), english, arabic (the edition text proposed for this English), v1_arabic (the damaged Arabic the English was originally stored with — a hint only), prev_english and next_english (the neighbours' English, to spot an English that belongs to a neighbour), and, on some lines, edition_full (the whole edition passage that `arabic` was cut from, or that holds more than one saying).
+>
+> Output: `{OUTPUT}`. Exactly one JSON line per input line, same order:
+> `{"id": "...", "verdict": "match|span|omission|english-truncated|mismatch", "arabic_span": "<only for span>", "english_fixes": [{"old": "...", "new": "..."}], "note": "<one short sentence, only when not match>"}`
+>
+> Verdicts:
+> - match — the English translates the Arabic. A free translation, a speaker named differently ("God's Prophet" for «وقال (صلى الله عليه وآله)»), a dropped chain of narrators or a dropped book name ("من كتاب المحاسن") is still a match.
+> - span — the English translates only part of the Arabic (or of edition_full, when given): another saying sits before or after it. Put that part in arabic_span, copied character for character from `arabic` or `edition_full`, as whole sentences.
+> - omission — one side lacks a clause or sentence the other has, yet each still reads as a complete narration and the meaning is not inverted.
+> - english-truncated — the English stops mid-sentence, or lacks words so that its meaning differs from the Arabic (e.g. a missing negation).
+> - mismatch — the English is a different narration (often the neighbour's).
+>
+> english_fixes: only a chapter or section heading pasted into the English (e.g. "… Khadijeh cry. On Faith, Islam, and Related Issues Khadijeh agreed …") — "old" is the exact span including the heading, "new" the same span without it. Also a glued footnote digit ("Faith1" → "Faith") or doubled spaces. Never reword, never fix spelling or style. Usually the list is empty.
+>
+> Process: read the input in 3 chunks of 32 lines (Read with offset/limit). After each chunk, append its 32 result lines to the output file. You must rule on ALL lines. Do not use the web. Do not modify the input. Final reply: one line of JSON `{"ruled": N, "by_verdict": {...}}`.
