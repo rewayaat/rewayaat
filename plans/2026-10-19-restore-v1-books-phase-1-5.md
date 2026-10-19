@@ -171,3 +171,21 @@ Validator replay over the 153 proposals: every pure spacing, mark or join edit k
 - Mishkāt diacritic stripping also removes the few legitimate marks. Accepted (DEC-153). The book is unvocalized in print.
 - The heading-bleed rule can strip a sentence that happens to equal a heading. Mitigated by matching only the book's own headings and only at the start or end of the text.
 - Misaligned records found in the full pass change the document count. Phase-2's `CorpusScope.NARRATION_COUNT`, phase-3's counts and phase-5's counts all follow from the final converter output and must be re-derived, not copied from the plans.
+
+---
+
+## Outcome (2026-10-19) — later phases read their counts from here
+
+Phases 1.1–1.4 and 1.5 are done for Ghurar and Mizan. **Mishkāt is held back** (`--hold-back "Mishkāt al-Anwār"`) until its Arabic has a clean source. OpenITI `0700AbuFadlCaliTabarsi.MishkatAnwar.Shia001383` aligns to 88% of v1 narrations at ≥ 0.6 4-gram containment: phase 1.6, to be planned.
+
+| | Ghurar | Mizan | Total |
+|---|---|---|---|
+| imported | 11,012 | 4,612 | **15,624** |
+| excluded (`v1_restore_exclusions.json`) | 19 | 42 | 61 |
+
+- Exclusions: 28 English that belongs to no record · 15 cut mid-sentence · 6 meaning inverted · 11 repeated within their chapter · 1 fragment.
+- Repairs: 700 agent text fixes (letter- and word-safe, re-validated each build) · 13 encoding/glyph repairs approved · 16 title spacing fixes · 20 English moves · 18 relabels · 24 speaker corrections (user-approved; the citation is Ghurar or Nahj, so Imam Ali) · 300 reader retitles (`chapter_ar_source: rewayaat-review`) · 234 particle-spacing proposals dropped as the edition's convention.
+- Kept as is, by decision: 84 letter-level Arabic errors, 136 English wording slips, 45 one-sided omissions.
+- 221 titles still without Arabic (220 chapters, 1 part): phase-4 4.1 input `scripts/ingest/v1_restore_untranslated.json`.
+
+**Counts for phases 2–5:** `CorpusScope.BOOK_COUNT = 20`, `NARRATION_COUNT = 48143` (32,519 + 15,624), 20 books in the scope sentence (no Mishkāt). Every "17,600", "21 books" and "50,119" in phases 2–5 reads as these until Mishkāt lands. Vectors expected: 32,516 + 15,624 (no new empty-Arabic docs).
