@@ -189,3 +189,13 @@ Phases 1.1–1.4 and 1.5 are done for Ghurar and Mizan. **Mishkāt is held back*
 - 221 titles still without Arabic (220 chapters, 1 part): phase-4 4.1 input `scripts/ingest/v1_restore_untranslated.json`.
 
 **Counts for phases 2–5:** `CorpusScope.BOOK_COUNT = 20`, `NARRATION_COUNT = 48143` (32,519 + 15,624), 20 books in the scope sentence (no Mishkāt). Every "17,600", "21 books" and "50,119" in phases 2–5 reads as these until Mishkāt lands. Vectors expected: 32,516 + 15,624 (no new empty-Arabic docs).
+
+### Phase 1.6 outcome (2026-10-19) — Mishkāt from the OpenITI edition; supersedes the counts above
+
+`scripts/ingest/align_mishkat_openiti.py` pairs Mishkāt's v1 narrations with the OpenITI edition (Hushmand), which gives the Arabic and the section and chapter headings. `scripts/ingest/review_mishkat_edition.py` ran a Sonnet reader over all 1,913 pairs (20 batches, prompt in `docs/pipelines/v1-restore-quality.md`): 1,895 approved, 18 left out (5 a different narration, 13 English cut short). 2 v1 narrations had no edition match. 56 English repairs (running headers, translator-footnote fragments).
+
+| | Ghurar | Mizan | Mishkāt | Total |
+|---|---|---|---|---|
+| imported | 11,012 | 4,612 | 1,895 | **17,519** |
+
+**Counts for phases 2–5:** `CorpusScope.BOOK_COUNT = 21`, `NARRATION_COUNT = 50038` (32,519 + 17,519). Mishkāt narrations carry `arabic_source: openiti:…`. Every "17,600" and "50,119" in phases 3–5 reads as 17,519 and 50,038. Vectors expected: 32,516 + 17,519 (no restored narration has empty Arabic).
