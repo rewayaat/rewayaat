@@ -823,6 +823,11 @@ def main():
                     for link in links:
                         print(f"      «{link['t']}» -> {link['p']} {link['g'][:30]}")
             else:
+                # Written as an empty list, not left out. A narration whose links this run
+                # refuses keeps the ones an earlier run wrote if nothing is sent for it, and
+                # those are exactly the links a guard has since decided were wrong — 46 of
+                # them the first time the count went down.
+                updates.append({"_id": row["id"], "chain_links_en": []})
                 counts["narrations with no English link"] += 1
 
     if args.dump:

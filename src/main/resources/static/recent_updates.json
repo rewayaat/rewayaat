@@ -29,7 +29,7 @@
       "A RIJĀL panel on every narration draws the chain link by link, showing where it is solid and where it is open: a man no book names, or a step the compiler left unnamed",
       "A page for each narrator: what each book says, whom he narrates from and to, his narrations, and the entries quoted with book, page, entry number and edition",
       "Where the books disagree the page says so and quotes both; nothing is graded in this site's own voice",
-      "72,495 names in English chains and 98,004 in Arabic are now links, across 26,605 of the 32,519 narrations",
+      "84,148 names in English chains and 98,004 in Arabic are now links, across 26,605 of the 32,519 narrations",
       "Claude and ChatGPT read the chain too: each narration comes back with its isnād, every step saying whether the name was settled by itself, by the names around it, or by the author's own usage elsewhere — and a narrator's own narrations can be listed by his identifier, not by a name several men share"
     ],
     "title_ar": "كلُّ اسمٍ في السند، منسوبًا إلى راويه",
@@ -39,7 +39,7 @@
       "لوحة «الرجال» في كل رواية ترسم السند حلقةً حلقة، وتُظهر مواضع قوّته ومواضع انقطاعه: راوٍ لا ترجمة له، أو حلقة لم يسمِّها المصنِّف",
       "صفحة لكل راوٍ: مواقف الكتب، ومن يروي عنهم ومن يروون عنه، ورواياته، ونصوص التراجم بالكتاب والصفحة ورقم الترجمة والطبعة",
       "وحيث تختلف الكتب تقول الصفحة ذلك وتنقل القولين؛ ولا يُحكَم على أحد بصوت الموقع",
-      "٧٢٬٤٩٥ اسمًا في الأسانيد الإنجليزية و٩٨٬٠٠٤ في العربية صارت روابط، في ٢٦٬٦٠٥ رواية من ٣٢٬٥١٩",
+      "٨٤٬١٤٨ اسمًا في الأسانيد الإنجليزية و٩٨٬٠٠٤ في العربية صارت روابط، في ٢٦٬٦٠٥ رواية من ٣٢٬٥١٩",
       "وصار Claude وChatGPT يقرآن السند أيضًا: تُرجَع كل رواية بسندها، وتُبيّن كل حلقة هل عُرف صاحبها باسمه وحده، أم بمن حوله في السند، أم بعادة المصنِّف في كتابه — ويمكن سرد روايات الراوي بمعرِّفه لا باسم يشترك فيه عدة رجال"
     ],
     "why": {
@@ -50,7 +50,7 @@
       "videoAspect": "1440 / 928",
       "videoAlt": "The RIJAL panel assembling a four-name chain, and a narrator's card opened over the narration",
       "points": [
-        "<strong>15,518 men</strong> from the classical rijāl books; 98,004 linked names in Arabic chains and 72,495 in English, across 26,605 of the 32,519 narrations",
+        "<strong>15,518 men</strong> from the classical rijāl books; 98,004 linked names in Arabic chains and 84,148 in English, across 26,605 of the 32,519 narrations",
         "<strong>A name is linked only where the books settle it.</strong> 1,676 readings of «أحمد بن محمد» were withdrawn rather than guessed: al-Kulaynī runs two ʿiddas, and the name on its own does not say which man is meant",
         "<strong>Where a name stays open, the panel says so</strong> — a man no book names, or a step the compiler left unnamed — instead of filling it in"
       ],
@@ -64,7 +64,7 @@
       "videoAspect": "1440 / 928",
       "videoAlt": "لوحة «الرجال» تُركّب سندًا رباعيًّا، ثم بطاقة الراوي تنفتح فوق الرواية",
       "points": [
-        "<strong>١٥٬٥١٨ رجلًا</strong> من كتب الرجال، و٩٨٬٠٠٤ اسمًا موصولًا في الأسانيد العربية و٧٢٬٤٩٥ في الإنجليزية، في ٢٦٬٦٠٥ رواية من ٣٢٬٥١٩",
+        "<strong>١٥٬٥١٨ رجلًا</strong> من كتب الرجال، و٩٨٬٠٠٤ اسمًا موصولًا في الأسانيد العربية و٨٤٬١٤٨ في الإنجليزية، في ٢٦٬٦٠٥ رواية من ٣٢٬٥١٩",
         "<strong>ولا يُوصَل الاسم إلا حيث تُثبته الكتب.</strong> سُحبت ١٬٦٧٦ قراءةً لـ«أحمد بن محمد» ولم تُخمَّن: فللكليني عدّتان، والاسم وحده لا يعيّن أيَّهما أراد",
         "<strong>وحيث يبقى الاسم مبهمًا تقول اللوحة ذلك</strong> — راوٍ لا ترجمة له، أو حلقة لم يسمِّها المصنِّف — ولا تملؤه بالظنّ"
       ],
