@@ -8,6 +8,10 @@ import com.rewayaat.service.PageLocale;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.servlet.View;
+
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -22,7 +26,8 @@ class HomeControllerTest {
         ResourceBundleMessageSource messages = new ResourceBundleMessageSource();
         messages.setBasename("messages");
         messages.setDefaultEncoding("UTF-8");
-        return new HomeController(new BookCatalog(), messages);
+        return new HomeController(new BookCatalog(), messages,
+                new LegacyIdRedirects(Map.of("30611", "Ghurar-al-Hikam-Amidi:417")));
     }
 
     @Test
@@ -36,6 +41,18 @@ class HomeControllerTest {
         assertEquals("query", model.getAttribute("query"));
         assertEquals(2, model.getAttribute("page"));
         assertEquals("book:asc", model.getAttribute("sort_fields"));
+    }
+
+    /**
+     * A v1 narration URL of a restored book moves, permanently, to that narration's page.
+     * Search Console still holds some of them.
+     */
+    @Test
+    void home_movesARestoredV1IdPermanently() {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        String view = controller().home("_id:30611", 1, null, request, new ExtendedModelMap());
+        assertEquals("redirect:/hadith/Ghurar-al-Hikam-Amidi:417", view);
+        assertEquals(HttpStatus.MOVED_PERMANENTLY, request.getAttribute(View.RESPONSE_STATUS_ATTRIBUTE));
     }
 
     /**
