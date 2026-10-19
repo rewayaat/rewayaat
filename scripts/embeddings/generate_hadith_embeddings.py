@@ -265,7 +265,7 @@ def run_eval(es_url, index, eval_path, model, embed_batch_size):
 def main():
     parser = argparse.ArgumentParser(description="Generate hadith embeddings")
     parser.add_argument("--es-url", default="http://localhost:9200")
-    parser.add_argument("--index", default="rewayaat_updated")
+    parser.add_argument("--index", default="rewayaat_hadith")
     parser.add_argument("--model", default="intfloat/multilingual-e5-large",
                         help="Sentence-transformers model name")
     parser.add_argument("--batch-size", type=int, default=64,

@@ -20,12 +20,17 @@ def curl_json(url, method="GET", payload=None, timeout=120):
         raise RuntimeError(f"curl failed ({result.returncode}): {result.stderr}")
     return json.loads(result.stdout) if result.stdout.strip() else {}
 
+def books_query(books):
+    """match_all, or a terms filter on `book` for a |-separated list."""
+    names = [b.strip() for b in (books or "").split("|") if b.strip()]
+    return {"terms": {"book": names}} if names else {"match_all": {}}
 
-def scroll_all(es_url, index, batch_size, fields):
+
+def scroll_all(es_url, index, batch_size, fields, books=None):
     body = {
         "size": batch_size,
         "_source": fields,
-        "query": {"match_all": {}},
+        "query": books_query(books),
         "sort": ["_doc"],
     }
     url = f"{es_url}/{index}/_search?scroll=6h"
@@ -54,6 +59,7 @@ def main():
     parser.add_argument("--index", required=True)
     parser.add_argument("--batch-size", type=int, default=500)
     parser.add_argument("--outdir", required=True)
+    parser.add_argument("--books", help="|-separated book names to export (default: all)")
     args = parser.parse_args()
 
     Path(args.outdir).mkdir(parents=True, exist_ok=True)
@@ -67,7 +73,7 @@ def main():
 
     total = 0
     batch_num = 0
-    for hits in scroll_all(args.es_url, args.index, args.batch_size, fields):
+    for hits in scroll_all(args.es_url, args.index, args.batch_size, fields, args.books):
         batch_num += 1
         docs = []
         for hit in hits:

@@ -26,9 +26,9 @@ from pathlib import Path
 from elasticsearch import Elasticsearch, helpers
 
 # --- Config ---
-CACHE_FILE = "tmp/pairs_cache.json"
+CACHE_FILE = os.environ.get("LLM_SIMILAR_CACHE", "tmp/pairs_cache.json")
 CHECKPOINT_FILE = "tmp/llm_similar_load_progress.json"
-ES_INDEX = "rewayaat_updated"
+ES_INDEX = os.environ.get("REWAYAAT_INDEX", "rewayaat_hadith")
 BATCH_SIZE = 500
 DRY_RUN_VALIDATE_SAMPLE = 100
 
