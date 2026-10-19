@@ -50,3 +50,16 @@
 </div>
 <script src="/js/bookshelf.js" th:src="@{/js/bookshelf.js}" defer></script>
 </th:block>
+
+<!--
+  The same book drawn small at the start of a volume or part card, its page block as
+  thick as the share of the book the card holds. `number` is the volume's, set on a
+  label the way a multi-volume set numbers its covers; null for a part.
+  Expects ${shelfBook} (BookShelf.thumb) in the model; styles are in manuscript.css.
+-->
+<span th:fragment="cardbook(chapters, number)" class="hub-card__book" aria-hidden="true"
+      th:style="${shelfBook.style(chapters)}" xmlns:th="http://www.thymeleaf.org">
+    <img th:if="${shelfBook.hasCover}" th:src="${shelfBook.src}" src="/img/books/covers/al-kafi-160.webp"
+         width="160" height="240" alt="" loading="lazy" decoding="async"/>
+    <span class="hub-card__book-no" th:if="${number != null}" th:text="${number}">1</span>
+</span>

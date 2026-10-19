@@ -120,9 +120,11 @@ public class BookPageController {
 
         PageLocale locale = PageLocale.of(request);
         model.addAttribute("book", book);
+        model.addAttribute("shelfBook", BookShelf.thumb(book.slug()));
         model.addAttribute("volumes", useVolumes ? volumes.stream()
                 .map(v -> Map.of(
                         "label", msg(locale, "book.volumeNumber", LocaleDigits.in(locale, v)),
+                        "number", LocaleDigits.in(locale, v),
                         // Bare, like every other url handed to a template: book.html adds
                         // the language with ${arPrefix}. This one carried the prefix as
                         // well, so every volume card on an Arabic book page pointed at
@@ -172,6 +174,7 @@ public class BookPageController {
         boolean useParts = !book.pagePartsIn(volume).isEmpty();
 
         model.addAttribute("book", book);
+        model.addAttribute("shelfBook", BookShelf.thumb(book.slug()));
         model.addAttribute("volumeLabel", label);
         model.addAttribute("parts", useParts ? parts : List.of());
         model.addAttribute("chapters", useParts ? List.of() : chapters);
@@ -221,6 +224,7 @@ public class BookPageController {
         long narrations = chapters.stream().mapToLong(BookCatalog.Chapter::count).sum();
 
         model.addAttribute("book", book);
+        model.addAttribute("shelfBook", BookShelf.thumb(book.slug()));
         // The part page reuses the volume template, whose heading is volumeLabel.
         PageLocale locale = PageLocale.of(request);
         String partTitle = named(locale, part.title(), part.titleAr());
@@ -327,6 +331,7 @@ public class BookPageController {
         model.addAttribute("robotsDirective", activeTag == null ? null : "noindex, follow");
 
         model.addAttribute("chapter", chapter);
+        model.addAttribute("shelfBook", BookShelf.thumb(bookSlug));
         model.addAttribute("narrations", narrations);
         model.addAttribute("bookUrl", locale.prefix() + "/books/" + bookSlug);
         // The hero chips navigate where a destination exists: the book name and the

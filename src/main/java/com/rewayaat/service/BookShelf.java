@@ -25,6 +25,42 @@ public final class BookShelf {
     public record Shelved(BookCatalog.Book book, boolean hasCover, String style) {
     }
 
+    /**
+     * The book drawn small at the start of each volume and part card: the same cover, with
+     * a page block as thick as the share of the book that card holds.
+     */
+    public record Thumb(String src, String leather, boolean hasCover) {
+
+        /** The inline style for a card holding {@code chapters} of the book's chapters. */
+        public String style(long chapters) {
+            // Logarithmic, like the shelf: 1 chapter is a pamphlet, 600 is a full volume.
+            double reach = Math.max(0, Math.min(1, Math.log10(Math.max(chapters, 1)) / Math.log10(600)));
+            return String.format(Locale.ROOT, "--pages:%.1fpx", 2 + 6 * reach);
+        }
+    }
+
+    /** The leather each cover is drawn in, as scripts/book-covers/leather.py has it. */
+    private static final Map<String, String> LEATHER = Map.ofEntries(
+            Map.entry("al-kafi", "#142c20"),
+            Map.entry("man-la-yahduruh-al-faqih", "#5c1416"),
+            Map.entry("nahj-al-balagha", "#191817"),
+            Map.entry("al-amali", "#16213d"),
+            Map.entry("al-khisal", "#45121b"),
+            Map.entry("kitab-al-ghayba", "#111827"),
+            Map.entry("thawab-al-a-mal-wa-iqab-al-a-mal", "#5c1416"),
+            Map.entry("uyun-akhbar-al-rida", "#16213d"),
+            Map.entry("ma-ani-al-akhbar", "#191817"),
+            Map.entry("kamil-al-ziyarat", "#142c20"),
+            Map.entry("al-tawhid", "#191817"),
+            Map.entry("mu-jam-al-ahadith-al-mu-tabara", "#45121b"),
+            Map.entry("kitab-al-zuhd", "#111827"),
+            Map.entry("kitab-al-du-afa", "#191817"),
+            Map.entry("kitab-al-mu-min", "#5c1416"),
+            Map.entry("sifat-al-shi-a", "#16213d"),
+            Map.entry("risalat-al-huquq", "#45121b"),
+            Map.entry("fada-il-al-shi-a", "#142c20"));
+    private static final String PLAIN_LEATHER = "#16213d";
+
     private static final String COVERS = "static/img/books/covers/";
     private static final String GILT = "/img/books/gilt/";
 
@@ -43,6 +79,11 @@ public final class BookShelf {
                 .sorted(Comparator.comparingLong(BookCatalog.Book::count).reversed())
                 .map(book -> new Shelved(book, hasCover(book.slug()), style(book, largest)))
                 .toList();
+    }
+
+    public static Thumb thumb(String slug) {
+        return new Thumb("/img/books/covers/" + slug + "-160.webp",
+                LEATHER.getOrDefault(slug, PLAIN_LEATHER), hasCover(slug));
     }
 
     static boolean hasCover(String slug) {

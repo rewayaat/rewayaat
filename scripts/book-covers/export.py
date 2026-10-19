@@ -5,6 +5,7 @@ Usage: python3 export.py   (after covers.py)
 Writes, under src/main/resources/static/img/books/:
   covers/<site slug>.webp       600 x 900, for 2x screens and the enlarged chosen book
   covers/<site slug>-400.webp   400 x 600
+  covers/<site slug>-160.webp   160 x 240, the small book on the volume and part cards
   gilt/<site slug>.webp         600 x 900, the gold alone on transparency; the shelf
                                 brightens it when a book is chosen, and masks the
                                 passing light with it so only the gold catches it
@@ -62,4 +63,5 @@ if __name__ == "__main__":
         cover = Image.open(HERE / "build" / f"{slug}.png")
         cover.resize((600, 900), Image.LANCZOS).save(STATIC / "covers" / f"{site}.webp", quality=88, method=6)
         cover.resize((400, 600), Image.LANCZOS).save(STATIC / "covers" / f"{site}-400.webp", quality=86, method=6)
+        cover.resize((160, 240), Image.LANCZOS).save(STATIC / "covers" / f"{site}-160.webp", quality=84, method=6)
         gilt(cover).resize((600, 900), Image.LANCZOS).save(STATIC / "gilt" / f"{site}.webp", quality=86, method=6)

@@ -49,6 +49,18 @@ class BookShelfTest {
         assertFalse(BookShelf.hasCover("a-book-not-yet-drawn"));
     }
 
+    @Test
+    void aCardsBookIsAsThickAsItsShareOfTheBook() {
+        BookShelf.Thumb kafi = BookShelf.thumb("al-kafi");
+
+        assertTrue(kafi.hasCover());
+        assertEquals("/img/books/covers/al-kafi-160.webp", kafi.src());
+        assertEquals("#142c20", kafi.leather());
+        assertEquals("--pages:2.0px", kafi.style(1));
+        assertEquals("--pages:8.0px", kafi.style(594 * 2));
+        assertFalse(BookShelf.thumb("a-book-not-yet-drawn").hasCover());
+    }
+
     private static double scale(BookShelf.Shelved s) {
         return Double.parseDouble(s.style().substring("--scale:".length(), s.style().indexOf(';')));
     }
