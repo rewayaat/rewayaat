@@ -285,7 +285,8 @@ def main():
 
     # Limit resource usage
     import torch
-    torch.set_num_threads(2)
+    # 2 by default: the machine is shared. EMBED_THREADS raises it for a long run.
+    torch.set_num_threads(int(os.environ.get("EMBED_THREADS", "2")))
     torch.set_num_interop_threads(1)
     os.environ["PYTORCH_CUDA_ALLOC_CONF"] = ""  # no GPU
     import gc
