@@ -28,8 +28,10 @@
                         <span class="shelf-book__gilt" aria-hidden="true"></span>
                         <span class="shelf-book__shine" aria-hidden="true"></span>
                     </th:block>
+                    <!-- The hyphen is the non-breaking one, so "al-Ḥikam" is not split at it
+                         on a cover this narrow. -->
                     <span th:unless="${item.hasCover}" class="shelf-book__front shelf-book__front--plain" aria-hidden="true">
-                        <span th:text="${book.nameAr} ?: ${book.name}">الكافي</span>
+                        <span th:text="${book.nameAr} ?: ${#strings.replace(book.name, '-', '&#8209;')}">الكافي</span>
                     </span>
                 </div></div>
             </div>

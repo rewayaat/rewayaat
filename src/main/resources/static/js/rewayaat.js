@@ -4290,7 +4290,7 @@ function populateBrowseBooks(books) {
         var toggle = document.createElement('button');
         toggle.className = 'browse-book-drawer-toggle';
         toggle.type = 'button';
-        toggle.textContent = t('js.showAllBooks', 'Show all {0} books').replace('{0}', books.length);
+        toggle.textContent = t('js.showAllBooks', 'Show all {0} books').replace('{0}', localeDigits(books.length));
         toggle.addEventListener('click', function() {
             var expanded = bookList.classList.toggle('is-expanded');
             toggle.textContent = expanded
