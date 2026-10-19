@@ -18,7 +18,7 @@ import sys
 from elasticsearch import Elasticsearch, helpers
 
 ES_HOST = os.environ.get("ELASTICSEARCH_URL", "http://localhost:9200")
-INDEX = "rewayaat_quranic_light_filtered"
+INDEX = os.environ.get("QURANIC_LIGHT_INDEX", "rewayaat_quranic_light_filtered")
 OUTPUT_DIR = os.environ.get("HL_INPUT_DIR", "tmp/qlight-highlight-inputs")
 FORCE = "--force" in sys.argv
 

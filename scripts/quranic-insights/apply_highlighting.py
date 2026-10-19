@@ -16,7 +16,7 @@ import sys
 from elasticsearch import Elasticsearch, helpers
 
 ES_HOST = os.environ.get("ELASTICSEARCH_URL", "http://localhost:9200")
-LIGHT_INDEX = "rewayaat_quranic_light_filtered"
+LIGHT_INDEX = os.environ.get("QURANIC_LIGHT_INDEX", "rewayaat_quranic_light_filtered")
 INPUT_DIR = "tmp/qlight-highlight-outputs"
 BATCH_SIZE = 200
 DRY_RUN = "--dry-run" in sys.argv
