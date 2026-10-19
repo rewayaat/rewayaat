@@ -7,6 +7,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class HadithDisplaySegmenterTest {
@@ -3081,5 +3082,55 @@ class HadithDisplaySegmenterTest {
         assertTrue(chain.contains("وَبِهَذَا الإِسْنَادِ"));
         assertFalse(chain.contains("اشْتَكَى"), "What follows «أنّ» is the narration");
         assertTrue(content.contains("اشْتَكَى"));
+    }
+
+    @Test
+    void readsTheChainThatEndsOnTheBlessingAndNoVerb() {
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "1 عَلِيُّ بْنُ إِبْرَاهِيمَ عَنْ أَبِيهِ عَنِ ابْنِ أَبِي عُمَيْرٍ عَنْ هِشَامِ بْنِ "
+                + "الْحَكَمِ عَنْ أَبِي عَبْدِ الله (عَلَيْهِ السَّلام) فِي مِيزَابَيْنِ سَالا أَحَدُهُمَا بَوْلٌ "
+                + "وَالآخَرُ مَاءُ الْمَطَرِ فَاخْتَلَطَا فَأَصَابَ ثَوْبَ رَجُلٍ لَمْ يَضُرَّهُ ذَلِكَ.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain, "A chain can end on the blessing with nobody said to speak");
+        assertNotNull(content);
+        assertTrue(chain.contains("هِشَامِ بْنِ الْحَكَمِ"));
+        assertTrue(chain.contains("أَبِي عَبْدِ الله"));
+        assertFalse(chain.contains("مِيزَابَيْنِ"));
+        assertTrue(content.contains("مِيزَابَيْنِ"));
+    }
+
+    @Test
+    void looksPastAVerbThatGaveNothingUsable() {
+        Map<String, Object> source = new HashMap<>();
+        // The only «قال» in the entry stands at the very end with two words behind it, so
+        // the marker that passed the gate produced no usable split. That used to end the
+        // search before the routes that can read this entry were reached.
+        source.put("arabic", "2 عَلِيُّ بْنُ إِبْرَاهِيمَ عَنْ أَبِيهِ عَنِ ابْنِ أَبِي عُمَيْرٍ عَنْ حَمَّادِ بْنِ "
+                + "عُثْمَانَ عَنِ الْحَلَبِيِّ عَنْ أَبِي عَبْدِ الله (عَلَيْهِ السَّلام) فِي الرَّجُلِ يَقْتُلُ "
+                + "الْبَقَّةَ وَالْبُرْغُوثَ وَالْقَمْلَةَ وَالذُّبَابَ فِي الصَّلاةِ أَ يَنْقُضُ صَلاتَهُ وَوُضُوءَهُ قَالَ لا.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        assertNotNull(chain);
+        assertTrue(chain.contains("الْحَلَبِيِّ"));
+        assertFalse(chain.contains("الْبَقَّةَ"));
+    }
+
+    @Test
+    void doesNotReadARijaliVerdictOnAManAsAChainHeStandsIn() {
+        Map<String, Object> source = new HashMap<>();
+        // Kitāb al-Ḍuʿafāʾ prints no isnāds; its entries are al-Ghaḍāʾirī's verdicts. A
+        // chain of names does not end a sentence halfway along itself.
+        source.put("arabic", "1 - يونس بن ظبيان، كوفي. غال، كذاب وضاع للحديث. روى عن أبي عبد الله "
+                + "(عليه السلام). لا يلتفت إلى حديثه.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        assertNull(source.get("arabicChain"), "A verdict on a man is not a chain");
     }
 }

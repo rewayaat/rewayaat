@@ -15,6 +15,7 @@ public final class HadithDisplaySegmenter {
     private static final int MIN_CONTENT_VISIBLE_CHARS = 8;
     private static final int NEAR_AN_OPENING_CHARS = 60;
     private static final int NAMED_WORDS = 3;
+    private static final int MAX_CHAIN_HEAD_CHARS = 400;
 
     private static final Pattern HTML_TAG_PATTERN = Pattern.compile("<[^>]+>");
     private static final Pattern MULTISPACE_PATTERN = Pattern.compile("\\s+");
@@ -368,6 +369,20 @@ public final class HadithDisplaySegmenter {
             "وفي رواية"
     };
 
+    private static final String[] ARABIC_BLESSINGS = new String[] {
+            "عليه السلام",
+            "عليها السلام",
+            "عليهما السلام",
+            "عليهم السلام",
+            "صلي الله عليه واله",
+            "صلي الله عليه و اله",
+            "صلوات الله عليه",
+            "صلوات الله عليه واله",
+            "رحمه الله",
+            "ع",
+            "ص"
+    };
+
     // Written over a name rather than about a man, so none of it counts towards the
     // narration having begun — see saidByThePersonNamed.
     private static final String[] ARABIC_BLESSING_WORDS = new String[] {
@@ -671,16 +686,26 @@ public final class HadithDisplaySegmenter {
         if (bestSplit < 0) {
             bestSplit = fallbackSplit;
         }
-        if (bestSplit < 0 && fallbackSplit < 0) {
-            bestSplit = findArabicColonBoundary(raw);
-        }
-        if (bestSplit < 0 && fallbackSplit < 0) {
-            bestSplit = findArabicReportedClauseBoundary(raw, matchText, normalized);
-        }
         SplitResult split = buildSplit(raw, bestSplit);
         if (!split.hasSplit() && fallbackSplit > 0 && fallbackSplit != bestSplit) {
             bestSplit = fallbackSplit;
             split = buildSplit(raw, fallbackSplit);
+        }
+        // A marker that passed the gate and then produced nothing usable used to end the
+        // search here, so an entry whose only «قال» stands at the very end with two words
+        // behind it — «...عن الحلبي عن أبي عبد الله (عليه السلام) في الرجل يقتل البقة
+        // والبرغوث... قال لا.» — never reached the routes that can read it.
+        if (!split.hasSplit()) {
+            for (int candidate : new int[] { findArabicColonBoundary(raw),
+                                             findArabicReportedClauseBoundary(raw, matchText, normalized),
+                                             findArabicBlessingBoundary(raw, matchText, normalized) }) {
+                SplitResult rescued = buildSplit(raw, candidate);
+                if (rescued.hasSplit()) {
+                    bestSplit = candidate;
+                    split = rescued;
+                    break;
+                }
+            }
         }
         if (!split.hasSplit()) {
             return -1;
@@ -804,6 +829,87 @@ public final class HadithDisplaySegmenter {
         for (String blessing : ARABIC_BLESSING_WORDS) {
             if (word.equals(blessing)) {
                 return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * The isnād that ends on the blessing said over the man it ends with, and no verb.
+     *
+     * <p>Most chains hand over with «قال». Some simply stop: «علي بن إبراهيم عن أبيه عن ابن
+     * أبي عمير عن هشام بن الحكم عن أبي عبد الله (عليه السلام) في ميزابين سالا أحدهما بول
+     * والآخر ماء المطر…» — the question is put without anyone being said to speak, and the
+     * duʿāʾ entries and the «مثله وزاد فيه» ones do the same. Nothing in the entry marks
+     * where the names end except the blessing itself.
+     *
+     * <p>Read last of all, after every marker and both other routes, so no chain that can
+     * be read another way is reshaped by it. Three things are asked of the blessing before
+     * it may end a chain: the names before it must score as a chain and not merely mention
+     * somebody; nothing may follow it that carries the chain on, or that a marker would
+     * have handled; and no verb of saying may stand in front of it, unless it is one chain
+     * link handing to the next — «قال حدثني جعفر بن محمد» is the chain still going, while
+     * «قال.بعث إليّ أبو الحسن» is the narration already begun.
+     */
+    private static int findArabicBlessingBoundary(String raw, ArabicMatchText matchText,
+                                                  String normalized) {
+        for (int at = 0; at >= 0 && at <= MAX_SCAN_CHARS; ) {
+            int found = -1;
+            int length = 0;
+            for (String blessing : ARABIC_BLESSINGS) {
+                int index = findCueIndex(normalized, blessing, at);
+                if (index >= 0 && (found < 0 || index < found)) {
+                    found = index;
+                    length = blessing.length();
+                }
+            }
+            if (found < 0) {
+                return -1;
+            }
+            int end = found + length;
+            at = end;
+            String prefix = normalized.substring(0, found);
+            if (prefix.length() > MAX_CHAIN_HEAD_CHARS) {
+                return -1;
+            }
+            if (arabicChainSignalScore(prefix) < 3 || saysBeforeTheNames(prefix)) {
+                continue;
+            }
+            // A chain of names does not end a sentence halfway along itself. Kitāb
+            // al-Ḍuʿafāʾ's entries do: «يونس بن ظبيان، كوفي. غال، كذاب وضاع للحديث. روى
+            // عن أبي عبد الله (عليه السلام)» is al-Ghaḍāʾirī's verdict on a man, not a
+            // chain he stands in, and the book prints no isnāds at all.
+            if (prefix.indexOf('.') >= 0 || prefix.indexOf('\u06D4') >= 0) {
+                continue;
+            }
+            String tail = normalized.substring(Math.min(end, normalized.length()));
+            if (startsWithAnyCue(tail, ARABIC_CHAIN_CUES)
+                    || startsWithAnyCue(tail, ARABIC_SPLIT_MARKERS)) {
+                continue;
+            }
+            int split = matchText.toRawBoundary(end);
+            while (split < raw.length()
+                    && (isArabicDiacritic(raw.charAt(split)) || raw.charAt(split) == '\u0640')) {
+                split++;
+            }
+            split = moveSplitBoundaryOutsideHtml(raw, split);
+            if (buildSplit(raw, split).hasSplit()) {
+                return split;
+            }
+        }
+        return -1;
+    }
+
+    /** Whether the narration has already begun, rather than one link handing to the next. */
+    private static boolean saysBeforeTheNames(String prefix) {
+        for (String verb : new String[] { "قال", "قالت", "قالوا", "قالا", "فقال", "يقول" }) {
+            int at = findCueIndex(prefix, verb, 0);
+            while (at >= 0) {
+                if (!startsWithAnyCue(prefix.substring(at + verb.length()),
+                                      ARABIC_DIRECT_CHAIN_CONTINUATIONS)) {
+                    return true;
+                }
+                at = findCueIndex(prefix, verb, at + verb.length());
             }
         }
         return false;
