@@ -8,7 +8,7 @@
 
 **Related plans:** [phase-1](2026-10-19-restore-v1-books-phase-1.md), [phase-2](2026-10-19-restore-v1-books-phase-2.md), phase-3 (this file), [phase-4](2026-10-19-restore-v1-books-phase-4.md), [phase-5](2026-10-19-restore-v1-books-phase-5.md)
 
-**Depends on:** phase-1 (batches), phase-2 (app code + `v2_mapping.json` fields).
+**Depends on:** phase-1 (batches), phase-1.5 (cleaned batches — embeddings must be computed from repaired text), phase-2 (app code + `v2_mapping.json` fields).
 
 **Maintainability expectations:**
 - Extend the existing tools; no forks (memory `reuse-existing-query-paths`).

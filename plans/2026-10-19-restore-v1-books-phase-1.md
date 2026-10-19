@@ -6,7 +6,7 @@
 
 **Working directory for all commands:** `/home/zir0/git/rewayaat-lost-books` (worktree, branch `feature/restore-v1-books`, based on `origin/master` `2c76714`)
 
-**Related plans:** phase-1 (this file), [phase-2](2026-10-19-restore-v1-books-phase-2.md) app code, [phase-3](2026-10-19-restore-v1-books-phase-3.md) local import + deterministic enrichment, [phase-4](2026-10-19-restore-v1-books-phase-4.md) agent enrichment, [phase-5](2026-10-19-restore-v1-books-phase-5.md) production rollout.
+**Related plans:** phase-1 (this file), [phase-1.5](2026-10-19-restore-v1-books-phase-1-5.md) text quality, [phase-2](2026-10-19-restore-v1-books-phase-2.md) app code, [phase-3](2026-10-19-restore-v1-books-phase-3.md) local import + deterministic enrichment, [phase-4](2026-10-19-restore-v1-books-phase-4.md) agent enrichment, [phase-5](2026-10-19-restore-v1-books-phase-5.md) production rollout.
 
 **Depends on:** nothing.
 
