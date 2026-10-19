@@ -23,6 +23,7 @@ import argparse
 import json
 import re
 import sys
+import unicodedata
 from collections import Counter, defaultdict
 from functools import lru_cache
 from pathlib import Path
@@ -142,12 +143,14 @@ HONORIFICS = ["عليه السلام", "عليهم السلام", "عليها ا
               "صلى الله عليه وآله وسلم"]
 # What a font's honorific glyph turned into when the PDF was extracted: Latin letters,
 # digits, a slash, or a و followed by a colon.
-GLYPH = re.compile(r"[A-Za-z0-9/]+|و:")
+GLYPH = re.compile(r"[A-Za-z0-9/^]+|و:")
+# Characters an encoding failure left where a transliterated vowel was: Im?m, ImÁm.
+BROKEN_ENCODING = re.compile(r"[?ÁÃÂ\ufffd]")
 MIZAN_GHURAR_CITATION = re.compile(r"\s*\(غرر الح[كک]م\s*:[^()]*\)")
-FOOTNOTE_DIGIT = re.compile(r"([A-Za-z”’)])\d{1,2}\b")
+FOOTNOTE_DIGIT = re.compile(r"([A-Za-z”’)])\d{1,3}\b")
 HEADING_NUMBER = re.compile(r"^(section|chapter)\s+\d+\s*-\s*", re.IGNORECASE)
 UNVOCALISED_BOOKS = {"Mishkāt al-Anwār"}
-FOOTNOTED_BOOKS = {"Mishkāt al-Anwār"}
+FOOTNOTED_BOOKS = {"Mishkāt al-Anwār", "Mīzān al-Ḥikma"}
 HEADING_BLEED_BOOKS = {"Mishkāt al-Anwār"}
 NARRATION_END = re.compile(r"[.!?”\"’)\]]$")
 CITING_BOOKS = {"Mīzān al-Ḥikma"}
@@ -177,7 +180,7 @@ def clean_arabic(text: str, book: str) -> str:
         out = DIACRITICS.sub("", out)
     out = re.sub(r"(\S) ء(?=[\s،.:؛]|$)", r"\1ء", out)
     out = re.sub(r"(^|\s)أ (ن)", r"\1أ\2", out)
-    out = re.sub(r"[ \t]+", " ", out).strip()
+    out = unicodedata.normalize("NFC", re.sub(r"[ \t]+", " ", out).strip())
     if skeleton(out) != skeleton(text):
         raise ValueError(f"clean_arabic changed the skeleton of: {text[:60]}")
     return out
@@ -249,6 +252,9 @@ def validate_fix(field: str, original: str, old: str, new: str, headings=()) -> 
         raise ValueError("titles are corrected through the title overrides, not text fixes")
     if field not in ("arabic", "english"):
         raise ValueError(f"no fixes for field {field}")
+    if field == "arabic":
+        # Agents type vowel marks in canonical order; the export did not always store them so.
+        original, old, new = (unicodedata.normalize("NFC", t) for t in (original, old, new))
     if not old or original.count(old) != 1:
         raise ValueError(f"'old' must occur exactly once in {field}")
     if field == "arabic":
@@ -266,6 +272,11 @@ def validate_fix(field: str, original: str, old: str, new: str, headings=()) -> 
         return "auto"
     if not new.strip() and _heading_words(headings) and _normalise_words(old) in _heading_words(headings):
         return "auto"
+    old_tokens, new_tokens = _english_tokens(old), _english_tokens(new)
+    if BROKEN_ENCODING.search(old) and len(old.split()) == len(new.split()):
+        pattern = "^" + BROKEN_ENCODING.sub(".?", re.escape(old).replace(r"\?", "?")) + "$"
+        if re.match(pattern.replace("?.?", ".?"), new, re.IGNORECASE):
+            return "review"
     raise ValueError(f"english fix changes the words: {old[:40]!r} -> {new[:40]!r}")
 
 
@@ -372,7 +383,10 @@ def convert(rows, overrides, fixes=None, exclusions=None, hold_back=()):
             verdict = validate_fix(field, doc[field], fix["old"], fix["new"], known)
             if verdict == "review" and not fix.get("approved"):
                 raise ValueError(f"{new_id}: fix needs review approval: {fix['old'][:40]!r}")
-            doc[field] = re.sub(r"[ \t]+", " ", doc[field].replace(fix["old"], fix["new"], 1)).strip()
+            old, new = fix["old"], fix["new"]
+            if field == "arabic":
+                old, new = unicodedata.normalize("NFC", old), unicodedata.normalize("NFC", new)
+            doc[field] = re.sub(r"[ \t]+", " ", doc[field].replace(old, new, 1)).strip()
         if new_id in v1_ids.values():
             raise ValueError(f"duplicate id {new_id}")
         v1_ids[r["_id"]] = new_id

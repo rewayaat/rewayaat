@@ -183,6 +183,9 @@ class CleanEnglishTest(unittest.TestCase):
         self.assertEqual(c.clean_english("towards the Qibla1 and prayed", MISHKAT, []),
                          "towards the Qibla and prayed")
 
+    def test_mizan_footnote_digits_are_removed(self):
+        self.assertEqual(c.clean_english("embracing this matter87 and", MIZAN, []), "embracing this matter and")
+
     def test_digits_in_other_books_are_left(self):
         self.assertEqual(c.clean_english("number 40 of them", GHURAR, []), "number 40 of them")
 
@@ -219,6 +222,20 @@ class ValidateFixTest(unittest.TestCase):
     def test_ambiguous_old_is_refused(self):
         with self.assertRaisesRegex(ValueError, "exactly once"):
             c.validate_fix("english", "the  the  end", "  ", " ")
+
+    def test_mark_order_does_not_hide_a_fix(self):
+        stored = "طالَّتِ"            # fatha before shadda, as the export stored it
+        typed = "طالَّتِ".replace("\u064e\u0651", "\u0651\u064e")
+        self.assertEqual(c.validate_fix("arabic", "قد " + stored + " الأيام", typed, "طالت"), "auto")
+
+    def test_caret_glyph_to_honorific_needs_review(self):
+        self.assertEqual(c.validate_fix("arabic", "الأئمَّةُ ^ قالوا", "الأئمَّةُ ^", "الأئمَّةُ عليهم السلام"),
+                         "review")
+
+    def test_broken_encoding_repair_needs_review(self):
+        self.assertEqual(c.validate_fix("english", "the Im?m said", "Im?m", "Imam"), "review")
+        with self.assertRaises(ValueError):
+            c.validate_fix("english", "the Im?m said", "Im?m", "Caliph")
 
     def test_title_fields_are_not_fixed_here(self):
         with self.assertRaisesRegex(ValueError, "overrides"):
