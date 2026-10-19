@@ -36,9 +36,12 @@ import functools
 import json
 import os
 import re
+import sys
 import unicodedata
 
 W = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
+sys.path.insert(0, f'{W}/scripts/narrators')
+from chain_mentions import not_a_man  # noqa: E402
 TMP = f'{W}/tmp'
 LINKED = ("one", "chosen", "convention")
 # What a link is written as. `link_chain` also hangs the Arabic it came from on each one, for
@@ -806,7 +809,12 @@ def main():
             if not chain:
                 counts["no English chain"] += 1
                 continue
-            mentions = [m for m in row["mentions"] if m["kind"] != "text"]
+            # A date is not a man: «رَجَبٍ» and «اثْنَتَيْ عَشْرَةَ وَمِائَتَيْنِ» were
+            # read as steps of a chain in the notices that have none. None of them was
+            # ever linked, but left among the names they take a place in the English that
+            # a real name needs, and the alignment keeps its order.
+            mentions = [m for m in row["mentions"]
+                        if m["kind"] != "text" and not not_a_man(m["text"])]
             places = slots(chain)
             if not places or not mentions:
                 counts["nothing to align"] += 1

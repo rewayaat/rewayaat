@@ -22,6 +22,9 @@ import os
 import sys
 
 W = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
+sys.path.insert(0, f'{W}/scripts/narrators')
+from chain_mentions import not_a_man  # noqa: E402
+
 TMP = f'{W}/tmp'
 LINKED = ("one", "chosen", "convention")
 
@@ -134,6 +137,14 @@ def main():
             for mention in row["mentions"]:
                 if mention["kind"] not in ("name", "imam", "collective", "relative",
                                            "backref_man", "backref_chain"):
+                    continue
+                # A book's notice of when an Imam was born and died carries no isnād, and
+                # the reader was giving al-Kāfī 1319 five steps out of «وُلِدَ», «رَجَبٍ»
+                # and «اثْنَتَيْ عَشْرَةَ وَمِائَتَيْنِ». `chain_mentions` refuses these
+                # now; asked again here so the index is right without the whole corpus
+                # being read and resolved again, since not one of them was ever a link.
+                if not_a_man(mention["text"]):
+                    counts["a date or a verb, not a man"] += 1
                     continue
                 where = place((mention["start"], mention["end"]), mention["text"], chain,
                               Counter())

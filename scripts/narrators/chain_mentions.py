@@ -128,6 +128,20 @@ FUNCTION = {"الذي", "التي", "الذين", "يا", "ايها", "كيف", 
             "يصلح", "يطاف", "ارايت", "اراه", "تلد", "يتزوج", "فقلت", "حتي", "او", "ايضا",
             "اعلم", "اظن", "يظن", "احسب", "احسبه", "قراه"}
 
+# A book's notice of when an Imam was born, taken and buried carries no isnād, and the verb
+# that opens it was read as the Imam the notice is about: «وُلِدَ (عليه السلام) للنصف من ذي
+# الحجة» gave al-Kāfī 1319 five steps and no chain.
+#
+# Only where the verb is the whole run, which is how these notices open. «ولد» is also the
+# word for a child and stands inside real names — «سَلْمَى مَوْلاَةِ وَلَدِ أَبِي عَبْدِ
+# اللَّه» is a woman the books name — and «عاش» stands beside one in al-Ghayba's roll of
+# long-lived men. Listed with FUNCTION, which fires on any word of a run, both were lost.
+#
+# «عمر» is not on the list. It is «عُمِّرَ», "he was long-lived", in al-Ghayba's roll of
+# such men — and it is also ʿUmar, a name a great many men carry, written the same way
+# once the vowels are off.
+LIFE_VERB = {"ولد", "قبض", "مضي", "توفي", "دفن", "استشهد", "عاش"}
+
 # The words that hold a name together and so do not count towards its length.
 NAME_GLUE = {"بن", "ابن", "ابي", "ابو", "ابا", "بنت", "عبد", "ال", "مولي", "اخي", "ام"}
 MAX_NAME_WORDS = 5
@@ -168,6 +182,7 @@ FUNCTION = {bare(w) for w in FUNCTION}
 NAME_GLUE = {bare(w) for w in NAME_GLUE}
 RELATIVE = {bare(w) for w in RELATIVE}
 OPENERS = {bare(w) for w in OPENERS}
+LIFE_VERB = {bare(w) for w in LIFE_VERB}
 
 
 LINK = {"بن", "ابن"}
@@ -175,12 +190,28 @@ LINK = {"بن", "ابن"}
 # The year of a hearing, once «سنة» has closed the name before it: «سنة سبع وعشرين
 # ومائتين» is left behind as a run of its own, and a run of numbers is not a man.
 NUMBERS = {
-    "واحد", "اثنين", "اثنتين", "ثنتين", "ثلاث", "ثلاثة", "اربع", "اربعة", "خمس", "خمسة",
+    "واحد", "احدي", "اثنين", "اثنتين", "اثنتي", "اثني", "ثنتين", "ثلاث", "ثلاثة", "اربع",
+    "اربعة", "خمس", "خمسة",
     "ست", "ستة", "سبع", "سبعة", "ثمان", "ثمانية", "ثماني", "تسع", "تسعة", "عشر", "عشرة",
     "عشرين", "ثلاثين", "اربعين", "خمسين", "ستين", "سبعين", "ثمانين", "تسعين",
+    # The nominative of each, which is what a count standing on its own takes:
+    # «وستة أشهر وأربعون سنة».
+    "عشرون", "ثلاثون", "اربعون", "خمسون", "ستون", "سبعون", "ثمانون", "تسعون", "مائتان",
     "مائة", "مئة", "مائتين", "مئتين", "ثلاثمائة", "ثلاثمئة", "اربعمائة", "خمسمائة", "الف",
 }
 NUMBERS = {bare(w) for w in NUMBERS}
+
+# A month, and the words a date is built from. A few of these could head a man's name —
+# «رجب» and «رمضان» are names a man may carry — so a month is never on its own grounds for
+# refusing a run. It counts only where the whole run is a date, which is the shape these
+# turn up in: al-Kāfī's notices of an Imam's birth and death carry no isnād at all, and
+# «رَجَبٍ» and «اثْنَتَيْ عَشْرَةَ وَمِائَتَيْنِ» were being read as two of the men in it.
+MONTHS = {"محرم", "صفر", "ربيع", "جمادي", "رجب", "شعبان", "رمضان", "شوال", "ذي", "ذو",
+          "الحجة", "القعدة", "الاخرة", "الاولي", "الاخر", "الاول"}
+DATE_WORDS = {"سنة", "سنين", "شهر", "اشهر", "شهور", "يوم", "ايام", "ليلة", "ليال", "النصف",
+              "نصف", "غرة", "بقين", "خلون", "مضين", "لليلة", "لليال", "خلت", "بقيت"}
+MONTHS = {bare(w) for w in MONTHS}
+DATE_WORDS = {bare(w) for w in DATE_WORDS}
 
 
 def two_joiners(folded):
@@ -204,9 +235,15 @@ def two_joiners(folded):
 
 
 def counted(folded):
-    """Whether every word of a run is a number, with or without the «و» that joins them."""
+    """Whether a run is a date and nothing else — a number, a month, or the words between.
+
+    Every word has to be one of them, with or without the «و» that joins them. A run that
+    merely contains a month is left alone: a man may be called Rajab, and a date is only a
+    date when there is nothing else in it.
+    """
+    spoken = NUMBERS | MONTHS | DATE_WORDS
     return bool(folded) and all(
-        word in NUMBERS or (word.startswith("و") and word[1:] in NUMBERS) for word in folded)
+        word in spoken or (word.startswith("و") and word[1:] in spoken) for word in folded)
 
 
 def outside_nasab(folded):
@@ -227,6 +264,39 @@ def outside_nasab(folded):
     return [w for w, held in zip(folded, covered) if not held and w not in NAME_GLUE]
 
 
+def alone_a_verb(folded):
+    """Whether a run is one word and that word is what a life notice is written with.
+
+    With or without the «و» that joins it to the sentence before — and «ولد» is itself a
+    word that opens on one, so the bare form is tried first.
+    """
+    if len(folded) != 1:
+        return False
+    word = folded[0]
+    return word in LIFE_VERB or (word.startswith("و") and word[1:] in LIFE_VERB)
+
+
+def not_a_man(text):
+    """Whether a run cannot be a man's name, whatever stands around it.
+
+    A date, or a run holding a word no name contains. Said of the text rather than of a
+    chain's reading of it, so that anything already written against an older reading can
+    ask the same question — `chain_links_load` drops a step the index was given before
+    this knew about dates, rather than waiting for the whole corpus to be read again.
+
+    It keeps `kind_of`'s order, which is the whole of its correctness. «عدة من أصحابنا»
+    holds «من», a word no name contains, and is a collective — a real step of al-Kāfī's
+    isnād that the page draws on purpose. Asking the two questions the other way round
+    refused 2,559 of them.
+    """
+    folded = [bare(w) for w in WORD.findall(text)]
+    if not folded:
+        return False
+    if any(w in COLLECTIVE for w in folded) or " ".join(folded) in RELATIVE:
+        return False
+    return counted(folded) or alone_a_verb(folded) or any(w in FUNCTION for w in folded)
+
+
 def kind_of(words, blessed, saluted=None):
     """What sort of mention a run of words is — the kinds that must not become links."""
     folded = [bare(w) for w in words]
@@ -238,7 +308,7 @@ def kind_of(words, blessed, saluted=None):
         return "relative"
     if any(w in FUNCTION for w in folded):
         return "text"
-    if counted(folded):
+    if counted(folded) or alone_a_verb(folded):
         return "text"
     if len(outside_nasab(folded)) > MAX_NAME_WORDS:
         return "text"
