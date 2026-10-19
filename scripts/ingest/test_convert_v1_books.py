@@ -281,5 +281,25 @@ class FixesAndExclusionsTest(unittest.TestCase):
         self.assertEqual(excluded[0]["reason"], "held-back")
 
 
+class TitleFixesTest(unittest.TestCase):
+
+    def test_a_title_fix_applies_to_every_narration_of_the_chapter(self):
+        rows = [row("1", "Ghurar Al-Hikam", 1, "REMEMBRANCE الذكرو المُذَكِّر"),
+                row("2", "Ghurar Al-Hikam", 2, "REMEMBRANCE الذكرو المُذَكِّر")]
+        fixes = {"chapter_ar": {"الذكرو المُذَكِّر": "الذكر و المُذَكِّر"}}
+        docs, _, _, _ = c.convert(rows, NO_OVERRIDES, title_fixes=fixes)
+        self.assertEqual({d["_source"]["chapter_ar"] for d in docs}, {"الذكر و المُذَكِّر"})
+
+    def test_a_title_fix_that_changes_a_letter_is_refused(self):
+        rows = [row("1", "Ghurar Al-Hikam", 1, "REMEMBRANCE الذكرو المُذَكِّر")]
+        with self.assertRaises(ValueError):
+            c.convert(rows, NO_OVERRIDES, title_fixes={"chapter_ar": {"الذكرو المُذَكِّر": "الفكر"}})
+
+    def test_stray_pipe_and_asterisk_leave_english_titles(self):
+        docs, _, _, _ = c.convert([row("1", "Mizan Al-Hikmah", 1, "This World | الدنيا",
+                                       section="Ashura * عاشوراء")], NO_OVERRIDES)
+        self.assertEqual((docs[0]["_source"]["chapter"], docs[0]["_source"]["part"]), ("This World", "Ashura"))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -21,11 +21,40 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from convert_v1_books import validate_fix  # noqa: E402
+from convert_v1_books import skeleton, validate_fix  # noqa: E402
 
 TEXT_FIELDS = {"arabic", "english"}
 ACCEPTED_CONFIDENCE = {"high", "medium"}
 DECISION_TYPES = {"misaligned", "truncated-en", "truncated-ar", "merged", "citation-defect", "other"}
+TITLE_FIELDS = {"chapter", "chapter_ar", "part", "part_ar"}
+# Particles the edition writes joined to the next word: «لايَزْكُو», «وخَفِيَ», «ماقالَ». Agents
+# disagreed on whether that is a defect, so a fix that only moves a space beside one is
+# dropped, and the books keep one spelling throughout.
+JOINED_PARTICLES = {"لا", "و", "ما", "ولا", "فلا", "وما", "فما"}
+SPACED_DASH = "ـ"
+
+
+def is_convention(old: str, new: str) -> bool:
+    """A spacing-only Arabic change at a joined particle, or the removal of a spaced dash."""
+    if old.replace(SPACED_DASH, "").split() == new.split() and SPACED_DASH in old:
+        return True
+    if old.replace(" ", "") != new.replace(" ", "") or old == new:
+        return False
+    changed = set(new.split()) ^ set(old.split())
+    return any(skeleton(token) in JOINED_PARTICLES for token in changed)
+
+
+def title_fix(src: dict, field: str, old: str, new: str):
+    """The corrected whole title, or None when the edit is not a spacing or mark repair."""
+    title = src.get(field) or ""
+    if not old or title.count(old) != 1:
+        return None
+    fixed = title.replace(old, new, 1)
+    if field.endswith("_ar") and skeleton(fixed) != skeleton(title):
+        return None
+    if not field.endswith("_ar") and fixed.split() != title.split() and fixed.replace(" |", "") != title.replace(" |", ""):
+        return None
+    return title, fixed
 
 
 def load_docs(batches: Path) -> dict:
@@ -63,6 +92,7 @@ def merge(docs, findings):
     working = {i: {"arabic": unicodedata.normalize("NFC", s["arabic"]), "english": s["english"]}
                for i, s in docs.items()}
     fixes, review, refused, decisions = defaultdict(list), [], [], []
+    title_fixes, conventions = defaultdict(dict), 0
     for row in findings:
         doc_id = row.get("id")
         src = docs.get(doc_id)
@@ -73,8 +103,19 @@ def merge(docs, findings):
             if src is None:
                 refused.append({**entry, "reason": "unknown id"})
                 continue
+            if proposed and field in TITLE_FIELDS:
+                change = title_fix(src, field, proposed.get("old", ""), proposed.get("new", ""))
+                if change:
+                    title_fixes[field][change[0]] = change[1]
+                else:
+                    decisions.append({**entry, "note": "title proposal outside spacing and marks"})
+                continue
             if proposed and field in TEXT_FIELDS:
                 old, new = proposed.get("old", ""), proposed.get("new", "")
+                if field == "arabic" and is_convention(unicodedata.normalize("NFC", old),
+                                                       unicodedata.normalize("NFC", new)):
+                    conventions += 1
+                    continue
                 try:
                     verdict = validate_fix(field, working[doc_id][field], old, new,
                                            headings[src["book"]][field])
@@ -93,9 +134,7 @@ def merge(docs, findings):
                     refused.append({**entry, "old": old, "new": new, "reason": "low confidence"})
             elif kind in DECISION_TYPES or not proposed:
                 decisions.append({**entry, "english": src["english"][:160], "arabic": src["arabic"][:160]})
-            else:
-                decisions.append({**entry, "note": "proposal on a title field; see the title review"})
-    return dict(fixes), review, refused, decisions
+    return dict(fixes), review, refused, decisions, dict(title_fixes), conventions
 
 
 def read_titles(quality_dir: Path) -> list[dict]:
@@ -129,11 +168,16 @@ def main() -> int:
     parser.add_argument("--quality-dir", required=True)
     parser.add_argument("--batches", default="batches/v1-restored")
     parser.add_argument("--fixes-out", default=str(Path(__file__).with_name("v1_restore_text_fixes.json")))
+    parser.add_argument("--title-fixes-out",
+                        default=str(Path(__file__).with_name("v1_restore_title_fixes.json")))
     args = parser.parse_args()
 
     quality_dir = Path(args.quality_dir)
     docs = load_docs(Path(args.batches))
-    fixes, review, refused, decisions = merge(docs, read_findings(quality_dir, ["ghurar", "mizan"]))
+    fixes, review, refused, decisions, title_fixes, conventions = merge(
+        docs, read_findings(quality_dir, ["ghurar", "mizan"]))
+    Path(args.title_fixes_out).write_text(
+        json.dumps(title_fixes, ensure_ascii=False, indent=1, sort_keys=True) + "\n", encoding="utf-8")
     titles = read_titles(quality_dir)
     Path(args.fixes_out).write_text(json.dumps(fixes, ensure_ascii=False, indent=1, sort_keys=True) + "\n",
                                     encoding="utf-8")
@@ -141,7 +185,8 @@ def main() -> int:
         {"review": review, "refused": refused, "decisions": decisions, "titles": titles},
         ensure_ascii=False, indent=1), encoding="utf-8")
     write_review(quality_dir / "review.md", fixes, review, refused, decisions, titles)
-    print(json.dumps({"fixes": sum(len(v) for v in fixes.values()), "review": len(review),
+    print(json.dumps({"fixes": sum(len(v) for v in fixes.values()), "conventions_dropped": conventions,
+                      "title_fixes": sum(len(v) for v in title_fixes.values()), "review": len(review),
                       "refused": len(refused), "decisions": len(decisions), "titles": len(titles)}))
     return 0
 

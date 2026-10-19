@@ -99,7 +99,7 @@ def split_bilingual(raw: str | None) -> tuple[str, str]:
     else:
         found = ARABIC.search(text)
         english, arabic = (text[:found.start()], text[found.start():]) if found else (text, "")
-    return english.strip().rstrip(" -–/:").strip(), arabic.strip()
+    return english.strip().rstrip(" -–/:|*").strip(), arabic.strip()
 
 
 def _capitalise(part: str) -> str:
@@ -306,8 +306,8 @@ def resolve_title(spec, field, raw, overrides, anomalies):
     return english, arabic, False
 
 
-def convert(rows, overrides, fixes=None, exclusions=None, hold_back=()):
-    fixes, exclusions = fixes or {}, exclusions or {}
+def convert(rows, overrides, fixes=None, exclusions=None, hold_back=(), title_fixes=None):
+    fixes, exclusions, title_fixes = fixes or {}, exclusions or {}, title_fixes or {}
     picked = [(book_for(r.get("book")), r) for r in rows]
     picked = [(spec, r) for spec, r in picked if spec]
     held = [(spec, r) for spec, r in picked
@@ -338,6 +338,15 @@ def convert(rows, overrides, fixes=None, exclusions=None, hold_back=()):
                                                         overrides, anomalies)
         docs.append({"spec": spec, "v1": r, "part": part_en, "part_ar": part_ar,
                      "chapter": chapter_en, "chapter_ar": chapter_ar, "inherit": inherit})
+
+    for doc in docs:
+        for field in ("chapter", "chapter_ar", "part", "part_ar"):
+            fixed = title_fixes.get(field, {}).get(doc[field])
+            if fixed is None:
+                continue
+            if field.endswith("_ar") and skeleton(fixed) != skeleton(doc[field]):
+                raise ValueError(f"title fix changes the skeleton: {doc[field]!r} -> {fixed!r}")
+            doc[field] = fixed
 
     previous = {}
     for doc in docs:
@@ -454,6 +463,8 @@ def main() -> int:
                         help="validated text fixes, keyed by new id")
     parser.add_argument("--exclusions", default=str(Path(__file__).with_name("v1_restore_exclusions.json")),
                         help="v1 ids to leave out, with the reason")
+    parser.add_argument("--title-fixes", default=str(Path(__file__).with_name("v1_restore_title_fixes.json")),
+                        help="whole-title spacing and mark repairs, by field")
     parser.add_argument("--hold-back", action="append", default=[],
                         help="a book (new name) to leave out whole; repeatable")
     args = parser.parse_args()
@@ -462,7 +473,9 @@ def main() -> int:
     overrides = json.loads(Path(args.overrides).read_text(encoding="utf-8"))
     fixes = json.loads(Path(args.fixes).read_text(encoding="utf-8"))
     exclusions = json.loads(Path(args.exclusions).read_text(encoding="utf-8"))
-    docs, v1_ids, excluded, report = convert(rows, overrides, fixes, exclusions, set(args.hold_back))
+    title_fixes = json.loads(Path(args.title_fixes).read_text(encoding="utf-8"))
+    docs, v1_ids, excluded, report = convert(rows, overrides, fixes, exclusions, set(args.hold_back),
+                                             title_fixes)
     write_outputs(docs, v1_ids, excluded, report, Path(args.out_dir), Path(args.report_dir))
     print(json.dumps({"documents": len(docs), "excluded": len(excluded),
                       "blocking": len(report["blocking"]),
