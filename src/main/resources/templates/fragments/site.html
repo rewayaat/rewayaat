@@ -53,7 +53,10 @@
     <meta name="twitter:image:alt"
           th:content="${shareImageUrl != null} ? ${seoTitle} : 'Rewayaat — a searchable database of Shia hadith in Arabic and English'"/>
 
-    <script type="application/ld+json" th:utext="${jsonLd}"></script>
+    <!-- A page with nothing structured to say says nothing. This tag went out empty on
+         every narrator page for want of a jsonLd, which is a tag a crawler has to parse
+         and an author has to wonder about. -->
+    <script type="application/ld+json" th:utext="${jsonLd}" th:if="${jsonLd != null}"></script>
     <script type="application/ld+json" th:utext="${breadcrumbJsonLd}" th:if="${breadcrumbJsonLd != null}"></script>
 
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>

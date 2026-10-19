@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.Hidden;
 import com.rewayaat.service.ArabicNames;
 import com.rewayaat.service.LocaleDigits;
 import com.rewayaat.service.PageLocale;
+import com.rewayaat.service.StructuredData;
 import org.springframework.context.MessageSource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -621,24 +622,7 @@ public class BookPageController {
         crumbs.add(Map.of("name", msg(locale, "nav.books"), "url", prefix + "/books"));
         trail.forEach((name, url) -> crumbs.add(Map.of("name", name, "url", prefix + url)));
         model.addAttribute("breadcrumbs", crumbs);
-        model.addAttribute("breadcrumbJsonLd", breadcrumbJsonLd(crumbs));
-    }
-
-    private String breadcrumbJsonLd(List<Map<String, String>> crumbs) {
-        List<Map<String, Object>> items = new ArrayList<>();
-        int position = 1;
-        for (Map<String, String> crumb : crumbs) {
-            items.add(new LinkedHashMap<>(Map.of(
-                    "@type", "ListItem",
-                    "position", position++,
-                    "name", crumb.get("name"),
-                    "item", BASE_URL + crumb.get("url"))));
-        }
-        Map<String, Object> ld = new LinkedHashMap<>();
-        ld.put("@context", "https://schema.org");
-        ld.put("@type", "BreadcrumbList");
-        ld.put("itemListElement", items);
-        return write(ld);
+        model.addAttribute("breadcrumbJsonLd", StructuredData.breadcrumbs(crumbs));
     }
 
     private String booksIndexJsonLd(List<BookCatalog.Book> books) {

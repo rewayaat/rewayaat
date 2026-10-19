@@ -6,6 +6,7 @@ import com.rewayaat.service.HadithCardFactory;
 import com.rewayaat.service.LocaleDigits;
 import com.rewayaat.service.NarratorArabic;
 import com.rewayaat.service.PageLocale;
+import com.rewayaat.service.StructuredData;
 import com.rewayaat.service.QuranicInsightsService;
 import com.rewayaat.service.TopicLabelSource;
 import com.rewayaat.service.Chronology;
@@ -43,6 +44,9 @@ public class NarratorPageController {
     private static final String BASE_URL = HomeController.BASE_URL;
     /** How many of the heaviest-carrying men the page offers when nothing is typed. */
     private static final int BROWSE = 60;
+
+    /** Enough names to be useful to a crawler; the page itself lists them all. */
+    private static final int MAX_ALTERNATE_NAMES = 12;
 
     private static final int PER_PAGE = 20;
     /** A compact row is a sixth the height of a card, so a page of them can be longer. */
@@ -93,8 +97,10 @@ public class NarratorPageController {
         // page lists its books; this lists the men these books lean on hardest, by the
         // narrations they carry, so the page can be browsed as well as searched. Same cards
         // the home page uses, so the two read as one site.
+        List<Map<String, Object>> browse = text.isEmpty() ? prominent.top(BROWSE, locale)
+                : List.of();
         if (text.isEmpty()) {
-            model.addAttribute("prominentNarrators", prominent.top(BROWSE, locale));
+            model.addAttribute("prominentNarrators", browse);
         }
         model.addAttribute("results", found.get("narrators"));
         model.addAttribute("total", total);
@@ -112,10 +118,66 @@ public class NarratorPageController {
         // languages share - see PageLocale. Setting canonicalUrl by hand here is what made
         // every Arabic page name the English one as the real one.
         locale.applyTo(model, "/narrators");
-        model.addAttribute("breadcrumbs", List.of(
+        List<Map<String, String>> crumbs = List.of(
                 Map.of("name", msg(locale, "crumb.home"), "url", locale.prefix() + "/"),
-                Map.of("name", msg(locale, "crumb.narrators"), "url", hub)));
+                Map.of("name", msg(locale, "crumb.narrators"), "url", hub));
+        model.addAttribute("breadcrumbs", crumbs);
+        model.addAttribute("breadcrumbJsonLd", StructuredData.breadcrumbs(crumbs));
+        // A typed name, or a page past the first, is a slice of this one — the canonical
+        // already says so, and this says it in the other way a crawler reads. 15,518 men
+        // against every name anyone might type is an unbounded set of pages that each say
+        // what /narrators says. Same rule the home page's own search follows.
+        model.addAttribute("robotsDirective",
+                text.isEmpty() && Math.max(page, 1) == 1 ? null : "noindex, follow");
+        model.addAttribute("jsonLd", browse.isEmpty()
+                ? hubJsonLd(locale, hub) : hubJsonLd(locale, hub, browse));
         return "narrators";
+    }
+
+    /** The hub with nothing to list on it: a search page, or a page past the first. */
+    private String hubJsonLd(PageLocale locale, String hub) {
+        Map<String, Object> ld = new LinkedHashMap<>();
+        ld.put("@context", "https://schema.org");
+        ld.put("@type", "CollectionPage");
+        ld.put("name", msg(locale, "seo.narrators.title"));
+        ld.put("description", msg(locale, "seo.narrators.description"));
+        ld.put("url", BASE_URL + hub);
+        return StructuredData.write(ld);
+    }
+
+    /**
+     * The hub as a reader first meets it, with the men it offers him named.
+     *
+     * <p>The browse list is the site's own answer to «who carries this corpus» — the men
+     * ranked by the chains that name them — and it is the only route down to 15,518 narrator
+     * pages that a crawler can follow without typing a name into a box.
+     */
+    private String hubJsonLd(PageLocale locale, String hub, List<Map<String, Object>> browse) {
+        List<Map<String, Object>> items = new ArrayList<>();
+        int position = 1;
+        for (Map<String, Object> man : browse) {
+            String id = text(man.get("person_id"));
+            if (id.isEmpty()) {
+                continue;
+            }
+            String slug = text(man.get("slug"));
+            String name = text(man.get(locale.isArabic() ? "display_ar" : "display_en"));
+            items.add(new LinkedHashMap<>(Map.of(
+                    "@type", "ListItem",
+                    "position", position++,
+                    "name", name.isEmpty() ? text(man.get("display_ar")) : name,
+                    "url", BASE_URL + locale.prefix() + "/narrator/" + id
+                            + (slug.isEmpty() ? "" : "/" + slug))));
+        }
+        Map<String, Object> ld = new LinkedHashMap<>();
+        ld.put("@context", "https://schema.org");
+        ld.put("@type", "ItemList");
+        ld.put("name", msg(locale, "seo.narrators.title"));
+        ld.put("description", msg(locale, "seo.narrators.description"));
+        ld.put("url", BASE_URL + hub);
+        ld.put("numberOfItems", items.size());
+        ld.put("itemListElement", items);
+        return StructuredData.write(ld);
     }
 
     private String encode(String text) {
@@ -213,11 +275,15 @@ public class NarratorPageController {
         model.addAttribute("seoTitle", msg(locale, "seo.narrator.title", heading));
         model.addAttribute("seoDescription", summary(locale, heading, narrator));
         locale.applyTo(model, path);
-        model.addAttribute("breadcrumbs", List.of(
+        List<Map<String, String>> crumbs = List.of(
                 Map.of("name", msg(locale, "crumb.home"), "url", locale.prefix() + "/"),
                 Map.of("name", msg(locale, "crumb.narrators"),
                         "url", locale.prefix() + "/narrators"),
-                Map.of("name", heading, "url", base)));
+                Map.of("name", heading, "url", base));
+        model.addAttribute("breadcrumbs", crumbs);
+        model.addAttribute("breadcrumbJsonLd", StructuredData.breadcrumbs(crumbs));
+        model.addAttribute("jsonLd", personJsonLd(narrator, heading, base,
+                summary(locale, heading, narrator)));
 
         // The narrations that name him, as the same card the rest of the site renders. They
         // are found by his name, not by a resolved chain, so the section says so plainly.
@@ -477,6 +543,58 @@ public class NarratorPageController {
      * locale, so the Arabic description names them in Arabic. Where no book heads him the
      * phrase falls back to naming the shelf rather than leaving a gap mid-sentence.
      */
+    /**
+     * The man himself, for a crawler: a {@code Person} and the names the books call him by.
+     *
+     * <p>No {@code deathDate}. The books give a year of the Hijra and schema.org wants a
+     * Gregorian one, and converting it would put a date on the page that no rijālī wrote —
+     * the one thing these pages are built not to do. The year stands in the description in
+     * the form the book states it.
+     */
+    private String personJsonLd(Map<String, Object> narrator, String heading, String path,
+                                String fallbackDescription) {
+        Map<String, Object> ld = new LinkedHashMap<>();
+        ld.put("@context", "https://schema.org");
+        ld.put("@type", "Person");
+        ld.put("name", heading);
+
+        // The names a reader might search him by: his other-language name, the kunyas the
+        // books give him, and the names those books head their entries with. The heading
+        // itself is not one of his alternates.
+        List<String> also = new ArrayList<>();
+        for (Object name : alternateNames(narrator)) {
+            String text = text(name).trim();
+            if (!text.isEmpty() && !text.equals(heading) && !also.contains(text)) {
+                also.add(text);
+            }
+        }
+        if (!also.isEmpty()) {
+            ld.put("alternateName", also.size() > MAX_ALTERNATE_NAMES
+                    ? also.subList(0, MAX_ALTERNATE_NAMES) : also);
+        }
+
+        // The blurb is what the entry actually says of him; the SEO sentence names the books
+        // and is the fallback for the men who have no blurb.
+        String blurb = text(narrator.get("blurb")).trim();
+        ld.put("description", blurb.isEmpty() ? fallbackDescription : blurb);
+        ld.put("url", BASE_URL + path);
+        ld.put("mainEntityOfPage", BASE_URL + path);
+        return StructuredData.write(ld);
+    }
+
+    /** His other-language name, his kunyas, and the names the books head entries with. */
+    private List<Object> alternateNames(Map<String, Object> narrator) {
+        List<Object> names = new ArrayList<>();
+        names.add(narrator.get("display_ar"));
+        names.add(narrator.get("display_en"));
+        for (String field : List.of("kunyahs_ar", "headings_ar")) {
+            if (narrator.get(field) instanceof List<?> list) {
+                names.addAll(list);
+            }
+        }
+        return names;
+    }
+
     private String summary(PageLocale locale, String title, Map<String, Object> narrator) {
         List<String> named = booksNamed(narrator);
         // Arabic separates a list with \u060c, not with a comma.
