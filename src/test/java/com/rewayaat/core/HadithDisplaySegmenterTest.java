@@ -3202,4 +3202,136 @@ class HadithDisplaySegmenterTest {
         assertTrue(chain.contains("Salih bin Sahl"),
                 "The man who heard the Imam belongs to the chain, not only the first name");
     }
+    @Test
+    void readsTheEnglishRouteThatNamesNobody() {
+        Map<String, Object> source = new HashMap<>();
+        // Faqīh 1029. The Arabic route is «و روي» and nothing more, and the English says
+        // «It is narrated:» and nothing more. Not one word stands in front of that formula
+        // for the score gate to read, so the whole of the narration was read as isnād —
+        // 725 characters of it against the Arabic's sixteen.
+        source.put("arabic", "1029 - وَ رُوِيَ: «أَنَّهُ مَنْ تَكَلَّمَ فِي صَلاَتِهِ نَاسِياً كَبَّرَ تَكْبِيرَاتٍ "
+                + "وَ مَنْ تَكَلَّمَ فِي صَلاَتِهِ مُتَعَمِّداً فَعَلَيْهِ إِعَادَةُ اَلصَّلاَةِ وَ مَنْ "
+                + "أَنَّ فِي صَلاَتِهِ فَقَدْ تَكَلَّمَ. وإن نسيت الظهر حتى غربت الشمس وقد صليت العصر فان"
+                + " أمكنك أن تصليها قبل ان تفوتك المغرب فابدأ بها والا فصل المغرب ثم صل بعدها الظهر، وان "
+                + "نسيت الظهر وقد ذكرتها وأنت تصلى العصر فاجعل التي تصليها الظهر - إن لم تخش أن يفوتك "
+                + "وقتب العص - ثم صل العصر بعد ذلك، فان خفت أن يفوتك وقت العصر فابدأ بالعصر، وإن نسيت "
+                + "الظهر والعصر ثم ذكرتهما عند غروب الشمس فصل الظهر ثم صل العصر إن كنت لا تخاف فوات "
+                + "إحديهما، فإن خفت أن يفوتك إحداهما فابدأ بالعصر ولا تؤخرها فيكون قد فاتتك جميعا ، ثم صل"
+                + " الأولى بعد ذلك على أثرها ومتى فاتتك صلاة فصلها إذا ذكرت فإن ذكرتها وأنت في وقت فريضة "
+                + "أخرى فصل التي أنت في وقتها ثم صل الصلاة الفائتة، ومن فاتته الظهر والعصر جميعا، ثم "
+                + "ذكرهما وقد بقي من النهار بمقدار ما يصليهما جميعا بدأ بالظهر ثم بالعصر، وإن بقي بمقدار "
+                + "ما يصلي إحديهما بدأ بالعصر وإن بقي من النهار بمقدار ما يصلي ست ركعات بدأ بالظهر.");
+        source.put("english", "Hadith.1029 - It is narrated: \"If someone speaks during their prayer out of "
+                + "forgetfulness, they should make additional takbir (saying 'Allahu Akbar'). But if "
+                + "someone speaks during their prayer intentionally, they must repeat the prayer. If "
+                + "someone makes an utterance during their prayer, they have indeed spoken”. If you "
+                + "forget the Dhuhr (noon) prayer until the sun sets and you have already prayed Asr "
+                + "(afternoon) prayer, then if it is possible to perform Dhuhr before missing Maghrib "
+                + "(sunset) prayer, you should start with Dhuhr. Otherwise, pray Maghrib first and then "
+                + "perform Dhuhr afterward. If you remember Dhuhr while you are performing Asr, then "
+                + "consider the prayer you are performing as Dhuhr—unless you fear that the time for Asr "
+                + "will expire. Then perform Asr after that. If you fear that the time for Asr will "
+                + "expire, perform Asr first. If you forget both Dhuhr and Asr prayers and remember them "
+                + "at sunset, then perform Dhuhr first and then Asr, provided that you do not fear "
+                + "missing one of them. If you fear missing one, perform Asr first, so that neither of "
+                + "them is completely missed. Then, afterward, perform the Dhuhr prayer immediately "
+                + "after. Whenever you miss a prayer, perform it as soon as you remember. If you remember"
+                + " it while you are in the time of another obligatory prayer, perform the current prayer"
+                + " first, then perform the missed prayer afterward. If a person misses both Dhuhr and "
+                + "Asr prayers and remembers them with enough time left in the day to perform both, they "
+                + "should start with Dhuhr and then perform Asr. If there is only enough time to perform "
+                + "one of the two prayers, they should begin with Asr. If there is enough daylight left "
+                + "to perform six units of prayer, they should begin with Dhuhr.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("englishChain");
+        String content = (String) source.get("englishContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("It is narrated"));
+        assertFalse(chain.contains("forgetfulness"), "What is narrated is the narration");
+        assertTrue(content.contains("forgetfulness"));
+    }
+
+    @Test
+    void readsTheEnglishChainOfTwoMenThatScoresNothing() {
+        Map<String, Object> source = new HashMap<>();
+        // al-Kāfī 8:73. «71. Abaan, from Abu Baseer who said:» holds one «from», which the
+        // score gate counts as no chain language at all, so the boundary at character 35
+        // was refused and the narration read as isnād to its end. The Arabic chain beside
+        // it is thirty-two characters long and settles the question.
+        source.put("arabic", "أَبَانٌ عَنْ أَبِي بَصِيرٍ قَالَ كُنْتُ جَالِساً عِنْدَ أَبِي عَبْدِ اللَّهِ (عليه "
+                + "السلام) إِذْ دَخَلَتْ عَلَيْنَا أُمُّ خَالِدٍ الَّتِي كَانَ قَطَعَهَا يُوسُفُ بْنُ "
+                + "عُمَرَ تَسْتَأْذِنُ عَلَيْهِ فَقَالَ أَبُو عَبْدِ اللَّهِ (عليه السلام) أَ يَسُرُّكَ "
+                + "أَنْ تَسْمَعَ كَلَامَهَا قَالَ فَقُلْتُ نَعَمْ قَالَ فَأَذِنَ لَهَا قَالَ وَ "
+                + "أَجْلَسَنِي مَعَهُ عَلَى الطِّنْفِسَةِ قَالَ ثُمَّ دَخَلَتْ فَتَكَلَّمَتْ فَإِذَا "
+                + "امْرَأَةٌ بَلِيغَةٌ فَسَأَلَتْهُ عَنْهُمَا فَقَالَ لَهَا تَوَلَّيْهِمَا قَالَتْ "
+                + "فَأَقُولُ لِرَبِّي إِذَا لَقِيتُهُ إِنَّكَ أَمَرْتَنِي بِوَلَايَتِهِمَا قَالَ نَعَمْ "
+                + "قَالَتْ فَإِنَّ هَذَا الَّذِي مَعَكَ عَلَى الطِّنْفِسَةِ يَأْمُرُنِي بِالْبَرَاءَةِ "
+                + "مِنْهُمَا وَ كَثِيرٌ النَّوَّاءُ يَأْمُرُنِي بِوَلَايَتِهِمَا فَأَيُّهُمَا خَيْرٌ وَ "
+                + "أَحَبُّ إِلَيْكَ قَالَ هَذَا وَ اللَّهِ أَحَبُّ إِلَيَّ مِنْ كَثِيرٍ النَّوَّاءِ وَ "
+                + "أَصْحَابِهِ إِنَّ هَذَا تَخَاصَمَ فَيَقُولُ وَ مَنْ لَمْ يَحْكُمْ بِما أَنْزَلَ "
+                + "اللَّهُ فَأُولئِكَ هُمُ الْكافِرُونَ وَ مَنْ لَمْ يَحْكُمْ بِما أَنْزَلَ اللَّهُ "
+                + "فَأُولئِكَ هُمُ الظَّالِمُونَ وَ مَنْ لَمْ يَحْكُمْ بِما أَنْزَلَ اللَّهُ فَأُولئِكَ "
+                + "هُمُ الْفاسِقُونَ.");
+        source.put("english", "71. Abaan, from Abu Baseer who said: ‘I was seated in the presence of Abu Abdullah "
+                + "(asws) when mother of Khalid who had been cut off by Yusuf Bin Umar came up, seeking "
+                + "permission to see him (asws). Abu Abdullah (asws) said: ‘Would you like to listen to "
+                + "her speech?’ I said, ‘Yes’. He (asws) said: ‘Grant her permission’, and he (asws) made"
+                + " me sit alongside him (asws) upon the seat. Then she came in. She spoke eloquently. So"
+                + " she asked about the two of them. He (asws) said to her: ‘Befriend the two of them’ "
+                + "She said, ‘Shall I say to my Lord (azwj) when I meet Him (azwj) that you (asws) "
+                + "ordered me to befriend them?’ He (asws) said: ‘Yes’. She said, ‘But the one who is "
+                + "seated with you (asws) upon the seat (Abu Baseer) has ordered me to keep away "
+                + "(Tabarra) from those two whilst Kaseer Al-Nawa has ordered me to befriend those two. "
+                + "So, which one is better and more beloved to you (asws)?’ He (asws) said: ‘By Allah "
+                + "(azwj)! This one here is more beloved to me (asws) than Kaseer Al-Nawa and his "
+                + "companions. This one here argues by saying: “[5:44] and whoever did not judge by what "
+                + "Allah revealed, those are they that are the unbelievers”; “[5:45] and whoever did not "
+                + "judge by what Allah revealed, those are they that are the unjust”; “[5:47] And the "
+                + "followers of the Injeel should have judged by what Allah revealed in it; and whoever "
+                + "did not judge by what Allah revealed, those are they that are the transgressors”.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("englishChain");
+        assertNotNull(chain);
+        assertTrue(chain.contains("Abu Baseer"));
+        assertFalse(chain.contains("mother of Khalid"), "What he said is the narration");
+    }
+
+    @Test
+    void leavesAnEnglishChainShorterThanTheArabicAlone() {
+        Map<String, Object> source = new HashMap<>();
+        // al-Kāfī 4:163. The English chain ends on «who has said the following» and says no
+        // more — three fifths of the Arabic standing beside it, because the translation
+        // drops what the Arabic names. A measurement is not a reason to lengthen a chain
+        // into the narration, so a chain that merely runs short is left as it is.
+        source.put("arabic", "2ـ أَحْمَدُ بْنُ أَبِي عَبْدِ الله عَنْ عُثْمَانَ بْنِ عِيسَى عَمَّنْ حَدَّثَهُ عَنْ "
+                + "أَبِي عَبْدِ الله (عَلَيْهِ السَّلاَم) فِي قَوْلِ الله عَزَّ وَجَلَّ كَذلِكَ يُرِيهِمُ"
+                + " الله أَعْمالَهُمْ حَسَراتٍ عَلَيْهِمْ قَالَ هُوَ الرَّجُلُ يَدَعُ مَالَهُ لا "
+                + "يُنْفِقُهُ فِي طَاعَةِ الله بُخْلاً ثُمَّ يَمُوتُ فَيَدَعُهُ لِمَنْ يَعْمَلُ فِيهِ "
+                + "بِطَاعَةِ الله أَوْ فِي مَعْصِيَةِ الله فَإِنْ عَمِلَ بِهِ فِي طَاعَةِ الله رَآهُ فِي "
+                + "مِيزَانِ غَيْرِهِ فَرَآهُ حَسْرَةً وَقَدْ كَانَ الْمَالُ لَهُ وَإِنْ كَانَ عَمِلَ بِهِ"
+                + " فِي مَعْصِيَةِ الله قَوَّاهُ بِذَلِكَ الْمَالِ حَتَّى عَمِلَ بِهِ فِي مَعْصِيَةِ الله"
+                + " عَزَّ وَجَلَّ.");
+        source.put("english", "2. Ahmad ibn abu ‘Abd Allah has narrated from ‘Uthman ibn ‘Isa from those whom he has "
+                + "mentioned who has said the following: “This is about the meaning of the words of "
+                + "Allah, the Most Majestic, the Most Glorious, Thus Allah shows them their deeds that "
+                + "will make them regretful. (2:162)’ Abu ‘Abd Allah (a.s.), has said, This is a man who "
+                + "keeps his property without spending in obedience to Allah due to his stinginess. He "
+                + "then dies and leaves it (the property) for one who spends it in obedience to Allah or "
+                + "in disobedience of Allah. If it is spent in obedience of Allah and finds it in the "
+                + "balance of the other person, he then becomes regretful; it was his property. If it is "
+                + "spent in disobedience of Allah, he is the one who enabled the spender through that "
+                + "property to disobey Allah, the Most Majestic, the Most Glorious.’”");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("englishChain");
+        assertNotNull(chain);
+        assertTrue(chain.contains("who has said the following"));
+        assertFalse(chain.contains("Most Majestic"), "The chain is not lengthened to fit");
+    }
 }

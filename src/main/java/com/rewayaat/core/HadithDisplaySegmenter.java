@@ -18,7 +18,7 @@ public final class HadithDisplaySegmenter {
     private static final int MAX_CHAIN_HEAD_CHARS = 400;
     private static final double CHAIN_BAND_LOW = 0.6;
     private static final double CHAIN_BAND_HIGH = 4.0;
-    private static final int CHAIN_BAND_FLOOR = 200;
+    private static final int CHAIN_BAND_FLOOR = 120;
 
     private static final Pattern HTML_TAG_PATTERN = Pattern.compile("<[^>]+>");
     private static final Pattern MULTISPACE_PATTERN = Pattern.compile("\\s+");
@@ -657,7 +657,8 @@ public final class HadithDisplaySegmenter {
         // boundary outside that is not the end of this chain, and the chain's end is looked
         // for again among the candidates that are.
         if (!inChainBand(bestSplit, arabicChainChars)) {
-            int rescued = findEnglishBandedBoundary(raw, lower, arabicChainChars);
+            int rescued = findEnglishBandedBoundary(raw, lower, arabicChainChars,
+                    runsPastTheArabic(bestSplit, arabicChainChars));
             if (rescued > 0) {
                 return rescued;
             }
@@ -689,26 +690,70 @@ public final class HadithDisplaySegmenter {
      * «that he said:» between every link, and the first of five is a boundary three names
      * early — and far too short for the Arabic beside it.
      */
-    private static int findEnglishBandedBoundary(String raw, String lower, int arabicChainChars) {
+    /** Whether a chain of this length runs past the end of the Arabic one. */
+    private static boolean runsPastTheArabic(int chainChars, int arabicChainChars) {
+        return arabicChainChars > 0
+                && chainChars > Math.max(CHAIN_BAND_FLOOR, (int) (CHAIN_BAND_HIGH * arabicChainChars));
+    }
+
+    private static int findEnglishBandedBoundary(String raw, String lower, int arabicChainChars,
+                                                 boolean mayTrustTheArabicAlone) {
+        int gated = bandedBoundary(raw, lower, arabicChainChars, true);
+        if (gated > 0) {
+            return gated;
+        }
+        if (!mayTrustTheArabicAlone) {
+            // The chain found is shorter than the Arabic, not longer, and a translation is
+            // allowed to drop what the Arabic names: al-Kāfī 4:163 ends its English chain on
+            // «who has said the following» and says no more, three fifths of the Arabic beside
+            // it. Where the gates agree with none of it, a short chain is left short rather
+            // than lengthened into the matn on a measurement alone.
+            return -1;
+        }
+        // The gates read the words standing before a boundary, and a short chain gives them
+        // little to read: «71. Abaan, from Abu Baseer who said:» holds one «from» and scores
+        // nothing at all, while «Hadith.2502 - It is narrated that» carries its whole signal
+        // inside the marker rather than in front of it. Both came out with the narration
+        // read as isnād end to end.
+        //
+        // Where the Arabic has a chain it has already answered the question the gates are
+        // asking — whether these words are an isnād — and answered how long it runs besides.
+        // So a boundary that fits the Arabic is admitted on the Arabic's word, and this pass
+        // is reached only where the gated one found nothing that fits.
+        return bandedBoundary(raw, lower, arabicChainChars, false);
+    }
+
+    private static int bandedBoundary(String raw, String lower, int arabicChainChars,
+                                      boolean gated) {
         int best = -1;
+        int bestIndex = -1;
         int fallback = -1;
+        int fallbackIndex = -1;
         for (String marker : ENGLISH_SPLIT_MARKERS) {
             int index = lower.indexOf(marker);
             while (index >= 0 && index <= MAX_SCAN_CHARS) {
                 String prefix = lower.substring(0, index);
                 int split = " that a man ".equals(marker)
                         ? index + " that ".length() : index + marker.length();
-                if (englishChainSignalScore(prefix) >= minEnglishChainScore(prefix)
-                        && !isSubsumedByLongerMarker(lower, index, marker)
+                boolean scored = !gated
+                        || englishChainSignalScore(prefix) >= minEnglishChainScore(prefix);
+                if (scored && !isSubsumedByLongerMarker(lower, index, marker)
                         && inChainBand(split, arabicChainChars)
                         && buildSplit(raw, split).hasSplit()) {
+                    // Two markers can start at the same word, one of them a prefix of the
+                    // other — «who has said the » inside «who has said the following » — and
+                    // the shorter one cuts in the middle of the phrase it shares.
                     if (isLikelyMatnBoundary(lower, split, ENGLISH_CHAIN_CUES,
                             maxEnglishTailSignals(marker))) {
-                        if (best < 0 || split < best) {
+                        if (best < 0 || index < bestIndex
+                                || (index == bestIndex && split > best)) {
                             best = split;
+                            bestIndex = index;
                         }
-                    } else if (fallback < 0 || split < fallback) {
+                    } else if (fallback < 0 || index < fallbackIndex
+                            || (index == fallbackIndex && split > fallback)) {
                         fallback = split;
+                        fallbackIndex = index;
                     }
                 }
                 index = lower.indexOf(marker, index + marker.length());
@@ -718,16 +763,39 @@ public final class HadithDisplaySegmenter {
             return best;
         }
         // A colon or an opening quote closes an isnād the marker list has no word for —
-        // «Hadith.1397 - It is narrated:», «… from Abu al-Hasan Imam Musa ibn Jafar (as):» —
-        // and both routes carry their own stricter gate.
-        for (int candidate : new int[] { findEnglishQuotedBoundary(raw, lower),
-                                         findEnglishColonBoundary(lower) }) {
-            if (candidate > 0 && inChainBand(candidate, arabicChainChars)
-                    && buildSplit(raw, candidate).hasSplit()) {
-                return candidate;
-            }
+        // «Hadith.1397 - It is narrated:», «… from Abu al-Hasan Imam Musa ibn Jafar (as):»,
+        // «Davood al-Ruqi narrated, “One of the Kharajites asked me …».
+        int punctuated = gated
+                ? earlierOf(findEnglishQuotedBoundary(raw, lower), findEnglishColonBoundary(lower))
+                : findEnglishPunctuatedBoundary(raw, lower, arabicChainChars);
+        if (punctuated > 0 && inChainBand(punctuated, arabicChainChars)
+                && buildSplit(raw, punctuated).hasSplit()) {
+            return punctuated;
         }
         return fallback;
+    }
+
+    private static int earlierOf(int left, int right) {
+        if (left <= 0) {
+            return right;
+        }
+        return right <= 0 ? left : Math.min(left, right);
+    }
+
+    /** The first colon or opening quote the Arabic chain's length vouches for. */
+    private static int findEnglishPunctuatedBoundary(String raw, String lower,
+                                                     int arabicChainChars) {
+        int best = -1;
+        for (int at = 0; at < raw.length() && at <= MAX_SCAN_CHARS; at++) {
+            char ch = raw.charAt(at);
+            int boundary = ch == ':' ? at + 1 : (ch == '\u201c' || ch == '"' ? at : -1);
+            if (boundary > 0 && inChainBand(boundary, arabicChainChars)
+                    && buildSplit(raw, boundary).hasSplit()) {
+                best = boundary;
+                break;
+            }
+        }
+        return best;
     }
 
     private static int findArabicSplit(String raw) {
