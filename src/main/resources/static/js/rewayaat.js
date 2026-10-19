@@ -1264,9 +1264,19 @@ function applyAuthState() {
     if (signInBtn) {
         signInBtn.classList.toggle('d-none', isAuthed);
         // The server already rendered this label in the page's language; rebuilding the
-        // button here threw that away and put English back on the Arabic page.
-        signInBtn.innerHTML = '<i class="fa fa-right-to-bracket" aria-hidden="true"></i> '
-            + t('nav.signin', 'Sign In');
+        // button here threw that away and put English back on the Arabic page. It threw
+        // the label's own element away too, so the word could not be hidden where the bar
+        // is crowded — on the pages this file runs on, and on no others, the sign-in
+        // button stayed full width between 768px and 992px and squeezed the search field.
+        // Rebuilt as elements rather than as a string, so the span survives and the
+        // translated word needs no escaping.
+        var signInIcon = document.createElement('i');
+        signInIcon.className = 'fa fa-right-to-bracket';
+        signInIcon.setAttribute('aria-hidden', 'true');
+        var signInLabel = document.createElement('span');
+        signInLabel.className = 'auth-action__label';
+        signInLabel.textContent = t('nav.signin', 'Sign In');
+        signInBtn.replaceChildren(signInIcon, signInLabel);
     }
     var mobileToggle = document.getElementById('authMobileToggle');
     if (mobileToggle) {

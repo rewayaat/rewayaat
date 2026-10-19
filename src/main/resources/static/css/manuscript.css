@@ -17180,3 +17180,44 @@ a.isnad-man__name:hover .isnad-man__en {
     letter-spacing: 0;
     font-size: 0.74rem;
 }
+
+
+/* ── The navbar between a tablet and a laptop ───────────────────────────────
+   Bootstrap's .container is 696px wide up to 992px and 936px above it, but the
+   search button takes its word back at 768px and the sign-in button never gave
+   its label up at all. Between those two points the row asked for more than it
+   had — 34px of mark, 277px of links, 84px of button and 156px of account
+   controls inside 696px — and the field took the shortfall: 142px, of which
+   31px is its own padding and 84px the button, leaving 27px of input and a
+   placeholder reading "S".
+
+   So the compact treatment now runs to the point where the container actually
+   widens, which is where the language toggle has always dropped its own label.
+   The icon each button keeps is the label it has at phone widths, and says the
+   same thing in both languages. */
+@media (max-width: 991.98px) {
+    /* The width has to be taken by name: the rule that sets it to 84px, and the one
+       that widens it to 94px, both use !important. */
+    .site-nav .search-btn-with-border {
+        min-width: var(--search-action-height) !important;
+        width: var(--search-action-height) !important;
+        padding: 0 !important;
+    }
+
+    .site-nav .search-btn-with-border .search-btn__text {
+        display: none;
+    }
+
+    .site-nav .search-btn-with-border .search-btn__icon-mobile {
+        display: inline-block;
+        font-size: 0.82rem;
+    }
+
+    .site-nav .top-actions .auth-action__label {
+        display: none;
+    }
+
+    .site-nav .top-actions .auth-action i {
+        margin-inline-end: 0;
+    }
+}
