@@ -5,6 +5,18 @@ metadata:
   namespace: rewayaat-v2
 spec:
   replicas: 2
+  # A pod is replaced in place: one old pod stops, its replacement starts on the node
+  # it left. The default (25% surge, 25% unavailable) rounds to "start a third pod
+  # first, stop nothing" at two replicas, and the spread constraint below sends that
+  # third pod to the one node not already running a replica. On 2026-10-19 that node
+  # had no room for its 1.5Gi request, the cluster was at its node limit, and the
+  # rollout sat Pending indefinitely with the old image serving. One pod serves alone
+  # for the minute a replacement takes to come up; the PDB still guards drains.
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: rewayaat-v2
