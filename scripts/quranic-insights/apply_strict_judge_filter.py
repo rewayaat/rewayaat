@@ -105,7 +105,13 @@ def main():
                     "_op_type": "update",
                     "_index": INDEX,
                     "_id": doc_id,
-                    "doc": {"candidates": new_candidates},
+                    # The page badge reads candidate_count and hadith_for_verse searches
+                    # top_verse_keys, so both must shrink with the candidates.
+                    "doc": {
+                        "candidates": new_candidates,
+                        "candidate_count": len(new_candidates),
+                        "top_verse_keys": [c.get("verse_key", "") for c in new_candidates],
+                    },
                 })
             else:
                 # Doc has no candidates left — delete it
