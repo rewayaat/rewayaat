@@ -80,10 +80,10 @@ def load_highlights():
                 if not hid or not vk or not highlighted:
                     continue
 
-                key = (hid, vk, slug)
-                if key not in lookup:
-                    lookup[key] = highlighted
-                    entry_count += 1
+                # A verse can carry several passages from one tafsir, so entries for a
+                # triplet are kept in order and the n-th goes to its n-th passage.
+                lookup.setdefault((hid, vk, slug), []).append(highlighted)
+                entry_count += 1
 
     print(f"Loaded {entry_count} highlights from {file_count} files")
     return lookup
@@ -100,7 +100,7 @@ def main():
     # Step 1: Load highlights
     print("\nStep 1: Loading highlights...")
     highlight_lookup = load_highlights()
-    print(f"  Unique entries: {len(highlight_lookup)}")
+    print(f"  Snippet keys: {len(highlight_lookup)}")
 
     # Step 2: Scan ES and apply
     print("\nStep 2: Scanning ES index and applying highlights...")
@@ -120,6 +120,7 @@ def main():
         candidates = source.get("candidates", [])
 
         changed = False
+        seen = {}
         for candidate in candidates:
             vk = candidate.get("verse_key", "")
             if not vk:
@@ -129,15 +130,18 @@ def main():
                 if not slug:
                     continue
 
+                key = (hadith_id, vk, slug)
+                nth = seen.get(key, 0)
+                seen[key] = nth + 1
+
                 # Non-destructive: skip if already has commentary_text_highlighted with <em>
                 existing = snippet.get("commentary_text_highlighted", "")
                 if existing and "<em>" in existing:
                     already_had += 1
                     continue
 
-                key = (hadith_id, vk, slug)
-                if key in highlight_lookup:
-                    value = highlight_lookup[key]
+                if nth < len(highlight_lookup.get(key, [])):
+                    value = highlight_lookup[key][nth]
                     if isinstance(value, dict):
                         value = wrap_quotes(snippet.get("commentary_text") or "", value["quotes"])
                         if value is None:
@@ -179,7 +183,7 @@ def main():
     print(f"  Updated docs: {updated_docs}")
     print(f"  Updated snippets: {updated_snippets}")
     print(f"  Already highlighted: {already_had}")
-    print(f"  Not matched: {len(highlight_lookup) - updated_snippets}")
+    print(f"  Not matched: {sum(map(len, highlight_lookup.values())) - updated_snippets - len(unmatched)}")
     print(f"  Quote not found verbatim: {len(unmatched)}")
     if UNMATCHED_FILE and unmatched:
         with open(UNMATCHED_FILE, "w", encoding="utf-8") as f:
