@@ -89,7 +89,8 @@ def save_checkpoint(cp):
 def ensure_mapping(es):
     """Add llm_similar field to ES mapping if it doesn't exist."""
     mapping = es.indices.get_mapping(index=ES_INDEX)
-    props = mapping[ES_INDEX]["mappings"].get("properties", {})
+    # ES_INDEX is usually an alias; the response is keyed by the index behind it.
+    props = next(iter(mapping.body.values()))["mappings"].get("properties", {})
     if "llm_similar" in props:
         print("  llm_similar field already exists in mapping.")
         return
