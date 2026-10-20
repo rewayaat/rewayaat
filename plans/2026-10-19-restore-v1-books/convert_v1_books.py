@@ -93,6 +93,9 @@ CITED_TITLE_FIXES = [
     ("MaO?lib al-SaUl", "Maṭālib al-Saʾūl"), ("Sunan Abi DawUd", "Sunan Abī Dāwūd"),
     ("Ibn Shahr ashUb", "Ibn Shahr Āshūb"), ("Kashf al-MaIajja", "Kashf al-Maḥajja"),
     ("Irshad al-QulUb", "Irshād al-Qulūb"),
+    ("Aellal al-Shara ia", "ʿIlal al-Sharāʾiʿ"), ("Aellal al-Sharaia", "ʿIlal al-Sharāʾiʿ"),
+    ("Aellal al-Sharaie", "ʿIlal al-Sharāʾiʿ"), ("Aellal al-Sharaii", "ʿIlal al-Sharāʾiʿ"),
+    ("Al-Durra al-B?hira", "Al-Durra al-Bāhira"), ("Musakkin al-Fu ?d", "Musakkin al-Fuʾād"),
 ]
 
 
