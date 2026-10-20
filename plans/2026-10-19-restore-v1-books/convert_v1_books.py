@@ -85,6 +85,24 @@ def clean(text: str | None) -> str:
     return re.sub(r"\s+", " ", INVISIBLE.sub("", text or "")).strip()
 
 
+# Source titles in Mizan's v1 citations whose transliteration was mangled (ū became "U",
+# ʿ became "Ae", ṭā became "O?"). Corrected spellings approved by the user 2026-10-21;
+# only the title changes, never the page or number after it.
+CITED_TITLE_FIXES = [
+    ("AeIlal al-Sharaia", "ʿIlal al-Sharāʾiʿ"), ("AeIlal al-Share ia", "ʿIlal al-Sharāʾiʿ"),
+    ("MaO?lib al-SaUl", "Maṭālib al-Saʾūl"), ("Sunan Abi DawUd", "Sunan Abī Dāwūd"),
+    ("Ibn Shahr ashUb", "Ibn Shahr Āshūb"), ("Kashf al-MaIajja", "Kashf al-Maḥajja"),
+    ("Irshad al-QulUb", "Irshād al-Qulūb"),
+]
+
+
+def cited_from(text: str | None) -> str:
+    out = clean(text)
+    for wrong, right in CITED_TITLE_FIXES:
+        out = out.replace(wrong, right)
+    return out
+
+
 def split_bilingual(raw: str | None) -> tuple[str, str]:
     """The (english, arabic) halves of a v1 title such as 'THIS WORLD الدنيا'."""
     text = clean(raw)
@@ -235,7 +253,7 @@ def convert(rows, overrides):
             source["publisher"] = spec["publisher"]
             source["publisher_ar"] = spec["publisher_ar"]
         if spec["cites"] and clean(r.get("source")):
-            source["cited_from"] = clean(r.get("source"))
+            source["cited_from"] = cited_from(r.get("source"))
         out.append({"_id": new_id, "_source": source})
 
     blocking = {k: sorted(v & BLOCKING) for k, v in anomalies.items() if v & BLOCKING}
