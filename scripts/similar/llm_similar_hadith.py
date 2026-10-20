@@ -693,6 +693,9 @@ def merge_mode(args):
                     if raw_verdict in ("similar", "wording_similar", "conceptually_similar"):
                         verdict = raw_verdict if raw_verdict != "similar" else "similar"
                         match_type = "wording" if raw_verdict == "wording_similar" else ("conceptual" if raw_verdict == "conceptually_similar" else "")
+                        # A plain "similar" verdict carries its type in its own field; without this
+                        # every one of them reached the loader as "" and was shown as conceptual.
+                        match_type = match_type or result.get("match_type", "")
                     elif raw_verdict == "rejected":
                         verdict = "rejected"
                         match_type = ""
