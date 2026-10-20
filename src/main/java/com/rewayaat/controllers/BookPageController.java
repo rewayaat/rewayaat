@@ -134,7 +134,10 @@ public class BookPageController {
                         "chapterCount", book.chaptersInVolume(v).size()))
                 .toList() : List.of());
         model.addAttribute("parts", useParts ? parts : List.of());
-        model.addAttribute("chapters", useVolumes || useParts ? List.of() : book.chapters());
+        // A long book with neither volumes nor parts gets a letter layer instead, A to Z.
+        List<BookCatalog.LetterGroup> letters = useVolumes || useParts ? List.of() : book.letterGroups();
+        model.addAttribute("letters", letters);
+        model.addAttribute("chapters", useVolumes || useParts || !letters.isEmpty() ? List.of() : book.chapters());
         model.addAttribute("blurb", blurbs.forSlug(bookSlug, locale.isArabic()));
         model.addAttribute("bookSummary", blurbs.summaryForSlug(bookSlug, locale.isArabic()));
         String bookName = named(locale, book.name(), book.nameAr());
@@ -205,6 +208,56 @@ public class BookPageController {
         trail.put(volumeLabel, "/books/" + bookSlug + "/volume/" + encode(volume));
         addBreadcrumbs(model, trail, locale);
         model.addAttribute("jsonLd", bookJsonLd(book));
+        return "volume";
+    }
+
+    /**
+     * The chapters of a long flat book under one initial letter. Ghurar al-Ḥikam is 718
+     * topic chapters with no volume or part between them and the book, so the letter is the
+     * level that divides it; like a part page, this reuses the volume template.
+     */
+    @GetMapping("/books/{bookSlug}/letter/{letter}")
+    public String letterPage(@PathVariable String bookSlug, @PathVariable String letter,
+                             Model model, HttpServletResponse response,
+                             HttpServletRequest request) throws IOException {
+        Optional<BookCatalog.Book> foundBook = catalog.book(bookSlug);
+        Optional<BookCatalog.LetterGroup> foundGroup = foundBook.flatMap(b -> b.letterGroup(letter));
+        if (foundGroup.isEmpty()) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return null;
+        }
+        BookCatalog.Book book = foundBook.get();
+        BookCatalog.LetterGroup group = foundGroup.get();
+        long narrations = group.chapters().stream().mapToLong(BookCatalog.Chapter::count).sum();
+
+        PageLocale locale = PageLocale.of(request);
+        String bookName = named(locale, book.name(), book.nameAr());
+        // Arabic readers see the chapters by their Arabic titles, which do not file under
+        // the Latin letter, so the Arabic heading names the span the page covers instead.
+        String label = locale.isArabic()
+                ? named(locale, group.first().title(), group.first().titleAr()) + " – "
+                        + named(locale, group.last().title(), group.last().titleAr())
+                : group.label();
+        model.addAttribute("book", book);
+        model.addAttribute("volumeLabel", label);
+        model.addAttribute("parts", List.of());
+        model.addAttribute("chapters", group.chapters());
+        model.addAttribute("volumes", List.of());
+        model.addAttribute("narrationCount", narrations);
+        model.addAttribute("chapterCount", group.chapterCount());
+        model.addAttribute("bookTitle", bookName);
+        model.addAttribute("partTitle", label);
+        model.addAttribute("seoTitle", msg(locale, "seo.part.title", label, bookName));
+        model.addAttribute("seoDescription", msg(locale, "seo.part.description",
+                bookName, label, count(locale, narrations), count(locale, group.chapterCount())));
+        locale.applyTo(model, group.url());
+        model.addAttribute("shareImageUrl", BASE_URL + "/books/" + bookSlug + "/card.png");
+        model.addAttribute("jsonLd", bookJsonLd(book));
+
+        LinkedHashMap<String, String> trail = new LinkedHashMap<>();
+        trail.put(bookName, "/books/" + bookSlug);
+        trail.put(label, group.url());
+        addBreadcrumbs(model, trail, locale);
         return "volume";
     }
 

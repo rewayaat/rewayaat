@@ -62,7 +62,15 @@ public class BookCatalog {
     private static final int COMPOSITE_PAGE_SIZE = 1000;
 
     /** Path segments the book routes claim, which a chapter slug must not collide with. */
-    private static final Set<String> RESERVED_SEGMENTS = Set.of("volume", "part");
+    private static final Set<String> RESERVED_SEGMENTS = Set.of("volume", "part", "letter");
+
+    /**
+     * A book with no volumes or parts and more chapters than this is browsed by initial
+     * letter instead of as one flat list. Ghurar al-Ḥikam has 718 topic chapters and no
+     * other division, and listed flat its page weighed 566KB; the next longest flat book,
+     * Maʿānī al-ʾAkhbār at 424 chapters, stays a single list.
+     */
+    static final int LETTER_GROUP_MIN_CHAPTERS = 500;
 
     /** A book, with the chapters that sit under it in reading order. */
     public record Book(String name, String slug, long count, List<Chapter> chapters) {
@@ -174,6 +182,35 @@ public class BookCatalog {
                     .count() > 1;
         }
 
+        /**
+         * This book's chapters grouped by the initial of their English title, A to Z, or
+         * empty when the book is divided by volume or part or is short enough to list whole.
+         *
+         * <p>A leading "The", "A" or "An" is passed over, so "The Intellect" files under I
+         * where a reader looks for it; 163 of Ghurar's titles begin with "The", and filed
+         * under T they made one letter a quarter of the book. Within a letter, chapters
+         * keep that same order.
+         */
+        public List<LetterGroup> letterGroups() {
+            if (volumes().size() > 1 || !pageParts().isEmpty()
+                    || chapters.size() <= LETTER_GROUP_MIN_CHAPTERS) {
+                return List.of();
+            }
+            Map<String, List<Chapter>> byLetter = new java.util.TreeMap<>();
+            for (Chapter chapter : chapters) {
+                byLetter.computeIfAbsent(initialOf(chapter.title()), k -> new ArrayList<>()).add(chapter);
+            }
+            return byLetter.entrySet().stream()
+                    .map(e -> new LetterGroup(slug, e.getKey(), e.getValue().stream()
+                            .sorted(Comparator.comparing(c -> filingTitle(c.title())))
+                            .toList()))
+                    .toList();
+        }
+
+        public Optional<LetterGroup> letterGroup(String key) {
+            return letterGroups().stream().filter(g -> g.key().equals(key)).findFirst();
+        }
+
         public List<Chapter> chaptersInPart(String volume, String partTitle) {
             return chapters.stream()
                     .filter(c -> sameFacet(c.volume(), volume) && sameFacet(c.part(), partTitle))
@@ -196,6 +233,47 @@ public class BookCatalog {
 
         private static boolean hasSlug(List<Part> existing, String slug) {
             return existing.stream().anyMatch(p -> p.slug().equals(slug));
+        }
+    }
+
+    /** The title a chapter is filed under: lower-cased, accents and a leading article removed. */
+    static String filingTitle(String title) {
+        String plain = java.text.Normalizer.normalize(title == null ? "" : title, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .replaceAll("^[^\\p{L}\\p{N}]+", "")
+                .toLowerCase(java.util.Locale.ROOT);
+        // Punctuation again after the article: "The [Allotted] Share" files under A.
+        return plain.replaceFirst("^(the|an|a)\\s+", "").replaceAll("^[^\\p{L}\\p{N}]+", "");
+    }
+
+    /** The lower-case Latin letter a chapter files under, or "0-9" when it starts with neither. */
+    static String initialOf(String title) {
+        String filed = filingTitle(title);
+        char first = filed.isEmpty() ? '#' : filed.charAt(0);
+        return first >= 'a' && first <= 'z' ? String.valueOf(first) : "0-9";
+    }
+
+    /** The chapters of a long flat book that share an initial letter; a page of its own. */
+    public record LetterGroup(String bookSlug, String key, List<Chapter> chapters) {
+
+        public String label() {
+            return key.toUpperCase(java.util.Locale.ROOT);
+        }
+
+        public String url() {
+            return "/books/" + bookSlug + "/letter/" + key;
+        }
+
+        public int chapterCount() {
+            return chapters.size();
+        }
+
+        public Chapter first() {
+            return chapters.get(0);
+        }
+
+        public Chapter last() {
+            return chapters.get(chapters.size() - 1);
         }
     }
 
