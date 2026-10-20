@@ -239,6 +239,7 @@ public class BookPageController {
                         + named(locale, group.last().title(), group.last().titleAr())
                 : group.label();
         model.addAttribute("book", book);
+        model.addAttribute("shelfBook", BookShelf.thumb(book.slug()));
         model.addAttribute("volumeLabel", label);
         model.addAttribute("parts", List.of());
         model.addAttribute("chapters", group.chapters());

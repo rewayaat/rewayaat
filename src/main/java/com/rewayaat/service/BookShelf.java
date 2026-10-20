@@ -58,7 +58,10 @@ public final class BookShelf {
             Map.entry("kitab-al-mu-min", "#5c1416"),
             Map.entry("sifat-al-shi-a", "#16213d"),
             Map.entry("risalat-al-huquq", "#45121b"),
-            Map.entry("fada-il-al-shi-a", "#142c20"));
+            Map.entry("fada-il-al-shi-a", "#142c20"),
+            Map.entry("ghurar-al-hikam", "#111827"),
+            Map.entry("mizan-al-hikma", "#16213d"),
+            Map.entry("mishkat-al-anwar", "#5c1416"));
     private static final String PLAIN_LEATHER = "#16213d";
 
     private static final String COVERS = "static/img/books/covers/";

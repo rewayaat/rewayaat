@@ -27,6 +27,7 @@ LAYOUT = {
     "kamil-al-ziyarat": "headband", "al-tawhid": "notched", "mujam-al-ahadith-al-mutabara": "arch",
     "kitab-al-zuhd": "cartouche", "kitab-al-duafa": "medallion", "kitab-al-mumin": "notched",
     "sifat-al-shia": "headband", "risalat-al-huquq": "plain", "fadail-al-shia": "plain",
+    "ghurar-al-hikam": "cartouche", "mizan-al-hikma": "notched", "mishkat-al-anwar": "headband",
 }
 
 # extra blind border patterns (the stars are leather.py's #band)

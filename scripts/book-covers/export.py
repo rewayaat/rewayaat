@@ -40,6 +40,9 @@ SITE = {
     "sifat-al-shia": ("sifat-al-shi-a", "Ṣifāt al-Shīʿa"),
     "risalat-al-huquq": ("risalat-al-huquq", "Risālat al-Ḥuqūq"),
     "fadail-al-shia": ("fada-il-al-shi-a", "Faḍāʾil al-Shīʿa"),
+    "ghurar-al-hikam": ("ghurar-al-hikam", "Ghurar al-Ḥikam"),
+    "mizan-al-hikma": ("mizan-al-hikma", "Mīzān al-Ḥikma"),
+    "mishkat-al-anwar": ("mishkat-al-anwar", "Mishkāt al-Anwār"),
 }
 
 
