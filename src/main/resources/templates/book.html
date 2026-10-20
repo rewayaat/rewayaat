@@ -72,26 +72,6 @@
         </div>
     </section>
 
-    <!-- A long book with neither volumes nor parts is divided by initial letter. The
-         Arabic titles do not file under the Latin letter, so an Arabic card names the
-         span of chapters it opens instead. -->
-    <section class="hub-group" id="letters" th:if="${!#lists.isEmpty(letters)}">
-        <h2 class="hub-group__label" th:text="#{book.letters}">Chapters A–Z</h2>
-        <div class="hub-grid">
-            <a class="hub-card hub-card--book" th:each="group : ${letters}" th:href="${arPrefix} + ${group.url}">
-                <span th:replace="~{fragments/bookshelf :: cardbook(${group.chapterCount}, null)}"></span>
-                <span class="hub-card__text">
-                    <span class="hub-card__title"
-                          th:text="${isArabic} ? ((${group.first.titleAr} ?: ${group.first.title}) + ' – ' + (${group.last.titleAr} ?: ${group.last.title})) : ${group.label}">A</span>
-                    <span class="hub-card__meta">
-                        <span th:unless="${isArabic}" th:text="${group.first.title} + ' – ' + ${group.last.title}">Abandoning – Avarice</span>
-                        <span><strong th:text="${#numbers.formatInteger(group.chapterCount, 0, 'COMMA')}">37</strong> <span th:text="#{books.card.chapters}">chapters</span></span>
-                    </span>
-                </span>
-            </a>
-        </div>
-    </section>
-
     <section class="hub-group" th:if="${!#lists.isEmpty(chapters)}">
         <h2 class="hub-group__label" th:text="#{book.chapters}">Chapters</h2>
         <!-- Two destinations per row on purpose. The title goes to the chapter's own

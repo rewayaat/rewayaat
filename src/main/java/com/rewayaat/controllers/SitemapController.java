@@ -168,11 +168,6 @@ public class SitemapController {
                 for (BookCatalog.Part part : book.pageParts()) {
                     appendLocalisedUrl(xml, escapeXml(part.url()), "0.8", "monthly");
                 }
-                // A long book divided by neither volume nor part is divided by letter, and
-                // the letter pages are then the book page's only links to its chapters.
-                for (BookCatalog.LetterGroup group : book.letterGroups()) {
-                    appendLocalisedUrl(xml, escapeXml(group.url()), "0.8", "monthly");
-                }
                 for (BookCatalog.Chapter chapter : book.chapters()) {
                     // A chapter holding one narration canonicalises to that narration
                     // (BookPageController.chapterPage), and a sitemap may only advertise
