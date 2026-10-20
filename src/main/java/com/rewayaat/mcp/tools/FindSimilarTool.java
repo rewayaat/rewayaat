@@ -62,7 +62,7 @@ public class FindSimilarTool implements McpTool {
                 + "parallel reports of the same hadith across different books, or the "
                 + "complementary rulings that sit around one in the law.\n\n"
                 + "Ids come from `search` or `search_hadith`. Not every narration has links: "
-                + "25,273 of 32,519 do.";
+                + "36,898 of 50,038 do.";
     }
 
     @Override
