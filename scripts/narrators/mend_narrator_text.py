@@ -1,20 +1,27 @@
 #!/usr/bin/env python3
-"""Mends the «س» that OpenITI's al-Fihrist lost, in the artifacts already built from it.
+"""Mends in the built artifacts what the extractor now keeps out of them.
 
-`extract_openiti.py` now repairs the source as it reads it, so anything rebuilt from here on
-is clean. This is for what was built before: the book extractions, the people index the chain
-resolver reads, and the narrator index Elasticsearch serves.
+Two defects, both of them OpenITI's text showing through into a man's name, both fixed at the
+point the file is read in `extract_openiti.py`. This is for everything built before that: the
+book extractions, the people index the chain resolver reads, and the narrator index
+Elasticsearch serves.
 
-The damage and the reason the repair is safe are documented at MANGLED_SIN in
-extract_openiti.py. In short: al-Fihrist lost almost every word-final «س» and put «أآلهتنا»
-in its place, so «سليم بن قيس الهلالي» is filed as «سليم بن قيأآلهتنا الهلالي». The rule only
-fires where an Arabic letter stands immediately before, which is what separates a severed word
-from «أَآلِهَتُنَا», a real word the Qur'an uses — and it is pointed by hand at narrator files,
-never at narration text.
+**The severed «س».**
+
+al-Fihrist lost almost every word-final «س» and put «أآلهتنا» in its place, so «سليم بن قيس
+الهلالي» is filed as «سليم بن قيأآلهتنا الهلالي». The rule fires only where an Arabic letter
+stands immediately before, which is what separates a severed word from «أَآلِهَتُنَا», a real
+word the Qur'an uses — and it is pointed by hand at narrator files, never at narration text.
+
+**The milestone in the name.** Jami' al-Ruwat writes «إسماعيل بن دينار ms0154 كوفي», and the
+name was cut out of the raw text, so OpenITI's page marks went into the index as part of a
+man's name — 187 of them, 68 more carrying «PageV01P301», and the same marks inside the
+entry text quoted on his page.
 
 Usage:
-    python3 scripts/narrators/mend_severed_sin.py --files        # the artifacts on disk
-    python3 scripts/narrators/mend_severed_sin.py --live         # the narrator index
+    python3 scripts/narrators/mend_narrator_text.py --files      # the artifacts on disk
+    python3 scripts/narrators/mend_narrator_text.py --live       # the narrator index
+    python3 scripts/narrators/mend_narrator_text.py --english    # names made from a bad one
 """
 import argparse
 import json
@@ -24,7 +31,7 @@ import sys
 
 W = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 sys.path.insert(0, f'{W}/scripts/narrators')
-from extract_openiti import MANGLED_SIN                           # noqa: E402
+from extract_openiti import MANGLED_SIN, MILESTONE                # noqa: E402
 
 TMP = f'{W}/tmp'
 ES = os.environ.get("ES_HOST", "http://localhost:9200")
@@ -32,8 +39,28 @@ INDEX = "rewayaat_narrators"
 CHUNK = 8 << 20          # people_index.json is one 100MB line; it is read in pieces
 CARRY = 64               # kept between pieces so a severed word is never split in two
 
+# A mark takes one neighbouring space with it, so «إسماعيل بن دينار ms0154 كوفي» closes up
+# to one space rather than two. Tidying the whole text afterwards instead would reach every
+# other double space in the file, which is not this tool's business — and in a file read in
+# pieces it would also trim at the seams between them.
+MILESTONE_GAP = re.compile(r" ?(?:" + MILESTONE.pattern + r") ?")
+
+# what each rule puts in place of what it finds
+RULES = ((MANGLED_SIN, "س"), (MILESTONE_GAP, " "))
+
+
+def mend_text(text):
+    """Every rule, over one piece of text. Returns the text and how much it changed."""
+    total = 0
+    for rule, instead in RULES:
+        text, n = rule.subn(instead, text)
+        total += n
+    return text, total
+
 FILES = [
     f'{TMP}/narrators_chains/people_index.json',
+    f'{TMP}/narrators_book_ardabili.json',
+    f'{TMP}/narrators_book_ardabili_openiti.json',
     f'{TMP}/narrators_book_fihrist.json',
     f'{TMP}/narrators_book_fihrist_openiti.json',
     f'{TMP}/narrators_book_tusi.json',
@@ -57,11 +84,11 @@ def mend_file(path):
             piece = carry + piece
             # hold back the tail, in case a severed word straddles the join
             keep, piece = piece[-CARRY:], piece[:-CARRY] if len(piece) > CARRY else ("", piece)
-            fixed, n = MANGLED_SIN.subn("س", piece)
+            fixed, n = mend_text(piece)
             mended += n
             dst.write(fixed)
             carry = keep
-        fixed, n = MANGLED_SIN.subn("س", carry)
+        fixed, n = mend_text(carry)
         mended += n
         dst.write(fixed)
     os.replace(out, path)
@@ -80,8 +107,9 @@ def post(path, body):
 def mend_value(value):
     """Mend every string inside a document, however deep it sits."""
     if isinstance(value, str):
-        fixed, n = MANGLED_SIN.subn("س", value)
-        return fixed, n
+        # a whole field, so a mark that stood at its head can leave no gap behind
+        fixed, n = mend_text(value)
+        return (fixed.strip() if n else fixed), n
     if isinstance(value, list):
         out, total = [], 0
         for item in value:
@@ -115,7 +143,7 @@ def mend_live(dry):
                 mended += n
                 touched.append((hit["_id"], fixed, n))
         after = hits[-1]["sort"]
-    print(f"  {seen:,} records read, {len(touched):,} carry a severed «س» "
+    print(f"  {seen:,} records read, {len(touched):,} carry damaged text "
           f"({mended:,} occurrences)")
     for person, _, n in touched[:6]:
         print(f"     {person}  ×{n}")
@@ -137,7 +165,7 @@ def mend_live(dry):
 
 # What the transliterator made of «أآلهتنا» before the Arabic was mended: «Idris» was written
 # «Idriaalhatna», and the slug followed it into the URL.
-SEVERED_EN = re.compile(r"a?alhatn|alihatun|lhatna", re.I)
+SEVERED_EN = re.compile(r"a?alhatn|alihatun|lhatna|ms\d{3,5}|PageV\d+P\d+", re.I)
 
 
 def mend_english(dry):
@@ -174,7 +202,7 @@ def mend_english(dry):
             person["slug"] = index_people.slugify(made)
             touched.append((hit["_id"], english, made, person))
         after = hits[-1]["sort"]
-    print(f"  {len(touched):,} English names made from a severed Arabic name")
+    print(f"  {len(touched):,} English names made from a damaged Arabic name")
     for person, was, now, _ in touched[:8]:
         print(f"     {person}  {was[:40]:42s} -> {now[:40]}")
     if dry:
@@ -200,7 +228,7 @@ def main():
     parser.add_argument("--live", action="store_true", help="mend the narrator index")
     parser.add_argument("--english", action="store_true",
                         help="remake the English name and slug of records transliterated "
-                             "from a severed name")
+                             "from a damaged name")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     if args.files:

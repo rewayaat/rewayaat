@@ -191,7 +191,8 @@ SECTION = re.compile(r"^###\s+\|(?!\|)\s*(.*?)\s*$")
 CHAPTER = re.compile(r"^###\s+\|\|\s*(.+?)\s*$")
 PAGE = re.compile(r"PageV(\d+)P(\d+)")
 # OpenITI's own marks, not the book's words: milestones, page rules, footnote digits
-NOISE = re.compile(r"ms\d+|PageV\d+P\d+|^#\s*-+\s*|\[\s*\d+\s*\]|~~|^#+\s*")
+MILESTONE = re.compile(r"ms\d+|PageV\d+P\d+")
+NOISE = re.compile(MILESTONE.pattern + r"|^#\s*-+\s*|\[\s*\d+\s*\]|~~|^#+\s*")
 # The OpenITI text of al-Fihrist has lost almost every word-final «س»: in its place stands
 # «أآلهتنا», so «الناس» reads «الناأآلهتنا» and «إدريس» reads «إدريأآلهتنا». 192 occurrences,
 # one of them broken across a line; only ten word-final «س» survive in the whole file. The
@@ -341,7 +342,9 @@ def parse(text, book, counts):
         if match and starts is not None and line_no not in starts:
             match = None                   # a quoted report or list item: part of the body
         if not match and CHAPTER.match(raw):
-            chapter = CHAPTER.match(raw).group(1)
+            # a chapter heading carries OpenITI's marks like any other line, and this one is
+            # quoted back to the reader as where an entry stands: «باب ms049 النساء»
+            chapter = clean(CHAPTER.match(raw).group(1)) or None
             continue
         if match and not PARATEXT.search(raw):
             close()
@@ -355,7 +358,7 @@ def parse(text, book, counts):
                        "volume": volume, "body": [head]}
             continue
         if not chapter_first and SECTION.match(raw):
-            section, chapter = SECTION.match(raw).group(1) or None, None
+            section, chapter = clean(SECTION.match(raw).group(1)) or None, None
             continue
         if book.get("body_ends") and book["body_ends"].match(raw):
             close()
@@ -606,20 +609,27 @@ def grade_and_flags(text, counts):
 
 def profile(entry, book, counts):
     """One entry as the extraction contract shapes it."""
-    body = entry["body"] or entry["name"]
+    # The entry is raw OpenITI, and a milestone can stand in the middle of a name: Jami'
+    # al-Ruwat writes «إسماعيل بن دينار ms0154 كوفي», and NAME_END cuts at commas and at a
+    # few words but not at that, so the mark went into the index as part of a man's name —
+    # 187 of them, and 68 more carrying «PageV01P301». The marks come off first, before
+    # anything is cut; cutting first leaves a name severed at the mark instead of read
+    # through it.
+    heading = MILESTONE.sub(" ", entry["name"])
+    body = MILESTONE.sub(" ", entry["body"] or entry["name"])
     # where the heading runs into the biography the name can continue past the heading line, and
     # OpenITI's line wrapping can break it in two; where the heading stands alone it does not
-    read_from = entry["name"] if book.get("heading_is_standalone") else body
+    read_from = heading if book.get("heading_is_standalone") else body
     # «ما روى في فلان» must lose its «ما روى في» before the name is cut, or the cut at « روى »
     # leaves «ما» — which is what happened to 109 of al-Kashshi's headings
     if book.get("heading_strip"):
         read_from = book["heading_strip"].sub("", read_from).strip() or read_from
-    name = NAME_END.split(read_from, 1)[0].rstrip(".،,؛:").strip() or entry["name"]
+    name = NAME_END.split(read_from, 1)[0].rstrip(".،,؛:").strip() or heading
     if book.get("name_stop"):
         name = book["name_stop"].split(" " + name + " ", 1)[0].strip() or name
     name = re.sub(r"\s+", " ", FOOTNOTE_DIGIT.sub(" ", name)).strip() or name
     kunyah = None
-    found = KUNYAH.search(body) or HEAD_KUNYAH.match(name) or COMMA_KUNYAH.search(entry["name"])
+    found = KUNYAH.search(body) or HEAD_KUNYAH.match(name) or COMMA_KUNYAH.search(heading)
     if found:
         kunyah = found.group(1).strip()
         counts["kunyah found"] += 1
@@ -627,7 +637,7 @@ def profile(entry, book, counts):
     grade = grade_and_flags(window, counts) if book.get("read_verdicts", True) else None
     female = entry["chapter"] and "النساء" in entry["chapter"]
     where = (f"printed entry {entry['number']}" if entry["number"] is not None
-             else f"the entry headed «{entry['name'][:40]}»")
+             else f"the entry headed «{heading[:40]}»")
     return {
         "primary_arabic_name": name,
         "primary_english_name": None,
