@@ -493,15 +493,38 @@ public class SitemapController {
             thread.setDaemon(true);
             return thread;
         });
-        long delayMs = Math.max(0, schedule.untilFirstScan().toMillis());
+        scheduleFirstScan();
+    }
+
+    /**
+     * Arms the timer for whatever is left of the quiet start.
+     *
+     * <p>The timer counts on {@code System.nanoTime} and the schedule on the wall clock,
+     * and the delay is rounded to milliseconds, so the timer can fire a little before
+     * the quiet start ends by the schedule's reckoning. {@link #startScan} then refuses,
+     * and on 2026-10-21 one pod waited for a crawler instead. So the task checks, and
+     * re-arms for the remainder if it is early.
+     */
+    private synchronized void scheduleFirstScan() {
+        if (firstScanTimer.isShutdown()) {
+            return;
+        }
+        Duration left = schedule.untilFirstScan();
+        long delayMs = left.isNegative() ? 0 : left.toMillis() + 1;
         firstScanTimer.schedule(() -> {
-            // A request cannot have started a scan before this moment, but an
-            // invalidateCache() followed by a request may have loaded a list already.
-            if (!schedule.hasList()) {
-                startScan();
+            synchronized (this) {
+                if (schedule.quiet()) {
+                    scheduleFirstScan();
+                    return;
+                }
+                // A request cannot have started a scan before this moment, but an
+                // invalidateCache() followed by a request may have loaded a list already.
+                if (!schedule.hasList()) {
+                    startScan();
+                }
+                firstScanTimer.shutdown();
             }
         }, delayMs, TimeUnit.MILLISECONDS);
-        firstScanTimer.shutdown();
     }
 
     @PreDestroy
