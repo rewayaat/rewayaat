@@ -9,6 +9,7 @@ import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -24,14 +25,16 @@ import com.rewayaat.service.PageLocale;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import jakarta.annotation.PreDestroy;
 
 /**
  * Generates dynamic XML sitemaps for search engine crawlers.
@@ -47,7 +50,7 @@ public class SitemapController {
     private static final String XHTML_NS = "http://www.w3.org/1999/xhtml";
     private static final int PAGE_SIZE = 10000;
     private static final String PIT_KEEP_ALIVE = "2m";
-    private static final Duration CACHE_TTL = Duration.ofHours(6);
+    private static final Duration CACHE_TTL = Duration.ofHours(24);
     /**
      * How long a hadith page waits for a cold pod's first scan before answering 503.
      * Long enough for a small corpus to finish, far short of a crawler's own timeout.
@@ -66,11 +69,15 @@ public class SitemapController {
      *
      * <p>The scan itself is slow in production: fetching an id makes Elasticsearch read
      * the stored document, vector and all, and on 2026-10-21 50,038 ids took 337 s.
-     * So no request ever waits on a rescan; see {@link #allHadithIds}.
+     * So no request ever waits on a rescan, and none starts a scan before the quiet start
+     * is over; see {@link #allHadithIds} and {@link SitemapScanSchedule}.
      */
     private volatile List<String> cachedIds = List.of();
-    /** {@link Instant#EPOCH} until the first scan lands: nothing has been loaded yet. */
-    private volatile Instant cachedAt = Instant.EPOCH;
+    /**
+     * When the quiet start ends, when the stored list goes stale and how long a failed
+     * scan blocks the next one. Whether a list has loaded is {@link SitemapScanSchedule#hasList}.
+     */
+    private final SitemapScanSchedule schedule;
     /** The scan in flight, if any. Guarded by {@code this}. */
     private CompletableFuture<List<String>> scan;
     /** Bumped by {@link #invalidateCache}, so a scan started before it cannot land after it. */
@@ -79,9 +86,21 @@ public class SitemapController {
     private final BookCatalog catalog;
     private final ArabicIndexing arabicIndexing;
 
-    public SitemapController(BookCatalog catalog, ArabicIndexing arabicIndexing) {
+    /**
+     * @param firstScanDelay    quiet start: no scan before this long after boot
+     * @param firstScanJitter   plus a random extra up to this, so the pods do not scan together
+     * @param rescanJitter      random extra on each list's {@link #CACHE_TTL}, so the pods drift apart
+     * @param retryAfterFailure how long a failed scan blocks the next one
+     */
+    public SitemapController(BookCatalog catalog, ArabicIndexing arabicIndexing,
+                             @Value("${rewayaat.sitemap.first-scan-delay:PT10M}") Duration firstScanDelay,
+                             @Value("${rewayaat.sitemap.first-scan-jitter:PT10M}") Duration firstScanJitter,
+                             @Value("${rewayaat.sitemap.rescan-jitter:PT60M}") Duration rescanJitter,
+                             @Value("${rewayaat.sitemap.retry-after-failure:PT15M}") Duration retryAfterFailure) {
         this.catalog = catalog;
         this.arabicIndexing = arabicIndexing;
+        this.schedule = SitemapScanSchedule.system(CACHE_TTL, firstScanDelay, firstScanJitter,
+                rescanJitter, retryAfterFailure);
     }
 
     @RequestMapping(value = "/sitemap.xml", method = RequestMethod.GET, produces = MediaType.APPLICATION_XML_VALUE)
@@ -277,7 +296,8 @@ public class SitemapController {
     }
 
     /**
-     * The full list of hadith IDs, rescanned at most once per {@link #CACHE_TTL}.
+     * The full list of hadith IDs, rescanned at most once per {@link #CACHE_TTL} (plus a
+     * random jitter per stored list).
      *
      * <p>Once a list has loaded it is always served at once, even past its TTL: a stale
      * list starts a rescan in the background and the request goes on with the list it
@@ -285,18 +305,22 @@ public class SitemapController {
      * sitemap request behind it waited on the lock for the minutes that took.
      *
      * <p>Before the first list has loaded, the caller waits up to {@code patience} for
-     * the scan and gets null if it is still running.
+     * the scan and gets null if it is still running. It also gets null at once, without
+     * starting anything, while the quiet start or a failure back-off forbids a scan.
      *
      * @throws IOException if the scan this request waited on failed
      */
     private List<String> allHadithIds(Duration patience) throws IOException {
-        if (!cachedAt.equals(Instant.EPOCH)) {
-            if (Duration.between(cachedAt, Instant.now()).compareTo(CACHE_TTL) >= 0) {
+        if (schedule.hasList()) {
+            if (schedule.stale()) {
                 startScan();
             }
             return cachedIds;
         }
         CompletableFuture<List<String>> pending = startScan();
+        if (pending == null) {
+            return null;
+        }
         try {
             return pending.get(patience.toMillis(), TimeUnit.MILLISECONDS);
         } catch (TimeoutException e) {
@@ -321,12 +345,18 @@ public class SitemapController {
      * The scan in flight, or a new one on its own daemon thread.
      *
      * <p>One at a time, so a burst of crawler requests shares a scan rather than
-     * starting one each. A scan that fails leaves the previous list in place, and the
-     * next request to find it stale tries again.
+     * starting one each. A scan that fails leaves the previous list in place and blocks
+     * new scans for the back-off; the next request after that tries again.
+     *
+     * @return the scan, or null if none is running and none may start yet (quiet start
+     *         or back-off)
      */
     private synchronized CompletableFuture<List<String>> startScan() {
         if (scan != null && !scan.isDone()) {
             return scan;
+        }
+        if (!schedule.mayStart()) {
+            return null;
         }
         long startedIn = generation;
         CompletableFuture<List<String>> started = CompletableFuture.supplyAsync(() -> {
@@ -334,12 +364,16 @@ public class SitemapController {
             try {
                 scanned = scanAllHadithIds();
             } catch (IOException e) {
+                scanFailed(startedIn);
                 throw new UncheckedIOException(e);
+            } catch (RuntimeException e) {
+                scanFailed(startedIn);
+                throw e;
             }
             synchronized (this) {
                 if (generation == startedIn) {
                     cachedIds = scanned;
-                    cachedAt = Instant.now();
+                    schedule.listStored();
                 }
             }
             return scanned;
@@ -355,6 +389,13 @@ public class SitemapController {
         });
         scan = started;
         return started;
+    }
+
+    /** Starts the back-off, unless {@link #invalidateCache} has discarded the scan that failed. */
+    private synchronized void scanFailed(long startedIn) {
+        if (generation == startedIn) {
+            schedule.scanFailed();
+        }
     }
 
     /** The number of narrations, for the index of a pod that has not finished its first scan. */
@@ -423,13 +464,43 @@ public class SitemapController {
         }
     }
 
+    private ScheduledExecutorService firstScanTimer;
+
     /**
-     * Starts the first scan at boot so no crawler is the one that pays for it. The scan
-     * runs on its own daemon thread: readiness must not wait on Elasticsearch.
+     * Schedules the first scan for the end of the quiet start, so no crawler is the one
+     * that pays for it and nothing competes with the boot-time catalog build. It used to
+     * start at once; on 2026-10-21 that, plus crawlers on the cold pods, starved the
+     * Elasticsearch connection pool. The timer thread is a daemon, and the scan runs on
+     * its own daemon thread: readiness must not wait on Elasticsearch.
+     *
+     * <p>If the scan fails, this does not retry; the next request after the back-off does.
      */
     @EventListener(ApplicationReadyEvent.class)
-    public void warmSitemapCache() {
-        startScan();
+    public synchronized void warmSitemapCache() {
+        if (firstScanTimer != null) {
+            return;
+        }
+        firstScanTimer = Executors.newSingleThreadScheduledExecutor(task -> {
+            Thread thread = new Thread(task, "sitemap-first-scan");
+            thread.setDaemon(true);
+            return thread;
+        });
+        long delayMs = Math.max(0, schedule.untilFirstScan().toMillis());
+        firstScanTimer.schedule(() -> {
+            // A request cannot have started a scan before this moment, but an
+            // invalidateCache() followed by a request may have loaded a list already.
+            if (!schedule.hasList()) {
+                startScan();
+            }
+        }, delayMs, TimeUnit.MILLISECONDS);
+        firstScanTimer.shutdown();
+    }
+
+    @PreDestroy
+    synchronized void stopFirstScanTimer() {
+        if (firstScanTimer != null) {
+            firstScanTimer.shutdownNow();
+        }
     }
 
     /**
@@ -438,13 +509,14 @@ public class SitemapController {
      *
      * <p>The cache is otherwise held for {@link #CACHE_TTL}, which is the right answer
      * for crawler traffic but wrong right after a reindex, and wrong for tests that
-     * seed a different corpus per case.
+     * seed a different corpus per case. It also clears any failure back-off, but not the
+     * quiet start: that is a property of this boot, not of the list.
      */
     public synchronized void invalidateCache() {
         generation++;
         scan = null;
         cachedIds = List.of();
-        cachedAt = Instant.EPOCH;
+        schedule.reset();
     }
 
     /**
@@ -452,9 +524,7 @@ public class SitemapController {
      * served the list as it stands and starts a rescan behind itself.
      */
     public synchronized void expireCache() {
-        if (!cachedAt.equals(Instant.EPOCH)) {
-            cachedAt = Instant.now().minus(CACHE_TTL);
-        }
+        schedule.expire();
     }
 
     /**

@@ -47,7 +47,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Elasticsearch caps at 10,000. Both were fixed without tests; these pin the behaviour
  * so the next rewrite of the controller cannot quietly reintroduce either one.
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+// Every scheduling duration is zero so these tests see the behaviour the controller had
+// before the quiet start, the staggered expiry and the failure back-off: invalidateCache()
+// followed by a request builds the list at once. SitemapQuietStartIntegrationTest covers the
+// non-zero case.
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
+        "rewayaat.sitemap.first-scan-delay=PT0S",
+        "rewayaat.sitemap.first-scan-jitter=PT0S",
+        "rewayaat.sitemap.rescan-jitter=PT0S",
+        "rewayaat.sitemap.retry-after-failure=PT0S"
+})
 class SitemapIntegrationTest extends ElasticsearchTestSupport {
 
     private static final String BASE_URL = "https://rewayaat.info";
