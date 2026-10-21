@@ -58,6 +58,7 @@ BOOKS = {
     "tusi": {
         "source": "tusi_rijal_pri.mARkdown",
         "title": "Rijal al-Tusi",
+        "mangled_sin": True,
         "author": "Muhammad ibn al-Hasan al-Tusi",
         # OpenITI drops a milestone («ms018») between the number and the dash in 18 entries
         "entry": re.compile(r"^###\s+\$+\s*(?P<number>\d+)\s*(?:ms\d+\s*)?-\s*(?P<name>.*?)\s*$"),
@@ -67,6 +68,7 @@ BOOKS = {
     },
     "fihrist": {
         "source": "fihrist_pri.mARkdown",
+        "mangled_sin": True,
         "title": "al-Fihrist",
         "author": "Muhammad ibn al-Hasan al-Tusi",
         # «[17] 5 - name»: the edition's number, then the number within the chapter, either of
@@ -190,6 +192,18 @@ CHAPTER = re.compile(r"^###\s+\|\|\s*(.+?)\s*$")
 PAGE = re.compile(r"PageV(\d+)P(\d+)")
 # OpenITI's own marks, not the book's words: milestones, page rules, footnote digits
 NOISE = re.compile(r"ms\d+|PageV\d+P\d+|^#\s*-+\s*|\[\s*\d+\s*\]|~~|^#+\s*")
+# The OpenITI text of al-Fihrist has lost almost every word-final «س»: in its place stands
+# «أآلهتنا», so «الناس» reads «الناأآلهتنا» and «إدريس» reads «إدريأآلهتنا». 192 occurrences,
+# one of them broken across a line; only ten word-final «س» survive in the whole file. The
+# file we hold is byte-identical to OpenITI's own, and the Shamela edition of the same book
+# reads «اجلس في مسجد» where this one reads «اجلأآلهتنا في مسجد», so the damage is upstream
+# of us and the repair belongs here, at the point the file is read.
+#
+# «أَآلِهَتُنَا» is a real Arabic word — Qur'an 43:58 asks «أَآلِهَتُنَا خَيْرٌ أَمْ هُوَ» —
+# so this must never be let loose on narration text. It is applied to the two rijāl sources
+# that carry the defect and to nothing else, and only where an Arabic letter stands before
+# it, which is what tells a severed word from a word of its own.
+MANGLED_SIN = re.compile(r"(?<=[\u0621-\u064A])\s*أ[\s~]*آلهتنا")
 KUNYAH = re.compile(r"يكن[يى]\s+(أب[اوي][^،.,]{2,20})")
 HEAD_KUNYAH = re.compile(r"^(أب[وا]\s+\S+)")
 COMMA_KUNYAH = re.compile(r"[،,]\s*(أب[وا]\s+\S+)")
@@ -695,6 +709,9 @@ def main():
 
     with open(source) as handle:
         text = handle.read()
+    if book.get("mangled_sin"):
+        text, mended = MANGLED_SIN.subn("س", text)
+        print(f"  mended {mended:,} severed «س» in {book['title']}")
     counts = Counter()
     layout = book.get("layout")
     entries = (parse_running(text, book, counts) if layout == "running"
