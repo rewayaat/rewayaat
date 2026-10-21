@@ -82,6 +82,11 @@ public class SitemapController {
     private CompletableFuture<List<String>> scan;
     /** Bumped by {@link #invalidateCache}, so a scan started before it cannot land after it. */
     private long generation;
+    /**
+     * Bumped by {@link #expireCache}. A scan started before it read the index as it was
+     * then, so it may store its ids but must leave the list stale for a rescan.
+     */
+    private long expiries;
 
     private final BookCatalog catalog;
     private final ArabicIndexing arabicIndexing;
@@ -359,6 +364,7 @@ public class SitemapController {
             return null;
         }
         long startedIn = generation;
+        long expiriesAtStart = expiries;
         CompletableFuture<List<String>> started = CompletableFuture.supplyAsync(() -> {
             List<String> scanned;
             try {
@@ -373,7 +379,9 @@ public class SitemapController {
             synchronized (this) {
                 if (generation == startedIn) {
                     cachedIds = scanned;
-                    schedule.listStored();
+                    if (expiries == expiriesAtStart || !schedule.hasList()) {
+                        schedule.listStored();
+                    }
                 }
             }
             return scanned;
@@ -524,6 +532,7 @@ public class SitemapController {
      * served the list as it stands and starts a rescan behind itself.
      */
     public synchronized void expireCache() {
+        expiries++;
         schedule.expire();
     }
 
