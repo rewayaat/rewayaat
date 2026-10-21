@@ -9,6 +9,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -169,6 +174,57 @@ class SitemapIntegrationTest extends ElasticsearchTestSupport {
             ResponseEntity<String> response = restTemplate.getForEntity("/sitemap.xml", String.class);
             assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         });
+    }
+
+    @Test
+    void staleList_isServedAtOnceAndRefreshedBehindTheRequest() throws Exception {
+        indexDoc("Al-Kafi-Volume-2-Kulayni:391", "{\"english\":\"hello world\"}");
+        indexDoc("Al-Kafi-Volume-2-Kulayni:392", "{\"english\":\"hello there\"}");
+        assertEquals(2, locations(okBody("/sitemap-hadith-1.xml")).size());
+
+        // The rescan takes minutes in production. A request that finds the list stale
+        // must not be the one that waits for it, nor fail because the rescan would fail.
+        sitemapController.expireCache();
+        withUnreachableElasticsearch(() -> {
+            assertEquals(2, locations(okBody("/sitemap-hadith-1.xml")).size());
+            assertEquals(HttpStatus.OK, restTemplate.getForEntity("/sitemap.xml", String.class).getStatusCode());
+        });
+
+        indexDoc("Al-Kafi-Volume-2-Kulayni:393", "{\"english\":\"help needed\"}");
+        sitemapController.expireCache();
+        long deadline = System.currentTimeMillis() + VISIBILITY_TIMEOUT_MS;
+        int seen = locations(okBody("/sitemap-hadith-1.xml")).size();
+        while (seen != 3 && System.currentTimeMillis() < deadline) {
+            Thread.sleep(100);
+            seen = locations(okBody("/sitemap-hadith-1.xml")).size();
+        }
+        assertEquals(3, seen, "The background rescan should have replaced the stale list");
+    }
+
+    @Test
+    void coldPod_answers503RatherThanHoldingTheCrawler() throws Exception {
+        // Accepts connections and never answers, like an Elasticsearch busy with a scan
+        // that takes minutes. The kernel completes the handshake from the backlog.
+        try (ServerSocket silent = new ServerSocket(0)) {
+            System.setProperty("ELASTIC_PORT", String.valueOf(silent.getLocalPort()));
+            ESClientProvider.resetSharedClient();
+            try {
+                // Not restTemplate: its Apache client honours Retry-After itself and would
+                // sleep the full ten minutes before handing the 503 back.
+                HttpClient plain = HttpClient.newHttpClient();
+                HttpRequest request = HttpRequest.newBuilder(
+                        URI.create(restTemplate.getRootUri() + "/sitemap-hadith-1.xml")).build();
+                long startedAt = System.currentTimeMillis();
+                HttpResponse<String> response = plain.send(request, HttpResponse.BodyHandlers.ofString());
+                long tookMs = System.currentTimeMillis() - startedAt;
+                assertEquals(HttpStatus.SERVICE_UNAVAILABLE.value(), response.statusCode());
+                assertTrue(response.headers().firstValue("Retry-After").isPresent(), "A 503 should say when to come back");
+                assertTrue(tookMs < 20000, () -> "The crawler was held for " + tookMs + "ms");
+            } finally {
+                System.setProperty("ELASTIC_PORT", String.valueOf(elasticPort));
+                ESClientProvider.resetSharedClient();
+            }
+        }
     }
 
     private String okBody(String path) {

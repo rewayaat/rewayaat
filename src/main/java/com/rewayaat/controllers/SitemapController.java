@@ -22,11 +22,16 @@ import com.rewayaat.service.BookCatalog;
 import com.rewayaat.service.PageLocale;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Generates dynamic XML sitemaps for search engine crawlers.
@@ -43,6 +48,13 @@ public class SitemapController {
     private static final int PAGE_SIZE = 10000;
     private static final String PIT_KEEP_ALIVE = "2m";
     private static final Duration CACHE_TTL = Duration.ofHours(6);
+    /**
+     * How long a hadith page waits for a cold pod's first scan before answering 503.
+     * Long enough for a small corpus to finish, far short of a crawler's own timeout.
+     */
+    private static final Duration COLD_SCAN_PATIENCE = Duration.ofSeconds(10);
+    /** Sent with that 503, so a crawler comes back after the scan rather than during it. */
+    private static final String RETRY_AFTER_SECONDS = "600";
 
     /**
      * The whole ID list, scanned once and sliced per page.
@@ -51,9 +63,18 @@ public class SitemapController {
      * threw the results away, so /sitemap-hadith-4.xml took 24 seconds and Google
      * gave up on it ("Couldn't fetch") while the earlier pages succeeded. One scan
      * of ~32k ids costs about a megabyte of heap and makes every page instant.
+     *
+     * <p>The scan itself is slow in production: fetching an id makes Elasticsearch read
+     * the stored document, vector and all, and on 2026-10-21 50,038 ids took 337 s.
+     * So no request ever waits on a rescan; see {@link #allHadithIds}.
      */
     private volatile List<String> cachedIds = List.of();
+    /** {@link Instant#EPOCH} until the first scan lands: nothing has been loaded yet. */
     private volatile Instant cachedAt = Instant.EPOCH;
+    /** The scan in flight, if any. Guarded by {@code this}. */
+    private CompletableFuture<List<String>> scan;
+    /** Bumped by {@link #invalidateCache}, so a scan started before it cannot land after it. */
+    private long generation;
 
     private final BookCatalog catalog;
     private final ArabicIndexing arabicIndexing;
@@ -68,7 +89,12 @@ public class SitemapController {
         LOGGER.debug("Generating sitemap index");
         int totalPages;
         try {
-            totalPages = Math.max(1, (int) Math.ceil((double) allHadithIds().size() / PAGE_SIZE));
+            // Counted from the same list the hadith pages are sliced from, so the index
+            // never advertises a page this pod would serve empty. A cold pod has no list
+            // yet and counts instead, which costs milliseconds where the scan costs minutes.
+            List<String> ids = allHadithIds(Duration.ZERO);
+            long total = ids != null ? ids.size() : countHadith();
+            totalPages = Math.max(1, (int) Math.ceil((double) total / PAGE_SIZE));
         } catch (Exception e) {
             // Falling back to a count of zero still advertises page 1, so crawlers would
             // follow a link that only 500s. Failing here keeps the index they already have.
@@ -211,6 +237,15 @@ public class SitemapController {
 
         try {
             List<String> ids = hadithIdsForPage(page);
+            if (ids == null) {
+                // A 503 with Retry-After is the status crawlers treat as "come back", and
+                // they keep the copy they have meanwhile. Holding the request open for the
+                // minutes the first scan takes is what Google reported as "Sitemap could
+                // not be read".
+                return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                        .header("Retry-After", RETRY_AFTER_SECONDS)
+                        .build();
+            }
             for (String id : ids) {
                 appendUrl(xml, "/hadith/" + escapeXml(id), "0.8", "monthly");
             }
@@ -228,9 +263,12 @@ public class SitemapController {
                 .body(xml.toString());
     }
 
-    /** Returns the slice of IDs belonging to one sitemap page. */
+    /** Returns the slice of IDs belonging to one sitemap page, or null while a cold pod is still scanning. */
     private List<String> hadithIdsForPage(int page) throws IOException {
-        List<String> all = allHadithIds();
+        List<String> all = allHadithIds(COLD_SCAN_PATIENCE);
+        if (all == null) {
+            return null;
+        }
         int from = (page - 1) * PAGE_SIZE;
         if (from >= all.size()) {
             return List.of();
@@ -241,22 +279,88 @@ public class SitemapController {
     /**
      * The full list of hadith IDs, rescanned at most once per {@link #CACHE_TTL}.
      *
-     * <p>Synchronised so a burst of crawler requests triggers one scan rather than
-     * one per request; the happy path reads the volatile field and never blocks.
+     * <p>Once a list has loaded it is always served at once, even past its TTL: a stale
+     * list starts a rescan in the background and the request goes on with the list it
+     * has. Before, the request that found the list stale ran the scan itself, and every
+     * sitemap request behind it waited on the lock for the minutes that took.
+     *
+     * <p>Before the first list has loaded, the caller waits up to {@code patience} for
+     * the scan and gets null if it is still running.
+     *
+     * @throws IOException if the scan this request waited on failed
      */
-    private List<String> allHadithIds() throws IOException {
-        List<String> cached = cachedIds;
-        if (!cached.isEmpty() && Duration.between(cachedAt, Instant.now()).compareTo(CACHE_TTL) < 0) {
-            return cached;
-        }
-        synchronized (this) {
-            if (!cachedIds.isEmpty() && Duration.between(cachedAt, Instant.now()).compareTo(CACHE_TTL) < 0) {
-                return cachedIds;
+    private List<String> allHadithIds(Duration patience) throws IOException {
+        if (!cachedAt.equals(Instant.EPOCH)) {
+            if (Duration.between(cachedAt, Instant.now()).compareTo(CACHE_TTL) >= 0) {
+                startScan();
             }
-            List<String> scanned = scanAllHadithIds();
-            cachedIds = scanned;
-            cachedAt = Instant.now();
+            return cachedIds;
+        }
+        CompletableFuture<List<String>> pending = startScan();
+        try {
+            return pending.get(patience.toMillis(), TimeUnit.MILLISECONDS);
+        } catch (TimeoutException e) {
+            return null;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause() instanceof UncheckedIOException unchecked
+                    ? unchecked.getCause() : e.getCause();
+            if (cause instanceof IOException io) {
+                throw io;
+            }
+            if (cause instanceof RuntimeException runtime) {
+                throw runtime;
+            }
+            throw new IOException("Sitemap id scan failed", cause);
+        }
+    }
+
+    /**
+     * The scan in flight, or a new one on its own daemon thread.
+     *
+     * <p>One at a time, so a burst of crawler requests shares a scan rather than
+     * starting one each. A scan that fails leaves the previous list in place, and the
+     * next request to find it stale tries again.
+     */
+    private synchronized CompletableFuture<List<String>> startScan() {
+        if (scan != null && !scan.isDone()) {
+            return scan;
+        }
+        long startedIn = generation;
+        CompletableFuture<List<String>> started = CompletableFuture.supplyAsync(() -> {
+            List<String> scanned;
+            try {
+                scanned = scanAllHadithIds();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+            synchronized (this) {
+                if (generation == startedIn) {
+                    cachedIds = scanned;
+                    cachedAt = Instant.now();
+                }
+            }
             return scanned;
+        }, task -> {
+            Thread thread = new Thread(task, "sitemap-id-scan");
+            thread.setDaemon(true);
+            thread.start();
+        });
+        started.whenComplete((ids, e) -> {
+            if (e != null) {
+                LOGGER.warn("Sitemap id scan failed; serving the previous list until the next attempt", e);
+            }
+        });
+        scan = started;
+        return started;
+    }
+
+    /** The number of narrations, for the index of a pod that has not finished its first scan. */
+    private long countHadith() throws IOException {
+        try (ESClientProvider provider = new ESClientProvider()) {
+            return provider.client().count(c -> c.index(ESClientProvider.INDEX)).count();
         }
     }
 
@@ -320,33 +424,36 @@ public class SitemapController {
     }
 
     /**
-     * Fills the cache shortly after boot so no crawler is the one that pays for the
-     * scan. Runs on its own daemon thread: readiness must not wait on Elasticsearch.
+     * Starts the first scan at boot so no crawler is the one that pays for it. The scan
+     * runs on its own daemon thread: readiness must not wait on Elasticsearch.
      */
     @EventListener(ApplicationReadyEvent.class)
     public void warmSitemapCache() {
-        Thread warmer = new Thread(() -> {
-            try {
-                allHadithIds();
-            } catch (Exception e) {
-                LOGGER.warn("Could not warm the sitemap id cache; it will be built on first request", e);
-            }
-        }, "sitemap-cache-warmer");
-        warmer.setDaemon(true);
-        warmer.start();
+        startScan();
     }
 
     /**
-     * Drops the memoised id list so the next request rescans Elasticsearch.
+     * Drops the memoised id list so the next request rescans Elasticsearch, and
+     * discards whatever an in-flight scan would have stored.
      *
      * <p>The cache is otherwise held for {@link #CACHE_TTL}, which is the right answer
      * for crawler traffic but wrong right after a reindex, and wrong for tests that
      * seed a different corpus per case.
      */
-    public void invalidateCache() {
-        synchronized (this) {
-            cachedIds = List.of();
-            cachedAt = Instant.EPOCH;
+    public synchronized void invalidateCache() {
+        generation++;
+        scan = null;
+        cachedIds = List.of();
+        cachedAt = Instant.EPOCH;
+    }
+
+    /**
+     * Ages the memoised list past its TTL without dropping it: the next request is
+     * served the list as it stands and starts a rescan behind itself.
+     */
+    public synchronized void expireCache() {
+        if (!cachedAt.equals(Instant.EPOCH)) {
+            cachedAt = Instant.now().minus(CACHE_TTL);
         }
     }
 
