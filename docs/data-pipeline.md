@@ -9,10 +9,10 @@ under [pipelines/](pipelines/), including how to resume a half-finished run.
 
 | Pipeline | Runbook | State |
 |----------|---------|-------|
-| Corpus import, metadata, chain-free text, terms | this document | done — 32,519 hadith |
-| Embeddings | this document | done — 32,516 / 32,519 have `semantic_vector` |
-| Topic tagging | this document | done — 31,809 / 32,519 tagged |
-| LLM similar hadith | [pipelines/llm-similar-hadith.md](pipelines/llm-similar-hadith.md) | done — 25,273 docs |
+| Corpus import, metadata, chain-free text, terms | this document | done — 50,038 hadith (17,519 of them restored from the v1 snapshot on 2026-10-21) |
+| Embeddings | this document | done — 50,035 / 50,038 have `semantic_vector` |
+| Topic tagging | this document | done — 48,881 / 50,038 tagged |
+| LLM similar hadith | [pipelines/llm-similar-hadith.md](pipelines/llm-similar-hadith.md) | done — 36,898 docs |
 | Quranic insights | [pipelines/quranic-insights.md](pipelines/quranic-insights.md) | excerpts 51%, rest done |
 | Hadith text annotation | [pipelines/hadith-annotation.md](pipelines/hadith-annotation.md) | 13% judged, **0 loaded to ES** |
 
