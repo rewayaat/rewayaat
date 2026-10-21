@@ -32,13 +32,14 @@ import urllib.request
 from pathlib import Path
 
 ES_URL = os.environ.get("ELASTICSEARCH_URL", "http://localhost:9200").rstrip("/")
-ES_INDEX = os.environ.get("REWAYAAT_INDEX", "rewayaat_updated")
+ES_INDEX = os.environ.get("REWAYAAT_INDEX", "rewayaat_hadith")
 SOURCE_FIELDS = ["semantic_matn_source", "semantic_english_hint_source",
                  "topic_tags", "book", "chapter"]
 MAX_PER_METHOD = int(os.environ.get("LLM_SIMILAR_MAX_PER_METHOD", "25"))
 TIMEOUT = int(os.environ.get("LLM_SIMILAR_TIMEOUT", "30"))
 MAX_RETRIES = 3
-PREFILTER_TOP = 30
+# Candidates kept per source hadith. 30 for the original run; adding books later may judge fewer.
+PREFILTER_TOP = int(os.environ.get("LLM_SIMILAR_PREFILTER_TOP", "30"))
 AUTO_ACCEPT_THRESHOLD = 0.80
 
 # Per-method minimum BM25 score thresholds (based on historical analysis)
@@ -372,11 +373,18 @@ def process_concepts(concepts_str, arabic_terms_str):
 
 # --- Optimized pipeline modes ---
 
-def scroll_all_ids(limit=None):
+def books_query(books):
+    """match_all, or a terms filter on `book` for a |-separated list."""
+    names = [b.strip() for b in (books or "").split("|") if b.strip()]
+    return {"terms": {"book": names}} if names else {"match_all": {}}
+
+
+def scroll_all_ids(limit=None, books=None):
     """Get all hadith IDs via scroll API."""
     ids = []
     resp = http_json(f"{ES_URL}/{ES_INDEX}/_search?scroll=5m", {
-        "size": 1000, "query": {"exists": {"field": "semantic_matn_source"}},
+        "size": 1000, "query": {"bool": {"filter": [{"exists": {"field": "semantic_matn_source"}},
+                                                   books_query(books)]}},
         "_source": [], "sort": ["_doc"]
     })
     scroll_id = resp.get("_scroll_id")
@@ -398,9 +406,9 @@ def scroll_all_ids(limit=None):
 
 
 def precompute_mode(args):
-    """Pre-compute candidates for all hadith → JSONL with top 30 candidates."""
+    """Pre-compute candidates for all hadith (or --books) → JSONL with the top PREFILTER_TOP."""
     limit = args.precompute if args.precompute > 0 else None
-    ids = scroll_all_ids(limit)
+    ids = scroll_all_ids(limit, args.books)
     print(f"Pre-computing candidates for {len(ids)} hadith...")
 
     out = Path(args.output)
@@ -685,6 +693,9 @@ def merge_mode(args):
                     if raw_verdict in ("similar", "wording_similar", "conceptually_similar"):
                         verdict = raw_verdict if raw_verdict != "similar" else "similar"
                         match_type = "wording" if raw_verdict == "wording_similar" else ("conceptual" if raw_verdict == "conceptually_similar" else "")
+                        # A plain "similar" verdict carries its type in its own field; without this
+                        # every one of them reached the loader as "" and was shown as conceptual.
+                        match_type = match_type or result.get("match_type", "")
                     elif raw_verdict == "rejected":
                         verdict = "rejected"
                         match_type = ""
@@ -803,6 +814,8 @@ def main():
     parser.add_argument("--precomputed", default="tmp/precomputed.jsonl", help="Precomputed JSONL path")
     parser.add_argument("--merge", nargs="+", metavar="FILE", help="Merge agent results")
     parser.add_argument("--stats", action="store_true", help="Show pipeline stats")
+    parser.add_argument("--books", help="|-separated book names: precompute these sources only "
+                        "(candidates still come from the whole index)")
 
     # Shared config
     parser.add_argument("--cache", default="tmp/pairs_cache.json", help="Pairs cache file")

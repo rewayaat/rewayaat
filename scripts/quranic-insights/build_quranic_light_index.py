@@ -13,7 +13,8 @@ from pathlib import Path
 
 
 ES_BASE_URL = os.environ.get("ELASTICSEARCH_URL", "http://localhost:9200").rstrip("/")
-HADITH_INDEX = os.environ.get("REWAYAAT_INDEX", "rewayaat_thaqalayn")
+HADITH_INDEX = os.environ.get("REWAYAAT_INDEX", "rewayaat_hadith")
+HADITH_BOOKS = os.environ.get("QURANIC_LIGHT_BOOKS", "")
 QURAN_INDEX = os.environ.get("QURAN_VERSES_INDEX", "rewayaat_quran")
 TAFSIR_INDEX = os.environ.get("TAFSIR_INDEX", "rewayaat_tafsir")
 LIGHT_INDEX = os.environ.get("QURANIC_LIGHT_INDEX", "rewayaat_quranic_light_filtered")
@@ -256,10 +257,15 @@ def start_scroll():
             "semantic_significant_terms_source",
             "semantic_matn_source",
         ],
-        "query": {"match_all": {}},
+        "query": books_query(HADITH_BOOKS),
     }
     _, body = es_request("POST", f"/{HADITH_INDEX}/_search?scroll={SCROLL_KEEPALIVE}", payload)
     return body
+
+def books_query(books):
+    """match_all, or a terms filter on `book` for a |-separated list."""
+    names = [b.strip() for b in (books or "").split("|") if b.strip()]
+    return {"terms": {"book": names}} if names else {"match_all": {}}
 
 
 def continue_scroll(scroll_id):

@@ -275,8 +275,8 @@ and pins both the rule and the fact that the hubs still link everything.
 | Sitemap | Contents |
 |---------|----------|
 | `/sitemap-static.xml` | `/`, `/books`, `/updates.html`, `/search_tips.html`, `/privacy` |
-| `/sitemap-books.xml` | ~7,800 URLs — `/books`, 18 books, 30 volumes, the 133 parts that are pages in their own right (of 166: 18 wrap one chapter, 15 duplicate their parent), and the ~3,700 chapters holding more than one narration, each of them twice |
-| `/sitemap-hadith-{1..4}.xml` | 32,519 narrations, 10,000 per page |
+| `/sitemap-books.xml` | ~11,800 URLs — `/books`, 21 books, 33 volumes, and ~5,800 parts and chapters that are pages in their own right (a part that wraps one chapter or duplicates its parent, and a chapter of one narration, are left out), each of them twice |
+| `/sitemap-hadith-{1..6}.xml` | 50,038 narrations, 10,000 per page |
 
 Every page that exists in both languages is listed twice, each entry carrying the same
 reciprocal `hreflang` set — a one-sided pair is discarded rather than followed. Which

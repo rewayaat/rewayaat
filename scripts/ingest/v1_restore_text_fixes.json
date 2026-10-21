@@ -1,0 +1,6387 @@
+{
+ "Ghurar-al-Hikam-Amidi:10004": [
+  {
+   "field": "arabic",
+   "new": "لايَقْنَعُ",
+   "old": "لا33يَقْنَعُ",
+   "type": "latin-in-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10010": [
+  {
+   "field": "arabic",
+   "new": "لِلنُّفُوسِ",
+   "old": "للِنُّفُوسِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10111": [
+  {
+   "field": "arabic",
+   "new": "نَزِّهُوا",
+   "old": "نَزِّهُو ا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10142": [
+  {
+   "field": "arabic",
+   "new": "أبْناءِ الدُّنْيا",
+   "old": "أبْناءِالدُّنْيا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10146": [
+  {
+   "field": "arabic",
+   "new": "وُفُورِ",
+   "old": "وُفُورُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10168": [
+  {
+   "field": "arabic",
+   "new": "أخُو الشِّرْكِ",
+   "old": "أخُوالشِّرْكِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10241": [
+  {
+   "field": "arabic",
+   "new": "الْمُسارِعُ",
+   "old": "الْمُسارِ عُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10254": [
+  {
+   "field": "arabic",
+   "new": "مَنْ تَحَمَّلَ",
+   "old": "مَن ْتَحَمَّلَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10255": [
+  {
+   "field": "arabic",
+   "new": "خَيْرُ النّاسِ",
+   "old": "خَيْرُالنّاسِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10258": [
+  {
+   "field": "arabic",
+   "new": "خَيْرُ النّاسِ",
+   "old": "خَيْرُالنّاسِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10290": [
+  {
+   "field": "arabic",
+   "new": "عِنْدَ اللّهِ",
+   "old": "عِنْدَاللّهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10326": [
+  {
+   "field": "arabic",
+   "new": "قَدْرِ قُوَّةِ",
+   "old": "قَدْرِقُوَّةِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10368": [
+  {
+   "field": "arabic",
+   "new": "الوُدِّ مِنْ",
+   "old": "الوُدِّمِنْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10384": [
+  {
+   "field": "arabic",
+   "new": "فِي اللّهِ",
+   "old": "فيِ اللّهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10391": [
+  {
+   "field": "arabic",
+   "new": "الأشْرارُ",
+   "old": "الأشْرارَُ",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "أشْباهُهُمْ",
+   "old": "أشْباهَُهُمْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10404": [
+  {
+   "field": "arabic",
+   "new": "الزُّهْدِ",
+   "old": "الزٌّهْدِ",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "أيْدِيهِمْ",
+   "old": "أيْديِهِمْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10406": [
+  {
+   "field": "arabic",
+   "new": "غَيْرِ أديب",
+   "old": "غَيْرِأديب",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10427": [
+  {
+   "field": "arabic",
+   "new": "اَلْوَرَعُ جُنَّةٌ",
+   "old": "اَلْوَرَعُجُنَّةٌ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10447": [
+  {
+   "field": "arabic",
+   "new": "الطَّمَعِ فَإنَّهُ",
+   "old": "الطَّمَعِفَإنَّهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10461": [
+  {
+   "field": "arabic",
+   "new": "المُحَرَّماتِ",
+   "old": "المُحَرَمّاتِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10481": [
+  {
+   "field": "arabic",
+   "new": "الْمَآثِمِ",
+   "old": "الْمَ آثِمِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1050": [
+  {
+   "field": "arabic",
+   "new": "بادِرُوا",
+   "old": "بادِروُا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10507": [
+  {
+   "field": "arabic",
+   "new": "خَيْرٌ مِنْ",
+   "old": "خَيْرٌمِنْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10516": [
+  {
+   "field": "arabic",
+   "new": "ال",
+   "old": "َال",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10586": [
+  {
+   "field": "arabic",
+   "new": "فَبادِرُوا",
+   "old": "فَبا دِرُوا",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "يَنْقَلِبُونَ",
+   "old": "يَنْقَِلبُونَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10637": [
+  {
+   "field": "arabic",
+   "new": "مِنْ عَذاب",
+   "old": "مِن ْ عَذاب",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10656": [
+  {
+   "field": "arabic",
+   "new": "اللّهِ حَمَتْ",
+   "old": "اللّهَ حَمَتْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10667": [
+  {
+   "field": "arabic",
+   "new": "يَنْجُو الهارِبُ",
+   "old": "يَنْجُوالهارِبُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1067": [
+  {
+   "field": "arabic",
+   "new": "بِالبِرِّ",
+   "old": "بِالبُِرِّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10682": [
+  {
+   "field": "arabic",
+   "new": "أزْوادِ التَّقْوى",
+   "old": "أزْوادِالتَّقْوى",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10700": [
+  {
+   "field": "arabic",
+   "new": "فَاتَّقُوا اللّهَ",
+   "old": "فَاتَّقُوااللّهَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10702": [
+  {
+   "field": "arabic",
+   "new": "فَاتَّقُوا",
+   "old": "فَاتَقُوا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10710": [
+  {
+   "field": "arabic",
+   "new": "حَذَّرَكُمْ",
+   "old": "حَذَّرََّكُمْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1079": [
+  {
+   "field": "arabic",
+   "new": "البَرِّ يَأبى",
+   "old": "البَرِّيَأبى",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10841": [
+  {
+   "field": "arabic",
+   "new": "هِمَّتُهُ",
+   "old": "هِمَتُّهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10847": [
+  {
+   "field": "arabic",
+   "new": "عِنْدَ اللّهِ",
+   "old": "عِنْدَاللّهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10848": [
+  {
+   "field": "arabic",
+   "new": "مَثُوبَة",
+   "old": "مَثُوبَة0",
+   "type": "latin-in-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10850": [
+  {
+   "field": "arabic",
+   "new": "قَدْرِ هِمَّتِهِ",
+   "old": "قَدْرِهِمَّتِهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10863": [
+  {
+   "field": "arabic",
+   "new": "عَدُوُّ",
+   "old": "عَدُّوُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10892": [
+  {
+   "field": "arabic",
+   "new": "لَوِ ارْتَفَعَ",
+   "old": "لَوِارْتَفَعَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10931": [
+  {
+   "field": "arabic",
+   "new": "يُفْسِدُ العَقْلَ",
+   "old": "يُفْسِدُالعَقْلَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:10935": [
+  {
+   "field": "arabic",
+   "new": "جاهَدَ هَواهُ",
+   "old": "جاهَدَهَواهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:11010": [
+  {
+   "field": "arabic",
+   "new": "فِي المُكْتَسَبِ",
+   "old": "فيِ المُكْتَسَبِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:111": [
+  {
+   "field": "arabic",
+   "new": "يَرَي النَّشأَةَ",
+   "old": "يَرَيالنَّشأَةَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1123": [
+  {
+   "field": "arabic",
+   "new": "البَصَرِ أهْوَنُ",
+   "old": "البَصَرِأهْوَنُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1126": [
+  {
+   "field": "arabic",
+   "new": "إنِ اهتَدَيْتُمْ",
+   "old": "إنِاهتَدَيْتُمْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1147": [
+  {
+   "field": "arabic",
+   "new": "جِنايَةٌ",
+   "old": "جنِايَةٌ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:117": [
+  {
+   "field": "arabic",
+   "new": "مَنِ ابْتاعَ",
+   "old": "مَنِابْتاعَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1176": [
+  {
+   "field": "arabic",
+   "new": "(ل ايأمَنُ)",
+   "old": "(لايأمَنُ)",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1223": [
+  {
+   "field": "arabic",
+   "new": "اِحْذَرُوا",
+   "old": "اِحْذَروُا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1239": [
+  {
+   "field": "arabic",
+   "new": "التَّجْرِبَةِ",
+   "old": "التَجْربَةِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1295": [
+  {
+   "field": "arabic",
+   "new": "",
+   "old": " \n\nالجمال",
+   "type": "heading-bleed"
+  },
+  {
+   "field": "arabic",
+   "new": "شَيْء",
+   "old": "شَْيء",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1306": [
+  {
+   "field": "arabic",
+   "new": "مآل",
+   "old": "م آل",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1311": [
+  {
+   "field": "arabic",
+   "new": "عَرْضُهَا",
+   "old": "عَرْضُهاَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1316": [
+  {
+   "field": "arabic",
+   "new": "مَآلُ",
+   "old": "مَ آلُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:133": [
+  {
+   "field": "arabic",
+   "new": "كانَتِ الآخِرَةُ",
+   "old": "كانَتِالآخِرَةُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1353": [
+  {
+   "field": "arabic",
+   "new": "تَكُونُ",
+   "old": "تَكُوُنُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1368": [
+  {
+   "field": "arabic",
+   "new": "يَجُدْ",
+   "old": "يَجُِدْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1377": [
+  {
+   "field": "arabic",
+   "new": "مُقَدِّراً",
+   "old": "مُقَدِرّاً",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1382": [
+  {
+   "field": "arabic",
+   "new": "جاوِرْ مَنْ",
+   "old": "جاوِرْمَنْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1414": [
+  {
+   "field": "arabic",
+   "new": "عِنْدَ اللّهِ",
+   "old": "عِنْدَاللّهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1422": [
+  {
+   "field": "arabic",
+   "new": "غَضَبَكَ وَخالِفْ",
+   "old": "غَضَبَكوَخالِفْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:147": [
+  {
+   "field": "arabic",
+   "new": "وَعَدَ اللّهُ",
+   "old": "وَعَدَاللّهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1480": [
+  {
+   "field": "arabic",
+   "new": "فَقَدْ عَصَى",
+   "old": "فَقَدْعَصَى",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1496": [
+  {
+   "field": "arabic",
+   "new": "لايَخْضَرُّ عُودُها",
+   "old": "لايَخْضَرُّعُودُها",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:155": [
+  {
+   "field": "arabic",
+   "new": "الَّتي",
+   "old": "التَّي",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1594": [
+  {
+   "field": "arabic",
+   "new": "غُضُّوا الأبْصارَ",
+   "old": "غُضُّواالأبْصارَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1606": [
+  {
+   "field": "arabic",
+   "new": "مَشْياً سَجْحاً",
+   "old": "مَشْياًسَجْحاً",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1657": [
+  {
+   "field": "arabic",
+   "new": "الشَّرَهِ",
+   "old": "الشِرَّهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1661": [
+  {
+   "field": "arabic",
+   "new": "الحِرْصِ",
+   "old": "الحِْرصِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1714": [
+  {
+   "field": "arabic",
+   "new": "وَ ",
+   "old": "(و) ",
+   "type": "latin-in-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1751": [
+  {
+   "field": "arabic",
+   "new": "فِي العَواقِبِ",
+   "old": "فيِ العَواقِبِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1767": [
+  {
+   "field": "arabic",
+   "new": ") عَمَلَ",
+   "old": ")عَمَلَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:182": [
+  {
+   "field": "arabic",
+   "new": "اللّهَ غَداً",
+   "old": "اللّهَغَداً",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:183": [
+  {
+   "field": "arabic",
+   "new": "ظَفِرَ بِالآخِرَةِ",
+   "old": "ظَفِرَبِالآخِرَةِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1841": [
+  {
+   "field": "arabic",
+   "new": "تُفْسِدُ",
+   "old": "تَُفْسُِدُ",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "تُصْلِحُ",
+   "old": "تَُصْلَُحُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1873": [
+  {
+   "field": "arabic",
+   "new": "أحْلَى",
+   "old": "أحْلىَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1888": [
+  {
+   "field": "arabic",
+   "new": "فَتَوَخَّ",
+   "old": "فَتَوَّخَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1901": [
+  {
+   "field": "arabic",
+   "new": "اَلإحْسانُ",
+   "old": "اَلإْحْسانُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1908": [
+  {
+   "field": "arabic",
+   "new": "يُحْسِنُونَ",
+   "old": "يُحْسَِنُونَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1917": [
+  {
+   "field": "arabic",
+   "new": "فَانْظُرْ عِنْدَ",
+   "old": "فَانْظُرْعِنْدَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:195": [
+  {
+   "field": "arabic",
+   "new": "فَاخْتَرْهُ",
+   "old": "فَاخْتَرَهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:1981": [
+  {
+   "field": "arabic",
+   "new": "لا يَشْتَرِي",
+   "old": "لايَشْتَِري",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2045": [
+  {
+   "field": "arabic",
+   "new": "لاُِرَبِّيَها",
+   "old": "لاُِرَبِيَّها",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:205": [
+  {
+   "field": "arabic",
+   "new": "مَوَدَّتُه",
+   "old": "مَوَّدَتُه",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2051": [
+  {
+   "field": "arabic",
+   "new": "المَآثِرِ",
+   "old": "المَ آثِرِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2068": [
+  {
+   "field": "arabic",
+   "new": "أمْثالُهُمْ",
+   "old": "أمْثالَُهُمْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2074": [
+  {
+   "field": "arabic",
+   "new": "خَيْرٌ مِنَ",
+   "old": "خَيْرٌمِنَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2081": [
+  {
+   "field": "arabic",
+   "new": "أوْ مُكافاةٌ",
+   "old": "أوْمُكافاةٌ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2092": [
+  {
+   "field": "arabic",
+   "new": "عِنْدَ اللّهِ",
+   "old": "عِنْدَاللّهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2131": [
+  {
+   "field": "arabic",
+   "new": "المُحْسِنِينَ",
+   "old": "المُحْسِنيِنَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2148": [
+  {
+   "field": "arabic",
+   "new": "دَنِيٌّ وَمَرَضٌ",
+   "old": "دَنِيٌّوَمَرَضٌ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2180": [
+  {
+   "field": "arabic",
+   "new": "يَضُرُّ خَيْرٌ",
+   "old": "يَضُرُّخَيْرٌ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2187": [
+  {
+   "field": "arabic",
+   "new": "في الباطِلِ",
+   "old": "فيِ الباطِلِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2241": [
+  {
+   "field": "arabic",
+   "new": "إرْكَبِ",
+   "old": "إرْ كَبِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2256": [
+  {
+   "field": "arabic",
+   "new": "لايَشْكُرُهُ وَقادِمٌ",
+   "old": "لايَشْكُرُهُوَقادِمٌ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:227": [
+  {
+   "field": "arabic",
+   "new": "مَنْ تَألّفَ",
+   "old": "مَنّ تَألّفَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:232": [
+  {
+   "field": "arabic",
+   "new": "طالَت",
+   "old": "طالَّت",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2355": [
+  {
+   "field": "arabic",
+   "new": "لِرَعِيَّتِهِ",
+   "old": "لِرَعِيَتِّهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2360": [
+  {
+   "field": "arabic",
+   "new": "أو ضَراعَة",
+   "old": "أوضَراعَة",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "فَيَتَّخِدَ",
+   "old": "فَيَّتَخِدَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2376": [
+  {
+   "field": "arabic",
+   "new": "الغَضَبِ صَبُوراً",
+   "old": "الغَضَبِصَبُوراً",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2433": [
+  {
+   "field": "arabic",
+   "new": "شُجْعانِ",
+   "old": "شَِجْعان",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2462": [
+  {
+   "field": "arabic",
+   "new": "أوْلِيائِهِ أوْ",
+   "old": "أوْلِيائِهِأو",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2468": [
+  {
+   "field": "arabic",
+   "new": "آخِذُكُمْ",
+   "old": "آ خِذُكُم",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2479": [
+  {
+   "field": "arabic",
+   "new": "فِي",
+   "old": "في ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2484": [
+  {
+   "field": "arabic",
+   "new": "يُنَزِّلُ",
+   "old": "يُنَزِّ ل",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2494": [
+  {
+   "field": "arabic",
+   "new": "فِي القُرْبى",
+   "old": "فيِ القُرْبى",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2508": [
+  {
+   "field": "arabic",
+   "new": "وَمَآلِ",
+   "old": "وَمَ آل",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "أُذُنَيَّ وَ",
+   "old": "أُذُنَيّو",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2515": [
+  {
+   "field": "arabic",
+   "new": "سلَّم وَ",
+   "old": "سلَّمو",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2516": [
+  {
+   "field": "arabic",
+   "new": "لَمْ يُسْبَقُوا",
+   "old": "لَمْيُسْبَقُوا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2520": [
+  {
+   "field": "arabic",
+   "new": "يُخْبِرُكُمْ",
+   "old": "يُخْبِرُ كُم",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2523": [
+  {
+   "field": "arabic",
+   "new": "بِآلِ",
+   "old": "بِ آل",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2530": [
+  {
+   "field": "arabic",
+   "new": "اللّهِ عَلَيْهِ",
+   "old": "اللّهِعَلَيْه",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "فِي المَواطِنِ",
+   "old": "فيِ المَواطِن",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2533": [
+  {
+   "field": "arabic",
+   "new": "فِينا تَشَبَّثَتْ",
+   "old": "فيِنا تَشَبَّثَت",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2655": [
+  {
+   "field": "arabic",
+   "new": "ادَّرِعِ",
+   "old": "ادَّرَِعِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2683": [
+  {
+   "field": "arabic",
+   "new": "إيّاكَ",
+   "old": "إيّاك َ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2723": [
+  {
+   "field": "arabic",
+   "new": "أجْدَرُ بِصَباحَةِ",
+   "old": "أجْدَرُبِصَباحَةِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2790": [
+  {
+   "field": "arabic",
+   "new": "اِعْتَبَرُوا",
+   "old": "اِعْتَبَروُا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2798": [
+  {
+   "field": "arabic",
+   "new": "تَحَرِّي",
+   "old": "تَحَريِّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2799": [
+  {
+   "field": "arabic",
+   "new": "لَكُمُ",
+   "old": "لَكمُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2813": [
+  {
+   "field": "arabic",
+   "new": "الخَلائِقِ",
+   "old": "الَخلائِقِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2816": [
+  {
+   "field": "arabic",
+   "new": "بَذَّ القائِلينَ",
+   "old": "بَذَّالقائِلينَ",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "مُسْتَضْعَفاً",
+   "old": "مُسْتَضْعَفَاً",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2841": [
+  {
+   "field": "arabic",
+   "new": "فَمَهْما حُمِّلَتْ",
+   "old": "فَمَهْماحُمِّلَتْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2842": [
+  {
+   "field": "arabic",
+   "new": "إنِ ابْتُلِيَ",
+   "old": "إن ِْابْتُلِيَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2843": [
+  {
+   "field": "arabic",
+   "new": "فَتَجَنَّبْ",
+   "old": "فَتَجَنَبْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2878": [
+  {
+   "field": "arabic",
+   "new": "كَثِيرُ",
+   "old": "كَثيِرُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2889": [
+  {
+   "field": "arabic",
+   "new": "فِي الأغْنياءِ",
+   "old": "فيِ الأغْنياءِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2890": [
+  {
+   "field": "arabic",
+   "new": "فِي الخُمُولِ",
+   "old": "فيِ الخُمُولِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2908": [
+  {
+   "field": "arabic",
+   "new": "خَوْفُ اللّهِ",
+   "old": "خَوْفُ اللّهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2956": [
+  {
+   "field": "arabic",
+   "new": "فِي العَمَلِ",
+   "old": "فيِ العَمَلِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:2976": [
+  {
+   "field": "arabic",
+   "new": "قَصَّرَ",
+   "old": "قَصَرَّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:299": [
+  {
+   "field": "arabic",
+   "new": "يَعدَمْ حُسْنُ",
+   "old": "يَعدَم ْحُسْنُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:305": [
+  {
+   "field": "arabic",
+   "new": "لاتَصْرِمْ أخاكَ",
+   "old": "لاتَصْرِمْأخاكَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3061": [
+  {
+   "field": "arabic",
+   "new": "بِأرْبَع: سُوْءُ",
+   "old": "بِأرْبَع:سُوْءُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3080": [
+  {
+   "field": "arabic",
+   "new": "أخْلِصْ",
+   "old": "أخْلُِصْ",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "لِوَدُودِكَ",
+   "old": "لِوَدوُدِكَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3102": [
+  {
+   "field": "arabic",
+   "new": "إخلاصِ",
+   "old": "إخلاْصِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3108": [
+  {
+   "field": "arabic",
+   "new": "وَقَدْ سَدَدْتَ",
+   "old": "وَقَدْسَدَدْتَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:311": [
+  {
+   "field": "arabic",
+   "new": "ويُجْتَنَبُ",
+   "old": "ويُجّتَنَبُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3116": [
+  {
+   "field": "arabic",
+   "new": "وُقِرَ",
+   "old": "وَُقَِرَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3161": [
+  {
+   "field": "arabic",
+   "new": "بِانْقِضاء",
+   "old": "باِنْقِضاء",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3164": [
+  {
+   "field": "arabic",
+   "new": "أدْبَرَ مِنَ",
+   "old": "أدْبَرَمِنَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3190": [
+  {
+   "field": "arabic",
+   "new": "الزَّوالِ",
+   "old": "الزَّوال ِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3198": [
+  {
+   "field": "arabic",
+   "new": "أبْصَرَ بِها",
+   "old": "أبْصَرَبِها",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3200": [
+  {
+   "field": "arabic",
+   "new": "الأبْدانَ",
+   "old": "الأ3بْدانَ",
+   "type": "latin-in-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3214": [
+  {
+   "field": "arabic",
+   "new": "حَمِدَها",
+   "old": "حَمِدَ ها",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3222": [
+  {
+   "field": "arabic",
+   "new": "سائِغاً حَتّى",
+   "old": "سائِغاًحَتّى",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:323": [
+  {
+   "field": "arabic",
+   "new": "الرَّفيقَ",
+   "old": "الرَّفيقَِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:328": [
+  {
+   "field": "arabic",
+   "new": "إخْتَرْ مِنْ",
+   "old": "إخْتَرْمِنْ",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "أقدَمَهُمْ",
+   "old": "أقدَمَهَمْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:332": [
+  {
+   "field": "arabic",
+   "new": "مَنِ احْتَجْتَ",
+   "old": "مَنِاحْتَجْتَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3335": [
+  {
+   "field": "arabic",
+   "new": "رُبَّ",
+   "old": "رُّبَّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3352": [
+  {
+   "field": "arabic",
+   "new": "مَذْمُومٌ",
+   "old": "مَذْمُوم ٌ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3382": [
+  {
+   "field": "arabic",
+   "new": "قَدْ فَجَعَتْهُ",
+   "old": "قَدْفَجَعَتْهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:34": [
+  {
+   "field": "arabic",
+   "new": "فَقَدِ اختارَكَ",
+   "old": "فَقَدِاختارَكَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:340": [
+  {
+   "field": "arabic",
+   "new": "إنِ احْتاجَ",
+   "old": "إنِاحْتاجَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3427": [
+  {
+   "field": "arabic",
+   "new": "مَآلَهُ",
+   "old": "مَ آلَهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3462": [
+  {
+   "field": "arabic",
+   "new": "عِنْدَ اللّهِ",
+   "old": "عِنْدَاللّهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3491": [
+  {
+   "field": "arabic",
+   "new": "تَسْتَبْدِلُوا الفَناءَ",
+   "old": "تَسْتَبْدِلُواالفَناءَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3494": [
+  {
+   "field": "arabic",
+   "new": "دُنْياكَ",
+   "old": "دُنيْاكَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3495": [
+  {
+   "field": "arabic",
+   "new": "المَآثِمِ",
+   "old": "الم آثِمِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:350": [
+  {
+   "field": "arabic",
+   "new": "الإحسانِ",
+   "old": "الإحسان ِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3506": [
+  {
+   "field": "arabic",
+   "new": "ذُو العِلَّةِ",
+   "old": "ذُوالعِلَّةِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3508": [
+  {
+   "field": "arabic",
+   "new": "يُرْدي",
+   "old": "يُردْي",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3510": [
+  {
+   "field": "arabic",
+   "new": "أقْصِرُوا",
+   "old": "أقْصِروُا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:354": [
+  {
+   "field": "arabic",
+   "new": "مَنِ اسْتَفْسَدَ",
+   "old": "مَنِاسْتَفْسَدَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3553": [
+  {
+   "field": "arabic",
+   "new": "ثَمَرُها",
+   "old": "ثَمَرُهاَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:356": [
+  {
+   "field": "arabic",
+   "new": "مَنِ اهْتَمَّ",
+   "old": "مَنِاهْتَمَّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3571": [
+  {
+   "field": "arabic",
+   "new": "اَلعِفَّةُ",
+   "old": "اَلِعفَّةُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3578": [
+  {
+   "field": "arabic",
+   "new": "حَصِّنُوا",
+   "old": "حَصِّنُو ا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:359": [
+  {
+   "field": "arabic",
+   "new": "فَقَدْ ضَيَّعَ",
+   "old": "فَقَدْضَيَّعَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:360": [
+  {
+   "field": "arabic",
+   "new": "مَنِ اسْتَقْصى",
+   "old": "مَنِاسْتَقْصى",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3607": [
+  {
+   "field": "arabic",
+   "new": "الأمْرُ",
+   "old": "الأمَرُ",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "حُدُودِ",
+   "old": "حُدوُدِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3626": [
+  {
+   "field": "arabic",
+   "new": "مِلاكُ",
+   "old": "ملاِكُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3644": [
+  {
+   "field": "arabic",
+   "new": "جُلُوسُ",
+   "old": "جُلوُسُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:365": [
+  {
+   "field": "arabic",
+   "new": "تُزَيِّنُهُ",
+   "old": "تُزَّينُهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3690": [
+  {
+   "field": "arabic",
+   "new": " عَمَرَ",
+   "old": " َعَمَرَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3691": [
+  {
+   "field": "arabic",
+   "new": "ذَكَرَ اللّهَ",
+   "old": "ذَكَرَاللّهَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3708": [
+  {
+   "field": "arabic",
+   "new": "المَآثِمِ",
+   "old": "المَ آثِمِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3723": [
+  {
+   "field": "arabic",
+   "new": "الفُجّارِ",
+   "old": "الفُّجارِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:373": [
+  {
+   "field": "arabic",
+   "new": "شَقيقٌ",
+   "old": "شَقيقٌّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3760": [
+  {
+   "field": "arabic",
+   "new": "مَحار",
+   "old": "مَحار8",
+   "type": "latin-in-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3794": [
+  {
+   "field": "arabic",
+   "new": "مُفْسِدٌ لَهُ",
+   "old": "مُفْسِدٌلَهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:380": [
+  {
+   "field": "arabic",
+   "new": "تَحْلُو مُصاحَبَةُ",
+   "old": "تَحْلُومُصاحَبَةُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3896": [
+  {
+   "field": "arabic",
+   "new": "مَصارِعَ",
+   "old": "مَصارِ عَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3922": [
+  {
+   "field": "arabic",
+   "new": "إنْ أمْسَكَهُ",
+   "old": "إنّ أمْسَكَهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3934": [
+  {
+   "field": "arabic",
+   "new": "بِنَفْسِهِ",
+   "old": "بِنَفْسهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3940": [
+  {
+   "field": "arabic",
+   "new": "بِالحِرمانِ",
+   "old": "بِالحِْرمانِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3941": [
+  {
+   "field": "arabic",
+   "new": "كُلِّ امْرِء",
+   "old": "كُلُّ امْرِء",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3954": [
+  {
+   "field": "arabic",
+   "new": "عَمَلُهُ",
+   "old": "عَمَلُهُ3",
+   "type": "latin-in-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3955": [
+  {
+   "field": "arabic",
+   "new": "قَدْ أتاكَ",
+   "old": "قَدأتاكَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3984": [
+  {
+   "field": "arabic",
+   "new": "المُسْتَرْشِدُ",
+   "old": "المُسْترْشِدُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:3986": [
+  {
+   "field": "arabic",
+   "new": "إرشاد",
+   "old": "إرشاد5",
+   "type": "latin-in-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4000": [
+  {
+   "field": "arabic",
+   "new": "لايَدَىْ لَكَ",
+   "old": "لايَدَ(ىْ) لَكَ",
+   "type": "latin-in-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4048": [
+  {
+   "field": "arabic",
+   "new": "عِندَ اللّهِ",
+   "old": "عِندَاللّهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:409": [
+  {
+   "field": "arabic",
+   "new": "فَيَضُرَّكَ",
+   "old": "فَيَضَُّركَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4107": [
+  {
+   "field": "arabic",
+   "new": "اللُّؤْمِ",
+   "old": "اللَُّؤْمِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4138": [
+  {
+   "field": "arabic",
+   "new": "الزُّهدِ التَّزَهُّدُ",
+   "old": "الزُّهدِالتَّزَهُّدُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:414": [
+  {
+   "field": "arabic",
+   "new": "قَدِّمِ",
+   "old": "َقدِّمِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:416": [
+  {
+   "field": "arabic",
+   "new": "سِرِّكَ",
+   "old": "سِِّركَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4180": [
+  {
+   "field": "arabic",
+   "new": "إذا هَرَبَ الزّاهِدُ مِنَ",
+   "old": "إذاهَرَبَ الزّاهِدُمِنَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:420": [
+  {
+   "field": "arabic",
+   "new": "مَنِ اتَّخَذَ",
+   "old": "مَنِاتَّخَذَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:422": [
+  {
+   "field": "arabic",
+   "new": "مَنِ اتَّخذَ",
+   "old": "مَنِاتَّخذَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:423": [
+  {
+   "field": "arabic",
+   "new": "مَوَدَّتُهُمْ",
+   "old": "مَوَّدَتُهُمْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4232": [
+  {
+   "field": "arabic",
+   "new": "قَدْ كانَ",
+   "old": "قَدكانَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4244": [
+  {
+   "field": "arabic",
+   "new": "القادِرَ",
+   "old": "القَّادِرَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4249": [
+  {
+   "field": "arabic",
+   "new": "حُدُودِ",
+   "old": "حُدوُدِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4263": [
+  {
+   "field": "arabic",
+   "new": "يُمَحِّصُ",
+   "old": "يُمَحِصُّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:428": [
+  {
+   "field": "arabic",
+   "new": "قَليلٌ مِنَ",
+   "old": "قَليلٌمِنَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:435": [
+  {
+   "field": "arabic",
+   "new": "مَوَدَّتَهُ",
+   "old": "مَوَّدَتَهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4364": [
+  {
+   "field": "arabic",
+   "new": "المَعْرُوفِ",
+   "old": "المَعْرُوُفِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4425": [
+  {
+   "field": "arabic",
+   "new": "الشَّنَآنَ",
+   "old": "الشَّنَ آنَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4439": [
+  {
+   "field": "arabic",
+   "new": "الحِلْمَ",
+   "old": "الحِلْمَِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4500": [
+  {
+   "field": "arabic",
+   "new": "فِي الدُّنيا",
+   "old": "فِي ِالدُّنيا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4501": [
+  {
+   "field": "arabic",
+   "new": "الآخِرَةُ: يَأمُرُ",
+   "old": "الآخِرَةُ:يَأمُرُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4554": [
+  {
+   "field": "arabic",
+   "new": "الشَّيْطانِ",
+   "old": "الشَيْطانِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4563": [
+  {
+   "field": "arabic",
+   "new": "ضَمِّرُوا",
+   "old": "ضَمِّروُا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4630": [
+  {
+   "field": "arabic",
+   "new": "الْعَطَبِ",
+   "old": "الْعَطِبَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4653": [
+  {
+   "field": "arabic",
+   "new": "كَثُرَ",
+   "old": "كَثُر َ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4673": [
+  {
+   "field": "arabic",
+   "new": "لَمْ يَغْلِبْهُ",
+   "old": "لَمْيَغْلِبْهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4686": [
+  {
+   "field": "arabic",
+   "new": "الاَخْيارَ",
+   "old": "الاَْخْيارَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4687": [
+  {
+   "field": "arabic",
+   "new": "الاَخْيارِ",
+   "old": "الاَْخْيارِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4713": [
+  {
+   "field": "arabic",
+   "new": "اَلاشْراكُ",
+   "old": "اَلاْشْراكُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4824": [
+  {
+   "field": "arabic",
+   "new": "النِّعَمِ",
+   "old": "النِعَّمِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4871": [
+  {
+   "field": "arabic",
+   "new": "إلَيْكَ",
+   "old": "إَلَيْكَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4879": [
+  {
+   "field": "arabic",
+   "new": "اَلشَّكُّ",
+   "old": "اَلشَكُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4889": [
+  {
+   "field": "arabic",
+   "new": "أوْلِياءُ اللّهِ",
+   "old": "أوْلِياءُاللّهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:489": [
+  {
+   "field": "arabic",
+   "new": "الحَسَبِ مُتَناه",
+   "old": "الحَسَبِمُتَناه",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4919": [
+  {
+   "field": "arabic",
+   "new": "شَكى اللّهَ سُبْحانَهُ",
+   "old": "شَكىَ اللّهَسُبْحانَهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:4941": [
+  {
+   "field": "arabic",
+   "new": "أُولُو التَّجارِبِ",
+   "old": "أُولُوالتَّجارِبِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:498": [
+  {
+   "field": "arabic",
+   "new": "مَنِ اسْتُهْتِرَ",
+   "old": "مَنِاسْتُهْتِرَ",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "فَقَدْ زانَ",
+   "old": "فَقَدْزانَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5011": [
+  {
+   "field": "arabic",
+   "new": "مُلْكٌ",
+   "old": "مُِلْكٌ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5047": [
+  {
+   "field": "arabic",
+   "new": "شَيْء",
+   "old": "شَْيء",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5063": [
+  {
+   "field": "arabic",
+   "new": "الشَّرَهُ وَسُوءُ",
+   "old": "الشَّرَهُوسُوءُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5084": [
+  {
+   "field": "arabic",
+   "new": "البَلاءِ وَلاتَحَرِّكُوا",
+   "old": "البَلاءِوَلاتَحَرِّكُوا",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "اصْبِرُوا",
+   "old": "اصْبِروُا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5122": [
+  {
+   "field": "arabic",
+   "new": "بِمُصيبَة",
+   "old": "بِمُصيَبَة",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5172": [
+  {
+   "field": "arabic",
+   "new": "مُرِّ الأمْرِ",
+   "old": "مُرِّالأمْرِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5180": [
+  {
+   "field": "arabic",
+   "new": "بَلاءِ اللّهِ",
+   "old": "بَلاءِاللّهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5192": [
+  {
+   "field": "arabic",
+   "new": "خَيْرٌ مِمّا",
+   "old": "خَيْرٌمِمّا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5203": [
+  {
+   "field": "arabic",
+   "new": "البَلاءِ",
+   "old": "البَلاءِ:",
+   "type": "latin-in-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5280": [
+  {
+   "field": "arabic",
+   "new": "كُلِّ شَيْء",
+   "old": "كُلِّشَيْء",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5297": [
+  {
+   "field": "arabic",
+   "new": "لِلصِّدْقِ",
+   "old": "لِلْصِّدقِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5306": [
+  {
+   "field": "arabic",
+   "new": "بِآدابِهِ",
+   "old": "بِ آدابِهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5354": [
+  {
+   "field": "arabic",
+   "new": "اَلهَذْرُ",
+   "old": "اَلَهَذْرُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5389": [
+  {
+   "field": "arabic",
+   "new": "فِي",
+   "old": "فيِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5394": [
+  {
+   "field": "arabic",
+   "new": "عِنْدَ اللّهِ",
+   "old": "عِنْدَاللّهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5461": [
+  {
+   "field": "arabic",
+   "new": "المَآثِمِ",
+   "old": "المَ آثِمِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:547": [
+  {
+   "field": "arabic",
+   "new": "توحيدِ اللّهِ",
+   "old": "توحيدِاللّهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5485": [
+  {
+   "field": "arabic",
+   "new": "بِآيَة",
+   "old": "بِ آيَة",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:551": [
+  {
+   "field": "arabic",
+   "new": "قَدْ نَجا",
+   "old": "قَدْنَجا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5514": [
+  {
+   "field": "arabic",
+   "new": "فآلُ",
+   "old": "ف آلُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:552": [
+  {
+   "field": "arabic",
+   "new": "توحيدِ اللّهِ",
+   "old": "توحيدِاللّهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:553": [
+  {
+   "field": "arabic",
+   "new": "توحيدِ اللّهِ",
+   "old": "توحيدِاللّهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5540": [
+  {
+   "field": "arabic",
+   "new": "مُحَمّد صلَّى",
+   "old": "مُحَمّدصلَّى",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5547": [
+  {
+   "field": "arabic",
+   "new": "أَبْقى",
+   "old": "أَ بْقى",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5555": [
+  {
+   "field": "arabic",
+   "new": "عَنْ",
+   "old": "عَن ْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5607": [
+  {
+   "field": "arabic",
+   "new": "مَنْ",
+   "old": "مَن ْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5715": [
+  {
+   "field": "arabic",
+   "new": "المَآثِمِ",
+   "old": "المَ آثِمِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5760": [
+  {
+   "field": "arabic",
+   "new": "يَكْبُو بِهِ",
+   "old": "يَكْبُوبِهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5789": [
+  {
+   "field": "arabic",
+   "new": "يَنامُ الرَّجُلُ",
+   "old": "يَنامُ الرَّجُلِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5817": [
+  {
+   "field": "arabic",
+   "new": "عِبادَ اللّهِ",
+   "old": "عِبادَاللّهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5819": [
+  {
+   "field": "arabic",
+   "new": "وَدَمَّرَ",
+   "old": "وَدَمَرَّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5832": [
+  {
+   "field": "arabic",
+   "new": "شَيْءٌ والعادِلُ",
+   "old": "شَيْءٌوالعادِلُ",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "ضِدُّ ذلِكَ",
+   "old": "ضِدُّذلِكَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:587": [
+  {
+   "field": "arabic",
+   "new": "مَآلٌ",
+   "old": "مَ آلٌ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5875": [
+  {
+   "field": "arabic",
+   "new": "سُوءُ الظَّنِّ",
+   "old": "سُوءُالظَّنِّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5882": [
+  {
+   "field": "arabic",
+   "new": "فازَ بِالجَنَّةِ",
+   "old": "فازَبِالجَنَّةِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5886": [
+  {
+   "field": "arabic",
+   "new": "اَلظَّنُّ يُخْطِئُ",
+   "old": "اَلظَّنُ يخُطِئُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5889": [
+  {
+   "field": "arabic",
+   "new": "ثُمَّ أحْسَنَ",
+   "old": "ثُمَ أحْسَنَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5941": [
+  {
+   "field": "arabic",
+   "new": "فَقالَ: ذاكَ",
+   "old": "فَقالَ:ذاكَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5955": [
+  {
+   "field": "arabic",
+   "new": "اعْتَبِرُوا",
+   "old": "اعْتَبِروُا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:599": [
+  {
+   "field": "arabic",
+   "new": "المُنكَرِ: فَمِنْهُمُ",
+   "old": "المُنكَرِ:فَمِنْهُمُ",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "أشْرَف",
+   "old": "أشَْرف",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "مِنْ رِزْق",
+   "old": "مِنْ ِرزْق",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:5999": [
+  {
+   "field": "arabic",
+   "new": "لَوِ اعْتَبَرْتَ",
+   "old": "لَوِْ اعْتَبَرْتَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:6049": [
+  {
+   "field": "arabic",
+   "new": "حالَتِهِ",
+   "old": "حالَتِهَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:6057": [
+  {
+   "field": "arabic",
+   "new": "الشَّنَآنُ",
+   "old": "الشَّنَ آنُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:607": [
+  {
+   "field": "arabic",
+   "new": "عَلَي الرَّجُلِ",
+   "old": "عَلَيالرَّجُلِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:6098": [
+  {
+   "field": "arabic",
+   "new": "كَبا بِهِ",
+   "old": "كَبابِهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:610": [
+  {
+   "field": "arabic",
+   "new": "ما نَهَى",
+   "old": "ما َنهَى",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:6108": [
+  {
+   "field": "arabic",
+   "new": "مَطايَا",
+   "old": "مَطاياَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:611": [
+  {
+   "field": "arabic",
+   "new": "إلَيهِ",
+   "old": "إلَيِهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:620": [
+  {
+   "field": "arabic",
+   "new": "لَمْ يَسكُنْهُ",
+   "old": "لَمْيَسكُنْهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:6214": [
+  {
+   "field": "arabic",
+   "new": "يَعْدُو عَلَيْكَ",
+   "old": "يَعْدُوعَلَيْكَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:6245": [
+  {
+   "field": "arabic",
+   "new": "يَجِدَ لَكَ",
+   "old": "يَجِدَلَكَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:6282": [
+  {
+   "field": "english",
+   "new": "actions)",
+   "old": "actions )",
+   "type": "english-defect"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:6294": [
+  {
+   "field": "arabic",
+   "new": "نَفْسَهُ؟!",
+   "old": "نَفْسَهُ ؟!",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:6331": [
+  {
+   "field": "arabic",
+   "new": "(ذُوُوكَ) أشْقَى",
+   "old": "(ذُوُوكَ)أشْقَى",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:6367": [
+  {
+   "field": "arabic",
+   "new": "أَوْ يُهانُ",
+   "old": "أَوْيُهانُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:6406": [
+  {
+   "field": "arabic",
+   "new": "أهْلُ اَلعَفافِ",
+   "old": "أهْل) اَلعَفافُِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:6407": [
+  {
+   "field": "arabic",
+   "new": "تَزْكُو الأعْمالُ",
+   "old": "تَزْكُوالأعْمالُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:6414": [
+  {
+   "field": "arabic",
+   "new": "أخَذَ بِهِ",
+   "old": "أخَذَبِهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:6443": [
+  {
+   "field": "arabic",
+   "new": "اِغْتَفِرْ",
+   "old": "ِاغْتَفِرْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:6447": [
+  {
+   "field": "arabic",
+   "new": "المُرُوءاتِ",
+   "old": "المُروُءاتِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:6571": [
+  {
+   "field": "arabic",
+   "new": "رُزِقَهُ",
+   "old": "رَزِقَهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:6591": [
+  {
+   "field": "arabic",
+   "new": "لُزومُ",
+   "old": "لُزوُمُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:6697": [
+  {
+   "field": "arabic",
+   "new": "بِآخِرَتِهِ",
+   "old": "بِ آخِرَتِهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:6713": [
+  {
+   "field": "arabic",
+   "new": "نَفْسَهُ بِما",
+   "old": "نفْسَه ُبِما",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:6850": [
+  {
+   "field": "arabic",
+   "new": "اَلْعِلْمُ خَيْرٌ",
+   "old": "اَلْعِلْمُخَيْرٌ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:6861": [
+  {
+   "field": "arabic",
+   "new": "قَدْ رُوِّقَتْ",
+   "old": "قَدْرُوِّقَتْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:688": [
+  {
+   "field": "arabic",
+   "new": "أمَلِهِ",
+   "old": "أمَلَهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:6884": [
+  {
+   "field": "arabic",
+   "new": "اَلْعِلْمُ جَلالَةٌ",
+   "old": "اَلْعِلْمُجَلالَةٌ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:6908": [
+  {
+   "field": "arabic",
+   "new": "الأُدَباءِ",
+   "old": "الأُ دَباءِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:6912": [
+  {
+   "field": "arabic",
+   "new": "اَلْعِلْمُ لايَنْتَهي",
+   "old": "اَلْعِلْمُلايَنْتَهي",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:6995": [
+  {
+   "field": "arabic",
+   "new": "لَمْ يَعْلَمْ",
+   "old": "لَمْيَعْلَمْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7032": [
+  {
+   "field": "arabic",
+   "new": "أشْرَفُ",
+   "old": "أشْرُ فَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7037": [
+  {
+   "field": "arabic",
+   "new": "مَكْرَ اللّهِ",
+   "old": "مَكْرَاللّهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7052": [
+  {
+   "field": "arabic",
+   "new": "النّاسِ مَنْ",
+   "old": "النّاسِمَنْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7053": [
+  {
+   "field": "arabic",
+   "new": "النّاسِ بِاللّهِ",
+   "old": "النّاسِبِاللّهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:706": [
+  {
+   "field": "arabic",
+   "new": "أمَلِهِ",
+   "old": "أمَلَهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7101": [
+  {
+   "field": "arabic",
+   "new": "مُتَنَسِّكٌ",
+   "old": "مَتَنَسِّكٌ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7106": [
+  {
+   "field": "arabic",
+   "new": "شَيْئاً مِنْ",
+   "old": "شَيْئاًمِنْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7107": [
+  {
+   "field": "arabic",
+   "new": "لِسانِهِ",
+   "old": "لِسانِهِ 6",
+   "type": "latin-in-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:711": [
+  {
+   "field": "arabic",
+   "new": "بِأجَلِهِ",
+   "old": "بِأجَلَهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:712": [
+  {
+   "field": "arabic",
+   "new": "مَنْ أمَّلَ",
+   "old": "مَنّ أمَّلَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7166": [
+  {
+   "field": "arabic",
+   "new": "مُجازِيهِ",
+   "old": "مُجازيِهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:718": [
+  {
+   "field": "arabic",
+   "new": "مُدَّةَ",
+   "old": "مُدَّة َ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7181": [
+  {
+   "field": "arabic",
+   "new": "ٌ ",
+   "old": "ٌ \n\n",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7182": [
+  {
+   "field": "arabic",
+   "new": "عِبادَ اللّهِ",
+   "old": "عِبادَاللّهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7190": [
+  {
+   "field": "arabic",
+   "new": "أحْسَنُ الفِعْلِ",
+   "old": "أحْسَنْ الفِعْلِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7215": [
+  {
+   "field": "arabic",
+   "new": "تَفْعَلُوا",
+   "old": "تَفْعَلَوا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:723": [
+  {
+   "field": "arabic",
+   "new": "مَنِ اتَّكلَ",
+   "old": "مَنِاتَّكلَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7252": [
+  {
+   "field": "arabic",
+   "new": "أَحْسَنَ",
+   "old": "أْحْسَنَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7276": [
+  {
+   "field": "arabic",
+   "new": "فَاجْعَلُوا",
+   "old": "فَاجَعَلُوا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7286": [
+  {
+   "field": "arabic",
+   "new": "مَنْ",
+   "old": "مَن ْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7319": [
+  {
+   "field": "arabic",
+   "new": "كَيْفَ",
+   "old": "كيْفَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7345": [
+  {
+   "field": "arabic",
+   "new": "فَآثَرُوها",
+   "old": "فَ آثَرُوها",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7368": [
+  {
+   "field": "arabic",
+   "new": "عَدُوٌّ",
+   "old": "عَدُوٌُّّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7372": [
+  {
+   "field": "arabic",
+   "new": "غَيِّرُوا",
+   "old": "غَيِّروُا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7373": [
+  {
+   "field": "arabic",
+   "new": "الدَّرَجاتِ",
+   "old": "الدَرَّجاتِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7381": [
+  {
+   "field": "arabic",
+   "new": "مُسْتَقَرِّ",
+   "old": "مُسْتَقَّرِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7456": [
+  {
+   "field": "arabic",
+   "new": "اسْتَخَفَّ",
+   "old": "اسْتَخَّفَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:746": [
+  {
+   "field": "arabic",
+   "new": "الثِّقَةَ المُؤتَمَنَ",
+   "old": "الثِّقَة َالمُؤتَمَنَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7482": [
+  {
+   "field": "arabic",
+   "new": "بِمَعائِبِهِ",
+   "old": "بِمَعائِبِه ِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7541": [
+  {
+   "field": "arabic",
+   "new": "الطَّرْفِ خَيْرٌ",
+   "old": "الطَّرْفِخَيْرٌ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7558": [
+  {
+   "field": "arabic",
+   "new": "أغْضِ عَلَى",
+   "old": "أغْضِعَلَى",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7601": [
+  {
+   "field": "arabic",
+   "new": "وَلَمْ تُغَمَّ",
+   "old": "وَلَمْتُغَمَّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7602": [
+  {
+   "field": "arabic",
+   "new": "زُورِ الغُرُورِ",
+   "old": "زُورِالغُرُورِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7605": [
+  {
+   "field": "arabic",
+   "new": "اغْتَرَّ",
+   "old": "اغْتَّرَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7630": [
+  {
+   "field": "arabic",
+   "new": "تُمَلِّكْهُ",
+   "old": "تُمَلِكّْهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7657": [
+  {
+   "field": "arabic",
+   "new": "لايَقْدِرُ عَلى",
+   "old": "لايَقْدِرُعَلى",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7672": [
+  {
+   "field": "arabic",
+   "new": "وَلَمْ يَهْلِكُوا",
+   "old": "وَلَمْيَهْلِكُوا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7703": [
+  {
+   "field": "arabic",
+   "new": "يَسْتَعِدَّ",
+   "old": "يَسْتَعِدَّ8",
+   "type": "latin-in-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7708": [
+  {
+   "field": "arabic",
+   "new": "لاتَقْدِرُ عَلى",
+   "old": "لاتَقْدِرُعَلى",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:772": [
+  {
+   "field": "arabic",
+   "new": "الأمانَيْن",
+   "old": "الأمانَيِْن",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7756": [
+  {
+   "field": "arabic",
+   "new": "الفَقيرِ بِمالِهِ",
+   "old": "الفَقيرِبِمالِهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:78": [
+  {
+   "field": "arabic",
+   "new": "مَنِ اسْتَقصَرَ",
+   "old": "مَنِاسْتَقصَرَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7802": [
+  {
+   "field": "arabic",
+   "new": "المُغْتابَيْنِ",
+   "old": "المُغْتابيَْنِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7827": [
+  {
+   "field": "arabic",
+   "new": "قَدْ لَعَمْري",
+   "old": "قَدْلَعَمْري",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7850": [
+  {
+   "field": "arabic",
+   "new": "كَثُرَ سَفَهُهُ",
+   "old": "كَثُرَسَفَهُهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7865": [
+  {
+   "field": "arabic",
+   "new": "تَبْدُو مَطالِعُ",
+   "old": "تَبْدُومَطالِعُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7871": [
+  {
+   "field": "arabic",
+   "new": "نُ",
+   "old": "نُ0",
+   "type": "latin-in-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7945": [
+  {
+   "field": "arabic",
+   "new": "تَداوَ مِنْ",
+   "old": "تَداوَمِنْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:7967": [
+  {
+   "field": "arabic",
+   "new": "عُذْرِ الجاني",
+   "old": "عُذْرِالجاني",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8012": [
+  {
+   "field": "arabic",
+   "new": "الدُّنيا",
+   "old": "ا لدُّنيا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8013": [
+  {
+   "field": "arabic",
+   "new": "الوَطَنِ",
+   "old": "الوَطِنِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8021": [
+  {
+   "field": "arabic",
+   "new": "غَيْرِ اضْطِرار",
+   "old": "غَيْرِاضْطِرار",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:806": [
+  {
+   "field": "arabic",
+   "new": "لَيسَ لَهُ",
+   "old": "لَيسَلَهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:815": [
+  {
+   "field": "arabic",
+   "new": "سَلُوا اللّهَ",
+   "old": "سَلُوااللّهَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8159": [
+  {
+   "field": "arabic",
+   "new": "النُّورَ",
+   "old": "النٌّورَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8169": [
+  {
+   "field": "arabic",
+   "new": "أحِلُّوا حَلالَهُ",
+   "old": "أحِلُّواحَلالَهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8287": [
+  {
+   "field": "arabic",
+   "new": "فِيهِ",
+   "old": "فيِهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8289": [
+  {
+   "field": "arabic",
+   "new": "نَظَرِ",
+   "old": "نَظِرِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8292": [
+  {
+   "field": "arabic",
+   "new": "",
+   "old": "(1) ",
+   "type": "latin-in-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "",
+   "old": "(2) ",
+   "type": "latin-in-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "",
+   "old": "(3) ",
+   "type": "latin-in-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": " وَ",
+   "old": "(4) وَ",
+   "type": "latin-in-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "",
+   "old": "(5) ",
+   "type": "latin-in-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "",
+   "old": "(6) ",
+   "type": "latin-in-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": " وَ",
+   "old": "(7) وَ",
+   "type": "latin-in-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": " وَ",
+   "old": "(8) وَ",
+   "type": "latin-in-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": " وَ",
+   "old": "(9) وَ",
+   "type": "latin-in-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8363": [
+  {
+   "field": "arabic",
+   "new": "مُلْك",
+   "old": "مُِلْك",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:844": [
+  {
+   "field": "arabic",
+   "new": "لا شَيءَ",
+   "old": "لاشَْيءَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8455": [
+  {
+   "field": "arabic",
+   "new": "فَكِّرْ ثُمَّ",
+   "old": "فَكِّرْثُمَّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:85": [
+  {
+   "field": "arabic",
+   "new": "أوقي مِنَ",
+   "old": "أوقيمِنَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8521": [
+  {
+   "field": "arabic",
+   "new": "لَمْ يَحْسُنْ",
+   "old": "لَمْيَحْسُنْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8525": [
+  {
+   "field": "arabic",
+   "new": "لَمْ يَنْفَعْهُ",
+   "old": "لَمْيَنْفَعْهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8538": [
+  {
+   "field": "arabic",
+   "new": "لايُقِلُّ",
+   "old": "لايَُقَِلُّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:855": [
+  {
+   "field": "arabic",
+   "new": "حُبُّهُ لِلّهِ",
+   "old": "حُبُّهلِلّهِ",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "بُغْضُهُ لِلّهِ",
+   "old": "بُغْضُهلِلّهِ",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "أخذُهُ لِلّهِ",
+   "old": "أخذُهلِلّهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8578": [
+  {
+   "field": "arabic",
+   "new": "عِبادَ اللّهِ",
+   "old": "عِبادَاللّهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8581": [
+  {
+   "field": "arabic",
+   "new": "لَو رَخَّصَ",
+   "old": "لَورَخَّصَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8598": [
+  {
+   "field": "arabic",
+   "new": "التَّلَفَ",
+   "old": "التَّلَّفَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8621": [
+  {
+   "field": "arabic",
+   "new": "الآجِلَةِ",
+   "old": "الآ جِلَةِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8632": [
+  {
+   "field": "arabic",
+   "new": "شَيْء",
+   "old": "شَي ْء",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:869": [
+  {
+   "field": "arabic",
+   "new": "تَفَكَّرَ",
+   "old": "تَفَكَرَّ",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "ابْتُلِيَ",
+   "old": "ابْتُِليَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8736": [
+  {
+   "field": "arabic",
+   "new": "ذُو الكَرَمِ",
+   "old": "ذُوالكَرَمِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8737": [
+  {
+   "field": "arabic",
+   "new": "الكَريمِ يُنْجي",
+   "old": "الكَريمُ يُنْجي",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8764": [
+  {
+   "field": "arabic",
+   "new": "بِهِ أنْ",
+   "old": "بِه أنْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8786": [
+  {
+   "field": "arabic",
+   "new": "رَجُلٌ",
+   "old": "رَجْلٌ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8798": [
+  {
+   "field": "arabic",
+   "new": "كُفْرُ النِّعْمَةِ",
+   "old": "كُفْرُالنِّعْمَةِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8812": [
+  {
+   "field": "arabic",
+   "new": "هِمَّتُهُ",
+   "old": "هِمَتُّهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8869": [
+  {
+   "field": "arabic",
+   "new": "قَصَّرَ آمالَهُ",
+   "old": "قَصَُّرَ آمالَُهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8872": [
+  {
+   "field": "arabic",
+   "new": "مَآرِبِهِ",
+   "old": "مَ آرِبِهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:89": [
+  {
+   "field": "arabic",
+   "new": "امْرَءاً بادَرَ",
+   "old": "امْرَءاًبادَرَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8900": [
+  {
+   "field": "arabic",
+   "new": "اللَّئِيمِ",
+   "old": "اللَّئْيمِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:8986": [
+  {
+   "field": "arabic",
+   "new": "عَطَفُوا القُرآنَ",
+   "old": "عَطَفُواالقُرآنَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9027": [
+  {
+   "field": "arabic",
+   "new": "الرَّعِيَّةِ",
+   "old": "الرَعِّيَةِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9030": [
+  {
+   "field": "arabic",
+   "new": "تَأَخَّرَ عَنْها",
+   "old": "تَأَخَّرعَنْها",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9050": [
+  {
+   "field": "arabic",
+   "new": "أحَدٌ مِنَ",
+   "old": "أحَدٌمِنَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9057": [
+  {
+   "field": "arabic",
+   "new": "المَأْمُولِ",
+   "old": "المَأّْمُولِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9063": [
+  {
+   "field": "arabic",
+   "new": "إلَيْكَ",
+   "old": "إلَيْك َ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9081": [
+  {
+   "field": "arabic",
+   "new": "مُلْكٌ",
+   "old": "مُِلْكٌ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9183": [
+  {
+   "field": "arabic",
+   "new": "أو عارِفَةٌ",
+   "old": "أوعارِفَةٌ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9218": [
+  {
+   "field": "arabic",
+   "new": "العَفْوُ مَعَ",
+   "old": "العَفْوُمَعَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9221": [
+  {
+   "field": "arabic",
+   "new": "الأُخُوَّةِ",
+   "old": "الأُ خُوَّةِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9229": [
+  {
+   "field": "arabic",
+   "new": "المُرُوءَةِ البِشْرُ",
+   "old": "المُرُوءَةِ َالبِشْرُ",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "آخِرُها اِسْتِدامَةُ",
+   "old": "آخِرُهااِسْتِدامَةُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9237": [
+  {
+   "field": "arabic",
+   "new": "المَآثِمِ",
+   "old": "المَ آثِمِ",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "كَالتَّنَزُّهِ",
+   "old": "كَالتَّنزُّهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9249": [
+  {
+   "field": "arabic",
+   "new": "حَمَلَها",
+   "old": "حَمَلَهاَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9271": [
+  {
+   "field": "arabic",
+   "new": "المَآثِمِ",
+   "old": "المَ آثِمِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9277": [
+  {
+   "field": "arabic",
+   "new": "ذُو القَرابَةِ",
+   "old": "ذُوالقَرابَةِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:928": [
+  {
+   "field": "arabic",
+   "new": "السَّماءِ تَعَجَّبَتِ",
+   "old": "السَّماءِتَعَجَّبَتِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9292": [
+  {
+   "field": "arabic",
+   "new": "ضَغِينَةٌ",
+   "old": "ضَغِْينَةٌ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9296": [
+  {
+   "field": "arabic",
+   "new": "فِي",
+   "old": "فيِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9309": [
+  {
+   "field": "english",
+   "new": "ailment)",
+   "old": "ailment )",
+   "type": "english-defect"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9355": [
+  {
+   "field": "arabic",
+   "new": "أوْ جَوْر",
+   "old": "أوْجَوْر",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9392": [
+  {
+   "field": "arabic",
+   "new": "رَعِيَّتُهُ",
+   "old": "رَعِيَتُّهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9415": [
+  {
+   "field": "arabic",
+   "new": "لعُمّا",
+   "old": "لعُّما",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9424": [
+  {
+   "field": "arabic",
+   "new": "مَةَ",
+   "old": "مَةَ 2",
+   "type": "latin-in-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9427": [
+  {
+   "field": "arabic",
+   "new": "أُخ",
+   "old": "أُ خ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9446": [
+  {
+   "field": "arabic",
+   "new": "دَهُ",
+   "old": "دَ هُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9487": [
+  {
+   "field": "arabic",
+   "new": "الاخِرَةِ",
+   "old": "الا خِرَةِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9493": [
+  {
+   "field": "arabic",
+   "new": "حَثيثاً مِنَ",
+   "old": "حَثيثاًمِنَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9501": [
+  {
+   "field": "arabic",
+   "new": "جُدَّ بِكُمْ",
+   "old": "جُدَّبِكُمْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:957": [
+  {
+   "field": "arabic",
+   "new": "أسْرَعَ",
+   "old": "أسَْرعَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9599": [
+  {
+   "field": "arabic",
+   "new": "المَآلَ",
+   "old": "المَ آلَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9602": [
+  {
+   "field": "arabic",
+   "new": "اَلْمالُ لايَنْفَعُكَ",
+   "old": "اَلْمالُلايَنْفَعُكَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9610": [
+  {
+   "field": "arabic",
+   "new": "المَآلَ",
+   "old": "المَ آلَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9639": [
+  {
+   "field": "arabic",
+   "new": "بِآخِرَتِهِ",
+   "old": "بِ آخِرَتِهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9655": [
+  {
+   "field": "arabic",
+   "new": "كُلُّ شَيْء",
+   "old": "كُلُّشَيْء",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9682": [
+  {
+   "field": "arabic",
+   "new": "يَنْجُو النّاسُ",
+   "old": "يَنْجُوالنّاسُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9683": [
+  {
+   "field": "arabic",
+   "new": "رُكُوبُ",
+   "old": "رُ كُوبُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9685": [
+  {
+   "field": "arabic",
+   "new": "ذَليلاً ذَلَّ",
+   "old": "ذَليلاًذَلَّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9687": [
+  {
+   "field": "arabic",
+   "new": "لِرَجُلَيْنِ: ",
+   "old": "لِرَجُلَيْنِ:",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9699": [
+  {
+   "field": "arabic",
+   "new": "لاتُنازِعِ",
+   "old": "لاتُنازِ عِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9727": [
+  {
+   "field": "arabic",
+   "new": "الْحَيْضِ عَنِ",
+   "old": "الْحَيْضِعَنِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:974": [
+  {
+   "field": "arabic",
+   "new": "اِحْتَرِسُوا",
+   "old": "اِحْتَِرسُوا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9834": [
+  {
+   "field": "arabic",
+   "new": "يُقِرُّها",
+   "old": "يُقِرُّ ها",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9868": [
+  {
+   "field": "arabic",
+   "new": "نِعَمُ اللّهِ",
+   "old": "نِعَمُ اللّهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9872": [
+  {
+   "field": "arabic",
+   "new": "يَا ابْنَ",
+   "old": "يَاابْنَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9889": [
+  {
+   "field": "arabic",
+   "new": "نازِعِ",
+   "old": "نازِ عِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9910": [
+  {
+   "field": "arabic",
+   "new": "تَنْزِعْ",
+   "old": "تَنْزِ عْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9913": [
+  {
+   "field": "arabic",
+   "new": "الْمَآثِمِ",
+   "old": "الْمَ آثِمِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9921": [
+  {
+   "field": "arabic",
+   "new": "أجْهَدْتَها",
+   "old": "أجْهَدْ تَها",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9936": [
+  {
+   "field": "arabic",
+   "new": "لَكَ وَاسْتَقْصِ عَلَيْها",
+   "old": "لَكَوَاسْتَقْصِعَلَيْها",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9953": [
+  {
+   "field": "arabic",
+   "new": "الْمَآثِمِ",
+   "old": "الْمَ آثِمِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9956": [
+  {
+   "field": "arabic",
+   "new": "نَوازِعَ",
+   "old": "نَوازِ عَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9957": [
+  {
+   "field": "arabic",
+   "new": "الأكْبَرُ",
+   "old": "الأكْبَرِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9988": [
+  {
+   "field": "arabic",
+   "new": "عَوِّدْ نَفْسَكَ",
+   "old": "عَوِّدْنَفْسَكَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Ghurar-al-Hikam-Amidi:9992": [
+  {
+   "field": "arabic",
+   "new": "عَوِّدْ نَفْسَكَ",
+   "old": "عَوِّدْنَفْسَكَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:10": [
+  {
+   "field": "english",
+   "new": "replied: “By",
+   "old": "replied: On Faith, Islam, and Related Issues “By",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:1010": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "kindness.”",
+   "old": "kindness.” 1 tradition No. 409 and the description of the Arabic word “Tooba”.",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:107": [
+  {
+   "field": "english",
+   "new": "your devoted",
+   "old": "your On Faith, Islam, and Related Issues devoted",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:1100": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "punished.”",
+   "old": "punished.” 1",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:1117": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "Imam Sadiq (a.s) said: “Greeting one you see is a form of humbleness.”",
+   "old": "Imam Sadiq (a.s) said: “Greeting one you see is a form of humbleness.” 1 you” and this tradition implies that you should wish peace for everyone. Don’t worry about wishing peace for the oppressors by greeting them, since they won’t receive the benefits of the greeting.",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:1128": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "Ameer al-Momineen (a.s) said: “There are six groups of people who do not deserve to be greeted, and there are six acts which are those that the people of Lot did. Those who do not deserve to be greeted are: Jews, Christians, chess players, dice players; people of alcohol (alcoholics), Barbat and Tanbour, those who joke around by swearing at each other's mother, and poets. The following are things that the people of Lot did: shooting round bullets using a kind of sling; chewing gum; leaving their shirt's unbuttoned (so that their chest is seen).”",
+   "old": "Ameer al-Momineen (a.s) said: “There are six groups of people who do not deserve to be greeted, and there are six acts which are those that the people of Lot did. Those who do not deserve to be greeted are: Jews, Christians, chess players, dice players; people of alcohol (alcoholics), Barbat and Tanbour, those who joke around by swearing at each other's mother, and poets. The following are things that the people of Lot did: shooting round bullets using a kind of sling; chewing gum; leaving their shirt's unbuttoned (so that their chest is seen).” 1 It also refers to the breast of a duck or goose. Tanbour refers to a certain musical instrument, a kind of malodine with cords of brass wire, which is played with a plectrum.",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:113": [
+  {
+   "field": "english",
+   "new": "giving thanks",
+   "old": "giving On Faith, Islam, and Related Issues thanks",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:1195": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "",
+   "old": " Ι:",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:1326": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "",
+   "old": "1 Prophet of God (a.s) from the al-Haram Mosque in Mecca to al-Aqsa Mosque in Jursalim. But the Arabic word \"Alboraq\" comes from the word \"Barq\" which means light. We also know that the angels are created from light and therefore this might imply that the ascension was a transportation based on the speed of light, as we see in the modern theory of relativity by Albert Einstein. ",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:133": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "blessings.”",
+   "old": "blessings.” 1 and see how much wealth they have",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:1419": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "come back to you.”",
+   "old": "come back to you.” 1 their marriage.",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:155": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "Blessed be one",
+   "old": "Blessed be 1 one",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:1575": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "”",
+   "old": "” 1 can not take anything with you.",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:1642": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "",
+   "old": " 1 from committing sins, it helps relieve the punishment for previous sins and bearing an illness patiently is highly rewarded.",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:166": [
+  {
+   "field": "english",
+   "new": "associating (others",
+   "old": "associating On Faith, Islam, and Related Issues (others",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:1710": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "will experience less calamities.”",
+   "old": "will experience less calamities.” 1",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:174": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "anymore.”",
+   "old": "anymore.” 1 when they live under oppressive conditions in which exposing their faith could endanger their religion and their lives. Please read traditions Nos. 177 and 178 to better understand this concept.",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:181": [
+  {
+   "field": "english",
+   "new": "me. I hid",
+   "old": "me. On Faith, Islam, and Related Issues I hid",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:1856": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "stood up.",
+   "old": "stood up. 0.",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:188": [
+  {
+   "field": "english",
+   "new": "nation.” Then",
+   "old": "nation.” On Faith, Islam, and Related Issues Then",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:190": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "was not ill.”",
+   "old": "was not ill.” 1",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:193": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "Hell.”",
+   "old": "Hell.” 1 saddlebag, as the only possible means of keeping his brother. See verses 55 through the end of chapter Yusuf of the Holy Quran for more details. Also in verses 83 through 96 of the chapter Saffat of the Holy Quran we read that Abraham said he feels sick, and they left him. He then turned to their gods, and attacked them in order to fight idol-worshipping.",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:1945": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "decision.”",
+   "old": "decision.” 1",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:210": [
+  {
+   "field": "english",
+   "new": "what can help one",
+   "old": "what can On Faith, Islam, and Related Issues help one",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:218": [
+  {
+   "field": "english",
+   "new": "Ja'far the son of Muhammad",
+   "old": "Ja'far the son of On Faith, Islam, and Related Issues Muhammad",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:219": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "piety.”",
+   "old": "piety.” 1 Imam Sadiq (a.s)",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:222": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "according to the Quranic",
+   "old": "according to the 1 On Faith, Islam, and Related Issues Quranic",
+   "type": "mishkat-review"
+  },
+  {
+   "field": "english",
+   "new": "God the Almighty said: “Many",
+   "old": "God the Almighty said: On Faith, Islam, and Related Issues “Many",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:236": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "armed to the teeth.”",
+   "old": "armed to the teeth.” 1 concealing of faith. Or it may be manipulated and misleading. We left it here to maintain compatibility with the original document.",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:25": [
+  {
+   "field": "english",
+   "new": "“I am",
+   "old": "“I On Faith, Islam, and Related Issues am",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:256": [
+  {
+   "field": "english",
+   "new": "our promises",
+   "old": "our On Faith, Islam, and Related Issues promises",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:265": [
+  {
+   "field": "english",
+   "new": "of the world. Thus",
+   "old": "of the world. On Faith, Islam, and Related Issues Thus",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:291": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "obey God, and is useless",
+   "old": "obey God, 1 and is useless",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:292": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "guard your honor.”",
+   "old": "guard your honor.” 1 in thinking that by just loving the Household of the Prophet (and not obeying God) one can be saved. Also they should not accuse the Household of the Prophet of having authority over God.",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:3": [
+  {
+   "field": "english",
+   "new": "remarked: “On",
+   "old": "remarked: On Faith, Islam, and Related Issues “On",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:31": [
+  {
+   "field": "english",
+   "new": "The Prophet was",
+   "old": "The On Faith, Islam, and Related Issues Prophet was",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:32": [
+  {
+   "field": "english",
+   "new": "came towards",
+   "old": "came On Faith, Islam, and Related Issues towards",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:410": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "”",
+   "old": "” 1 used which is translated to mean \"blessedness\" here.",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:415": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "without thinking",
+   "old": "without 1 thinking",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:438": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "Christians.”",
+   "old": "Christians.” 1 followers",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:452": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "Shiites.”",
+   "old": "Shiites.” 1 follower",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:545": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "",
+   "old": " 1 move on from minor sins to major ones, but if you repent, even your major sins will be forgiven",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:61": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "”",
+   "old": "” 1 Same as Caesar or Chosroe",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:611": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "”",
+   "old": "” 1 known gem that is a kind of expensive gem similar to but more expensive than emerald, which is dark green.",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:62": [
+  {
+   "field": "english",
+   "new": "little bit. Then",
+   "old": "little bit. On Faith, Islam, and Related Issues Then",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:65": [
+  {
+   "field": "english",
+   "new": "through him. This",
+   "old": "through him. On Faith, Islam, and Related Issues This",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:657": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "upon you.”",
+   "old": "upon you.” 1",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:722": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "Hereafter.”",
+   "old": "Hereafter.” 1 power",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:73": [
+  {
+   "field": "english",
+   "new": "Tahir. Khadijed",
+   "old": "Tahir. On Faith, Islam, and Related Issues Khadijed",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:732": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "not others.”",
+   "old": "not others.” 1 Unknown reference",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:757": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "as leopards get.",
+   "old": "as leopards get. 1",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:788": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "Being ashamed of what is shameful",
+   "old": "Being ashamed 1 marshmallow; a certain plant with which, or with a preparation of which the head is washed; a well-known preparation for washing the head. of what is shameful",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:82": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": " Then",
+   "old": " 1 like being a magician, a madman or a liar On Faith, Islam, and Related Issues Then",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:877": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "13:21]",
+   "old": "13:21] 1",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:908": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "",
+   "old": " 1 Europe in the latter part of the Middle Ages. It is a certain disease, arising from the spreading of the black bile throughout the whole person, so that it corrupts the temperament of the members, and the external conditions thereof; and sometimes in the dissundering, or corrusion of the members and their falling off, in consequence of ulceration, so called because it dissunders the flesh, and causes it to fall off; or because the fingers, or toes become cut-off. It is a cracking of the skin, and a dissundering and gradual falling off of the flesh. However, leprosy is a well-known disease, which is a whiteness incident in the skin, which appears upon the exterior of the body, by reason of a corrupt state of constitution.",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mishkat-al-Anwar-Tabrisi:973": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "footnote",
+   "new": "in vain.”",
+   "old": "in vain.” 1",
+   "type": "mishkat-review"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1079": [
+  {
+   "field": "arabic",
+   "new": "في الحَفيرَةِ",
+   "old": "فيالحَفيرَةِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1092": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "speaker",
+   "new": "Imam Ali (AS)",
+   "old": "The Prophet (SAWA)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1093": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "speaker",
+   "new": "Imam Ali (AS)",
+   "old": "The Prophet (SAWA)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:111": [
+  {
+   "approved": true,
+   "field": "english",
+   "new": "Imām",
+   "old": "Im?m",
+   "type": "english-defect"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1123": [
+  {
+   "field": "arabic",
+   "new": "الصُّدُورِ",
+   "old": "الصُّدوِر",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1146": [
+  {
+   "approved": true,
+   "field": "english",
+   "new": "salām",
+   "old": "sal?m",
+   "type": "english-defect"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:115": [
+  {
+   "field": "arabic",
+   "new": "بَهيمَةٌ",
+   "old": "بَهيمِةٌ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1159": [
+  {
+   "field": "arabic",
+   "new": "السُّنَّةُ",
+   "old": "السُّنَّةٌ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1164": [
+  {
+   "field": "arabic",
+   "new": "النَّجاةِ",
+   "old": "النَّجاةٍ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1203": [
+  {
+   "field": "arabic",
+   "new": "مِلءَ",
+   "old": "مِل ءَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1205": [
+  {
+   "field": "arabic",
+   "new": "عَزَّ وجلَّ",
+   "old": "عَزَّوجلَّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1206": [
+  {
+   "field": "arabic",
+   "new": "عَزَّ وجلَّ",
+   "old": "عَزَّوجلَّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1207": [
+  {
+   "field": "arabic",
+   "new": "عَزَّ وجلَّ",
+   "old": "عَزَّوجلَّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1224": [
+  {
+   "field": "arabic",
+   "new": "",
+   "old": "11ـ ",
+   "type": "latin-in-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1228": [
+  {
+   "field": "arabic",
+   "new": "",
+   "old": "15ـ ",
+   "type": "latin-in-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1233": [
+  {
+   "field": "arabic",
+   "new": "عَمّا غابَ",
+   "old": "عَمّاغابَ",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "النّاسِ؛ فإنَّ فِي",
+   "old": "النّاسِ؛فإنَّ فِي",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1234": [
+  {
+   "field": "arabic",
+   "new": "غَيرِكَ؛ فإنَّكَ",
+   "old": "غَيرِكَ؛فإنَّكَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1247": [
+  {
+   "field": "arabic",
+   "new": "كأنّكَ",
+   "old": "كأ نّكَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1283": [
+  {
+   "field": "arabic",
+   "new": "(عَلَيهِ الّسَلامُ) ] يَومَ",
+   "old": "(عَلَيهِ الّسَلامُ) [يَومَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1286": [
+  {
+   "field": "arabic",
+   "new": "لِأَنَّهُ",
+   "old": "لِأَ نَّهُ",
+   "type": "ocr-arabic"
+  },
+  {
+   "approved": true,
+   "field": "arabic",
+   "new": "بِالأئمَّةِ عليهم السلام",
+   "old": "بِالأئمَّةِ ^",
+   "type": "latin-in-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1312": [
+  {
+   "field": "arabic",
+   "new": "لاخْتَارُوهُ",
+   "old": "لاخْتَارُوُهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1333": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "speaker",
+   "new": "Imam Ali (AS)",
+   "old": "Imam al-Sadiq (AS)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1338": [
+  {
+   "field": "arabic",
+   "new": "في الدنيا",
+   "old": "فيالدنيا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1355": [
+  {
+   "field": "arabic",
+   "new": "، لفَضْلِ",
+   "old": "،لفَضْلِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1446": [
+  {
+   "field": "arabic",
+   "new": "خَيرُ الاُمورِ",
+   "old": "خَيرُالاُمورِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1448": [
+  {
+   "field": "arabic",
+   "new": "الاُمورِ أوْسَطُها",
+   "old": "الاُمورِأوْسَطُها",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1452": [
+  {
+   "field": "arabic",
+   "new": "كثيرٌ حَياؤهُم",
+   "old": "كثيرٌحَياؤهُم",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1459": [
+  {
+   "field": "english",
+   "new": "al-Aabidin",
+   "old": "al- Aabidin",
+   "type": "english-defect"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1479": [
+  {
+   "field": "arabic",
+   "new": ": حُسنُ",
+   "old": ":حُسنُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1499": [
+  {
+   "field": "arabic",
+   "new": "بالعَبدِ",
+   "old": "بالَعْبدِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1516": [
+  {
+   "field": "english",
+   "new": "i.e. depriving",
+   "old": "i.e.depriving",
+   "type": "english-defect"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1525": [
+  {
+   "field": "arabic",
+   "new": "زينُ العابدينَ",
+   "old": "زينَ العابدينُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1531": [
+  {
+   "field": "arabic",
+   "new": "فِيها الفَاجِرُ",
+   "old": "فِيَها الفَاجِرُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1534": [
+  {
+   "field": "arabic",
+   "new": "للّهِ، فَقَالَ",
+   "old": "للّهِ،فَقَالَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1554": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1555": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1561": [
+  {
+   "field": "arabic",
+   "new": "الطامِعُ",
+   "old": "الطامُعُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1575": [
+  {
+   "field": "arabic",
+   "new": "عَوَّدتَهُ",
+   "old": "عَوَّدتَهَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1593": [
+  {
+   "field": "arabic",
+   "new": "ـ : اللّهَ",
+   "old": "ـ :اللّهَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1601": [
+  {
+   "field": "arabic",
+   "new": "لأنّه",
+   "old": "لأ نّه",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1602": [
+  {
+   "field": "arabic",
+   "new": "قيلَ : لِعلَّةِ",
+   "old": "قيلَ :لِعلَّةِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:161": [
+  {
+   "field": "arabic",
+   "new": "يَسألُ",
+   "old": "يَسأ لُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1615": [
+  {
+   "approved": true,
+   "field": "english",
+   "new": "Allāhumma",
+   "old": "All?humma",
+   "type": "english-defect"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1662": [
+  {
+   "field": "arabic",
+   "new": "إلّا أهلَ",
+   "old": "إلّاأهلَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:171": [
+  {
+   "field": "arabic",
+   "new": "لأنّه",
+   "old": "لأ نّه",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1727": [
+  {
+   "field": "arabic",
+   "new": "؛ فإنّ",
+   "old": "؛فإنّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:174": [
+  {
+   "field": "arabic",
+   "new": "فِيه لَمْ",
+   "old": "فِيه لِمَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1760": [
+  {
+   "field": "arabic",
+   "new": "مَن هُو دُونَهُ",
+   "old": "منَ هُو دُونَهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1796": [
+  {
+   "field": "arabic",
+   "new": "بَعدَ معرِفَةِ",
+   "old": "بَعدَمعرِفَةِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1803": [
+  {
+   "field": "arabic",
+   "new": "الإمامُ عليٌّ (",
+   "old": "الإمامُ عليٌ (",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1804": [
+  {
+   "field": "arabic",
+   "new": "الإمامُ عليٌّ (",
+   "old": "الإمامُ عليٌ (",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1805": [
+  {
+   "field": "arabic",
+   "new": "الإمامُ عليٌّ (",
+   "old": "الإمامُ عليٌ (",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1806": [
+  {
+   "field": "arabic",
+   "new": "الإمامُ عليٌّ (",
+   "old": "الإمامُ عليٌ (",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1807": [
+  {
+   "field": "arabic",
+   "new": "الإمامُ عليٌّ (",
+   "old": "الإمامُ عليٌ (",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1815": [
+  {
+   "field": "arabic",
+   "new": "ذِكرِ اللّهِ",
+   "old": "ذِكرِاللّهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1837": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "speaker",
+   "new": "Imam Ali (AS)",
+   "old": "The Prophet (SAWA)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1858": [
+  {
+   "field": "arabic",
+   "new": "بأنَّهُ",
+   "old": "بأ نَّهُ",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "وأنَّهُ قَديمٌ",
+   "old": "وأ نَّهُ قَديمٌ",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "وأنَّهُ لَيسَ",
+   "old": "وأ نَّهُ لَيسَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1860": [
+  {
+   "field": "arabic",
+   "new": "هُوَ المُظهِرَ",
+   "old": "هُوَالمُظهِرَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1866": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "الإمامُ الصّادقُ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1881": [
+  {
+   "field": "arabic",
+   "new": "في وَصِيَّتِه",
+   "old": "فيوَصِيَّتِه",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1882": [
+  {
+   "field": "english",
+   "new": "One. Then",
+   "old": "One.Then",
+   "type": "english-defect"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1887": [
+  {
+   "field": "arabic",
+   "new": "أميرَ المؤمنينَ",
+   "old": "أميرَالمؤمنينَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:197": [
+  {
+   "field": "arabic",
+   "new": "إذا جُرِحَ",
+   "old": "إذاجُرِحَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:1977": [
+  {
+   "approved": true,
+   "field": "english",
+   "new": "al-Hakam",
+   "old": "al-?akam",
+   "type": "english-defect"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2055": [
+  {
+   "field": "arabic",
+   "new": "يا أبا جعفرٍ",
+   "old": "ياأباجعفرٍ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2075": [
+  {
+   "field": "arabic",
+   "new": "يا بنَ مسعودٍ",
+   "old": "يابنَ مسعودٍ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2121": [
+  {
+   "field": "arabic",
+   "new": "، والتّأهُّبِ",
+   "old": "،والتّأهُّبِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2223": [
+  {
+   "field": "arabic",
+   "new": "أو تَصرِفوا",
+   "old": "أوتَصرِفوا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2284": [
+  {
+   "field": "arabic",
+   "new": "يا رَسولَ",
+   "old": "يارَسولَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2314": [
+  {
+   "field": "arabic",
+   "new": "مُجادَلَةُ",
+   "old": "مُجادَلَةُ4",
+   "type": "latin-in-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2319": [
+  {
+   "field": "arabic",
+   "new": "»،",
+   "old": "»4،",
+   "type": "latin-in-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2320": [
+  {
+   "field": "arabic",
+   "new": "» وأمرُ",
+   "old": "»وأمرُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2322": [
+  {
+   "field": "arabic",
+   "new": "وعِزُّ المُؤمِنينَ",
+   "old": "وعِزُّالمُؤمِنينَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2347": [
+  {
+   "field": "arabic",
+   "new": "كَيْ يَقْتَديَ",
+   "old": "كَيْيَقْتَديَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2350": [
+  {
+   "field": "arabic",
+   "new": "وإنَّ",
+   "old": "َ وإنَّ",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "english",
+   "new": "brethren. Beware",
+   "old": "brethren.Beware",
+   "type": "english-defect"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2363": [
+  {
+   "field": "arabic",
+   "new": "فَرَغْنا مِنَ",
+   "old": "فَرَغْنامِنَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2384": [
+  {
+   "field": "arabic",
+   "new": "اللّهِ خَيرٌ",
+   "old": "اللّه ِخَيرٌ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2391": [
+  {
+   "field": "arabic",
+   "new": "أميرُ المؤمنينَ",
+   "old": "أميرُالمؤمنينَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2421": [
+  {
+   "field": "arabic",
+   "new": "عِند المُجاهِدينَ",
+   "old": "عِندالمُجاهِدينَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2427": [
+  {
+   "field": "arabic",
+   "new": "على",
+   "old": "علىْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2434": [
+  {
+   "field": "arabic",
+   "new": "عزّ وجلّ",
+   "old": "عزّوجلّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2451": [
+  {
+   "field": "arabic",
+   "new": "وهُوَ العُمرُ",
+   "old": "وهُوَالعُمرُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2477": [
+  {
+   "field": "arabic",
+   "new": "عَزَّ وجلَّ",
+   "old": "عَزَّوجلَّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2488": [
+  {
+   "field": "arabic",
+   "new": "أو تُصْفِيَ",
+   "old": "أوتُصْفِيَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2497": [
+  {
+   "field": "arabic",
+   "new": "يا محمّدُ",
+   "old": "يامحمّدُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2506": [
+  {
+   "field": "arabic",
+   "new": "عزّ وجلّ",
+   "old": "عزّوجلّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2507": [
+  {
+   "field": "arabic",
+   "new": "العَبدُ اللّهَ",
+   "old": "العَبدُاللّهَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2508": [
+  {
+   "field": "arabic",
+   "new": "اللّهِ عزّ",
+   "old": "اللّه ِعزّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2510": [
+  {
+   "field": "arabic",
+   "new": "، وإنّهُ",
+   "old": "،وإنّهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2523": [
+  {
+   "field": "arabic",
+   "new": "فَقَدِ اسْتَمْسَكَ",
+   "old": "فَقَدِاسْتَمْسَكَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2533": [
+  {
+   "field": "arabic",
+   "new": "النّبيُّ",
+   "old": "النّبيٌّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2546": [
+  {
+   "field": "arabic",
+   "new": "يا بنَ",
+   "old": "يابنَ",
+   "type": "ocr-arabic"
+  },
+  {
+   "approved": true,
+   "field": "english",
+   "new": "Imam",
+   "old": "ImÁm",
+   "type": "english-defect"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2590": [
+  {
+   "field": "arabic",
+   "new": "رسولُ اللّهِ (صَلَّيَ",
+   "old": "رسولَ اللّهِ (صَلَّيَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:26": [
+  {
+   "field": "arabic",
+   "new": "بها عَوْرَتَهُ",
+   "old": "بهاعَوْرَتَهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:260": [
+  {
+   "field": "arabic",
+   "new": "قَصرُ الأمَلِ",
+   "old": "قَصرُالأمَلِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2668": [
+  {
+   "field": "arabic",
+   "new": "الأغنياءِ.",
+   "old": "الأغنياءِ..",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2720": [
+  {
+   "field": "arabic",
+   "new": "الثُّومَ ] فلا",
+   "old": "الثُّومَ [فلا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2755": [
+  {
+   "approved": true,
+   "field": "english",
+   "new": "Imām",
+   "old": "Im?m",
+   "type": "english-defect"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2775": [
+  {
+   "field": "arabic",
+   "new": "مِلْءُ",
+   "old": "مِلْ ءُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2792": [
+  {
+   "approved": true,
+   "field": "english",
+   "new": "Imām",
+   "old": "Im?m",
+   "type": "english-defect"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2800": [
+  {
+   "field": "arabic",
+   "new": "لأنّهُ",
+   "old": "لأ نّهُ",
+   "type": "ocr-arabic"
+  },
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "speaker",
+   "new": "Imam Ali (AS)",
+   "old": "Imam al-Sadiq (AS)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2838": [
+  {
+   "field": "arabic",
+   "new": "لأنّها",
+   "old": "لأ نّها",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:288": [
+  {
+   "approved": true,
+   "field": "english",
+   "new": "Mālik",
+   "old": "MÁlik",
+   "type": "english-defect"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2883": [
+  {
+   "field": "arabic",
+   "new": "هذا العالَمِ",
+   "old": "هذاالعالَمِ",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "جَعَلَهُ",
+   "old": "جَعَلَهَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2895": [
+  {
+   "field": "arabic",
+   "new": "الصَّبرَ عِند",
+   "old": "الصَّبرَعِند",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2913": [
+  {
+   "field": "arabic",
+   "new": "وأشدُّ مِن",
+   "old": "وأشدُّمِن",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2957": [
+  {
+   "field": "arabic",
+   "new": "، أمّا",
+   "old": "،أمّا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2979": [
+  {
+   "field": "arabic",
+   "new": "عَدْلِكَ",
+   "old": "عَدِلكَ",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "احْمِلني",
+   "old": "احَمِلني",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:2984": [
+  {
+   "field": "arabic",
+   "new": "مَن كانَ",
+   "old": "منَ كانَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:300": [
+  {
+   "field": "arabic",
+   "new": "يا أبا ذرٍّ",
+   "old": "يا أباذرٍّ",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "يا رسولَ اللّهِ، وما",
+   "old": "يارسولَ اللّهِ، وما",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "يا رسولَ اللّهِ، فإن",
+   "old": "يارسولَ اللّهِ، فإن",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3022": [
+  {
+   "field": "arabic",
+   "new": "لأنّا",
+   "old": "لأ نّا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3034": [
+  {
+   "field": "arabic",
+   "new": "عليٍّ لَمّا",
+   "old": "عليٍّ( لَمّا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3053": [
+  {
+   "field": "arabic",
+   "new": "فقالَ: هذا",
+   "old": "فقالَ ـ: هذا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3067": [
+  {
+   "field": "arabic",
+   "new": "؟! قالَ",
+   "old": "؟!قالَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3080": [
+  {
+   "field": "arabic",
+   "new": "الكبيرِ والصغيرِ",
+   "old": "الكبيرِوالصغيرِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3091": [
+  {
+   "field": "arabic",
+   "new": "يا بُنَيَّ، مَن",
+   "old": "يابُنَيَّ، مَن",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3092": [
+  {
+   "field": "arabic",
+   "new": "محمّدِ بنِ",
+   "old": "محمّدِبنِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:31": [
+  {
+   "field": "arabic",
+   "new": "القِيامَةِ",
+   "old": "الِقيامَةِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3102": [
+  {
+   "field": "arabic",
+   "new": "): يا موسى",
+   "old": ") :يا موسى",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3104": [
+  {
+   "field": "arabic",
+   "new": "عِندَ اللّهِ",
+   "old": "عِندَاللّهِ",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "english",
+   "new": "money. He said",
+   "old": "money.He said",
+   "type": "english-defect"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3108": [
+  {
+   "field": "arabic",
+   "new": "فَقرٍ أشَدُّ",
+   "old": "فَقرٍأشَدُّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3114": [
+  {
+   "field": "arabic",
+   "new": "اللّهِ ، والفَقرُ",
+   "old": "اللّهِ ،والفَقرُ",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "أحَبُّ إلَيَّ",
+   "old": "أحَبُ إلَيَّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3127": [
+  {
+   "approved": true,
+   "field": "english",
+   "new": "(dunyā)",
+   "old": "(duny?)",
+   "type": "english-defect"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3199": [
+  {
+   "field": "arabic",
+   "new": "لأنّها",
+   "old": "لأ نّها",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:32": [
+  {
+   "field": "arabic",
+   "new": "لأنَّهُم",
+   "old": "لأ نَّهُم",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3201": [
+  {
+   "field": "english",
+   "new": "al-Sadiq",
+   "old": "al- Sadiq",
+   "type": "english-defect"
+  },
+  {
+   "approved": true,
+   "field": "english",
+   "new": "Abu Baṣīr",
+   "old": "Abu Ba??r",
+   "type": "english-defect"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3210": [
+  {
+   "field": "arabic",
+   "new": "في جَميعِ",
+   "old": "فيجَميعِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3212": [
+  {
+   "field": "arabic",
+   "new": "زَنَيْتَ؟ فهذا",
+   "old": "زَنَيْتَ؟فهذا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3238": [
+  {
+   "field": "english",
+   "new": "[Imam",
+   "old": "[ Imam",
+   "type": "english-defect"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:324": [
+  {
+   "field": "arabic",
+   "new": "العبادةِ",
+   "old": "الِعبادةِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3257": [
+  {
+   "field": "arabic",
+   "new": "الباقرُ",
+   "old": "الباقرٌ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3271": [
+  {
+   "field": "arabic",
+   "new": "لَومَةُ",
+   "old": "لَومُةُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3290": [
+  {
+   "field": "arabic",
+   "new": "الخُلَطاءُ الصّالِحُونَ",
+   "old": "الخُلَطاءُالصّالِحُونَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3304": [
+  {
+   "field": "arabic",
+   "new": "لأنّهُ",
+   "old": "لأ نّهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3348": [
+  {
+   "field": "arabic",
+   "new": "لأنّهُ",
+   "old": "لأ نّهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3349": [
+  {
+   "field": "arabic",
+   "new": "شَهرِ رَمَضانَ",
+   "old": "شَهرِرَمَضانَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3352": [
+  {
+   "field": "arabic",
+   "new": "أبا الحسنِ",
+   "old": "أباالحسنِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3365": [
+  {
+   "field": "arabic",
+   "new": "يَغُلَّ» في",
+   "old": "يَغُلَّ»في",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3376": [
+  {
+   "field": "arabic",
+   "new": "أميرُ المؤمنينَ",
+   "old": "أميرُالمؤمنينَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3391": [
+  {
+   "field": "arabic",
+   "new": "عبدِ اللّهِ",
+   "old": "عبدِاللّهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3392": [
+  {
+   "field": "arabic",
+   "new": "في أمرٍ",
+   "old": "فيأمرٍ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3426": [
+  {
+   "field": "arabic",
+   "new": "أسأَلُكَ",
+   "old": "أسأَ لُكَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3433": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3441": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3442": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3443": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3444": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3445": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3446": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3448": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3449": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3450": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3451": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3452": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3471": [
+  {
+   "field": "arabic",
+   "new": "الصّادقُ:",
+   "old": "الصّادقُ(:",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3476": [
+  {
+   "field": "arabic",
+   "new": "وخَيرُ الخَطّائينَ",
+   "old": "وخَيرُالخَطّائينَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3479": [
+  {
+   "field": "arabic",
+   "new": "ـ : غَرَسُوا",
+   "old": "ـ :غَرَسُوا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3493": [
+  {
+   "field": "arabic",
+   "new": "تَوبَةً ، السِّرُّ",
+   "old": "تَوبَةً ،السِّرُّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3498": [
+  {
+   "field": "arabic",
+   "new": "اغْتِرارٌ ، وطُولُ",
+   "old": "اغْتِرارٌ ،وطُولُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3501": [
+  {
+   "field": "arabic",
+   "new": "علَيهِ ، واُمِرَتْ",
+   "old": "علَيهِ ،واُمِرَتْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3504": [
+  {
+   "field": "arabic",
+   "new": "يَغفِرُ اللّهُ",
+   "old": "يَغفِرُاللّهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3529": [
+  {
+   "field": "arabic",
+   "new": "يا ذ",
+   "old": "ياذ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3535": [
+  {
+   "field": "arabic",
+   "new": "في صُ",
+   "old": "فيصُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3538": [
+  {
+   "field": "arabic",
+   "new": "؛ ك",
+   "old": "؛ك",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3539": [
+  {
+   "field": "arabic",
+   "new": "؛ ك",
+   "old": "؛ك",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3543": [
+  {
+   "field": "arabic",
+   "new": "] ا",
+   "old": "]ا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3552": [
+  {
+   "field": "arabic",
+   "new": "هِ ع",
+   "old": "ه ِع",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3574": [
+  {
+   "field": "arabic",
+   "new": "»",
+   "old": " »",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3581": [
+  {
+   "field": "arabic",
+   "new": "مِن ك",
+   "old": "مُن ك",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3622": [
+  {
+   "field": "arabic",
+   "new": "بالعَبدِ]",
+   "old": "بالعَبدِ[",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3642": [
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "speaker",
+   "new": "Imam Ali (AS)",
+   "old": "Imam al-Sadiq (AS)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3643": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  },
+  {
+   "approved": true,
+   "field": "english",
+   "kind": "speaker",
+   "new": "Imam Ali (AS)",
+   "old": "Imam al-Sadiq (AS)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3655": [
+  {
+   "field": "arabic",
+   "new": "عِبادَ اللّهِ",
+   "old": "عِبادَاللّهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3669": [
+  {
+   "field": "arabic",
+   "new": "الطُّمَأنِينَةِ",
+   "old": "الطُّمَأ نِينَةِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3676": [
+  {
+   "field": "english",
+   "new": "of\" Quran",
+   "old": "of\"Quran",
+   "type": "english-defect"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3680": [
+  {
+   "field": "arabic",
+   "new": "والنَّمّامُ",
+   "old": "والَّنمّامُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3706": [
+  {
+   "field": "arabic",
+   "new": "يَسألُني",
+   "old": "يَسأ لُني",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3743": [
+  {
+   "field": "english",
+   "new": "‘Ali",
+   "old": "‘ Ali",
+   "type": "english-defect"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3747": [
+  {
+   "approved": true,
+   "field": "english",
+   "new": "Imam",
+   "old": "ImÁm",
+   "type": "english-defect"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3783": [
+  {
+   "approved": true,
+   "field": "arabic",
+   "kind": "speaker",
+   "new": "الإمامُ عليٌّ (عَلَيهِ الّسَلامُ)",
+   "old": "رسولُ اللهِ (عَلَيهِ الّسَلامُ)",
+   "type": "speaker"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3817": [
+  {
+   "field": "arabic",
+   "new": "قالَ الإمامُ",
+   "old": "قالُ الإمامُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3819": [
+  {
+   "field": "arabic",
+   "new": "لأنَّهُ",
+   "old": "لأ نَّهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3848": [
+  {
+   "field": "arabic",
+   "new": "يا لَيتَنِي",
+   "old": "يالَيتَنِي",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3852": [
+  {
+   "field": "arabic",
+   "new": "كَأَنَّهُ",
+   "old": "كَأَ نَّهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3893": [
+  {
+   "field": "arabic",
+   "new": "آمَنوا»",
+   "old": "آمَنوا»214",
+   "type": "latin-in-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3894": [
+  {
+   "field": "arabic",
+   "new": "يا رسولَ",
+   "old": "يارسولَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3901": [
+  {
+   "field": "arabic",
+   "new": "وإنَّ أشْرَفَ",
+   "old": "وإنَ أشْرَفَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3907": [
+  {
+   "field": "arabic",
+   "new": "صَدرِ المجلسِ",
+   "old": "صَدرِالمجلسِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3929": [
+  {
+   "field": "arabic",
+   "new": "جَليسِكَ: فأنْ",
+   "old": "جَليسِكَ :فأنْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3934": [
+  {
+   "field": "arabic",
+   "new": "وأبناءِ الدُّنيا",
+   "old": "وأبناءِالدُّنيا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3941": [
+  {
+   "field": "arabic",
+   "new": "بِشرِكَ، ويَكونُ",
+   "old": "بِشرِكَ،ويَكونُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3942": [
+  {
+   "field": "arabic",
+   "new": "مِلءَ",
+   "old": "مِل ءَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:3972": [
+  {
+   "field": "arabic",
+   "new": "لأنّا",
+   "old": "لأ نّا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4020": [
+  {
+   "field": "arabic",
+   "new": "بالقرآنِ]",
+   "old": "بالقرآنِ[",
+   "type": "latin-in-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4061": [
+  {
+   "field": "arabic",
+   "new": "لأنَّكُم",
+   "old": "لأ نَّكُم",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4062": [
+  {
+   "field": "arabic",
+   "new": "بِي»",
+   "old": "بِي»2",
+   "type": "latin-in-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4149": [
+  {
+   "field": "arabic",
+   "new": "كَثُرَ هَمُّهُ",
+   "old": "كَثُرَهَمُّهُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4154": [
+  {
+   "field": "arabic",
+   "new": "في الرِّزقِ",
+   "old": "فيالرِّزقِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4178": [
+  {
+   "field": "arabic",
+   "new": "يا رسولَ",
+   "old": "يارسولَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:419": [
+  {
+   "field": "arabic",
+   "new": "، ويَقِفَ",
+   "old": "،ويَقِفَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4261": [
+  {
+   "field": "arabic",
+   "new": "المُجْتَمِعُ",
+   "old": "الُمجْتَمِعُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4275": [
+  {
+   "approved": true,
+   "field": "english",
+   "new": "Imam",
+   "old": "ImÁm",
+   "type": "english-defect"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4344": [
+  {
+   "field": "arabic",
+   "new": "يُحْشَرُ الجَبّارونَ",
+   "old": "يُحْشَرُالجَبّارونَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4352": [
+  {
+   "field": "arabic",
+   "new": "أميرَ المؤمنينَ",
+   "old": "أميرَالمؤمنينَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:436": [
+  {
+   "field": "arabic",
+   "new": "المَحَبّةُ",
+   "old": "الَمحَبّةُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4393": [
+  {
+   "field": "arabic",
+   "new": "تُورِثُ",
+   "old": "تُورِثَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4410": [
+  {
+   "field": "arabic",
+   "new": "أبا ذَرٍّ",
+   "old": "أباذَرٍّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4420": [
+  {
+   "field": "arabic",
+   "new": "عُيونُهُم ، وعُيونَ",
+   "old": "عُيونُهُم ،وعُيونَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4422": [
+  {
+   "field": "arabic",
+   "new": "لدّارِعَ، وأخِّ",
+   "old": "لدّارِعَ،وأخِّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4423": [
+  {
+   "field": "arabic",
+   "new": "تُجْهِزوا على",
+   "old": "تُجْهِزواعلى",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4426": [
+  {
+   "field": "arabic",
+   "new": "الأعْقابِ",
+   "old": "الأعْقابِ34",
+   "type": "latin-in-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4428": [
+  {
+   "field": "arabic",
+   "new": "في الدِّينِ",
+   "old": "فيالدِّينِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4429": [
+  {
+   "field": "arabic",
+   "new": "بالمَجانيقِ",
+   "old": "بالَمجانيقِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4437": [
+  {
+   "field": "arabic",
+   "new": "عبدِ اللّهِ",
+   "old": "عبدِاللّهِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4451": [
+  {
+   "field": "arabic",
+   "new": "اللّهِ عزّ",
+   "old": "اللّه ِعزّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4476": [
+  {
+   "field": "arabic",
+   "new": "الّسَلامُ) : رأسُ",
+   "old": "الّسَلامُ) :رأسُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4489": [
+  {
+   "field": "arabic",
+   "new": "لأنّها",
+   "old": "لأ نّها",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4495": [
+  {
+   "field": "arabic",
+   "new": "عزّ وجلّ",
+   "old": "عزّوجلّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4571": [
+  {
+   "field": "arabic",
+   "new": "لأنّها",
+   "old": "لأ نّها",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4581": [
+  {
+   "field": "arabic",
+   "new": "كَأنَّكَ",
+   "old": "كَأ نَّكَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:459": [
+  {
+   "field": "arabic",
+   "new": "، وإنْ",
+   "old": "،وإنْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4616": [
+  {
+   "field": "arabic",
+   "new": "جَعفرٍ عَن",
+   "old": "جَعفرٍ( عَن",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:4649": [
+  {
+   "field": "arabic",
+   "new": "، فَاحشُرُوهُم",
+   "old": "،فَاحشُرُوهُم",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:480": [
+  {
+   "field": "arabic",
+   "new": "أخا",
+   "old": "أخاَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:484": [
+  {
+   "field": "arabic",
+   "new": "علَيهِ",
+   "old": "علَيهَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:489": [
+  {
+   "field": "arabic",
+   "new": "عزّ وجلّ",
+   "old": "عزّوجلّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:502": [
+  {
+   "field": "arabic",
+   "new": "في الحِفظِ",
+   "old": "فيالحِفظِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:517": [
+  {
+   "field": "arabic",
+   "new": "لاِبنَيهِ لمّا",
+   "old": "لاِبنَيهِ( لمّا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:662": [
+  {
+   "field": "arabic",
+   "new": "ثُمّ المَتْجَرَ",
+   "old": "ثُمَ المَتْجَرَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:668": [
+  {
+   "field": "arabic",
+   "new": "هذا البَيْعَ",
+   "old": "هذاالبَيْعَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:669": [
+  {
+   "field": "arabic",
+   "new": "سَمحاً إذا",
+   "old": "سَمحا إذا",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:674": [
+  {
+   "field": "arabic",
+   "new": "إلّا أنْ",
+   "old": "إلّاأنْ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:677": [
+  {
+   "field": "arabic",
+   "new": "يُزجي ال",
+   "old": "يُزجيال",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "english",
+   "new": "‘Ali",
+   "old": "‘ Ali",
+   "type": "english-defect"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:692": [
+  {
+   "field": "arabic",
+   "new": "الإمامُ عليٌّ (",
+   "old": "الإمامُ عليٌ (",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:693": [
+  {
+   "field": "arabic",
+   "new": "الإمامُ عليٌّ (",
+   "old": "الإمامُ عليٌ (",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:696": [
+  {
+   "field": "arabic",
+   "new": "لأِنَّهُم",
+   "old": "لأِ نَّهُم",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:72": [
+  {
+   "field": "arabic",
+   "new": "بِيَدِهِ",
+   "old": "بِيَدِه ِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:728": [
+  {
+   "field": "arabic",
+   "new": "فيهِ؛ يَكونُ",
+   "old": "فيهِ؛يَكونُ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:738": [
+  {
+   "field": "arabic",
+   "new": "اشْتَذَّ الشّاذُّ",
+   "old": "اشْتَذَّالشّاذُّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:741": [
+  {
+   "field": "arabic",
+   "new": "اُمّتِكَ",
+   "old": "ا ُمّتِكَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:782": [
+  {
+   "field": "arabic",
+   "new": "على حَقِّها",
+   "old": "علىحَقِّها",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:784": [
+  {
+   "field": "arabic",
+   "new": "يا رسولَ",
+   "old": "يارسولَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:789": [
+  {
+   "field": "arabic",
+   "new": "عَزَّ وجلَّ",
+   "old": "عَزَّوجلَّ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:806": [
+  {
+   "field": "arabic",
+   "new": "قَدرُ الرَّجُل",
+   "old": "قَدرُالرَّجُل",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:866": [
+  {
+   "field": "arabic",
+   "new": "في قَلبي",
+   "old": "فيقَلبي",
+   "type": "ocr-arabic"
+  },
+  {
+   "field": "arabic",
+   "new": "عبدُ الكريمِ",
+   "old": "عبدُالكريمِ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:872": [
+  {
+   "field": "arabic",
+   "new": "أَجلٍ",
+   "old": "أَجل ٍ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:878": [
+  {
+   "field": "arabic",
+   "new": "والقُدرَةَ",
+   "old": "والُقْدرَةَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:897": [
+  {
+   "field": "arabic",
+   "new": "؛ فإنّها",
+   "old": "؛فإنّها",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:906": [
+  {
+   "field": "arabic",
+   "new": "»",
+   "old": "»185",
+   "type": "latin-in-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:925": [
+  {
+   "field": "arabic",
+   "new": "أوْثَقوا الجَدَلَ",
+   "old": "أوْثَقواالجَدَلَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:928": [
+  {
+   "field": "arabic",
+   "new": "الّسَلامُ ) قد",
+   "old": "الّسَلامُ ( قد",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:957": [
+  {
+   "field": "arabic",
+   "new": "ذَلِكَ",
+   "old": "ذَ لِكَ",
+   "type": "ocr-arabic"
+  }
+ ],
+ "Mizan-al-Hikma-Rayshahri:960": [
+  {
+   "field": "arabic",
+   "new": "فهُو الحقُّ",
+   "old": "فهُوالحقُّ",
+   "type": "ocr-arabic"
+  }
+ ]
+}

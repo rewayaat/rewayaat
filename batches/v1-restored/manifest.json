@@ -1,0 +1,11 @@
+{
+  "source": "s3://rewayaat-data, snapshot 2025-02-20, index rewayaat (ES 7.10.2)",
+  "documents": 17519,
+  "batches": 88,
+  "batch_size": 200,
+  "books": {
+    "Ghurar al-Ḥikam": 11012,
+    "Mishkāt al-Anwār": 1895,
+    "Mīzān al-Ḥikma": 4612
+  }
+}

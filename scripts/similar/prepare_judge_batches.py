@@ -7,9 +7,9 @@ import os
 import argparse
 from elasticsearch import Elasticsearch
 
-ES_HOST = "http://localhost:9200"
-INDEX = "rewayaat_quranic_light_filtered"
-OUTPUT_DIR = "tmp/qlight-judge-inputs"
+ES_HOST = os.environ.get("ELASTICSEARCH_URL", "http://localhost:9200")
+INDEX = os.environ.get("QURANIC_LIGHT_INDEX", "rewayaat_quranic_light_filtered")
+OUTPUT_DIR = os.environ.get("JUDGE_INPUT_DIR", "tmp/qlight-judge-inputs")
 BATCH_SIZE = 50  # hadith per batch
 
 

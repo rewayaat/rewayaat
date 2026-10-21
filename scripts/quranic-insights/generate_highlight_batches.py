@@ -18,13 +18,14 @@ import sys
 from elasticsearch import Elasticsearch, helpers
 
 ES_HOST = os.environ.get("ELASTICSEARCH_URL", "http://localhost:9200")
-INDEX = "rewayaat_quranic_light_filtered"
+INDEX = os.environ.get("QURANIC_LIGHT_INDEX", "rewayaat_quranic_light_filtered")
 OUTPUT_DIR = os.environ.get("HL_INPUT_DIR", "tmp/qlight-highlight-inputs")
 FORCE = "--force" in sys.argv
 
 
 def main():
     batch_size = int(os.environ.get("HL_BATCH_SIZE", "50"))
+    max_chars = int(os.environ.get("HL_MAX_CHARS", "0"))
     if "--batch-size" in sys.argv:
         idx = sys.argv.index("--batch-size")
         batch_size = int(sys.argv[idx + 1])
@@ -38,14 +39,15 @@ def main():
 
     # Collect hadith with snippets that need highlighting
     batch = []
+    batch_chars = 0
     batch_num = 0
     total_hadith = 0
     total_snippets = 0
     skipped_snippets = 0
 
     for hit in helpers.scan(es, index=INDEX, query={"query": {"match_all": {}}},
-                            _source=["hadith_id", "hadith_english", "hadith_arabic",
-                                     "candidates.verse_key", "candidates.verse_text",
+                            _source=["hadith_id", "hadith_english",
+                                     "candidates.verse_key", "candidates.text_english",
                                      "candidates.surah_name_english",
                                      "candidates.tafsir_snippets"]):
         src = hit["_source"]
@@ -58,7 +60,7 @@ def main():
 
         for c in src.get("candidates", []):
             vk = c.get("verse_key", "")
-            vt = c.get("verse_text", "")
+            vt = c.get("text_english", "")
             snips_out = []
 
             for s in c.get("tafsir_snippets", []):
@@ -98,8 +100,11 @@ def main():
         })
         total_snippets += doc_snippets
         skipped_snippets += doc_skipped
+        batch_chars += sum(len(s["commentary_text"]) for c in candidates_out for s in c["snippets"])
 
-        if len(batch) >= batch_size:
+        # Tafsir passages run to tens of thousands of characters, so a reader's batch is
+        # also capped by size (HL_MAX_CHARS, 0 = no cap).
+        if len(batch) >= batch_size or (max_chars and batch_chars >= max_chars):
             fn = os.path.join(OUTPUT_DIR, f"batch_{batch_num:04d}.jsonl")
             with open(fn, "w", encoding="utf-8") as f:
                 for entry in batch:
@@ -107,6 +112,7 @@ def main():
             total_hadith += len(batch)
             print(f"  Wrote {fn} ({len(batch)} hadith, running total: {total_hadith})")
             batch = []
+            batch_chars = 0
             batch_num += 1
 
     # Write remaining

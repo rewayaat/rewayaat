@@ -16,7 +16,7 @@ import java.util.Map;
 /**
  * The Arabic name of a book, chapter, section or part, looked up by its English one.
  *
- * <p>These are closed sets - 18 books, 7,708 chapter titles, 596 sections, 145 parts -
+ * <p>These are closed sets - 21 books, 7,708 chapter titles, 596 sections, 145 parts -
  * translated once and shipped as resources. The catalogue is built from a composite
  * aggregation over the English keyword fields, so the English name is the key that is
  * already in hand at render time and no second aggregation is needed to find the Arabic

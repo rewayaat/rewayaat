@@ -764,7 +764,8 @@ function localeHref(path) {
                         ? '<span class="quranic-snippet__section">&mdash; ' + escapeHtml(sn.section_title) + '</span>'
                         : '')
                     + '</div>'
-                    + '<div class="quranic-snippet__text">' + (sn.commentary_text || '') + '</div>'
+                    + '<div class="quranic-snippet__text">'
+                    + (sn.commentary_text_highlighted || sn.commentary_text || '') + '</div>'
                     + '</div>';
               }).join('')
             + '</div>';

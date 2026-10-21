@@ -87,7 +87,7 @@ class TranslatedDataTest {
     @Test
     @DisplayName("every book page has an About section, and it names its own page")
     void everyBookHasABlurbKeyedToItsPage() throws IOException {
-        // book_summaries.json is keyed by page slug and covers all eighteen books, so it
+        // book_summaries.json is keyed by page slug and covers every book, so it
         // is the list of pages that exist. Two blurbs used to key themselves to pages that
         // did not, by slugifying the book name the entry carried and guessing wrong; both
         // existed in both languages and neither had ever rendered. An entry now names its
@@ -106,7 +106,7 @@ class TranslatedDataTest {
         for (JsonNode entry : read("src/main/resources/static/book_blurbs.json")) {
             String slug = entry.path("slug").asText("");
             if (slug.isBlank()) {
-                // The three entries describing books this corpus does not hold.
+                wrong.add("(no slug) " + entry.path("book").asText());
                 continue;
             }
             if (!pages.contains(slug)) {

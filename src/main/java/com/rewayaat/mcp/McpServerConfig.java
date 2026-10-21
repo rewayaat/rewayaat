@@ -71,7 +71,7 @@ public class McpServerConfig {
 
             Cite narrations by the url field in every result. Do not cite by number alone - \
             the numbering here follows this edition and may not match a printed one.\
-            """.formatted(CorpusScope.BOOK_COUNT, 32519, CorpusScope.SCOPE_SENTENCE);
+            """.formatted(CorpusScope.BOOK_COUNT, CorpusScope.NARRATION_COUNT, CorpusScope.SCOPE_SENTENCE);
 
     /**
      * Keeps an idle legacy SSE stream from being closed underneath us. That transport holds a
@@ -195,7 +195,8 @@ public class McpServerConfig {
     McpSchema.Implementation serverInfo() {
         return McpSchema.Implementation.builder(SERVER_NAME, SERVER_VERSION)
                 .title("The Hadith Database")
-                .description("Search and read 32,519 Shia narrations from 18 books, in Arabic "
+                .description("Search and read " + String.format("%,d", CorpusScope.NARRATION_COUNT)
+                        + " Shia narrations from " + CorpusScope.BOOK_COUNT + " books, in Arabic "
                         + "and English, with every narration linked to its source.")
                 .websiteUrl(baseUrl)
                 .icons(List.of(

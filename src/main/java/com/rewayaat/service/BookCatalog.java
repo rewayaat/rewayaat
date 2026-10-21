@@ -111,7 +111,7 @@ public class BookCatalog {
                 }
                 used.put(key, 1);
                 out.add(new Part(name, slug, partSlug(out, title), title, chapter.volume(),
-                        chaptersInPart(chapter.volume(), title).size()));
+                        chaptersInPart(chapter.volume(), title).size(), chapter.partArIndexed()));
             }
             return out;
         }
@@ -201,11 +201,17 @@ public class BookCatalog {
 
     /** One part of one book, between the volume and the chapters. */
     public record Part(String bookName, String bookSlug, String slug, String title,
-                       String volume, int chapterCount) {
+                       String volume, int chapterCount, String titleArIndexed) {
 
-        /** The Arabic title, or null. */
+        public Part(String bookName, String bookSlug, String slug, String title,
+                    String volume, int chapterCount) {
+            this(bookName, bookSlug, slug, title, volume, chapterCount, null);
+        }
+
+        /** The Arabic title its narrations carry, else the mapping's, else null. */
         public String titleAr() {
-            return ArabicNames.part(title);
+            return titleArIndexed == null || titleArIndexed.isBlank()
+                    ? ArabicNames.part(title) : titleArIndexed;
         }
 
         public String url() {
@@ -238,11 +244,25 @@ public class BookCatalog {
      * and the narration query for a chapter page has to filter on all of them.
      */
     public record Chapter(String bookName, String bookSlug, String slug, String title,
-                          String volume, String part, String section, long count) {
+                          String volume, String part, String section, long count,
+                          String titleArIndexed, String partArIndexed) {
 
-        /** The Arabic title, or null. 12% of chapters have none and show the English. */
+        public Chapter(String bookName, String bookSlug, String slug, String title,
+                       String volume, String part, String section, long count) {
+            this(bookName, bookSlug, slug, title, volume, part, section, count, null, null);
+        }
+
+        /**
+         * The Arabic title its narrations carry, else the mapping's, else null. 12% of
+         * chapters have none and show the English.
+         *
+         * <p>The index comes first because the mapping is keyed by English title across
+         * every book, and a title is not unique: Ghurar al-Ḥikam's "Greed" is «الحِرص»,
+         * the mapping's is Al-Kāfi's «باب الطمع».
+         */
         public String titleAr() {
-            return ArabicNames.chapter(title);
+            return titleArIndexed == null || titleArIndexed.isBlank()
+                    ? ArabicNames.chapter(title) : titleArIndexed;
         }
 
         /** The Arabic name of this chapter's book, or null. */
@@ -440,7 +460,8 @@ public class BookCatalog {
 
             byBook.computeIfAbsent(bookSlug, k -> new ArrayList<>())
                     .add(new Chapter(bookName, bookSlug, slug, title,
-                            text(key.get("volume")), text(key.get("part")), text(key.get("section")), count));
+                            text(key.get("volume")), text(key.get("part")), text(key.get("section")), count,
+                            topTerm(bucket, "chapter_ar"), topTerm(bucket, "part_ar")));
         }
 
         List<Book> loaded = new ArrayList<>();
@@ -487,13 +508,20 @@ public class BookCatalog {
                         .index(ESClientProvider.INDEX)
                         .size(0)
                         .trackTotalHits(t -> t.enabled(false))
-                        .aggregations("chapters", a -> a.composite(c -> {
-                            c.size(COMPOSITE_PAGE_SIZE).sources(compositeSources());
-                            if (cursor != null) {
-                                c.after(cursor);
-                            }
-                            return c;
-                        })), Void.class);
+                        .aggregations("chapters", a -> a
+                                .composite(c -> {
+                                    c.size(COMPOSITE_PAGE_SIZE).sources(compositeSources());
+                                    if (cursor != null) {
+                                        c.after(cursor);
+                                    }
+                                    return c;
+                                })
+                                // Sub-aggregations, not composite sources: a source would
+                                // split a chapter in two wherever some of its narrations
+                                // lack the Arabic title.
+                                .aggregations("chapter_ar", t -> t.terms(f -> f.field("chapter_ar").size(1)))
+                                .aggregations("part_ar", t -> t.terms(f -> f.field("part_ar").size(1)))),
+                        Void.class);
 
                 CompositeAggregate aggregate = response.aggregations().get("chapters").composite();
                 List<CompositeBucket> page = aggregate.buckets().array();
@@ -526,6 +554,16 @@ public class BookCatalog {
     private static NamedValue<CompositeAggregationSource> source(String name, String field) {
         return NamedValue.of(name, CompositeAggregationSource.of(s -> s
                 .terms(t -> t.field(field).missingBucket(true))));
+    }
+
+    /** The most common value of a size-1 terms sub-aggregation, or "". */
+    private static String topTerm(CompositeBucket bucket, String name) {
+        var aggregate = bucket.aggregations().get(name);
+        if (aggregate == null || !aggregate.isSterms()) {
+            return "";
+        }
+        var buckets = aggregate.sterms().buckets().array();
+        return buckets.isEmpty() ? "" : buckets.get(0).key().stringValue().trim();
     }
 
     private static String text(FieldValue value) {

@@ -651,6 +651,8 @@ class McpProtocolIntegrationTest {
         String instructions = String.valueOf(result.get("instructions"));
         assertTrue(instructions.contains("closed corpus"));
         assertTrue(instructions.contains("Cite narrations by the url"));
+        assertTrue(instructions.contains("Ghurar al-Ḥikam"));
+        assertTrue(instructions.contains(String.valueOf(CorpusScope.NARRATION_COUNT)));
     }
 
     @Test

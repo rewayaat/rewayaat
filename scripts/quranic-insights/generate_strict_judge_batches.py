@@ -15,7 +15,7 @@ import sys
 from elasticsearch import Elasticsearch, helpers
 
 ES_HOST = os.environ.get("ELASTICSEARCH_URL", "http://localhost:9200")
-INDEX = "rewayaat_quranic_light_filtered"
+INDEX = os.environ.get("QURANIC_LIGHT_INDEX", "rewayaat_quranic_light_filtered")
 OUTPUT_DIR = os.environ.get("STRICT_JUDGE_INPUT_DIR", "tmp/qlight-strict-judge-inputs")
 
 
@@ -36,8 +36,8 @@ def main():
     total_connections = 0
 
     for hit in helpers.scan(es, index=INDEX, query={"query": {"match_all": {}}},
-                            _source=["hadith_id", "hadith_english", "hadith_arabic",
-                                     "candidates.verse_key", "candidates.verse_text",
+                            _source=["hadith_id", "hadith_english", "hadith_semantic_matn_source",
+                                     "candidates.verse_key", "candidates.text_english",
                                      "candidates.surah_name_english",
                                      "candidates.tafsir_snippets.commentary_text"]):
         src = hit["_source"]
@@ -47,7 +47,7 @@ def main():
         candidates_out = []
         for c in src.get("candidates", []):
             vk = c.get("verse_key", "")
-            vt = c.get("verse_text", "")
+            vt = c.get("text_english", "")
             surah = c.get("surah_name_english", "")
 
             # Get first snippet's commentary as context (truncated)
@@ -69,7 +69,7 @@ def main():
         batch.append({
             "hadith_id": hid,
             "hadith_english": (src.get("hadith_english") or "")[:600],
-            "hadith_arabic": (src.get("hadith_arabic") or "")[:300],
+            "hadith_arabic": (src.get("hadith_semantic_matn_source") or "")[:300],
             "candidates": candidates_out,
         })
         total_connections += len(candidates_out)

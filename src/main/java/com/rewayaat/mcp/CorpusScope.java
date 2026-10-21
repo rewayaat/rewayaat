@@ -15,12 +15,17 @@ package com.rewayaat.mcp;
 public final class CorpusScope {
 
     /** Number of books indexed. Asserted against the live index by the MCP tool tests. */
-    public static final int BOOK_COUNT = 18;
+    public static final int BOOK_COUNT = 21;
 
+    /** Number of narrations indexed, for the descriptions that state the corpus size. */
+    public static final int NARRATION_COUNT = 50038;
+
+    /** The books in catalogue order, most narrations first. */
     public static final String SCOPE_SENTENCE =
             "This searches a closed corpus of " + BOOK_COUNT + " Shia hadith books "
-            + "(Al-Kāfi, Man Lā Yaḥḍuruh al-Faqīh, Nahj al-Balāgha, Al-Amālī, Al-Khiṣāl, "
-            + "Kitāb al-Ghayba, Thawāb al-Aʿmāl, ʿUyūn akhbār al-Riḍā, Maʿānī al-ʾAkhbār, "
+            + "(Al-Kāfi, Ghurar al-Ḥikam, Man Lā Yaḥḍuruh al-Faqīh, Mīzān al-Ḥikma, "
+            + "Nahj al-Balāgha, Mishkāt al-Anwār, Al-Amālī, Al-Khiṣāl, Kitāb al-Ghayba, "
+            + "Thawāb al-Aʿmāl, ʿUyūn akhbār al-Riḍā, Maʿānī al-ʾAkhbār, "
             + "Kāmil al-Ziyārāt, Al-Tawḥīd, Muʿjam al-Aḥādīth al-Muʿtabara, Kitāb al-Zuhd, "
             + "Kitāb al-Ḍuʿafāʾ, Kitāb al-Muʾmin, Ṣifāt al-Shīʿa, Risālat al-Ḥuqūq, "
             + "Faḍaʾil al-Shīʿa). A narration that is absent is absent FROM THESE BOOKS; "

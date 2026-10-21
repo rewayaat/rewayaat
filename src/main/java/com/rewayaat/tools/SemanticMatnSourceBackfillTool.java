@@ -79,7 +79,7 @@ public final class SemanticMatnSourceBackfillTool {
         source.add("english");
         source.add(FIELD_NAME);
         source.add(ENGLISH_HINT_FIELD_NAME);
-        body.set("query", MAPPER.createObjectNode().set("match_all", MAPPER.createObjectNode()));
+        body.set("query", BackfillScope.query(MAPPER, readString(BackfillScope.ENV, "")));
         return postJson("/" + encode(index) + "/_search?scroll=" + encode(SCROLL_KEEPALIVE), body.toString());
     }
 

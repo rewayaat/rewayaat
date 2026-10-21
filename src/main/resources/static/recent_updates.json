@@ -1,5 +1,25 @@
 [
   {
+    "id": "restored-books",
+    "date": "2026-10-21",
+    "title": "Three Collections Restored — Ghurar al-Ḥikam, Mīzān al-Ḥikma, Mishkāt al-Anwār",
+    "summary": "Three collections from the earlier version of the Hadith Database are back: 17,519 narrations in Arabic and English, each linked to similar narrations and Qur'anic verses like the rest of the collection.",
+    "highlights": [
+      "Ghurar al-Ḥikam by al-Āmidī — 11,012 sayings of Imam ʿAlī",
+      "Mīzān al-Ḥikma by Rayshahrī — 4,612 narrations, each with the book it was cited from",
+      "Mishkāt al-Anwār by ʿAlī b. al-Ḥasan al-Ṭabrisī — 1,895 narrations",
+      "The Hadith Database now holds 50,038 narrations from 21 books"
+    ],
+    "title_ar": "عودة ثلاث مجاميع — غرر الحكم، وميزان الحكمة، ومشكاة الأنوار",
+    "summary_ar": "عادت إلى قاعدة بيانات الحديث ثلاث مجاميع كانت في نسختها السابقة: ١٧٬٥١٩ رواية بالعربية والإنجليزية، مربوطة بالروايات المشابهة وبالآيات القرآنية كسائر المجموعة.",
+    "highlights_ar": [
+      "غرر الحكم ودرر الكلم للآمدي — ١١٬٠١٢ من كلمات الإمام علي",
+      "ميزان الحكمة للريشهري — ٤٬٦١٢ رواية، مع الكتاب الذي نُقلت عنه كلّ منها",
+      "مشكاة الأنوار في غرر الأخبار لعلي بن الحسن الطبرسي — ١٬٨٩٥ رواية",
+      "تضمّ قاعدة بيانات الحديث الآن ٥٠٬٠٣٨ رواية من ٢١ كتاباً"
+    ]
+  },
+  {
     "id": "connector",
     "date": "2026-09-13",
     "title": "Answers You Can Check, Inside Claude and ChatGPT",

@@ -26,9 +26,9 @@ from pathlib import Path
 from elasticsearch import Elasticsearch, helpers
 
 # --- Config ---
-CACHE_FILE = "tmp/pairs_cache.json"
+CACHE_FILE = os.environ.get("LLM_SIMILAR_CACHE", "tmp/pairs_cache.json")
 CHECKPOINT_FILE = "tmp/llm_similar_load_progress.json"
-ES_INDEX = "rewayaat_updated"
+ES_INDEX = os.environ.get("REWAYAAT_INDEX", "rewayaat_hadith")
 BATCH_SIZE = 500
 DRY_RUN_VALIDATE_SAMPLE = 100
 
@@ -89,7 +89,8 @@ def save_checkpoint(cp):
 def ensure_mapping(es):
     """Add llm_similar field to ES mapping if it doesn't exist."""
     mapping = es.indices.get_mapping(index=ES_INDEX)
-    props = mapping[ES_INDEX]["mappings"].get("properties", {})
+    # ES_INDEX is usually an alias; the response is keyed by the index behind it.
+    props = next(iter(mapping.body.values()))["mappings"].get("properties", {})
     if "llm_similar" in props:
         print("  llm_similar field already exists in mapping.")
         return

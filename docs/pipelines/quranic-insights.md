@@ -74,6 +74,43 @@ python3 scripts/quranic-insights/apply_quranic_light_filter.py           # -> re
 > at `SNIPPET_TEXT_MAX = 600` chars. The full text lives in `rewayaat_tafsir`; repair
 > truncated snippets with `scripts/quranic-insights/backfill_snippet_text.py`.
 
+## Stage 3 — Strict Re-judge
+
+A second, stricter judge reads only the connections stage 2 kept as strong and drops
+any that are general rather than specific. Its output is
+`{"hadith_id", "kept": [verse_key], "removed": [verse_key]}`.
+
+```bash
+python3 scripts/quranic-insights/generate_strict_judge_batches.py   # -> tmp/qlight-strict-judge-inputs/
+# agents write tmp/qlight-strict-judge-outputs/batch_XXXX.jsonl
+python3 scripts/quranic-insights/apply_strict_judge_filter.py --dry-run
+python3 scripts/quranic-insights/apply_strict_judge_filter.py
+```
+
+`apply_strict_judge_filter.py` also applies stage-2 outputs (only `strength: strong`
+survives) and keeps `candidate_count` and `top_verse_keys` in step with the remaining
+candidates; it deletes a doc left with none.
+
+> **Known issue (live index)**: the original stage 3 judges received empty verse text
+> (the exporter read fields that do not exist, fixed in f92ddc7), and the original apply
+> left `candidate_count` and `top_verse_keys` stale. On the live index 1,153 docs
+> over-count and 9,869 docs list removed verses in `top_verse_keys`, which
+> `hadith_for_verse` searches.
+
+### Restored books (Ghurar, Mīzān, Mishkāt), October 2026
+
+The original judge prompts were not preserved; the rebuilt ones are
+`quranic-insights-v1-restore-judge-prompt.md` (stage 2) and
+`quranic-insights-v1-restore-strict-prompt.md` (stage 3). Built in the staging index
+`rewayaat_quranic_light_v1restore` (stage-1 copy `_stage1`), then copied create-only
+into the live index:
+
+| | hadith | verses |
+|---|---|---|
+| Stage 1 candidates | 17,518 | 59,071 |
+| Stage 2 strong | 3,565 | 4,499 (12,721 moderate, 41,851 removed) |
+| Stage 3 kept | 2,870 | 3,394 (1,105 removed) |
+
 ## Stage 4 — Relevant Excerpts *(unfinished)*
 
 Extracts the 1-3 sentences of a tafsir snippet that most directly explain the

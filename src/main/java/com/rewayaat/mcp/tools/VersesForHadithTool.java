@@ -63,7 +63,7 @@ public class VersesForHadithTool implements McpTool {
                 + "that grounds the connection and a link to it.\n\n"
                 + "These connections were judged in advance and only those rated strong were "
                 + "kept, so a returned verse is an argued link rather than a keyword overlap. "
-                + "22,635 of 32,519 narrations have at least one; an empty result means none "
+                + "11,426 of 50,038 narrations have at least one; an empty result means none "
                 + "survived that filter for this narration, not that no relationship exists.";
     }
 

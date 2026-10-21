@@ -139,6 +139,8 @@ public class HadithCardFactory {
                 localised(source, "chapter", chapter, locale), chapterUrl, locale);
         addRow(rows, "fa fa-arrow-right-from-bracket", label("js.source", locale),
                 localised(source, "source", str(source.get("source")), locale), null, locale);
+        addRow(rows, "fa fa-quote-right", label("js.citedFrom", locale),
+                localised(source, "cited_from", str(source.get("cited_from")), locale), null, locale);
         addRow(rows, "fa fa-pen-to-square", label("card.edition", locale),
                 localised(source, "edition", str(source.get("edition")), locale), null, locale);
         addRow(rows, "fa fa-building", label("card.publisher", locale),

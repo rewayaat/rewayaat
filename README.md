@@ -1,6 +1,6 @@
 # Rewayaat
 
-A Shia hadith research platform. 32,519 narrations from 18 books, searchable in Arabic
+A Shia hadith research platform. 50,038 narrations from 21 books, searchable in Arabic
 and English, cross-linked to similar narrations and to the Quranic verses that
 illuminate them.
 

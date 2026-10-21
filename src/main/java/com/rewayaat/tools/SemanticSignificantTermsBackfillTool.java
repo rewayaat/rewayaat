@@ -166,7 +166,7 @@ public final class SemanticSignificantTermsBackfillTool {
         source.add("arabic");
         source.add("semantic_matn_source");
         source.add(FIELD_NAME);
-        body.set("query", MAPPER.createObjectNode().set("match_all", MAPPER.createObjectNode()));
+        body.set("query", BackfillScope.query(MAPPER, readString(BackfillScope.ENV, "")));
         return postJson("/" + encode(index) + "/_search?scroll=" + encode(SCROLL_KEEPALIVE), body.toString());
     }
 

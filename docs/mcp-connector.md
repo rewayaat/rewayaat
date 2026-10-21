@@ -13,10 +13,10 @@ access to hadith. What it provides that a web search does not:
 
 | | Web search | This connector |
 |---|---|---|
-| Coverage | Tracks what has been written up in English and indexed | All 32,519 equally reachable |
+| Coverage | Tracks what has been written up in English and indexed | All 50,038 equally reachable |
 | Exhaustiveness | "These appear to be the main ones" | `chapter_size: 7` |
 | Arabic | Depends on the page being indexed | Native, over the matn |
-| Negatives | Cannot distinguish absent from unindexed | Authoritative for these 18 books |
+| Negatives | Cannot distinguish absent from unindexed | Authoritative for these 21 books |
 | Similarity, verse links | Not documents, so nothing indexes them | Returned directly |
 
 The evaluation behind #66 measured web search at **1 of 3** on non-famous content, and
@@ -102,7 +102,7 @@ corpus" — it rated an absent narration high-confidence. We do not control the 
 prompt, so the tool surface is the only channel: the boundary is in the server instructions,
 in every tool description, and in the payload of every empty result and unknown-id error.
 
-A miss means *not in these 18 books*. It is never evidence that a narration does not exist.
+A miss means *not in these 21 books*. It is never evidence that a narration does not exist.
 
 ## Response shaping
 

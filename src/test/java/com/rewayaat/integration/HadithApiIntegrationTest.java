@@ -150,6 +150,27 @@ class HadithApiIntegrationTest extends ElasticsearchTestSupport {
         assertFalse(similar.getBody().contains("semantic_vector"));
     }
 
+    /**
+     * Mīzān al-Ḥikma names the book each narration is quoted from. The narration's page
+     * shows it, in Arabic on the Arabic site.
+     */
+    @Test
+    void narrationPage_showsWhereANarrationIsCitedFrom() throws Exception {
+        indexDoc("Mizan-al-Hikma-Rayshahri:1", "{\"english\":\"the bane of knowledge is forgetfulness\","
+                + "\"arabic\":\"آفة العلم النسيان\",\"book\":\"Mīzān al-Ḥikma\",\"number\":\"1\","
+                + "\"publisher\":\"ICAS Press\",\"publisher_ar\":\"ICAS Press\","
+                + "\"cited_from\":\"Kanz al-Ummal, number:29331\",\"cited_from_ar\":\"كنز العمال، ح 29331\"}");
+
+        ResponseEntity<String> english = restTemplate.getForEntity("/hadith/Mizan-al-Hikma-Rayshahri:1", String.class);
+        assertEquals(HttpStatus.OK, english.getStatusCode());
+        assertTrue(english.getBody().contains("Kanz al-Ummal, number:29331"));
+
+        ResponseEntity<String> arabic = restTemplate.getForEntity("/ar/hadith/Mizan-al-Hikma-Rayshahri:1", String.class);
+        assertEquals(HttpStatus.OK, arabic.getStatusCode());
+        // The Arabic site writes its numbers in Arabic digits, the citation's included.
+        assertTrue(arabic.getBody().contains("كنز العمال، ح ٢٩٣٣١"));
+    }
+
     private void indexDoc(String id, String json) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> doc = mapper.readValue(json, new TypeReference<Map<String, Object>>() {

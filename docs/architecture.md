@@ -1,6 +1,6 @@
 # Architecture
 
-Rewayaat is a Shia hadith research platform: 32,519 narrations from 18 books, searchable
+Rewayaat is a Shia hadith research platform: 50,038 narrations from 21 books, searchable
 in Arabic and English, cross-linked to similar narrations and to the Quranic verses that
 illuminate them. Spring Boot 3.3.2 on Java 17, with Elasticsearch as the only datastore —
 there is no relational database.
@@ -9,7 +9,7 @@ there is no relational database.
                     ┌─────────────────────────────────────────────────┐
                     │              Elasticsearch 9.x                  │
                     │                                                 │
-                    │  rewayaat_updated                32,519 hadith  │
+                    │  rewayaat_updated                50,038 hadith  │
                     │  rewayaat_quran                   6,236 verses  │
                     │  rewayaat_tafsir                14,380 commentaries │
                     │  rewayaat_quranic_light_filtered 22,640 hadith→verse │
@@ -124,7 +124,7 @@ them look arbitrary until you know what they are protecting against.
 
 ## Elasticsearch Indices
 
-### `rewayaat_updated` — narrations (32,519)
+### `rewayaat_updated` — narrations (50,038)
 
 ```
 arabic, english                       # full text, narrator chains included

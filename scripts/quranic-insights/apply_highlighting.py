@@ -5,6 +5,11 @@ Non-destructive: only ADDS commentary_text_highlighted to snippets that don't ha
 Never overwrites existing commentary_text_highlighted values.
 Matches by (hadith_id, verse_key, tafsir_slug) triplet.
 
+An output entry carries either the whole text with tags (`commentary_text_highlighted`)
+or the exact sentences to emphasise (`quotes`). Quotes are wrapped in <em> where they
+occur verbatim, so the commentary itself cannot change; an entry with a quote that is
+not found is skipped and its key written to HL_UNMATCHED_FILE for a re-run.
+
 Usage:
     python3 scripts/quranic-insights/apply_highlighting.py              # Run for real
     python3 scripts/quranic-insights/apply_highlighting.py --dry-run    # Preview only
@@ -16,10 +21,32 @@ import sys
 from elasticsearch import Elasticsearch, helpers
 
 ES_HOST = os.environ.get("ELASTICSEARCH_URL", "http://localhost:9200")
-LIGHT_INDEX = "rewayaat_quranic_light_filtered"
-INPUT_DIR = "tmp/qlight-highlight-outputs"
+LIGHT_INDEX = os.environ.get("QURANIC_LIGHT_INDEX", "rewayaat_quranic_light_filtered")
+INPUT_DIR = os.environ.get("HL_OUTPUT_DIR", "tmp/qlight-highlight-outputs")
+UNMATCHED_FILE = os.environ.get("HL_UNMATCHED_FILE", "")
 BATCH_SIZE = 200
 DRY_RUN = "--dry-run" in sys.argv
+
+
+def wrap_quotes(text, quotes):
+    """Wrap each quote's first verbatim, non-overlapping occurrence in <em>; None if one is missing."""
+    spans = []
+    for q in quotes:
+        q = (q or "").strip()
+        if not q:
+            continue
+        start = text.find(q)
+        while start != -1 and any(start < e and start + len(q) > s for s, e in spans):
+            start = text.find(q, start + 1)
+        if start == -1:
+            return None
+        spans.append((start, start + len(q)))
+    if not spans:
+        return None
+    out = text
+    for s, e in sorted(spans, reverse=True):
+        out = out[:s] + "<em>" + out[s:e] + "</em>" + out[e:]
+    return out
 
 
 def load_highlights():
@@ -47,14 +74,16 @@ def load_highlights():
                 vk = entry.get("verse_key", "")
                 slug = entry.get("tafsir_slug", "")
                 highlighted = entry.get("commentary_text_highlighted", "")
+                if not highlighted and entry.get("quotes"):
+                    highlighted = {"quotes": entry["quotes"]}
 
                 if not hid or not vk or not highlighted:
                     continue
 
-                key = (hid, vk, slug)
-                if key not in lookup:
-                    lookup[key] = highlighted
-                    entry_count += 1
+                # A verse can carry several passages from one tafsir, so entries for a
+                # triplet are kept in order and the n-th goes to its n-th passage.
+                lookup.setdefault((hid, vk, slug), []).append(highlighted)
+                entry_count += 1
 
     print(f"Loaded {entry_count} highlights from {file_count} files")
     return lookup
@@ -71,7 +100,7 @@ def main():
     # Step 1: Load highlights
     print("\nStep 1: Loading highlights...")
     highlight_lookup = load_highlights()
-    print(f"  Unique entries: {len(highlight_lookup)}")
+    print(f"  Snippet keys: {len(highlight_lookup)}")
 
     # Step 2: Scan ES and apply
     print("\nStep 2: Scanning ES index and applying highlights...")
@@ -80,6 +109,7 @@ def main():
     updated_docs = 0
     updated_snippets = 0
     already_had = 0
+    unmatched = []
 
     for hit in helpers.scan(es, index=LIGHT_INDEX, query={"query": {"match_all": {}}},
                             _source=["hadith_id", "candidates"], scroll="5m", size=200):
@@ -90,6 +120,7 @@ def main():
         candidates = source.get("candidates", [])
 
         changed = False
+        seen = {}
         for candidate in candidates:
             vk = candidate.get("verse_key", "")
             if not vk:
@@ -99,15 +130,24 @@ def main():
                 if not slug:
                     continue
 
+                key = (hadith_id, vk, slug)
+                nth = seen.get(key, 0)
+                seen[key] = nth + 1
+
                 # Non-destructive: skip if already has commentary_text_highlighted with <em>
                 existing = snippet.get("commentary_text_highlighted", "")
                 if existing and "<em>" in existing:
                     already_had += 1
                     continue
 
-                key = (hadith_id, vk, slug)
-                if key in highlight_lookup:
-                    snippet["commentary_text_highlighted"] = highlight_lookup[key]
+                if nth < len(highlight_lookup.get(key, [])):
+                    value = highlight_lookup[key][nth]
+                    if isinstance(value, dict):
+                        value = wrap_quotes(snippet.get("commentary_text") or "", value["quotes"])
+                        if value is None:
+                            unmatched.append(key)
+                            continue
+                    snippet["commentary_text_highlighted"] = value
                     changed = True
                     updated_snippets += 1
 
@@ -143,7 +183,13 @@ def main():
     print(f"  Updated docs: {updated_docs}")
     print(f"  Updated snippets: {updated_snippets}")
     print(f"  Already highlighted: {already_had}")
-    print(f"  Not matched: {len(highlight_lookup) - updated_snippets}")
+    print(f"  Not matched: {sum(map(len, highlight_lookup.values())) - updated_snippets - len(unmatched)}")
+    print(f"  Quote not found verbatim: {len(unmatched)}")
+    if UNMATCHED_FILE and unmatched:
+        with open(UNMATCHED_FILE, "w", encoding="utf-8") as f:
+            for hid, vk, slug in unmatched:
+                f.write(json.dumps({"hadith_id": hid, "verse_key": vk, "tafsir_slug": slug},
+                                   ensure_ascii=False) + "\n")
 
 
 if __name__ == "__main__":

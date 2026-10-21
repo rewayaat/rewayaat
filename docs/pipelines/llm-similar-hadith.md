@@ -5,9 +5,10 @@ Sub-agents (Sonnet) judge whether pairs of hadith are genuinely similar. Each ha
 retrieval. Agents read a batch of source hadith plus candidates, rule on each pair, and
 write results to JSON.
 
-> **Status: complete.** 374,461 pairs judged, 47,522 similar (12.7%). Loaded into ES as
-> the `llm_similar` nested field on 25,273 of 32,519 hadith. Production carries 95,001
-> bidirectional entries, averaging 3.8 per doc.
+> **Status: complete.** 523,125 pairs judged, 68,502 similar (13.1%): the original
+> 374,461 / 47,522, plus 148,664 / 20,980 for the three books restored on 2026-10-21.
+> Loaded into ES as the `llm_similar` nested field on 36,898 of 50,038 hadith. Production
+> carries 120,719 bidirectional entries, averaging 3.3 per doc.
 >
 > This document is the runbook for re-running the loop — after adding new hadith, or to
 > finish the tail of uncached batches. For how candidates are generated and how results

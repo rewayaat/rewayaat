@@ -14,8 +14,8 @@ import sys
 from elasticsearch import Elasticsearch, helpers
 
 ES_HOST = os.environ.get("ELASTICSEARCH_URL", "http://localhost:9200")
-INDEX = "rewayaat_quranic_light_filtered"
-INPUT_DIR = "tmp/qlight-strict-judge-outputs"
+INDEX = os.environ.get("QURANIC_LIGHT_INDEX", "rewayaat_quranic_light_filtered")
+INPUT_DIR = os.environ.get("STRICT_JUDGE_OUTPUT_DIR", "tmp/qlight-strict-judge-outputs")
 DRY_RUN = "--dry-run" in sys.argv
 
 
@@ -42,7 +42,8 @@ def load_verdicts():
                 for k in d.get("kept", []):
                     if isinstance(k, str):
                         kept_vks.add(k)
-                    elif isinstance(k, dict):
+                    elif isinstance(k, dict) and k.get("strength", "strong") == "strong":
+                        # The first judge (stage 2) also rules "moderate"; only strong survives.
                         kept_vks.add(k.get("verse_key", ""))
                 if hid:
                     kept[hid] = kept_vks
@@ -104,7 +105,13 @@ def main():
                     "_op_type": "update",
                     "_index": INDEX,
                     "_id": doc_id,
-                    "doc": {"candidates": new_candidates},
+                    # The page badge reads candidate_count and hadith_for_verse searches
+                    # top_verse_keys, so both must shrink with the candidates.
+                    "doc": {
+                        "candidates": new_candidates,
+                        "candidate_count": len(new_candidates),
+                        "top_verse_keys": [c.get("verse_key", "") for c in new_candidates],
+                    },
                 })
             else:
                 # Doc has no candidates left — delete it

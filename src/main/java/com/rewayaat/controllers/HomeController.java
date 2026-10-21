@@ -3,14 +3,17 @@ package com.rewayaat.controllers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import io.swagger.v3.oas.annotations.Hidden;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.View;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.rewayaat.service.BookCatalog;
 import com.rewayaat.service.BookShelf;
@@ -30,11 +33,14 @@ public class HomeController {
 
     private final BookCatalog catalog;
     private final org.springframework.context.MessageSource messages;
+    private final LegacyIdRedirects legacyIds;
 
     public HomeController(BookCatalog catalog,
-                          org.springframework.context.MessageSource messages) {
+                          org.springframework.context.MessageSource messages,
+                          LegacyIdRedirects legacyIds) {
         this.messages = messages;
         this.catalog = catalog;
+        this.legacyIds = legacyIds;
     }
 
     /**
@@ -52,10 +58,10 @@ public class HomeController {
      * was a {@code keywords} meta, which Google has ignored since 2009.
      */
     static final String HOME_TITLE =
-            "Shia Hadith Database — Search 32,000+ Narrations in Arabic & English";
+            "Shia Hadith Database — Search 50,000+ Narrations in Arabic & English";
 
     static final String HOME_DESCRIPTION =
-            "Search 32,000+ Shia hadith in Arabic and English. Browse Al-Kafi, Nahj al-Balagha, "
+            "Search 50,000+ Shia hadith in Arabic and English. Browse Al-Kafi, Nahj al-Balagha, "
             + "Man La Yahduruh al-Faqih and more, with similar narrations and Quranic insights.";
 
     /**
@@ -100,6 +106,15 @@ public class HomeController {
                              @RequestParam(value = "page", defaultValue = "1") int page,
                              @RequestParam(value = "sort_fields", required = false) String sortFields,
                              HttpServletRequest request, final Model model) {
+        Optional<String> moved = legacyIds.target(query);
+        if (moved.isPresent()) {
+            // A permanent move: the old address is a bookmark or a crawler's memory of a
+            // narration that now has its own page, and a 302 would keep it alive.
+            if (request != null) {
+                request.setAttribute(View.RESPONSE_STATUS_ATTRIBUTE, HttpStatus.MOVED_PERMANENTLY);
+            }
+            return "redirect:" + moved.get();
+        }
         log.debug("Home request: query='{}', page={}, sort_fields='{}'", query, page, sortFields);
         model.addAttribute("query", query);
         model.addAttribute("page", page);
