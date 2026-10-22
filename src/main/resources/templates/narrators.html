@@ -48,23 +48,10 @@
             </div>
         </div>
         <div class="browse-narrator-list">
-            <a class="browse-narrator-card" th:each="man, it : ${prominentNarrators}"
-               th:href="@{${arPrefix} + '/narrator/' + ${man.person_id} + '/' + ${man.slug}}"
-               th:title="${man.full}">
-                <span class="browse-narrator-rank" aria-hidden="true"
-                      th:text="${@localeDigits.of(it.count)}">1</span>
-                <span class="browse-narrator-name" dir="rtl" lang="ar" th:text="${man.name}">زرارة بن أعين</span>
-                <span class="browse-narrator-latin" th:if="${man['latin'] != null}"
-                      th:text="${man.latin}">Zurarah ibn A'yan</span>
-                <span class="browse-narrator-said" th:if="${man['word'] != null}"
-                      th:classappend="${man['divided']} ? 'browse-narrator-said--mixed'
-                                      : 'browse-narrator-said--' + ${man['leaning']}">
-                    <span class="browse-narrator-word" th:text="${man.word}">ثقة</span>
-                    <span class="browse-narrator-whose" th:if="${man['whose'] != null}"
-                          th:text="${man.whose}">Rijāl al-Najāshī</span>
-                </span>
-            </a>
-        </div>
+        <th:block th:each="man, it : ${prominentNarrators}">
+            <th:block th:replace="~{fragments/narrator-card :: card(${man}, ${it.count})}"></th:block>
+        </th:block>
+    </div>
     </section>
 
     <th:block th:if="${!#strings.isEmpty(query)}">

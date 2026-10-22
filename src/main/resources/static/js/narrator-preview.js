@@ -62,15 +62,17 @@
         return name ? String(name).replace(/\s*\(.*\)\s*$/, "") : "";
     }
 
-    /** The life line: the Imams he transmitted under, when he died, where he lived. */
+    /** The life line: where he lived, when he died, the Imams he transmitted from. */
     function lifeLine(life) {
         if (!life) {
             return "";
         }
         var parts = [];
-        var eras = (arabic() ? life.imams_ar : life.imams) || [];
-        if (eras.length) {
-            parts.push(escaped(eras.slice(0, 3).join(" · ")));
+        var where = arabic()
+            ? town(life.city_ar || life.city_reported_ar)
+            : town(life.city || life.city_reported);
+        if (where) {
+            parts.push(escaped(where));
         }
         var died = arabic()
             ? (life.died_ar || life.died_reported_ar)
@@ -78,13 +80,70 @@
         if (died) {
             parts.push(escaped(t("narrators.died", "d. {0} AH").replace("{0}", died)));
         }
-        var where = arabic()
-            ? town(life.city_ar || life.city_reported_ar)
-            : town(life.city || life.city_reported);
-        if (where) {
-            parts.push(escaped(where));
+        var eras = (arabic() ? life.imams_ar : life.imams) || [];
+        if (eras.length) {
+            parts.push(escaped(t("narrators.preview.with", arabic() ? "عن {0}" : "with {0}")
+                .replace("{0}", eras.slice(0, 3).join(" · "))));
         }
-        return parts.join('<span class="np__dot">·</span>');
+        return parts.join('<span class="pv__dot">·</span>');
+    }
+
+    /* ── The seal ─────────────────────────────────────────────────────────────
+       The same geometry as NarratorSeal.java, which draws it server-side for the cards;
+       this copy exists because the preview is built in the browser. Keep the two in step. */
+    var PIGMENT = [
+        [220, 52, 38], [212, 50, 39], [202, 48, 38], [194, 46, 36], [186, 42, 35],
+        [172, 38, 33], [152, 36, 33], [104, 32, 34], [58, 44, 35], [40, 58, 38],
+        [26, 58, 38], [10, 52, 39], [348, 42, 40]
+    ];
+    var MAX_CHAINS = 8736;   // the most chains any narrator stands in
+    var TRACK = "M31,5h38a26,26 0 0 1 26,26v38a26,26 0 0 1 -26,26h-38a26,26 0 0 1 -26,-26v-38a26,26 0 0 1 26,-26z";
+
+    /* The lowest Imam ordinal he transmitted from; null when none is on record. */
+    function era(man) {
+        var ords = (man.imam_ordinals || []).filter(function (n) {
+            return typeof n === "number" && n >= 0 && n < PIGMENT.length;
+        });
+        return ords.length ? Math.min.apply(null, ords) : null;
+    }
+
+    function pigment(index, deep) {
+        if (index == null) {
+            return deep ? "hsl(213 58% 22%)" : "hsl(213 52% 34%)";
+        }
+        var p = PIGMENT[index];
+        return deep ? "hsl(" + p[0] + " " + (p[1] + 6) + "% " + (p[2] - 13) + "%)"
+                    : "hsl(" + p[0] + " " + p[1] + "% " + p[2] + "%)";
+    }
+
+    function seal(man, size) {
+        var index = era(man);
+        var id = "pvs" + String(man.person_id).replace(/\W/g, "") + size;
+        var big = size >= 40;   // the ring is only legible from 40px up
+        var x = big ? 15 : 3, w = big ? 70 : 94, r = big ? 20 : 26;
+        var chains = man.chains || 0;
+        var ring = "";
+        if (big) {
+            var fill = Math.min(1, Math.log(1 + chains) / Math.log(1 + MAX_CHAINS));
+            ring = '<path d="' + TRACK + '" pathLength="100" fill="none" class="nseal__track" stroke-width="5"/>'
+                + '<path d="' + TRACK + '" pathLength="100" fill="none" class="nseal__ring" stroke-width="5"'
+                + ' stroke-linecap="round" stroke-dasharray="' + (fill * 100).toFixed(1) + ' 100"/>';
+        }
+        var name = (man.display_ar || "").replace(/^\s*ال/, "").trim();
+        var letter = name ? Array.from(name)[0] : "\u061F";
+        return '<svg class="nseal" viewBox="0 0 100 100" width="' + size + '" height="' + size
+            + '" aria-hidden="true" focusable="false"><defs><linearGradient id="' + id
+            + '" x1="0" y1="0" x2="0.3" y2="1"><stop offset="0" stop-color="' + pigment(index, false)
+            + '"/><stop offset="1" stop-color="' + pigment(index, true) + '"/></linearGradient></defs>'
+            + ring
+            + '<rect x="' + x + '" y="' + x + '" width="' + w + '" height="' + w + '" rx="' + r
+            + '" fill="url(#' + id + ')"/>'
+            + '<path d="M' + x + " " + (x + r) + "Q" + x + " " + x + " " + (x + r) + " " + x
+            + "h" + (w - 2 * r) + "q" + r + " 0 " + r + " " + r + "v5L" + x + " " + (x + w * 0.52)
+            + 'Z" fill="#fff" opacity="0.16"/>'
+            + '<text x="50" y="' + (x + w * 0.76).toFixed(2) + '" text-anchor="middle"'
+            + ' font-family="Scheherazade New, Amiri, serif" font-size="' + (w * 0.68).toFixed(2)
+            + '" fill="#fff">' + escaped(letter) + "</text></svg>";
     }
 
     /* «1 books» is wrong in English and «١١ كتب» is wrong in Arabic, which counts one,
@@ -118,32 +177,23 @@
         return halves[halves.length - 1];
     }
 
-    /** What the books say, in their own words, with the books that say it. */
-    function saidRows(said) {
-        // An ungraded man gets no line about it; the empty space is the same statement
-        // and the box is small.
-        if (!said || !said.length) {
-            return "";
+    /** One row per word: the books' own term, and the books that use it. Never averaged. */
+    function saidRows(man) {
+        var said = man.said_by || [];
+        if (!said.length) {
+            // Muhmal: the books hold him and state no word. Said, not left blank.
+            return '<div class="pv__row"><span class="pv__w pv__w--none" lang="ar">\u0645\u0647\u0645\u0644</span>'
+                + '<span class="pv__b">' + escaped(
+                    t("narrator.standing.unstated", "mentioned, no judgement passed")
+                        .split(/\s[\u2014\u2013-]\s/).pop()) + "</span></div>";
         }
-        return said.slice(0, 3).map(function (row) {
+        return said.map(function (row) {
             var books = (arabic() && row.books_ar && row.books_ar.length)
                 ? row.books_ar : (row.books || []);
-            var shown = books.slice(0, 2).join(" · ");
-            var rest = books.length - 2;
-            if (rest > 0) {
-                shown += " " + t("narrators.andMore", "+{0}").replace("{0}", digits(rest));
-            }
-            var word = row.said_ar
-                ? '<span class="np__word" dir="rtl" lang="ar">'
-                    + escaped(row.said_ar) + "</span>"
-                : "";
-            if (!arabic() && (row.said || !word)) {
-                word += '<span class="np__gloss">'
-                    + escaped(word ? gloss(row.said) : row.said) + "</span>";
-            }
-            return '<p class="np__said np__said--' + escaped(row.leaning) + '">'
-                + word
-                + '<span class="np__books">' + escaped(shown) + "</span></p>";
+            var word = row.said_ar || row.said || "";
+            return '<div class="pv__row"><span class="pv__w pv__w--' + escaped(row.leaning)
+                + '" lang="ar">' + escaped(word) + "</span>"
+                + '<span class="pv__b">' + escaped(books.join(" \u00b7 ")) + "</span></div>";
         }).join("");
     }
 
@@ -152,31 +202,35 @@
             + (man.slug ? "/" + man.slug : "");
         var rests = man.standing_rests_on;
         var caveat = (rests && rests !== "early")
-            ? '<p class="np__rests">'
+            ? '<p class="pv__rests">'
                 + escaped(t("narrator.standing.restsOn." + rests, "")) + "</p>"
             : "";
-        var weight = man.entry_count
-            ? '<p class="np__weight">'
-                + escaped(countPhrase(man.entry_count, "narrators.entries"))
-                + '<span class="np__dot">·</span>'
-                + escaped(countPhrase(man.book_count, "narrators.books"))
-                + "</p>"
-            : "";
-        // The name sits on the dark panel the rest of the site names things on. A white
-        // card over a white page is a blur with a shadow; this gives it an edge to start at.
-        return '<div class="np__head">'
-            + '<p class="np__name" dir="rtl" lang="ar">' + escaped(man.display_ar) + "</p>"
+        var index = era(man);
+        var tint = index == null ? "transparent"
+            : "hsl(" + PIGMENT[index][0] + " " + PIGMENT[index][1] + "% " + PIGMENT[index][2] + "% / 0.10)";
+        var divided = (man.said_by || []).length > 1;
+        var heading = divided
+            ? t("narrators.preview.divide", arabic() ? "الكتب مختلفة فيه" : "The books divide")
+            : t("narrators.preview.says", arabic() ? "ما تقوله الكتب" : "What the books say");
+        var chains = man.chains
+            ? '<b>' + escaped(digits(Number(man.chains).toLocaleString(arabic() ? "ar" : "en"))) + "</b> "
+                + escaped(t("narrators.preview.narrations", arabic() ? "رواية" : "narrations"))
+            : (man.book_count ? escaped(countPhrase(man.book_count, "narrators.books")) : "");
+        // The name sits beside the seal; the seal's colour is his generation and its ring
+        // the weight of the corpus that runs through him.
+        return '<div class="pv__head" style="--tint:' + tint + '">'
+            + seal(man, 52)
+            + "<div>"
+            + '<p class="pv__ar" dir="rtl" lang="ar">' + escaped(man.display_ar) + "</p>"
             + (!arabic() && man.display_en
-                ? '<p class="np__name-en">' + escaped(man.display_en) + "</p>" : "")
-            + "</div>"
-            + '<div class="np__rest">'
-            + (saidRows(man.said_by) + caveat
-                ? '<div class="np__said-rows">' + saidRows(man.said_by) + caveat + "</div>" : "")
-            + '<p class="np__life">' + lifeLine(man.life) + "</p>"
-            + weight
+                ? '<p class="pv__en">' + escaped(man.display_en) + "</p>" : "")
+            + '<p class="pv__life">' + lifeLine(man.life) + "</p>"
+            + "</div></div>"
+            + '<div class="pv__says"><h3>' + escaped(heading) + "</h3>"
+            + '<div class="pv__rows">' + saidRows(man) + "</div>" + caveat + "</div>"
+            + '<div class="pv__foot"><span>' + chains + "</span>"
             + '<a class="np__go" href="' + escaped(href) + '">'
-            + escaped(t("js.preview.open", "Open his page")) + "</a>"
-            + "</div>";
+            + escaped(t("js.preview.open", "Open his page")) + "</a></div>";
     }
 
     function shut() {
@@ -190,12 +244,26 @@
         openedFrom = null;
     }
 
+    /* hadith.html, chapter.html and index.html build their own heads, so the card's
+       stylesheet cannot be linked once for all of them. It is added here, after the page's
+       own sheets, the first time a card is made. */
+    function styled() {
+        if (document.querySelector('link[href*="narrator-cards"]')) {
+            return;
+        }
+        var link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = "/css/narrator-cards.css";
+        document.head.appendChild(link);
+    }
+
     function frame() {
         if (card) {
             return card;
         }
+        styled();
         card = document.createElement("div");
-        card.className = "narrator-preview";
+        card.className = "narrator-preview pv";
         card.setAttribute("role", "dialog");
         card.setAttribute("aria-label", t("js.preview", "Preview"));
         card.innerHTML = '<button class="np__shut" type="button" aria-label="'

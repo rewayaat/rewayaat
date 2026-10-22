@@ -43,6 +43,9 @@ public class NarratorController {
     @Autowired
     private UiMessages messages;
 
+    @Autowired
+    private com.rewayaat.service.ProminentNarrators prominent;
+
     /**
      * The little the preview card needs, and nothing else.
      *
@@ -117,15 +120,17 @@ public class NarratorController {
      * <p>One list, because the preview card and the rijāl panel share a browser cache and
      * a brief from either must be usable by both.
      */
-    private static Map<String, Object> briefOf(Map<String, Object> narrator) {
+    private Map<String, Object> briefOf(Map<String, Object> narrator) {
         Map<String, Object> brief = new LinkedHashMap<>();
         for (String field : new String[]{"person_id", "display_ar", "display_en", "slug",
                                          "said_by", "standing", "standing_rests_on", "life",
-                                         "entry_count", "kind", "moved_to"}) {
+                                         "entry_count", "kind", "moved_to", "imam_ordinals"}) {
             if (narrator.get(field) != null) {
                 brief.put(field, narrator.get(field));
             }
         }
+        // The seal's ring and the card's footer: narrations his name stands in.
+        brief.put("chains", prominent.chainsOf(String.valueOf(narrator.get("person_id"))));
         brief.put("book_count", narrator.get("books") instanceof List<?> books ? books.size() : 0);
         return brief;
     }

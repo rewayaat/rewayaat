@@ -77,6 +77,37 @@ public class ProminentNarrators {
         return shown;
     }
 
+    private final Cache<String, Long> chains = Caffeine.newBuilder()
+            .maximumSize(5000)
+            .expireAfterWrite(CACHE_TTL)
+            .build();
+
+    /**
+     * How many narrations one man's name stands in — the same number the ranking above
+     * counts, for the preview card's seal and footer. Zero on any failure, so the card
+     * simply draws no ring.
+     */
+    public long chainsOf(String personId) {
+        if (!enabled || personId == null || personId.isBlank()) {
+            return 0;
+        }
+        Long cached = chains.getIfPresent(personId);
+        if (cached != null) {
+            return cached;
+        }
+        try (ESClientProvider provider = new ESClientProvider()) {
+            long found = provider.client().count(c -> c
+                    .index(ESClientProvider.INDEX)
+                    .query(q -> q.term(t -> t.field("chain_links.p.keyword").value(personId))))
+                    .count();
+            chains.put(personId, found);
+            return found;
+        } catch (Exception e) {
+            LOGGER.warn("Could not count the narrations naming {}: {}", personId, e.getMessage());
+            return 0;
+        }
+    }
+
     private List<Map<String, Object>> rank(int howMany) {
         List<Map<String, Object>> found = new ArrayList<>();
         try (ESClientProvider provider = new ESClientProvider()) {
@@ -161,6 +192,12 @@ public class ProminentNarrators {
         row.put("short_ar", shortened(man.get("display_ar"), AR_CONNECTORS));
         row.put("short_en", shortened(man.get("display_en"), EN_CONNECTORS));
         row.put("narrations", narrations);
+        // The seal's colour: the lowest Imam ordinal he transmitted from (see NarratorSeal).
+        row.put("ordinals", man.get("imam_ordinals") instanceof List<?> ords ? ords : List.of());
+        row.put("book_count", man.get("books") instanceof List<?> books ? books.size() : 0);
+        // Every row the books give, not only the first: Sahl b. Ziyad has three words from
+        // four books, and a card that kept one would be choosing a side for the reader.
+        row.put("stands", man.get("said_by") instanceof List<?> said ? said : List.of());
         if (man.get("said_by") instanceof List<?> said && !said.isEmpty()
                 && said.get(0) instanceof Map<?, ?> first) {
             // Sahl b. Ziyad stands in 1,524 chains and the books do not agree about him:
@@ -194,6 +231,50 @@ public class ProminentNarrators {
      * the rule in one place, where a missing Arabic form can fall back without the page
      * printing Latin on an Arabic screen by accident.
      */
+    private static List<Map<String, Object>> wordsOf(Object stands, boolean arabic) {
+        List<Map<String, Object>> words = new ArrayList<>();
+        if (!(stands instanceof List<?> rows) || rows.isEmpty()) {
+            return words;
+        }
+        Map<?, ?> pro = null;
+        Map<?, ?> con = null;
+        for (Object o : rows) {
+            if (o instanceof Map<?, ?> m) {
+                if (pro == null && "for".equals(m.get("leaning"))) {
+                    pro = m;
+                } else if (con == null && "against".equals(m.get("leaning"))) {
+                    con = m;
+                }
+            }
+        }
+        // Where the books take both sides the card shows one word from each side, strongest
+        // first in the record's own order; otherwise just the first row.
+        List<Map<?, ?>> picked = new ArrayList<>();
+        if (pro != null && con != null) {
+            picked.add(pro);
+            picked.add(con);
+        } else if (rows.get(0) instanceof Map<?, ?> first) {
+            picked.add(first);
+        }
+        for (Map<?, ?> m : picked) {
+            Map<String, Object> w = new java.util.LinkedHashMap<>();
+            w.put("word", arabic && m.get("said_ar") != null ? m.get("said_ar") : m.get("said"));
+            w.put("arabic", m.get("said_ar"));
+            // «thiqa — trustworthy» → «trustworthy»: the Arabic term already leads.
+            String said = String.valueOf(m.get("said"));
+            w.put("gloss", arabic || m.get("said") == null ? null
+                    : said.substring(said.lastIndexOf('—') + 1).trim());
+            w.put("leaning", m.get("leaning"));
+            Object books = arabic && m.get("books_ar") != null ? m.get("books_ar") : m.get("books");
+            if (books instanceof List<?> b && !b.isEmpty()) {
+                w.put("book", b.get(0));
+                w.put("more", b.size() - 1);
+            }
+            words.add(w);
+        }
+        return words;
+    }
+
     private static Map<String, Object> forLocale(Map<String, Object> man, PageLocale locale) {
         boolean arabic = locale != null && locale.isArabic();
         Map<String, Object> row = new java.util.LinkedHashMap<>(man);
@@ -201,6 +282,7 @@ public class ProminentNarrators {
         row.put("full", arabic ? man.get("display_ar") : man.get("display_en"));
         row.put("latin", arabic ? null : man.get("short_en"));
         row.put("word", arabic ? man.get("said_ar") : man.get("said"));
+        row.put("words", wordsOf(man.get("stands"), arabic));
         Object book = arabic ? man.getOrDefault("book_ar", man.get("book")) : man.get("book");
         row.put("whose", book);
         return row;

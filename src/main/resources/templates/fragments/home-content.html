@@ -163,6 +163,9 @@
      chain links, so the order is a fact with a number beside it rather than a judgement of
      ours. The Imams are left out: al-Ṣādiq stands in more chains than anyone and is the
      source they run to, not a narrator among them. -->
+<!-- index.html builds its own head, so the narrator cards' stylesheet is linked here, after
+     manuscript.css, where it can override it. -->
+<link rel="stylesheet" href="/css/narrator-cards.css" th:href="@{/css/narrator-cards.css}"/>
 <section class="home-narrators" id="narrators" th:if="${!#lists.isEmpty(prominentNarrators)}">
     <div class="home-section-header">
         <div>
@@ -174,30 +177,9 @@
         </div>
     </div>
     <div class="browse-narrator-list">
-        <a class="browse-narrator-card" th:each="man, it : ${prominentNarrators}"
-           th:href="@{${arPrefix} + '/narrator/' + ${man.person_id} + '/' + ${man.slug}}"
-           th:title="${man.full}">
-            <span class="browse-narrator-rank" aria-hidden="true"
-                  th:text="${@localeDigits.of(it.count)}">1</span>
-            <span class="browse-narrator-name" dir="rtl" lang="ar" th:text="${man.name}">زرارة بن أعين</span>
-            <!-- Only the English site carries the Latin reading; on the Arabic one the
-                 service hands back nothing for it. -->
-            <span class="browse-narrator-latin" th:if="${man['latin'] != null}"
-                  th:text="${man.latin}">Zurarah ibn A'yan</span>
-            <!-- Where the books do not all lean the same way, the card says so rather
-                 than printing the first word and letting it stand for all of them. -->
-            <span class="browse-narrator-said" th:if="${man['word'] != null}"
-                  th:classappend="${man['divided']} ? 'browse-narrator-said--mixed'
-                                  : 'browse-narrator-said--' + ${man['leaning']}">
-                <span class="browse-narrator-word" th:text="${man.word}">ثقة</span>
-                <span class="browse-narrator-whose" th:if="${man['whose'] != null}"
-                      th:text="${man.whose}">Rijāl al-Najāshī</span>
-                <span class="browse-narrator-divided" th:if="${man['divided']}"
-                      th:text="#{narrator.standing.disputed}">The books disagree about him</span>
-            </span>
-            <span class="browse-narrator-count"
-                  th:text="${@counts.of(man.narrations, 'home.narratorNarrations')}">911 narrations</span>
-        </a>
+        <th:block th:each="man, it : ${prominentNarrators}">
+            <th:block th:replace="~{fragments/narrator-card :: card(${man}, ${it.count})}"></th:block>
+        </th:block>
     </div>
 </section>
 
