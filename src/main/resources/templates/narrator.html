@@ -283,7 +283,7 @@
                 </span>
                 <span class="ledger__verdict ledger__verdict--none"
                       th:if="${#lists.isEmpty(narrator.for_him) and #lists.isEmpty(narrator.against_him)}"
-                      th:text="#{narrator.standing.unstated}">No book grades him</span>
+                      th:text="#{narrator.standing.unstatedShort}">مهمل · Muhmal</span>
             </div>
             <div class="ledger__label" th:text="#{narrator.ledger.whatBooksSay}">What the books say</div>
             <div class="ledger__note" th:text="#{narrator.ledger.readEntries}">read the entries →</div>
@@ -323,8 +323,12 @@
         <a class="narrator-tab" th:href="${chainsUrl}"
            th:classappend="${view == 'chains'} ? 'is-active' : ''">
             <span th:text="#{narrator.tab.chains}">Teachers &amp; students</span>
+            <!-- Every man the tab lists, not only the ones a book calls teacher or pupil.
+                 Only 1,383 of the 15,518 have one of those at all, so counting them alone
+                 printed «0» over a tab holding hundreds of men from the chain indexes. -->
             <span class="narrator-tab__count"
-                  th:text="${@localeDigits.grouped(narrator.teacher_count + narrator.student_count)}">63</span>
+                  th:text="${@localeDigits.grouped(narrator.teacher_count + narrator.student_count
+                                                   + (narrator['chain_only_count'] ?: 0))}">63</span>
         </a>
         <a class="narrator-tab" th:href="${narrationsUrl}"
            th:classappend="${view == 'narrations'} ? 'is-active' : ''">

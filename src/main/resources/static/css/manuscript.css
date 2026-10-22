@@ -15599,6 +15599,11 @@ a.rijal-link__words:focus-visible {
     font-size: 0.86rem;
     font-weight: 600;
     color: var(--text-muted, #94a3b8);
+    /* The standing is a word of the discipline's, and «مهمل · Muhmal» is longer than the
+       counts in the tiles beside it. Nowrap is right for «3 call him reliable» and wrong
+       here: it ran the line out of its tile and over the narration count. */
+    white-space: normal;
+    line-height: 1.35;
 }
 
 /* Reporting a mistake. Quiet, at the foot of the page, next to the line that says what the
