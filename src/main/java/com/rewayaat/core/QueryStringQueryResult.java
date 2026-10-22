@@ -242,6 +242,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                             qs.query(residualQuery);
                             qs.fields(queryFields != null ? queryFields : SEARCHABLE_FIELDS);
                             qs.fuzzyPrefixLength(FUZZY_PREFIX_LENGTH);
+                            qs.phraseSlop(PHRASE_SLOP);
                             if (strictMatchMode) {
                                 qs.defaultOperator(Operator.And);
                             }
@@ -361,6 +362,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                             qs.query(residualQuery);
                             qs.fields(queryFields != null ? queryFields : SEARCHABLE_FIELDS);
                             qs.fuzzyPrefixLength(FUZZY_PREFIX_LENGTH);
+                            qs.phraseSlop(PHRASE_SLOP);
                             if (strictMatchMode) {
                                 qs.defaultOperator(Operator.And);
                             }
@@ -411,6 +413,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                 .highlightQuery(q -> q.queryString(qs -> {
                     qs.query(buildHighlightQueryString(query)).fields(SEARCHABLE_FIELDS);
                     qs.fuzzyPrefixLength(FUZZY_PREFIX_LENGTH);
+                    qs.phraseSlop(PHRASE_SLOP);
                     if (strictMatchMode) {
                         qs.defaultOperator(Operator.And);
                     }
@@ -467,6 +470,18 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
      * Anything absent here is deliberately unsearchable - annotations, footnotes, gradings,
      * translation suggestions, the llm_similar bookkeeping and the semantic sources.
      */
+    /**
+     * How far a quoted phrase may stretch.
+     *
+     * <p>A reader quoting a narration is quoting one edition of it, and the editions
+     * differ in what they put between the words: «قال أبو عبد الله عليه السلام» in one
+     * book, «قال أبو عبد الله (ع)» in another, and the salutation is dropped from the
+     * query in {@code HadithQueryService} rather than guessed at. Four is the width of
+     * the longest of those insertions, «صلى الله عليه وآله», and no wider: a phrase is
+     * still a phrase.
+     */
+    private static final double PHRASE_SLOP = 4;
+
     private static final List<String> SEARCHABLE_FIELDS = List.of(
             "english", "arabic", "chapter", "notes",
             "book.text", "volume.text", "part.text", "section.text",
