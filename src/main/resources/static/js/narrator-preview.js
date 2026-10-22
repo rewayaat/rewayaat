@@ -146,6 +146,33 @@
             + '" fill="#fff">' + escaped(letter) + "</text></svg>";
     }
 
+    /* The generations strip: the Prophet and the twelve Imams as thirteen marks, his own lit
+       in his pigment. It says in a glance what the life line says in words, and the words
+       stay in the label for a screen reader. A man with no Imam on record gets no strip. */
+    function strip(man) {
+        var lit = (man.imam_ordinals || []).filter(function (n) {
+            return typeof n === "number" && n >= 0 && n < PIGMENT.length;
+        });
+        if (!lit.length) {
+            return "";
+        }
+        var names = ((arabic() ? (man.life || {}).imams_ar : (man.life || {}).imams) || []);
+        var label = names.length
+            ? t("narrators.preview.with", arabic() ? "عن {0}" : "with {0}")
+                .replace("{0}", names.join(arabic() ? "، " : ", "))
+            : "";
+        var marks = "";
+        for (var i = 0; i < PIGMENT.length; i++) {
+            var on = lit.indexOf(i) >= 0;
+            marks += '<i class="pv__gen' + (on ? " is-lit" : "") + '"'
+                + (on ? ' style="background:hsl(' + PIGMENT[i][0] + " " + (PIGMENT[i][1] + 14) + "% "
+                    + (PIGMENT[i][2] + 24) + '%)"' : "") + "></i>";
+        }
+        return '<div class="pv__gens" role="img"'
+            + (label ? ' aria-label="' + escaped(label) + '"' : ' aria-hidden="true"') + ">"
+            + marks + "</div>";
+    }
+
     /* «1 books» is wrong in English and «١١ كتب» is wrong in Arabic, which counts one,
        two, a few (three to ten) and many (eleven up) differently. The bare key carries the
        many form; the rest hang off it. Exposed below, because the search results count the
@@ -225,6 +252,7 @@
             + (!arabic() && man.display_en
                 ? '<p class="pv__en">' + escaped(man.display_en) + "</p>" : "")
             + '<p class="pv__life">' + lifeLine(man.life) + "</p>"
+            + strip(man)
             + "</div></div>"
             + '<div class="pv__says"><h3>' + escaped(heading) + "</h3>"
             + '<div class="pv__rows">' + saidRows(man) + "</div>" + caveat + "</div>"

@@ -298,6 +298,44 @@ html[dir="rtl"] .pv__ar { text-align: right; padding-right: 0; padding-left: 1.4
     .ncard:hover { transform: none; }
 }
 
+/* ── The preview card, royal blue ────────────────────────────────────────────
+   It opens over the rijal panel, which is navy, so a parchment card read as something pasted
+   on the chain. Only .pv goes dark; the grid cards stay light.
+
+   Measured against #152d4e, the lighter end and so the worst case: name #fffdf8 13.6:1,
+   transliteration #c3cfe2 8.8, life line and books #bccadf 8.3, small-caps heading and
+   caveat #a9bad3 7.0, thiqa #7fd9a6 8.2, daif #ff9d8c 6.9, "His page" #d9b35c 7.0. */
+.narrator-preview.pv {
+    background: linear-gradient(180deg, #152d4e, #0f2440);
+    border: 1px solid #36568a;
+    color: #fffdf8;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), 0 18px 38px rgba(0, 0, 0, 0.45);
+    --nc-for: #7fd9a6;
+    --nc-against: #ff9d8c;
+}
+.pv .nseal__track { stroke: rgba(255, 255, 255, 0.24); }
+.pv .np__shut { color: #bccadf; }
+.pv .np__shut:hover { color: #fffdf8; }
+.pv .np__shut:focus-visible,
+.pv .np__go:focus-visible { outline-color: #d9b35c; }
+.pv__head { background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), transparent 75%);
+    border-bottom: 1px solid rgba(200, 162, 61, 0.55); }
+.pv__ar { color: #fffdf8; }
+.pv__en { color: #c3cfe2; }
+.pv__life { color: #bccadf; }
+.pv__dot { color: #8ea3c4; }
+.pv__says h3, .pv__rests { color: #a9bad3; }
+.pv__w--none { color: #bccadf; }
+.pv__b { color: #bccadf; }
+.pv__foot { background: rgba(0, 0, 0, 0.22); border-top: 1px solid rgba(255, 255, 255, 0.12);
+    color: #bccadf; }
+.pv__foot b { color: #fffdf8; }
+.pv__foot .np__go { color: #d9b35c; }
+
+/* Thirteen marks: the Prophet and the twelve Imams. His are lit in his pigment (inline),
+   the rest are a faint rule. No labels; the aria-label carries the names. */
+.pv__gens { display: flex; gap: 2px; width: min(100%, 14rem); height: 6px; margin-top: 0.5rem; }
+.pv__gen { flex: 1 1 0; border-radius: 1px; background: rgba(255, 255, 255, 0.16); }
 /* ── Contrast ────────────────────────────────────────────────────────────────
    A card at #fefdfb on a #f5f7fa page differs from its background by about one per
    cent of luminance, so the grid read as text floating on a sheet rather than as

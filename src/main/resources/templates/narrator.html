@@ -7,11 +7,18 @@
 <main class="container py-3">
     <nav th:replace="~{fragments/site :: crumbtrail}"></nav>
 
-    <header class="hub-hero hub-hero--split">
+    <header class="hub-hero hub-hero--split hub-hero--sealed">
         <div class="hub-hero__identity">
             <!-- There was a gold roundel here holding the first word of his name. It sat
                  beside the full name it was taken from, so it said nothing the line below
                  it did not, and a disc of ornament is not what a reader came for. -->
+            <!-- The same seal the cards and the chain preview carry, so the page opens with the
+                 mark the reader already met. The ring uses the figure the ledger prints as
+                 Narrations, so the two cannot disagree. -->
+            <div class="narrator-id">
+            <span class="narrator-id__seal"
+                  th:utext="${@seals.of(narratorId, displayAr, narrator['imam_ordinals'], narrationTotal, 72)}"></span>
+            <div class="narrator-id__text">
             <div class="hub-hero__eyebrow" th:text="#{narrator.eyebrow}">Narrator</div>
             <h1 class="hub-hero__title narrator-name-ar" dir="rtl" lang="ar"
                 th:text="${displayAr}">اسم الراوي</h1>
@@ -20,6 +27,8 @@
             <p class="narrator-name-en"
                th:if="${!#strings.isEmpty(displayEn) and #locale.language != 'ar'}"
                th:text="${displayEn}">Transliterated name</p>
+            </div>
+            </div>
 
             <!-- What the books say, in their own words and with their own names on them.
                  This used to read «Held reliable» — a word no rijālī wrote. A scholar wants

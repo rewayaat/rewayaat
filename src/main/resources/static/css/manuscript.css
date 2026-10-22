@@ -17238,3 +17238,26 @@ a.isnad-man__name:hover .isnad-man__en {
     text-underline-offset: 3px;
 }
 [dir="rtl"] .narrator-names__all { text-align: right; }
+
+/* The seal beside the name in a narrator's hero. Logical properties, so the seal sits at
+   the start edge in both directions. On a phone the hero centres its text, so the seal
+   stacks above it. */
+.narrator-id { display: flex; align-items: center; gap: 1.1rem; }
+.narrator-id__seal { flex: none; display: block; line-height: 0; }
+.narrator-id__text { min-width: 0; flex: 1 1 auto; }
+.narrator-id .nseal__track { stroke: rgba(255, 255, 255, 0.22); }
+@media (max-width: 767.98px) {
+    .narrator-id { flex-direction: column; gap: 0.7rem; }
+}
+
+/* The seal costs the identity column 72px plus its gap, and the name paid for it:
+   «الحسن بن محبوب السراد» broke across two lines while the blurb beside it sat on one.
+   The narrator hero gets the even split, and the seal lines up with the eyebrow rather
+   than floating against the middle of the name. */
+.hub-hero--sealed { grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); }
+.hub-hero--sealed .narrator-id { align-items: flex-start; }
+.hub-hero--sealed .narrator-id__seal { margin-top: 0.15rem; }
+@media (max-width: 767.98px) {
+    .hub-hero--sealed { grid-template-columns: 1fr; }
+    .hub-hero--sealed .narrator-id { align-items: center; }
+}
