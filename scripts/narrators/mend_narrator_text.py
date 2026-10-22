@@ -45,8 +45,14 @@ CARRY = 64               # kept between pieces so a severed word is never split 
 # pieces it would also trim at the seams between them.
 MILESTONE_GAP = re.compile(r" ?(?:" + MILESTONE.pattern + r") ?")
 
+# **Invisible characters.** OpenITI writes «المعروف ب‌:ماكردويه» with a zero-width
+# non-joiner inside it. It shows as nothing, but a name is matched against chain text
+# literally, so a name carrying one can never match. The corpus repair of 2026-10-22 took
+# these out of the narration text; this takes them out of the names.
+INVISIBLE = re.compile("[\u200b-\u200f\u202a-\u202e\u2060\ufeff]")
+
 # what each rule puts in place of what it finds
-RULES = ((MANGLED_SIN, "س"), (MILESTONE_GAP, " "))
+RULES = ((MANGLED_SIN, "س"), (MILESTONE_GAP, " "), (INVISIBLE, ""))
 
 
 def mend_text(text):

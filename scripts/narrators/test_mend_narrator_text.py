@@ -80,5 +80,18 @@ class MilestoneTest(unittest.TestCase):
         self.assertEqual(mend_text("إسماعيل بن دينار كوفي")[1], 0)
 
 
+class InvisibleCharacters(unittest.TestCase):
+
+    def test_a_zero_width_joiner_in_a_name_goes(self):
+        mended, n = mend_text("أبو إسحاق المعروف ب\u200c:ابن أبي هراسة")
+        self.assertEqual(mended, "أبو إسحاق المعروف ب:ابن أبي هراسة")
+        self.assertEqual(n, 1)
+
+    def test_a_clean_name_is_left_alone(self):
+        mended, n = mend_text("إبراهيم بن هاشم القمي")
+        self.assertEqual(n, 0)
+        self.assertEqual(mended, "إبراهيم بن هاشم القمي")
+
+
 if __name__ == "__main__":
     unittest.main()
