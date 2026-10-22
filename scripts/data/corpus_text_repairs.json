@@ -1,0 +1,665 @@
+{
+ "note": "Per-case repairs for text the audit of 2026-10-22 found damaged. The rule-based classes live in repair_corpus_text.py; this file holds only the cases that needed a reading chosen for them. 'old' must occur exactly once in the field or the repair is refused.",
+ "lost_characters": [
+  {
+   "id": "Kitab-al-Ghayba-Tusi:157",
+   "field": "arabic",
+   "old": "��ين",
+   "new": "بين",
+   "why": "المشهور الذي لا مرية فيه بين الطائفة"
+  },
+  {
+   "id": "Kitab-al-Ghayba-Tusi:629",
+   "field": "arabic",
+   "old": "��زيد",
+   "new": "يزيد",
+   "why": "a nasab chain: بن يزيد"
+  },
+  {
+   "id": "Al-Kafi-Volume-2-Kulayni:1412",
+   "field": "arabic",
+   "old": "وَهَيْمَن��",
+   "new": "وَهَيْمَنَ",
+   "why": "the sermon's verbs all take fatha: وَهَيْمَنَ كِتَابُهُ"
+  },
+  {
+   "id": "Al-Kafi-Volume-6-Kulayni:2351",
+   "field": "arabic",
+   "old": "رَس��ولِ",
+   "new": "رَسُولِ",
+   "why": "corpus frequency: 1336x رَسُولِ against 14x رَسولِ"
+  },
+  {
+   "id": "Al-Kafi-Volume-4-Kulayni:1048",
+   "field": "arabic",
+   "old": "��َاتِ",
+   "new": "ذَاتِ",
+   "why": "the miqat ذَات عِرْق, listed among places"
+  },
+  {
+   "id": "Al-Kafi-Volume-4-Kulayni:48",
+   "field": "arabic",
+   "old": "عَلَ��ْهِ",
+   "new": "عَلَيْهِ",
+   "why": "corpus frequency: 28543x عَلَيْهِ against 0x عَلَْٰهِ"
+  },
+  {
+   "id": "Al-Kafi-Volume-4-Kulayni:1269",
+   "field": "arabic",
+   "old": "فَيَسْتَظِلّ��",
+   "new": "فَيَسْتَظِلُّ",
+   "why": "corpus frequency: 1x فَيَسْتَظِلُّ against 0x فَيَسْتَظِلّٰ"
+  },
+  {
+   "id": "Al-Kafi-Volume-5-Kulayni:1413",
+   "field": "english",
+   "old": "��I",
+   "new": "“I",
+   "why": "al-Kafi v5 opens reported speech with a double quote"
+  },
+  {
+   "id": "Al-Kafi-Volume-5-Kulayni:1526",
+   "field": "arabic",
+   "old": "حَيَّ��ً",
+   "new": "حَيَّةً",
+   "why": "corpus frequency: 13x حَيَّةً against 0x حَيًَّٰ"
+  },
+  {
+   "id": "Al-Kafi-Volume-6-Kulayni:397",
+   "field": "arabic",
+   "old": "كَا��َتْ",
+   "new": "كَانَتْ",
+   "why": "corpus frequency: 968x كَانَتْ against 4x كَادَتْ"
+  },
+  {
+   "id": "Al-Kafi-Volume-4-Kulayni:1424",
+   "field": "arabic",
+   "old": "م��حَمَّدِ",
+   "new": "مُحَمَّدِ",
+   "why": "corpus frequency: 9636x مُحَمَّدِ against 0x مٰحَمَّدِ"
+  },
+  {
+   "id": "Al-Kafi-Volume-7-Kulayni:12",
+   "field": "arabic",
+   "old": "يُوصِ��اهُ",
+   "new": "يُوصِلاهُ",
+   "why": "same narration says وَأَوْصَلا; the translation reads 'deliver'"
+  },
+  {
+   "id": "Al-Kafi-Volume-4-Kulayni:597",
+   "field": "arabic",
+   "old": "مُح��مَّدِ",
+   "new": "مُحَمَّدِ",
+   "why": "corpus frequency: 9636x مُحَمَّدِ against 0x مُحٰمَّدِ"
+  },
+  {
+   "id": "Al-Kafi-Volume-5-Kulayni:686",
+   "field": "english",
+   "old": "��”",
+   "new": "’”",
+   "why": "inner single quote closes before the outer double"
+  },
+  {
+   "id": "Al-Kafi-Volume-5-Kulayni:1053",
+   "field": "english",
+   "old": "Ja���far",
+   "new": "Ja‘far",
+   "why": "the document spells Sama‘ah and ‘Abd with U+2018"
+  },
+  {
+   "id": "Al-Kafi-Volume-3-Kulayni:747",
+   "field": "arabic",
+   "old": "مَدْ��َلِهِ",
+   "new": "مَدْخَلِهِ",
+   "why": "the burial supplication: وَوَسِّعْ لَهُ فِي مَدْخَلِهِ"
+  },
+  {
+   "id": "Al-Kafi-Volume-6-Kulayni:1625",
+   "field": "english",
+   "old": "Ja��far",
+   "new": "Ja‘far",
+   "why": "the document spells ‘Abd Allah with U+2018"
+  },
+  {
+   "id": "Al-Kafi-Volume-1-Kulayni:1282",
+   "field": "arabic",
+   "old": "سَعْد��",
+   "new": "سَعْدُ",
+   "why": "chain head, nominative: سَعْدُ بْنُ عَبْدِ الله"
+  },
+  {
+   "id": "Al-Kafi-Volume-4-Kulayni:797",
+   "field": "arabic",
+   "old": "الل��",
+   "new": "الله",
+   "why": "corpus frequency: 50054x الله against 1x اللص"
+  },
+  {
+   "id": "Mujam-al-Ahadith-al-Mutabara-Muhsini:67",
+   "field": "arabic",
+   "old": "يقو��",
+   "new": "يقول",
+   "why": "corpus frequency: 2054x يقول against 130x يقوم"
+  },
+  {
+   "id": "Al-Amali-Saduq:764",
+   "field": "arabic",
+   "old": "��ن",
+   "new": "عن",
+   "why": "a chain link: عن أبي بصير"
+  },
+  {
+   "id": "Al-Amali-Mufid:304",
+   "field": "arabic",
+   "old": "قبي��ة",
+   "new": "قبيصة",
+   "why": "Qabisa ibn Jabir al-Asadi"
+  },
+  {
+   "id": "Maani-al-Akhbar-Saduq:632",
+   "field": "arabic",
+   "old": "أمت��",
+   "new": "أمتي",
+   "why": "the Prophet speaking of أمتي"
+  },
+  {
+   "id": "Al-Kafi-Volume-3-Kulayni:527",
+   "field": "arabic",
+   "old": "يَظْه��رَ",
+   "new": "يَظْهَرَ",
+   "why": "corpus frequency: 16x يَظْهَرَ against 0x يَظْهٰرَ"
+  },
+  {
+   "id": "Thawab-al-Amal-wa-iqab-al-Amal-Saduq:558",
+   "field": "arabic",
+   "old": "الدَّیْلَمِیّ��",
+   "new": "الدَّیْلَمِیِّ",
+   "why": "corpus frequency: 4x الدَّیْلَمِیِّ against 0x الدَّیْلَمِیّٰ"
+  },
+  {
+   "id": "Kitab-al-Ghayba-Numani:303",
+   "field": "arabic",
+   "old": "ن��لت",
+   "new": "نزلت",
+   "why": "corpus frequency: 82x نزلت against 6x نقلت"
+  },
+  {
+   "id": "Al-Kafi-Volume-2-Kulayni:1516",
+   "field": "arabic",
+   "old": "ي��ا",
+   "new": "يَا",
+   "why": "the vocative يَا رَبِّ"
+  },
+  {
+   "id": "Al-Kafi-Volume-4-Kulayni:180",
+   "field": "arabic",
+   "old": "عَاش��",
+   "new": "عَاشَ",
+   "why": "corpus frequency: 30x عَاشَ against 0x عَاشٰ"
+  },
+  {
+   "id": "Al-Kafi-Volume-4-Kulayni:531",
+   "field": "arabic",
+   "old": "��َهْرِ",
+   "new": "شَهْرِ",
+   "why": "شَهْر رَمَضَان"
+  },
+  {
+   "id": "Al-Kafi-Volume-3-Kulayni:305",
+   "field": "arabic",
+   "old": "أَ��ْحَابِكَ",
+   "new": "أَصْحَابِكَ",
+   "why": "corpus frequency: 16x أَصْحَابِكَ against 0x أَْٰحَابِكَ"
+  },
+  {
+   "id": "Al-Kafi-Volume-3-Kulayni:1636",
+   "field": "arabic",
+   "old": "يَ��ِيدَ",
+   "new": "يَزِيدَ",
+   "why": "corpus frequency: 461x يَزِيدَ against 1x يَصِيدَ"
+  },
+  {
+   "id": "Al-Kafi-Volume-3-Kulayni:1199",
+   "field": "arabic",
+   "old": "بِاس��مِ",
+   "new": "بِاسْمِ",
+   "why": "corpus frequency: 27x بِاسْمِ against 2x بِاسمِ"
+  },
+  {
+   "id": "Al-Kafi-Volume-4-Kulayni:2149",
+   "field": "arabic",
+   "old": "س��كَنَ",
+   "new": "سَكَنَ",
+   "why": "corpus frequency: 30x سَكَنَ against 0x سٰكَنَ"
+  },
+  {
+   "id": "Al-Kafi-Volume-4-Kulayni:903",
+   "field": "arabic",
+   "old": "وَ��َلَّ",
+   "new": "وَجَلَّ",
+   "why": "corpus frequency: 2943x وَجَلَّ against 5x وَضَلَّ"
+  },
+  {
+   "id": "Kamil-al-Ziyarat-Qummi:725",
+   "field": "arabic",
+   "old": "رَج��لٍ",
+   "new": "رَجُلٍ",
+   "why": "corpus frequency: 2266x رَجُلٍ against 0x رَجٰلٍ"
+  },
+  {
+   "id": "Kamil-al-Ziyarat-Qummi:89",
+   "field": "arabic",
+   "old": "الْأَ��ِمَّةِ",
+   "new": "الْأَئِمَّةِ",
+   "why": "corpus frequency: 27x الْأَئِمَّةِ against 0x الْأَِٰمَّةِ"
+  },
+  {
+   "id": "Al-Kafi-Volume-6-Kulayni:1165",
+   "field": "arabic",
+   "old": "فَ��َالَتْ",
+   "new": "فَقَالَتْ",
+   "why": "corpus frequency: 297x فَقَالَتْ against 3x فَسَالَتْ"
+  },
+  {
+   "id": "Al-Kafi-Volume-2-Kulayni:1937",
+   "field": "arabic",
+   "old": "ال��ه",
+   "new": "الله",
+   "why": "corpus frequency: 50054x الله against 26x اله"
+  },
+  {
+   "id": "Al-Kafi-Volume-4-Kulayni:1927",
+   "field": "arabic",
+   "old": "قَوْلِه��",
+   "new": "قَوْلِهِ",
+   "why": "corpus frequency: 249x قَوْلِهِ against 2x قَوْلِها"
+  },
+  {
+   "id": "Al-Kafi-Volume-5-Kulayni:20",
+   "field": "arabic",
+   "old": "دُ��نَهُمْ",
+   "new": "دُونَهُمْ",
+   "why": "corpus frequency: 20x دُونَهُمْ against 0x دُٰنَهُمْ"
+  },
+  {
+   "id": "Al-Kafi-Volume-5-Kulayni:1298",
+   "field": "arabic",
+   "old": "عَ��ِ",
+   "new": "عَنِ",
+   "why": "corpus frequency: 15873x عَنِ against 0x عَِٰ"
+  },
+  {
+   "id": "Kitab-al-Ghayba-Tusi:93",
+   "field": "arabic",
+   "old": "ه��ا",
+   "new": "هذا",
+   "why": "corpus frequency: 2605x هذا against 34x هما"
+  },
+  {
+   "id": "Al-Tawhid-Saduq:225",
+   "field": "arabic",
+   "old": "وه��",
+   "new": "وهو",
+   "why": "وهو قلب مخلوق الله"
+  },
+  {
+   "id": "Al-Khisal-Saduq:1032",
+   "field": "english",
+   "old": "’���",
+   "new": "’”",
+   "why": "the narration's closing double quote"
+  },
+  {
+   "id": "Al-Kafi-Volume-5-Kulayni:615",
+   "field": "arabic",
+   "old": "ر��جُلٍ",
+   "new": "رَجُلٍ",
+   "why": "corpus frequency: 2266x رَجُلٍ against 20x رجُلٍ"
+  },
+  {
+   "id": "Al-Kafi-Volume-6-Kulayni:212",
+   "field": "arabic",
+   "old": "الذّ��كَرِ",
+   "new": "الذَّكَرِ",
+   "why": "corpus frequency: 17x الذَّكَرِ against 0x الذّٰكَرِ"
+  },
+  {
+   "id": "Al-Kafi-Volume-6-Kulayni:2439",
+   "field": "arabic",
+   "old": "لَيَبْت��اعُ",
+   "new": "لَيَبْتَاعُ",
+   "why": "لَيَبْتَاعُ الرَّاحِلَةَ"
+  },
+  {
+   "id": "Uyun-akhbar-al-Rida-Volume-2-Saduq:549",
+   "field": "arabic",
+   "old": "فَدَخ��لَ",
+   "new": "فَدَخَلَ",
+   "why": "corpus frequency: 155x فَدَخَلَ against 0x فَدَخٰلَ"
+  },
+  {
+   "id": "Al-Amali-Mufid:118",
+   "field": "arabic",
+   "old": "وعلي��",
+   "new": "وعليك",
+   "why": "the reply to a greeting: وعليك السلام"
+  },
+  {
+   "id": "Uyun-akhbar-al-Rida-Volume-1-Saduq:71",
+   "field": "arabic",
+   "old": "صَـلَّ��",
+   "new": "صَـلَّى",
+   "why": "corpus frequency: 1x صَـلَّى against 0x صَـلَّٰ"
+  },
+  {
+   "id": "Al-Amali-Mufid:196",
+   "field": "arabic",
+   "old": "راحل��ك",
+   "new": "راحلتك",
+   "why": "corpus frequency: 7x راحلتك against 0x راحلٰك"
+  },
+  {
+   "id": "Al-Kafi-Volume-2-Kulayni:1654",
+   "field": "arabic",
+   "old": "وَج��لَّ",
+   "new": "وَجَلَّ",
+   "why": "corpus frequency: 2943x وَجَلَّ against 0x وَجٰلَّ"
+  },
+  {
+   "id": "Al-Kafi-Volume-2-Kulayni:1894",
+   "field": "arabic",
+   "old": "عَ��ْدِ",
+   "new": "عَبْدِ",
+   "why": "corpus frequency: 19894x عَبْدِ against 58x عَهْدِ"
+  },
+  {
+   "id": "Al-Kafi-Volume-5-Kulayni:1856",
+   "field": "arabic",
+   "old": "الْفَض��يحَةَ",
+   "new": "الْفَضِيحَةَ",
+   "why": "الْفَضِيحَةَ"
+  },
+  {
+   "id": "Al-Khisal-Saduq:137",
+   "field": "arabic",
+   "old": "ذكر��",
+   "new": "ذكري",
+   "why": "parallel to ولا تدع ذكري earlier in the same hadith"
+  },
+  {
+   "id": "Al-Khisal-Saduq:1214",
+   "field": "arabic",
+   "old": "��داخلها",
+   "new": "بداخلها",
+   "why": "parallel clause: يؤكل داخلها ويرمى بخارجها"
+  },
+  {
+   "id": "Al-Tawhid-Saduq:543",
+   "field": "arabic",
+   "old": "أب��",
+   "new": "أبي",
+   "why": "عن أبي جعفر"
+  },
+  {
+   "id": "Maani-al-Akhbar-Saduq:177",
+   "field": "arabic",
+   "old": "إ��ى",
+   "new": "إلى",
+   "why": "corpus frequency: 5828x إلى against 5x إنى"
+  },
+  {
+   "id": "Maani-al-Akhbar-Saduq:370",
+   "field": "arabic",
+   "old": "أ��مد",
+   "new": "أحمد",
+   "why": "corpus frequency: 4885x أحمد against 8x أمد"
+  },
+  {
+   "id": "Uyun-akhbar-al-Rida-Volume-1-Saduq:195",
+   "field": "arabic",
+   "old": "وَ��لزَّكاة",
+   "new": "وَالزَّكاة",
+   "why": "بِالصَّلاةِ وَالزَّكاة"
+  },
+  {
+   "id": "Uyun-akhbar-al-Rida-Volume-1-Saduq:314",
+   "field": "arabic",
+   "old": "لِلْ��َلائِكَةِ",
+   "new": "لِلْمَلائِكَةِ",
+   "why": "corpus frequency: 10x لِلْمَلائِكَةِ against 0x لِلَْٰلائِكَةِ"
+  },
+  {
+   "id": "Uyun-akhbar-al-Rida-Volume-2-Saduq:196",
+   "field": "arabic",
+   "old": "النَظَ��",
+   "new": "النَظَر",
+   "why": "corpus frequency: 1x النَظَر against 0x النَظَٰ"
+  },
+  {
+   "id": "Uyun-akhbar-al-Rida-Volume-2-Saduq:464",
+   "field": "arabic",
+   "old": "عَلِيٍ��",
+   "new": "عَلِيٍّ",
+   "why": "عَلِيٍّ"
+  },
+  {
+   "id": "Al-Amali-Saduq:281",
+   "field": "arabic",
+   "old": "��عاوية",
+   "new": "معاوية",
+   "why": "corpus frequency: 295x معاوية against 0x ٰعاوية"
+  },
+  {
+   "id": "Al-Amali-Saduq:328",
+   "field": "arabic",
+   "old": "إ��ا",
+   "new": "إذا",
+   "why": "إذا الفجائية: إذا نحن بديراني"
+  },
+  {
+   "id": "Al-Amali-Saduq:670",
+   "field": "arabic",
+   "old": "ترا��",
+   "new": "تراب",
+   "why": "أبو تراب الروياني, also in Al-Tawhid-Saduq:250"
+  },
+  {
+   "id": "Al-Amali-Saduq:720",
+   "field": "arabic",
+   "old": "جبرئ��ل",
+   "new": "جبرئيل",
+   "why": "corpus frequency: 404x جبرئيل against 0x جبرئٰل"
+  },
+  {
+   "id": "Al-Kafi-Volume-1-Kulayni:297",
+   "field": "arabic",
+   "old": "ا��ْتِلافِ",
+   "new": "اخْتِلافِ",
+   "why": "corpus frequency: 11x اخْتِلافِ against 0x اْٰتِلافِ"
+  },
+  {
+   "id": "Kamil-al-Ziyarat-Qummi:257",
+   "field": "arabic",
+   "old": "مِم��َنْ",
+   "new": "مِمَّنْ",
+   "why": "corpus frequency: 357x مِمَّنْ against 0x مِمَٰنْ"
+  },
+  {
+   "id": "Al-Kafi-Volume-2-Kulayni:1464",
+   "field": "arabic",
+   "old": "أَق��رَّ",
+   "new": "أَقَرَّ",
+   "why": "corpus frequency: 90x أَقَرَّ against 3x أَقِرَّ"
+  },
+  {
+   "id": "Thawab-al-Amal-wa-iqab-al-Amal-Saduq:474",
+   "field": "arabic",
+   "old": "السُّعَ��َاءِ",
+   "new": "السُّعَدَاءِ",
+   "why": "corpus frequency: 13x السُّعَدَاءِ against 0x السُّعََٰاءِ"
+  },
+  {
+   "id": "Uyun-akhbar-al-Rida-Volume-2-Saduq:438",
+   "field": "arabic",
+   "old": "عَلَ��ْهِ",
+   "new": "عَلَيْهِ",
+   "why": "corpus frequency: 28543x عَلَيْهِ against 0x عَلَْٰهِ"
+  },
+  {
+   "id": "Uyun-akhbar-al-Rida-Volume-1-Saduq:160",
+   "field": "arabic",
+   "old": "الْم��وَحَّدُ",
+   "new": "الْمُوَحَّدُ",
+   "why": "الْمَعْبُودُ الْمُوَحَّدُ"
+  },
+  {
+   "id": "Maani-al-Akhbar-Saduq:67",
+   "field": "arabic",
+   "old": "ع��ده",
+   "new": "عبده",
+   "why": "the shahada formula: عبده ورسوله"
+  },
+  {
+   "id": "Al-Khisal-Saduq:774",
+   "field": "english",
+   "old": "���They",
+   "new": "‘They",
+   "why": "Al-Khisal writes 'replied, ‘' 294 times against 54 double"
+  },
+  {
+   "id": "Sifat-al-Shia-Saduq:69",
+   "field": "arabic",
+   "old": "خ��اتِمَةُ",
+   "new": "خَاتِمَةُ",
+   "why": "corpus frequency: 1x خَاتِمَةُ against 0x خٰاتِمَةُ"
+  },
+  {
+   "id": "Al-Kafi-Volume-6-Kulayni:1528",
+   "field": "arabic",
+   "old": "أَنّ��",
+   "new": "أَنَّ",
+   "why": "corpus frequency: 2647x أَنَّ against 1x أَنِّ"
+  },
+  {
+   "id": "Al-Kafi-Volume-1-Kulayni:1326",
+   "field": "arabic",
+   "old": "مُحَمَّ��ُ",
+   "new": "مُحَمَّدُ",
+   "why": "corpus frequency: 5681x مُحَمَّدُ against 0x مُحَمَُّٰ"
+  },
+  {
+   "id": "Al-Amali-Saduq:815",
+   "field": "arabic",
+   "old": "ير��نك",
+   "new": null,
+   "skip": true,
+   "why": "a line of poetry; the printed editions consulted do not carry it, so the character is left lost rather than guessed"
+  },
+  {
+   "id": "Thawab-al-Amal-wa-iqab-al-Amal-Saduq:256",
+   "field": "arabic",
+   "old": "کَ��نَ",
+   "new": "کَانَ",
+   "why": "corpus frequency: 360x کَانَ against 0x کَٰنَ"
+  },
+  {
+   "id": "Al-Kafi-Volume-4-Kulayni:115",
+   "field": "arabic",
+   "old": "يُونُ��َ",
+   "new": "يُونُسَ",
+   "why": "corpus frequency: 814x يُونُسَ against 0x يُونَُٰ"
+  },
+  {
+   "id": "Al-Kafi-Volume-2-Kulayni:654",
+   "field": "arabic",
+   "old": "رَق��يبٌ",
+   "new": "رَقِيبٌ",
+   "why": "Qur'an 50:18 رَقِيبٌ عَتِيدٌ"
+  },
+  {
+   "id": "Al-Kafi-Volume-2-Kulayni:1285",
+   "field": "arabic",
+   "old": "لِ��ُحَارَبَتِي",
+   "new": "لِمُحَارَبَتِي",
+   "why": "corpus frequency: 2x لِمُحَارَبَتِي against 0x لُِٰحَارَبَتِي"
+  },
+  {
+   "id": "Al-Kafi-Volume-4-Kulayni:252",
+   "field": "arabic",
+   "old": "بَكْ��ٍ",
+   "new": "بَكْرٍ",
+   "why": "corpus frequency: 334x بَكْرٍ against 0x بَكٍْٰ"
+  },
+  {
+   "id": "Al-Kafi-Volume-2-Kulayni:840",
+   "field": "arabic",
+   "old": "ح��رَامٌ",
+   "new": "حَرَامٌ",
+   "why": "corpus frequency: 198x حَرَامٌ against 0x حٰرَامٌ"
+  },
+  {
+   "id": "Uyun-akhbar-al-Rida-Volume-1-Saduq:136",
+   "field": "arabic",
+   "old": "فَأَخْبِ��ْنِي",
+   "new": "فَأَخْبِرْنِي",
+   "why": "corpus frequency: 43x فَأَخْبِرْنِي against 0x فَأَخْبِْٰنِي"
+  },
+  {
+   "id": "Al-Kafi-Volume-2-Kulayni:788",
+   "field": "arabic",
+   "old": "عَن��",
+   "new": "عَنِ",
+   "why": "عَنِ الْفَضْلِ بْنِ شَاذَانَ, 430 times in the corpus against 0"
+  },
+  {
+   "id": "Al-Kafi-Volume-5-Kulayni:2009",
+   "field": "arabic",
+   "old": "عَ��ْ",
+   "new": "عَنْ",
+   "why": "corpus frequency: 64318x عَنْ against 0x عَْٰ"
+  },
+  {
+   "id": "Al-Kafi-Volume-5-Kulayni:985",
+   "field": "arabic",
+   "old": "الأنَ��مِ",
+   "new": "الأنَامِ",
+   "why": "corpus frequency: 1x الأنَامِ against 0x الأنَٰمِ"
+  }
+ ],
+ "replacements": [
+  {
+   "id": "Nahj-al-Balagha-Radi:167",
+   "field": "arabic",
+   "old": "بِقَدْحِهِچ",
+   "new": "بِقَدْحِهِ",
+   "why": "a stray چ left by the digitisation, glued to بقدحه; the other Persian letters in the corpus are genuine Persian words and names"
+  },
+  {
+   "id": "Mizan-al-Hikma-Rayshahri:714",
+   "field": "english",
+   "old": "Allٍah",
+   "new": "Allah",
+   "why": "an Arabic kasra inside a Latin word"
+  }
+ ],
+ "blank_field": [
+  {
+   "id": "Kamil-al-Ziyarat-Qummi:564",
+   "field": "arabic",
+   "was": "To be added",
+   "why": "a placeholder served where the matn belongs; the English carries the narration. Recovering the Arabic from the printed edition is open work."
+  },
+  {
+   "id": "Kamil-al-Ziyarat-Qummi:565",
+   "field": "arabic",
+   "was": "To be added",
+   "why": "a placeholder served where the matn belongs; the English carries the narration. Recovering the Arabic from the printed edition is open work."
+  },
+  {
+   "id": "Thawab-al-Amal-wa-iqab-al-Amal-Saduq:121",
+   "field": "arabic",
+   "was": " arabicnotfound",
+   "why": "a placeholder served where the matn belongs; the English carries the narration. Recovering the Arabic from the printed edition is open work."
+  }
+ ]
+}

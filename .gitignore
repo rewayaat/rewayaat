@@ -16,6 +16,10 @@ rewayaat.iml
 # the rule above until 2026-10-15.
 !scripts/data/narrators/
 !scripts/data/narrators/*.json
+# The same goes for the corpus repairs: which character a narration lost is a reading that
+# was decided case by case, against the Qur'an, a formula, or a parallel clause in the same
+# hadith. Rebuilding it means making those judgements again.
+!scripts/data/corpus_text_repairs.json
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
