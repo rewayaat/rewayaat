@@ -1,27 +1,5 @@
 [
   {
-    "id": "rijal-pages",
-    "date": "2026-10-22",
-    "title": "The Rijāl Pages, in the Books' Own Terms",
-    "summary": "Every narrator page now reads in the language the rijāl books use: his tarājim, the jarḥ wa taʿdīl each book passes on him, and the ṭabaqa he transmitted in — each book keeping its own word, and nothing averaged into a grade of ours.",
-    "highlights": [
-      "A man the books mention and pass no judgement on is مهمل — muhmal. The pages used to say «no book grades him», which reads as though he were absent from the books; he is in them, and they say nothing. That is 14,330 of the 15,518 men held here.",
-      "Each book keeps its own word and its own page, and the page marks which judgement a book reached first-hand and which it took from another: Jāmiʿ al-Ruwāt calls al-Ḥasan b. Maḥbūb «ثقة» through Ikhtiyār Maʿrifat al-Rijāl, and says so.",
-      "The sections are named as the discipline names them — تراجم for a man's notices, الجرح والتعديل for what is held of him, طبقة for his generation, لقب and نسب for the names he is headed under.",
-      "The pages are built from seven rijāl books: al-Najāshī, al-Ṭūsī's Fihrist and Rijāl, al-Kashshī, Ibn al-Ghaḍāʾirī, Jāmiʿ al-Ruwāt and al-Khūʾī. A book we do not hold is shown as a report attributed to it, never as a passage quoted from it.",
-      "The RIJĀL panel is drawn only where there is an isnād to draw. A collection of maxims carries no chains, and no longer opens an empty panel."
-    ],
-    "title_ar": "صفحات الرجال، بألفاظ الكتب نفسها",
-    "summary_ar": "صارت صفحة كل راوٍ تُقرأ بلسان كتب الرجال: تراجمه، وما تُجريه كل كتاب عليه من جرح وتعديل، والطبقة التي روى فيها — يحتفظ كل كتاب بلفظه، ولا يُجمع ذلك كله في حكم من عندنا.",
-    "highlights_ar": [
-      "مَن ذكرته الكتب ولم تحكم عليه فهو مهمل. وكانت الصفحات تقول «لا يحكم عليه كتاب»، وفي ذلك إيهام أنه ليس في الكتب؛ بل هو فيها ولم تقل فيه شيئًا. وهؤلاء ١٤٬٣٣٠ من ١٥٬٥١٨ رجلًا عندنا.",
-      "يحتفظ كل كتاب بلفظه وصفحته، وتُبيّن الصفحة ما نقله الكتاب عن نفسه وما أخذه عن غيره: جامع الرواة يقول في الحسن بن محبوب «ثقة» نقلًا عن اختيار معرفة الرجال، وتقول الصفحة ذلك.",
-      "وسُمّيت الأبواب بما يسمّيها به أهل الفن: التراجم، والجرح والتعديل، والطبقة، واللقب والنسب.",
-      "والصفحات مبنيّة على سبعة من كتب الرجال: رجال النجاشي، والفهرست ورجال الطوسي، واختيار معرفة الرجال للكشي، وكتاب الضعفاء لابن الغضائري، وجامع الرواة، ومعجم رجال الحديث للخوئي. وما لا نملكه من الكتب يُعرض على أنه خبر منسوب إليه، لا نصّ منقول عنه.",
-      "ولا تُرسم لوحة «الرجال» إلا حيث كان سند يُرسم. ومجاميع الكلم القصار لا أسانيد فيها، فلم تعد تفتح لوحة فارغة."
-    ]
-  },
-  {
     "id": "rijal",
     "date": "2026-10-18",
     "title": "Every Name in a Chain, Resolved to Its Narrator",

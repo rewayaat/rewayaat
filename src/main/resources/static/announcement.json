@@ -1,12 +1,12 @@
 {
-  "id": "rijal-pages-2026-10",
+  "id": "rijal-2026-10",
   "active": true,
-  "icon": "fa-scroll",
+  "icon": "fa-user-group",
   "label": "New:",
-  "text": "every narrator page now says what each book says of him, in the books' own terms — tarājim, jarḥ wa taʿdīl, ṭabaqa.",
+  "text": "tap any name in a chain to see who he was and what the rijāl books say of him.",
   "linkText": "See how",
-  "linkUrl": "/updates.html#rijal-pages",
+  "linkUrl": "/updates.html#rijal",
   "label_ar": "جديد:",
-  "text_ar": "صفحةُ كلِّ راوٍ تقول ما قالته الكتب فيه بألفاظها: التراجم، والجرح والتعديل، والطبقة.",
+  "text_ar": "انقر أيّ اسم في السند لتعرف من هو وما قالته فيه كتب الرجال.",
   "linkText_ar": "كيف يعمل"
 }
