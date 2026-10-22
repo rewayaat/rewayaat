@@ -6098,6 +6098,12 @@ function setupVue(query, page, sortFields) {
                 if (['similar', 'quran', 'rijal'].indexOf(activeTab) < 0) {
                     return 'metadata';
                 }
+                // The rijal tab is not drawn for a narration without an isnad, so it cannot
+                // be the selected one either. Nothing sets it today but a click on the
+                // button, which is absent; this keeps it so if a default or a link ever does.
+                if (activeTab === 'rijal' && this.isNarrationSidecarTabDisabled(narration, activeTab)) {
+                    return 'metadata';
+                }
                 return activeTab;
             },
             setNarrationSidecarTab: function(narration, tab) {
