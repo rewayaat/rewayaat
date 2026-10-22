@@ -231,12 +231,20 @@ def main():
     if not args.harvest:
         return
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
+    try:
+        with open(args.out) as handle:
+            previous = json.load(handle)
+    except FileNotFoundError:
+        previous = {}
     write_json_atomic(args.out, {
         "note": "Chain conventions named by the audit's auditors and agreed by them. "
                 "Keys are '<book>\\t<folded name>'; `everywhere` is keyed by the name alone.",
         "settles": table.get("settles", {}),
         "corrects": table.get("corrects", {}),
         "everywhere": everywhere,
+        # Not harvested from the audits: entries written by hand about how a book's pointers
+        # are read. A harvest must not drop them.
+        "blessing_backrefs": previous.get("blessing_backrefs", {}),
     }, indent=1)
     print(f"\nwrote {args.out}")
 

@@ -1046,5 +1046,10 @@
   "احمد بن محمد بن عيسي": "n000220",
   "محمد بن الحسين": "n000923",
   "جعفر بن محمد بن مسرور": "n002315"
+ },
+ "blessing_backrefs": {
+  "Mishkāt al-Anwār": {
+   "note": "A bare «عنه» or «وعنه» carrying an Imam blessing («عليه السلام», «عليهما السلام», «عليهم السلام») means the Imam of the chain above, never the human transmitter named before him; carrying «صلى الله عليه وآله» it means the Prophet. If the chain above names no single Imam the step is left unresolved. Decided by the coordinator 2026-10-22: Mishkāt orders narrations from many sources, so the blessing, not the name above, says who «عنه» is."
+  }
  }
 }

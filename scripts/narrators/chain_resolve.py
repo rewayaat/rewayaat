@@ -506,6 +506,12 @@ def by_convention(table, book, folded):
 # of would refuse good links: on a guessed 254 for al-Ahwāzī this check called Ibn Abī
 # al-Khaṭṭāb (d. 262) impossible in Kitāb al-Zuhd, which he is not. Al-Muḥsinī is modern
 # and constrains nobody.
+#
+# Not listed, on purpose: ʿAlī b. al-Ḥasan al-Ṭabrisī, compiler of Mishkāt al-Anwār. His death
+# year is disputed among the biographers, and a limit we are unsure of would refuse good links
+# (see Ḥusayn b. Saʿīd above). So for that book this guard is BLIND — `outlived()` returns
+# False for it and nothing in the resolver checks chronology. The absence is a decision, not
+# an oversight; do not read it as one and do not fill it with a guess.
 COMPILER_DIED = {
     "Shaykh Muḥammad b. Yaʿqūb al-Kulaynī": 329,
     "Shaykh Muḥammad b. ʿAlī al-Ṣaduq": 381,
@@ -545,6 +551,19 @@ COMPILERS_FATHER = {
 }
 
 
+# Names the books file under one man alone while the kunya is shared, so that a single heading
+# match would be a guess. «أبي بصير» is Layth al-Murādī in most chains and Yaḥyā b. Abī
+# al-Qāsim al-Asadī in others; the classical books file only the second under this exact form,
+# so the resolver called it `one` 23 times in Mishkāt al-Anwār. It is listed, not guessed:
+# the candidates are widened to every man who carries the kunya, and only a neighbour the
+# books pair with one of them (`support`) can choose between them.
+SHARED_KUNYA = {
+    "ابي بصير": ("n000902", "n030321"),
+    "ابو بصير": ("n000902", "n030321"),
+    "ابا بصير": ("n000902", "n030321"),
+}
+
+
 def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
     """Give each mention in one chain an outcome, in three passes over the same chain.
 
@@ -572,6 +591,10 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
         # weighed. Where he was the only candidate the name goes unanswered, which is the
         # right answer — somebody holds that name and it is not a man this book could reach.
         candidates = [pid for pid in candidates if not outlived(pid, compiler, data)]
+        if keys[position] in SHARED_KUNYA:
+            candidates = sorted(set(candidates) | {
+                pid for pid in SHARED_KUNYA[keys[position]]
+                if pid in data["by_id"] and not outlived(pid, compiler, data)})
         before = keys[position - 1] if position else ""
         after = keys[position + 1] if position + 1 < len(keys) else ""
         if not candidates:
@@ -604,9 +627,10 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
         # Imams were only looked for behind a kunya — «أبي عبد الله», «الصادق» — and never
         # behind a full name. The salutation is the text's own word for who this is.
         saluted = row.get("saluted") and imams.identify(keys[position])
-        if row["kind"] != "imam" and not saluted and not (
-                keys[position] in imams.CHAIN_FORMS
-                and row.get("outcome") in ("several", "none")):
+        # A form in CHAIN_FORMS names one of the fourteen and nobody else, whatever the
+        # narrator index also holds under it: bare «الصادق» was linked to Jaʿfar b. ʿAlī,
+        # a narrator filed under the same word, wherever no blessing followed it.
+        if row["kind"] != "imam" and not saluted and keys[position] not in imams.CHAIN_FORMS:
             continue
         found = imams.identify(keys[position])
         if not found:
@@ -774,7 +798,7 @@ ANAPHOR = ("backref_man", "backref_chain")
 LINKED_OUTCOMES = ("one", "chosen", "convention")
 
 
-def follow_backrefs(rows, by_id):
+def follow_backrefs(rows, by_id, table=None):
     """Settle the chains that open by pointing at the narration before them.
 
     «عنه» at the head of a chain is al-Kulaynī's own shorthand: *from him*, the shaykh the
@@ -814,10 +838,12 @@ def follow_backrefs(rows, by_id):
     for row in rows:
         books[(row["book"], row.get("source", ""), row.get("volume", ""))].append(row)
 
+    blessed_books = (table or {}).get("blessing_backrefs") or {}
     settled = Counter()
     for sequence in books.values():
         sequence.sort(key=ordered)
         head, head_id, printed = "", "", ""
+        printed_row = None
         for row in sequence:
             mentions = row["mentions"]
             pointer = mentions[0] if mentions and mentions[0]["kind"] in ANAPHOR else None
@@ -838,6 +864,7 @@ def follow_backrefs(rows, by_id):
                 # if that man is one no book identifies, the head is cleared rather than
                 # left standing: a pointer must not reach over him to the chain before.
                 printed = row["id"]
+                printed_row = row
                 head, head_id = "", ""
                 if row.get("head_lost"):
                     # The chain is here and «بهذا الإسناد» may point at it, but we do not
@@ -861,6 +888,39 @@ def follow_backrefs(rows, by_id):
                     settled["«بهذا الإسناد» pointed at its chain"] += 1
                 else:
                     settled["pointing at nothing we hold"] += 1
+                continue
+            if (pointer["kind"] == "backref_man" and pointer.get("blessing")
+                    and row["book"] in blessed_books):
+                # In this book the blessing says who «عنه» is, and it outranks the name above:
+                # «عنه (عليه السلام)» after «عن أبي بصير» is the Imam, not Abū Baṣīr.
+                if pointer["blessing"] == "prophet":
+                    pointer["outcome"], pointer["target"] = "convention", "imam"
+                    pointer["imam_id"] = "i00"
+                    pointer["because"] = "«عنه» carrying «صلى الله عليه وآله» is the Prophet"
+                    settled["«عنه» with the Prophet's blessing"] += 1
+                    continue
+                # The Imam of the chain above is the man it ends on. A chain that ends on a
+                # relative («عن أبي عبد الله عن أبيه»), a narrator, or a name we could not
+                # place does not end on a single Imam we can name, and is left unanswered.
+                imam_ids = set()
+                if printed_row is not None:
+                    tail = [m for m in printed_row["mentions"]
+                            if m.get("kind") in ("name", "imam", "relative")]
+                    last = tail[-1] if tail else {}
+                    if (last.get("kind") == "imam" and last.get("outcome") in LINKED_OUTCOMES
+                            and last.get("imam_id") and last["imam_id"] != "i00"):
+                        imam_ids = {last["imam_id"]}
+                if len(imam_ids) == 1:
+                    pointer["outcome"], pointer["target"] = "convention", "imam"
+                    pointer["imam_id"] = imam_ids.pop()
+                    pointer["refers_to"] = printed
+                    pointer["because"] = ("«عنه» carrying an Imam's blessing is the Imam of "
+                                          "the chain above")
+                    settled["«عنه» with an Imam's blessing, given the Imam above"] += 1
+                else:
+                    pointer["because"] = ("«عنه» carries an Imam's blessing but the chain above "
+                                          "names no single Imam")
+                    settled["«عنه» with an Imam's blessing, no single Imam above"] += 1
                 continue
             if not head:
                 settled["pointing at nothing we hold"] += 1
@@ -931,7 +991,7 @@ def main():
                          "head_lost": row.get("head_lost", False),
                          "mentions": resolved})
 
-    pointed = follow_backrefs(rows, by_id)
+    pointed = follow_backrefs(rows, by_id, table)
 
     names = sum(outcomes[k] for k in ("one", "chosen", "convention", "several", "none"))
     print(f"\n  {chains:7,}  chains, {sum(outcomes.values()):,} mentions, {names:,} of them names")

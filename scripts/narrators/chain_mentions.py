@@ -382,6 +382,30 @@ def head_lost(chain, mentions):
     return mentions[0]["start"] - (cited(chain) + found.end()) > 3
 
 
+def blessing_after(words):
+    """Whom the blessing right behind a pointer is said of: "prophet", "imam", or nothing.
+
+    «عنه (صلى الله عليه وآله)» and «عنه (عليه السلام)» are the same pointer, and the blessing is
+    the text's own word for who is meant by it. Only the words that follow the pointer
+    immediately are read: a blessing further on belongs to the next name.
+    """
+    run = []
+    for word in words:
+        folded = bare(word[2])
+        if not folded:
+            continue
+        if folded not in BLESSINGS and folded not in {bare("الله"), bare("اللّه")}:
+            break
+        run.append(folded)
+    if not run:
+        return ""
+    if "صلي" in run and ("واله" in run or "وسلم" in run):
+        return "prophet"
+    if run[0] in ("عليه", "عليهما", "عليهم", "السلام", "ع", "عليهالسلام"):
+        return "imam"
+    return ""
+
+
 def segment(chain):
     """Cut one chain into mentions, each with its offsets into the chain text as rendered.
 
@@ -402,7 +426,8 @@ def segment(chain):
         span = words[first:first + taken]
         mentions.append({"start": span[0][0], "end": span[-1][1],
                          "text": chain[span[0][0]:span[-1][1]],
-                         "blessed": False, "kind": pointing})
+                         "blessed": False, "kind": pointing,
+                         "blessing": blessing_after(words[first + taken:])})
         words = words[first + taken:]
 
     def close():
