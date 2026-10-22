@@ -16,13 +16,13 @@
   --frame-hi: #234a75;
   --frame: #0f2440;
   --frame-lo: #0a1628;
-  --back-top: #0f2240;
-  --back: #071326;
+  --back-top: #17345f;
+  --back: #0c2141;
   --board-back: #050c17;
-  --board-1: #0d1d33;
-  --board-2: #152b4a;
-  --board: #1d3658;
-  --board-front: #284a73;
+  --board-1: #12294a;
+  --board-2: #1c3860;
+  --board: #27456e;
+  --board-front: #335a89;
   --lip-hi: #3a5f8c;
   --lip: #1a3253;
   --lip-dark: #0f213a;
@@ -321,3 +321,51 @@
 @media (min-width: 901px) { .shelf-end--5 { display: block; } }
 @media (min-width: 521px) and (max-width: 900px) { .shelf-end--4 { display: block; } }
 @media (max-width: 520px) { .shelf-end--2 { display: block; } }
+
+/* ── The lamp, turned up ──────────────────────────────────────────────────────
+   The strip under each shelf was drawing a 1px filament at .38 and a wash that gave
+   out 45% of the way down the wall, which left the compartments reading as a dark
+   recess with books in it. A shelf lamp does three things the first pass only hinted
+   at: the tube itself is bright, it blooms into the wall right under the shelf above,
+   and it throws far enough to reach the board. All three are additive layers over the
+   existing background stack, so the grain and the corner shadow underneath are kept. */
+.shelf-book__stand::before {
+  background:
+    linear-gradient(rgba(0, 0, 0, .78) 0 4px, transparent 4px),
+    /* the tube: a hot core with a halo either side of it */
+    linear-gradient(transparent 4px,
+                    rgba(var(--lamp), .30) 4.5px,
+                    rgba(255, 241, 214, .85) 5.4px 6.6px,
+                    rgba(var(--lamp), .30) 7.5px,
+                    transparent 9px),
+    /* its bloom on the wall directly beneath */
+    radial-gradient(ellipse 72% 26% at 50% 5px, rgba(var(--lamp), .34), transparent 70%),
+    /* and the throw, which now reaches the board instead of fading at mid-wall */
+    linear-gradient(transparent 6px,
+                    rgba(var(--lamp), .20) 9px,
+                    rgba(var(--lamp), .085) 38%,
+                    rgba(var(--lamp), .03) 68%,
+                    transparent 92%),
+    radial-gradient(ellipse 90% 55% at 50% 92%, rgba(0, 0, 0, .22), transparent 70%),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .1) 0 1px, transparent 1px 13px, rgba(var(--grain), .025) 13px 14px, transparent 14px 31px),
+    linear-gradient(var(--back-top), var(--back) 60%);
+  background-attachment: scroll, scroll, scroll, scroll, scroll, fixed, scroll;
+}
+
+/* The board catches what the lamp throws down the wall: warm near the back where the
+   light lands, cooling toward the front edge the reader stands at. */
+.shelf-book__stand::after {
+  background:
+    linear-gradient(rgba(var(--lamp), .16) 0 6px, rgba(var(--lamp), .06) 40%, transparent 85%),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .08) 0 1px, transparent 1px 12px, rgba(var(--grain), .04) 12px 13px, transparent 13px 29px),
+    linear-gradient(var(--board-back), var(--board-1) 22%, var(--board-2) 62%, var(--board) 88%, var(--board-front));
+  background-attachment: scroll, fixed, scroll;
+}
+
+/* Lamplight falls on the top of a book as well as behind it. Kept weak: the covers are
+   drawn art, and a heavier wash turns their gold milky. */
+.shelf-book__body::after {
+  content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  border-radius: 5px;
+  background: linear-gradient(180deg, rgba(255, 226, 178, .16), rgba(255, 226, 178, .05) 26%, transparent 52%);
+}
