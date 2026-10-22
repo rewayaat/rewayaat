@@ -1,12 +1,12 @@
 {
-  "id": "rijal-2026-10",
+  "id": "rijal-pages-2026-10",
   "active": true,
-  "icon": "fa-link",
+  "icon": "fa-scroll",
   "label": "New:",
-  "text": "every name in a chain is now a link to its narrator — what the rijāl books say of him, in their own words.",
+  "text": "every narrator page now says what each book says of him, in the books' own terms — tarājim, jarḥ wa taʿdīl, ṭabaqa.",
   "linkText": "See how",
-  "linkUrl": "/updates.html#rijal",
+  "linkUrl": "/updates.html#rijal-pages",
   "label_ar": "جديد:",
-  "text_ar": "كلُّ اسمٍ في السند صار رابطًا إلى راويه، وفيه ما قالته كتب الرجال فيه بألفاظها.",
+  "text_ar": "صفحةُ كلِّ راوٍ تقول ما قالته الكتب فيه بألفاظها: التراجم، والجرح والتعديل، والطبقة.",
   "linkText_ar": "كيف يعمل"
 }
