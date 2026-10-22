@@ -16,8 +16,8 @@
   --frame-hi: #234a75;
   --frame: #0f2440;
   --frame-lo: #0a1628;
-  --back-top: #17345f;
-  --back: #0c2141;
+  --back-top: #132c53;
+  --back: #0a1c37;
   --board-back: #050c17;
   --board-1: #12294a;
   --board-2: #1c3860;
@@ -369,3 +369,76 @@
   border-radius: 5px;
   background: linear-gradient(180deg, rgba(255, 226, 178, .16), rgba(255, 226, 178, .05) 26%, transparent 52%);
 }
+
+/* ── A lamp over each book, not a flood over the row ──────────────────────────
+   The wash lit the whole compartment evenly, which is not what a shelf lamp does and
+   left the case looking washed rather than lit. Each book carries its own stretch of
+   wall, so the light can be what it should be: a pool centred over that book, falling
+   off before it reaches its neighbours, with only a weak throw past it. */
+.shelf-book__stand::before {
+  background:
+    linear-gradient(rgba(0, 0, 0, .78) 0 4px, transparent 4px),
+    /* the tube, dimmer than the flood and only as wide as this book */
+    linear-gradient(transparent 4px,
+                    rgba(var(--lamp), .22) 4.6px,
+                    rgba(255, 243, 219, .62) 5.4px 6.4px,
+                    rgba(var(--lamp), .22) 7.2px,
+                    transparent 8.6px),
+    /* the pool: bright at the book's centre, gone by its edges */
+    radial-gradient(ellipse 52% 38% at 50% 4px, rgba(var(--lamp), .34), transparent 72%),
+    /* a weak throw down the wall behind the book, so the recess is not black */
+    radial-gradient(ellipse 46% 88% at 50% 0%, rgba(var(--lamp), .10), transparent 76%),
+    radial-gradient(ellipse 90% 55% at 50% 92%, rgba(0, 0, 0, .26), transparent 70%),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .1) 0 1px, transparent 1px 13px, rgba(var(--grain), .025) 13px 14px, transparent 14px 31px),
+    linear-gradient(var(--back-top), var(--back) 60%);
+  background-attachment: scroll, scroll, scroll, scroll, scroll, fixed, scroll;
+}
+/* and the board catches that pool under the book, not along the whole row */
+.shelf-book__stand::after {
+  background:
+    radial-gradient(ellipse 40% 150% at 50% 0%, rgba(var(--lamp), .20), transparent 74%),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .08) 0 1px, transparent 1px 12px, rgba(var(--grain), .04) 12px 13px, transparent 13px 29px),
+    linear-gradient(var(--board-back), var(--board-1) 22%, var(--board-2) 62%, var(--board) 88%, var(--board-front));
+  background-attachment: scroll, fixed, scroll;
+}
+.shelf-book__body::after {
+  background: linear-gradient(180deg, rgba(255, 226, 178, .10), rgba(255, 226, 178, .03) 24%, transparent 48%);
+}
+
+/* ── The page block, as paper rather than as a yellow card ───────────────────
+   Three things were wrong with it. It ran the full height of the cover and rose above
+   it, where a bound book's boards overhang the text block on all three edges — the
+   squares — so paper is never the tallest thing. It was lit evenly, so it read as a
+   flat slab. And it was the colour of parchment: printed paper edges are close to
+   white, warm only where they have aged, and far less saturated than the cover's gold.
+   The top edge now shows only beside the fore-edge, which is the only place the board
+   does not cover it at this angle. */
+.shelf-book__block {
+  top: 2.4%; bottom: 2%;
+  border-radius: 1px 0 0 1px;
+  background:
+    /* the crease where the sheets disappear into the cover */
+    linear-gradient(90deg, transparent calc(100% - 3px), rgba(32, 20, 8, .55)),
+    /* sheets edge-on: many, fine, and barely darker than the paper */
+    repeating-linear-gradient(90deg, rgba(120, 105, 80, .16) 0 .5px, transparent .5px 2px),
+    /* lit from the lamp above: bright along the top, falling into shadow at the board */
+    linear-gradient(180deg, rgba(255, 252, 244, .55), transparent 22%, rgba(30, 20, 8, .34)),
+    linear-gradient(90deg, #cfc8b6, #e4dfd2 40%, #d6cfbe);
+}
+.shelf-book__body::before {
+  /* only the width of the block plus a sliver of the cover's near corner */
+  left: calc(var(--depth, 8px) * -1);
+  width: calc(var(--depth, 8px) * 2.2);
+  height: calc(var(--rise, 4px) * 0.7 + 1px);
+  clip-path: polygon(var(--depth, 8px) 100%, 100% 100%, calc(100% - var(--depth, 8px)) 0, 0 0);
+  background:
+    linear-gradient(0deg, rgba(32, 20, 8, .5), transparent 55%),
+    repeating-linear-gradient(100deg, rgba(120, 105, 80, .18) 0 .5px, transparent .5px 2.5px),
+    linear-gradient(180deg, #c6bfae, #e4dfd2);
+}
+
+/* The boards of a bound book overhang its text block on all three edges, so nothing
+   of the paper rises above the cover line. What was drawn there read as a folded flap,
+   and at this angle there is nothing to draw: the near board hides the top of the
+   block completely. */
+.shelf-book__body::before { display: none; }

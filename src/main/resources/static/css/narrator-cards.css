@@ -297,3 +297,30 @@ html[dir="rtl"] .pv__ar { text-align: right; padding-right: 0; padding-left: 1.4
     .ncard { transition: none; }
     .ncard:hover { transform: none; }
 }
+
+/* ── Contrast ────────────────────────────────────────────────────────────────
+   A card at #fefdfb on a #f5f7fa page differs from its background by about one per
+   cent of luminance, so the grid read as text floating on a sheet rather than as
+   cards. The edge does the work instead of the fill: a stronger rule, a shadow with
+   enough spread to separate the card from the page, and a hairline of the page's own
+   navy along the top where the light would catch it. */
+.ncard {
+    border-color: var(--border-strong, #d1d8e0);
+    box-shadow:
+        0 1px 2px rgba(15, 36, 64, .06),
+        0 10px 22px -14px rgba(15, 36, 64, .35);
+}
+.ncard::after {
+    content: ""; position: absolute; inset: 0 0 auto; height: 2px;
+    border-radius: 10px 10px 0 0;
+    background: linear-gradient(90deg,
+        transparent, rgba(200, 162, 61, .55) 22%, rgba(200, 162, 61, .2) 70%, transparent);
+    opacity: .7; pointer-events: none;
+}
+.ncard:hover {
+    border-color: var(--primary-light, #2d5a8e);
+    box-shadow:
+        0 2px 4px rgba(15, 36, 64, .10),
+        0 16px 30px -16px rgba(15, 36, 64, .5);
+}
+.ncard:hover::after { opacity: 1; }
