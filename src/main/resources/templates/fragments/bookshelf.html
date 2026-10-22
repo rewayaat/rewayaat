@@ -14,7 +14,7 @@
         <a class="shelf-book" th:each="item, it : ${shelf}" th:with="book=${item.book}"
            th:href="@{${(arPrefix ?: '') + '/books/' + book.slug}}"
            th:classappend="${limit > 0 and it.index >= limit} ? 'shelf-book--overflow' : ''"
-           th:style="${item.style}">
+           th:style="|${item.style};--c5:${it.index % 5};--c4:${it.index % 4};--c2:${it.index % 2}|">
             <div class="shelf-book__stand">
                 <span class="shelf-book__glow" aria-hidden="true"></span>
                 <div class="shelf-book__slot"><div class="shelf-book__body">
@@ -34,6 +34,9 @@
                         <span th:text="${book.nameAr} ?: ${#strings.replace(book.name, '-', '&#8209;')}">الكافي</span>
                     </span>
                 </div></div>
+                <span th:if="${it.last}" class="shelf-book__end"
+                      th:classappend="|${#lists.size(shelf) % 5 != 0 ? 'shelf-end--5' : ''} ${#lists.size(shelf) % 4 != 0 ? 'shelf-end--4' : ''} ${#lists.size(shelf) % 2 != 0 ? 'shelf-end--2' : ''}|"
+                      aria-hidden="true"></span>
             </div>
             <div class="shelf-book__lip">
                 <span class="shelf-book__plate">

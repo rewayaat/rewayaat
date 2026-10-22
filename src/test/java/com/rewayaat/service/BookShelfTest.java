@@ -29,7 +29,12 @@ class BookShelfTest {
 
         assertTrue(scale(shelf.get(0)) > 0.97, shelf.get(0).style());
         assertTrue(scale(shelf.get(1)) < 0.9, shelf.get(1).style());
-        assertTrue(edges(shelf.get(0)) > edges(shelf.get(1)));
+        assertTrue(depth(shelf.get(0)) > depth(shelf.get(1)));
+        // The fore-edge is drawn as a side face of real depth now, not as stacked 1px
+        // shadows, so the page block of the largest book has to be thick enough to see
+        // and the smallest still has to have one.
+        assertTrue(depth(shelf.get(0)) >= 18.0, shelf.get(0).style());
+        assertTrue(depth(shelf.get(1)) >= 3.0 && depth(shelf.get(1)) <= 6.0, shelf.get(1).style());
         assertTrue(shelf.get(0).style().endsWith("--gilt:url(/img/books/gilt/al-kafi.webp)"));
     }
 
@@ -65,7 +70,10 @@ class BookShelfTest {
         return Double.parseDouble(s.style().substring("--scale:".length(), s.style().indexOf(';')));
     }
 
-    private static long edges(BookShelf.Shelved s) {
-        return s.style().chars().filter(c -> c == '#').count();
+    /** The px depth of the page block, as the shelf's CSS reads it from --depth. */
+    private static double depth(BookShelf.Shelved s) {
+        String style = s.style();
+        int at = style.indexOf("--depth:") + "--depth:".length();
+        return Double.parseDouble(style.substring(at, style.indexOf("px", at)));
     }
 }
