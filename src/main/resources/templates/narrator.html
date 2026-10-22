@@ -257,15 +257,20 @@
              open is a number he has to take on trust. -->
         <!-- A roster page has no entries to count from, so the three figures that come
              out of entries are left off rather than printed as noughts. -->
-        <a class="ledger__cell" th:href="${chainsUrl}" th:unless="${narrator['kind'] == 'imam'}">
-            <div class="ledger__value" th:text="${@localeDigits.grouped(narrator.teacher_count)}">37</div>
-            <div class="ledger__label" th:text="#{narrator.ledger.narratesFrom}">Narrates from</div>
-            <div class="ledger__note" th:text="#{narrator.ledger.narratesFromNote}">men the books name →</div>
-        </a>
-        <a class="ledger__cell" th:href="${chainsUrl}" th:unless="${narrator['kind'] == 'imam'}">
-            <div class="ledger__value" th:text="${@localeDigits.grouped(narrator.student_count)}">26</div>
-            <div class="ledger__label" th:text="#{narrator.ledger.narratedTo}">Narrated to</div>
-            <div class="ledger__note" th:text="#{narrator.ledger.narratedToNote}">men who take from him →</div>
+        <!-- One tile, not two. A book names a teacher or a pupil for only 1,383 of the
+             15,518 men, so «Narrates from 0 / Narrated to 0» is what 14,135 pages printed,
+             beside a tab holding hundreds of men who stand with him in the chain indexes.
+             The tile counts every man that tab lists, and the note says how many of them a
+             book actually names. -->
+        <a class="ledger__cell" th:href="${chainsUrl}" th:unless="${narrator['kind'] == 'imam'}"
+           th:with="named=${narrator.teacher_count + narrator.student_count},
+                    indexed=${narrator['chain_only_count'] ?: 0}">
+            <div class="ledger__value" th:text="${@localeDigits.grouped(named + indexed)}">261</div>
+            <div class="ledger__label" th:text="#{narrator.ledger.chainMen}">Teachers &amp; students</div>
+            <div class="ledger__note"
+                 th:text="${named > 0}
+                          ? #{narrator.ledger.chainMenNamed(${@localeDigits.grouped(named)})}
+                          : #{narrator.ledger.chainMenIndexed}">named by a book →</div>
         </a>
         <a class="ledger__cell" th:href="${booksUrl}" th:unless="${narrator['kind'] == 'imam'}">
             <div class="ledger__value ledger__value--verdicts">
@@ -349,48 +354,6 @@
          takes two — Mamaqani quotes al-Najashi's «weak» before concluding «thiqa» himself — is
          marked as divided rather than shown twice as if it were two books. -->
     <div th:if="${view == 'overview'}">
-    <!-- The names he is headed under, first on the overview because «is this the right man?»
-         is the first question a reader brings to a rijāl page, and the names are how he
-         answers it: a reader who came looking for one of them can see that this is the same
-         man. It was a tab of its own, and a tab holding one row of chips is a page that looks
-         broken. One chip each: run together with separators they read as one long unbroken
-         name. -->
-    <section class="narrator-names" id="also-named"
-             th:if="${!#lists.isEmpty(narrator.names_ar) or !#lists.isEmpty(narrator['names_group_ar'])
-                     or (!isArabic and !#lists.isEmpty(narrator['names_group_en']))}">
-        <h2 class="hub-group__label" th:text="#{narrator.names.heading}">Also named</h2>
-        <ul class="narrator-names__chips">
-            <li class="narrator-names__chip" th:each="name : ${narrator.names_ar}"
-                dir="rtl" lang="ar" th:text="${name}">اسم</li>
-        </ul>
-        <!-- Not on an Arabic page: a Latin spelling of «زرارة» is for a reader who cannot
-             read «زرارة», and the chips above already give every Arabic form. -->
-        <ul class="narrator-names__chips narrator-names__chips--latin"
-            th:if="${!#lists.isEmpty(narrator.names_en) and !isArabic}">
-            <li class="narrator-names__chip" th:each="name : ${narrator.names_en}"
-                th:text="${name}">A name</li>
-        </ul>
-        <!-- «آل أعين» is a house and «المحدّث» an epithet; neither is a name he answered to,
-             and run in with the chips above they read as two more spellings of Zurāra. Each
-             kind is a labelled row of its own, Arabic first and, on an English page only,
-             its Latin rendering after it. -->
-        <th:block th:each="kind : ${ {'family', 'title'} }">
-          <th:block th:with="ar = ${narrator['names_group_ar'].?[kind == #vars.kind]},
-                             en = ${isArabic ? {} : narrator['names_group_en'].?[kind == #vars.kind]}">
-            <div class="narrator-names__group" th:if="${!#lists.isEmpty(ar) or !#lists.isEmpty(en)}">
-                <span class="narrator-names__group-label"
-                      th:text="${kind == 'family'} ? #{narrator.names.family} : #{narrator.names.title}">Family</span>
-                <ul class="narrator-names__chips narrator-names__chips--group">
-                    <li class="narrator-names__chip" th:each="g : ${ar}"
-                        dir="rtl" lang="ar" th:text="${g['value']}">آل</li>
-                    <li class="narrator-names__chip narrator-names__chip--latin" th:each="g : ${en}"
-                        th:text="${g['value']}">Banu</li>
-                </ul>
-            </div>
-          </th:block>
-        </th:block>
-    </section>
-
     <section class="narrator-stands" th:if="${!#lists.isEmpty(narrator.where_books_stand)}">
         <h2 class="hub-group__label" th:text="#{narrator.stands.heading}">Where each book stands</h2>
         <table class="narrator-stands__table">
@@ -439,47 +402,51 @@
         </p>
     </section>
 
-    <!-- Grades we hold for him that we cannot tie to a passage. They are not counted among
-         the books' positions above, and they do not set the standing in the hero: a verdict a
-         reader cannot open is not evidence, and half the stated grades in the corpus are of
-         this kind. Shown because withholding them would hide what the record contains, named
-         for exactly what they are. -->
-    <section class="narrator-stands narrator-stands--unsourced"
-             th:if="${!#lists.isEmpty(narrator.reported_without_a_passage)}">
-        <h2 class="hub-group__label" th:text="#{narrator.unsourced.heading}">
-            Attributed, not quoted</h2>
-        <!-- This said «these grades are in our records, but there is no passage here to read
-             them against», which tells a rijālī about our database and nothing about the
-             books. What he needs is the attribution, the book it is made to, and the fact
-             that no text of that book is quoted for it; whether we hold the entry is our
-             business. One line, in the books' terms, and the table carries the rest. -->
-        <p class="narrator-stands__note narrator-stands__note--short"
-           th:text="#{narrator.unsourced.short}">
-            Attributed to these books, with no passage of them quoted here, and so not
-            counted among the positions above.
-        </p>
-        <table class="narrator-stands__table">
-            <tbody>
-            <tr th:each="stand : ${narrator.reported_without_a_passage}">
-                <th scope="row" th:text="${stand.book_title}">Tanqīḥ al-Maqāl</th>
-                <td><span class="narrator-stands__position narrator-stands__position--unsourced"
-                          th:each="said : ${stand.grades}" th:text="${said}">thiqa</span>
-                    <!-- which of the two it is: a book with no entry of his that we hold, or
-                         an entry we hold that does not say it. The second is the stronger
-                         admission and the reader is owed the difference. -->
-                    <span class="narrator-stands__why"
-                          th:if="${stand.reason != null}"
-                          th:text="#{'narrator.unsourced.reason.' + ${stand.reason}}">
-                        not in the entry we hold</span></td>
-            </tr>
-            </tbody>
-        </table>
-    </section>
-
-
     </div>
 
     <div th:if="${view == 'books'}">
+    <!-- The names he is headed under, first on the overview because «is this the right man?»
+         is the first question a reader brings to a rijāl page, and the names are how he
+         answers it: a reader who came looking for one of them can see that this is the same
+         man. It was a tab of its own, and a tab holding one row of chips is a page that looks
+         broken. One chip each: run together with separators they read as one long unbroken
+         name. -->
+    <section class="narrator-names" id="also-named"
+             th:if="${!#lists.isEmpty(narrator.names_ar) or !#lists.isEmpty(narrator['names_group_ar'])
+                     or (!isArabic and !#lists.isEmpty(narrator['names_group_en']))}">
+        <h2 class="hub-group__label" th:text="#{narrator.names.heading}">Also named</h2>
+        <ul class="narrator-names__chips">
+            <li class="narrator-names__chip" th:each="name : ${narrator.names_ar}"
+                dir="rtl" lang="ar" th:text="${name}">اسم</li>
+        </ul>
+        <!-- Not on an Arabic page: a Latin spelling of «زرارة» is for a reader who cannot
+             read «زرارة», and the chips above already give every Arabic form. -->
+        <ul class="narrator-names__chips narrator-names__chips--latin"
+            th:if="${!#lists.isEmpty(narrator.names_en) and !isArabic}">
+            <li class="narrator-names__chip" th:each="name : ${narrator.names_en}"
+                th:text="${name}">A name</li>
+        </ul>
+        <!-- «آل أعين» is a house and «المحدّث» an epithet; neither is a name he answered to,
+             and run in with the chips above they read as two more spellings of Zurāra. Each
+             kind is a labelled row of its own, Arabic first and, on an English page only,
+             its Latin rendering after it. -->
+        <th:block th:each="kind : ${ {'family', 'title'} }">
+          <th:block th:with="ar = ${narrator['names_group_ar'].?[kind == #vars.kind]},
+                             en = ${isArabic ? {} : narrator['names_group_en'].?[kind == #vars.kind]}">
+            <div class="narrator-names__group" th:if="${!#lists.isEmpty(ar) or !#lists.isEmpty(en)}">
+                <span class="narrator-names__group-label"
+                      th:text="${kind == 'family'} ? #{narrator.names.family} : #{narrator.names.title}">Family</span>
+                <ul class="narrator-names__chips narrator-names__chips--group">
+                    <li class="narrator-names__chip" th:each="g : ${ar}"
+                        dir="rtl" lang="ar" th:text="${g['value']}">آل</li>
+                    <li class="narrator-names__chip narrator-names__chip--latin" th:each="g : ${en}"
+                        th:text="${g['value']}">Banu</li>
+                </ul>
+            </div>
+          </th:block>
+        </th:block>
+    </section>
+
     <!-- One block per entry, in the order the tradition reads the books. Each carries the
          book's own words: a verdict is never paraphrased here, and never shown without the
          page it stands on. -->
@@ -603,6 +570,43 @@
         </article>
     </section>
 
+    <!-- Grades we hold for him that we cannot tie to a passage. They are not counted among
+         the books' positions above, and they do not set the standing in the hero: a verdict a
+         reader cannot open is not evidence, and half the stated grades in the corpus are of
+         this kind. Shown because withholding them would hide what the record contains, named
+         for exactly what they are. -->
+    <section class="narrator-stands narrator-stands--unsourced"
+             th:if="${!#lists.isEmpty(narrator.reported_without_a_passage)}">
+        <h2 class="hub-group__label" th:text="#{narrator.unsourced.heading}">
+            Attributed, not quoted</h2>
+        <!-- This said «these grades are in our records, but there is no passage here to read
+             them against», which tells a rijālī about our database and nothing about the
+             books. What he needs is the attribution, the book it is made to, and the fact
+             that no text of that book is quoted for it; whether we hold the entry is our
+             business. One line, in the books' terms, and the table carries the rest. -->
+        <p class="narrator-stands__note narrator-stands__note--short"
+           th:text="#{narrator.unsourced.short}">
+            Attributed to these books, with no passage of them quoted here, and so not
+            counted among the positions above.
+        </p>
+        <table class="narrator-stands__table">
+            <tbody>
+            <tr th:each="stand : ${narrator.reported_without_a_passage}">
+                <th scope="row" th:text="${stand.book_title}">Tanqīḥ al-Maqāl</th>
+                <td><span class="narrator-stands__position narrator-stands__position--unsourced"
+                          th:each="said : ${stand.grades}" th:text="${said}">thiqa</span>
+                    <!-- which of the two it is: a book with no entry of his that we hold, or
+                         an entry we hold that does not say it. The second is the stronger
+                         admission and the reader is owed the difference. -->
+                    <span class="narrator-stands__why"
+                          th:if="${stand.reason != null}"
+                          th:text="#{'narrator.unsourced.reason.' + ${stand.reason}}">
+                        not in the entry we hold</span></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
     </div>
 
     <div th:if="${view == 'overview'}">
@@ -659,6 +663,29 @@
             </th:block>
         </dl>
     </section>
+
+    <!-- The overview keeps one question: can I trust the chain I read his name in? A man the
+         books file under forty names (al-Hasan ibn Mahbub: 18 Arabic, 22 Latin) put forty
+         chips above the verdicts and pushed them down past the first screen. Six here, the
+         headings a book actually files him under first, then the rest one link away on the
+         Tarajim tab, where the whole list lives. -->
+    <th:block th:with="narNameTotal = ${#lists.size(narrator.names_ar) + (isArabic ? 0 : #lists.size(narrator.names_en))},
+                       heads = ${#lists.sort(#lists.toList(#sets.toSet(narrator.entries.![heading_ar].?[#this != null])))}">
+    <section class="narrator-names narrator-names--short" th:if="${narNameTotal > 0}">
+      <th:block th:with="headN = ${#lists.size(heads) > 6 ? 6 : #lists.size(heads)}">
+        <h2 class="hub-group__label" th:text="#{narrator.names.heading}">Also named</h2>
+        <ul class="narrator-names__chips">
+            <li class="narrator-names__chip" th:each="name, st : ${heads}" th:if="${st.index < 6}"
+                dir="rtl" lang="ar" th:text="${name}">اسم</li>
+            <li class="narrator-names__chip" th:each="name, st : ${narrator.names_ar}" th:if="${st.index < 6 - headN and !#lists.contains(heads, name)}"
+                dir="rtl" lang="ar" th:text="${name}">اسم</li>
+        </ul>
+        <a class="narrator-names__all" th:if="${narNameTotal > 6}" th:href="${booksUrl} + '#also-named'"
+           th:text="#{narrator.names.all(${@localeDigits.of(narNameTotal)})}">all 40 names</a>
+      </th:block>
+    </section>
+    </th:block>
+
 
     </div>
 

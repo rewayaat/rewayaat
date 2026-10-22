@@ -17226,3 +17226,15 @@ a.isnad-man__name:hover .isnad-man__en {
         margin-inline-end: 0;
     }
 }
+
+/* Overview pass: the short "also named" row. Six chips and a link to the full list on the
+   Tarajim tab replace up to forty (al-Hasan ibn Mahbub) that sat above the verdicts. */
+.narrator-names--short .narrator-names__chips { margin-bottom: 0.5rem; }
+.narrator-names__all {
+    display: inline-block;
+    font-size: 0.85rem;
+    color: var(--navy-700, #1e3a5f);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+[dir="rtl"] .narrator-names__all { text-align: right; }
