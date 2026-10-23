@@ -90,6 +90,9 @@
        direction follows the page: the rank sits at the card's inline end. */
     padding-right: 1.1rem;
     font-family: var(--font-arabic, "Scheherazade New", serif);
+    /* Scheherazade New is loaded at 400 and 700. The Arabic is the name here - the
+       English under it is the gloss - so it carries the weight and the Latin does not. */
+    font-weight: 700;
     font-size: 1.22rem;
     line-height: 1.3;
     color: var(--text, #1a1a2e);
@@ -134,7 +137,7 @@ html[dir="rtl"] .ncard__ar { text-align: right; padding-right: 0; padding-left: 
 .ncard .word b {
     font-family: var(--font-arabic, "Scheherazade New", serif);
     font-size: 1rem;
-    font-weight: 400;
+    font-weight: 700;
     unicode-bidi: isolate;
 }
 
@@ -209,6 +212,7 @@ html[dir="rtl"] .ncard__ar { text-align: right; padding-right: 0; padding-left: 
     margin: 0;
     padding-right: 1.4rem;
     font-family: var(--font-arabic, "Scheherazade New", serif);
+    font-weight: 700;
     font-size: 1.5rem;
     line-height: 1.25;
     text-align: left;
@@ -245,6 +249,7 @@ html[dir="rtl"] .pv__ar { text-align: right; padding-right: 0; padding-left: 1.4
 
 .pv__w {
     font-family: var(--font-arabic, "Scheherazade New", serif);
+    font-weight: 700;
     font-size: 1.12rem;
     direction: rtl;
     text-align: right;
