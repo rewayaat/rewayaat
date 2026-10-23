@@ -95,7 +95,7 @@ public class NarratorPageController {
         // Landing here with nothing typed used to show a search box and an empty page, which
         // tells a reader who does not already have a name in mind nothing at all. The books
         // page lists its books; this lists the men these books lean on hardest, by the
-        // narrations they carry, so the page can be browsed as well as searched. Same cards
+        // chains they stand in, so the page can be browsed as well as searched. Same cards
         // the home page uses, so the two read as one site.
         List<Map<String, Object>> browse = text.isEmpty() ? prominent.top(BROWSE, locale)
                 : List.of();

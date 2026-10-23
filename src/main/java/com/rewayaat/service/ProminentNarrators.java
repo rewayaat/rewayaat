@@ -83,9 +83,12 @@ public class ProminentNarrators {
             .build();
 
     /**
-     * How many narrations one man's name stands in — the same number the ranking above
-     * counts, for the preview card's seal and footer. Zero on any failure, so the card
-     * simply draws no ring.
+     * How many chains one man stands in — the same number the ranking above counts, for
+     * the seal's ring and the card's footer. It is counted from the resolved chain index,
+     * so it includes the chains that reach him as «أبيه» or «عنه» without writing his
+     * name; that is why it runs well above the narration search's total, and why the two
+     * carry different words in the interface. Zero on any failure, so the card simply
+     * draws no ring.
      */
     public long chainsOf(String personId) {
         if (!enabled || personId == null || personId.isBlank()) {
@@ -103,7 +106,7 @@ public class ProminentNarrators {
             chains.put(personId, found);
             return found;
         } catch (Exception e) {
-            LOGGER.warn("Could not count the narrations naming {}: {}", personId, e.getMessage());
+            LOGGER.warn("Could not count the chains standing on {}: {}", personId, e.getMessage());
             return 0;
         }
     }
@@ -183,7 +186,7 @@ public class ProminentNarrators {
     private static final Set<String> EN_CONNECTORS = Set.of("ibn", "bin", "b.");
 
     /** What a card needs, and nothing of the 91 KB document behind it. */
-    private static Map<String, Object> card(Map<String, Object> man, long narrations) {
+    private static Map<String, Object> card(Map<String, Object> man, long chains) {
         Map<String, Object> row = new java.util.LinkedHashMap<>();
         row.put("person_id", man.get("person_id"));
         row.put("slug", man.get("slug"));
@@ -191,7 +194,7 @@ public class ProminentNarrators {
         row.put("display_en", man.get("display_en"));
         row.put("short_ar", shortened(man.get("display_ar"), AR_CONNECTORS));
         row.put("short_en", shortened(man.get("display_en"), EN_CONNECTORS));
-        row.put("narrations", narrations);
+        row.put("chains", chains);
         // The seal's colour: the lowest Imam ordinal he transmitted from (see NarratorSeal).
         row.put("ordinals", man.get("imam_ordinals") instanceof List<?> ords ? ords : List.of());
         row.put("book_count", man.get("books") instanceof List<?> books ? books.size() : 0);

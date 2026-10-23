@@ -241,7 +241,7 @@
             : t("narrators.preview.says", arabic() ? "ما تقوله الكتب" : "What the books say");
         var chains = man.chains
             ? '<b>' + escaped(digits(Number(man.chains).toLocaleString(arabic() ? "ar" : "en"))) + "</b> "
-                + escaped(t("narrators.preview.narrations", arabic() ? "رواية" : "narrations"))
+                + escaped(t("narrators.preview.chains", arabic() ? "سند" : "chains"))
             : (man.book_count ? escaped(countPhrase(man.book_count, "narrators.books")) : "");
         // The name sits beside the seal; the seal's colour is his generation and its ring
         // the weight of the corpus that runs through him.

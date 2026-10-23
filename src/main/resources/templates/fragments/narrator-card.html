@@ -15,7 +15,7 @@
    th:title="${man.full}">
     <span class="ncard__rank" aria-hidden="true" th:text="${@localeDigits.of(place)}">1</span>
     <span class="ncard__seal"
-          th:utext="${@seals.of(man.person_id, man.display_ar, man.ordinals, man.narrations, 44)}"></span>
+          th:utext="${@seals.of(man.person_id, man.display_ar, man.ordinals, man.chains, 44)}"></span>
     <span class="ncard__ar" dir="rtl" lang="ar" th:text="${man.name}">زرارة بن أعين</span>
     <!-- Only the English site carries the Latin reading. -->
     <span class="ncard__en" th:if="${man['latin'] != null}" th:text="${man.latin}">Zurarah ibn A'yan</span>
@@ -38,7 +38,7 @@
     </span>
     <span class="ncard__foot">
         <span class="ncard__count"
-              th:text="${@counts.of(man.narrations, 'home.narratorNarrations')}">911 narrations</span>
+              th:text="${@counts.of(man.chains, 'home.narratorChains')}">911 chains</span>
         <span class="ncard__books"
               th:text="${@counts.of(man.book_count, 'narrators.books')}">4 books</span>
     </span>
