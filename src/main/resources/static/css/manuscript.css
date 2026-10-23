@@ -17267,3 +17267,16 @@ a.isnad-man__name:hover .isnad-man__en {
     .hub-hero--sealed { grid-template-columns: 1fr; }
     .hub-hero--sealed .narrator-id { align-items: center; }
 }
+
+/* The chronology band never drew on the Arabic page. Its resting state is clipped from the
+   inline start and `is-drawn` unclips it, but the RTL resting rule carries an attribute
+   selector and so outranks the `is-drawn` rule that is supposed to release it: in LTR the two
+   are evenly matched and the later one wins, in RTL the band stayed clipped to nothing and an
+   Arabic reader got an empty frame where the twelve imamates should be. The release needs the
+   same weight as the rule it is releasing. */
+@media (prefers-reduced-motion: no-preference) {
+    [dir="rtl"] .chrono.is-drawn .chrono__cell,
+    [dir="rtl"] .chrono.is-drawn .chrono__tail {
+        clip-path: inset(0 0 0 0);
+    }
+}

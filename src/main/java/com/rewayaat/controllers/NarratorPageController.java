@@ -266,6 +266,12 @@ public class NarratorPageController {
 
         model.addAttribute("narrator", narrator);
         model.addAttribute("narratorId", id);
+        // The seal's ring is how much of the corpus runs through him, and the grid cards draw
+        // it from the chain index. The page used the narration total instead, so the same man's
+        // seal was one size on the card he was tapped from and another on the page it opened:
+        // Ibrāhīm b. Hāshim stands in 4,056 chains and 548 narrations name him. One mark, one
+        // measure - this is the figure the card uses.
+        model.addAttribute("chainsThrough", prominent.chainsOf(id));
         model.addAttribute("displayAr", arabic);
         model.addAttribute("displayEn", english);
         model.addAttribute("books", booksNamed(narrator));

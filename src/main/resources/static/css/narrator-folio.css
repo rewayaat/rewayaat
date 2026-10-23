@@ -1,0 +1,293 @@
+/* ===========================================================================
+   The narrator's folio — the page a reader lands on when he asks who a man was.
+
+   One reading column, as a biographical dictionary sets a notice: the man and
+   his seal at the head, his generation under the name, one sentence that says
+   what the books between them amount to, the chronology ruled as a plate, and
+   the reach of his transmission on one line. The evidence — what each book
+   actually says, with its pages — follows under the tabs, because a reader
+   wants the claim before the apparatus.
+
+   It replaces a navy banner carrying four counting tiles. The counts were
+   already in the tabs above them, so what the tiles added was repetition at
+   the loudest point on the page.
+   =========================================================================== */
+
+.folio {
+    margin: 0.5rem 0 1.75rem;
+    background: var(--surface-warm);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+}
+
+/* ── The head: the man, his seal, his generation ─────────────────────────── */
+
+.folio__head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.4rem 1.15rem;
+    padding: 1.5rem 1.6rem 1.3rem;
+    /* His generation, washed in behind the name - the same pigment the seal is
+       cut in, at a tenth of its strength. Set per page from the seal's ramp. */
+    background: linear-gradient(180deg, var(--folio-tint, transparent), transparent 62%);
+}
+
+.folio__seal { grid-row: 1 / span 2; display: block; line-height: 0; }
+.folio__seal .nseal__track { stroke: var(--border-strong); }
+.folio__seal .nseal__ring { stroke: var(--gold); }
+
+.folio__eyebrow {
+    font-family: var(--font-ui);
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.folio__name {
+    margin: 0.1rem 0 0;
+    font-family: var(--font-arabic);
+    font-weight: 700;
+    font-size: clamp(1.8rem, 5vw, 2.3rem);
+    line-height: 1.3;
+    color: var(--text);
+    direction: rtl;
+    text-align: left;
+}
+
+html[dir="rtl"] .folio__name { text-align: right; }
+
+/* Transliteration, kunya and the other ways a book heads him, on one line. The
+   Arabic inside it is set in the Arabic face at its own size; left in the UI
+   stack it dropped to a fallback naskh half a size too small. */
+.folio__also {
+    margin: 0.1rem 0 0;
+    font-family: var(--font-reference);
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+.folio__also .ar {
+    font-style: normal;
+    font-family: var(--font-arabic);
+    font-weight: 700;
+    font-size: 1.05rem;
+    direction: rtl;
+    unicode-bidi: isolate;
+}
+
+/* The thirteen marks. Rendered by @seals.generations, so the pigment ramp is
+   not written down a third time. */
+.gens {
+    display: grid;
+    grid-template-columns: repeat(13, 1fr);
+    gap: 2px;
+    margin: 0.75rem 0 0;
+    max-width: 17rem;
+}
+
+.gens__mark {
+    display: block;
+    height: 7px;
+    border-radius: 2px;
+    background: var(--border-strong);
+}
+
+.folio__gens-key {
+    margin: 0.3rem 0 0;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+}
+
+/* ── The sentence, and the facts it does not carry ───────────────────────── */
+
+.folio__sentence {
+    grid-column: 1 / -1;
+    margin: 1.05rem 0 0;
+    max-width: 42rem;
+    font-family: var(--font-reference);
+    font-size: 1.06rem;
+    line-height: 1.65;
+    color: var(--text);
+    text-wrap: pretty;
+}
+
+/* Where he was from, when he died, how many books hold him. The sentence says
+   most of this for the men who have one; 14,330 of 15,518 have none, and for
+   them this line is the whole of what is known. */
+.folio__facts {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 1.4rem;
+    margin-top: 0.95rem;
+}
+
+.folio__fact { display: flex; align-items: baseline; gap: 0.4rem; }
+
+.folio__fact-label {
+    font-size: 0.64rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.folio__fact-value { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+.folio__fact-said { font-size: 0.78rem; color: var(--text-muted); }
+a.folio__fact { text-decoration: none; }
+a.folio__fact:hover .folio__fact-value { text-decoration: underline; }
+
+/* The men no book grades, and the caveat on whose word a grade rests. */
+.folio__unstated {
+    grid-column: 1 / -1;
+    margin-top: 0.9rem;
+    font-family: var(--font-reference);
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+.folio__rests,
+.folio__imam-note {
+    grid-column: 1 / -1;
+    margin: 0.45rem 0 0;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* ── The chronology, ruled as a plate ────────────────────────────────────── */
+/* The band was drawn for the navy banner it used to sit in - gold leaf on deep
+   blue - so it keeps that ground here rather than being recoloured for paper.
+   A plate set into a page is how a manuscript carries a diagram anyway. */
+.folio__plate {
+    padding: 1.15rem 1.6rem 1.25rem;
+    border-top: 1px solid var(--border);
+    background: linear-gradient(135deg, #0a1628 0%, #0f2440 20%, #1e3a5f 50%, #1a4a7a 80%, #1e3a5f 100%);
+    color: #fff;
+}
+
+.folio__plate .chrono { margin: 0; }
+
+/* ── Reach, in one line ──────────────────────────────────────────────────── */
+
+.folio__reach {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.3rem 1.1rem;
+    padding: 0.95rem 1.6rem;
+    border-top: 1px solid var(--border);
+    background: var(--gold-bg);
+}
+
+.folio__reach-count {
+    font-family: var(--font-reference);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.folio__reach-text { font-size: 0.85rem; color: var(--text-secondary); }
+.folio__reach-dot { margin: 0 0.15rem; color: var(--text-muted); }
+
+.folio__reach-link {
+    margin-inline-start: auto;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--primary);
+}
+
+/* ── The colophon, at the foot of the notice ─────────────────────────────── */
+
+.folio-colophon {
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+    margin: 1.5rem 0 0.5rem;
+    padding: 0.75rem 0 0;
+    border-top: 1px solid var(--border);
+    font-size: 0.74rem;
+    color: var(--text-muted);
+}
+
+.folio-colophon__orn { font-family: var(--font-arabic); font-size: 1.1rem; color: var(--gold); }
+.folio-colophon p { margin: 0; }
+
+@media (max-width: 640px) {
+    .folio__head { grid-template-columns: minmax(0, 1fr); gap: 0.8rem; }
+    .folio__seal { grid-row: auto; }
+    .folio__head,
+    .folio__plate,
+    .folio__reach { padding-inline: 1.1rem; }
+    .folio__reach-link { margin-inline-start: 0; }
+}
+
+/* ── The evidence: what each book actually says ──────────────────────────── */
+/* The folio's second act, and only here: the overview is the notice, so the word
+   a book uses is set in the Arabic face at reading size and in the colour of its
+   leaning, with the chip it used to sit in taken off - a chip makes a label of a
+   word a scholar means to quote. The Tarājim tab is the apparatus and keeps the
+   chips, because there a reader is scanning entries rather than reading a notice.
+   5.9:1 for taʿdīl and 6.4:1 for jarḥ on this ground. */
+
+.narrator-stands__table th {
+    font-family: var(--font-reference);
+    font-weight: 400;
+    font-size: 0.97rem;
+    color: var(--text);
+}
+
+.narrator-stands__table th,
+.narrator-stands__table td { padding-block: 0.6rem; vertical-align: baseline; }
+
+.narrator-stands__table .narrator-stands__entry {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.1rem 0.7rem;
+}
+
+.narrator-stands__table .narrator-stands__position {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    margin-right: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    font-weight: 400;
+    color: var(--text-secondary);
+}
+
+.narrator-stands__table .narrator-stands__word-ar {
+    font-family: var(--font-arabic);
+    font-weight: 700;
+    font-size: 1.7rem;
+    line-height: 1.1;
+    color: var(--primary);
+    direction: rtl;
+    unicode-bidi: isolate;
+}
+
+.narrator-stands__table .narrator-stands__position--for .narrator-stands__word-ar { color: #2f6f4e; }
+.narrator-stands__table .narrator-stands__position--against .narrator-stands__word-ar { color: #a33b2c; }
+/* A grade we cannot tie to a passage keeps its deliberate colourlessness: it is not
+   evidence until there is a page under it, and colour would make it look like one. */
+.narrator-stands__table .narrator-stands__position--unsourced .narrator-stands__word-ar {
+    color: var(--text-muted);
+}
+
+/* The page, ruled off at the end of the line as a folio reference is. */
+.narrator-stands__table .narrator-stands__page {
+    margin-inline-start: auto;
+    font-variant-numeric: tabular-nums;
+}

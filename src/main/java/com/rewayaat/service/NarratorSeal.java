@@ -82,6 +82,78 @@ public class NarratorSeal {
         return svg.toString();
     }
 
+    /**
+     * The generations, as a signature rather than a chart: the Prophet and the twelve Imams as
+     * thirteen marks, the ones he transmitted from inked in his own pigment. It says in a glance
+     * what the chronology band says in years, and it is what the preview card already shows, so
+     * a reader who met the man in an isnād meets the same mark again on his page.
+     *
+     * <p>A man with no Imam on record gets nothing: thirteen blank marks say «we looked and found
+     * none», which is a claim the record does not make.
+     *
+     * <p>Lit on paper in the plain pigment. The preview card lifts the same hues about 24 points
+     * of lightness because it sits on navy; the two are the same ramp read on two grounds.
+     *
+     * @param label what the marks say in words, for a screen reader; the strip is a picture of it.
+     */
+    public String generations(List<?> ordinals, String label) {
+        boolean[] lit = new boolean[PIGMENT.length];
+        boolean any = false;
+        if (ordinals != null) {
+            for (Object o : ordinals) {
+                if (o instanceof Number n && n.intValue() >= 0 && n.intValue() < PIGMENT.length) {
+                    lit[n.intValue()] = true;
+                    any = true;
+                }
+            }
+        }
+        if (!any) {
+            return "";
+        }
+        StringBuilder out = new StringBuilder(500);
+        out.append("<div class=\"gens\" role=\"img\"");
+        if (label == null || label.isBlank()) {
+            out.append(" aria-hidden=\"true\"");
+        } else {
+            out.append(" aria-label=\"").append(attr(label)).append("\"");
+        }
+        out.append(">");
+        for (int i = 0; i < PIGMENT.length; i++) {
+            out.append(lit[i]
+                    ? "<i class=\"gens__mark is-lit\" style=\"background:" + light(i) + "\"></i>"
+                    : "<i class=\"gens__mark\"></i>");
+        }
+        return out.append("</div>").toString();
+    }
+
+    /**
+     * His pigment at a tenth strength, for the wash behind the name. Transparent where no Imam
+     * is on record, so the head of such a page is plain paper rather than a navy the reader
+     * would read as a generation.
+     */
+    public String tint(List<?> ordinals) {
+        Integer era = null;
+        if (ordinals != null) {
+            for (Object o : ordinals) {
+                if (o instanceof Number n && n.intValue() >= 0 && n.intValue() < PIGMENT.length
+                        && (era == null || n.intValue() < era)) {
+                    era = n.intValue();
+                }
+            }
+        }
+        if (era == null) {
+            return "transparent";
+        }
+        int[] pg = PIGMENT[era];
+        return "hsl(" + pg[0] + " " + pg[1] + "% " + pg[2] + "% / 0.10)";
+    }
+
+    /** Escapes a value going into an attribute; the label comes from the message bundle. */
+    private static String attr(String value) {
+        return value.replace("&", "&amp;").replace("<", "&lt;")
+                .replace(">", "&gt;").replace("\"", "&quot;");
+    }
+
     /** First letter of the name, the article dropped; «؟» for a name with no letters. */
     static String initial(String nameAr) {
         String s = nameAr == null ? "" : nameAr.replaceFirst("^\\s*ال", "").trim();
