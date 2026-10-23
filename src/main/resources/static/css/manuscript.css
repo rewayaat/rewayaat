@@ -14870,13 +14870,19 @@ a.ledger__cell:hover .ledger__note {
     opacity: 0;
     visibility: hidden;
     transform: translateY(-4px) scale(0.985);
-    transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s;
+    /* visibility is a discrete property: transitioned, it flips at the halfway mark, so
+       the card would still be `hidden` for 80ms after it was told to open - and focus()
+       on a hidden element is silently ignored. The reader who opened the card by keyboard
+       was then left on the name he came from. So it flips at once on the way in, and is
+       held back to the end of the fade on the way out. */
+    transition: opacity 0.16s ease, transform 0.16s ease, visibility 0s linear 0.16s;
 }
 
 .narrator-preview.is-open {
     opacity: 1;
     visibility: visible;
     transform: none;
+    transition: opacity 0.16s ease, transform 0.16s ease, visibility 0s;
 }
 
 .narrator-preview.is-waiting {
