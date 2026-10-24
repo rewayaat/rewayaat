@@ -14054,6 +14054,7 @@ html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
 .narrator-entry__grade {
     text-transform: none;
     letter-spacing: 0.02em;
+    font-size: 0.8rem;
 }
 
 /* Narrator page tabs. Links, not script: each tab is a URL, and the page works without JS. */
@@ -16027,21 +16028,26 @@ div.ledger__cell {
     letter-spacing: 0.03em;
 }
 
+/* The light tokens, not the dark ones. These classes are emitted in exactly one
+   place — narrator.html's entry chip, which sits on the white card of a Tarājim
+   notice — so the dark set put #c8efda on near-white at 1.25:1, a chip whose word
+   could not be read at all. The block that set them assumed this was the hero's
+   chip; the hero renders .narrator-said__word, which keeps the dark set below. */
 .narrator-verdict__grade--thiqa,
 .narrator-verdict__grade--saduq,
 .narrator-verdict__grade--hasan {
-    border-color: var(--verdict-for-edge-dark);
-    background: var(--verdict-for-face-dark);
-    color: var(--verdict-for-ink-dark);
+    border-color: var(--verdict-for-edge);
+    background: var(--verdict-for-face);
+    color: var(--verdict-for-ink);
 }
 
 .narrator-verdict__grade--daif,
 .narrator-verdict__grade--very_weak,
 .narrator-verdict__grade--kadhdhab,
 .narrator-verdict__grade--non_existent {
-    border-color: var(--verdict-against-edge-dark);
-    background: var(--verdict-against-face-dark);
-    color: var(--verdict-against-ink-dark);
+    border-color: var(--verdict-against-edge);
+    background: var(--verdict-against-face);
+    color: var(--verdict-against-ink);
 }
 
 /* The rijāl panel on a hadith card: the same word, the same chip, a size down, because

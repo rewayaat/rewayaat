@@ -260,6 +260,7 @@
     </div>
 
 
+    <div th:if="${view == 'books'}">
     <!-- One block per entry, in the order the tradition reads the books. Each carries the
          book's own words: a verdict is never paraphrased here, and never shown without the
          page it stands on. -->
@@ -387,7 +388,6 @@
          eighty chips for a man like al-Barqi, and placed first they pushed the
          entries this tab is named for off the screen. The overview's «all N names»
          still links to #also-named and still lands here. -->
-    <div th:if="${view == 'books'}">
     <!-- The names he is headed under, first on the overview because «is this the right man?»
          is the first question a reader brings to a rijāl page, and the names are how he
          answers it: a reader who came looking for one of them can see that this is the same

@@ -1,12 +1,12 @@
 {
-  "id": "whole-corpus-2026-10",
+  "id": "chain-links-2026-10",
   "active": true,
-  "icon": "fa-book-open",
-  "label": "The Hadith Database:",
-  "text": "Read the Shia hadith collections in Arabic and English, and follow any chain to the men who carried it.",
-  "linkText": "See what's new",
+  "icon": "fa-link",
+  "label": "New:",
+  "text": "Every name in a chain now links to the man who carried it, and what the rijal books say of him.",
+  "linkText": "See how",
   "linkUrl": "/updates.html",
-  "label_ar": "مكتبة الحديث:",
-  "text_ar": "اقرأ مجاميع الحديث الشيعي بالعربية والإنجليزية، وتتبّع أيّ سند إلى الرجال الذين حملوه.",
-  "linkText_ar": "ما الجديد"
+  "label_ar": "جديد:",
+  "text_ar": "كلّ اسم في السند صار يوصل إلى الراوي الذي حمله، وإلى ما قالته فيه كتب الرجال.",
+  "linkText_ar": "كيف يعمل"
 }

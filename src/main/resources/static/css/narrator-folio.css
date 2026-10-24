@@ -413,9 +413,17 @@ a.hub-stat:focus-visible {
 
 #narrator-view {
     /* #94a3b8 is 2.9:1 on this ground; #64748b is 4.8:1 and still reads as the
-       quiet half of the page. */
+       quiet half of the page. Rebinding the token itself, not only the handful of
+       classes named below, because the muted grey reaches this page through a
+       dozen more — the fact labels, the colophon, the provenance line, "Listed
+       under" — and every one of them was under AA at 11–13px. */
     --rv-quiet: #64748b;
+    --text-muted: #64748b;
 }
+
+/* A disclosure summary is a control, and at 4.12:1 it was the one piece of this
+   page a reader is meant to click and could least easily read. */
+#narrator-view summary { color: var(--text-secondary, #4a5568); }
 
 /* Section labels. 11.84px uppercase with wide tracking is a caption, and these
    are the headings a reader navigates the tab by. */
