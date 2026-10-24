@@ -49,11 +49,46 @@
         list.appendChild(toggle);
     }
 
+    /*
+     * The cue that points at the site search. The narrators page has no field of its
+     * own, so the control here hands the reader the real one: scroll it into view,
+     * focus it, and leave whatever they had typed alone.
+     */
+    function wireCue() {
+        var buttons = document.querySelectorAll("[data-focus-site-search]");
+        for (var i = 0; i < buttons.length; i++) {
+            buttons[i].addEventListener("click", function () {
+                // nav-search.js upgrades the plain input to a Tom Select control,
+                // which replaces it: after that [data-nav-search-input] matches a
+                // hidden <select> that cannot take focus, and on the home page there
+                // is no nav field at all, only the hero's. Take whichever is really
+                // there, preferring the upgraded control's own text box.
+                var field = document.querySelector(".nav-search .ts-control input")
+                    || document.querySelector(".ts-control input")
+                    || document.querySelector("[data-nav-search-input]:not(.tomselected)")
+                    || document.querySelector("[data-nav-search-input]");
+                if (!field) {
+                    return;
+                }
+                window.scrollTo({ top: 0, behavior: "smooth" });
+                // After the scroll, or the focus drags the page back itself on some
+                // browsers and the smooth scroll is never seen.
+                window.setTimeout(function () {
+                    field.focus();
+                    if (typeof field.select === "function") {
+                        field.select();
+                    }
+                }, 220);
+            });
+        }
+    }
+
     function start() {
         var lists = document.querySelectorAll(".browse-narrator-list");
         for (var i = 0; i < lists.length; i++) {
             fit(lists[i]);
         }
+        wireCue();
     }
 
     if (document.readyState === "loading") {

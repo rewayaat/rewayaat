@@ -7,9 +7,20 @@
 <main class="container py-3">
     <nav th:replace="~{fragments/site :: crumbtrail}"></nav>
 
-    <p class="text-muted" th:if="${#strings.isEmpty(query)}" th:text="#{narrators.hint}">
-        Search by any name a book heads him under.
-    </p>
+    <!-- The page has no search field of its own any more, so it has to say where the one
+         is — and say it with something a reader can press. A sentence reading "search
+         above" is skimmed past; a control that puts the cursor in the real field is not.
+         It is a button, not a second input: two search boxes on one page is the thing
+         this page was fixed for. -->
+    <div class="narrator-cue" th:if="${#strings.isEmpty(query)}">
+        <button type="button" class="narrator-cue__button" data-focus-site-search>
+            <i class="fa fa-search" aria-hidden="true"></i>
+            <span th:text="#{narrators.cue.button}">Search for a narrator by name</span>
+        </button>
+        <p class="narrator-cue__note" th:utext="#{narrators.cue.note}">
+            Use the search bar at the top of every page.
+        </p>
+    </div>
 
     <!-- Nothing typed yet. The books page lists its books rather than asking which one you
          want, and this does the same: the men these books lean on hardest, heaviest first.

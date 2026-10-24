@@ -442,3 +442,23 @@
    and at this angle there is nothing to draw: the near board hides the top of the
    block completely. */
 .shelf-book__body::before { display: none; }
+
+/* ── The foot of the text block ──────────────────────────────────────────────
+   The fore-edge ran from 2.4% to 2% and stopped there, and because the block is
+   sheared from its bottom-right corner the whole left side lifts — so the paper's
+   bottom-left corner hung above the board with a dark wedge under it, and the book
+   read as floating rather than standing.
+
+   The squares stay: a bound board does overhang its text block, which is why the
+   paper is inset at all. But at the foot that overhang is a millimetre on a real
+   book and was drawn here as a visible gap. The block now comes down to the cover
+   line and takes a thin lit edge along its base, so the paper has somewhere to end.
+
+   A quadrilateral for the bottom edge of the sheets was tried here and removed: at
+   this angle the near board hides that face completely, and drawn anyway it reads
+   as a torn flag of paper sticking out from under the book. The same reason the
+   top edge is not drawn. */
+.shelf-book__block {
+    bottom: 0.4%;
+    box-shadow: 0 1px 0 rgba(255, 252, 244, 0.4);
+}

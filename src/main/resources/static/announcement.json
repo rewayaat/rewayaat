@@ -3,10 +3,10 @@
   "active": true,
   "icon": "fa-book-open",
   "label": "The Hadith Database:",
-  "text": "Search and read the Shia hadith collections in Arabic and English — and now follow any chain, name by name, to the men who carried it.",
+  "text": "Read the Shia hadith collections in Arabic and English, and follow any chain to the men who carried it.",
   "linkText": "See what's new",
   "linkUrl": "/updates.html",
   "label_ar": "مكتبة الحديث:",
-  "text_ar": "ابحث واقرأ مجاميع الحديث الشيعي بالعربية والإنجليزية — وتتبّع الآن أيّ سند، اسمًا اسمًا، إلى الرجال الذين حملوه.",
+  "text_ar": "اقرأ مجاميع الحديث الشيعي بالعربية والإنجليزية، وتتبّع أيّ سند إلى الرجال الذين حملوه.",
   "linkText_ar": "ما الجديد"
 }

@@ -564,3 +564,54 @@ html[dir="rtl"] .pv__ar { text-align: right; padding-right: 0; padding-left: 1.4
 }
 
 .narrator-strip__more:hover { border-color: var(--gold, #c8a23d); }
+
+/* ── The cue that hands the reader the site search ───────────────────────── */
+/* This page used to carry its own search field. With that gone it has to point at
+   the one in the nav, and point at it with something pressable: "search above" set
+   in muted grey is read by nobody who did not already know. */
+
+.narrator-cue {
+    margin: 0.25rem 0 1.6rem;
+    padding: 1rem 1.15rem 1.05rem;
+    border: 1px solid var(--border, #e8ecf1);
+    border-inline-start: 3px solid var(--gold, #c8a23d);
+    border-radius: 10px;
+    background: var(--gold-bg, #fdf8ed);
+}
+
+.narrator-cue__button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.62rem 1.15rem;
+    border: 1px solid var(--primary-dark, #10233f);
+    border-radius: 10px;
+    background: var(--primary, #1e3a5f);
+    font-family: var(--font-ui);
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--gold-light, #f3e5b8);
+    cursor: pointer;
+    transition: background 150ms ease, border-color 150ms ease;
+}
+
+.narrator-cue__button:hover {
+    background: var(--primary-dark, #10233f);
+    border-color: var(--gold, #c8a23d);
+    color: #fff;
+}
+
+.narrator-cue__button:focus-visible {
+    outline: 2px solid var(--border-focus, #2563eb);
+    outline-offset: 2px;
+}
+
+.narrator-cue__note {
+    max-width: 72ch;
+    margin: 0.7rem 0 0;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--text-secondary, #4a5568);
+}
+
+.narrator-cue__note b { color: var(--text, #1a1a2e); font-weight: 700; }
