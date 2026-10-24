@@ -1,87 +1,29 @@
 /* ===========================================================================
-   The narrator's folio — the page a reader lands on when he asks who a man was.
+   The narrator's page: its navy head, and the band of counts beneath it.
 
-   One reading column, as a biographical dictionary sets a notice: the man and
-   his seal at the head, his generation under the name, one sentence that says
-   what the books between them amount to, the chronology ruled as a plate, and
-   the reach of his transmission on one line. The evidence — what each book
-   actually says, with its pages — follows under the tabs, because a reader
-   wants the claim before the apparatus.
+   The head is the site's own `hub-hero`, the same panel a book, a volume and a
+   chapter open with, so a narrator reads as part of this site. It carries only
+   what the rijal books claim about the man — his name, the generations they
+   place him in, where he was from, when he died, and the sentence those books
+   amount to.
 
-   It replaces a navy banner carrying four counting tiles. The counts were
-   already in the tabs above them, so what the tiles added was repetition at
-   the loudest point on the page.
+   Everything counted out of this corpus lives in the band below it instead, and
+   the band is labelled before it prints a figure. That split is the point: what
+   the books say is a claim about a man, what we counted is a fact about this
+   collection, and a reader who cannot tell them apart reads "548 narrations" as
+   a measure of the man.
+
+   This replaces a paper folio and, before it, a navy banner with four counting
+   tiles. The tiles repeated the tab strip; the folio was the only head on the
+   site that did not look like the others.
    =========================================================================== */
 
-.folio {
-    margin: 0.5rem 0 1.75rem;
-    background: var(--surface-warm);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-card);
-    overflow: hidden;
-}
+/* ── The thirteen marks ─────────────────────────────────────────────────────
+   Rendered by @seals.generations, so the pigment ramp is not written down a
+   third time. The lit marks arrive with an inline hsl() from the Java, which
+   was mixed for paper; on the navy head they are lifted rather than respelled,
+   so the ramp stays in one place. */
 
-/* ── The head: the man, his seal, his generation ─────────────────────────── */
-
-.folio__head {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 0.4rem 1.15rem;
-    padding: 1.5rem 1.6rem 1.3rem;
-    /* His generation, washed in behind the name - the same pigment the seal is
-       cut in, at a tenth of its strength. Set per page from the seal's ramp. */
-    background: linear-gradient(180deg, var(--folio-tint, transparent), transparent 62%);
-}
-
-.folio__seal { grid-row: 1 / span 2; display: block; line-height: 0; }
-.folio__seal .nseal__track { stroke: var(--border-strong); }
-.folio__seal .nseal__ring { stroke: var(--gold); }
-
-.folio__eyebrow {
-    font-family: var(--font-ui);
-    font-size: 0.66rem;
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-}
-
-.folio__name {
-    margin: 0.1rem 0 0;
-    font-family: var(--font-arabic);
-    font-weight: 700;
-    font-size: clamp(1.8rem, 5vw, 2.3rem);
-    line-height: 1.3;
-    color: var(--text);
-    direction: rtl;
-    text-align: left;
-}
-
-html[dir="rtl"] .folio__name { text-align: right; }
-
-/* Transliteration, kunya and the other ways a book heads him, on one line. The
-   Arabic inside it is set in the Arabic face at its own size; left in the UI
-   stack it dropped to a fallback naskh half a size too small. */
-.folio__also {
-    margin: 0.1rem 0 0;
-    font-family: var(--font-reference);
-    font-style: italic;
-    font-size: 0.95rem;
-    color: var(--text-secondary);
-}
-
-.folio__also .ar {
-    font-style: normal;
-    font-family: var(--font-arabic);
-    font-weight: 700;
-    font-size: 1.05rem;
-    direction: rtl;
-    unicode-bidi: isolate;
-}
-
-/* The thirteen marks. Rendered by @seals.generations, so the pigment ramp is
-   not written down a third time. */
 .gens {
     display: grid;
     grid-template-columns: repeat(13, 1fr);
@@ -97,110 +39,162 @@ html[dir="rtl"] .folio__name { text-align: right; }
     background: var(--border-strong);
 }
 
-.folio__gens-key {
-    margin: 0.3rem 0 0;
+/* ── The head ───────────────────────────────────────────────────────────── */
+
+.hub-hero--rijal .hub-hero__identity { min-width: 0; }
+
+.hub-hero--rijal .hub-hero__seal {
+    display: block;
+    line-height: 0;
+    margin-bottom: 0.9rem;
+}
+
+/* On navy the seal's unlit track has to come up out of the ground, where on
+   paper it sat against it. */
+.hub-hero--rijal .hub-hero__seal .nseal__track { stroke: rgba(255, 255, 255, 0.18); }
+.hub-hero--rijal .hub-hero__seal .nseal__ring { stroke: var(--gold-light); }
+
+/* The name is Arabic, so it is set in the Arabic face rather than the ornament
+   face the other heroes use for their Latin titles. */
+.hub-hero--rijal .hub-hero__title {
+    font-family: var(--font-arabic);
+    font-weight: 700;
+    font-size: clamp(2.1rem, 4.6vw, 3.1rem);
+    line-height: 1.35;
+    letter-spacing: 0;
+    margin-bottom: 0.1rem;
+}
+
+.hub-hero--rijal .hub-hero__also {
+    position: relative;
+    margin: 0;
+    font-family: var(--font-reference);
+    font-style: italic;
+    font-size: 1.02rem;
+    color: rgba(245, 236, 214, 0.78);
+}
+
+.hub-hero--rijal .gens {
+    position: relative;
+    margin-top: 1rem;
+}
+
+.hub-hero--rijal .gens__mark { background: rgba(255, 255, 255, 0.16); }
+
+.hub-hero--rijal .gens__mark.is-lit {
+    filter: brightness(1.32) saturate(1.05);
+    box-shadow: 0 0 6px rgba(243, 229, 184, 0.35);
+}
+
+.hub-hero--rijal .hub-hero__gens-key {
+    position: relative;
+    margin: 0.4rem 0 0;
+    font-family: var(--font-ui);
     font-size: 0.68rem;
-    color: var(--text-muted);
+    letter-spacing: 0.02em;
+    color: rgba(243, 229, 184, 0.58);
 }
 
-/* ── The sentence, and the facts it does not carry ───────────────────────── */
-
-.folio__sentence {
-    grid-column: 1 / -1;
-    margin: 1.05rem 0 0;
-    max-width: 42rem;
-    font-family: var(--font-reference);
-    font-size: 1.06rem;
-    line-height: 1.65;
-    color: var(--text);
-    text-wrap: pretty;
+/* The facts are label-then-value, not value-then-label: "From Kufa" is a fact
+   about a man, where a book's "14,242 narrations" is a quantity, and the two
+   do not want the same word order. */
+.hub-hero--rijal .hub-stat {
+    gap: 0.45rem;
+    padding: 0.4rem 0.9rem;
 }
 
-/* Where he was from, when he died, how many books hold him. The sentence says
-   most of this for the men who have one; 14,330 of 15,518 have none, and for
-   them this line is the whole of what is known. */
-.folio__facts {
-    grid-column: 1 / -1;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.35rem 1.4rem;
-    margin-top: 0.95rem;
-}
-
-.folio__fact { display: flex; align-items: baseline; gap: 0.4rem; }
-
-.folio__fact-label {
+.hub-hero--rijal .hub-stat__label {
     font-size: 0.64rem;
-    font-weight: 600;
-    letter-spacing: 0.1em;
+    font-weight: 700;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--text-muted);
+    color: rgba(243, 229, 184, 0.55);
 }
 
-.folio__fact-value { font-size: 0.9rem; font-weight: 600; color: var(--text); }
-.folio__fact-said { font-size: 0.78rem; color: var(--text-muted); }
-a.folio__fact { text-decoration: none; }
-a.folio__fact:hover .folio__fact-value { text-decoration: underline; }
-
-/* The men no book grades, and the caveat on whose word a grade rests. */
-.folio__unstated {
-    grid-column: 1 / -1;
-    margin-top: 0.9rem;
-    font-family: var(--font-reference);
-    font-size: 0.95rem;
-    color: var(--text-secondary);
-}
-
-.folio__rests,
-.folio__imam-note {
-    grid-column: 1 / -1;
-    margin: 0.45rem 0 0;
-    font-size: 0.8rem;
-    color: var(--text-muted);
-}
-
-/* ── The chronology, ruled as a plate ────────────────────────────────────── */
-/* The band was drawn for the navy banner it used to sit in - gold leaf on deep
-   blue - so it keeps that ground here rather than being recoloured for paper.
-   A plate set into a page is how a manuscript carries a diagram anyway. */
-.folio__plate {
-    padding: 1.15rem 1.6rem 1.25rem;
-    border-top: 1px solid var(--border);
-    background: linear-gradient(135deg, #0a1628 0%, #0f2440 20%, #1e3a5f 50%, #1a4a7a 80%, #1e3a5f 100%);
+.hub-hero--rijal .hub-stat__value {
+    font-size: 0.86rem;
+    font-weight: 600;
+    letter-spacing: 0;
     color: #fff;
 }
 
-.folio__plate .chrono { margin: 0; }
+a.hub-stat { text-decoration: none; transition: background 150ms ease, border-color 150ms ease; }
+a.hub-stat:hover,
+a.hub-stat:focus-visible {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(243, 229, 184, 0.4);
+}
 
-/* ── Reach, in one line ──────────────────────────────────────────────────── */
+/* ── What the books amount to, across the gold rule ─────────────────────── */
 
-.folio__reach {
+.hub-hero--rijal .hub-hero__standing,
+.hub-hero--rijal .hub-hero__rests,
+.hub-hero--rijal .hub-hero__imam-note {
+    margin: 0.85rem 0 0;
+    font-size: 0.9rem;
+    color: rgba(245, 236, 214, 0.72);
+}
+
+.hub-hero--rijal .hub-hero__standing { font-size: 0.95rem; color: rgba(255, 255, 255, 0.86); }
+.hub-hero--rijal .hub-hero__rests { font-style: italic; }
+
+/* ── The band of counts ──────────────────────────────────────────────────
+   Paper, directly under the navy head and directly above the light tabs, so
+   the page reads head / counts / apparatus. The label comes first and is not
+   decorative: it is the sentence that stops the figures being read as a
+   verdict on the man. */
+
+.corpus-band {
+    margin: -1.25rem 0 1.5rem;
+    padding: 1rem 1.6rem 0.9rem;
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    background: var(--gold-bg, #fdf8ed);
+}
+
+.corpus-band__label {
+    margin: 0 0 0.5rem;
+    font-family: var(--font-ui);
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gold-dark, #a07e28);
+}
+
+.corpus-band__row {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
     gap: 0.3rem 1.1rem;
-    padding: 0.95rem 1.6rem;
-    border-top: 1px solid var(--border);
-    background: var(--gold-bg);
 }
 
-.folio__reach-count {
+.corpus-band__figure { font-size: 0.88rem; color: var(--text-secondary); }
+
+.corpus-band__count {
+    margin-inline-end: 0.15rem;
     font-family: var(--font-reference);
-    font-size: 1.25rem;
+    font-size: 1.3rem;
     font-weight: 600;
     color: var(--primary);
     font-variant-numeric: tabular-nums;
 }
 
-.folio__reach-text { font-size: 0.85rem; color: var(--text-secondary); }
-.folio__reach-dot { margin: 0 0.15rem; color: var(--text-muted); }
+.corpus-band__dot { margin: 0 0.15rem; color: var(--text-muted); }
 
-.folio__reach-link {
+.corpus-band__link {
     margin-inline-start: auto;
     font-size: 0.85rem;
     font-weight: 500;
     color: var(--primary);
+}
+
+.corpus-band__note {
+    margin: 0.5rem 0 0;
+    font-size: 0.72rem;
+    line-height: 1.5;
+    color: var(--text-muted);
 }
 
 /* ── The colophon, at the foot of the notice ─────────────────────────────── */
@@ -219,13 +213,21 @@ a.folio__fact:hover .folio__fact-value { text-decoration: underline; }
 .folio-colophon__orn { font-family: var(--font-arabic); font-size: 1.1rem; color: var(--gold); }
 .folio-colophon p { margin: 0; }
 
+/* The shared hero centres itself on a phone, which suits a book: a short title and a
+   row of counts sit well centred. A narrator's head is a seal, a name, a thirteen-mark
+   strip and a sentence, and centring put the seal hard left of centred text with the
+   sentence left-aligned under it — three alignments in one panel. `start`, not `left`,
+   so the Arabic page mirrors with everything else. */
+@media (max-width: 767.98px) {
+    .hub-hero--rijal,
+    .hub-hero--rijal .hub-hero__intro { text-align: start; }
+    .hub-hero--rijal .hub-hero__stats { justify-content: flex-start; }
+    .hub-hero--rijal .gens { max-width: 14rem; }
+}
+
 @media (max-width: 640px) {
-    .folio__head { grid-template-columns: minmax(0, 1fr); gap: 0.8rem; }
-    .folio__seal { grid-row: auto; }
-    .folio__head,
-    .folio__plate,
-    .folio__reach { padding-inline: 1.1rem; }
-    .folio__reach-link { margin-inline-start: 0; }
+    .corpus-band { padding-inline: 1.1rem; }
+    .corpus-band__link { margin-inline-start: 0; }
 }
 
 /* ── The evidence: what each book actually says ──────────────────────────── */

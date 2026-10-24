@@ -15,50 +15,92 @@
          This replaced a navy banner carrying four counting tiles. Every count on them was
          already printed in the tab strip below, so what the tiles added was repetition at
          the loudest point on the page. -->
-    <article class="folio">
-        <div class="folio__head"
-             th:attr="style='--folio-tint:' + ${@seals.tint(narrator['imam_ordinals'])}">
-            <!-- The same seal the cards and the chain preview carry, so the page opens with
-                 the mark the reader already met, drawn at the same size - the ring reads the
-                 chain index, which is what the card's ring reads. -->
-            <span class="folio__seal"
-                  th:utext="${@seals.of(narratorId, displayAr, narrator['imam_ordinals'], chainsThrough, 84)}"></span>
-            <div>
-                <div class="folio__eyebrow" th:text="#{narrator.eyebrow}">Narrator</div>
-                <h1 class="folio__name" dir="rtl" lang="ar" th:text="${displayAr}">اسم الراوي</h1>
-                <!-- Not on an Arabic page: «زرارة بن أعين» followed by «Zurarah ibn A'yan» is
-                     a transliteration serving a reader who does not need one. -->
-                <p class="folio__also"
-                   th:if="${!#strings.isEmpty(displayEn) and #locale.language != 'ar'}"
-                   th:text="${displayEn}">Transliterated name</p>
-                <!-- The thirteen marks, his own inked. A man the books place under no Imam
-                     gets no strip at all: thirteen blanks would say «we looked and found
-                     none», which the record does not claim. -->
-                <th:block th:utext="${@seals.generations(narrator['imam_ordinals'],
-                                       #lists.isEmpty(narrator.life.imams) ? ''
-                                       : #messages.msg('narrator.gens.aria',
-                                           #strings.listJoin(isArabic
-                                             and !#lists.isEmpty(narrator.life['imams_ar'])
-                                             ? narrator.life['imams_ar'] : narrator.life.imams, ' · ')))}"></th:block>
-                <p class="folio__gens-key" th:if="${!#lists.isEmpty(narrator['imam_ordinals'])}"
-                   th:text="#{narrator.gens.key}">The Prophet and the twelve Imams · his own inked</p>
-            </div>
+    <!-- The same navy head the books, volumes and chapters carry, so a narrator reads as
+         part of this site rather than as a feature bolted onto it. What is inside it is
+         what the rijal books claim about the man: his name, the generations they place
+         him in, where he was from, when he died, and the sentence those books amount to.
 
-            <p class="folio__sentence" th:if="${!#strings.isEmpty(narrator.blurb)}"
+         Figures counted out of this corpus are deliberately NOT in here. They are in the
+         band below, under a label that says where they come from, because "548 narrations"
+         set beside a man's name reads as a fact about the man when it is a fact about
+         this collection. -->
+    <header class="hub-hero hub-hero--split hub-hero--rijal">
+        <div class="hub-hero__identity">
+            <!-- The same seal the cards and the chain preview carry, so the page opens with
+                 the mark the reader already met. -->
+            <span class="hub-hero__seal"
+                  th:utext="${@seals.of(narratorId, displayAr, narrator['imam_ordinals'], chainsThrough, 84)}"></span>
+            <div class="hub-hero__eyebrow" th:text="#{narrator.eyebrow}">Narrator</div>
+            <h1 class="hub-hero__title" dir="rtl" lang="ar" th:text="${displayAr}">اسم الراوي</h1>
+            <!-- Not on an Arabic page: «زرارة بن أعين» followed by «Zurarah ibn A'yan» is
+                 a transliteration serving a reader who does not need one. -->
+            <p class="hub-hero__also"
+               th:if="${!#strings.isEmpty(displayEn) and #locale.language != 'ar'}"
+               th:text="${displayEn}">Transliterated name</p>
+            <!-- The thirteen marks, his own inked. A man the books place under no Imam
+                 gets no strip at all: thirteen blanks would say «we looked and found
+                 none», which the record does not claim. -->
+            <th:block th:utext="${@seals.generations(narrator['imam_ordinals'],
+                                   #lists.isEmpty(narrator.life.imams) ? ''
+                                   : #messages.msg('narrator.gens.aria',
+                                       #strings.listJoin(isArabic
+                                         and !#lists.isEmpty(narrator.life['imams_ar'])
+                                         ? narrator.life['imams_ar'] : narrator.life.imams, ' · ')))}"></th:block>
+            <p class="hub-hero__gens-key" th:if="${!#lists.isEmpty(narrator['imam_ordinals'])}"
+               th:text="#{narrator.gens.key}">The Prophet and the twelve Imams · his own inked</p>
+
+            <!-- Each of these says what it is. Unlabelled they were three pills reading
+                 «al-Jawād, al-Hādī, al-ʿAskarī», «Rayy» and «10 entries in 7 books», and
+                 nothing on the page said which was a lifetime and which a birthplace. -->
+            <div class="hub-hero__stats">
+                <span class="hub-stat" th:if="${narrator.life.city != null}">
+                    <span class="hub-stat__label" th:text="#{narrator.from}">From</span>
+                    <span class="hub-stat__value"
+                          th:text="${isArabic and narrator.life.city_ar != null
+                                     ? narrator.life.city_ar : narrator.life.city}">Kufa</span>
+                </span>
+                <span class="hub-stat" th:if="${narrator.life.died != null}">
+                    <span class="hub-stat__label" th:text="#{narrator.died}">Died</span>
+                    <span class="hub-stat__value"
+                          th:text="#{narrator.yearAh(${@localeDigits.of(narrator.life.died)})}">150 AH</span>
+                </span>
+                <!-- A book that files him among «من لم يرو عن واحد من الأئمة» has answered
+                     the question of when he lived, and the answer is that he kept company
+                     with no Imam. Printed because the alternative - an empty line where the
+                     Imams would be - reads as though nobody had looked. -->
+                <span class="hub-stat" th:if="${narrator.life['no_imam']}">
+                    <span class="hub-stat__label" th:text="#{narrator.underImams}">Imams</span>
+                    <span class="hub-stat__value" th:text="#{narrator.noImam}">Narrated from no Imam</span>
+                </span>
+                <!-- «4 books, 5 entries» is one message rather than two counts with words
+                     spliced between them: Arabic does not take that word order. -->
+                <a class="hub-stat" th:href="${booksUrl}" th:unless="${narrator['kind'] == 'imam'}">
+                    <span class="hub-stat__label" th:text="#{narrator.writtenAboutIn}">Written about in</span>
+                    <span class="hub-stat__value"
+                          th:text="#{narrator.booksEntries(${@localeDigits.of(#lists.size(books))},
+                                    ${@localeDigits.grouped(narrator.entry_count)})}">4 books, 5 entries</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- What the books amount to, on the other side of the gold rule, exactly as a
+             book's own head carries its introduction there. -->
+        <div class="hub-hero__intro">
+            <p class="hub-hero__intro-text" th:if="${!#strings.isEmpty(narrator.blurb)}"
                th:text="${narrator.blurb}">A sentence about him.</p>
 
             <!-- Only where no book grades him at all. The absence is the finding: 14,330 of
                  15,518 men are never graded by any of the seven, and for them this line and
                  the facts beside it are the whole of what is known. Not on an Imam's page:
                  the note below says the same thing there, and says it at length. -->
-            <p class="folio__unstated"
+            <p class="hub-hero__standing"
                th:if="${#lists.isEmpty(narrator['said_by']) and narrator['kind'] != 'imam'}"
                th:text="#{'narrator.standing.' + ${narrator.standing}}">No book grades him</p>
             <!-- On whose word. The seven books are not seven equal voices: al-Najāshī and
                  al-Ṭūsī wrote within reach of these men, al-Ardabīlī and al-Khoei are reading
                  the same early books a reader of this page can read, and the ascription of
                  the Ḍuʿafāʾ to Ibn al-Ghaḍāʾirī is disputed. -->
-            <p class="folio__rests"
+            <p class="hub-hero__rests"
                th:if="${narrator['standing_rests_on'] != null
                        and narrator['standing_rests_on'] != ''
                        and narrator['standing_rests_on'] != 'early'}"
@@ -68,199 +110,43 @@
             <!-- The Imams hold no entry in any rijal book, because no rijali assesses the man
                  he is assessing narrators for. Their pages say so rather than reading as a man
                  nobody troubled to grade. -->
-            <p class="folio__imam-note" th:if="${narrator['kind'] == 'imam'}"
+            <p class="hub-hero__imam-note" th:if="${narrator['kind'] == 'imam'}"
                th:text="#{narrator.imam.note}">The rijal books do not assess the Imams.</p>
-
-            <!-- Each of these said what it is. Unlabelled they were three pills reading
-                 «al-Jawād, al-Hādī, al-ʿAskarī», «Rayy» and «10 entries in 7 books», and
-                 nothing on the page said which was a lifetime and which a birthplace. -->
-            <div class="folio__facts">
-                <span class="folio__fact" th:if="${narrator.life.city != null}">
-                    <span class="folio__fact-label" th:text="#{narrator.from}">From</span>
-                    <span class="folio__fact-value"
-                          th:text="${isArabic and narrator.life.city_ar != null
-                                     ? narrator.life.city_ar : narrator.life.city}">Kufa</span>
-                </span>
-                <span class="folio__fact" th:if="${narrator.life.died != null}">
-                    <span class="folio__fact-label" th:text="#{narrator.died}">Died</span>
-                    <span class="folio__fact-value"
-                          th:text="#{narrator.yearAh(${@localeDigits.of(narrator.life.died)})}">150 AH</span>
-                </span>
-                <!-- A book that files him among «من لم يرو عن واحد من الأئمة» has answered
-                     the question of when he lived, and the answer is that he kept company
-                     with no Imam. Printed here because the alternative - an empty line where
-                     the Imams would be - reads as though nobody had looked. -->
-                <span class="folio__fact" th:if="${narrator.life['no_imam']}">
-                    <span class="folio__fact-label" th:text="#{narrator.underImams}">Imams</span>
-                    <span class="folio__fact-value" th:text="#{narrator.noImam}">Narrated from no Imam</span>
-                    <span class="folio__fact-said"
-                          th:if="${!#lists.isEmpty(narrator.life['no_imam_books'])}"
-                          th:text="${#strings.listJoin(isArabic
-                                     and !#lists.isEmpty(narrator.life['no_imam_books_ar'])
-                                     ? narrator.life['no_imam_books_ar']
-                                     : narrator.life['no_imam_books'], '، ')}">Rijāl al-Ṭūsī</span>
-                </span>
-                <!-- «4 books, 5 entries» is one message rather than two counts with words
-                     spliced between them: Arabic does not take that word order. -->
-                <a class="folio__fact" th:href="${booksUrl}" th:unless="${narrator['kind'] == 'imam'}">
-                    <span class="folio__fact-label" th:text="#{narrator.writtenAboutIn}">Written about in</span>
-                    <span class="folio__fact-value"
-                          th:text="#{narrator.booksEntries(${@localeDigits.of(#lists.size(books))},
-                                    ${@localeDigits.grouped(narrator.entry_count)})}">4 books, 5 entries</span>
-                </a>
-            </div>
         </div>
+    </header>
 
-        <!-- The chronology, set into the page as a plate. It was drawn for the navy banner
-             it used to stand in - gold leaf on deep blue - so it keeps that ground rather
-             than being recoloured for paper; a plate is how a manuscript carries a diagram
-             anyway. The strip above says which Imams; this says in what years. -->
-        <div class="folio__plate" th:if="${placement != null and placement.hasAnything()}">
-        <!--
-          Where he stands. The rijal books say "a companion of al-Sadiq" and leave the
-          reader to know what that means; this says it in a picture. Both inputs are
-          routinely absent, and the band does not render at all when neither is recorded.
-        -->
-        <!--
-          The band as a manuscript would rule it: a gold line across the foot of the banner,
-          the Prophet's period and the twelve imamates marked along it by lozenges, and the
-          ones this man lived under raised into medallions bearing their number in Arabic
-          figures. His death is struck on the same line as a rosette. Everything is placed by
-          year, so the spacing is the chronology and not a decoration: al-Ḥasan's ten years
-          are a tenth of al-Ṣādiq's century.
-        -->
-        <!--
-          The band is the page's one picture, so it is built to carry that: the years ruled
-          across the head, the Prophet's period and the twelve imamates set out beneath them
-          as panels in proportion to their length, each bearing its Imam's name, and the ones
-          this man lived under laid in gold leaf. His death is a thread struck through it.
-        -->
-        <!-- The band is laid out in logical properties throughout, so on the Arabic page it
-             mirrors of its own accord and time runs right to left, as an Arabic reader reads. -->
-        <div class="chrono" th:if="${placement != null and placement.hasAnything()}"
-             data-chrono th:attr="aria-label=#{narrator.chrono.label}">
-            <span class="chrono__ground" aria-hidden="true"></span>
-
-            <!-- The dates, ruled above: the year each period opens on, and the axis end. -->
-            <div class="chrono__dates">
-                <th:block th:each="era, it : ${placement.eras}">
-                    <span class="chrono__date"
-                          th:classappend="${it.index % 2 == 1 ? 'is-low' : ''}"
-                          th:style="|inset-inline-start:${era.leftPercent}%; --i:${it.index}|">
-                        <span class="chrono__date-year"
-                              th:text="${@localeDigits.of(era.fromAh)}">١١٤</span>
-                        <span class="chrono__date-tick"></span>
-                    </span>
-                </th:block>
-                <!-- The axis ends where this man's band ends, which is no longer 500 for
-                     everybody: the last era drawn is the last era he reaches. -->
-                <span class="chrono__date chrono__date--end" th:if="${!#lists.isEmpty(placement.eras)}">
-                    <span class="chrono__date-year"
-                          th:text="${@localeDigits.of(placement.eras[#lists.size(placement.eras) - 1].toAh)}">٢٢٠</span>
-                    <span class="chrono__date-tick"></span>
-                </span>
-            </div>
-
-            <!-- The band itself: panels in proportion to the years they ran. The plot wraps
-                 it because the band clips its own overflow, and the death mark has to stand
-                 above the gold rather than inside it — struck on a gold panel in gold, which
-                 is where most of these men died, it was invisible. -->
-            <div class="chrono__plot">
-            <div class="chrono__band">
-                <span class="chrono__cell" th:each="era, it : ${placement.eras}"
-                      th:classappend="${era.highlighted ? 'is-on' : ''}"
-                      tabindex="0"
-                      th:style="|inset-inline-start:${era.leftPercent}%; width:${era.widthPercent}%; --i:${it.index}|"
-                      th:data-era="#{narrator.chrono.era(${isArabic} ? ${era.shortAr} : ${era.nameEn},
-                                   ${@localeDigits.of(era.fromAh)}, ${@localeDigits.of(era.toAh)})}"
-                      th:data-on="${era.highlighted}"
-                      th:data-lived="#{narrator.chrono.livedUnder}"
-                      th:title="#{narrator.chrono.era(${isArabic} ? ${era.shortAr} : ${era.nameEn},
-                                 ${@localeDigits.of(era.fromAh)}, ${@localeDigits.of(era.toAh)})}">
-                    <!-- A panel of six years cannot hold a name; it keeps its number, and the
-                         name is read from the panel's tooltip and the cartouche below.
-
-                         In the reader's own script. The band was «الصادق» and «١١٤» on both
-                         sites, so an English reader met a row of names and a ruler he could
-                         not read, under a death badge that said «150» in his own figures. -->
-                    <span class="chrono__cell-name"
-                          th:attr="dir=${isArabic} ? 'rtl' : 'ltr', lang=${isArabic} ? 'ar' : 'en'"
-                          th:if="${era.widthPercent gt 3.0}"
-                          th:text="${isArabic} ? ${era.shortAr} : ${era.shortEn}">الصادق</span>
-                    <span class="chrono__cell-num" th:if="${era.widthPercent gt 1.6}"
-                          th:text="${era.isProphet()} ? '۞' : ${@localeDigits.of(era.order)}">٦</span>
-                </span>
-
-                <!-- Past the twelfth imamate the axis keeps running, because men of the sixth
-                     century are placed on it too. -->
-                <th:block th:with="last=${placement.eras[#lists.size(placement.eras) - 1]},
-                                   tail=${last.leftPercent + last.widthPercent}">
-                    <span class="chrono__tail" th:if="${tail lt 99}"
-                          th:style="|inset-inline-start:${tail}%; width:${100 - tail}%|"
-                          th:title="#{narrator.chrono.occultation}"></span>
-                </th:block>
-
-                <span class="chrono__thread"
-                      th:if="${placement.deathPercent != null and !placement.deathOutsideScale}"
-                      th:style="|inset-inline-start:${placement.deathPercent}%|"></span>
-            </div>
-
-            <!-- The one date on the band that is his own, so it is struck over everything
-                 else and labelled: a rosette, a thread, and the year in figures. -->
-            <span class="chrono__death"
-                  th:if="${placement.deathPercent != null and !placement.deathOutsideScale}"
-                  th:style="|inset-inline-start:${placement.deathPercent}%|"
-                  th:title="#{narrator.chrono.died(${deathAh})}">
-                <span class="chrono__death-mark" aria-hidden="true">۞</span>
-                <span class="chrono__death-year" th:text="${deathAh}">٢٢٠</span>
-            </span>
-            </div>
-
-            <p class="chrono__cartouche">
-                <span class="chrono__cartouche-wing" aria-hidden="true">❧</span>
-                <span class="chrono__cartouche-text">
-                    <th:block th:if="${!#lists.isEmpty(placement.highlightedNames)}">
-                        <span class="chrono__caption-label" th:text="#{narrator.chrono.livedUnder}">Lived under</span>
-                        <span th:text="${#strings.listJoin(placement.namesIn(isArabic), ' · ')}">the Imams</span>
-                    </th:block>
-                    <th:block th:unless="${!#lists.isEmpty(placement.highlightedNames)}">
-                        <span class="chrono__caption-label" th:text="#{narrator.chrono.noImam}">No Imam the books name</span>
-                    </th:block>
-                    <th:block th:if="${placement.deathAh != null}">
-                        <span class="chrono__caption-sep">۞</span>
-                        <span th:text="#{narrator.chrono.died(${deathAh})}">died 150 AH</span>
-                        <span class="chrono__caption-note" th:if="${placement.disputedDeath}"
-                              th:text="#{narrator.chrono.booksDiffer}">the books differ</span>
-                    </th:block>
-                </span>
-                <span class="chrono__cartouche-wing" aria-hidden="true">❧</span>
-            </p>
-        </div>
-        </div>
-
-        <!-- Reach, on one line: how much of the corpus runs through him, which book carries
-             most of it, and the way into the men he stands beside in the chains. This is
-             what the four tiles were counting; it reads as a sentence instead of a scoreboard
-             and the tab strip above still carries every figure as a number. -->
-        <div class="folio__reach" th:if="${narrationTotal > 0 or narrator['kind'] != 'imam'}">
-            <span class="folio__reach-count"
-                  th:text="${@localeDigits.grouped(narrationTotal)}">1,750</span>
-            <span class="folio__reach-text">
+    <!-- Everything in this band is counted out of the corpus this site holds, and the band
+         says so before it says anything else. The distinction it draws is the one a reader
+         will otherwise get wrong: the head above reports what the rijal books claim about a
+         man, which is a claim about him; these are counts of narrations and chains indexed
+         here, which are facts about this collection and would change if the collection did.
+         A man who transmitted a thousand narrations of which this site holds twelve has a
+         twelve here, and the label is what keeps that from reading as a verdict on him. -->
+    <section class="corpus-band" th:if="${narrationTotal > 0 or narrator['kind'] != 'imam'}"
+             aria-labelledby="corpus-band-label">
+        <p class="corpus-band__label" id="corpus-band-label"
+           th:text="#{narrator.corpus.label}">In this collection</p>
+        <div class="corpus-band__row">
+            <span class="corpus-band__figure">
+                <span class="corpus-band__count"
+                      th:text="${@localeDigits.grouped(narrationTotal)}">1,750</span>
                 <span th:text="${@counts.of(narrationTotal, 'narrator.reach.narrations')}">narrations</span>
                 <th:block th:if="${!#lists.isEmpty(narrationBooks)}">
-                    <span class="folio__reach-dot" aria-hidden="true">·</span>
+                    <span class="corpus-band__dot" aria-hidden="true">·</span>
                     <span th:text="#{narrator.reach.share(${@localeDigits.of(narrationBooks[0].share)},
                                                           ${narrationBooks[0].book})}">59% of them in Al-Kāfi</span>
                 </th:block>
             </span>
-            <a class="folio__reach-link" th:href="${chainsUrl}"
+            <a class="corpus-band__link" th:href="${chainsUrl}"
                th:unless="${narrator['kind'] == 'imam'}"
                th:with="chainMen=${narrator.teacher_count + narrator.student_count
                                    + (narrator['chain_only_count'] ?: 0)}"
                th:text="${@counts.of(chainMen, 'narrator.reach.chainMen')}">
                 261 men stand with him in the chains →</a>
         </div>
-    </article>
+        <p class="corpus-band__note" th:text="#{narrator.corpus.note}">
+            Counted from the narrations and chains this database holds.</p>
+    </section>
 
     <div th:replace="~{fragments/site :: ornament}"></div>
 
@@ -294,7 +180,7 @@
     </nav>
 
     <!-- Everything below is what a tab switches: narrator-tabs.js replaces this region in
-         place, so the hero, the ledger and the chronology above it are not repainted. The
+         place, so the navy head and the corpus band above it are not repainted. The
          tabs stay ordinary links to ordinary URLs, which is what a crawler, a shared link
          and a reader without script all need. -->
     <div id="narrator-view" class="narrator-view">
@@ -954,7 +840,6 @@
 <script src="/js/narrator-preview.js" th:src="@{/js/narrator-preview.js}" defer></script>
 <script src="/js/narrator-tabs.js" th:src="@{/js/narrator-tabs.js}" defer></script>
 <script src="/js/rijal-chain.js" th:src="@{/js/rijal-chain.js}" defer></script>
-<script src="/js/chrono.js" th:src="@{/js/chrono.js}" defer></script>
 <th:block th:replace="~{fragments/site :: analytics}"></th:block>
 </body>
 </html>

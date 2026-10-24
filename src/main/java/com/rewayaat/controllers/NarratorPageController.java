@@ -9,7 +9,6 @@ import com.rewayaat.service.PageLocale;
 import com.rewayaat.service.StructuredData;
 import com.rewayaat.service.QuranicInsightsService;
 import com.rewayaat.service.TopicLabelSource;
-import com.rewayaat.service.Chronology;
 import com.rewayaat.service.NarratorService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -54,9 +53,6 @@ public class NarratorPageController {
 
     @Autowired
     private NarratorService narratorService;
-
-    @Autowired
-    private Chronology chronology;
 
     @Autowired
     private HadithCardFactory cards;
@@ -245,17 +241,6 @@ public class NarratorPageController {
         String base = locale.prefix() + path;
         String arabic = text(narrator.get("display_ar"));
         String english = text(narrator.get("display_en"));
-
-        // Where he stands against the Prophet and the Imams. The rijal books say "a
-        // companion of al-Sadiq" and leave the reader to know what that means; the band
-        // says it in a picture. Both inputs are routinely absent and the band simply does
-        // not render then.
-        Chronology.Placement placement = chronology.place(ordinals(narrator),
-                statedDeathYears(narrator));
-        model.addAttribute("placement", placement);
-        // The death year reaches the caption as text, so it is converted here rather than
-        // appearing as 150 in the one Arabic sentence that quotes it.
-        model.addAttribute("deathAh", LocaleDigits.in(locale, placement.deathAh()));
 
         // A reader who knows the books better than this index does needs somewhere to say
         // so, and a rijāl page is where he will notice: a wrong verdict, a man fused with
@@ -616,41 +601,6 @@ public class NarratorPageController {
 
     private String text(Object value) {
         return value == null ? "" : value.toString();
-    }
-
-    /** {@code imam_ordinals}: 0 for the Prophet, 1-12 for the Imams. Often absent. */
-    @SuppressWarnings("unchecked")
-    private static List<Integer> ordinals(Map<String, Object> narrator) {
-        Object raw = narrator.get("imam_ordinals");
-        if (!(raw instanceof List<?> list)) {
-            return List.of();
-        }
-        List<Integer> out = new ArrayList<>();
-        for (Object item : list) {
-            if (item instanceof Number number) {
-                out.add(number.intValue());
-            }
-        }
-        return out;
-    }
-
-    /**
-     * Every death year any book states. The books disagree often enough that this is a
-     * list rather than a value, and the page says so when it holds more than one.
-     */
-    @SuppressWarnings("unchecked")
-    private static List<Integer> statedDeathYears(Map<String, Object> narrator) {
-        Object raw = narrator.get("death_years");
-        if (!(raw instanceof List<?> list)) {
-            return List.of();
-        }
-        List<Integer> out = new ArrayList<>();
-        for (Object item : list) {
-            if (item instanceof Map<?, ?> entry && entry.get("value") instanceof Number number) {
-                out.add(number.intValue());
-            }
-        }
-        return out;
     }
 
     /**
