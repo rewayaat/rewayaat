@@ -43,7 +43,7 @@ import java.util.List;
  * can find, which may be nothing at all. Loading the exact TTFs we ship makes the output
  * identical on a developer laptop and in the cluster.
  *
- * <p>Noto Naskh has no Latin glyphs to speak of and Source Serif has no Arabic ones, so text is
+ * <p>Noto Naskh has no Latin glyphs to speak of and Literata has no Arabic ones, so text is
  * split into runs by which font can actually draw each character. 711 of the English
  * fields in the index contain Arabic script, so a single-font card would have rendered
  * rows of .notdef boxes on those.
@@ -804,8 +804,8 @@ public class ShareCardRenderer {
 
         private CardFonts() {
             this.arabic = load("NotoNaskhArabic-Regular.ttf");
-            this.latin = load("SourceSerif4-Regular.ttf");
-            this.latinBold = load("SourceSerif4-Semibold.ttf");
+            this.latin = load("Literata-Regular.ttf");
+            this.latinBold = load("Literata-SemiBold.ttf");
         }
 
         Font arabic() {

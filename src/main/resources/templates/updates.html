@@ -29,7 +29,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
     <link th:if="${isArabic}" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet"/>
     <link th:unless="${isArabic}" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Literata:opsz,wght@7..72,400;7..72,500;7..72,600;7..72,700&family=Cormorant+Garamond:wght@500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap"
           rel="stylesheet"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
           integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
@@ -63,9 +63,9 @@
            card's own border, so it keeps its place whatever padding the card takes. */
         .update-entry__dot { position: absolute; inset-inline-start: calc(-2rem - 1px); top: 1.5rem; width: 16px; height: 16px; border-radius: 50%; background: #fff; border: 2.5px solid #d5aa4d; z-index: 1; }
         .update-entry:first-child .update-entry__dot { background: #d5aa4d; box-shadow: 0 0 0 4px rgba(213,170,77,0.18); }
-        .update-entry__date { display: inline-block; font-family: 'Inter', sans-serif; font-size: 0.68rem; font-weight: 700; color: #8a6420; background: rgba(213,170,77,0.16); border-radius: 999px; padding: 0.22rem 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.55rem; }
+        .update-entry__date { display: inline-block; font-family: 'Manrope', sans-serif; font-size: 0.68rem; font-weight: 700; color: #8a6420; background: rgba(213,170,77,0.16); border-radius: 999px; padding: 0.22rem 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.55rem; }
         .update-entry:first-child .update-entry__date { color: #4a3208; background: rgba(213,170,77,0.34); }
-        .update-entry__title { font-family: 'Source Serif 4', serif; font-size: 1.42rem; font-weight: 700; color: #08121f; line-height: 1.25; margin-bottom: 0.45rem; }
+        .update-entry__title { font-family: 'Literata', serif; font-size: 1.42rem; font-weight: 700; color: #08121f; line-height: 1.25; margin-bottom: 0.45rem; }
         .update-entry__summary { font-size: 0.95rem; color: #2a3847; line-height: 1.65; margin-bottom: 0.8rem; }
         .update-entry__highlights { list-style: none; padding: 0; margin: 0; border-top: 1px solid rgba(11,23,40,0.07); padding-top: 0.7rem; }
         .update-entry__highlights li { font-size: 0.875rem; color: #35465a; line-height: 1.55; padding-block: 0.28rem; padding-inline: 1.1rem 0; position: relative; }
@@ -80,7 +80,7 @@
         .update-entry__cta a:hover { background: #1a3a6b; border-color: #1a3a6b; color: #fff; }
         .update-entry__cta a i { color: #d5aa4d; }
         .update-entry__why { margin: 1.1rem 0 1.2rem; }
-        .why__title { font-family: 'Source Serif 4', serif; font-size: 1.1rem; font-weight: 600; color: #0b1728; margin: 0 0 0.65rem; }
+        .why__title { font-family: 'Literata', serif; font-size: 1.1rem; font-weight: 600; color: #0b1728; margin: 0 0 0.65rem; }
         .why__intro { font-size: 0.92rem; color: #3a4a5c; line-height: 1.6; margin: 0 0 0.9rem; }
         .why__image { display: block; width: 100%; height: auto; border-radius: 10px; box-shadow: 0 2px 12px rgba(11,23,40,0.14); margin-bottom: 0.9rem; }
         .why__points { padding-inline-start: 1.1rem; margin: 0; }
@@ -110,7 +110,7 @@
         .update-permalink.is-copied { opacity: 1; color: #1a3a6b; }
         .update-permalink.is-copied::after { content: attr(data-copied); position: absolute;
             bottom: calc(100% + 0.4rem); inset-inline-start: 50%; transform: translateX(-50%);
-            white-space: nowrap; font-family: 'Inter', sans-serif; font-size: 0.68rem;
+            white-space: nowrap; font-family: 'Manrope', sans-serif; font-size: 0.68rem;
             font-weight: 600; letter-spacing: 0.02em; color: #fff; background: #0b1728;
             padding: 0.22rem 0.5rem; border-radius: 6px; pointer-events: none; }
         .connector-url { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem 0.75rem; padding: 0.65rem 0.8rem; border: 1px solid rgba(26,58,107,0.16); border-radius: 10px; background: #fff; }
@@ -119,7 +119,7 @@
         .connector-url__copy { border: 1px solid rgba(26,58,107,0.25); background: #f6f8fc; color: #1a3a6b; font-size: 0.8rem; font-weight: 600; border-radius: 7px; padding: 0.3rem 0.75rem; }
         .connector-url__copy:hover { background: #eaf0fa; }
         .guide { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid rgba(26,58,107,0.10); }
-        .guide__title { font-family: 'Source Serif 4', serif; font-size: 1.1rem; font-weight: 600; color: #0b1728; margin: 0 0 0.5rem; }
+        .guide__title { font-family: 'Literata', serif; font-size: 1.1rem; font-weight: 600; color: #0b1728; margin: 0 0 0.5rem; }
         .guide__steps { padding-inline-start: 1.25rem; margin: 0 0 0.5rem; }
         .guide__steps li { font-size: 0.9rem; color: #3a4a5c; line-height: 1.55; padding: 0.15rem 0; }
         .guide__note { font-size: 0.82rem; color: #5a6a7a; margin: 0 0 0.85rem; }

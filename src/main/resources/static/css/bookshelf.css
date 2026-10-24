@@ -38,7 +38,7 @@
   --lamp: 255, 206, 128;
   --paper: #e9dcbc;
   --gap: 34px;
-  font-family: var(--font-reference, 'Source Serif 4', Georgia, serif);
+  font-family: var(--font-reference, 'Literata', Georgia, serif);
 }
 
 /* the case: a heavy frame round the compartments */

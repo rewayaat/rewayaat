@@ -3822,10 +3822,10 @@ function buildPdfExportMarkup(options) {
         '<title>' + title + '</title>' +
         '<link rel="preconnect" href="https://fonts.googleapis.com">' +
         '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
-        '<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Manrope:wght@500;700;800&family=Source+Serif+4:wght@400;600;700&display=swap" rel="stylesheet">' +
+        '<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Manrope:wght@500;700;800&family=Literata:opsz,wght@7..72,400;7..72,600;7..72,700&display=swap" rel="stylesheet">' +
         '<style>' +
         ':root{color-scheme:light;--ink:#1d2f3f;--muted:#6e6251;--paper:#f8f1e4;--card:#fffdf8;--line:rgba(64,49,26,.14);--accent:#8b6b31;--accent-strong:#174d77;}' +
-        '*{box-sizing:border-box;}html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:"Source Serif 4",Georgia,serif;line-height:1.7;}' +
+        '*{box-sizing:border-box;}html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:"Literata",Georgia,serif;line-height:1.7;}' +
         'body{padding:28px;}body::before{content:"";position:fixed;inset:0;background:radial-gradient(circle at top left,rgba(139,107,49,.08),transparent 32%),radial-gradient(circle at top right,rgba(23,77,119,.06),transparent 28%);pointer-events:none;}' +
         '.pdf-shell{position:relative;max-width:980px;margin:0 auto;}' +
         '.pdf-header{padding:24px 28px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(145deg,rgba(255,253,248,.98),rgba(244,232,207,.96));box-shadow:0 20px 45px rgba(57,42,21,.12);}' +

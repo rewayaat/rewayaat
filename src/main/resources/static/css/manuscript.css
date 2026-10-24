@@ -59,11 +59,11 @@
        a serif stack in Noto Naskh Arabic, rather than in whatever the device falls
        back to. Google Fonts serves those two by unicode-range, so a page without
        Arabic in them never downloads them. */
-    --font-body:        "Inter", "IBM Plex Sans Arabic", "Segoe UI", system-ui, sans-serif;
-    --font-display:     "Inter", "IBM Plex Sans Arabic", "Segoe UI", system-ui, sans-serif;
-    --font-ui:          "Inter", "IBM Plex Sans Arabic", "Segoe UI", system-ui, sans-serif;
-    --font-reference:   "Source Serif 4", "Noto Naskh Arabic", Georgia, serif;
-    --font-ornament:    "Cormorant Garamond", "Noto Naskh Arabic", "Source Serif 4", serif;
+    --font-body:        "Manrope", "IBM Plex Sans Arabic", "Segoe UI", system-ui, sans-serif;
+    --font-display:     "Manrope", "IBM Plex Sans Arabic", "Segoe UI", system-ui, sans-serif;
+    --font-ui:          "Manrope", "IBM Plex Sans Arabic", "Segoe UI", system-ui, sans-serif;
+    --font-reference:   "Literata", "Noto Naskh Arabic", Georgia, serif;
+    --font-ornament:    "Cormorant Garamond", "Noto Naskh Arabic", "Literata", serif;
     --font-arabic:      "Scheherazade New", "Amiri", serif;
     --font-mono:        "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
 
@@ -13621,7 +13621,7 @@ html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
 .narrator-search__lead {
     max-width: 52ch;
     margin: 0.6rem auto 0;
-    font-family: 'Source Serif 4', Georgia, serif;
+    font-family: 'Literata', Georgia, serif;
     font-size: 0.88rem;
     line-height: 1.7;
     color: rgba(255, 255, 255, 0.78);
@@ -14718,7 +14718,7 @@ html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
 }
 
 .ledger__value {
-    font-family: 'Source Serif 4', Georgia, serif;
+    font-family: 'Literata', Georgia, serif;
     font-size: 1.75rem;
     line-height: 1.1;
     color: var(--primary);
