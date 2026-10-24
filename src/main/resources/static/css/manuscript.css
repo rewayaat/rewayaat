@@ -16985,3 +16985,31 @@ a.isnad-man__name:hover .isnad-man__en {
     object-fit: cover;
     border: 0;
 }
+
+/* ── The home page's sections, all on the same ground ────────────────────────
+   Browse and Updates sat in a bordered, rounded, tinted panel; Narrators and
+   Collections sat on the page. Three sections down the same column, two of them
+   boxed, reads as though the boxes mean something. They do not. The page itself
+   is the ground, and the bookcase and the cards are objects enough on it. */
+.home-browse,
+.home-updates {
+    padding: 0;
+    /* !important only because the rule this undoes carries it, and the panel is
+       painted by three things at once: the element, a ::before glow and an
+       ::after corner. All three go. */
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+}
+
+.home-browse::before,
+.home-browse::after,
+.home-updates::before,
+.home-updates::after { content: none !important; }
+
+/* The space the panel's padding used to give between sections now belongs to
+   the sections themselves. */
+.home-browse,
+.home-narrators,
+.home-updates { margin-block: 0 2.6rem; }

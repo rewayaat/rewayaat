@@ -462,3 +462,18 @@
     bottom: 0.4%;
     box-shadow: 0 1px 0 rgba(255, 252, 244, 0.4);
 }
+
+/* ── The back board: tried, and not kept ─────────────────────────────────────
+   A book turned toward the reader should show its back board just beyond the
+   fore-edge, overhanging the paper as the front one does. Two attempts at it
+   are in the history of this file and neither was worth keeping: the block and
+   the board are drawn as rectangles that are then sheared from the bottom-right
+   corner, so a rectangle placed at a fixed x does not follow the sloping edge
+   of the paper beside it. It appeared as a dark nub at the top of the pages and
+   nothing below, which reads as a rendering fault rather than as a board.
+
+   Doing it properly means the body carrying a real rotateY with the cover as a
+   face, and the comment at the top of the perspective block explains why that
+   was avoided: Chrome holds a 3D-animated layer at its starting resolution and
+   the lettering of the chosen book went soft exactly when it was meant to be
+   read. Left undone deliberately. */

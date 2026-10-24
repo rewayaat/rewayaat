@@ -215,6 +215,11 @@
             if (!control.control_input.getAttribute('aria-label')) {
                 control.control_input.setAttribute('aria-label', placeholder);
             }
+            // Tom Select rewrites the placeholder whenever it refreshes its state, so
+            // removing the attribute once was not enough: it came back on blur and
+            // printed under the hint again. Clear the setting it writes from, and
+            // clear the attribute on every sync.
+            control.settings.placeholder = '';
             control.control_input.removeAttribute('placeholder');
             // Gone the moment the field is live, not when the suggestion list catches
             // up. Tom Select's own `type` event is throttled with the loader, so the
@@ -224,6 +229,7 @@
             // caret in it, which says what the placeholder was there to say.
             var focused = false;
             var syncHint = function () {
+                control.control_input.removeAttribute('placeholder');
                 var typed = (control.control_input && control.control_input.value) || '';
                 var empty = !focused && !typed && !(control.items && control.items.length);
                 shell.classList.toggle('has-hint', empty);

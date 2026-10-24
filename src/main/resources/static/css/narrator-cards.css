@@ -683,6 +683,10 @@ html[dir="rtl"] .pv__ar { text-align: right; padding-right: 0; padding-left: 1.4
        one beside it. Normal tracking, and a little air between words. */
     letter-spacing: 0;
     word-spacing: 0.08em;
+    /* The ellipsis needs overflow:hidden, and that clips whatever leaves the line
+       box — which in Arabic is the tail of every «ج» and «ي». The box has to be
+       tall enough to hold them: at 1.6 the descenders of «الرجال» were cut flat. */
+    line-height: 2.2;
     color: rgba(238, 243, 250, 0.62);
 }
 
