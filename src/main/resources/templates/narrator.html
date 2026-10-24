@@ -24,12 +24,13 @@
          band below, under a label that says where they come from, because "548 narrations"
          set beside a man's name reads as a fact about the man when it is a fact about
          this collection. -->
-    <header class="hub-hero hub-hero--split hub-hero--rijal">
-        <div class="hub-hero__identity">
-            <!-- The same seal the cards and the chain preview carry, so the page opens with
-                 the mark the reader already met. -->
+    <header class="hub-hero hub-hero--rijal">
+        <!-- Seal and name on one line. Stacked, the seal sat alone at the top of a tall
+             column with the width of the panel empty beside it. -->
+        <div class="rijal__head">
             <span class="hub-hero__seal"
                   th:utext="${@seals.of(narratorId, displayAr, narrator['imam_ordinals'], chainsThrough, 84)}"></span>
+            <div class="rijal__names">
             <div class="hub-hero__eyebrow" th:text="#{narrator.eyebrow}">Narrator</div>
             <h1 class="hub-hero__title" dir="rtl" lang="ar" th:text="${displayAr}">اسم الراوي</h1>
             <!-- Not on an Arabic page: «زرارة بن أعين» followed by «Zurarah ibn A'yan» is
@@ -37,6 +38,43 @@
             <p class="hub-hero__also"
                th:if="${!#strings.isEmpty(displayEn) and #locale.language != 'ar'}"
                th:text="${displayEn}">Transliterated name</p>
+            </div>
+        </div>
+
+        <!-- What the books amount to, ruled off from the name above it. -->
+        <div class="rijal__says">
+            <p class="hub-hero__intro-text" th:if="${!#strings.isEmpty(narrator.blurb)}"
+               th:text="${narrator.blurb}">A sentence about him.</p>
+
+            <!-- Only where no book grades him at all. The absence is the finding: 14,330 of
+                 15,518 men are never graded by any of the seven, and for them this line and
+                 the facts beside it are the whole of what is known. Not on an Imam's page:
+                 the note below says the same thing there, and says it at length. -->
+            <p class="hub-hero__standing"
+               th:if="${#lists.isEmpty(narrator['said_by']) and narrator['kind'] != 'imam'}"
+               th:text="#{'narrator.standing.' + ${narrator.standing}}">No book grades him</p>
+            <!-- On whose word. The seven books are not seven equal voices: al-Najāshī and
+                 al-Ṭūsī wrote within reach of these men, al-Ardabīlī and al-Khoei are reading
+                 the same early books a reader of this page can read, and the ascription of
+                 the Ḍuʿafāʾ to Ibn al-Ghaḍāʾirī is disputed. -->
+            <p class="hub-hero__rests"
+               th:if="${narrator['standing_rests_on'] != null
+                       and narrator['standing_rests_on'] != ''
+                       and narrator['standing_rests_on'] != 'early'}"
+               th:text="#{'narrator.standing.restsOn.' + ${narrator['standing_rests_on']}}">
+                on later scholars only
+            </p>
+            <!-- The Imams hold no entry in any rijal book, because no rijali assesses the man
+                 he is assessing narrators for. Their pages say so rather than reading as a man
+                 nobody troubled to grade. -->
+            <p class="hub-hero__imam-note" th:if="${narrator['kind'] == 'imam'}"
+               th:text="#{narrator.imam.note}">The rijal books do not assess the Imams.</p>
+        </div>
+
+        <!-- The generations and the facts share the foot of the panel, which is where the
+             width that was going spare now goes. -->
+        <div class="rijal__foot">
+            <div class="rijal__gens">
             <!-- The thirteen marks, his own inked. A man the books place under no Imam
                  gets no strip at all: thirteen blanks would say «we looked and found
                  none», which the record does not claim. -->
@@ -48,6 +86,7 @@
                                          ? narrator.life['imams_ar'] : narrator.life.imams, ' · ')))}"></th:block>
             <p class="hub-hero__gens-key" th:if="${!#lists.isEmpty(narrator['imam_ordinals'])}"
                th:text="#{narrator.gens.key}">The Prophet and the twelve Imams · his own inked</p>
+            </div>
 
             <!-- Each of these says what it is. Unlabelled they were three pills reading
                  «al-Jawād, al-Hādī, al-ʿAskarī», «Rayy» and «10 entries in 7 books», and
@@ -83,36 +122,6 @@
             </div>
         </div>
 
-        <!-- What the books amount to, on the other side of the gold rule, exactly as a
-             book's own head carries its introduction there. -->
-        <div class="hub-hero__intro">
-            <p class="hub-hero__intro-text" th:if="${!#strings.isEmpty(narrator.blurb)}"
-               th:text="${narrator.blurb}">A sentence about him.</p>
-
-            <!-- Only where no book grades him at all. The absence is the finding: 14,330 of
-                 15,518 men are never graded by any of the seven, and for them this line and
-                 the facts beside it are the whole of what is known. Not on an Imam's page:
-                 the note below says the same thing there, and says it at length. -->
-            <p class="hub-hero__standing"
-               th:if="${#lists.isEmpty(narrator['said_by']) and narrator['kind'] != 'imam'}"
-               th:text="#{'narrator.standing.' + ${narrator.standing}}">No book grades him</p>
-            <!-- On whose word. The seven books are not seven equal voices: al-Najāshī and
-                 al-Ṭūsī wrote within reach of these men, al-Ardabīlī and al-Khoei are reading
-                 the same early books a reader of this page can read, and the ascription of
-                 the Ḍuʿafāʾ to Ibn al-Ghaḍāʾirī is disputed. -->
-            <p class="hub-hero__rests"
-               th:if="${narrator['standing_rests_on'] != null
-                       and narrator['standing_rests_on'] != ''
-                       and narrator['standing_rests_on'] != 'early'}"
-               th:text="#{'narrator.standing.restsOn.' + ${narrator['standing_rests_on']}}">
-                on later scholars only
-            </p>
-            <!-- The Imams hold no entry in any rijal book, because no rijali assesses the man
-                 he is assessing narrators for. Their pages say so rather than reading as a man
-                 nobody troubled to grade. -->
-            <p class="hub-hero__imam-note" th:if="${narrator['kind'] == 'imam'}"
-               th:text="#{narrator.imam.note}">The rijal books do not assess the Imams.</p>
-        </div>
     </header>
 
     <!-- Everything in this band is counted out of the corpus this site holds, and the band

@@ -367,3 +367,59 @@ html[dir="rtl"] .pv__ar { text-align: right; padding-right: 0; padding-left: 1.4
         0 16px 30px -16px rgba(15, 36, 64, .5);
 }
 .ncard:hover::after { opacity: 1; }
+
+/* ===========================================================================
+   The cards in navy.
+
+   Paper cards put the seal — a coloured tile with a gold ring — on a near-white
+   ground, where the ring had nothing to read against and the generation colour
+   was the loudest thing in the grid. On navy the tile is a jewel, the ring is
+   gold on blue as it is everywhere else on this site, and a wall of them reads
+   as one shelf of men rather than as a page of boxes.
+
+   The verdict words have to be respelled, not merely dimmed: #2f6b4f and
+   #9a3b2f were mixed for 5.9:1 and 6.4:1 on paper and are close to invisible
+   on this ground. The pair below run 7.9:1 and 6.1:1 on the card's mid-navy.
+   =========================================================================== */
+
+.ncard {
+    background: linear-gradient(145deg, #0f2440 0%, #16304f 45%, #1e3a5f 100%);
+    border-color: rgba(243, 229, 184, 0.16);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18), 0 8px 20px -10px rgba(10, 22, 40, 0.5);
+}
+
+.ncard:hover {
+    border-color: rgba(243, 229, 184, 0.45);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.24), 0 16px 30px -12px rgba(10, 22, 40, 0.6);
+}
+
+.ncard .nseal__track { stroke: rgba(255, 255, 255, 0.18); }
+.ncard .nseal__ring { stroke: var(--gold-light, #f3e5b8); }
+
+.ncard__rank { color: rgba(243, 229, 184, 0.42); }
+.ncard__ar { color: #fff; }
+
+/* The transliteration is the gloss under the name, and it was sitting on the
+   Arabic's descenders. It needs a line of its own, not a tighter one. */
+.ncard__en {
+    margin-top: 0.35rem;
+    color: rgba(243, 229, 184, 0.72);
+}
+
+.ncard .whose { color: rgba(245, 236, 214, 0.55); }
+
+.ncard .word--for { background: rgba(126, 217, 163, 0.14); color: #a9e8c4; }
+.ncard .word--against { background: rgba(240, 150, 130, 0.15); color: #f6bdb0; }
+.ncard .word--none,
+.ncard .word--neutral,
+.ncard .word--mixed {
+    background: rgba(255, 255, 255, 0.07);
+    color: rgba(245, 236, 214, 0.8);
+    border-color: rgba(243, 229, 184, 0.18);
+}
+
+.ncard__foot { border-top-color: rgba(243, 229, 184, 0.22); }
+.ncard__count { color: var(--gold-light, #f3e5b8); }
+.ncard__books { color: rgba(245, 236, 214, 0.58); }
+
+.ncard:focus-visible { outline-color: var(--gold-light, #f3e5b8); }
