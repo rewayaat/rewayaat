@@ -115,7 +115,9 @@ html[dir="rtl"] .hub-hero--rijal .hub-hero__title { text-align: right; }
    an English reader was given the smaller of the two. */
 .hub-hero--rijal .hub-hero__also {
     position: relative;
-    margin: 0.1rem 0 0;
+    /* Scheherazade's descenders reach well below its baseline, so 0.1rem left the
+       gold transliteration sitting in them. */
+    margin: 0.55rem 0 0;
     font-family: var(--font-reference);
     font-style: italic;
     font-size: clamp(1.15rem, 2.1vw, 1.5rem);
