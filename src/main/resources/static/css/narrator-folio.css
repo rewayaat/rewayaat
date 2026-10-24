@@ -550,7 +550,11 @@ a.hub-stat:focus-visible {
 .hub-hero__seal-note {
     position: absolute;
     top: calc(100% + 0.5rem);
-    inset-inline-start: 0;
+    /* Opening from the start edge sent it off the panel, and .hub-hero clips its
+       overflow so the end of the sentence simply vanished. The seal sits at the
+       panel's inline end, so the note hangs from its own end edge and grows inward,
+       which is the only direction with room. */
+    inset-inline-end: 0;
     z-index: 5;
     width: max-content;
     max-width: min(24rem, 70vw);

@@ -256,7 +256,10 @@ public class NarratorPageController {
         // seal was one size on the card he was tapped from and another on the page it opened:
         // Ibrāhīm b. Hāshim stands in 4,056 chains and 548 narrations name him. One mark, one
         // measure - this is the figure the card uses.
-        model.addAttribute("chainsThrough", prominent.chainsOf(id));
+        // Counted once: the seal draws its ring from it, and the Narrations tab and
+        // its badge are now listed and counted by it too.
+        long chainsThrough = prominent.chainsOf(id);
+        model.addAttribute("chainsThrough", chainsThrough);
         model.addAttribute("displayAr", arabic);
         model.addAttribute("displayEn", english);
         model.addAttribute("books", booksNamed(narrator));
@@ -339,8 +342,11 @@ public class NarratorPageController {
         boolean cardLayout = !"index".equals(layout);
         int perPage = cardLayout ? PER_PAGE : COMPACT_PER_PAGE;
         Map<String, Object> naming = "narrations".equals(view)
-                ? narratorService.narrationsNaming(names, tag, book, page, perPage)
-                : summaryOf(names);
+                // The chain index when it knows him — exact, complete, and the same figure
+                // his seal draws — and his name forms only when it does not.
+                ? narratorService.narrationsNaming(names, chainsThrough > 0 ? id : null,
+                                                   tag, book, page, perPage)
+                : summaryOf(names, chainsThrough > 0 ? id : null);
         List<Map<String, Object>> narrations = new ArrayList<>();
         for (Object row : (List<?>) naming.getOrDefault("hits", List.of())) {
             Map<?, ?> hit = (Map<?, ?>) row;
@@ -456,8 +462,8 @@ public class NarratorPageController {
     }
 
     /** The narrations tab's count, and where those narrations sit, for the counters. */
-    private Map<String, Object> summaryOf(List<String> names) {
-        Map<String, Object> summary = narratorService.narrationSummary(names);
+    private Map<String, Object> summaryOf(List<String> names, String personId) {
+        Map<String, Object> summary = narratorService.narrationSummary(names, personId);
         Map<String, Object> out = new LinkedHashMap<>(summary);
         out.put("hits", List.of());
         out.put("tags", List.of());

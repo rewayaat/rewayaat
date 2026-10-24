@@ -232,12 +232,33 @@ public class NarratorService {
      */
     public Map<String, Object> narrationsNaming(List<String> nameForms, String tag, String book,
                                                 int page, int pageSize) {
+        return narrationsNaming(nameForms, null, tag, book, page, pageSize);
+    }
+
+    /**
+     * The narrations a man stands in, by the chain index where it knows him.
+     *
+     * <p>Searching his name forms was finding the wrong set twice over. Abū Baṣīr is
+     * headed «يحيى بن أبي القاسم الحذاء» in the books and called «أبي بصير» in the
+     * chains, so the name search found one narration where the chain index has 1,200.
+     * Ibrāhīm b. Hāshim is reached as «أبيه» through most of al-Kāfī: 548 against 4,056.
+     * And where the name is common the search picked up namesakes, which is what the
+     * caveat under this tab has been apologising for.
+     *
+     * <p>So: the person id when the chain index has him, which is exact and complete and
+     * agrees with the figure on his seal; his name forms only when it does not, which is
+     * still better than showing a man nothing.
+     */
+    public Map<String, Object> narrationsNaming(List<String> nameForms, String personId,
+                                                String tag, String book,
+                                                int page, int pageSize) {
         Map<String, Object> empty = new LinkedHashMap<>();
         empty.put("total", 0L);
         empty.put("hits", new ArrayList<>());
         empty.put("tags", new ArrayList<>());
         List<String> forms = distinctive(nameForms);
-        if (forms.isEmpty()) {
+        String byId = personId == null ? "" : personId.trim();
+        if (forms.isEmpty() && byId.isEmpty()) {
             return empty;
         }
         int size = Math.min(Math.max(pageSize, 1), 50);
@@ -260,10 +281,14 @@ public class NarratorService {
                             "topic_tags", "llm_similar", "*_ar", "chain_links",
                             "chain_links_en", "chain_people")))
                     .query(q -> q.bool(b -> {
-                        for (String form : forms) {
-                            b.should(sh -> sh.matchPhrase(m -> m.field("arabic").query(form)));
+                        if (!byId.isEmpty()) {
+                            b.filter(f -> f.term(t -> t.field("chain_links.p.keyword").value(byId)));
+                        } else {
+                            for (String form : forms) {
+                                b.should(sh -> sh.matchPhrase(m -> m.field("arabic").query(form)));
+                            }
+                            b.minimumShouldMatch("1");
                         }
-                        b.minimumShouldMatch("1");
                         if (!wanted.isEmpty()) {
                             b.filter(f -> f.term(t -> t.field("topic_tags").value(wanted)));
                         }
@@ -327,11 +352,17 @@ public class NarratorService {
      * Ziyad's 1,504 are in al-Kafi, which is why a judgment on him moves so much of that book.
      */
     public Map<String, Object> narrationSummary(List<String> nameForms) {
+        return narrationSummary(nameForms, null);
+    }
+
+    /** The same set the Narrations tab lists, counted: by person id where we have one. */
+    public Map<String, Object> narrationSummary(List<String> nameForms, String personId) {
         Map<String, Object> summary = new LinkedHashMap<>();
         summary.put("total", 0L);
         summary.put("books", new ArrayList<>());
         List<String> forms = distinctive(nameForms);
-        if (forms.isEmpty()) {
+        String byId = personId == null ? "" : personId.trim();
+        if (forms.isEmpty() && byId.isEmpty()) {
             return summary;
         }
         try (ESClientProvider provider = new ESClientProvider()) {
@@ -339,6 +370,10 @@ public class NarratorService {
                     .index(ESClientProvider.INDEX)
                     .size(0)
                     .query(q -> q.bool(b -> {
+                        if (!byId.isEmpty()) {
+                            return b.filter(f -> f.term(t ->
+                                    t.field("chain_links.p.keyword").value(byId)));
+                        }
                         for (String form : forms) {
                             b.should(sh -> sh.matchPhrase(m -> m.field("arabic").query(form)));
                         }

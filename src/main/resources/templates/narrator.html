@@ -742,11 +742,17 @@
     <section class="narrator-narrations" th:if="${view == 'narrations' and narrationTotal > 0}">
         <!-- Arabic names set inline in an English sentence broke across the line in both
              directions at once; they sit on their own row as chips. -->
+        <!-- Two different lists, and the note has to say which one this is. By person id
+             the set is exact and there is no namesake to warn about; by name it is the
+             old search, and the warning stands. -->
         <div class="narrator-narrations__caveat">
-            <p th:text="#{narrator.narrations.caveat}">
+            <p th:if="${chainsThrough > 0}" th:text="#{narrator.narrations.byChain}">
+                Every narration whose chain this database resolves to him.
+            </p>
+            <p th:unless="${chainsThrough > 0}" th:text="#{narrator.narrations.caveat}">
                 Found by searching the chains for these names.
             </p>
-            <details class="narrator-narrations__names">
+            <details class="narrator-narrations__names" th:unless="${chainsThrough > 0}">
                 <summary th:text="#{narrator.narrations.namesSearched(${@localeDigits.of(#lists.size(searchedNames))})}">The names searched</summary>
                 <ul class="narrator-names__chips">
                     <li class="narrator-names__chip" th:each="name : ${searchedNames}"
