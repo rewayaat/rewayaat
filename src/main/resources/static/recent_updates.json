@@ -2,67 +2,67 @@
   {
     "id": "rijal",
     "date": "2026-10-18",
-    "title": "Every Name in a Chain, Resolved to Its Narrator",
-    "summary": "The narrators are a part of the site now: 15,518 men from the classical rijāl books, each with what the books say of him in their own words, and the names in an isnād are links to them.",
+    "title": "Names in a Chain, Resolved to Their Narrators",
+    "summary": "The narrators are a part of the site now: 15,518 men from the rijāl literature, each with what the books say of him in their own words, and a name in an isnād links to its man wherever the books settle who he is.",
     "highlights": [
       "Tap a name in a chain and a card opens in place — the book's own word for him, «ثقة» or «كذاب», with the book that says it, when and where he lived, and how much is written about him",
       "A RIJĀL panel on every narration draws the chain link by link, showing where it is solid and where it is open: a man no book names, or a step the compiler left unnamed",
       "A page for each narrator: what each book says, whom he narrates from and to, his narrations, and the entries quoted with book, page, entry number and edition",
       "Where the books disagree the page says so and quotes both; nothing is graded in this site's own voice",
-      "85,186 names in English chains and 98,717 in Arabic are now links, across 26,881 of the 32,519 narrations",
+      "102,192 names in Arabic chains and 87,043 in English are links — 74.9% of the name steps in the 28,103 narrations whose isnād this database reads; where the books do not settle a name, the panel names the men it could be instead of choosing one",
       "Claude and ChatGPT read the chain too: each narration comes back with its isnād, every step saying whether the name was settled by itself, by the names around it, or by the author's own usage elsewhere — and a narrator's own narrations can be listed by his identifier, not by a name several men share"
     ],
-    "title_ar": "كلُّ اسمٍ في السند، منسوبًا إلى راويه",
-    "summary_ar": "صار الرجال جزءًا من الموقع: ١٥٬٥١٨ رجلًا من كتب الرجال، لكلٍّ منهم ما قالته الكتب فيه بألفاظها، وأسماء السند صارت روابط إليهم.",
+    "title_ar": "أسماءُ السند، منسوبةً إلى رواتها",
+    "summary_ar": "صار الرجال جزءًا من الموقع: ١٥٬٥١٨ رجلًا من كتب الرجال، لكلٍّ منهم ما قالته الكتب فيه بألفاظها، والاسمُ في السند يوصل إلى صاحبه حيث تُعيّنه الكتب.",
     "highlights_ar": [
       "انقر اسمًا في السند تنفتح بطاقة في مكانها: لفظ الكتاب فيه «ثقة» أو «كذاب»، والكتاب القائل، وزمانه وبلده، ومقدار ما كُتب عنه",
       "لوحة «الرجال» في كل رواية ترسم السند حلقةً حلقة، وتُظهر مواضع قوّته ومواضع انقطاعه: راوٍ لا ترجمة له، أو حلقة لم يسمِّها المصنِّف",
       "صفحة لكل راوٍ: مواقف الكتب، ومن يروي عنهم ومن يروون عنه، ورواياته، ونصوص التراجم بالكتاب والصفحة ورقم الترجمة والطبعة",
       "وحيث تختلف الكتب تقول الصفحة ذلك وتنقل القولين؛ ولا يُحكَم على أحد بصوت الموقع",
-      "٨٥٬١٨٦ اسمًا في الأسانيد الإنجليزية و٩٨٬٧١٧ في العربية صارت روابط، في ٢٦٬٨٨١ رواية من ٣٢٬٥١٩",
+      "١٠٢٬١٩٢ اسمًا في الأسانيد العربية و٨٧٬٠٤٣ في الإنجليزية صارت روابط، وهي ٧٤٫٩٪ من أسماء الأسانيد في ٢٨٬١٠٣ رواية قُرئ سندها؛ وحيث لا تُعيّن الكتب الاسم تَعرِض اللوحة الرجال المحتملين ولا تختار",
       "وصار Claude وChatGPT يقرآن السند أيضًا: تُرجَع كل رواية بسندها، وتُبيّن كل حلقة هل عُرف صاحبها باسمه وحده، أم بمن حوله في السند، أم بعادة المصنِّف في كتابه — ويمكن سرد روايات الراوي بمعرِّفه لا باسم يشترك فيه عدة رجال"
     ],
     "why": {
-      "title": "What a chain looks like once every name is resolved",
+      "title": "What a chain looks like once its names are resolved",
       "intro": "The clip opens the RIJĀL panel on a four-name chain in al-Kāfī, then opens one of those names where it stands in the narration itself: the word the books give him, which book gives it, and the way through to his page.",
-      "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/rijal/chain-v6.mp4",
-      "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/rijal/chain-v6.jpg",
+      "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/rijal/chain-v8-en.mp4",
+      "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/rijal/chain-v8-en.jpg",
       "videoAspect": "1440 / 928",
       "videoAlt": "The RIJAL panel assembling a four-name chain, and a narrator's card opened over the narration",
       "points": [
-        "<strong>15,518 men</strong> from the classical rijāl books; 98,717 linked names in Arabic chains and 85,186 in English, across 26,881 of the 32,519 narrations",
-        "<strong>A name is linked only where the books settle it.</strong> 1,676 readings of «أحمد بن محمد» were withdrawn rather than guessed: al-Kulaynī runs two ʿiddas, and the name on its own does not say which man is meant",
-        "<strong>Where a name stays open, the panel says so</strong> — a man no book names, or a step the compiler left unnamed — instead of filling it in"
+        "<strong>15,518 men</strong> from the rijāl literature — 9,091 of them with a notice in one of the six classical books, the other 6,427 known only from Khoei's Muʿjam; 102,192 linked names in Arabic chains and 87,043 in English, across 26,735 of the 28,103 narrations whose isnād is read",
+        "<strong>A name is linked only where the books settle it.</strong> 1,648 readings of «أحمد بن محمد» were withdrawn rather than guessed: al-Kulaynī runs two ʿiddas, and the name on its own does not say which man is meant. The panel names the men it could be and leaves the choice to the reader",
+        "<strong>Where a name stays open, the panel says so</strong> — several men of that name, a man no book gives a notice, or a step the compiler left unnamed — instead of filling it in"
       ],
-      "source": "Counted against the live index on 19 October 2026."
+      "source": "Counted against the live index on 24 October 2026."
     },
     "why_ar": {
-      "title": "كيف يبدو السند حين يُنسب كلُّ اسمٍ فيه إلى راويه",
+      "title": "كيف يبدو السند حين تُنسب أسماؤه إلى رواتها",
       "intro": "يفتح المقطع لوحة «الرجال» على سندٍ رباعيٍّ من الكافي، ثم يفتح أحد تلك الأسماء في موضعه من الرواية نفسها: لفظُ الكتب فيه، وأيُّ كتابٍ قاله، والطريقُ إلى صفحته.",
-      "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/rijal/chain-v6.mp4",
-      "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/rijal/chain-v6.jpg",
+      "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/rijal/chain-v8-ar.mp4",
+      "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/rijal/chain-v8-ar.jpg",
       "videoAspect": "1440 / 928",
       "videoAlt": "لوحة «الرجال» تُركّب سندًا رباعيًّا، ثم بطاقة الراوي تنفتح فوق الرواية",
       "points": [
-        "<strong>١٥٬٥١٨ رجلًا</strong> من كتب الرجال، و٩٨٬٧١٧ اسمًا موصولًا في الأسانيد العربية و٨٥٬١٨٦ في الإنجليزية، في ٢٦٬٨٨١ رواية من ٣٢٬٥١٩",
-        "<strong>ولا يُوصَل الاسم إلا حيث تُثبته الكتب.</strong> سُحبت ١٬٦٧٦ قراءةً لـ«أحمد بن محمد» ولم تُخمَّن: فللكليني عدّتان، والاسم وحده لا يعيّن أيَّهما أراد",
-        "<strong>وحيث يبقى الاسم مبهمًا تقول اللوحة ذلك</strong> — راوٍ لا ترجمة له، أو حلقة لم يسمِّها المصنِّف — ولا تملؤه بالظنّ"
+        "<strong>١٥٬٥١٨ رجلًا</strong> من كتب الرجال — ٩٬٠٩١ منهم لهم ترجمة في أحد كتب الرجال الستة، و٦٬٤٢٧ لا تُعرف تراجمهم إلا من معجم الخوئي؛ و١٠٢٬١٩٢ اسمًا موصولًا في الأسانيد العربية و٨٧٬٠٤٣ في الإنجليزية، في ٢٦٬٧٣٥ رواية من ٢٨٬١٠٣ رواية قُرئ سندها",
+        "<strong>ولا يُوصَل الاسم إلا حيث تُثبته الكتب.</strong> سُحبت ١٬٦٤٨ قراءةً لـ«أحمد بن محمد» ولم تُخمَّن: فللكليني عدّتان، والاسم وحده لا يعيّن أيَّهما أراد. وتَعرِض اللوحة الرجال المحتملين وتترك الاختيار للقارئ",
+        "<strong>وحيث يبقى الاسم مبهمًا تقول اللوحة ذلك</strong> — عدة رجال بهذا الاسم، أو راوٍ لا ترجمة له، أو حلقة لم يسمِّها المصنِّف — ولا تملؤه بالظنّ"
       ],
-      "source": "قياسٌ على الفهرس الحيّ في ١٩ أكتوبر ٢٠٢٦."
+      "source": "قياسٌ على الفهرس الحيّ في ٢٤ أكتوبر ٢٠٢٦."
     }
   },
   {
     "id": "connector",
     "date": "2026-09-13",
     "title": "Answers You Can Check, Inside Claude and ChatGPT",
-    "summary": "Claude and ChatGPT can now search all 32,519 narrations directly, and link every answer back to its source.",
+    "summary": "Claude and ChatGPT can now search all 50,038 narrations directly, and link every answer back to its source.",
     "previewVideo": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v2.mp4",
     "previewPoster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/claude-v2.jpg",
     "previewAspect": "1600 / 1088",
     "videoTitle": "Adding The Hadith Database connector in Claude",
     "why": {
       "title": "Why not just ask Claude or ChatGPT?",
-      "intro": "On its own, an assistant has never read these books as books. It answers from memory — an impression of whatever it absorbed in training — or from web search, which finds pages written <em>about</em> the books: encyclopedia entries, fatwa sites, forums, quote collections. Famous narrations are written up many times over; most of the 32,519 are written up thinly or not at all. It sees fragments, so it cannot tell you what it missed, and how good an answer you get depends on what happens to be online. With the connector it reads the books themselves: a complete collection it can search, count and quote.",
+      "intro": "On its own, an assistant has never read these books as books. It answers from memory — an impression of whatever it absorbed in training — or from web search, which finds pages written <em>about</em> the books: encyclopedia entries, fatwa sites, forums, quote collections. Famous narrations are written up many times over; most of the 50,038 are written up thinly or not at all. It sees fragments, so it cannot tell you what it missed, and how good an answer you get depends on what happens to be online. With the connector it reads the books themselves: a complete collection it can search, count and quote.",
       "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/compare-v3.mp4",
       "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/compare-v3.jpg",
       "videoAspect": "1600 / 1080",
@@ -110,11 +110,11 @@
       }
     ],
     "title_ar": "إجابات يمكنك التحقّق منها، داخل Claude وChatGPT",
-    "summary_ar": "صار بإمكان Claude وChatGPT البحث في ٣٢٬٥١٩ رواية مباشرة، مع ربط كل إجابة بمصدرها.",
+    "summary_ar": "صار بإمكان Claude وChatGPT البحث في ٥٠٬٠٣٨ رواية مباشرة، مع ربط كل إجابة بمصدرها.",
     "videoTitle_ar": "إضافة موصل قاعدة بيانات الحديث في Claude",
     "why_ar": {
       "title": "ولمَ لا أسأل Claude أو ChatGPT مباشرة؟",
-      "intro": "المساعد وحده لم يقرأ هذه الكتب قطّ ككتب. إنّما يجيب من الذاكرة — انطباعٍ عمّا استوعبه في التدريب — أو من البحث في الشبكة، حيث ما يجده صفحاتٌ كُتبت <em>عن</em> الكتب: مداخل موسوعات، ومواقع فتاوى، ومنتديات، ومجموعات اقتباسات. الروايات المشهورة كُتب عنها مرّات كثيرة، وأكثر الـ٣٢٬٥١٩ كُتب عنه قليلاً أو لم يُكتب عنه شيء. فهو يرى شذرات، ولا يستطيع أن يخبرك بما فاته، وجودة ما تحصل عليه رهنٌ بما تصادف وجوده على الشبكة. أمّا مع الموصل فهو يقرأ الكتب نفسها: مجموعة كاملة يبحث فيها ويعدّ ويقتبس منها.",
+      "intro": "المساعد وحده لم يقرأ هذه الكتب قطّ ككتب. إنّما يجيب من الذاكرة — انطباعٍ عمّا استوعبه في التدريب — أو من البحث في الشبكة، حيث ما يجده صفحاتٌ كُتبت <em>عن</em> الكتب: مداخل موسوعات، ومواقع فتاوى، ومنتديات، ومجموعات اقتباسات. الروايات المشهورة كُتب عنها مرّات كثيرة، وأكثر الـ٥٠٬٠٣٨ كُتب عنه قليلاً أو لم يُكتب عنه شيء. فهو يرى شذرات، ولا يستطيع أن يخبرك بما فاته، وجودة ما تحصل عليه رهنٌ بما تصادف وجوده على الشبكة. أمّا مع الموصل فهو يقرأ الكتب نفسها: مجموعة كاملة يبحث فيها ويعدّ ويقتبس منها.",
       "video": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/compare-v3.mp4",
       "poster": "https://rewayaat-media.nyc3.cdn.digitaloceanspaces.com/connector-guides/compare-v3.jpg",
       "videoAspect": "1600 / 1080",

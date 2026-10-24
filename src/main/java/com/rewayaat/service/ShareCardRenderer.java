@@ -78,7 +78,7 @@ public class ShareCardRenderer {
      * truncates as it always did.
      */
     private static final int MAX_FULL_HEIGHT = 4200;
-    private static final int LOGO_HEIGHT = 42;
+    private static final int LOGO_HEIGHT = 54;
 
     /** Room for the ornament that separates the Arabic from the English. */
     private static final int DIVIDER_BAND = 48;
@@ -121,7 +121,7 @@ public class ShareCardRenderer {
      *                 what makes a screenshotted card attributable without its link
      * @param arabic   the Arabic matn, or blank for a single-language card
      * @param english  the English matn, or blank for a single-language card
-     * @param footer   the domain, drawn opposite the ALI mark
+     * @param footer   the domain, drawn opposite the emblem
      */
     public record Card(String eyebrow, String arabic, String english, String footer) {
     }
@@ -202,18 +202,19 @@ public class ShareCardRenderer {
                 new Color(gold.getRed(), gold.getGreen(), gold.getBlue(), 210),
                 new Color(255, 219, 92, 80),
                 new Color(255, 219, 92, 245),
-                loadImage("static/img/Alilogov2-transparent.png"));
+                loadImage("static/img/hdb-emblem.png"));
     }
 
     /**
      * {@code --surface-warm} into {@code --gold-bg}, the ground the light surfaces on the
      * site already use.
      *
-     * <p>Two things here are not interchangeable with the dark palette. The gold is
+     * <p>One thing here is not interchangeable with the dark palette. The gold is
      * {@code --gold-dark}: {@code --gold} on cream is too pale to read, and it is the
-     * frame and the eyebrow that would go first. And the mark is {@code ALI-Logo.png}
-     * rather than the white-on-transparent wordmark the dark card uses, which on a cream
-     * ground would be an invisible smudge.
+     * frame and the eyebrow that would go first. The mark is the same on both, because
+     * the emblem is drawn in navy, gold and white outline and holds its shape on either
+     * ground — unlike the wordmark it replaces, which came in two files for exactly that
+     * reason.
      */
     private static Palette lightPalette() {
         Color goldDark = new Color(0xa07e28);
@@ -232,7 +233,7 @@ public class ShareCardRenderer {
                 new Color(goldDark.getRed(), goldDark.getGreen(), goldDark.getBlue(), 200),
                 new Color(160, 126, 40, 71),
                 new Color(0x4a5568),
-                loadImage("static/img/ALI-Logo.png"));
+                loadImage("static/img/hdb-emblem.png"));
     }
 
     // ── Ground and frame ────────────────────────────────────────────────────
@@ -764,13 +765,40 @@ public class ShareCardRenderer {
 
     private static BufferedImage loadImage(String classpathLocation) {
         try (InputStream in = new ClassPathResource(classpathLocation).getInputStream()) {
-            return ImageIO.read(in);
+            return halveTo(ImageIO.read(in), LOGO_HEIGHT);
         } catch (Exception e) {
             // A card without the mark still carries the domain, so this is not fatal.
             LOGGER.warn("Could not load {}; share cards will render without the mark",
                     classpathLocation, e);
             return null;
         }
+    }
+
+    /**
+     * The mark, halved until one more halving would take it under the height it is drawn
+     * at, and left for {@code drawImage} to finish.
+     *
+     * <p>Bilinear interpolation reads a 2x2 neighbourhood, so a single step from a 304px
+     * emblem to a 54px one samples a fifth of the pixels and throws the rest away: the
+     * white outlines inside the mark broke into speckle. Halving repeatedly keeps every
+     * pixel in the average, and the last step is a reduction of less than two, which is
+     * what bilinear is good at.
+     */
+    private static BufferedImage halveTo(BufferedImage source, int target) {
+        BufferedImage image = source;
+        while (image != null && image.getHeight() >= target * 2) {
+            int width = Math.max(1, image.getWidth() / 2);
+            int height = Math.max(1, image.getHeight() / 2);
+            BufferedImage half = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g = half.createGraphics();
+            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                    RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            g.drawImage(image, 0, 0, width, height, null);
+            g.dispose();
+            image = half;
+        }
+        return image;
     }
 
     /**
