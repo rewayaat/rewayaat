@@ -304,14 +304,16 @@
                        th:text="#{footer.searchTips}">Search Tips</a>
                     <a href="/privacy" th:href="@{${arPrefix} ?: '' } + '/privacy'"
                        th:text="#{footer.privacy}">Privacy</a>
-                    <a href="/contact" th:href="@{${arPrefix} ?: '' } + '/contact'"
-                       th:text="#{footer.contactPage}">Write to us</a>
                 </div>
             </div>
             <div>
                 <div class="site-footer__label" th:text="#{footer.contact}">Contact</div>
                 <div class="site-footer__links">
-                    <a href="mailto:rewayaat.org@gmail.com">rewayaat.org@gmail.com</a>
+                    <!-- The page, not the address. A mailto needs a desktop mail client,
+                         arrives with no context, and cannot be validated or rate limited;
+                         the form carries the page the reader came from. -->
+                    <a href="/contact" th:href="@{${arPrefix} ?: '' } + '/contact'"
+                       th:text="#{footer.contactPage}">Write to us</a>
                     <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer" th:text="#{footer.github}">GitHub Repository</a>
                     <a th:if="${academyHost}" href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" th:text="#{footer.academy}">Academy of Islam</a>
                 </div>

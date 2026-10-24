@@ -216,17 +216,31 @@
                 control.control_input.setAttribute('aria-label', placeholder);
             }
             control.control_input.removeAttribute('placeholder');
+            // Gone the moment the field is live, not when the suggestion list catches
+            // up. Tom Select's own `type` event is throttled with the loader, so the
+            // first few keystrokes were landing on top of the hint and the two strings
+            // overlapped until the dropdown opened. The raw `input` event fires on
+            // every keystroke, and focus hides it outright: a focused field has a
+            // caret in it, which says what the placeholder was there to say.
+            var focused = false;
             var syncHint = function () {
                 var typed = (control.control_input && control.control_input.value) || '';
-                var empty = !typed && !(control.items && control.items.length);
+                var empty = !focused && !typed && !(control.items && control.items.length);
                 shell.classList.toggle('has-hint', empty);
             };
             syncHint();
-            control.on('type', syncHint);
+            control.control_input.addEventListener('input', syncHint);
             control.on('item_add', syncHint);
             control.on('item_remove', syncHint);
-            control.on('blur', syncHint);
-            control.on('focus', syncHint);
+            // On the text box itself, not on Tom Select's wrapper: its focus event did
+            // not fire for a caret placed in the field, so the hint stayed up under
+            // the typing.
+            control.control_input.addEventListener('focus', function () {
+                focused = true; syncHint();
+            });
+            control.control_input.addEventListener('blur', function () {
+                focused = false; syncHint();
+            });
             hint.addEventListener('mousedown', function (e) {
                 e.preventDefault();
                 control.focus();
