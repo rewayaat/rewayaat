@@ -85,6 +85,156 @@ GLUE = {"بن", "ابن", "ابي", "ابو", "ابا", "عبد", "ال", "بن�
 LINK = ("بن", "ابن")
 
 
+# The ways a name that nobody is filed under can still be looked up, each of them a widening of
+# the lookup and none of them a licence to skip a gate. They apply only to a name the exact key
+# finds nobody for, so no link that works today can move: run against the 27,088 chains of the
+# last generation, not one of 97,684 links was lost or pointed at another man. A widened key that
+# brings back several men is `several`, and the relation gates read the candidates exactly as
+# they read any others.
+#
+# - article: «القاسم» and «قاسم» are one word in the books, which spell a name with or without
+#   the definite article from one rijālī to the next. Folded on both sides of the lookup.
+# - ibn: «محمد ابن الحسن» is «محمد بن الحسن»; the chain spells the particle out and the index
+#   does not, so the token sequences differ by a word and prefix matching never starts.
+# - relative: «جده الحسن بن راشد» is «الحسن بن راشد» with a word the cutter left inside the
+#   span. Only the lookup key loses the word; the span is untouched, so the page still
+#   highlights what the cutter cut.
+# - trim: the chain's trailing nisbas come off, longest form first. The mirror of `shortened`,
+#   which does the same to the index's names. «سعد بن عبد الله بن أبي خلف الأشعري» is filed by
+#   al-Najāshī without «الأشعري», and the chain's one extra word put him out of reach.
+# - short: the index's own shortened names, consulted for a key none of the rules above
+#   touched. `past_the_nisba` already reads this table; this lets it be a candidate source.
+#
+# Two tiers of the index are not trusted as far as the rest. A man's heading, and a shortening
+# of one, is what a rijālī filed him under. An alias, and a shortening of one, is any name his
+# entry mentions, and a widened key matched against it is two steps from the source: the first
+# run let 750 steps through that way and about half of a sample of them were wrong —
+# «أبي عبيدة الحذاء», trimmed, reached Abān b. ʿAbda, and «ابن جرير الطبري» reached Isḥāq b. Jarīr.
+# So an alias is accepted only for a man whom a book places beside the name next to this one
+# (`support`), and then it is a `chosen` with that reason, not a `one`.
+RECALL = {"article", "ibn", "relative", "trim", "short"}
+
+# The definite article comes off a word only when at least three letters remain, so a word of
+# five or more. Measured as the steps for which exactly one man is then filed, on the names
+# the resolver had found nobody for: a floor of 1 and of 2 rescue 842, a floor of 3 rescues 840,
+# 4 rescues 793, 5 rescues 606. What 1 and 2 add over 3 is two steps, and the words they strip
+# are «الله», which would become «له», and «الي». A floor of 4 gives up 47 steps for 17 fewer
+# merged headings, and what it gives up is «الحسن» for «حسن», «الفضل» for «فضل» and «الحكم» for
+# «حكم», the same ism in the books' own spelling, which is the point of the rule.
+ARTICLE_LETTERS = 5
+
+# A leading relative word is dropped from the lookup key, except «أبي». Before a name it is far
+# more often a kunya than «my father» — «أبي الصباح الكناني», «أبي عبيدة الحذاء», «أبي خديجة»
+# are men, and reading «أبي» away from them looks the remainder up as someone else. Leaving it
+# out costs about a fifth of what the rule would yield with it.
+RELATIVE_LEADING = RELATIVE - {"ابي"}
+
+
+def loosen(tokens, rules=None):
+    """A name's tokens as one lookup key with the article and «ابن» folded, as `rules` say."""
+    rules = RECALL if rules is None else rules
+    out = []
+    for word in tokens:
+        if "article" in rules and word.startswith("ال") and len(word) >= ARTICLE_LETTERS:
+            word = word[2:]
+        if "ibn" in rules and word == "ابن":
+            word = "بن"
+        out.append(word)
+    return " ".join(out)
+
+
+def trims(tokens):
+    """The chain's name with trailing nisbas taken off, longest first, never past a «بن».
+
+    The walk stops at the last «بن» for the reason `shortened` does: dropping a generation is
+    how five different men collapse into one. A form is also never cut so that it ends on a
+    word that needs the next to mean anything, «عبد» of «عبد الله», «أبي» of «أبي خلف».
+    """
+    core = max((at for at, word in enumerate(tokens) if word in LINK), default=-1) + 2
+    for count in range(len(tokens) - 1, max(core, 2) - 1, -1):
+        if tokens[count - 1] not in GLUE:
+            yield tokens[:count]
+
+
+def widen(folded, data, rules=None):
+    """The men a name reaches once the lookup is relaxed, and what it took to reach them.
+
+    Each form is tried against the headings, then the aliases, then the shortened headings,
+    then the shortened aliases, and the first form that finds anybody ends the search. Forms
+    of one word are never tried: a bare «حسن» names nobody in particular. A name the roster
+    knows as an Imam's is not widened at all.
+    """
+    rules = RECALL if rules is None else rules
+    loose = data.get("loose")
+    tokens = folded.split()
+    if not loose or not tokens:
+        return [], "", ""
+    starts = [(tokens, "")]
+    if "relative" in rules and len(tokens) > 2 and tokens[0] in RELATIVE_LEADING:
+        starts.append((tokens[1:], "relative"))
+    for start, dropped in starts:
+        forms = [(start, "")]
+        if "trim" in rules:
+            forms += [(form, "trim") for form in trims(start)]
+        for form, cut in forms:
+            if len(form) < 2 or imams.identify(" ".join(form)):
+                # A name the roster knows as an Imam's is not widened: «أبيه موسى بن جعفر»
+                # after al-Riḍā was being handed to Mūsā b. Jaʿfar al-Baghdādī, the narrator,
+                # and «علي بن الحسين» to nine men, when it is the fourth Imam in both.
+                continue
+            used = [r for r, changed in (
+                ("relative", dropped), ("trim", cut),
+                ("article", loosen(form, {"article"} & rules) != " ".join(form)),
+                ("ibn", loosen(form, {"ibn"} & rules) != " ".join(form))) if changed]
+            if not used and "short" not in rules:
+                tiers = ("headings", "aliases")
+            else:
+                tiers = ("headings", "aliases", "shortened", "alias_shortened")
+            probe = loosen(form, rules)
+            for tier in tiers:
+                found = loose[tier].get(probe)
+                if found:
+                    return sorted(found), "+".join(used) or "short", tier
+    return [], "", ""
+
+
+def loosened_tables(headings, aliases, shortened_own, shortened):
+    """The same three tables under the folded key, for `widen`.
+
+    Built from the exact ones, so the exact lookup and the headings-before-aliases order stay
+    what they were.
+    """
+    loose = {}
+    for label, table in (("headings", headings), ("aliases", aliases),
+                         ("shortened", shortened_own), ("alias_shortened", shortened)):
+        folded = defaultdict(set)
+        for name, ids in table.items():
+            folded[loosen(name.split())] |= ids
+        loose[label] = folded
+    return loose
+
+
+def settled_names(table, seen):
+    """Every name a convention, a correction or a book's own writing has something to say about.
+
+    A widened lookup leaves these alone. The conventions are the auditors' reading of exactly
+    these names and run after the candidates are in; a name they cover that the widened lookup
+    had also answered would be settled by whichever came first, and the audit's word is the
+    one that is meant to stand.
+    """
+    names = set()
+    for field in ("settles", "corrects"):
+        names |= {k.split("\t", 1)[-1] for k in (table.get(field) or {})}
+    names |= set((table.get("everywhere") or {}))
+    names |= {k.split("\t")[1] for k in (seen.get("contexts") or {}) if "\t" in k}
+    names |= {k.split("\t", 1)[-1] for k in (seen.get("disambiguated") or ())}
+    return names
+
+
+# What the widened lookup rescued, by the rules it took. Printed by `main`, never published.
+RESCUED = Counter()
+
+
 def nasabs(person):
     """What each of a man's headings says his father was called, as token lists."""
     out = []
@@ -242,16 +392,18 @@ def load_people(path, books):
     # Only nisbas come off, never a «بن». «أحمد بن محمد» must not reach «أحمد بن محمد بن
     # عيسى», because dropping a generation is how five different men collapse into one — the
     # whole difficulty this corpus has with that name. So the walk stops at the last «بن».
-    shortened = defaultdict(set)
+    shortened, shortened_own = defaultdict(set), defaultdict(set)
     for pid, person in by_id.items():
-        forms = set(person.get("headings_ar") or []) | set(person.get("names_ar") or [])
+        own = set(person.get("headings_ar") or [])
         if person.get("display_ar"):
-            forms.add(person["display_ar"])
-        for name in forms:
+            own.add(person["display_ar"])
+        for name in own | set(person.get("names_ar") or []):
             words = key(name).split()
             core = max((at for at, word in enumerate(words) if word in LINK), default=-1) + 2
             for count in range(max(core, 3), len(words)):
                 shortened[" ".join(words[:count])].add(pid)
+                if name in own:
+                    shortened_own[" ".join(words[:count])].add(pid)
 
     # Every shorter reading of a name, for the men the books connect to somebody. A rijālī
     # often files one man twice — al-Ṭūsī's one-line «الحسين بن محمد بن عمران» beside
@@ -287,9 +439,12 @@ def load_people(path, books):
             # Only the fullest reading anyone is filed under is tried. Falling through to
             # a shorter one would trade a father nobody holds for a namesake somebody does.
             break
+
     return {"headings": headings, "aliases": aliases, "teachers": teachers,
             "students": students, "by_id": by_id, "imams_of": imams_of, "fathers": fathers,
-            "is_imam": is_imam, "extends": extends, "shortened": shortened}
+            "is_imam": is_imam, "extends": extends, "shortened": shortened,
+            "shortened_own": shortened_own,
+            "loose": loosened_tables(headings, aliases, shortened_own, shortened)}
 
 
 def held_by(folded, data):
@@ -579,6 +734,9 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
     # Whether each name was matched under somebody's own heading or only among the names
     # quoted inside entries. It decides whose word beats whose below, and is not published.
     filed = [by_heading(folded, data) for folded in keys]
+    if "settled" not in data:
+        data["settled"] = settled_names(table, seen)
+    names = data["settled"]
 
     for position, row in enumerate(rows):
         if row["kind"] != "name":
@@ -586,6 +744,23 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
             continue
         row["target"] = "narrator"
         candidates = held_by(keys[position], data)
+        before = keys[position - 1] if position else ""
+        after = keys[position + 1] if position + 1 < len(keys) else ""
+        widened = ""
+        if not candidates and keys[position] not in names:
+            # Only a name nobody holds. One whose holders all outlived the compiler is a name
+            # somebody *does* hold, and widening it would find those same men under a looser
+            # spelling or, worse, other men.
+            candidates, widened, tier = widen(keys[position], data)
+            if tier in ("aliases", "alias_shortened"):
+                # An alias is any name an entry mentions, chains quoted inside it included, and
+                # a widened key matched against one is two steps from the heading a rijālī
+                # chose. «أبي عبيدة الحذاء», trimmed, reached Abān b. ʿAbda; «ابن جرير الطبري»
+                # reached Isḥāq b. Jarīr. So an alias is accepted here only for a man whom a
+                # book places beside the name next to this one, which is the same word a
+                # `chosen` rests on.
+                candidates = [pid for pid in candidates if support(
+                    pid, before, after, data["teachers"], data["students"])]
         # Dating is evidence like any other, and the cheapest kind: a candidate who outlived
         # the compiler is not a reading of the name, so he is taken out before the others are
         # weighed. Where he was the only candidate the name goes unanswered, which is the
@@ -595,10 +770,19 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
             candidates = sorted(set(candidates) | {
                 pid for pid in SHARED_KUNYA[keys[position]]
                 if pid in data["by_id"] and not outlived(pid, compiler, data)})
-        before = keys[position - 1] if position else ""
-        after = keys[position + 1] if position + 1 < len(keys) else ""
+        if widened:
+            RESCUED[("tried", widened)] += 1
         if not candidates:
             row["outcome"] = "none"
+        elif len(candidates) == 1 and widened:
+            row["outcome"], row["person_id"] = "one", candidates[0]
+            why = support(candidates[0], before, after, data["teachers"], data["students"])
+            if tier in ("aliases", "alias_shortened"):
+                row["outcome"], row["because"] = "chosen", why
+            RESCUED[(row["outcome"], widened)] += 1
+            if why:
+                RESCUED[("one, and a book pairs him with a neighbour", widened)] += 1
+            RESCUED[("one by " + tier, widened)] += 1
         elif len(candidates) == 1:
             row["outcome"], row["person_id"] = "one", candidates[0]
             fuller, why = past_the_stub(keys[position], candidates[0], before, after, data)
@@ -615,8 +799,12 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
             backed = [(pid, why) for pid, why in backed if why]
             if len(backed) == 1:
                 row["outcome"], row["person_id"], row["because"] = "chosen", *backed[0]
+                if widened:
+                    RESCUED[("chosen", widened)] += 1
             else:
                 row["outcome"], row["candidates"] = "several", candidates
+                if widened:
+                    RESCUED[("several", widened)] += 1
                 if backed:
                     row["backed"] = [pid for pid, _ in backed]
 
@@ -952,9 +1140,14 @@ def main():
     parser.add_argument("--all-books", action="store_true",
                         help="let Khoei-only and Māmaqānī-only records be link targets too")
     parser.add_argument("--show", type=int, default=0, help="print N of each outcome")
+    parser.add_argument("--recall", default=",".join(sorted(RECALL)),
+                        help="which widenings of the lookup are on, comma-separated: "
+                             "article, ibn, relative, trim, short; 'none' turns them all off")
     parser.add_argument("--dry-run", action="store_true", help="measure, write nothing")
     args = parser.parse_args()
 
+    RECALL.clear()
+    RECALL.update(r for r in args.recall.split(",") if r and r != "none")
     books = set() if args.all_books else CLASSICAL
     data = load_people(args.people, books)
     table = conventions(args.conventions)
@@ -1002,6 +1195,17 @@ def main():
     print(f"      {linked:7,}  {100 * linked / names:5.1f}%  become a link")
     for outcome in ("relative", "collective", "text"):
         print(f"      {outcomes[outcome]:7,}         {outcome} (not a link)")
+
+    if RESCUED:
+        print("\n  names the exact key found nobody for, widened (rules the key needed):")
+        for what in ("tried", "one", "chosen", "several"):
+            parts = sorted(((c, w) for (o, w), c in RESCUED.items() if o == what), reverse=True)
+            if parts:
+                print(f"      {what:8s} {sum(c for c, _ in parts):6,}   "
+                      + ", ".join(f"{w} {c:,}" for c, w in parts))
+        for what in sorted({o for o, _ in RESCUED if o.startswith("one") and o != "one"}):
+            print(f"      {what}: "
+                  f"{sum(c for (o, _), c in RESCUED.items() if o == what):,}")
 
     print("\n  by what the mention is:")
     for kind in ("name", "imam", "relative", "collective", "text"):

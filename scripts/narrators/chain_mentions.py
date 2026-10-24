@@ -126,7 +126,12 @@ FUNCTION = {"الذي", "التي", "الذين", "يا", "ايها", "كيف", 
             "كان", "وكان", "كانت", "مع", "عند", "بين", "قد", "كذا", "الي", "في", "من",
             "هذا", "هذه", "هو", "هي", "انا", "نحن", "لك", "له", "لها", "به", "بها", "عليك",
             "يصلح", "يطاف", "ارايت", "اراه", "تلد", "يتزوج", "فقلت", "حتي", "او", "ايضا",
-            "اعلم", "اظن", "يظن", "احسب", "احسبه", "قراه"}
+            "اعلم", "اظن", "يظن", "احسب", "احسبه", "قراه",
+            # «سألته عن قول الله عز وجل» — the thing asked about, and the doxology that closes
+            # it. None of these four is ever part of a name that links: across the 141,463 mentions
+            # of the last cut, every one that holds «قول», «عز» or «جل» was refused, a collective
+            # or prose, and 39 runs were «قول الله عز» and 42 were «جل» on its own.
+            "قول", "قوله", "عز", "جل", "وجل", "تبارك"}
 
 # A book's notice of when an Imam was born, taken and buried carries no isnād, and the verb
 # that opens it was read as the Imam the notice is about: «وُلِدَ (عليه السلام) للنصف من ذي
@@ -264,16 +269,44 @@ def outside_nasab(folded):
     return [w for w, held in zip(folded, covered) if not held and w not in NAME_GLUE]
 
 
-def alone_a_verb(folded):
-    """Whether a run is one word and that word is what a life notice is written with.
+# The verbs of reporting and asking, as stems, and the pronoun that can be written on the end
+# of one. The joiners above hold only the first and second person — «حدثنا», «أخبرني», «سمعت»,
+# «سألته» — because those are what a chain says of its own transmission. The same verbs turn
+# up in the third person with an object, «حَدَّثَهُ», «أَخْبَرَهُ», «رَوَيْتُهُ», «سَمِعْتُهُ», and
+# passive, «سُئِلَ», where a compiler is describing a report rather than passing one on, and
+# none of those was a joiner or a life verb, so the run they stood alone in was read as a man.
+# The cause was the two together: a list that stopped at the verbs of a life notice, and a
+# fold that leaves the pronoun on the verb, so «حدثه» never equalled «حدث» for anything.
+# Counted in the last cut: «سيل» 141, «حدثه» 133, «اخبره» 71, «رويته» 41, «سمعه» 12, «اسالك» 7,
+# every one of them unlinked and none inside any name that was.
+#
+# Matched as a stem plus a tail, never as a prefix: «سمعان» and «سيلان» begin with a stem and
+# are not verbs, and the tails are the ones a verb takes, not the endings a name takes.
+VERB_STEMS = {"حدث", "اخبر", "سمع", "روي", "سيل", "سال", "اسال"}
+VERB_TAILS = {"", "ه", "ها", "هم", "هما", "هن", "ني", "نا", "ك", "كم", "ت", "ته", "تها", "تهم"}
 
-    With or without the «و» that joins it to the sentence before — and «ولد» is itself a
-    word that opens on one, so the bare form is tried first.
+
+def reporting_verb(word):
+    """Whether one folded word is a verb of reporting or asking, with or without its pronoun."""
+    for stem in VERB_STEMS:
+        if word.startswith(stem) and word[len(stem):] in VERB_TAILS:
+            return True
+    return False
+
+
+def alone_a_verb(folded):
+    """Whether a run is one word and that word is a verb, not a man.
+
+    A life notice is written with one — «ولد», «قبض» — and so is a report: «سئل», «حدثه». With
+    or without the «و» that joins it to the sentence before, and «ولد» is itself a word that
+    opens on one, so the bare form is tried first.
     """
     if len(folded) != 1:
         return False
     word = folded[0]
-    return word in LIFE_VERB or (word.startswith("و") and word[1:] in LIFE_VERB)
+    stripped = word[1:] if word.startswith("و") else ""
+    return (word in LIFE_VERB or stripped in LIFE_VERB
+            or reporting_verb(word) or reporting_verb(stripped))
 
 
 def not_a_man(text):
@@ -452,7 +485,7 @@ def segment(chain):
         # being drawn over «إلى موسى بن جعفر» — the right man under an anchor that reads "to
         # Mūsā b. Jaʿfar". 166 links were shaped that way. Only the front of the run is
         # trimmed; a function word anywhere else still makes the whole run prose.
-        while named and bare(named[0][2]) in FUNCTION:
+        while named and (bare(named[0][2]) in FUNCTION or reporting_verb(bare(named[0][2]))):
             named.pop(0)
         if named:
             # The span stops at the last Arabic letter, so «محمّد بن الحسن؛» is linked as

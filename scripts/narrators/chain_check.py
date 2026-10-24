@@ -26,7 +26,8 @@ W = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from chain_mentions import BLESSINGS, FUNCTION, JOINERS, OPENERS, bare  # noqa: E402
-from chain_resolve import COMPILER_DIED, GLUE, RELATIVE, key  # noqa: E402
+from chain_resolve import (COMPILER_DIED, GLUE, RELATIVE, RELATIVE_LEADING, key,  # noqa: E402
+                           loosen, trims)
 from imams import ROSTER  # noqa: E402
 
 TMP = f'{W}/tmp/narrators_chains'
@@ -162,6 +163,27 @@ def his_name(folded, held):
     return False
 
 
+def his_name_widened(folded, held):
+    """Whether the words are his name once the resolver's own widenings are allowed.
+
+    A link the resolver made by folding the article, reading «ابن» as «بن», dropping a leading
+    relative word or trimming the chain's nisbas is not a link whose words are one of his
+    names, and `his_name` called every one of them «name-not-his» — 2,928 flags on the first
+    run with those rules in. The same widenings are applied to both sides here, so this
+    accepts exactly what the resolver could have reached and nothing it could not.
+    """
+    tokens = folded.split()
+    starts = [tokens]
+    if len(tokens) > 2 and tokens[0] in RELATIVE_LEADING:
+        starts.append(tokens[1:])
+    spelled = {loosen(name.split()) for name in held}
+    for start in starts:
+        for form in [start] + list(trims(start)):
+            if len(form) >= 2 and his_name(loosen(form), spelled):
+                return True
+    return False
+
+
 def name_shaped(words):
     """Whether a run of words reads as a name — a nasab, or an opener with something after."""
     folded = [bare(w) for w in words if bare(w)]
@@ -260,7 +282,8 @@ def main():
                     # A name mention is linked because the words matched a name the books
                     # file him under. If they do not, the link came from somewhere else.
                     if mention["kind"] == "name" and person in names:
-                        if not his_name(key(mention["text"]), names[person]):
+                        if not (his_name(key(mention["text"]), names[person])
+                                or his_name_widened(key(mention["text"]), names[person])):
                             flag("name-not-his", chain_id,
                                  f"«{mention['text']}» → {display.get(person, person)}")
                     if mention["kind"] not in BY_CONVENTION:
