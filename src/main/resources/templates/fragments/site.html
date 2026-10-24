@@ -175,8 +175,8 @@
     <div class="search-entry-shell nav-search__shell">
         <i class="fa fa-search search-magnifier" aria-hidden="true"></i>
         <input type="search" name="q" class="nav-search__input" data-nav-search-input
-               th:placeholder="#{search.navPlaceholder}" placeholder="Search the narrations"
-               th:aria-label="#{search.navPlaceholder}" aria-label="Search the narrations"/>
+               th:placeholder="#{search.navPlaceholder}" placeholder="Search narrations and narrators"
+               th:aria-label="#{search.navPlaceholder}" aria-label="Search narrations and narrators"/>
         <button type="submit" class="btn btn-primary search-btn-with-border nav-search__btn">
             <!-- Under 768px the word is hidden and this is the button's only label.
                  Without it the button was a blank 34px square on every hub and static
@@ -278,6 +278,29 @@
     <span class="hub-ornament__mark">&#1758;</span>
     <span class="hub-ornament__line"></span>
 </div>
+
+<!--
+  A type-to-filter box over a long list. Only drawn where the list is long enough to
+  be hard to scan: the caller passes the size and the threshold lives here, so every
+  list on the site agrees about what "long" is.
+
+  The list itself is rendered whole by the server and js/hub-filter.js only hides rows,
+  so a reader without scripts gets the complete, crawlable list and no dead control:
+  the input is there but inert, which is why it carries no submit button and why the
+  form refuses to submit.
+-->
+<form th:fragment="hubfilter(unit, count)" th:if="${count > 10}"
+      class="hub-filter" role="search" onsubmit="return false">
+    <label class="visually-hidden" th:for="'hub-filter-' + ${unit}"
+           th:text="#{'hub.filter.' + ${unit}}">Filter</label>
+    <span class="hub-filter__field">
+        <span class="hub-filter__icon" aria-hidden="true">&#128269;</span>
+        <input class="hub-filter__input" type="search" autocomplete="off"
+               th:id="'hub-filter-' + ${unit}" data-hub-filter
+               th:placeholder="#{'hub.filter.' + ${unit}}">
+    </span>
+    <span class="hub-filter__count" data-hub-filter-count aria-live="polite"></span>
+</form>
 
 <footer th:fragment="sitefooter" class="site-footer">
     <div class="container">

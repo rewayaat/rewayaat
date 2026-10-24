@@ -44,6 +44,7 @@
          single page carries thousands of links. Flat books list chapters directly. -->
     <section class="hub-group" id="volumes" th:if="${!#lists.isEmpty(volumes)}">
         <h2 class="hub-group__label" th:text="#{book.volumes}">Volumes</h2>
+        <div th:replace="~{fragments/site :: hubfilter('volumes', ${#lists.size(volumes)})}"></div>
         <div class="hub-grid">
             <a class="hub-card hub-card--book" th:each="volume : ${volumes}" th:href="${arPrefix} + ${volume.url}">
                 <span th:replace="~{fragments/bookshelf :: cardbook(${volume.chapterCount}, ${volume.number})}"></span>
@@ -59,6 +60,7 @@
 
     <section class="hub-group" th:if="${!#lists.isEmpty(parts)}">
         <h2 class="hub-group__label" th:text="#{book.parts}">Parts</h2>
+        <div th:replace="~{fragments/site :: hubfilter('parts', ${#lists.size(parts)})}"></div>
         <div class="hub-grid">
             <a class="hub-card hub-card--book" th:each="part : ${parts}" th:href="${arPrefix} + ${part.url}">
                 <span th:replace="~{fragments/bookshelf :: cardbook(${part.chapterCount}, null)}"></span>
@@ -74,6 +76,7 @@
 
     <section class="hub-group" th:if="${!#lists.isEmpty(chapters)}">
         <h2 class="hub-group__label" th:text="#{book.chapters}">Chapters</h2>
+        <div th:replace="~{fragments/site :: hubfilter('chapters', ${#lists.size(chapters)})}"></div>
         <!-- Two destinations per row on purpose. The title goes to the chapter's own
              page, which is the crawlable, rankable URL and where a search engine sends
              people; the icon jumps straight into reading mode for someone already here
@@ -104,6 +107,8 @@
         </div>
     </section>
 </main>
+
+<script src="/js/hub-filter.js" th:src="@{/js/hub-filter.js}" defer></script>
 
 <footer th:replace="~{fragments/site :: sitefooter}"></footer>
 <th:block th:replace="~{fragments/site :: analytics}"></th:block>

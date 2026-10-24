@@ -17013,3 +17013,92 @@ a.isnad-man__name:hover .isnad-man__en {
 .home-browse,
 .home-narrators,
 .home-updates { margin-block: 0 2.6rem; }
+
+/* ── A type-to-filter box over a long list (chapters, parts, volumes) ───────
+   Appended, per this file's convention. The control sits under the section
+   heading and above the list it narrows, close enough to read as belonging to
+   it. Logical properties throughout so the Arabic page mirrors.               */
+.hub-filter {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin: -0.35rem 0 1.15rem;
+}
+
+.hub-filter__field {
+    position: relative;
+    display: block;
+    flex: 1 1 18rem;
+    max-width: 26rem;
+}
+
+.hub-filter__icon {
+    position: absolute;
+    inset-inline-start: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.82rem;
+    line-height: 1;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.hub-filter__input {
+    width: 100%;
+    padding: 0.55rem 0.9rem;
+    padding-inline-start: 2.35rem;
+    font-family: var(--font-ui);
+    font-size: 0.94rem;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.hub-filter__input::placeholder {
+    color: #64748b;
+}
+
+.hub-filter__input:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(200, 162, 61, 0.18);
+}
+
+/* The running tally beside the box. It says how much of the list is left rather
+   than how much was taken away: a reader scanning for one chapter wants to know
+   whether to keep typing. */
+.hub-filter__count {
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #64748b;
+}
+
+.hub-filter__empty {
+    margin: 0 0 1.4rem;
+    font-family: var(--font-ui);
+    font-size: 0.94rem;
+    color: #64748b;
+}
+
+@media (max-width: 576px) {
+    .hub-filter__field {
+        flex-basis: 100%;
+        max-width: none;
+    }
+}
+
+/* The matched run inside a filtered row. A wash rather than a block of colour:
+   the row is a link, and a solid highlight behind link text reads as a second
+   control. Inherits the colour so the mark never fights the row's own ink. */
+.hub-filter__hit {
+    padding: 0;
+    color: inherit;
+    background: rgba(200, 162, 61, 0.34);
+    border-radius: 2px;
+    box-shadow: 0 0 0 1px rgba(200, 162, 61, 0.28);
+}
