@@ -3658,18 +3658,37 @@ function loadRecentUpdates() {
                         + escapeHtml(entryText(update, 'title') || t('js.update', 'Update')) + '</h3>' +
                     '<p class="recent-update-summary">'
                         + escapeHtml(entryText(update, 'summary') || '') + '</p>';
+                // Three, always. One entry ships six bullets and the next four, so the
+                // two cards stood at different heights and the row read as broken. The
+                // rest are on the updates page, which is what the card links to.
+                var HOME_HIGHLIGHTS = 3;
                 if (highlights.length) {
                     var list = document.createElement('ul');
                     list.className = 'recent-update-list';
-                    highlights.forEach(function(item) {
+                    highlights.slice(0, HOME_HIGHLIGHTS).forEach(function(item) {
                         var li = document.createElement('li');
                         li.textContent = item;
                         list.appendChild(li);
                     });
+                    if (highlights.length > HOME_HIGHLIGHTS) {
+                        var more = document.createElement('li');
+                        more.className = 'recent-update-list__more';
+                        more.textContent = t('js.updateMore', '+{0} more in this release')
+                            .replace('{0}', localeDigits(highlights.length - HOME_HIGHLIGHTS));
+                        list.appendChild(more);
+                    }
                     link.appendChild(list);
                 }
                 card.appendChild(link);
-                if (update.previewVideo) {
+                // An entry may carry its clip at the top level or inside `why`, which is
+                // where the updates page reads it from. The rijāl release has it only
+                // there, so the home card showed no clip at all while the updates page
+                // played one.
+                var why = update.why || {};
+                var clip = update.previewVideo || why.previewVideo
+                    || (/\.mp4($|\?)/.test(why.video || '') ? why.video : '');
+                var clipPoster = update.previewPoster || why.previewPoster || why.poster || '';
+                if (clip) {
                     // A silent loop that runs only while the card is on screen: a preview of
                     // what the update ships, not a player to operate. The iframe path below
                     // cannot do this - a cross-origin player will not loop or stay quiet on
@@ -3678,13 +3697,15 @@ function loadRecentUpdates() {
                     // The modifier drops the height cap that exists for the 4:3 recording
                     // in the older entry; this one is wider than it is tall and would sit
                     // letterboxed inside it.
+                    // One shape for every card. The recordings are 4:3, 16:9 and
+                    // 1600x1088, and left to themselves they made three different
+                    // cards; the frame is fixed and the picture is cropped into it.
                     preview.className = 'recent-update-video recent-update-video--file';
-                    preview.style.aspectRatio = update.previewAspect || '16 / 9';
                     var video = document.createElement('video');
                     video.className = 'recent-update-video__file';
-                    video.src = update.previewVideo;
-                    if (update.previewPoster) {
-                        video.poster = update.previewPoster;
+                    video.src = clip;
+                    if (clipPoster) {
+                        video.poster = clipPoster;
                     }
                     // The properties, not just the attributes: autoplay policy reads the
                     // muted state, and nothing is fetched until the card is scrolled to.

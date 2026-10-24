@@ -860,7 +860,7 @@
          way a narration does not: the entries are ours to have mis-read, and a scholar who
          spots it should not have to hunt for an address. -->
     <div class="narrator-report">
-        <a class="narrator-report__link" th:href="${reportHref}">
+        <a class="narrator-report__link" th:href="(${arPrefix} ?: '') + ${reportHref}">
             <i class="fa fa-flag" aria-hidden="true"></i>
             <span th:text="#{narrator.report}">Report an issue with this page</span>
         </a>

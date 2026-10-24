@@ -368,15 +368,9 @@ public class HadithCardFactory {
 
     private static String reportHref(String id, String book, String number, String baseUrl) {
         String descriptor = (book + (number.isBlank() ? "" : " #" + number)).trim();
-        String subject = "Hadith Report: " + (descriptor.isBlank() ? "Hadith " + id : descriptor);
-        String body = String.join("\n",
-                "Please review the hadith linked below.", "",
-                "Hadith link: " + baseUrl + "/hadith/" + id,
-                "Hadith id: " + id, "",
-                "Issue summary:", "- ", "",
-                "What seems incorrect:", "- ", "",
-                "Suggested correction (optional):", "- ");
-        return "mailto:rewayaat.org@gmail.com?subject=" + encode(subject) + "&body=" + encode(body);
+        return "/contact?about=narration&id=" + encode(id)
+                + "&label=" + encode(descriptor.isBlank() ? "Hadith " + id : descriptor)
+                + "&url=" + encode(baseUrl + "/hadith/" + id);
     }
 
     private String write(Object value) {

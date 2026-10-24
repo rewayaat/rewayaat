@@ -625,29 +625,21 @@ public class NarratorPageController {
     }
 
     /**
-     * A prefilled report about one man, addressed to the same inbox the hadith cards use.
+     * A link to the contact form, prefilled with this man and this page.
      *
      * <p>The corrections this page will attract are not typos: they are «this verdict is
      * al-Khoei quoting al-Najashi, not his own», «these are two men», «the entry says Kufa
      * and the page says Qum». Each of those is answerable only against the record behind
-     * the page, so the mail carries the permanent id and the address, and asks for the
+     * the page, so the form carries the permanent id and the address, and asks for the
      * book and page the reader is reading from — a rijali correction without a citation
      * cannot be acted on.
      */
     private static String reportHref(String id, String arabicName, String englishName,
                                      String path) {
         String named = !englishName.isEmpty() ? englishName : arabicName;
-        String subject = "Narrator report: " + (named.isEmpty() ? id : named) + " (" + id + ")";
-        String body = String.join("\n",
-                "Please review the narrator page linked below.", "",
-                "Narrator: " + named,
-                "Permanent id: " + id,
-                "Page: " + PageLocale.BASE_URL + path, "",
-                "What the page gets wrong:", "- ", "",
-                "The book and page it should follow:", "- ", "",
-                "Anything else (optional):", "- ");
-        return "mailto:rewayaat.org@gmail.com?subject=" + forMail(subject)
-                + "&body=" + forMail(body);
+        return "/contact?about=narrator&id=" + forMail(id)
+                + "&label=" + forMail(named.isEmpty() ? id : named)
+                + "&url=" + forMail(PageLocale.BASE_URL + path);
     }
 
     /** As {@link #encode} but with real spaces: «+» reads as a plus in a mail body. */

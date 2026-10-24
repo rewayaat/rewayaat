@@ -196,6 +196,7 @@ public enum PageLocale {
                 // side by side, so a page cannot ship half-translated.
                 || strippedPath.startsWith("/isnad/")
                 || strippedPath.equals("/privacy")
+                || strippedPath.equals("/contact")
                 || strippedPath.equals("/search_tips.html")
                 || strippedPath.equals("/signin.html")
                 || strippedPath.equals("/updates.html");

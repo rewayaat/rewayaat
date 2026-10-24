@@ -206,6 +206,16 @@
         hint.innerHTML = t('search.navPlaceholder.html', '');
         if (hint.innerHTML && shell) {
             shell.appendChild(hint);
+            // The native placeholder has to go, not merely be made transparent: a
+            // ::placeholder rule was losing to something more specific and the two
+            // strings printed on top of each other. The input keeps its aria-label,
+            // so clearing the attribute costs a screen reader nothing.
+            // The placeholder was this field's accessible name, so it is moved to an
+            // aria-label before being taken away rather than simply dropped.
+            if (!control.control_input.getAttribute('aria-label')) {
+                control.control_input.setAttribute('aria-label', placeholder);
+            }
+            control.control_input.removeAttribute('placeholder');
             var syncHint = function () {
                 var typed = (control.control_input && control.control_input.value) || '';
                 var empty = !typed && !(control.items && control.items.length);

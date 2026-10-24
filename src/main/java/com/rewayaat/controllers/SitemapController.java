@@ -194,6 +194,8 @@ public class SitemapController {
         // sitemap at all - neither half. Nothing failed; it was simply never listed,
         // which is the failure mode a sitemap written by hand has.
         appendLocalisedUrl(xml, "/privacy", "0.3", "yearly");
+        // The bare contact page only; the prefilled variants are noindex.
+        appendLocalisedUrl(xml, "/contact", "0.3", "yearly");
         // The chain conventions. Each is a page a chain links into thousands of times, so
         // a crawler would reach them anyway; listing them says which they are and that
         // both languages exist.

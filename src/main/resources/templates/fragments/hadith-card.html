@@ -285,7 +285,7 @@
                         </a>
 
                         <a class="icon-action icon-action--report" target="_blank" rel="noopener noreferrer"
-                           th:href="${narration.reportHref}"
+                           th:href="(${arPrefix} ?: '') + ${narration.reportHref}"
                            aria-label="Report hadith" th:aria-label="#{card.report}" title="Report" th:title="#{card.reportShort}">
                             <i class="fa fa-flag" aria-hidden="true"></i>
                         </a>
