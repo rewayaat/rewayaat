@@ -259,48 +259,6 @@
 
     </div>
 
-    <div th:if="${view == 'books'}">
-    <!-- The names he is headed under, first on the overview because «is this the right man?»
-         is the first question a reader brings to a rijāl page, and the names are how he
-         answers it: a reader who came looking for one of them can see that this is the same
-         man. It was a tab of its own, and a tab holding one row of chips is a page that looks
-         broken. One chip each: run together with separators they read as one long unbroken
-         name. -->
-    <section class="narrator-names" id="also-named"
-             th:if="${!#lists.isEmpty(narrator.names_ar) or !#lists.isEmpty(narrator['names_group_ar'])
-                     or (!isArabic and !#lists.isEmpty(narrator['names_group_en']))}">
-        <h2 class="hub-group__label" th:text="#{narrator.names.heading}">Also named</h2>
-        <ul class="narrator-names__chips">
-            <li class="narrator-names__chip" th:each="name : ${narrator.names_ar}"
-                dir="rtl" lang="ar" th:text="${name}">اسم</li>
-        </ul>
-        <!-- Not on an Arabic page: a Latin spelling of «زرارة» is for a reader who cannot
-             read «زرارة», and the chips above already give every Arabic form. -->
-        <ul class="narrator-names__chips narrator-names__chips--latin"
-            th:if="${!#lists.isEmpty(narrator.names_en) and !isArabic}">
-            <li class="narrator-names__chip" th:each="name : ${narrator.names_en}"
-                th:text="${name}">A name</li>
-        </ul>
-        <!-- «آل أعين» is a house and «المحدّث» an epithet; neither is a name he answered to,
-             and run in with the chips above they read as two more spellings of Zurāra. Each
-             kind is a labelled row of its own, Arabic first and, on an English page only,
-             its Latin rendering after it. -->
-        <th:block th:each="kind : ${ {'family', 'title'} }">
-          <th:block th:with="ar = ${narrator['names_group_ar'].?[kind == #vars.kind]},
-                             en = ${isArabic ? {} : narrator['names_group_en'].?[kind == #vars.kind]}">
-            <div class="narrator-names__group" th:if="${!#lists.isEmpty(ar) or !#lists.isEmpty(en)}">
-                <span class="narrator-names__group-label"
-                      th:text="${kind == 'family'} ? #{narrator.names.family} : #{narrator.names.title}">Family</span>
-                <ul class="narrator-names__chips narrator-names__chips--group">
-                    <li class="narrator-names__chip" th:each="g : ${ar}"
-                        dir="rtl" lang="ar" th:text="${g['value']}">آل</li>
-                    <li class="narrator-names__chip narrator-names__chip--latin" th:each="g : ${en}"
-                        th:text="${g['value']}">Banu</li>
-                </ul>
-            </div>
-          </th:block>
-        </th:block>
-    </section>
 
     <!-- One block per entry, in the order the tradition reads the books. Each carries the
          book's own words: a verdict is never paraphrased here, and never shown without the
@@ -423,6 +381,53 @@
                                  ? entry.under_imams_ar : entry.under_imams, '، ')}">al-Jawād</span>
             </p>
         </article>
+    </section>
+
+    <!-- Below the notices, not above them. Every name a book heads him under is
+         eighty chips for a man like al-Barqi, and placed first they pushed the
+         entries this tab is named for off the screen. The overview's «all N names»
+         still links to #also-named and still lands here. -->
+    <div th:if="${view == 'books'}">
+    <!-- The names he is headed under, first on the overview because «is this the right man?»
+         is the first question a reader brings to a rijāl page, and the names are how he
+         answers it: a reader who came looking for one of them can see that this is the same
+         man. It was a tab of its own, and a tab holding one row of chips is a page that looks
+         broken. One chip each: run together with separators they read as one long unbroken
+         name. -->
+    <section class="narrator-names" id="also-named"
+             th:if="${!#lists.isEmpty(narrator.names_ar) or !#lists.isEmpty(narrator['names_group_ar'])
+                     or (!isArabic and !#lists.isEmpty(narrator['names_group_en']))}">
+        <h2 class="hub-group__label" th:text="#{narrator.names.heading}">Also named</h2>
+        <ul class="narrator-names__chips">
+            <li class="narrator-names__chip" th:each="name : ${narrator.names_ar}"
+                dir="rtl" lang="ar" th:text="${name}">اسم</li>
+        </ul>
+        <!-- Not on an Arabic page: a Latin spelling of «زرارة» is for a reader who cannot
+             read «زرارة», and the chips above already give every Arabic form. -->
+        <ul class="narrator-names__chips narrator-names__chips--latin"
+            th:if="${!#lists.isEmpty(narrator.names_en) and !isArabic}">
+            <li class="narrator-names__chip" th:each="name : ${narrator.names_en}"
+                th:text="${name}">A name</li>
+        </ul>
+        <!-- «آل أعين» is a house and «المحدّث» an epithet; neither is a name he answered to,
+             and run in with the chips above they read as two more spellings of Zurāra. Each
+             kind is a labelled row of its own, Arabic first and, on an English page only,
+             its Latin rendering after it. -->
+        <th:block th:each="kind : ${ {'family', 'title'} }">
+          <th:block th:with="ar = ${narrator['names_group_ar'].?[kind == #vars.kind]},
+                             en = ${isArabic ? {} : narrator['names_group_en'].?[kind == #vars.kind]}">
+            <div class="narrator-names__group" th:if="${!#lists.isEmpty(ar) or !#lists.isEmpty(en)}">
+                <span class="narrator-names__group-label"
+                      th:text="${kind == 'family'} ? #{narrator.names.family} : #{narrator.names.title}">Family</span>
+                <ul class="narrator-names__chips narrator-names__chips--group">
+                    <li class="narrator-names__chip" th:each="g : ${ar}"
+                        dir="rtl" lang="ar" th:text="${g['value']}">آل</li>
+                    <li class="narrator-names__chip narrator-names__chip--latin" th:each="g : ${en}"
+                        th:text="${g['value']}">Banu</li>
+                </ul>
+            </div>
+          </th:block>
+        </th:block>
     </section>
 
     <!-- Grades we hold for him that we cannot tie to a passage. They are not counted among
