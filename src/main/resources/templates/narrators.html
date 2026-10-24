@@ -7,30 +7,6 @@
 <main class="container py-3">
     <nav th:replace="~{fragments/site :: crumbtrail}"></nav>
 
-    <header class="hub-hero">
-        <div class="hub-hero__eyebrow" th:text="#{narrators.eyebrow}">Rijal</div>
-        <h1 class="hub-hero__title" th:text="#{narrators.heading}">Narrators</h1>
-        <p class="narrator-search__lead" th:text="#{narrators.lead}">
-            The men who carried these narrations, as the eight Rijal books have them.
-        </p>
-
-        <!-- A plain GET form: every search is a URL a reader can send to someone else, and it
-             works with scripts off. -->
-        <!-- The action keeps the language: a search made on the Arabic page has to come
-             back in Arabic, and a bare «/narrators» would answer in English. -->
-        <form class="narrator-search" th:action="${searchAction}" action="/narrators" method="get"
-              role="search">
-            <input class="narrator-search__input" type="search" name="q" th:value="${query}"
-                   th:attr="placeholder=#{narrators.placeholder},aria-label=#{narrators.inputLabel}"
-                   placeholder="A name, in Arabic or transliterated — سهل بن زياد, Zurara"
-                   aria-label="Narrator name" autofocus>
-            <button class="narrator-search__button" type="submit"
-                    th:text="#{narrators.search}">Search</button>
-        </form>
-    </header>
-
-    <div th:replace="~{fragments/site :: ornament}"></div>
-
     <p class="text-muted" th:if="${#strings.isEmpty(query)}" th:text="#{narrators.hint}">
         Search by any name a book heads him under.
     </p>
@@ -42,7 +18,7 @@
              th:if="${#strings.isEmpty(query) and !#lists.isEmpty(prominentNarrators)}">
         <div class="home-section-header">
             <div>
-                <h2 class="home-section-title" th:text="#{narrators.browseHeading}">Most Narrated From</h2>
+                <h1 class="home-section-title" th:text="#{narrators.browseHeading}">Most Narrated From</h1>
                 <p class="home-section-subtitle" th:text="#{narrators.browseSubtitle}">The men these
                     books lean on most, by the narrations they carry.</p>
             </div>
@@ -55,11 +31,11 @@
     </section>
 
     <th:block th:if="${!#strings.isEmpty(query)}">
-        <h2 class="hub-group__label">
+        <h1 class="hub-group__label">
             <span th:if="${total > 0}"
                   th:text="#{narrators.count(${#numbers.formatInteger(total, 0, 'COMMA')})}">12 narrators</span>
             <span th:if="${total == 0}" th:text="#{narrators.none}">No narrator of that name</span>
-        </h2>
+        </h1>
 
         <!-- The entry count is the honest ranking signal and it is shown, not hidden: a man
              with eleven entries is written about, one with a single chain mention is a name. -->
@@ -166,6 +142,7 @@
     </th:block>
 </main>
 
+<script src="/js/narrator-drawer.js" th:src="@{/js/narrator-drawer.js}" defer></script>
 <footer th:replace="~{fragments/site :: sitefooter}"></footer>
 <th:block th:replace="~{fragments/site :: analytics}"></th:block>
 </body>

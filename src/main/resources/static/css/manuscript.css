@@ -7113,6 +7113,7 @@ body.is-resizing-sidecar * {
 
 .hadith-english {
     font-size: 1rem;
+    font-weight: 500;
     line-height: 1.68;
     color: #233247;
 }

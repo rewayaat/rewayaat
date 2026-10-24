@@ -445,3 +445,35 @@ html[dir="rtl"] .pv__ar { text-align: right; padding-right: 0; padding-left: 1.4
     font-weight: 600;
     font-size: 0.82rem;
 }
+
+/* ── The drawer, on a phone ──────────────────────────────────────────────────
+   Twelve cards is one comfortable screen on a desktop and three of scrolling on
+   a phone before the next section starts. Four, then a button, as the bookcase
+   already does for books. The overflow is hidden here rather than in script, so
+   a reader without JavaScript simply gets all twelve. */
+.narrator-drawer-toggle {
+    display: none;
+    grid-column: 1 / -1;
+    justify-self: stretch;
+    margin-top: 0.1rem;
+    padding: 0.6rem 1rem;
+    border: 1px solid var(--border-strong, #d1d8e0);
+    border-radius: 9px;
+    background: var(--surface, #fff);
+    font-family: var(--font-ui);
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--primary, #1e3a5f);
+    cursor: pointer;
+}
+
+.narrator-drawer-toggle:hover { border-color: var(--gold, #c8a23d); }
+.narrator-drawer-toggle:focus-visible {
+    outline: 2px solid var(--border-focus, #2563eb);
+    outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+    .browse-narrator-list:not(.is-expanded) .ncard:nth-of-type(n+5) { display: none; }
+    .narrator-drawer-toggle { display: block; }
+}
