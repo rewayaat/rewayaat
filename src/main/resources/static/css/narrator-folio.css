@@ -481,7 +481,7 @@ a.hub-stat:focus-visible {
    quiet but legible; the leading is what makes a list this long scannable. */
 
 #narrator-view .chains__row {
-    padding: 0.62rem 0.25rem;
+    padding: 0.62rem 0.6rem;
     gap: 1.2rem;
 }
 
@@ -629,4 +629,34 @@ a.hub-stat:focus-visible {
     display: flex;
     flex-wrap: wrap;
     gap: 0.45rem;
+}
+
+/* ── Room to breathe: the gutter on a phone, and the gaps between sections ──
+   The page container is pushed to 4px of side padding under 768px, which is
+   right for the hadith card (it carries its own padding and wants the width)
+   and wrong for everything on a narrator's page: the rows here add 4px of
+   their own, so a name sat 8px from the glass and the book behind it ran into
+   the other edge. The narrator page takes a real gutter back.
+
+   The sections below the tabs carried no margin between them at all, so «In
+   the same isnād» was printed hard against the last row of the list above it.
+   Adjacent margins collapse, so the ones that already set 2rem keep it.     */
+@media (max-width: 768px) {
+    main.container.narrator-page {
+        padding-inline: 1rem !important;
+    }
+}
+
+#narrator-view section + section,
+#narrator-view .chains + section {
+    margin-block-start: 2rem;
+}
+
+/* A list runs to the heading of whatever follows it unless it says otherwise. */
+#narrator-view .chains__list {
+    margin-block-end: 1.6rem;
+}
+
+#narrator-view .chains__note {
+    margin-block-end: 1.6rem;
 }
