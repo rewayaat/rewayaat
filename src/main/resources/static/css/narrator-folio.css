@@ -395,3 +395,110 @@ a.hub-stat:focus-visible {
     margin-inline-start: auto;
     font-variant-numeric: tabular-nums;
 }
+
+/* ===========================================================================
+   The tabs, made readable.
+
+   Measured before touching anything: body text across the three tabs ran
+   11.2–12.8px and the section labels 11.84px, most of it on --text-muted
+   (#94a3b8), which is 2.9:1 on this page — below AA for any size. A page whose
+   whole purpose is quoting what seven books say about a man was setting those
+   quotations smaller than its own furniture.
+
+   Nothing is restructured here. Type goes up, the greys come up to a legal
+   contrast, and the rows that run to hundreds get the leading to be scanned.
+   Scoped to #narrator-view so the books, volume and chapter pages, which share
+   several of these classes, are untouched.
+   =========================================================================== */
+
+#narrator-view {
+    /* #94a3b8 is 2.9:1 on this ground; #64748b is 4.8:1 and still reads as the
+       quiet half of the page. */
+    --rv-quiet: #64748b;
+}
+
+/* Section labels. 11.84px uppercase with wide tracking is a caption, and these
+   are the headings a reader navigates the tab by. */
+#narrator-view .hub-group__label {
+    font-size: 0.82rem;
+    letter-spacing: 0.1em;
+    color: var(--text-secondary, #4a5568);
+}
+
+/* ── Tarājim: the notices themselves ────────────────────────────────────── */
+
+/* The English of an entry is the entry, for most readers of this site. */
+#narrator-view .narrator-entry__text-en {
+    font-size: 1rem;
+    line-height: 1.75;
+    color: var(--text, #1a1a2e);
+}
+
+#narrator-view .narrator-entry__edition,
+#narrator-view .narrator-entry__series,
+#narrator-view .narrator-entry__generation {
+    font-size: 0.8rem;
+    color: var(--rv-quiet);
+}
+
+#narrator-view .narrator-entry__note { font-size: 0.88rem; }
+
+/* ── The names ──────────────────────────────────────────────────────────── */
+
+#narrator-view .narrator-names__chip {
+    padding: 0.3rem 0.8rem;
+    font-size: 0.88rem;
+}
+
+#narrator-view .narrator-names__group-label {
+    font-size: 0.78rem;
+    color: var(--text-secondary, #4a5568);
+}
+
+/* ── What the books state, and on whose word ────────────────────────────── */
+
+#narrator-view .narrator-stands__why,
+#narrator-view .narrator-stands__page {
+    font-size: 0.8rem;
+    color: var(--rv-quiet);
+}
+
+#narrator-view .narrator-report__note { font-size: 0.82rem; color: var(--rv-quiet); }
+
+/* ── Teachers & students: two hundred and seventy-five rows ─────────────── */
+/* At 0.5rem of padding and 11.2px for the source, this was a column of grey
+   the eye slides off. The name carries the row; the books behind it stay
+   quiet but legible; the leading is what makes a list this long scannable. */
+
+#narrator-view .chains__row {
+    padding: 0.62rem 0.25rem;
+    gap: 1.2rem;
+}
+
+#narrator-view .chains__name { font-size: 0.97rem; }
+
+#narrator-view .chains__books {
+    font-size: 0.78rem;
+    color: var(--rv-quiet);
+}
+
+#narrator-view .chains__dir {
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    color: var(--rv-quiet);
+}
+
+#narrator-view .chains__note,
+#narrator-view .chains__caveat {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--text-secondary, #4a5568);
+}
+
+/* Two columns of 137 rows each is narrower than the names in them want to be;
+   at this type size the gutter has to grow with them. */
+#narrator-view .chains__list--indexed { column-gap: 3rem; }
+
+@media (max-width: 860px) {
+    #narrator-view .chains__list--indexed { column-count: 1; }
+}
