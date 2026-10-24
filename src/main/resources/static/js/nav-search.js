@@ -191,6 +191,38 @@
             onType: function () { alignDropdown(this, shell); }
         });
 
+        /*
+         * The placeholder, with the two words a reader needs emphasised.
+         *
+         * An HTML placeholder is plain text: it takes a colour and a weight as a whole
+         * and cannot carry markup, so «narrations» and «narrators» could not be picked
+         * out of it. This is a real element laid over the field, shown only while the
+         * control is empty, and it is aria-hidden because the input keeps its own
+         * placeholder and label for anyone not looking at it.
+         */
+        var hint = document.createElement('span');
+        hint.className = 'nav-search__hint';
+        hint.setAttribute('aria-hidden', 'true');
+        hint.innerHTML = t('search.navPlaceholder.html', '');
+        if (hint.innerHTML && shell) {
+            shell.appendChild(hint);
+            var syncHint = function () {
+                var typed = (control.control_input && control.control_input.value) || '';
+                var empty = !typed && !(control.items && control.items.length);
+                shell.classList.toggle('has-hint', empty);
+            };
+            syncHint();
+            control.on('type', syncHint);
+            control.on('item_add', syncHint);
+            control.on('item_remove', syncHint);
+            control.on('blur', syncHint);
+            control.on('focus', syncHint);
+            hint.addEventListener('mousedown', function (e) {
+                e.preventDefault();
+                control.focus();
+            });
+        }
+
         // Tom Select highlights the first suggestion as soon as the list opens, so
         // "is a suggestion active" is true from the first keystroke and cannot stand
         // in for "the reader chose one". Track the arrow keys instead, the way the

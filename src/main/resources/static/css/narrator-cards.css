@@ -656,3 +656,38 @@ html[dir="rtl"] .pv__ar { text-align: right; padding-right: 0; padding-left: 1.4
 .ts-dropdown .optgroup[data-group="narrators"] .option.active {
     background: linear-gradient(90deg, rgba(30, 58, 95, 0.16), rgba(30, 58, 95, 0.04) 70%);
 }
+
+/* ── The nav field's placeholder, with its two words marked ──────────────────
+   A real element over the field: an HTML placeholder takes a weight as a whole
+   and cannot carry markup, so «narrations» and «narrators» could not be picked
+   out of it. Shown only while the control is empty, and it does not take the
+   pointer except to hand focus to the field under it. */
+
+.nav-search__shell { position: relative; }
+
+.nav-search__hint {
+    position: absolute;
+    top: 50%;
+    inset-inline-start: 2.6rem;
+    transform: translateY(-50%);
+    z-index: 2;
+    pointer-events: none;
+    opacity: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    max-width: calc(100% - 7rem);
+    text-overflow: ellipsis;
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    color: rgba(238, 243, 250, 0.62);
+}
+
+.nav-search__hint b { font-weight: 700; color: var(--gold-light, #f3e5b8); }
+
+.nav-search__shell.has-hint .nav-search__hint { opacity: 1; pointer-events: auto; cursor: text; }
+
+/* The native placeholder steps aside while ours is up, or the two print on top of
+   each other. Any input inside the shell: Tom Select's text box is not a direct
+   child of .ts-control in every version, and the first selector missed it. */
+.nav-search__shell.has-hint input::placeholder { color: transparent !important; }
+.nav-search__shell.has-hint input::-webkit-input-placeholder { color: transparent !important; }
