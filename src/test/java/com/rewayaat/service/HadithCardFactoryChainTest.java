@@ -97,6 +97,44 @@ class HadithCardFactoryChainTest {
                 "the drifted span must have been dropped");
     }
 
+    @Test
+    @SuppressWarnings("unchecked")
+    void anUndecidedStepIsNeitherNotFoundNorLost() {
+        // The resolver found three men named Aḥmad b. Muḥammad and would not choose. The
+        // panel used to call that "not found"; it now carries the three and links each.
+        Map<String, Object> row = card(narration(List.of(
+                Map.of("t", "أَحْمَدُ بْنُ مُحَمَّدٍ", "p", "", "k", "name", "o", "several",
+                        "rf", "the book writes this name out, but not here",
+                        "c", List.of(
+                                Map.of("p", "n002014", "n", "أحمد بن محمد بن عيسى", "g", "ahmad-b-isa", "h", "القمي"),
+                                Map.of("p", "n003502", "n", "أحمد بن محمد", "g", ""))),
+                Map.of("t", "الصَّادِقِ", "p", "9", "k", "imam")), null));
+        Map<String, Object> step = chain(row).get(0);
+        assertEquals("several", step.get("kind"));
+        assertEquals(0, row.get("chainNotFound"));
+        assertEquals(1, row.get("chainSeveral"));
+        assertEquals(0, row.get("chainIdentified"));
+        assertEquals(true, step.get("weak"), "the joint is as open as an unidentified one");
+        List<Map<String, String>> found = (List<Map<String, String>>) step.get("candidates");
+        assertEquals(2, found.size());
+        assertEquals("/narrator/n002014/ahmad-b-isa", found.get(0).get("href"));
+        assertEquals("/narrator/n003502", found.get(1).get("href"));
+        assertEquals("أحمد بن محمد بن عيسى", found.get(0).get("name"));
+        assertEquals("القمي", found.get(0).get("title"));
+        assertEquals("the book writes this name out, but not here", step.get("refused"));
+        assertEquals("", row.get("chainIds").toString().replace("9", ""),
+                "an undecided step has no man the preview card could fetch");
+    }
+
+    @Test
+    void aBlankStepWithNoCandidatesIsStillNotFound() {
+        Map<String, Object> row = card(narration(List.of(
+                Map.of("t", "فُلَانٌ", "p", "", "k", "name", "o", "none")), null));
+        assertEquals("unknown", chain(row).get(0).get("kind"));
+        assertEquals(1, row.get("chainNotFound"));
+        assertEquals(0, row.get("chainSeveral"));
+    }
+
     // ---- the three renderers must key off the same list ----
 
     @Test

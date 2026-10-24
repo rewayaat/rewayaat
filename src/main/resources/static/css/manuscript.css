@@ -16652,3 +16652,64 @@ div.ledger__cell {
     border-radius: 2px;
     box-shadow: 0 0 0 1px rgba(200, 162, 61, 0.28);
 }
+
+/* A step the resolver found several men for and would not choose between. The card is the
+   navy one, so its ink is light: the lede sits at 0.82 of the panel's pale ink, which
+   measured 6.0:1 to 6.7:1 against the card as rendered (#284361 to #284b73), and the names
+   are the full pale ink at 8.0:1 to 9.1:1 with a gold underline to say they are links. The dashed border is the
+   unidentified step's, because the joint above and below it is just as open. */
+.rijal-link--several .rijal-link__mark {
+    background: #183554;
+    border: 2px dashed var(--gold, #c8a23d);
+}
+
+.rijal-link--several .rijal-link__card {
+    border-style: dashed;
+}
+
+.rijal-link__candidates {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.15rem 0.6rem;
+    margin: 0.35rem 0 0;
+    padding-block-start: 0.35rem;
+    border-block-start: 1px solid rgba(238, 243, 250, 0.16);
+    font-size: 0.74rem;
+    color: rgba(238, 243, 250, 0.82);
+}
+
+.rijal-link__candidates-lede {
+    flex-basis: 100%;
+    margin-inline-start: 0.1rem;
+}
+
+.rijal-link__candidate {
+    color: #eef3fa;
+    font-size: 0.95rem;
+    text-decoration: underline;
+    text-decoration-color: var(--gold, #c8a23d);
+    text-underline-offset: 0.25em;
+}
+
+.rijal-link__candidate:hover,
+.rijal-link__candidate:focus-visible {
+    color: #ffffff;
+    text-decoration-thickness: 2px;
+}
+
+[dir="rtl"] .rijal-link__candidates {
+    font-size: 0.9rem;
+}
+
+/* The epithet that tells three men of one name apart, set after the name in a quieter
+   weight and the same pale ink, so it stays above 4.5:1 on the card. */
+.rijal-link__candidate-title {
+    margin-inline-start: 0.4em;
+    font-size: 0.8em;
+    opacity: 0.9;
+}
+
+.rijal-link__candidate-title::before {
+    content: "\00b7\00a0";
+}

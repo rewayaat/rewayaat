@@ -483,6 +483,18 @@
                                             <strong>{{ narratorCount(chainOf(narration).length, 'rijal.summary.links') }}</strong>
                                             <span class="rijal__dot" aria-hidden="true">·</span>
                                             <span>{{ narratorCount(identifiedInChain(narration), 'rijal.summary.identified') }}</span>
+                                            <template v-if="notFoundInChain(narration) > 0">
+                                                <span class="rijal__dot" aria-hidden="true">&middot;</span>
+                                                <span>{{ narratorCount(notFoundInChain(narration), 'rijal.summary.notFound') }}</span>
+                                            </template>
+                                            <template v-if="severalInChain(narration) > 0">
+                                                <span class="rijal__dot" aria-hidden="true">&middot;</span>
+                                                <span>{{ narratorCount(severalInChain(narration), 'rijal.summary.several') }}</span>
+                                            </template>
+                                            <template v-if="groupsInChain(narration) > 0">
+                                                <span class="rijal__dot" aria-hidden="true">&middot;</span>
+                                                <span>{{ narratorCount(groupsInChain(narration), 'rijal.summary.groups') }}</span>
+                                            </template>
                                             <span class="rijal__ends" data-rijal-ends hidden>
                                                 <span class="rijal__dot" aria-hidden="true">·</span>
                                                 <span data-rijal-ends-text></span>
@@ -505,6 +517,17 @@
                                                     <p class="rijal-link__who" data-rijal-who hidden></p>
                                                     <p class="rijal-link__said" data-rijal-said hidden></p>
                                                     <p class="rijal-link__life" data-rijal-life hidden></p>
+                                                    <!-- Men the resolver found and would not
+                                                         choose between. Each is a link to his
+                                                         own page, so the reader can settle it.
+                                                         The server twin is in hadith-card.html. -->
+                                                    <p class="rijal-link__candidates" v-if="link.kind === 'several'">
+                                                        <span class="rijal-link__candidates-lede">{{ t('rijal.several.lede', '').replace('{0}', localeDigits(link.candidates.length)) }}</span>
+                                                        <a class="rijal-link__candidate arabic-text" dir="rtl" lang="ar"
+                                                           v-for="c in link.candidates" v-bind:key="c.person"
+                                                           v-bind:href="c.href"><span>{{ c.name }}</span><span
+                                                              class="rijal-link__candidate-title" v-if="c.title">{{ c.title }}</span></a>
+                                                    </p>
                                                     <p class="rijal-link__note" v-if="link.kind === 'collective'">{{ t('rijal.collective', '') }}</p>
                                                     <p class="rijal-link__note" v-if="link.kind === 'backref'">
                                                         <span v-if="link.quotedFrom">{{ t('rijal.backref.quoted', '') }}

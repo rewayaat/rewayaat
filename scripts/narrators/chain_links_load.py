@@ -29,17 +29,28 @@ TMP = f'{W}/tmp'
 LINKED = ("one", "chosen", "convention")
 
 
-def slugs(host, index="rewayaat_narrators"):
+def slugs(host, index="rewayaat_narrators", names=None, titles=None):
     """person_id → slug, so a link lands on the canonical page instead of a redirect.
 
     Paged, because a plain search stops at 10,000 hits and the index holds half again as
     many men: asking for all of them in one request quietly left the rest without a slug,
     and their links went out to the redirect instead of the page.
+
+    Given a dict as `names`, it is also filled with person_id → display_ar, which the
+    candidates of an undecided step need so the page can name them without a second lookup.
+    `titles` likewise gets person_id → his first epithet: three men can all be «أحمد بن
+    محمد» on the page, and the epithet («الكوفي», «الخليلي») is the one thing that tells
+    them apart at a glance. Where a man carries no epithet the book that files him is used
+    instead: 1,057 of the 8,879 undecided steps had two candidates reading the same, and
+    414 had every candidate reading the same — three identical links, which answers
+    nothing. «أبو زكريا» is the one this was found on.
     """
     import urllib.request
     found, after = {}, None
     while True:
-        query = {"size": 2000, "_source": ["person_id", "slug"],
+        query = {"size": 2000,
+                 "_source": ["person_id", "slug", "display_ar", "titles",
+                             "entries.book_title_ar"],
                  "query": {"match_all": {}}, "sort": [{"person_id": "asc"}]}
         if after:
             query["search_after"] = after
@@ -51,6 +62,15 @@ def slugs(host, index="rewayaat_narrators"):
             return found
         for hit in hits:
             found[hit["_source"]["person_id"]] = hit["_source"].get("slug") or ""
+            if titles is not None:
+                source = hit["_source"]
+                entries = source.get("entries") or []
+                titles[source["person_id"]] = (
+                    (source.get("titles") or [""])[0]
+                    or (entries[0].get("book_title_ar") if entries else "")
+                    or "")
+            if names is not None:
+                names[hit["_source"]["person_id"]] = hit["_source"].get("display_ar") or ""
         after = hits[-1]["sort"]
 
 
@@ -103,7 +123,8 @@ def main():
 
     chains = served_chains(args.served)
     numbered = numbers(f'{TMP}/narrators_chains/chains_served.jsonl')
-    slug_of = slugs(args.es_host)
+    name_of, title_of = {}, {}
+    slug_of = slugs(args.es_host, names=name_of, titles=title_of)
     print(f"  {len(slug_of):7,}  people the links can point at")
     print(f"  {len(chains):7,}  narrations in the index the site reads")
 
@@ -166,6 +187,19 @@ def main():
                 # name of that book and the page says so rather than guessing.
                 if mention.get("quoted_from"):
                     step["qf"] = mention["quoted_from"]
+                # The resolver found between two and nine men of this name and would not
+                # choose. The panel used to say "not found" for these, which tells the reader
+                # nobody is known when three men are. The candidates travel with the step,
+                # named and slugged, so the page lists them without a second lookup. Nine is
+                # the most the resolver ever produced (202 chains' worth), so the cap loses
+                # nothing today and keeps a row from growing without bound if that changes.
+                if mention["outcome"] == "several" and mention.get("candidates"):
+                    step["c"] = [{"p": c, "n": name_of.get(c, ""), "g": slug_of.get(c, ""),
+                                  "h": title_of.get(c, "")}
+                                 for c in mention["candidates"][:9]]
+                    counts["undecided steps carrying their candidates"] += 1
+                    if mention.get("refused"):
+                        step["rf"] = mention["refused"]
                 people.append(step)
             people.sort(key=lambda row: row["s"])
             # Written whenever the chain has steps at all, not only when one of them is a

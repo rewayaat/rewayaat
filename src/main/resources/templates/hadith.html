@@ -43,6 +43,13 @@
     <link href="/css/sweetalert.css" rel="stylesheet" th:href="@{/css/sweetalert.css}"/>
     <link href="/css/noty.css" rel="stylesheet" th:href="@{/css/noty.css}"/>
     <link href="/css/manuscript.css" rel="stylesheet" th:href="@{/css/manuscript.css}"/>
+    <!-- These two heads are hand-rolled rather than the sitehead fragment, and they
+         were loading manuscript.css alone. Both carry the site nav, whose
+         marked-up placeholder is styled here, and the hadith page carries the
+         rijāl panel and the narrator card as well: without this the placeholder
+         laid itself out as a static flex child and printed over the search
+         button. -->
+    <link href="/css/narrator-cards.css" rel="stylesheet" th:href="@{/css/narrator-cards.css}"/>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Literata:opsz,wght@7..72,400;7..72,500;7..72,600;7..72,700&family=Cormorant+Garamond:wght@500;600;700&family=Scheherazade+New:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap"
           rel="stylesheet"/>
     <link href="/css/pace.css" rel="stylesheet" th:href="@{/css/pace.css}"/>

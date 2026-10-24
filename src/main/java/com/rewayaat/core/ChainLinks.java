@@ -23,6 +23,16 @@ public final class ChainLinks {
 
     private static final String CLASS = "chain-name";
 
+    /**
+     * The markup Elasticsearch wraps a search term in, which arrives inside the chain on a
+     * results page. A chain carrying it is already HTML and must be handed on untouched:
+     * escaping it printed «&lt;span class="highlight"&gt;» in the middle of the isnād, in
+     * Arabic, on every search that matched a name in a chain. The links are lost for that
+     * one chain, which is the bargain the search page was always making — the highlight
+     * moves the text under the stored offsets — but the text itself now survives.
+     */
+    private static final String HIGHLIGHT = "<span class=\"highlight\">";
+
     private ChainLinks() {
     }
 
@@ -30,6 +40,9 @@ public final class ChainLinks {
     public static String render(String chain, Object stored, String prefix) {
         if (chain == null || chain.isBlank()) {
             return chain == null ? "" : chain;
+        }
+        if (chain.contains(HIGHLIGHT)) {
+            return chain;
         }
         List<Span> spans = spans(chain, stored);
         if (spans.isEmpty()) {

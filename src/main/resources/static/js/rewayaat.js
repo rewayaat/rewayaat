@@ -4975,6 +4975,11 @@ function setupVue(query, page, sortFields) {
             t: function(key, fallback) {
                 return t(key, fallback);
             },
+            // Arabic-Indic digits on the Arabic site. Another module function a template
+            // cannot reach, for the same reason t() needed this treatment.
+            localeDigits: function(value) {
+                return localeDigits(value);
+            },
             // «1 books» is wrong in English and «١١ كتب» is wrong in Arabic. The rule
             // lives in narrator-preview.js, which every page carrying a chain loads;
             // without it the bare plural still reads.
@@ -5009,12 +5014,23 @@ function setupVue(query, page, sortFields) {
                         });
                         continue;
                     }
+                    /* The resolver found several men of this name and would not choose
+                       between them. That is not «not found» — it knows exactly who they
+                       are — so the step names them and lets the reader settle it. */
+                    var several = !person && (one.c || []).length > 0;
                     var kind = one.k === 'collective' ? 'collective'
                         : (one.k === 'imam' && person) ? 'imam'
-                        : person ? 'man' : 'unknown';
-                    var weak = kind === 'collective' || kind === 'unknown';
+                        : person ? 'man'
+                        : several ? 'several' : 'unknown';
+                    var weak = kind === 'collective' || kind === 'unknown' || several;
                     links.push({
                         words: words, kind: kind, person: person, weak: weak, open: weak,
+                        candidates: (one.c || []).map(function(c) {
+                            return {
+                                person: c.p || '', name: c.n || '', title: c.h || '',
+                                href: prefix + '/narrator/' + (c.p || '') + (c.g ? '/' + c.g : '')
+                            };
+                        }),
                         href: (person && kind !== 'collective')
                             ? prefix + '/narrator/' + person + (one.g ? '/' + one.g : '')
                             : ''
@@ -5041,8 +5057,20 @@ function setupVue(query, page, sortFields) {
                 return people.filter(function(one) { return one && one.k === 'name'; }).length;
             },
             identifiedInChain: function(narration) {
+                return this.countInChain(narration, 'man');
+            },
+            severalInChain: function(narration) {
+                return this.countInChain(narration, 'several');
+            },
+            notFoundInChain: function(narration) {
+                return this.countInChain(narration, 'unknown');
+            },
+            groupsInChain: function(narration) {
+                return this.countInChain(narration, 'collective');
+            },
+            countInChain: function(narration, kind) {
                 return this.chainOf(narration).filter(function(link) {
-                    return link.kind === 'man';
+                    return link.kind === kind;
                 }).length;
             },
             // What the first book to grade him calls him, in that book's own word.

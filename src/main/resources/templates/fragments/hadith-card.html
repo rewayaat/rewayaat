@@ -107,6 +107,10 @@
                             <span class="rijal__dot" aria-hidden="true">&middot;</span>
                             <span th:text="${@counts.of(narration.chainNotFound, 'rijal.summary.notFound')}">1 not found</span>
                         </th:block>
+                        <th:block th:if="${narration.chainSeveral > 0}">
+                            <span class="rijal__dot" aria-hidden="true">&middot;</span>
+                            <span th:text="${@counts.of(narration.chainSeveral, 'rijal.summary.several')}">1 undecided</span>
+                        </th:block>
                         <th:block th:if="${narration.chainGroups > 0}">
                             <span class="rijal__dot" aria-hidden="true">&middot;</span>
                             <span th:text="${@counts.of(narration.chainGroups, 'rijal.summary.groups')}">1 unnamed group</span>
@@ -137,6 +141,16 @@
                                 <p class="rijal-link__who" data-rijal-who hidden></p>
                                 <p class="rijal-link__said" data-rijal-said hidden></p>
                                 <p class="rijal-link__life" data-rijal-life hidden></p>
+                                <!-- Men the resolver found and would not choose between. Each is
+                                     a link to his own page, so the reader can settle it. -->
+                                <p class="rijal-link__candidates" th:if="${link.kind == 'several'}">
+                                    <span class="rijal-link__candidates-lede"
+                                          th:text="#{rijal.several.lede(${#lists.size(link['candidates'])})}">One of 3 men of this name:</span>
+                                    <a class="rijal-link__candidate arabic-text" dir="rtl" lang="ar"
+                                       th:each="c : ${link['candidates']}"
+                                       th:href="${c['href']}"><span th:text="${c['name']}">name</span><span class="rijal-link__candidate-title"
+                                          th:if="${!#strings.isEmpty(c['title'])}" th:text="${c['title']}">epithet</span></a>
+                                </p>
                                 <p class="rijal-link__note" th:if="${link.kind == 'collective'}"
                                    th:text="#{rijal.collective}">A step the compiler did not name</p>
                                 <!-- A step that points at another narration rather than at

@@ -136,6 +136,7 @@ public class HadithCardFactory {
         int identified = 0;
         int notFound = 0;
         int groups = 0;
+        int several = 0;
         int named = 0;
         if (stored instanceof List<?> items) {
             for (Object item : items) {
@@ -150,6 +151,7 @@ public class HadithCardFactory {
                 String slug = str(raw.get("g"));
                 String declared = str(raw.get("k"));
                 String kind;
+                List<Map<String, String>> candidates = candidatesOf(raw.get("c"), locale);
                 // A pointer inside a quoted chain. Muḥsinī's Muʿjam prints «[231/2] الكافي:»
                 // and then al-Kāfī's own isnād, so its «وعنه» reaches back inside al-Kāfī,
                 // where this book has printed nothing. There is no narration here to link
@@ -189,6 +191,12 @@ public class HadithCardFactory {
                 } else if (!person.isBlank()) {
                     kind = "man";
                     identified++;
+                } else if (!candidates.isEmpty()) {
+                    // The resolver found two to nine men of this name and would not pick
+                    // one. That is not "not found", and counting it as such told the reader
+                    // nobody was known when several men were; it is its own kind and count.
+                    kind = "several";
+                    several++;
                 } else {
                     kind = "unknown";
                     notFound++;
@@ -196,7 +204,9 @@ public class HadithCardFactory {
                 if ("name".equals(declared)) {
                     named++;
                 }
-                boolean open = "collective".equals(kind) || "unknown".equals(kind);
+                // An undecided step is open like an unidentified one: the joint is not known.
+                boolean open = "collective".equals(kind) || "unknown".equals(kind)
+                        || "several".equals(kind);
                 Map<String, Object> link = new LinkedHashMap<>();
                 link.put("words", words);
                 link.put("kind", kind);
@@ -205,6 +215,13 @@ public class HadithCardFactory {
                 if (!person.isBlank() && !"collective".equals(kind)) {
                     link.put("href", locale.prefix() + "/narrator/" + person
                             + (slug.isBlank() ? "" : "/" + slug));
+                }
+                if ("several".equals(kind)) {
+                    link.put("candidates", candidates);
+                    String refused = str(raw.get("rf"));
+                    if (!refused.isBlank()) {
+                        link.put("refused", refused);
+                    }
                 }
                 links.add(link);
             }
@@ -230,8 +247,41 @@ public class HadithCardFactory {
         row.put("chainIdentified", identified);
         row.put("chainNotFound", notFound);
         row.put("chainGroups", groups);
+        row.put("chainSeveral", several);
         row.put("chainIds", links.stream().map(l -> str(l.get("person")))
                 .filter(v -> !v.isBlank()).distinct().collect(Collectors.joining(",")));
+    }
+
+    /**
+     * The men an undecided step could be, each with the page that would settle it. Built
+     * the way a {@code man} link is, so a candidate lands on the same URL the identified
+     * step would have. Anything without a person id is skipped; a name the index could not
+     * supply falls back to the id rather than an empty link.
+     */
+    private static List<Map<String, String>> candidatesOf(Object stored, PageLocale locale) {
+        List<Map<String, String>> found = new ArrayList<>();
+        if (!(stored instanceof List<?> items)) {
+            return found;
+        }
+        for (Object item : items) {
+            if (!(item instanceof Map<?, ?> raw)) {
+                continue;
+            }
+            String person = str(raw.get("p"));
+            if (person.isBlank()) {
+                continue;
+            }
+            String slug = str(raw.get("g"));
+            String name = str(raw.get("n"));
+            Map<String, String> candidate = new LinkedHashMap<>();
+            candidate.put("person", person);
+            candidate.put("name", name.isBlank() ? person : name);
+            candidate.put("title", str(raw.get("h")));
+            candidate.put("href", locale.prefix() + "/narrator/" + person
+                    + (slug.isBlank() ? "" : "/" + slug));
+            found.add(candidate);
+        }
+        return found;
     }
 
     /**
