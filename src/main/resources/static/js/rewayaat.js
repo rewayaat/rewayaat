@@ -2403,7 +2403,7 @@ function openHadithEditorModal(options) {
             create: false,
             hideSelected: true,
             maxOptions: 400,
-            searchField: ['text', 'value']
+            searchField: ['text', 'value', 'ar']
         });
     }
 
@@ -2644,21 +2644,20 @@ function initSelect2(select2_id) {
                 .catch(function() { return []; });
             Promise.all([men, terms]).then(function(both) {
                 var results = both[0].map(function(man) {
-                    // The value is what gets searched; the row carries the era too, to
-                    // tell two men of one name apart. Arabic first on the Arabic site:
-                    // this preferred the transliteration in both languages, so «زرارة»
-                    // typed into the Arabic box answered «Zurarah ibn A'yan» and then
-                    // searched the corpus for that.
+                    // The value is what gets searched, and the row shows the name and
+                    // nothing else. Arabic first on the Arabic site: this preferred the
+                    // transliteration in both languages, so «زرارة» typed into the
+                    // Arabic box answered «Zurarah ibn A'yan» and then searched the
+                    // corpus for that. The other spelling stays matchable through
+                    // `searchField`, which carries `ar` for this reason.
                     var arabicPage = (window.I18N_LOCALE === 'ar');
                     var ar = man.display_ar || '';
                     var en = man.display_en || '';
                     var label = arabicPage ? (ar || en) : (en || ar);
-                    var other = arabicPage ? '' : (ar ? '  ' + ar : '');
-                    var era = (man.life && (arabicPage ? man.life.imams_ar : man.life.imams)) || [];
-                    var life = era.slice(0, 2).join(arabicPage ? '\u060c ' : ', ');
                     return {
                         value: label,
-                        text: label + other + (life ? '  \u00b7 ' + life : ''),
+                        text: label,
+                        ar: arabicPage ? en : ar,
                         group: 'narrators'
                     };
                 });

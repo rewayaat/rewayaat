@@ -65,12 +65,14 @@
         var ar = man.display_ar || '';
         var en = man.display_en || '';
         var label = arabicSite() ? (ar || en) : (en || ar);
-        var other = arabicSite() ? '' : (ar ? '  ' + ar : '');
-        var era = (man.life && (arabicSite() ? man.life.imams_ar : man.life.imams)) || [];
-        var life = era.slice(0, 2).join(arabicSite() ? '\u060c ' : ', ');
         return {
             value: label,
-            text: label + other + (life ? '  \u00b7 ' + life : ''),
+            text: label,
+            // The row shows the name and nothing else. The other spelling is still
+            // matched on, through `searchField` below: Tom Select filters what the
+            // endpoint returned against the typed query, so an Arabic name dropped
+            // out of `text` would stop «زرارة» finding the man on the English site.
+            ar: arabicSite() ? en : ar,
             group: 'narrators'
         };
     }
@@ -136,6 +138,7 @@
             ],
             optgroupField: 'group',
             lockOptgroupOrder: true,
+            searchField: ['text', 'ar'],
             loadThrottle: 250,
             load: function (query, callback) {
                 var term = (query || '').trim();
