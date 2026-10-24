@@ -16717,3 +16717,43 @@ a.isnad-man__name:hover .isnad-man__en {
     .hub-hero--sealed { grid-template-columns: 1fr; }
     .hub-hero--sealed .narrator-id { align-items: center; }
 }
+/* ── A linked name in an isnād, made plainly clickable ───────────────────────
+   The earlier passes marked these with a dotted gold rule and nothing else:
+   no weight, no colour at rest. The reasoning was sound — eight bright words
+   in a chain read as a row of buttons rather than as a sentence — but the
+   result was a link most readers never found.
+
+   Weight and colour, not an icon. An icon per name would put eight glyphs in a
+   sentence of eight names, and the convention it borrows (↗) means "leaves this
+   site", which these do not. Weight picks the name out of the connective tissue
+   («from», «عن») that surrounds it; the navy says link in the site's own palette
+   rather than browser blue; the solid gold rule under it replaces the dotted
+   hint. Hover and keyboard focus then light the whole word in gold.
+
+   #1b4a7a on the card is 7.6:1, and the gold hover state 5.1:1, both above AA.
+   The backref links (a repeated «عنه» pointing up the chain) are deliberately
+   left out: they are not names and do not lead to a man's page. */
+.hadith-chain .chain-name {
+    font-weight: 600;
+    /* `.hadith-chain *` sets `color: inherit !important` so the chain reads as one
+       muted line, which is why the hover rule above has always carried !important
+       too. The resting colour needs the same to be seen at all. */
+    color: #1b4a7a !important;
+    border-bottom: 1px solid rgba(200, 162, 61, 0.45);
+    border-radius: 2px;
+    transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.hadith-chain .chain-name:hover,
+.hadith-chain .chain-name:focus-visible {
+    color: #8a6420 !important;
+    border-bottom-color: var(--gold, #c8a23d);
+    background-color: rgba(200, 162, 61, 0.13);
+    box-shadow: 0 0 0 2px rgba(200, 162, 61, 0.13);
+}
+
+/* The Arabic chain carries the same names at a larger size, where a 600 weight in
+   Scheherazade is heavy enough to shout. It takes the colour and the rule only. */
+.hadith-chain--arabic .chain-name {
+    font-weight: 400;
+}

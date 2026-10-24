@@ -1,12 +1,12 @@
 {
-  "id": "rijal-2026-10",
+  "id": "whole-corpus-2026-10",
   "active": true,
-  "icon": "fa-user-group",
-  "label": "New:",
-  "text": "tap any name in a chain to see who he was and what the rijāl books say of him.",
-  "linkText": "See how",
-  "linkUrl": "/updates.html#rijal",
-  "label_ar": "جديد:",
-  "text_ar": "انقر أيّ اسم في السند لتعرف من هو وما قالته فيه كتب الرجال.",
-  "linkText_ar": "كيف يعمل"
+  "icon": "fa-book-open",
+  "label": "The Hadith Database:",
+  "text": "50,038 narrations from 21 Shia collections, Arabic beside English — and every chain traced name by name to the 15,518 men who carried it.",
+  "linkText": "See what's inside",
+  "linkUrl": "/updates.html",
+  "label_ar": "مكتبة الحديث:",
+  "text_ar": "٥٠٬٠٣٨ رواية من ٢١ مجموعة شيعية، بالعربية والإنجليزية، وكلّ سند متتبَّع اسمًا اسمًا إلى ١٥٬٥١٨ راويًا حملوه.",
+  "linkText_ar": "اطّلع على ما فيها"
 }
