@@ -5069,6 +5069,10 @@ code.welcome {
     margin-bottom: 0;
 }
 
+/* The header and the grid under it had nothing between them, so "The men these books
+   lean on most…" sat on the first row of cards. */
+.home-section-header { margin-bottom: 1.15rem; }
+
 /* Pace loading */
 .pace {
     pointer-events: none;
@@ -15244,7 +15248,12 @@ a.rijal-link__words:focus-visible {
    one: a rule down its start side, air around it, and the book's name sitting
    on that rule rather than floating above a wall of text. */
 .narrator-entry {
-    padding: 0.2rem 0 1.4rem 1.1rem;
+    /* Logical, and air on both sides. This was `0.2rem 0 1.4rem 1.1rem` — physical, with
+       nothing on the right — so the rule and its padding landed on the left of an English
+       page while the Arabic notice inside, being RTL, began hard against the right edge of
+       the card with no margin at all. */
+    padding-block: 0.2rem 1.4rem;
+    padding-inline: 1.2rem;
     border-inline-start: 2px solid var(--border, #e8ecf1);
     margin-bottom: 1.6rem;
 }

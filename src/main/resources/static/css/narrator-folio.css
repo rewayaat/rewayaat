@@ -59,15 +59,21 @@
 
 /* ── Band one: the seal, and the name beside it ─────────────────────────── */
 
+/* The name takes the panel's own start edge, the one every band below rules from.
+   With the seal first, the eyebrow and the name began a seal's width inside the
+   panel while the sentence, the strip and the facts all began at the edge — so the
+   name read as though it had been nudged toward the middle for no reason. The seal
+   is aria-hidden, so putting it last costs a reader nothing. */
 .rijal__head {
     position: relative;
     z-index: 1;
     display: flex;
     align-items: center;
-    gap: 1.3rem;
+    justify-content: space-between;
+    gap: 1.5rem;
 }
 
-.rijal__names { min-width: 0; }
+.rijal__names { min-width: 0; flex: 1 1 auto; }
 
 .hub-hero--rijal .hub-hero__seal {
     display: block;
@@ -95,16 +101,27 @@
     line-height: 1.3;
     letter-spacing: 0;
     margin: 0 0 0.15rem;
+    /* The h1 carries dir="rtl" for the Arabic name while the block it sits in is as
+       wide as the panel, so the name aligned to its own direction and walked off to
+       the far edge, away from the eyebrow and the transliteration it belongs to.
+       Physical sides, keyed to the page's direction, as .ncard__ar already does. */
+    text-align: left;
 }
 
+html[dir="rtl"] .hub-hero--rijal .hub-hero__title { text-align: right; }
+
+/* Both of these are the man's name. At 1rem against a 2.9rem Arabic the Latin read
+   as a caption on the Arabic rather than as the same name written the other way, and
+   an English reader was given the smaller of the two. */
 .hub-hero--rijal .hub-hero__also {
     position: relative;
-    margin: 0;
+    margin: 0.1rem 0 0;
     font-family: var(--font-reference);
     font-style: italic;
-    font-size: 1rem;
+    font-size: clamp(1.15rem, 2.1vw, 1.5rem);
+    line-height: 1.3;
     color: var(--gold-light, #f3e5b8);
-    opacity: 0.72;
+    opacity: 0.88;
 }
 
 /* ── Band two: what the books amount to ─────────────────────────────────── */
@@ -151,6 +168,21 @@
 }
 
 .rijal__gens { min-width: 0; }
+
+.rijal__gens-label {
+    margin: 0 0 0.5rem;
+    font-family: var(--font-ui);
+    font-size: 0.63rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(243, 229, 184, 0.62);
+}
+
+/* The one part of the key a reader needs: which mark is his. In the same gold as the
+   mark, so the sentence and the strip point at each other. */
+.rijal__gens-marked { color: var(--gold-light, #f3e5b8); opacity: 0.95; }
+.rijal__gens-dot { margin: 0 0.15rem; opacity: 0.5; }
 .hub-hero--rijal .gens { margin: 0; }
 .hub-hero--rijal .gens__mark { background: rgba(255, 255, 255, 0.16); }
 

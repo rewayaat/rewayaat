@@ -28,8 +28,6 @@
         <!-- Seal and name on one line. Stacked, the seal sat alone at the top of a tall
              column with the width of the panel empty beside it. -->
         <div class="rijal__head">
-            <span class="hub-hero__seal"
-                  th:utext="${@seals.of(narratorId, displayAr, narrator['imam_ordinals'], chainsThrough, 84)}"></span>
             <div class="rijal__names">
             <div class="hub-hero__eyebrow" th:text="#{narrator.eyebrow}">Narrator</div>
             <h1 class="hub-hero__title" dir="rtl" lang="ar" th:text="${displayAr}">اسم الراوي</h1>
@@ -39,6 +37,8 @@
                th:if="${!#strings.isEmpty(displayEn) and #locale.language != 'ar'}"
                th:text="${displayEn}">Transliterated name</p>
             </div>
+            <span class="hub-hero__seal"
+                  th:utext="${@seals.of(narratorId, displayAr, narrator['imam_ordinals'], chainsThrough, 84)}"></span>
         </div>
 
         <!-- What the books amount to, ruled off from the name above it. -->
@@ -75,6 +75,8 @@
              width that was going spare now goes. -->
         <div class="rijal__foot">
             <div class="rijal__gens">
+            <p class="rijal__gens-label" th:if="${!#lists.isEmpty(narrator['imam_ordinals'])}"
+               th:text="#{narrator.gens.label}">When he lived</p>
             <!-- The thirteen marks, his own inked. A man the books place under no Imam
                  gets no strip at all: thirteen blanks would say «we looked and found
                  none», which the record does not claim. -->
@@ -84,8 +86,16 @@
                                        #strings.listJoin(isArabic
                                          and !#lists.isEmpty(narrator.life['imams_ar'])
                                          ? narrator.life['imams_ar'] : narrator.life.imams, ' · ')))}"></th:block>
-            <p class="hub-hero__gens-key" th:if="${!#lists.isEmpty(narrator['imam_ordinals'])}"
-               th:text="#{narrator.gens.key}">The Prophet and the twelve Imams · his own inked</p>
+            <p class="hub-hero__gens-key" th:if="${!#lists.isEmpty(narrator['imam_ordinals'])}">
+                <span th:text="#{narrator.gens.key}">The Prophet, then the twelve Imams in order</span>
+                <th:block th:if="${!#lists.isEmpty(narrator.life.imams)}">
+                    <span class="rijal__gens-dot" aria-hidden="true">·</span>
+                    <span class="rijal__gens-marked"
+                          th:text="#{narrator.gens.marked(${#strings.listJoin(isArabic
+                                     and !#lists.isEmpty(narrator.life['imams_ar'])
+                                     ? narrator.life['imams_ar'] : narrator.life.imams, ', ')})}">in gold: al-Riḍā</span>
+                </th:block>
+            </p>
             </div>
 
             <!-- Each of these says what it is. Unlabelled they were three pills reading

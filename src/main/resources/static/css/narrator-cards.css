@@ -423,3 +423,25 @@ html[dir="rtl"] .pv__ar { text-align: right; padding-right: 0; padding-left: 1.4
 .ncard__books { color: rgba(245, 236, 214, 0.58); }
 
 .ncard:focus-visible { outline-color: var(--gold-light, #f3e5b8); }
+
+/* ── Room for the hamza, and weight on the Latin ─────────────────────────────
+   Scheherazade sets the hamza of «أ» well above the alif's shoulder, and at
+   line-height 1.3 inside a two-line clamp with overflow hidden the top of the
+   first line was cutting it off. 1.55 gives the ascender its room; the clamp
+   still holds the card to two lines.
+
+   And the transliteration is a name, not a caption, so it takes the weight the
+   gold suggests it already has. */
+/* The clamp needs `overflow: hidden`, and the hamza rides above the first line box,
+   so line-height alone cannot save it — leading moves baselines apart, it does not
+   raise the top of the box. The padding does, and it is inside the clamped box, so
+   two lines are still two lines. */
+.ncard__ar {
+    line-height: 1.5;
+    padding-top: 0.45rem;
+}
+
+.ncard__en {
+    font-weight: 600;
+    font-size: 0.82rem;
+}
