@@ -83,17 +83,19 @@
             <th:block th:utext="${@seals.generations(narrator['imam_ordinals'],
                                    #lists.isEmpty(narrator.life.imams) ? ''
                                    : #messages.msg('narrator.gens.aria',
-                                       #strings.listJoin(isArabic
+                                       @honorifics.join(isArabic
                                          and !#lists.isEmpty(narrator.life['imams_ar'])
-                                         ? narrator.life['imams_ar'] : narrator.life.imams, ' · ')))}"></th:block>
+                                         ? narrator.life['imams_ar'] : narrator.life.imams,
+                                         ' · ', isArabic)))}"></th:block>
             <p class="hub-hero__gens-key" th:if="${!#lists.isEmpty(narrator['imam_ordinals'])}">
                 <span th:text="#{narrator.gens.key}">The Prophet, then the twelve Imams in order</span>
                 <th:block th:if="${!#lists.isEmpty(narrator.life.imams)}">
                     <span class="rijal__gens-dot" aria-hidden="true">·</span>
                     <span class="rijal__gens-marked"
-                          th:text="#{narrator.gens.marked(${#strings.listJoin(isArabic
+                          th:text="#{narrator.gens.marked(${@honorifics.join(isArabic
                                      and !#lists.isEmpty(narrator.life['imams_ar'])
-                                     ? narrator.life['imams_ar'] : narrator.life.imams, ', ')})}">in gold: al-Riḍā</span>
+                                     ? narrator.life['imams_ar'] : narrator.life.imams,
+                                     isArabic ? '، ' : ', ', isArabic)})}">in gold: al-Riḍā</span>
                 </th:block>
             </p>
             </div>
@@ -377,9 +379,10 @@
 
             <p class="narrator-entry__generation" th:if="${!#lists.isEmpty(entry.under_imams)}">
                 <span class="narrator-entry__label" th:text="#{narrator.entries.listedUnder}">Listed under</span>
-                <span th:text="${#strings.listJoin(
+                <span th:text="${@honorifics.join(
                                  isArabic and !#lists.isEmpty(entry.under_imams_ar)
-                                 ? entry.under_imams_ar : entry.under_imams, '، ')}">al-Jawād</span>
+                                 ? entry.under_imams_ar : entry.under_imams,
+                                 isArabic ? '، ' : ', ', isArabic)}">al-Jawād (ʿa)</span>
             </p>
         </article>
     </section>
@@ -399,16 +402,21 @@
                      or (!isArabic and !#lists.isEmpty(narrator['names_group_en']))}">
         <h2 class="hub-group__label" th:text="#{narrator.names.heading}">Also named</h2>
         <ul class="narrator-names__chips">
-            <li class="narrator-names__chip" th:each="name : ${narrator.names_ar}"
+            <li class="narrator-names__chip" th:each="name : ${alsoNamesAr}"
                 dir="rtl" lang="ar" th:text="${name}">اسم</li>
         </ul>
         <!-- Not on an Arabic page: a Latin spelling of «زرارة» is for a reader who cannot
              read «زرارة», and the chips above already give every Arabic form. -->
-        <ul class="narrator-names__chips narrator-names__chips--latin"
-            th:if="${!#lists.isEmpty(narrator.names_en) and !isArabic}">
-            <li class="narrator-names__chip" th:each="name : ${narrator.names_en}"
+        <!-- Labelled, because unlabelled they read as 44 more names the books head him
+             under. They are the same names in our alphabet. -->
+        <div class="narrator-names__group" th:if="${!#lists.isEmpty(alsoNamesEn) and !isArabic}">
+        <span class="narrator-names__group-label" th:text="#{narrator.names.latin}">
+            The same names, transliterated</span>
+        <ul class="narrator-names__chips narrator-names__chips--latin">
+            <li class="narrator-names__chip" th:each="name : ${alsoNamesEn}"
                 th:text="${name}">A name</li>
         </ul>
+        </div>
         <!-- «آل أعين» is a house and «المحدّث» an epithet; neither is a name he answered to,
              and run in with the chips above they read as two more spellings of Zurāra. Each
              kind is a labelled row of its own, Arabic first and, on an English page only,
@@ -529,7 +537,7 @@
          chips above the verdicts and pushed them down past the first screen. Six here, the
          headings a book actually files him under first, then the rest one link away on the
          Tarajim tab, where the whole list lives. -->
-    <th:block th:with="narNameTotal = ${#lists.size(narrator.names_ar) + (isArabic ? 0 : #lists.size(narrator.names_en))},
+    <th:block th:with="narNameTotal = ${alsoNameTotal},
                        heads = ${#lists.sort(#lists.toList(#sets.toSet(narrator.entries.![heading_ar].?[#this != null])))}">
     <section class="narrator-names narrator-names--short" th:if="${narNameTotal > 0}">
       <th:block th:with="headN = ${#lists.size(heads) > 6 ? 6 : #lists.size(heads)}">
@@ -537,7 +545,7 @@
         <ul class="narrator-names__chips">
             <li class="narrator-names__chip" th:each="name, st : ${heads}" th:if="${st.index < 6}"
                 dir="rtl" lang="ar" th:text="${name}">اسم</li>
-            <li class="narrator-names__chip" th:each="name, st : ${narrator.names_ar}" th:if="${st.index < 6 - headN and !#lists.contains(heads, name)}"
+            <li class="narrator-names__chip" th:each="name, st : ${alsoNamesAr}" th:if="${st.index < 6 - headN and !#lists.contains(heads, name)}"
                 dir="rtl" lang="ar" th:text="${name}">اسم</li>
         </ul>
         <a class="narrator-names__all" th:if="${narNameTotal > 6}" th:href="${booksUrl} + '#also-named'"
@@ -624,7 +632,8 @@
                 <li class="chains__row" th:each="imam : ${narrator.imams_from}">
                     <span class="chains__name"
                           th:attr="dir=${isArabic} ? 'rtl' : null, lang=${isArabic} ? 'ar' : null"
-                          th:text="${isArabic and imam['name_ar'] != null ? imam['name_ar'] : imam.name}">Jaʿfar al-Ṣādiq</span>
+                          th:text="${@honorifics.of(isArabic and imam['name_ar'] != null
+                                     ? imam['name_ar'] : imam.name, isArabic)}">Jaʿfar al-Ṣādiq (ʿa)</span>
                     <span class="chains__books"
                           th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(imam['books_ar'])
                                      ? imam['books_ar'] : imam.books, ' · ')}">al-Najāshī</span>

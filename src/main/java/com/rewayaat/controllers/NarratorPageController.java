@@ -292,6 +292,21 @@ public class NarratorPageController {
         List<String> names = !vetted.isEmpty() ? vetted
                 : !headings.isEmpty() ? headings
                 : (List<String>) narrator.getOrDefault("names_ar", List.of());
+        // «Also named» counted 79 for al-Barqi: 35 Arabic headings plus 44 Latin
+        // renderings of those same headings, with six of the Arabic differing from
+        // another only by the shadda an edition prints on «اللّه». He is not headed
+        // under 79 names. The count is of distinct Arabic headings — 29 for him — and
+        // the Latin is shown as the reading of those names, not added to them.
+        @SuppressWarnings("unchecked")
+        List<String> alsoAr = distinctNames(
+                (List<String>) narrator.getOrDefault("names_ar", List.of()));
+        @SuppressWarnings("unchecked")
+        List<String> alsoEn = distinctNames(
+                (List<String>) narrator.getOrDefault("names_en", List.of()));
+        model.addAttribute("alsoNamesAr", alsoAr);
+        model.addAttribute("alsoNamesEn", alsoEn);
+        model.addAttribute("alsoNameTotal", alsoAr.size());
+
         // Two tabs, because the page had become a scroll: what the books say of him, and the
         // narrations he stands in. The tab is in the URL, so each is a page that can be sent to
         // someone, and the narrations are fetched only when they are the tab being read.
@@ -632,6 +647,39 @@ public class NarratorPageController {
     /** As {@link #encode} but with real spaces: «+» reads as a plus in a mail body. */
     private static String forMail(String value) {
         return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
+    }
+
+    /** Arabic diacritics, and the letter forms an edition chooses between. */
+    private static final java.util.regex.Pattern MARKS =
+            java.util.regex.Pattern.compile("[\\u064B-\\u0652\\u0670\\u0640]");
+
+    /**
+     * The same heading written twice is one name.
+     *
+     * <p>Editions differ over the shadda on «اللّه», over «أ» and «ا», over «ة» and «ه»,
+     * and over where they put a space. None of those is another name a book heads him
+     * under, and counting them as such told a reader al-Barqī answered to 79.
+     * Order is kept: the first spelling of each name is the one shown.
+     */
+    private static List<String> distinctNames(List<String> names) {
+        List<String> out = new ArrayList<>();
+        java.util.Set<String> seen = new java.util.HashSet<>();
+        for (String name : names) {
+            if (name == null || name.isBlank()) {
+                continue;
+            }
+            String folded = MARKS.matcher(name).replaceAll("")
+                    .replaceAll("[\\u0622\\u0623\\u0625\\u0671]", "\\u0627")
+                    .replace('\u0649', '\u064a')
+                    .replace('\u0629', '\u0647')
+                    .replaceAll("\\s+", " ")
+                    .trim()
+                    .toLowerCase(java.util.Locale.ROOT);
+            if (seen.add(folded)) {
+                out.add(name.trim());
+            }
+        }
+        return out;
     }
 
 }
