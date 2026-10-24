@@ -3,10 +3,10 @@
   "active": true,
   "icon": "fa-link",
   "label": "New:",
-  "text": "Every name in a chain now links to the man who carried it, and what the rijal books say of him.",
+  "text": "Names in a chain now resolve to the narrator who carried them, and to what the rijal books say of him.",
   "linkText": "See how",
   "linkUrl": "/updates.html",
   "label_ar": "جديد:",
-  "text_ar": "كلّ اسم في السند صار يوصل إلى الراوي الذي حمله، وإلى ما قالته فيه كتب الرجال.",
+  "text_ar": "أسماء السند صارت توصل إلى الراوي الذي حملها، وإلى ما قالته فيه كتب الرجال.",
   "linkText_ar": "كيف يعمل"
 }

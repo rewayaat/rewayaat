@@ -192,9 +192,6 @@ public enum PageLocale {
                 // whole rather than half-translated - which is the bar this allowlist keeps.
                 || strippedPath.equals("/narrators")
                 || strippedPath.startsWith("/narrator/")
-                // The chain conventions. Both languages are written into the content file
-                // side by side, so a page cannot ship half-translated.
-                || strippedPath.startsWith("/isnad/")
                 || strippedPath.equals("/privacy")
                 || strippedPath.equals("/contact")
                 || strippedPath.equals("/search_tips.html")
