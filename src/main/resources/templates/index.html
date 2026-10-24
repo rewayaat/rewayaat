@@ -46,6 +46,12 @@
     <link href="/css/noty.css" rel="stylesheet" th:href="@{/css/noty.css}"/>
     <link href="/css/manuscript.css" rel="stylesheet" th:href="@{/css/manuscript.css}"/>
     <link href="/css/bookshelf.css" rel="stylesheet" th:href="@{/css/bookshelf.css}"/>
+    <!-- In the head, not in the home-content fragment where it used to sit. That
+         fragment is inside #welcome, which Vue owns: on a search page Vue takes the
+         section down and the <link> went with it, so the narrator strip over a set of
+         results was styled by manuscript.css alone and the cards in it never turned
+         navy. A stylesheet has no business living inside a reactive subtree. -->
+    <link href="/css/narrator-cards.css" rel="stylesheet" th:href="@{/css/narrator-cards.css}"/>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Literata:opsz,wght@7..72,400;7..72,500;7..72,600;7..72,700&family=Cormorant+Garamond:wght@500;600;700&family=Scheherazade+New:wght@400;700&family=Aref+Ruqaa+Ink:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap"
           rel="stylesheet"/>
     <link href="/css/pace.css" rel="stylesheet" th:href="@{/css/pace.css}"/>
@@ -167,7 +173,7 @@
                      narratorMatches.length === 1 ? 'A narrator by this name' : 'Narrators by this name') }}
             </div>
             <div class="narrator-strip__cards">
-                <a class="narrator-strip__card" v-for="narrator in narratorMatches"
+                <a class="narrator-strip__card" v-for="narrator in narratorMatchesShown"
                    :key="narrator.person_id" :href="narratorUrl(narrator)">
                     <div class="narrator-strip__name" dir="rtl" lang="ar">{{ narrator.display_ar }}</div>
                     <!-- The Arabic site stays Arabic: the Latin reading is for the English one. -->
@@ -184,6 +190,14 @@
                         <span v-if="imamLine(narrator)">{{ imamLine(narrator) }}</span>
                     </div>
                 </a>
+                <button type="button" class="narrator-strip__more"
+                        v-if="narratorMatches.length > 3"
+                        v-on:click="narratorMatchesExpanded = !narratorMatchesExpanded">
+                    {{ narratorMatchesExpanded
+                        ? t('js.narratorStrip.fewer', 'Show fewer')
+                        : t('js.narratorStrip.more', 'Show {0} more')
+                            .replace('{0}', narratorMatches.length - 3) }}
+                </button>
             </div>
         </div>
         <div class="tag-filter-bar tag-filter-bar--results mb-3"

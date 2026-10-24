@@ -477,3 +477,90 @@ html[dir="rtl"] .pv__ar { text-align: right; padding-right: 0; padding-left: 1.4
     .browse-narrator-list:not(.is-expanded) .ncard:nth-of-type(n+5) { display: none; }
     .narrator-drawer-toggle { display: block; }
 }
+
+/* ===========================================================================
+   The rijāl panel, and the strip of narrators over a search, brought onto the
+   same card as the grid.
+
+   Three places now show a man as a card — the grid on /narrators and the home
+   page, the panel beside an isnād, and the strip over a set of results — and
+   they were three different objects. The panel was a flat translucent slab on
+   the dark rail; the strip was a pale box on paper. Both become the navy card,
+   so a man looks like the same thing wherever the site shows him.
+
+   The supporting lines go up with it: 0.72rem on a translucent white was the
+   smallest type on the page, under the one heading a reader opens that panel
+   to read.
+   =========================================================================== */
+
+.rijal-link__card {
+    padding: 0.7rem 0.85rem 0.75rem;
+    border-color: rgba(243, 229, 184, 0.18);
+    border-radius: 10px;
+    background:
+        linear-gradient(145deg, rgba(15, 36, 64, 0.62) 0%, rgba(22, 48, 79, 0.52) 45%,
+                        rgba(30, 58, 95, 0.46) 100%);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 8px 18px -10px rgba(10, 22, 40, 0.55);
+}
+
+.rijal-link:hover .rijal-link__card,
+.rijal-link.is-open .rijal-link__card {
+    border-color: rgba(243, 229, 184, 0.45);
+}
+
+.rijal-link__who { font-size: 0.85rem; color: rgba(243, 229, 184, 0.82); }
+.rijal-link__said { font-size: 0.82rem; }
+
+.rijal-link__said--none,
+.rijal-link__books,
+.rijal-link__life,
+.rijal-link__note { font-size: 0.78rem; color: rgba(245, 236, 214, 0.66); }
+
+/* ── The strip of narrators over a set of search results ─────────────────── */
+
+.narrator-strip__card {
+    border: 1px solid rgba(243, 229, 184, 0.16);
+    border-radius: 10px;
+    background: linear-gradient(145deg, #0f2440 0%, #16304f 45%, #1e3a5f 100%);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18), 0 8px 20px -10px rgba(10, 22, 40, 0.5);
+    text-decoration: none;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.narrator-strip__card:hover,
+.narrator-strip__card:focus-visible {
+    border-color: rgba(243, 229, 184, 0.45);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.24), 0 16px 30px -12px rgba(10, 22, 40, 0.6);
+    transform: translateY(-1px);
+}
+
+.narrator-strip__name { color: #fff; }
+
+/* As on the grid card: the transliteration is a name, not a caption on one. */
+.narrator-strip__name-en {
+    margin-top: 0.35rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: rgba(243, 229, 184, 0.72);
+}
+
+.narrator-strip__meta { color: rgba(245, 236, 214, 0.6); }
+.narrator-strip__standing--for { color: #a9e8c4; }
+.narrator-strip__standing--against { color: #f6bdb0; }
+.narrator-strip__standing--mixed,
+.narrator-strip__standing--none { color: rgba(245, 236, 214, 0.8); }
+
+.narrator-strip__more {
+    align-self: center;
+    padding: 0.55rem 1rem;
+    border: 1px solid var(--border-strong, #d1d8e0);
+    border-radius: 9px;
+    background: var(--surface, #fff);
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--primary, #1e3a5f);
+    cursor: pointer;
+}
+
+.narrator-strip__more:hover { border-color: var(--gold, #c8a23d); }

@@ -4634,6 +4634,7 @@ function setupVue(query, page, sortFields) {
             page: isCollectionMode() ? page : 1,
             totalHits: 0,
             narratorMatches: [],
+            narratorMatchesExpanded: false,
             pageSize: SEARCH_PAGE_SIZE,
             book_blurbs: bookBlurbs,
             collectionMode: isCollectionMode(),
@@ -4770,6 +4771,11 @@ function setupVue(query, page, sortFields) {
             },
             pageLabel: function() {
                 return 'Page ' + this.page + ' of ' + this.totalPages;
+            },
+            narratorMatchesShown: function() {
+                return this.narratorMatchesExpanded
+                    ? this.narratorMatches
+                    : this.narratorMatches.slice(0, 3);
             },
             resultsHeadingText: function() {
                 if (this.collectionMode) {
@@ -6006,7 +6012,7 @@ function setupVue(query, page, sortFields) {
                     this.narratorMatches = [];
                     return;
                 }
-                fetch('/v1/narrators?q=' + encodeURIComponent(text) + '&per_page=3')
+                fetch('/v1/narrators?q=' + encodeURIComponent(text) + '&per_page=12')
                     .then(function(response) { return response.ok ? response.json() : null; })
                     .then(function(payload) {
                         var found = (payload && payload.narrators) || [];
@@ -6019,9 +6025,14 @@ function setupVue(query, page, sortFields) {
                             self.narratorMatches = [];
                             return;
                         }
+                        // Three are shown and the rest wait behind a button: a name
+                        // like «al-Hasan» is borne by a dozen men the books head
+                        // separately, and the reader who wants the twelfth should not
+                        // have to leave the results to find him.
+                        self.narratorMatchesExpanded = false;
                         self.narratorMatches = found.filter(function(narrator) {
                             return narrator && narrator.entry_count > 0;
-                        }).slice(0, 3);
+                        }).slice(0, 12);
                     })
                     .catch(function() { self.narratorMatches = []; });
             },
