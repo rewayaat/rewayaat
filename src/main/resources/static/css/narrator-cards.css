@@ -615,3 +615,44 @@ html[dir="rtl"] .pv__ar { text-align: right; padding-right: 0; padding-left: 1.4
 }
 
 .narrator-cue__note b { color: var(--text, #1a1a2e); font-weight: 700; }
+
+/* ── The two halves of the suggestion list ───────────────────────────────────
+   Narrators and words are different answers to the same keystrokes, and the
+   list ran them together under headers no heavier than the rows beneath. The
+   headers now read as headers, the men take the site's navy and a seal-shaped
+   mark so a narrator row looks like a narrator wherever it appears, and a rule
+   separates the two sections. */
+
+.ts-dropdown .optgroup-header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 0.5rem 0.8rem 0.35rem;
+    background: var(--surface, #fff);
+    font-family: var(--font-ui);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold-dark, #a07e28);
+}
+
+.ts-dropdown .optgroup + .optgroup .optgroup-header {
+    margin-top: 0.3rem;
+    border-top: 1px solid var(--border, #e8ecf1);
+}
+
+/* A man, not a word: the navy the cards use, with a gold spine down the start
+   edge standing in for the seal at this size. */
+.ts-dropdown [data-group="narrators"] .option,
+.ts-dropdown .optgroup[data-group="narrators"] .option {
+    border-inline-start: 3px solid var(--gold, #c8a23d);
+    background: linear-gradient(90deg, rgba(30, 58, 95, 0.07), transparent 60%);
+    font-weight: 600;
+    color: var(--primary-dark, #10233f);
+}
+
+.ts-dropdown [data-group="narrators"] .option.active,
+.ts-dropdown .optgroup[data-group="narrators"] .option.active {
+    background: linear-gradient(90deg, rgba(30, 58, 95, 0.16), rgba(30, 58, 95, 0.04) 70%);
+}

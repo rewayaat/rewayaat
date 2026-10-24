@@ -1015,8 +1015,11 @@ a:hover {
         display: none;
     }
 }
-body.is-collection-mode .home-nav-links,
-body.is-search-mode .home-nav-links {
+/* Collection mode replaces the whole chrome with the collection's own, so the home
+   nav goes. A search does not: the reader is still on the site and still wants Books,
+   Rijal and Updates. Hiding them left the results page with no visible navigation at
+   all above a phone, and the only way out was the hamburger. */
+body.is-collection-mode .home-nav-links {
     display: none !important;
 }
 

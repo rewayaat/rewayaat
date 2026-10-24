@@ -54,6 +54,27 @@
         setTimeout(apply, 0);
     }
 
+    /**
+     * One narrator, as a row in the list.
+     *
+     * The value is what gets searched. On the Arabic site that is the Arabic name: the
+     * list used to put the transliteration first in both languages, so «زرارة» typed
+     * into the Arabic box answered «Zurarah ibn A'yan» and then searched for it.
+     */
+    function narratorOption(man) {
+        var ar = man.display_ar || '';
+        var en = man.display_en || '';
+        var label = arabicSite() ? (ar || en) : (en || ar);
+        var other = arabicSite() ? '' : (ar ? '  ' + ar : '');
+        var era = (man.life && (arabicSite() ? man.life.imams_ar : man.life.imams)) || [];
+        var life = era.slice(0, 2).join(arabicSite() ? '\u060c ' : ', ');
+        return {
+            value: label,
+            text: label + other + (life ? '  \u00b7 ' + life : ''),
+            group: 'narrators'
+        };
+    }
+
     function submit(control, form) {
         // Whatever is half-typed counts as a term, the way Enter behaves on the
         // search page: one key, one term, and the search runs.
@@ -105,6 +126,16 @@
             maxItems: null,
             dropdownParent: 'body',
             placeholder: placeholder,
+            // Two kinds of suggestion, kept apart and labelled, exactly as the search
+            // page does them. This control offered only words: a reader typing a man's
+            // name into the field that says it searches the narrators was shown eight
+            // spellings of the word and no man.
+            optgroups: [
+                { value: 'narrators', label: t('js.suggest.narrators', 'Narrators') },
+                { value: 'terms', label: t('js.suggest.terms', 'Terms in the narrations') }
+            ],
+            optgroupField: 'group',
+            lockOptgroupOrder: true,
             loadThrottle: 250,
             load: function (query, callback) {
                 var term = (query || '').trim();
@@ -113,14 +144,36 @@
                 if (term.length < 2 || term.indexOf(' ') >= 0) {
                     return callback();
                 }
-                fetch(SUGGEST_URL + encodeURIComponent(term.replace(/["']/g, '')))
+                var clean = term.replace(/["']/g, '');
+                // Asked for together so the list does not jump as a second answer lands;
+                // either side may fail without costing the reader the other.
+                var terms = fetch(SUGGEST_URL + encodeURIComponent(clean))
                     .then(function (response) { return response.json(); })
-                    .then(function (data) {
-                        callback((data || []).map(function (item) {
-                            return { value: item, text: item };
-                        }));
+                    .catch(function () { return []; });
+                var men = fetch('/v1/narrators?per_page=4&q=' + encodeURIComponent(clean))
+                    .then(function (response) { return response.ok ? response.json() : null; })
+                    .then(function (payload) {
+                        // A name three thousand men share names nobody — the same floor
+                        // the strip over the results uses, for the same reason.
+                        if (!payload || !payload.narrators || payload.total > 150) {
+                            return [];
+                        }
+                        return payload.narrators.filter(function (man) {
+                            return man && man.entry_count > 0;
+                        });
                     })
-                    .catch(function () { callback(); });
+                    .catch(function () { return []; });
+                Promise.all([men, terms]).then(function (both) {
+                    var results = both[0].map(narratorOption);
+                    var seen = {};
+                    results.forEach(function (row) { seen[row.value.toLowerCase()] = true; });
+                    (Array.isArray(both[1]) ? both[1] : []).forEach(function (item) {
+                        if (!seen[String(item).toLowerCase()]) {
+                            results.push({ value: item, text: item, group: 'terms' });
+                        }
+                    });
+                    callback(results);
+                }).catch(function () { callback(); });
             },
             render: {
                 option_create: function (data, escape) {
