@@ -91,4 +91,41 @@ public class Honorifics {
         }
         return out.toString();
     }
+    /**
+     * The titles that name one of the Fourteen and nobody else, for saluting inside a
+     * sentence.
+     *
+     * <p>Deliberately not every form the maps above hold. «ʿAlī», «al-Ḥasan» and
+     * «al-Ḥusayn» are borne by hundreds of narrators — al-Ḥasan ibn Maḥbūb among them —
+     * and a blind replacement would salute them in their own names. These nine are
+     * titles no narrator carries, and the lookahead keeps even those from firing on a
+     * «al-Hādī ibn …» that is somebody's father.
+     */
+    private static final java.util.regex.Pattern TITLES_EN = java.util.regex.Pattern.compile(
+            "(al-(?:\u1e62\u0101diq|B\u0101qir|Ri\u1e0d\u0101|K\u0101\u1e93im|Jaw\u0101d|H\u0101d\u012b"
+            + "|\u02bfAskar\u012b|Sajj\u0101d|Mahd\u012b))(?!\\s*\\(|\\s+ibn\\b|\\s+b\\.)");
+
+    private static final java.util.regex.Pattern TITLES_AR = java.util.regex.Pattern.compile(
+            "(\u0627\u0644(?:\u0635\u0627\u062f\u0642|\u0628\u0627\u0642\u0631|\u0631\u0636\u0627"
+            + "|\u0643\u0627\u0638\u0645|\u062c\u0648\u0627\u062f|\u0647\u0627\u062f\u064a"
+            + "|\u0639\u0633\u0643\u0631\u064a|\u0633\u062c\u0627\u062f|\u0645\u0647\u062f\u064a))"
+            + "(?!\\s*(?:\u0639\u0644\u064a\u0647|\u0635\u0644\u0649)|\\s+\u0628\u0646\\b)");
+
+    /**
+     * A sentence with one of them in it, saluted in place.
+     *
+     * <p>For prose the index supplies — the one-line summary a page opens with, which
+     * says who a man kept company with. The salutation belongs to the reading of that
+     * sentence as much as to a name printed on its own.
+     */
+    public String salute(Object text, boolean arabic) {
+        String body = text == null ? "" : text.toString();
+        if (body.isEmpty()) {
+            return body;
+        }
+        return arabic
+                ? TITLES_AR.matcher(body).replaceAll("$1 " + IMAM_AR)
+                : TITLES_EN.matcher(body).replaceAll("$1 " + IMAM_EN);
+    }
+
 }

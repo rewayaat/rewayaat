@@ -37,14 +37,26 @@
                th:if="${!#strings.isEmpty(displayEn) and #locale.language != 'ar'}"
                th:text="${displayEn}">Transliterated name</p>
             </div>
-            <span class="hub-hero__seal"
-                  th:utext="${@seals.of(narratorId, displayAr, narrator['imam_ordinals'], chainsThrough, 84)}"></span>
+            <!-- The seal says two things a reader cannot guess: the tile's colour is the
+                 earliest Imam he transmitted from, and the ring's length is how much of
+                 this corpus runs through him. Neither is written anywhere else on the
+                 page, so the mark carries its own key. -->
+            <span class="hub-hero__seal">
+                <span th:utext="${@seals.of(narratorId, displayAr, narrator['imam_ordinals'], chainsThrough, 84)}"></span>
+                <button type="button" class="hub-hero__seal-key"
+                        th:attr="aria-label=#{narrator.seal.key.label}">
+                    <span aria-hidden="true">?</span>
+                    <span class="hub-hero__seal-note" role="tooltip"
+                          th:text="#{narrator.seal.key(${@localeDigits.grouped(chainsThrough)})}">
+                        The ring grows with the chains that run through him.</span>
+                </button>
+            </span>
         </div>
 
         <!-- What the books amount to, ruled off from the name above it. -->
         <div class="rijal__says">
             <p class="hub-hero__intro-text" th:if="${!#strings.isEmpty(narrator.blurb)}"
-               th:text="${narrator.blurb}">A sentence about him.</p>
+               th:text="${@honorifics.salute(narrator.blurb, isArabic)}">A sentence about him.</p>
 
             <!-- Only where no book grades him at all. The absence is the finding: 14,330 of
                  15,518 men are never graded by any of the seven, and for them this line and

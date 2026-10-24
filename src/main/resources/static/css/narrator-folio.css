@@ -512,3 +512,72 @@ a.hub-stat:focus-visible {
 @media (max-width: 860px) {
     #narrator-view .chains__list--indexed { column-count: 1; }
 }
+
+/* ── The seal's own key ──────────────────────────────────────────────────────
+   The mark carries two facts nothing else on the page states: the tile's colour
+   is the earliest Imam he transmitted from, and the ring's length is how much of
+   this collection runs through him. A reader cannot guess either, so the seal
+   explains itself. CSS only — hover or keyboard focus, no script. */
+
+.hub-hero--rijal .hub-hero__seal { position: relative; }
+
+.hub-hero__seal-key {
+    position: absolute;
+    top: -6px;
+    inset-inline-end: -6px;
+    width: 1.35rem;
+    height: 1.35rem;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid rgba(243, 229, 184, 0.5);
+    border-radius: 50%;
+    background: rgba(10, 22, 40, 0.85);
+    font-family: var(--font-ui);
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--gold-light, #f3e5b8);
+    cursor: help;
+}
+
+.hub-hero__seal-key:hover,
+.hub-hero__seal-key:focus {
+    border-color: var(--gold, #c8a23d);
+    background: rgba(10, 22, 40, 0.96);
+}
+
+.hub-hero__seal-note {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    inset-inline-start: 0;
+    z-index: 5;
+    width: max-content;
+    max-width: min(24rem, 70vw);
+    padding: 0.6rem 0.8rem;
+    border: 1px solid rgba(243, 229, 184, 0.35);
+    border-radius: 8px;
+    background: #0a1628;
+    box-shadow: 0 10px 28px -10px rgba(0, 0, 0, 0.7);
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    font-weight: 400;
+    line-height: 1.55;
+    letter-spacing: 0;
+    text-align: start;
+    color: rgba(245, 236, 214, 0.92);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.14s ease, visibility 0s linear 0.14s;
+}
+
+.hub-hero__seal-key:hover .hub-hero__seal-note,
+.hub-hero__seal-key:focus .hub-hero__seal-note {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.14s ease, visibility 0s;
+}
+
+@media (max-width: 640px) {
+    .hub-hero__seal-note { max-width: min(18rem, 78vw); }
+}
