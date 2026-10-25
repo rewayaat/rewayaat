@@ -660,8 +660,17 @@
                 <li class="chains__row" th:each="imam : ${narrator.imams_from}">
                     <span class="chains__name"
                           th:attr="dir=${isArabic} ? 'rtl' : null, lang=${isArabic} ? 'ar' : null"
-                          th:text="${@honorifics.of(isArabic and imam['name_ar'] != null
-                                     ? imam['name_ar'] : imam.name, isArabic)}">Jaʿfar al-Ṣādiq (ʿa)</span>
+                          th:with="shown=${@honorifics.of(isArabic and imam['name_ar'] != null
+                                     ? imam['name_ar'] : imam.name, isArabic)}"><!--
+                         The Imam's name goes to his own page, the same as every other name
+                         in these lists. His row is settled against the roster by name, so
+                         imam_id is always there; the slug is stamped beside it at build
+                         time only so this does not have to link through a bare id. --><a
+                          th:if="${imam['imam_id'] != null}"
+                          th:href="(${arPrefix} ?: '') + '/narrator/' + ${imam['imam_id']}
+                                   + (${imam['slug']} != null and !${#strings.isEmpty(imam['slug'])} ? '/' + ${imam['slug']} : '')"
+                          th:text="${shown}">Jaʿfar al-Ṣādiq (ʿa)</a><span
+                          th:if="${imam['imam_id'] == null}" th:text="${shown}">Jaʿfar al-Ṣādiq (ʿa)</span></span>
                     <span class="chains__books"
                           th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(imam['books_ar'])
                                      ? imam['books_ar'] : imam.books, ' · ')}">al-Najāshī</span>

@@ -1769,6 +1769,29 @@ def main():
         roster = roster_documents(documents[0])
         documents += roster
         counts["the fourteen, who hold no entry anywhere"] = len(roster)
+        # Again, now that the fourteen are in the set. The pass above ran before them, so
+        # its lookup held no Imam names: «أبي الحسن موسى» and «أبي جعفر (الثاني)» reached
+        # nobody and stayed plain text while every human around them became a link. The
+        # roster cannot simply be appended earlier — the dump above is what the chain
+        # resolver reads, and it carries its own roster. join() regroups rather than
+        # rewrites, so a second pass over rows it has already grouped changes nothing
+        # except the names it could not read the first time.
+        counts["rows joined to an Imam, once the roster was in the set"] = \
+            relations_join.join(documents)
+        # The Imams' own block is built from imams_from/imams_to, which relations_join does
+        # not touch — those rows are settled by name against the roster long before it runs,
+        # and they already carry imam_id. They only lack the slug, so a link had to go to
+        # the bare id and take a 301. Stamped here, where the roster is finally in hand.
+        roster_slugs = {d["person_id"]: d.get("slug") for d in roster}
+        slugged = 0
+        for doc in documents:
+            for field in ("imams_from", "imams_to"):
+                for link in doc.get(field) or []:
+                    slug = roster_slugs.get(link.get("imam_id"))
+                    if slug and not link.get("slug"):
+                        link["slug"] = slug
+                        slugged += 1
+        counts["Imam rows given the roster slug, so the name can link"] = slugged
     for label, n in counts.most_common():
         print(f"  {n:7d}  {label}")
     for label, n in IMAM_STATS.most_common():
