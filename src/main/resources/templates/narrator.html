@@ -600,9 +600,17 @@
                 <ul class="chains__list">
                     <li class="chains__row" th:each="man : ${narrator.narrated_from}">
                         <span class="chains__name"
-                          th:attr="lang=${isArabic and #strings.toString(man.name).matches('.*[A-Za-z].*')} ? 'en' : null,
-                                   dir=${isArabic and #strings.toString(man.name).matches('.*[A-Za-z].*')} ? 'ltr' : null"
-                          th:text="${man.name}">Ibn Abī ʿUmayr</span>
+                              th:attr="lang=${isArabic and #strings.toString(shown).matches('.*[A-Za-z].*')} ? 'en' : null,
+                                       dir=${isArabic and #strings.toString(shown).matches('.*[A-Za-z].*')} ? 'ltr' : null"
+                              th:with="shown=${isArabic ? (man['name_ar'] != null ? man['name_ar'] : (man['display_ar'] != null ? man['display_ar'] : man.name)) : (man['display_en'] != null and !#strings.toString(man.name).matches('.*[A-Za-z].*') ? man['display_en'] : man.name)}"><!--
+                             The name links to the man's own page wherever the books let him be identified.
+                             Where they do not — a name two men answer to, or one no record holds — it stays
+                             plain text rather than guessing, which is the same rule the chains follow. --><a
+                              th:if="${man['person_id'] != null}"
+                              th:href="(${arPrefix} ?: '') + '/narrator/' + ${man['person_id']}
+                                       + (${man['slug']} != null and !${#strings.isEmpty(man['slug'])} ? '/' + ${man['slug']} : '')"
+                              th:text="${shown}">Ibn Abī ʿUmayr</a><span
+                              th:if="${man['person_id'] == null}" th:text="${shown}">Ibn Abī ʿUmayr</span></span>
                         <span class="chains__books"
                           th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
                                      ? man['books_ar'] : man.books, ' · ')}">al-Najāshī</span>
@@ -622,9 +630,17 @@
                 <ul class="chains__list">
                     <li class="chains__row" th:each="man : ${narrator.narrated_to}">
                         <span class="chains__name"
-                          th:attr="lang=${isArabic and #strings.toString(man.name).matches('.*[A-Za-z].*')} ? 'en' : null,
-                                   dir=${isArabic and #strings.toString(man.name).matches('.*[A-Za-z].*')} ? 'ltr' : null"
-                          th:text="${man.name}">al-Kulaynī</span>
+                              th:attr="lang=${isArabic and #strings.toString(shown).matches('.*[A-Za-z].*')} ? 'en' : null,
+                                       dir=${isArabic and #strings.toString(shown).matches('.*[A-Za-z].*')} ? 'ltr' : null"
+                              th:with="shown=${isArabic ? (man['name_ar'] != null ? man['name_ar'] : (man['display_ar'] != null ? man['display_ar'] : man.name)) : (man['display_en'] != null and !#strings.toString(man.name).matches('.*[A-Za-z].*') ? man['display_en'] : man.name)}"><!--
+                             The name links to the man's own page wherever the books let him be identified.
+                             Where they do not — a name two men answer to, or one no record holds — it stays
+                             plain text rather than guessing, which is the same rule the chains follow. --><a
+                              th:if="${man['person_id'] != null}"
+                              th:href="(${arPrefix} ?: '') + '/narrator/' + ${man['person_id']}
+                                       + (${man['slug']} != null and !${#strings.isEmpty(man['slug'])} ? '/' + ${man['slug']} : '')"
+                              th:text="${shown}">al-Kulaynī</a><span
+                              th:if="${man['person_id'] == null}" th:text="${shown}">al-Kulaynī</span></span>
                         <span class="chains__books"
                           th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
                                      ? man['books_ar'] : man.books, ' · ')}">Khoei</span>
@@ -670,10 +686,17 @@
                 <li class="chains__row" th:each="man : ${narrator.unsaid_from}">
                     <span class="chains__who"><span class="chains__dir" th:text="#{narrator.chains.dirFrom}">from</span>
                     <span class="chains__name"
-                          th:attr="lang=${isArabic and man['name_ar'] == null} ? 'en' : null,
-                                   dir=${isArabic and man['name_ar'] == null} ? 'ltr' : null"
-                          th:text="${isArabic and man['name_ar'] != null
-                                     ? man['name_ar'] : man.name}">اسم</span></span>
+                          th:attr="lang=${isArabic and #strings.toString(shown).matches('.*[A-Za-z].*')} ? 'en' : null,
+                                   dir=${isArabic and #strings.toString(shown).matches('.*[A-Za-z].*')} ? 'ltr' : null"
+                          th:with="shown=${isArabic ? (man['name_ar'] != null ? man['name_ar'] : (man['display_ar'] != null ? man['display_ar'] : man.name)) : (man['display_en'] != null and !#strings.toString(man.name).matches('.*[A-Za-z].*') ? man['display_en'] : man.name)}"><!--
+                         The name links to the man's own page wherever the books let him be identified.
+                         Where they do not — a name two men answer to, or one no record holds — it stays
+                         plain text rather than guessing, which is the same rule the chains follow. --><a
+                          th:if="${man['person_id'] != null}"
+                          th:href="(${arPrefix} ?: '') + '/narrator/' + ${man['person_id']}
+                                   + (${man['slug']} != null and !${#strings.isEmpty(man['slug'])} ? '/' + ${man['slug']} : '')"
+                          th:text="${shown}">اسم</a><span
+                          th:if="${man['person_id'] == null}" th:text="${shown}">اسم</span></span></span>
                     <span class="chains__books"
                           th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
                                      ? man['books_ar'] : man.books, ' · ')}">Khoei</span>
@@ -681,10 +704,17 @@
                 <li class="chains__row" th:each="man : ${narrator.unsaid_to}">
                     <span class="chains__who"><span class="chains__dir" th:text="#{narrator.chains.dirTo}">to</span>
                     <span class="chains__name"
-                          th:attr="lang=${isArabic and man['name_ar'] == null} ? 'en' : null,
-                                   dir=${isArabic and man['name_ar'] == null} ? 'ltr' : null"
-                          th:text="${isArabic and man['name_ar'] != null
-                                     ? man['name_ar'] : man.name}">اسم</span></span>
+                          th:attr="lang=${isArabic and #strings.toString(shown).matches('.*[A-Za-z].*')} ? 'en' : null,
+                                   dir=${isArabic and #strings.toString(shown).matches('.*[A-Za-z].*')} ? 'ltr' : null"
+                          th:with="shown=${isArabic ? (man['name_ar'] != null ? man['name_ar'] : (man['display_ar'] != null ? man['display_ar'] : man.name)) : (man['display_en'] != null and !#strings.toString(man.name).matches('.*[A-Za-z].*') ? man['display_en'] : man.name)}"><!--
+                         The name links to the man's own page wherever the books let him be identified.
+                         Where they do not — a name two men answer to, or one no record holds — it stays
+                         plain text rather than guessing, which is the same rule the chains follow. --><a
+                          th:if="${man['person_id'] != null}"
+                          th:href="(${arPrefix} ?: '') + '/narrator/' + ${man['person_id']}
+                                   + (${man['slug']} != null and !${#strings.isEmpty(man['slug'])} ? '/' + ${man['slug']} : '')"
+                          th:text="${shown}">اسم</a><span
+                          th:if="${man['person_id'] == null}" th:text="${shown}">اسم</span></span></span>
                     <span class="chains__books"
                           th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
                                      ? man['books_ar'] : man.books, ' · ')}">Khoei</span>
@@ -707,10 +737,17 @@
                 <li class="chains__row" th:each="man : ${narrator.chain_from}">
                     <span class="chains__who"><span class="chains__dir" th:text="#{narrator.chains.dirFrom}">from</span>
                     <span class="chains__name"
-                          th:attr="lang=${isArabic and man['name_ar'] == null} ? 'en' : null,
-                                   dir=${isArabic and man['name_ar'] == null} ? 'ltr' : null"
-                          th:text="${isArabic and man['name_ar'] != null
-                                     ? man['name_ar'] : man.name}">اسم</span></span>
+                          th:attr="lang=${isArabic and #strings.toString(shown).matches('.*[A-Za-z].*')} ? 'en' : null,
+                                   dir=${isArabic and #strings.toString(shown).matches('.*[A-Za-z].*')} ? 'ltr' : null"
+                          th:with="shown=${isArabic ? (man['name_ar'] != null ? man['name_ar'] : (man['display_ar'] != null ? man['display_ar'] : man.name)) : (man['display_en'] != null and !#strings.toString(man.name).matches('.*[A-Za-z].*') ? man['display_en'] : man.name)}"><!--
+                         The name links to the man's own page wherever the books let him be identified.
+                         Where they do not — a name two men answer to, or one no record holds — it stays
+                         plain text rather than guessing, which is the same rule the chains follow. --><a
+                          th:if="${man['person_id'] != null}"
+                          th:href="(${arPrefix} ?: '') + '/narrator/' + ${man['person_id']}
+                                   + (${man['slug']} != null and !${#strings.isEmpty(man['slug'])} ? '/' + ${man['slug']} : '')"
+                          th:text="${shown}">اسم</a><span
+                          th:if="${man['person_id'] == null}" th:text="${shown}">اسم</span></span></span>
                     <span class="chains__books"
                           th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
                                      ? man['books_ar'] : man.books, ' · ')}">Khoei</span>
@@ -718,10 +755,17 @@
                 <li class="chains__row" th:each="man : ${narrator.chain_to}">
                     <span class="chains__who"><span class="chains__dir" th:text="#{narrator.chains.dirTo}">to</span>
                     <span class="chains__name"
-                          th:attr="lang=${isArabic and man['name_ar'] == null} ? 'en' : null,
-                                   dir=${isArabic and man['name_ar'] == null} ? 'ltr' : null"
-                          th:text="${isArabic and man['name_ar'] != null
-                                     ? man['name_ar'] : man.name}">اسم</span></span>
+                          th:attr="lang=${isArabic and #strings.toString(shown).matches('.*[A-Za-z].*')} ? 'en' : null,
+                                   dir=${isArabic and #strings.toString(shown).matches('.*[A-Za-z].*')} ? 'ltr' : null"
+                          th:with="shown=${isArabic ? (man['name_ar'] != null ? man['name_ar'] : (man['display_ar'] != null ? man['display_ar'] : man.name)) : (man['display_en'] != null and !#strings.toString(man.name).matches('.*[A-Za-z].*') ? man['display_en'] : man.name)}"><!--
+                         The name links to the man's own page wherever the books let him be identified.
+                         Where they do not — a name two men answer to, or one no record holds — it stays
+                         plain text rather than guessing, which is the same rule the chains follow. --><a
+                          th:if="${man['person_id'] != null}"
+                          th:href="(${arPrefix} ?: '') + '/narrator/' + ${man['person_id']}
+                                   + (${man['slug']} != null and !${#strings.isEmpty(man['slug'])} ? '/' + ${man['slug']} : '')"
+                          th:text="${shown}">اسم</a><span
+                          th:if="${man['person_id'] == null}" th:text="${shown}">اسم</span></span></span>
                     <span class="chains__books"
                           th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
                                      ? man['books_ar'] : man.books, ' · ')}">Khoei</span>

@@ -36,6 +36,7 @@ from build_people import MAIN_BOOKS, is_entry, not_entries  # noqa: E402
 from grade_evidence import shown  # noqa: E402
 import imams  # noqa: E402
 import relation_evidence  # noqa: E402
+import relations_join  # noqa: E402
 from narrator_schema import (imam_generations, is_reasoned, normalize_arabic,  # noqa: E402
                              normalize_english, says_no_imam)
 import transliterate  # noqa: E402
@@ -1751,6 +1752,14 @@ def main():
             counts["entries shown"] += doc["entry_count"]
             counts["verdicts shown"] += len(doc["verdicts"])
             counts["verdicts traced to an entry"] += sum(1 for v in doc["verdicts"] if v["source_key"])
+    # One man is one row. The relation lists are grouped by the name as each book spelled
+    # him, so a man two books spell differently — «أحمد ابن أبي عبد الله» against «أحمد بن
+    # أبي عبد الله», or Khoei's index read in English against the Arabic of the rest —
+    # arrived as two rows each carrying one book. Regrouped by the man the name reaches,
+    # which also puts his id on the row so the page can link it.
+    counts["teacher and student rows joined to another naming the same man"] = \
+        relations_join.join(documents)
+
     if documents and args.dump:
         with open(args.dump + ".part", "w") as handle:
             json.dump(documents, handle, ensure_ascii=False)
