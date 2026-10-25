@@ -137,6 +137,7 @@ public class HadithCardFactory {
         int notFound = 0;
         int groups = 0;
         int several = 0;
+        int imams = 0;
         int named = 0;
         if (stored instanceof List<?> items) {
             for (Object item : items) {
@@ -187,7 +188,12 @@ public class HadithCardFactory {
                     kind = "collective";
                     groups++;
                 } else if ("imam".equals(declared) && !person.isBlank()) {
+                    // Counted on his own. Nobody grades an Imam, so he is not one of the
+                    // men the rijāl books identified; left out of every count, though, the
+                    // summary stopped adding up — a chain of the fourteen written out in
+                    // full read "9 links · 1 identified · 3 not found".
                     kind = "imam";
+                    imams++;
                 } else if (!person.isBlank()) {
                     kind = "man";
                     identified++;
@@ -248,6 +254,7 @@ public class HadithCardFactory {
         row.put("chainNotFound", notFound);
         row.put("chainGroups", groups);
         row.put("chainSeveral", several);
+        row.put("chainImams", imams);
         row.put("chainIds", links.stream().map(l -> str(l.get("person")))
                 .filter(v -> !v.isBlank()).distinct().collect(Collectors.joining(",")));
     }

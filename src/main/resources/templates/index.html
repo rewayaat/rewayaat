@@ -483,6 +483,10 @@
                                             <strong>{{ narratorCount(chainOf(narration).length, 'rijal.summary.links') }}</strong>
                                             <span class="rijal__dot" aria-hidden="true">·</span>
                                             <span>{{ narratorCount(identifiedInChain(narration), 'rijal.summary.identified') }}</span>
+                                            <template v-if="imamsInChain(narration) > 0">
+                                                <span class="rijal__dot" aria-hidden="true">&middot;</span>
+                                                <span>{{ narratorCount(imamsInChain(narration), 'rijal.summary.imams') }}</span>
+                                            </template>
                                             <template v-if="notFoundInChain(narration) > 0">
                                                 <span class="rijal__dot" aria-hidden="true">&middot;</span>
                                                 <span>{{ narratorCount(notFoundInChain(narration), 'rijal.summary.notFound') }}</span>

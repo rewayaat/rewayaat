@@ -5059,6 +5059,9 @@ function setupVue(query, page, sortFields) {
             identifiedInChain: function(narration) {
                 return this.countInChain(narration, 'man');
             },
+            imamsInChain: function(narration) {
+                return this.countInChain(narration, 'imam');
+            },
             severalInChain: function(narration) {
                 return this.countInChain(narration, 'several');
             },

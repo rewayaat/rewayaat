@@ -103,6 +103,10 @@
                         <strong th:text="${@counts.of(#lists.size(narration.chain), 'rijal.summary.links')}">8 links</strong>
                         <span class="rijal__dot" aria-hidden="true">&middot;</span>
                         <span th:text="${@counts.of(narration.chainIdentified, 'rijal.summary.identified')}">5 identified</span>
+                        <th:block th:if="${narration.chainImams > 0}">
+                            <span class="rijal__dot" aria-hidden="true">&middot;</span>
+                            <span th:text="${@counts.of(narration.chainImams, 'rijal.summary.imams')}">2 Imams</span>
+                        </th:block>
                         <th:block th:if="${narration.chainNotFound > 0}">
                             <span class="rijal__dot" aria-hidden="true">&middot;</span>
                             <span th:text="${@counts.of(narration.chainNotFound, 'rijal.summary.notFound')}">1 not found</span>

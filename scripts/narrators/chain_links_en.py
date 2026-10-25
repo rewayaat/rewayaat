@@ -692,6 +692,22 @@ def kin_of(mention):
     return None
 
 
+def without_the_relation(text):
+    """A span's words with a leading «أبيه» or «جده» off, when a name is left standing.
+
+    The cutter keeps the relation inside the span where a name follows it — «أبيه جعفر بن
+    محمد» — and the English says it in words, "from his father Ja'far b. Muhammad". The
+    relation has no consonants to compare with, so the skeleton of the whole span agreed with
+    nothing and the golden chain carried no English link below its first step. Only the key
+    the alignment is made on loses the word; the Arabic span is untouched.
+    """
+    words = DIACRITIC.sub('', text).replace('ی', 'ي').replace('ى', 'ي')
+    words = words.replace('أ', 'ا').replace('إ', 'ا').split()
+    if len(words) > 2 and any(words[0] in forms for forms in KIN_AR.values()):
+        return " ".join(words[1:])
+    return text
+
+
 def link_chain(chain, places, mentions, agree, slug_of, counts, missed=None):
     """The links one English chain carries, taken from the Arabic mentions it was read against.
 
@@ -715,7 +731,7 @@ def link_chain(chain, places, mentions, agree, slug_of, counts, missed=None):
         if found:
             kin.setdefault(found[0], []).append((at, found[1]))
     named = [at for at in range(len(mentions)) if kin_of(mentions[at]) is None]
-    arabic = [skeleton_ar(mentions[at]["text"]) for at in named]
+    arabic = [skeleton_ar(without_the_relation(mentions[at]["text"])) for at in named]
     slot_words = [words_of(chain[s:e], s) for s, e in places]
     widest = max((len(name.split()) for name in arabic), default=1) + 3
     slot_windows = [windows_of(words, widest, chain) for words in slot_words]
