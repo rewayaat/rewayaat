@@ -1,6 +1,6 @@
 <!--
-  The bookcase on the home page and on /books: every book standing on a shelf in its own
-  cover, sized by its number of narrations, with a brass label carrying its name.
+  The bookcase on the home page and on /books: every book standing face-out on a wall
+  ledge in its own cover, sized by its number of narrations, its name on the wall below.
 
   Expects ${shelf} (BookShelf.arrange) in the model. `limit` is how many books a phone
   shows before the "show all" toggle; 0 shows them all. Rows hold five books, four on a
@@ -47,6 +47,7 @@
         </a>
         <div class="shelf-book shelf-book--gap" aria-hidden="true"
              th:each="i : ${#numbers.sequence(0, 3)}" th:with="n=${#lists.size(shelf)}"
+             th:style="|--c5:${n % 5 + i};--c4:${n % 4 + i};--c2:${n % 2 + i}|"
              th:classappend="|${(5 - n % 5) % 5 > i ? 'shelf-gap--5' : ''} ${(4 - n % 4) % 4 > i ? 'shelf-gap--4' : ''} ${n % 2 > i ? 'shelf-gap--2' : ''}|">
             <div class="shelf-book__stand"><div class="shelf-book__slot"></div></div>
             <div class="shelf-book__lip"></div>

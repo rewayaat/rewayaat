@@ -1,118 +1,114 @@
 /*
  * The bookcase on the home page and on /books (templates/fragments/bookshelf.html).
  *
- * A library case. Each book carries its own stretch of back wall, shelf board and
- * brass label, half a gap either side, so every row joins into one compartment whatever
- * the column count. Choosing a book (hover, keyboard focus, or a first tap on touch)
- * draws it forward toward the reader and lights only its gilding: the gold is a separate
- * image (--gilt, set per book by BookShelf) laid over the cover, and it is only fetched
- * once a book is chosen.
+ * Books stand face-out on walnut ledges fixed to a pale wall, the way a bookshop shows
+ * the books it wants picked up. An earlier pass drew a closed navy case, and it read as
+ * flat: wall, board and shelf edge were all within a few shades of navy, and every shadow
+ * meant to separate them fell on a surface too dark to show it. Here there is one piece
+ * of furniture, and the depth comes from three things the eye trusts at a glance: the
+ * ledge's front rail passes in front of the books' feet, each book throws a shadow on the
+ * wall it leans against, and the ledge throws one on the wall beneath it.
+ *
+ * Each book carries its own stretch of ledge, half a gap either side, so every row joins
+ * into one ledge whatever the column count. Choosing a book (hover, keyboard focus, or a
+ * first tap on touch) lifts it toward the reader and lights only its gilding: the gold is
+ * a separate image (--gilt, set per book by BookShelf) laid over the cover, and it is only
+ * fetched once a book is chosen.
  *
  * The covers themselves are drawn by scripts/book-covers.
  */
 .bookcase {
-  /* The case is lacquered in the site's navy, framed like the page's hero panels, so it
-     belongs to the page rather than sitting on it; the brass and lamplight carry the gold. */
-  --frame-hi: #234a75;
-  --frame: #0f2440;
-  --frame-lo: #0a1628;
-  --back-top: #132c53;
-  --back: #0a1c37;
-  --board-back: #050c17;
-  --board-1: #12294a;
-  --board-2: #1c3860;
-  --board: #27456e;
-  --board-front: #335a89;
-  --lip-hi: #3a5f8c;
-  --lip: #1a3253;
-  --lip-dark: #0f213a;
-  --lip-lo: #07111f;
-  --grain: 170, 200, 240;     /* the light stripe of the grain */
-  --sheen: 200, 220, 250;     /* catch-light along top edges */
-  --case-radius: var(--radius-xl, 20px);
-  --case-shadow: 0 8px 16px rgba(0, 0, 0, .15), 0 24px 48px -12px rgba(10, 22, 40, .45);
+  --wall-hi: #f5f1e8;
+  --wall: #ece5d6;
+  --wall-lo: #e3dac8;
+  --wood-top: #a7774c;        /* the rail's top, catching the light */
+  --wood-hi: #7a5131;
+  --wood: #5e3c22;
+  --wood-lo: #3f2715;
+  --wood-end: #2e1c0f;
+  --grain: 30, 15, 5;
+  --cast: 52, 36, 18;         /* shadows on the wall are warm, not black */
+  --ink: #2a2017;
+  --ink-soft: #75664f;
+  --accent: var(--brand-primary, #1e3a5f);
   --brass-hi: #efd896;
   --brass: #b8913f;
   --brass-lo: #7d5a1f;
-  --engrave: #2b1b08;
-  --lamp: 255, 206, 128;
   --paper: #e9dcbc;
   --gap: 34px;
+  --rail: 27px;               /* height of the rail's front face */
+  --hide: 12px;               /* how much of each book's foot the rail hides */
   font-family: var(--font-reference, 'Literata', Georgia, serif);
 }
 
-/* the case: a heavy frame round the compartments */
+/* the wall: a plastered panel, lit from above */
 .bookcase {
-  padding: 20px; border-radius: var(--case-radius);
+  padding: 8px 26px 10px; border-radius: 6px;
   background:
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, .1) 0 1px, transparent 1px 9px, rgba(var(--grain), .04) 9px 10px, transparent 10px 27px),
-    linear-gradient(160deg, var(--frame-hi), var(--frame) 45%, var(--frame-lo));
-  box-shadow: var(--case-shadow), inset 0 1px 0 rgba(var(--sheen), .18), inset 0 0 0 1px rgba(0, 0, 0, .4);
+    radial-gradient(ellipse 70% 40% at 50% 0%, rgba(255, 255, 255, .55), transparent 70%),
+    linear-gradient(var(--wall-hi), var(--wall) 55%, var(--wall-lo));
+  box-shadow: inset 0 0 0 1px rgba(var(--cast), .1), inset 0 -40px 60px -50px rgba(var(--cast), .25);
 }
 .bookcase__shelf {
   display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
   column-gap: var(--gap); row-gap: 0; padding-inline: calc(var(--gap) / 2);
-  overflow: clip; border-radius: 2px;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .5), inset 0 0 24px rgba(0, 0, 0, .6);
 }
 @media (max-width: 900px) {
   .bookcase__shelf { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 @media (max-width: 520px) {
-  .bookcase { --gap: 18px; }
-  .bookcase { padding: 10px; }
+  .bookcase { --gap: 18px; --rail: 22px; --hide: 10px; padding: 4px 10px 8px; }
   .bookcase__shelf { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 .shelf-book { position: relative; display: flex; flex-direction: column; color: inherit; text-decoration: none; outline: none; }
 .shelf-book:hover, .shelf-book:focus-visible, .shelf-book.is-open { z-index: 5; }
 
-/* back wall of the compartment: a thin lamp strip tucked under the shelf above washes light down it */
-.shelf-book__stand { position: relative; display: flex; justify-content: center; padding: 30px 0 13px; isolation: isolate; }
-.shelf-book__stand::before {
-  content: ""; position: absolute; inset: 0 calc(var(--gap) / -2); z-index: -3;
-  background:
-    linear-gradient(rgba(0, 0, 0, .78) 0 4px, transparent 4px),
-    linear-gradient(transparent 4px, rgba(var(--lamp), .12) 5px, rgba(255, 236, 196, .38) 5.5px 6.5px, rgba(var(--lamp), .12) 7px, transparent 8px),
-    linear-gradient(transparent 4px, rgba(var(--lamp), .1) 7px, rgba(var(--lamp), .035) 22%, transparent 45%),
-    radial-gradient(ellipse 90% 55% at 50% 92%, rgba(0, 0, 0, .28), transparent 70%),
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, .1) 0 1px, transparent 1px 13px, rgba(var(--grain), .025) 13px 14px, transparent 14px 31px),
-    linear-gradient(var(--back-top), var(--back) 60%);
-  background-attachment: scroll, scroll, scroll, scroll, fixed, scroll;   /* grain anchored to the page, so neighbouring books' wood lines up */
-}
-/* top of the shelf board, seen receding to the back wall; books stand a little in from its front edge */
-.shelf-book__stand::after {
-  content: ""; position: absolute; left: calc(var(--gap) / -2); right: calc(var(--gap) / -2); bottom: 0; height: 26px; z-index: -1;
-  background:
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, .08) 0 1px, transparent 1px 12px, rgba(var(--grain), .04) 12px 13px, transparent 13px 29px),
-    linear-gradient(var(--board-back), var(--board-1) 22%, var(--board-2) 62%, var(--board) 88%, var(--board-front));
-  background-attachment: fixed, scroll;
-  box-shadow: 0 -12px 16px -8px rgba(0, 0, 0, .55);   /* the corner where wall meets board falls into shadow */
-}
-/* front edge of the shelf, carrying the brass label */
-.shelf-book__lip { flex: 1; position: relative; z-index: 1; display: flex; justify-content: center; align-items: flex-start; padding: 9px 4px 14px; }
+/* the books stand on the ledge's board, behind its rail */
+.shelf-book__stand { position: relative; display: flex; justify-content: center; padding: 34px 0 0; isolation: isolate; }
+
+/* The ledge's front rail, drawn in front of the books so it hides their feet. Its top
+   catches the light, its face runs from lit wood down into shadow, and it throws a soft
+   shadow onto the wall below. The rows' outer ends are finished as end grain: --first
+   and --last are 1 on the first and last column of the row showing, 0 elsewhere. */
+.shelf-book__lip { position: relative; z-index: 1; display: flex; justify-content: center; align-items: flex-start; padding: calc(var(--rail) - var(--hide) + 12px) 4px 26px; }
 .shelf-book__lip::before {
-  content: ""; position: absolute; inset: 0 calc(var(--gap) / -2); z-index: -1;
+  content: ""; position: absolute; top: calc(var(--hide) * -1); height: var(--rail);
+  left: calc(var(--gap) / -2 + var(--l) * 4px); right: calc(var(--gap) / -2 + var(--r) * 4px);
+  border-radius: calc(var(--l) * 3px) calc(var(--r) * 3px) calc(var(--r) * 3px) calc(var(--l) * 3px);
   background:
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, .07) 0 2px, transparent 2px 11px, rgba(var(--grain), .05) 11px 12px, transparent 12px 23px),
-    linear-gradient(var(--lip-hi), var(--lip) 10%, var(--lip-dark) 82%, var(--lip-lo));
-  background-attachment: fixed, scroll;
-  box-shadow: inset 0 1px 0 rgba(var(--sheen), .32), inset 0 -2px 3px rgba(0, 0, 0, .45);
+    /* end grain at the row's ends */
+    linear-gradient(90deg, var(--wood-end) calc(var(--l) * 3px), transparent calc(var(--l) * 3px),
+                           transparent calc(100% - var(--r) * 3px), var(--wood-end) calc(100% - var(--r) * 3px)),
+    /* the top of the rail, then the face */
+    linear-gradient(var(--wood-top) 0 4px, rgba(255, 230, 190, .4) 4px 5px, rgba(0, 0, 0, .12) 5px 6px, transparent 6px),
+    /* grain runs along the board */
+    repeating-linear-gradient(0deg, rgba(var(--grain), .14) 0 1px, transparent 1px 3.5px, rgba(var(--grain), .07) 3.5px 4px, transparent 4px 6px),
+    linear-gradient(var(--wood-hi) 6px, var(--wood) 45%, var(--wood-lo) 92%, var(--wood-end));
+  box-shadow: 0 1px 0 rgba(0, 0, 0, .25);
 }
-.shelf-book__plate {
-  position: relative; display: grid; gap: 1px; max-width: 94%; padding: 5px 14px 6px; text-align: center;
-  border-radius: 2px;
-  background: linear-gradient(var(--brass-hi), var(--brass) 48%, var(--brass-lo));
-  box-shadow: 0 1px 2px rgba(0, 0, 0, .6), inset 0 0 0 1px rgba(70, 45, 10, .55), inset 0 1px 0 rgba(255, 245, 210, .6);
-  transition: filter .45s ease, box-shadow .45s ease;
+/* its shadow on the wall below, drawn as a gradient rather than a box-shadow so the
+   stretches of neighbouring books meet without a seam */
+.shelf-book__lip::after {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  top: calc(var(--rail) - var(--hide)); height: 30px;
+  left: calc(var(--gap) / -2 + var(--l) * 8px); right: calc(var(--gap) / -2 + var(--r) * 8px);
+  background: linear-gradient(rgba(var(--cast), .42), rgba(var(--cast), .16) 30%, rgba(var(--cast), .05) 65%, transparent);
+  /* and it fades out past the ledge's ends instead of stopping square */
+  -webkit-mask: linear-gradient(90deg, transparent, #000 calc(var(--l) * 16px + .01px), #000 calc(100% - var(--r) * 16px - .01px), transparent);
+  mask: linear-gradient(90deg, transparent, #000 calc(var(--l) * 16px + .01px), #000 calc(100% - var(--r) * 16px - .01px), transparent);
 }
-.shelf-book__plate::before, .shelf-book__plate::after {   /* the two pins holding the label on */
-  content: ""; position: absolute; top: 50%; width: 4px; height: 4px; margin-top: -2px; border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #f6e8bd, #6b4b16 75%);
-}
-.shelf-book__plate::before { left: 4px; } .shelf-book__plate::after { right: 4px; }
-.shelf-book__title { font-weight: 600; font-size: 13.5px; line-height: 1.2; color: var(--engrave); text-wrap: balance; text-shadow: 0 1px 0 rgba(255, 240, 200, .45); }
-.shelf-book__count { font-size: 11.5px; color: #33230a; font-variant-numeric: tabular-nums; text-shadow: 0 1px 0 rgba(255, 240, 200, .35); }
+.shelf-book { --first: 0; --last: 0; }
+/* the rail's ends are drawn with physical left and right, and a right-to-left row starts on the right */
+.shelf-book__lip { --l: var(--first); --r: var(--last); }
+[dir="rtl"] .shelf-book__lip { --l: var(--last); --r: var(--first); }
+
+/* the caption on the wall beneath the ledge */
+.shelf-book__plate { position: relative; display: grid; gap: 2px; max-width: 96%; text-align: center; }
+.shelf-book__title { font-weight: 600; font-size: 14px; line-height: 1.25; color: var(--ink); text-wrap: balance; transition: color .3s ease; }
+.shelf-book__count { font-size: 12px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.shelf-book:hover .shelf-book__title, .shelf-book:focus-visible .shelf-book__title, .shelf-book.is-open .shelf-book__title { color: var(--accent); }
+.shelf-book:focus-visible .shelf-book__plate { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 2px; }
 
 /* the book itself: smaller collections are shorter and thinner, all on one baseline */
 .shelf-book__slot {
@@ -120,45 +116,41 @@
   display: flex; align-items: flex-end; justify-content: center;
   transition: filter .45s ease;
 }
-.shelf-book__slot::after {      /* contact shadow on the board */
-  content: ""; position: absolute; left: 6%; right: 2%; bottom: -6px; height: 12px; z-index: -1;
-  background: radial-gradient(ellipse at 50% 40%, rgba(5, 2, 0, .7), transparent 70%);
-  transition: opacity .5s ease, transform .5s ease;
-}
 .shelf-book__body {
   position: relative; width: calc(var(--scale, 1) * 100%); aspect-ratio: 2 / 3; flex: none;
   transform-origin: 50% 100%;
   transition: transform .6s cubic-bezier(.2, .8, .2, 1);
 }
-.shelf-book__block {            /* the page block, fore-edge on the left as in an Arabic book */
-  position: absolute; inset: 1.6% 0 1.6% 1.4%; border-radius: 3px 1px 1px 3px; background: var(--paper);
-  box-shadow: var(--edges, -1px 1px 0 #ddcca6, -2px 2px 0 #bfa97c, -3px 3px 0 #d8c59c);
+.shelf-book__front, .shelf-book__gilt, .shelf-book__shine { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 4px; }
+/* The book leans on the wall a finger's width from it, so its shadow is close and fairly
+   firm, offset away from the light (above and to the left), with a wider soft one round it. */
+.shelf-book__front {
+  display: block;
+  filter: drop-shadow(5px 6px 5px rgba(var(--cast), .38)) drop-shadow(10px 14px 18px rgba(var(--cast), .26));
+  transition: filter .6s ease;
 }
-.shelf-book__front, .shelf-book__gilt, .shelf-book__shine { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 5px; }
-.shelf-book__front { display: block; filter: drop-shadow(0 8px 10px rgba(5, 2, 0, .55)) drop-shadow(10px -6px 14px rgba(0, 0, 0, .45)); transition: filter .6s ease; }
 /* the gilding alone, laid over the cover: it brightens and blooms when the book is chosen */
 .shelf-book__gilt { pointer-events: none; opacity: 0; background: none center / 100% 100% no-repeat; filter: brightness(1.1); transition: opacity .45s ease, filter .45s ease; }
 .shelf-book__shine {
   pointer-events: none; opacity: 0;
   background: linear-gradient(112deg, transparent 38%, rgba(255, 250, 225, .7) 47%, rgba(255, 236, 180, .3) 52%, transparent 60%) 140% 0 / 260% 100% no-repeat;
 }
-/* lamplight pooling on the board under the chosen book */
-.shelf-book__glow {
-  position: absolute; left: -20%; right: -20%; top: 0; bottom: 0; z-index: -2; pointer-events: none;
-  background:
-    radial-gradient(ellipse 50% 9% at 50% 98%, rgba(var(--lamp), .55), transparent 75%),
-    radial-gradient(ellipse 48% 42% at 50% 62%, rgba(var(--lamp), .16), transparent 72%);
-  opacity: 0; transition: opacity .5s ease;
+/* light from above falls on the top of the cover; kept weak so the drawn gold stays clean */
+.shelf-book__body::after {
+  content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none; border-radius: 4px;
+  background: linear-gradient(180deg, rgba(255, 246, 226, .12), rgba(255, 246, 226, .03) 24%, transparent 48%);
 }
+.shelf-book__glow { display: none; }
 
-/* chosen: the book tips off the shelf toward the reader and its gold lights up */
+/* chosen: the book lifts off the ledge toward the reader and its gold lights up */
 .shelf-book:hover .shelf-book__body, .shelf-book:focus-visible .shelf-book__body, .shelf-book.is-open .shelf-book__body {
   /* a flat lift and enlarge, not a 3D move: Chrome keeps a 3D-animated layer at its starting
      resolution, so the lettering of the chosen book went soft exactly when it was meant to be read */
-  transform: translateY(-12px) scale(1.09);
+  transform: translateY(-14px) scale(1.08);
 }
 .shelf-book:hover .shelf-book__front, .shelf-book:focus-visible .shelf-book__front, .shelf-book.is-open .shelf-book__front {
-  filter: drop-shadow(0 26px 22px rgba(5, 2, 0, .6));
+  /* further from the wall, so its shadow spreads and softens */
+  filter: drop-shadow(10px 14px 10px rgba(var(--cast), .3)) drop-shadow(18px 28px 30px rgba(var(--cast), .28));
 }
 .shelf-book:hover .shelf-book__gilt, .shelf-book:focus-visible .shelf-book__gilt, .shelf-book.is-open .shelf-book__gilt {
   opacity: 1; background-image: var(--gilt);
@@ -170,28 +162,79 @@
   animation: shelf-book-shine .9s .1s ease-out both;
 }
 @keyframes shelf-book-shine { 0% { opacity: 1; background-position: 140% 0; } 85% { opacity: 1; } 100% { opacity: 0; background-position: -40% 0; } }
-.shelf-book:hover .shelf-book__glow, .shelf-book:focus-visible .shelf-book__glow, .shelf-book.is-open .shelf-book__glow { opacity: 1; }
-.shelf-book:hover .shelf-book__slot::after, .shelf-book:focus-visible .shelf-book__slot::after, .shelf-book.is-open .shelf-book__slot::after { opacity: .45; transform: scaleX(1.12); }
-.shelf-book:hover .shelf-book__plate, .shelf-book:focus-visible .shelf-book__plate, .shelf-book.is-open .shelf-book__plate {
-  filter: brightness(1.12); box-shadow: 0 0 14px rgba(var(--lamp), .45), 0 1px 2px rgba(0, 0, 0, .6), inset 0 0 0 1px rgba(70, 45, 10, .55), inset 0 1px 0 rgba(255, 245, 210, .7);
-}
-.shelf-book:focus-visible .shelf-book__plate { outline: 2px solid var(--brass-hi); outline-offset: 3px; }
-/* the rest of the case falls back into shadow */
-.bookcase__shelf:has(.shelf-book:hover, .shelf-book:focus-visible, .shelf-book.is-open) .shelf-book:not(:hover, :focus-visible, .is-open) .shelf-book__slot { filter: brightness(.8) saturate(.9); }
+/* the rest of the shelf steps back a little */
+.bookcase__shelf:has(.shelf-book:hover, .shelf-book:focus-visible, .shelf-book.is-open) .shelf-book:not(:hover, :focus-visible, .is-open) .shelf-book__slot { filter: brightness(.9) saturate(.85); }
 
 @media (prefers-reduced-motion: reduce) {
-  .shelf-book__body, .shelf-book__slot, .shelf-book__slot::after, .shelf-book__front, .shelf-book__gilt, .shelf-book__glow, .shelf-book__plate { transition: none; }
+  .shelf-book__body, .shelf-book__slot, .shelf-book__front, .shelf-book__gilt, .shelf-book__title { transition: none; }
   .shelf-book:hover .shelf-book__body, .shelf-book:focus-visible .shelf-book__body, .shelf-book.is-open .shelf-book__body { transform: none; }
   .shelf-book:hover .shelf-book__shine, .shelf-book:focus-visible .shelf-book__shine, .shelf-book.is-open .shelf-book__shine { animation: none; }
 }
 
-/* Empty places that finish the last row, so its wall and shelf run the full width.
+/* ── Columns ─────────────────────────────────────────────────────────────────
+   The column is passed in for each column count (the template cannot know which grid is
+   live). From it come the rail's finished ends and each book's turn: +turn at the first
+   column, 0 in the middle, -turn at the last. Two columns have no middle, so they turn less. */
+.shelf-book { --cols: 5; --col: var(--c5, 0); --turn: 7deg; --yaw: 0deg; }
+@media (max-width: 900px) { .shelf-book { --cols: 4; --col: var(--c4, 0); } }
+@media (max-width: 520px) { .shelf-book { --cols: 2; --col: var(--c2, 0); --turn: 4deg; } }
+.shelf-book {
+  --first: max(0, 1 - var(--col));
+  --last: max(0, var(--col) - var(--cols) + 2);
+}
+.shelf-book:not(.shelf-book--gap) {
+  --yaw: calc((var(--cols) - 1 - 2 * var(--col)) / (var(--cols) - 1) * var(--turn));
+}
+
+/* Every book gets its own vanishing point at its own centre line, because the grid's cells are
+   the only boxes the shelf has; perspective() on the slot is what a shared one would reduce to
+   for a turn this small. The baseline is the pivot, so no book lifts off the ledge. */
+.shelf-book__slot {
+  transform: perspective(900px) rotateY(var(--yaw));
+  transform-origin: 50% 100%;
+}
+
+/* The page block: fore-edge on the left, as in an Arabic book, as deep as the collection is
+   large. Vertical lines are the sheets edge-on; the dark strip at the right is the crease
+   where the pages go into the cover. The boards overhang it top and bottom (the squares),
+   so paper is never the tallest thing on the shelf. */
+.shelf-book__block {
+  position: absolute; top: 2.4%; bottom: .4%; right: calc(100% - 1px); width: var(--depth, 8px);
+  border-radius: 1px 0 0 1px;
+  transform-origin: 100% 100%;
+  transform: matrix(1, calc(var(--tilt, .5) * -1), 0, 1, 0, 0);
+  background:
+    linear-gradient(90deg, transparent calc(100% - 3px), rgba(32, 20, 8, .55)),
+    repeating-linear-gradient(90deg, rgba(120, 105, 80, .16) 0 .5px, transparent .5px 2px),
+    linear-gradient(180deg, rgba(255, 252, 244, .55), transparent 22%, rgba(30, 20, 8, .3)),
+    linear-gradient(90deg, #b9b09a, #d8d1bf 40%, #c9c0aa);
+  box-shadow: -3px 4px 6px rgba(var(--cast), .25);
+}
+
+/* Empty places that finish the last row, so its ledge runs the full width.
    The fragment renders enough for each column count and marks which ones it needs. */
 .shelf-book--gap { display: none; pointer-events: none; }
-.shelf-book--gap .shelf-book__slot::after { content: none; }
 @media (min-width: 901px) { .shelf-gap--5 { display: flex; } }
 @media (min-width: 521px) and (max-width: 900px) { .shelf-gap--4 { display: flex; } }
 @media (max-width: 520px) { .shelf-gap--2 { display: flex; } }
+
+/* The last ledge holds fewer books than it has places. The books stand to the start of the
+   row and a brass bookend takes the last one's weight, so the empty ledge reads as one not
+   yet filled. The fragment marks the last book for each column count that leaves places
+   empty after it. */
+.shelf-book__end { display: none; position: absolute; z-index: 2; bottom: 0; width: 24px; height: 46%;
+  left: calc(50% + min(50%, 90px) * var(--scale, 1) - 4px); pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, .35), transparent 30%, rgba(255, 245, 210, .25) 55%, transparent 60%),
+    linear-gradient(90deg, var(--brass-hi), var(--brass) 40%, var(--brass-lo));
+  /* the foot runs under the last book, the upright stands clear of it */
+  clip-path: polygon(58% 0, 100% 0, 100% 100%, 0 100%, 0 90%, 58% 90%);
+  filter: drop-shadow(5px 6px 5px rgba(var(--cast), .4));
+}
+[dir="rtl"] .shelf-book__end { left: auto; right: calc(50% + min(50%, 90px) * var(--scale, 1) - 4px); transform: scaleX(-1); }
+@media (min-width: 901px) { .shelf-end--5 { display: block; } }
+@media (min-width: 521px) and (max-width: 900px) { .shelf-end--4 { display: block; } }
+@media (max-width: 520px) { .shelf-end--2 { display: block; } }
 
 /* a book whose cover has not been drawn yet: plain leather with its name in gold */
 .shelf-book__front--plain {
@@ -201,8 +244,8 @@
   font-family: 'Amiri', 'Scheherazade New', serif; font-weight: 700; font-size: 22px; line-height: 1.5; color: #d9b65e;
 }
 
-/* Arabic pages: the labels carry the Arabic names */
-[dir="rtl"] .shelf-book__title { font-family: 'Scheherazade New', 'Amiri', serif; font-size: 15px; line-height: 1.35; }
+/* Arabic pages: the captions carry the Arabic names */
+[dir="rtl"] .shelf-book__title { font-family: 'Scheherazade New', 'Amiri', serif; font-size: 16px; line-height: 1.35; }
 
 /* home page: a phone shows the first books and a toggle for the rest */
 .browse-shelf { margin-bottom: 1.2rem; }
@@ -211,269 +254,3 @@
   .browse-shelf:not(.is-expanded) .shelf-book--gap { display: none; }
   .browse-shelf .browse-book-drawer-toggle { margin-top: 0.75rem; }
 }
-
-/* ---------------------------------------------------------------------------------------
-   The shelf in perspective. The pass above paints every book dead-on, which is why they read
-   as cover images standing in a row. Here each book is a volume: it turns a few degrees toward
-   the middle of the row, shows a real fore-edge and the top of its page block, and sits on the
-   board with contact shadow and occlusion. All of it is static; only the flat lift above moves,
-   because a 3D-animated layer is held at its starting resolution and the lettering went soft. */
-
-/* The column is passed in for each column count (the template cannot know which grid is live),
-   and the yaw follows the grid actually showing: +turn at the first column, 0 in the middle,
-   -turn at the last. Two columns have no middle, so they turn less. */
-.shelf-book { --cols: 5; --col: var(--c5, 0); --turn: 7deg; --yaw: 0deg; }
-@media (max-width: 900px) { .shelf-book { --cols: 4; --col: var(--c4, 0); } }
-@media (max-width: 520px) { .shelf-book { --cols: 2; --col: var(--c2, 0); --turn: 4deg; } }
-.shelf-book:not(.shelf-book--gap) {
-  --yaw: calc((var(--cols) - 1 - 2 * var(--col)) / (var(--cols) - 1) * var(--turn));
-}
-
-/* Every book gets its own vanishing point at its own centre line, because the grid's cells are
-   the only boxes the shelf has; perspective() on the slot is what a shared one would reduce to
-   for a turn this small. The baseline is the pivot, so no book lifts off the board. */
-.shelf-book__slot {
-  transform: perspective(900px) rotateY(var(--yaw));
-  transform-origin: 50% 100%;
-}
-
-/* The page block, now a face: fore-edge on the left, as in an Arabic book, as deep as the
-   collection is large. Vertical lines are the sheets edge-on; the dark strip at the right
-   is the crease where the pages go into the cover. Sheared so its far edge climbs the board. */
-.shelf-book__block {
-  inset: auto; top: 0; bottom: 0; right: calc(100% - 1px); width: var(--depth, 8px);
-  border-radius: 2px 0 0 2px; box-shadow: none;
-  transform-origin: 100% 100%;
-  transform: matrix(1, calc(var(--tilt, .5) * -1), 0, 1, 0, 0);
-  background:
-    linear-gradient(90deg, transparent calc(100% - 3px), rgba(40, 22, 6, .7)),
-    repeating-linear-gradient(90deg, rgba(110, 80, 40, .34) 0 1px, transparent 1px 2.5px),
-    linear-gradient(180deg, rgba(255, 245, 215, .35), transparent 30%, rgba(60, 35, 10, .28)),
-    linear-gradient(90deg, #cdb98d, var(--paper) 45%, #d9c9a2);
-}
-/* the top of the block, seen from above the shelf: the same paper, shaded toward the back */
-.shelf-book__body::before {
-  content: ""; position: absolute; z-index: 0; pointer-events: none;
-  left: calc(var(--depth, 8px) * -1); width: calc(100% + var(--depth, 8px));
-  bottom: calc(100% - 1px); height: calc(var(--rise, 4px) + 1px);
-  clip-path: polygon(var(--depth, 8px) 100%, 100% 100%, calc(100% - var(--depth, 8px)) 0, 0 0);
-  background:
-    linear-gradient(0deg, rgba(40, 22, 6, .6), transparent 45%),
-    repeating-linear-gradient(100deg, rgba(110, 80, 40, .3) 0 1px, transparent 1px 3px),
-    linear-gradient(180deg, #b9a577, var(--paper));
-}
-
-/* Contact: a hard dark line right under the book (and its page block), then a softer pool
-   beyond it, shifted toward the right because the lamp strip is above and to the left. */
-.shelf-book__slot::before {
-  content: ""; position: absolute; z-index: -1; pointer-events: none;
-  left: calc((1 - var(--scale, 1)) * 50% - var(--depth, 8px) - 2px); right: calc((1 - var(--scale, 1)) * 50% - 1px);
-  bottom: -2px; height: 6px; border-radius: 50%;
-  background: linear-gradient(rgba(0, 0, 0, 1), rgba(0, 0, 0, .55));
-  filter: blur(1px);
-}
-.shelf-book__slot::after {
-  left: calc((1 - var(--scale, 1)) * 50% - var(--depth, 8px) - 6px); right: calc((1 - var(--scale, 1)) * 50% - 16px);
-  bottom: -9px; height: 20px;
-  background: radial-gradient(ellipse at 50% 35%, rgba(2, 1, 0, .75), rgba(2, 1, 0, .3) 45%, transparent 72%);
-}
-.shelf-book--gap .shelf-book__slot::before { content: none; }
-.shelf-book--gap .shelf-book__slot { transform: none; }
-
-/* Occlusion in the narrow gaps: the wall and the board darken toward the neighbours, so the
-   gap reads as a slot between two volumes rather than as a lit strip. */
-.shelf-book__stand::before {
-  background:
-    linear-gradient(90deg, rgba(0, 0, 0, .55), rgba(0, 0, 0, .12) 14%, transparent 30%, transparent 70%, rgba(0, 0, 0, .12) 86%, rgba(0, 0, 0, .55)),
-    linear-gradient(rgba(0, 0, 0, .78) 0 4px, transparent 4px),
-    linear-gradient(transparent 4px, rgba(var(--lamp), .12) 5px, rgba(255, 236, 196, .38) 5.5px 6.5px, rgba(var(--lamp), .12) 7px, transparent 8px),
-    linear-gradient(transparent 4px, rgba(var(--lamp), .1) 7px, rgba(var(--lamp), .035) 22%, transparent 45%),
-    radial-gradient(ellipse 90% 55% at 50% 92%, rgba(0, 0, 0, .28), transparent 70%),
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, .1) 0 1px, transparent 1px 13px, rgba(var(--grain), .025) 13px 14px, transparent 14px 31px),
-    linear-gradient(var(--back-top), var(--back) 60%);
-  background-attachment: scroll, scroll, scroll, scroll, scroll, fixed, scroll;
-}
-.shelf-book__stand::after {
-  /* the board takes the lamp's light in a warm pool under each book, so the shadows have a
-     lit surface to fall on; on the bare navy they were there but could not be seen */
-  background:
-    linear-gradient(90deg, rgba(0, 0, 0, .5), transparent 22%, transparent 78%, rgba(0, 0, 0, .5)),
-    radial-gradient(ellipse 60% 120% at 50% 60%, rgba(var(--lamp), .16), transparent 75%),
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, .08) 0 1px, transparent 1px 12px, rgba(var(--grain), .04) 12px 13px, transparent 13px 29px),
-    linear-gradient(var(--board-back), var(--board-1) 22%, var(--board-2) 62%, var(--board) 88%, var(--board-front));
-  background-attachment: scroll, scroll, fixed, scroll;
-}
-
-/* The last shelf holds fewer books than it has places. The books stand to the start of the row
-   and a brass bookend takes the last one's weight, so the empty board reads as a shelf not yet
-   filled and not as a missing piece. The fragment marks the last book for each column count that
-   leaves places empty after it. */
-.shelf-book__end { display: none; position: absolute; z-index: 2; bottom: 13px; width: 24px; height: 48%;
-  left: calc(50% + min(50%, 90px) * var(--scale, 1) - 4px); pointer-events: none;
-  background:
-    linear-gradient(90deg, rgba(0, 0, 0, .35), transparent 30%, rgba(255, 245, 210, .25) 55%, transparent 60%),
-    linear-gradient(90deg, var(--brass-hi), var(--brass) 40%, var(--brass-lo));
-  /* the foot runs under the last book, the upright stands clear of it */
-  clip-path: polygon(58% 0, 100% 0, 100% 100%, 0 100%, 0 90%, 58% 90%);
-  filter: drop-shadow(3px 2px 3px rgba(0, 0, 0, .6));
-}
-[dir="rtl"] .shelf-book__end { left: auto; right: calc(50% + min(50%, 90px) * var(--scale, 1) - 4px); transform: scaleX(-1); }
-@media (min-width: 901px) { .shelf-end--5 { display: block; } }
-@media (min-width: 521px) and (max-width: 900px) { .shelf-end--4 { display: block; } }
-@media (max-width: 520px) { .shelf-end--2 { display: block; } }
-
-/* ── The lamp, turned up ──────────────────────────────────────────────────────
-   The strip under each shelf was drawing a 1px filament at .38 and a wash that gave
-   out 45% of the way down the wall, which left the compartments reading as a dark
-   recess with books in it. A shelf lamp does three things the first pass only hinted
-   at: the tube itself is bright, it blooms into the wall right under the shelf above,
-   and it throws far enough to reach the board. All three are additive layers over the
-   existing background stack, so the grain and the corner shadow underneath are kept. */
-.shelf-book__stand::before {
-  background:
-    linear-gradient(rgba(0, 0, 0, .78) 0 4px, transparent 4px),
-    /* the tube: a hot core with a halo either side of it */
-    linear-gradient(transparent 4px,
-                    rgba(var(--lamp), .30) 4.5px,
-                    rgba(255, 241, 214, .85) 5.4px 6.6px,
-                    rgba(var(--lamp), .30) 7.5px,
-                    transparent 9px),
-    /* its bloom on the wall directly beneath */
-    radial-gradient(ellipse 72% 26% at 50% 5px, rgba(var(--lamp), .34), transparent 70%),
-    /* and the throw, which now reaches the board instead of fading at mid-wall */
-    linear-gradient(transparent 6px,
-                    rgba(var(--lamp), .20) 9px,
-                    rgba(var(--lamp), .085) 38%,
-                    rgba(var(--lamp), .03) 68%,
-                    transparent 92%),
-    radial-gradient(ellipse 90% 55% at 50% 92%, rgba(0, 0, 0, .22), transparent 70%),
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, .1) 0 1px, transparent 1px 13px, rgba(var(--grain), .025) 13px 14px, transparent 14px 31px),
-    linear-gradient(var(--back-top), var(--back) 60%);
-  background-attachment: scroll, scroll, scroll, scroll, scroll, fixed, scroll;
-}
-
-/* The board catches what the lamp throws down the wall: warm near the back where the
-   light lands, cooling toward the front edge the reader stands at. */
-.shelf-book__stand::after {
-  background:
-    linear-gradient(rgba(var(--lamp), .16) 0 6px, rgba(var(--lamp), .06) 40%, transparent 85%),
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, .08) 0 1px, transparent 1px 12px, rgba(var(--grain), .04) 12px 13px, transparent 13px 29px),
-    linear-gradient(var(--board-back), var(--board-1) 22%, var(--board-2) 62%, var(--board) 88%, var(--board-front));
-  background-attachment: scroll, fixed, scroll;
-}
-
-/* Lamplight falls on the top of a book as well as behind it. Kept weak: the covers are
-   drawn art, and a heavier wash turns their gold milky. */
-.shelf-book__body::after {
-  content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
-  border-radius: 5px;
-  background: linear-gradient(180deg, rgba(255, 226, 178, .16), rgba(255, 226, 178, .05) 26%, transparent 52%);
-}
-
-/* ── A lamp over each book, not a flood over the row ──────────────────────────
-   The wash lit the whole compartment evenly, which is not what a shelf lamp does and
-   left the case looking washed rather than lit. Each book carries its own stretch of
-   wall, so the light can be what it should be: a pool centred over that book, falling
-   off before it reaches its neighbours, with only a weak throw past it. */
-.shelf-book__stand::before {
-  background:
-    linear-gradient(rgba(0, 0, 0, .78) 0 4px, transparent 4px),
-    /* the tube, dimmer than the flood and only as wide as this book */
-    linear-gradient(transparent 4px,
-                    rgba(var(--lamp), .22) 4.6px,
-                    rgba(255, 243, 219, .62) 5.4px 6.4px,
-                    rgba(var(--lamp), .22) 7.2px,
-                    transparent 8.6px),
-    /* the pool: bright at the book's centre, gone by its edges */
-    radial-gradient(ellipse 52% 38% at 50% 4px, rgba(var(--lamp), .34), transparent 72%),
-    /* a weak throw down the wall behind the book, so the recess is not black */
-    radial-gradient(ellipse 46% 88% at 50% 0%, rgba(var(--lamp), .10), transparent 76%),
-    radial-gradient(ellipse 90% 55% at 50% 92%, rgba(0, 0, 0, .26), transparent 70%),
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, .1) 0 1px, transparent 1px 13px, rgba(var(--grain), .025) 13px 14px, transparent 14px 31px),
-    linear-gradient(var(--back-top), var(--back) 60%);
-  background-attachment: scroll, scroll, scroll, scroll, scroll, fixed, scroll;
-}
-/* and the board catches that pool under the book, not along the whole row */
-.shelf-book__stand::after {
-  background:
-    radial-gradient(ellipse 40% 150% at 50% 0%, rgba(var(--lamp), .20), transparent 74%),
-    repeating-linear-gradient(90deg, rgba(0, 0, 0, .08) 0 1px, transparent 1px 12px, rgba(var(--grain), .04) 12px 13px, transparent 13px 29px),
-    linear-gradient(var(--board-back), var(--board-1) 22%, var(--board-2) 62%, var(--board) 88%, var(--board-front));
-  background-attachment: scroll, fixed, scroll;
-}
-.shelf-book__body::after {
-  background: linear-gradient(180deg, rgba(255, 226, 178, .10), rgba(255, 226, 178, .03) 24%, transparent 48%);
-}
-
-/* ── The page block, as paper rather than as a yellow card ───────────────────
-   Three things were wrong with it. It ran the full height of the cover and rose above
-   it, where a bound book's boards overhang the text block on all three edges — the
-   squares — so paper is never the tallest thing. It was lit evenly, so it read as a
-   flat slab. And it was the colour of parchment: printed paper edges are close to
-   white, warm only where they have aged, and far less saturated than the cover's gold.
-   The top edge now shows only beside the fore-edge, which is the only place the board
-   does not cover it at this angle. */
-.shelf-book__block {
-  top: 2.4%; bottom: 2%;
-  border-radius: 1px 0 0 1px;
-  background:
-    /* the crease where the sheets disappear into the cover */
-    linear-gradient(90deg, transparent calc(100% - 3px), rgba(32, 20, 8, .55)),
-    /* sheets edge-on: many, fine, and barely darker than the paper */
-    repeating-linear-gradient(90deg, rgba(120, 105, 80, .16) 0 .5px, transparent .5px 2px),
-    /* lit from the lamp above: bright along the top, falling into shadow at the board */
-    linear-gradient(180deg, rgba(255, 252, 244, .55), transparent 22%, rgba(30, 20, 8, .34)),
-    linear-gradient(90deg, #cfc8b6, #e4dfd2 40%, #d6cfbe);
-}
-.shelf-book__body::before {
-  /* only the width of the block plus a sliver of the cover's near corner */
-  left: calc(var(--depth, 8px) * -1);
-  width: calc(var(--depth, 8px) * 2.2);
-  height: calc(var(--rise, 4px) * 0.7 + 1px);
-  clip-path: polygon(var(--depth, 8px) 100%, 100% 100%, calc(100% - var(--depth, 8px)) 0, 0 0);
-  background:
-    linear-gradient(0deg, rgba(32, 20, 8, .5), transparent 55%),
-    repeating-linear-gradient(100deg, rgba(120, 105, 80, .18) 0 .5px, transparent .5px 2.5px),
-    linear-gradient(180deg, #c6bfae, #e4dfd2);
-}
-
-/* The boards of a bound book overhang its text block on all three edges, so nothing
-   of the paper rises above the cover line. What was drawn there read as a folded flap,
-   and at this angle there is nothing to draw: the near board hides the top of the
-   block completely. */
-.shelf-book__body::before { display: none; }
-
-/* ── The foot of the text block ──────────────────────────────────────────────
-   The fore-edge ran from 2.4% to 2% and stopped there, and because the block is
-   sheared from its bottom-right corner the whole left side lifts — so the paper's
-   bottom-left corner hung above the board with a dark wedge under it, and the book
-   read as floating rather than standing.
-
-   The squares stay: a bound board does overhang its text block, which is why the
-   paper is inset at all. But at the foot that overhang is a millimetre on a real
-   book and was drawn here as a visible gap. The block now comes down to the cover
-   line and takes a thin lit edge along its base, so the paper has somewhere to end.
-
-   A quadrilateral for the bottom edge of the sheets was tried here and removed: at
-   this angle the near board hides that face completely, and drawn anyway it reads
-   as a torn flag of paper sticking out from under the book. The same reason the
-   top edge is not drawn. */
-.shelf-book__block {
-    bottom: 0.4%;
-    box-shadow: 0 1px 0 rgba(255, 252, 244, 0.4);
-}
-
-/* ── The back board: tried, and not kept ─────────────────────────────────────
-   A book turned toward the reader should show its back board just beyond the
-   fore-edge, overhanging the paper as the front one does. Two attempts at it
-   are in the history of this file and neither was worth keeping: the block and
-   the board are drawn as rectangles that are then sheared from the bottom-right
-   corner, so a rectangle placed at a fixed x does not follow the sloping edge
-   of the paper beside it. It appeared as a dark nub at the top of the pages and
-   nothing below, which reads as a rendering fault rather than as a board.
-
-   Doing it properly means the body carrying a real rotateY with the cover as a
-   face, and the comment at the top of the perspective block explains why that
-   was avoided: Chrome holds a 3D-animated layer at its starting resolution and
-   the lettering of the chosen book went soft exactly when it was meant to be
-   read. Left undone deliberately. */
