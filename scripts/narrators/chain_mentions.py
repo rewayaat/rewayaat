@@ -124,8 +124,8 @@ SALUTATION = {
 }
 
 # Chain conventions standing for unnamed people. Nobody to link.
-COLLECTIVE = {"بعض", "عدة", "اصحابنا", "اصحابه", "اصحابي", "واحد", "غير", "رجل", "رجال",
-              "جماعة", "ذكره", "الكوفيين", "اخبرني بعض", "اصحاب", "عدتي"}
+COLLECTIVE = {"بعض", "عدة", "اصحابنا", "اصحابه", "اصحابي", "واحد", "غير", "غيره", "رجل",
+              "رجال", "جماعة", "ذكره", "الكوفيين", "اخبرني بعض", "اصحاب", "عدتي"}
 
 # Words no name contains. When the chain's «عن» is the preposition "about" rather than the
 # relation — «سألته عن قول الله عز وجل الذين ملكت أيمانكم» — the cut lands in the body of the
@@ -136,6 +136,10 @@ FUNCTION = {"الذي", "التي", "الذين", "يا", "ايها", "كيف", 
             "هذا", "هذه", "هو", "هي", "انا", "نحن", "لك", "له", "لها", "به", "بها", "عليك",
             "يصلح", "يطاف", "ارايت", "اراه", "تلد", "يتزوج", "فقلت", "حتي", "او", "ايضا",
             "اعلم", "اظن", "يظن", "احسب", "احسبه", "قراه",
+            # «رواية السكوني» is the narration of a man, not the man, and «ومن كتاب
+            # المحاسن» is a book. Both open a span the cutter read as a name: 239 and 83.
+            # At the front of a run they are trimmed off and the name behind them stands.
+            "رواية", "كتاب",
             # «سألته عن قول الله عز وجل» — the thing asked about, and the doxology that closes
             # it. None of these four is ever part of a name that links: across the 141,463 mentions
             # of the last cut, every one that holds «قول», «عز» or «جل» was refused, a collective
@@ -163,7 +167,16 @@ MAX_NAME_WORDS = 5
 # A name only in relation to the man before it.
 RELATIVE = {"ابيه", "ابيها", "ابويه", "عمه", "جده", "اخيه", "ابنه", "عمته", "خاله", "امه",
             "عميه", "جدي", "ابي", "ابوه", "اخوه", "ابايه", "ابائه", "اجداده", "ابويها",
-            "اخاه", "اخاها", "عمها", "جدها"}
+            "اخاه", "اخاها", "عمها", "جدها",
+            # The compiler's own kin, said in the first person as «أبي» is: 82 «عمي», 27
+            # «أخي», 5 «خالي», 2 «أمي», each read as a man's name and naming nobody.
+            "عمي", "اخي", "خالي", "امي", "ابني"}
+
+# A function word at the front of a run is trimmed off and the name behind it stands, which
+# is right for «رواية السكوني» and wrong for «ومن كتاب المحاسن»: trimming «كتاب» leaves
+# «المحاسن», a book read as a man. Held at the front, the word makes the run prose, which is
+# what it is. 40 such spans, all of them in Mishkāt al-Anwār.
+HELD_AT_THE_FRONT = {"كتاب"}
 
 # و-prefixed co-narrator: «محمد بن يحيى وأحمد بن محمد» is two men, but «وهب» is one name
 # that merely starts with the same letter. We split only before a word whose remainder after
@@ -494,7 +507,8 @@ def segment(chain):
         # being drawn over «إلى موسى بن جعفر» — the right man under an anchor that reads "to
         # Mūsā b. Jaʿfar". 166 links were shaped that way. Only the front of the run is
         # trimmed; a function word anywhere else still makes the whole run prose.
-        while named and (bare(named[0][2]) in FUNCTION or reporting_verb(bare(named[0][2]))):
+        while named and bare(named[0][2]) not in HELD_AT_THE_FRONT and (
+                bare(named[0][2]) in FUNCTION or reporting_verb(bare(named[0][2]))):
             named.pop(0)
         if named:
             # The span stops at the last Arabic letter, so «محمّد بن الحسن؛» is linked as

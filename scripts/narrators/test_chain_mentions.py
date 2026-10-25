@@ -58,3 +58,22 @@ def test_a_persian_yeh_is_the_last_letter_of_a_name():
     found = kinds("حدثني أَبِی ره عن مُحَمَّدِ بْنِ یَحْیَی")
     assert ("relative", "أَبِی") in found
     assert ("name", "مُحَمَّدِ بْنِ یَحْیَی") in found
+
+
+def test_the_compilers_own_kin_are_relatives_not_names():
+    """«عمي», «أخي», «خالي» said in the first person, as «أبي» is. 116 were read as names."""
+    for word in ("عمي", "أخي", "خالي", "أمي"):
+        assert cm.kind_of([cm.bare(word)], False) == "relative", word
+
+
+def test_a_narration_of_a_man_names_the_man():
+    """«رواية السكوني» is 239 spans and not one of them is a man called "narration"."""
+    found = kinds("عن رواية السكوني عن جعفر بن محمد")
+    assert ("name", "السكوني") in found
+    assert ("text", "وفي رواية السكوني") in kinds("وفي رواية السكوني عن جعفر بن محمد")
+
+
+def test_a_book_at_the_front_is_prose_and_not_a_man():
+    """Trimming «كتاب» off the front leaves «المحاسن», a book read as a man. Held there, the
+    word makes the run what it is."""
+    assert not any(k == "name" for k, _ in kinds("ومن كتاب المحاسن عن أبيه"))

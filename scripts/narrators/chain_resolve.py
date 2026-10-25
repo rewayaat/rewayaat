@@ -78,7 +78,8 @@ def same_name(one, other):
 # listed first, and as a name in its own right it was pointing six chains at a Qummi shaykh
 # who happens to carry «أبيه» among his aliases. It is refused in both places.
 RELATIVE = {"ابيه", "ابيها", "عمه", "جده", "اخيه", "ابنه", "امه", "ابي", "جدي", "ابايه",
-            "ابوه", "اخوه", "ابويه", "عمته", "خاله", "عميه", "ابائه", "اجداده"}
+            "ابوه", "اخوه", "ابويه", "عمته", "خاله", "عميه", "ابائه", "اجداده",
+            "عمي", "اخي", "خالي", "امي", "ابني"}
 
 
 GLUE = {"بن", "ابن", "ابي", "ابو", "ابا", "عبد", "ال", "بنت", "ام"}
@@ -875,12 +876,13 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
         # Imams were only looked for behind a kunya — «أبي عبد الله», «الصادق» — and never
         # behind a full name. The salutation is the text's own word for who this is.
         saluted = row.get("saluted") and imams.identify(keys[position])
-        # A form in CHAIN_FORMS names one of the fourteen and nobody else, whatever the
-        # narrator index also holds under it: bare «الصادق» was linked to Jaʿfar b. ʿAlī,
+        # A form `in_a_chain` answers for names one of the fourteen and nobody else, whatever
+        # the narrator index also holds under it: bare «الصادق» was linked to Jaʿfar b. ʿAlī,
         # a narrator filed under the same word, wherever no blessing followed it.
-        if row["kind"] != "imam" and not saluted and keys[position] not in imams.CHAIN_FORMS:
+        named = imams.in_a_chain(keys[position])
+        if row["kind"] != "imam" and not saluted and not named:
             continue
-        found = imams.identify(keys[position])
+        found = imams.identify(keys[position]) or named
         if not found:
             # saluted, but not one of the fourteen: «جبريل عليه السلام», «فاطمة عليها
             # السلام». A name mention keeps whatever the narrators made of it; only a

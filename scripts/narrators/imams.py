@@ -196,3 +196,24 @@ def _carries_a_title(form, titles):
 # form too, blessing or no blessing, and `identify` still decides which of the fourteen it is.
 CHAIN_FORMS |= {form for imam in ROSTER for form in imam["exact"]
                 if _carries_a_title(form, tuple(CHAIN_FORMS))}
+
+
+def in_a_chain(folded):
+    """Which of the fourteen a chain's words name with no blessing written after them.
+
+    A chain form and a name of the same man, written together: «أبي جعفر محمد بن علي الباقر»,
+    «أبي عبد الله الصادق جعفر بن محمد». The form has to stand at one end of the span and what
+    is left has to name that same man, which is what keeps «أحمد بن أبي عبد الله البرقي» out
+    of it — «أبي عبد الله» is buried in the middle of it, and «البرقي» is nobody's name here.
+    """
+    if folded in CHAIN_FORMS:
+        return identify(folded)
+    words = folded.split()
+    for at in range(1, len(words)):
+        for form, rest in ((words[:at], words[at:]), (words[at:], words[:at])):
+            if " ".join(form) not in CHAIN_FORMS:
+                continue
+            named = identify(" ".join(rest))
+            if len(named) == 1 and named[0] in identify(" ".join(form)):
+                return named
+    return ()
