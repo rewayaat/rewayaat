@@ -16713,3 +16713,34 @@ div.ledger__cell {
 .rijal-link__candidate-title::before {
     content: "\00b7\00a0";
 }
+
+/* The tarājim card had 0.2rem of padding above its heading and 1.4rem below it.
+   That top value is left over from when the entry was a rule down one side and
+   nothing else: with no top edge to clear, the book's name starting almost at the
+   element's own origin looked deliberate. The card gained a border, a background
+   and a 6px radius afterwards, and the heading has sat 3px off a visible edge ever
+   since, while the sides kept 19px and the foot 22px. Matched to the sides. */
+.narrator-entry {
+    padding-block: 1.1rem 1.4rem;
+}
+
+/* The grade pill is pushed to the far end of the header row by an auto margin, and
+   that margin was `margin-left`. On the Arabic site the row runs the other way, so
+   the auto absorbed the space on the pill's left and left it stranded mid-row
+   against the citation instead of out at the edge — «ثقة» floating beside the page
+   number while its English twin sat pinned to the opposite margin. Logical, and the
+   physical end reset to zero, because the rule above still names `margin-left` and
+   two auto margins would centre the pill rather than push it anywhere. */
+.narrator-entry__grade {
+    margin-inline-start: auto;
+    margin-inline-end: 0;
+}
+
+@media (max-width: 640px) {
+    /* Narrow enough that the pill belongs on the line with the citation rather than
+       pushed away from it. The existing rule says `margin-left: 0`, which only
+       cancels the push on an English page. */
+    .narrator-entry__grade {
+        margin-inline-start: 0;
+    }
+}
