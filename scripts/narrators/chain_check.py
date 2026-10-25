@@ -27,7 +27,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from chain_mentions import BLESSINGS, FUNCTION, JOINERS, OPENERS, bare  # noqa: E402
 from chain_resolve import (COMPILER_DIED, GLUE, RELATIVE, RELATIVE_LEADING, key,  # noqa: E402
-                           loosen, trims)
+                           loosen, trims, unkunya)
 from imams import ROSTER  # noqa: E402
 
 TMP = f'{W}/tmp/narrators_chains'
@@ -167,15 +167,18 @@ def his_name_widened(folded, held):
     """Whether the words are his name once the resolver's own widenings are allowed.
 
     A link the resolver made by folding the article, reading «ابن» as «بن», dropping a leading
-    relative word or trimming the chain's nisbas is not a link whose words are one of his
-    names, and `his_name` called every one of them «name-not-his» — 2,928 flags on the first
-    run with those rules in. The same widenings are applied to both sides here, so this
-    accepts exactly what the resolver could have reached and nothing it could not.
+    relative word, taking off a leading title and kunya or trimming the chain's nisbas is not
+    a link whose words are one of his names, and `his_name` called every one of them
+    «name-not-his» — 2,928 flags on the first run with those rules in. The same widenings are
+    applied to both sides here, so this accepts exactly what the resolver could have reached
+    and nothing it could not.
     """
     tokens = folded.split()
     starts = [tokens]
     if len(tokens) > 2 and tokens[0] in RELATIVE_LEADING:
         starts.append(tokens[1:])
+    if unkunya(tokens):
+        starts.append(unkunya(tokens))
     spelled = {loosen(name.split()) for name in held}
     for start in starts:
         for form in [start] + list(trims(start)):

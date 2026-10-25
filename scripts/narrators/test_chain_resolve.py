@@ -124,3 +124,29 @@ def test_a_title_with_a_full_name_needs_no_blessing():
     data = index(man("n1", "جعفر بن محمد بن يونس", "جعفر بن محمد"))
     assert imams_read(data, "الصادق جعفر بن محمد") == [("one", "i06")]
     assert imams_read(data, "جعفر بن محمد") == [("one", "n1")]
+
+
+def test_a_kunya_in_front_of_a_full_nasab_comes_off():
+    """«الشيخ الجليل أبو جعفر محمد بن علي بن بابويه» is filed under the nasab alone."""
+    data = index(man("n1", "محمد بن علي بن بابويه القمي"))
+    assert read(data, "الشيخ الجليل أبو جعفر محمد بن علي بن بابويه القمي")[0] == [("one", "n1")]
+    assert cr.unkunya("ابو القاسم جعفر بن محمد بن قولويه".split()) == (
+        "جعفر بن محمد بن قولويه".split())
+
+
+def test_a_kunya_that_is_the_whole_name_stays():
+    """«أبي الصباح الكناني» and «أبي خديجة» are what the books file those men under; there is
+    no nasab behind the kunya, so nothing comes off."""
+    for name in ("ابي الصباح الكناني", "ابي خديجة", "ابي عبيدة الحذاء"):
+        assert cr.unkunya(name.split()) == [], name
+
+
+def test_a_heading_outranks_an_alias_whichever_form_reached_it():
+    """Ibn Qūlawayh at the head of his own book: the trimmed form is among his aliases and
+    the kunya-less form is a heading, and the alias used to answer first and then fail the
+    gate an alias must pass."""
+    data = index(man("n1", "جعفر بن محمد بن قولويه القمي"),
+                 man("n2", "رجل آخر", teachers=()))
+    data["aliases"]["ابو القاسم جعفر بن محمد"] = {"n2"}
+    data["loose"]["aliases"]["ابو القاسم جعفر بن محمد"] = {"n2"}
+    assert read(data, "ابو القاسم جعفر بن محمد بن قولويه القمي الفقيه")[0] == [("one", "n1")]

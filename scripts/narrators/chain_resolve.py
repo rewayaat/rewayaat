@@ -104,6 +104,9 @@ LINK = ("بن", "ابن")
 #   al-Najāshī without «الأشعري», and the chain's one extra word put him out of reach.
 # - short: the index's own shortened names, consulted for a key none of the rules above
 #   touched. `past_the_nisba` already reads this table; this lets it be a candidate source.
+# - kunya: a name that opens with a title or a kunya and then gives the nasab in full —
+#   «أبو القاسم جعفر بن محمد بن قولويه القمي», «الشيخ الجليل أبو جعفر محمد بن علي بن بابويه».
+#   The books file such a man under the nasab, and the opening put him out of reach of it.
 #
 # Two tiers of the index are not trusted as far as the rest. A man's heading, and a shortening
 # of one, is what a rijālī filed him under. An alias, and a shortening of one, is any name his
@@ -112,7 +115,7 @@ LINK = ("بن", "ابن")
 # «أبي عبيدة الحذاء», trimmed, reached Abān b. ʿAbda, and «ابن جرير الطبري» reached Isḥāq b. Jarīr.
 # So an alias is accepted only for a man whom a book places beside the name next to this one
 # (`support`), and then it is a `chosen` with that reason, not a `one`.
-RECALL = {"article", "ibn", "relative", "trim", "short"}
+RECALL = {"article", "ibn", "relative", "trim", "short", "kunya"}
 
 # The definite article comes off a word only when at least three letters remain, so a word of
 # five or more. Measured as the steps for which exactly one man is then filed, on the names
@@ -128,6 +131,30 @@ ARTICLE_LETTERS = 5
 # are men, and reading «أبي» away from them looks the remainder up as someone else. Leaving it
 # out costs about a fifth of what the rule would yield with it.
 RELATIVE_LEADING = RELATIVE - {"ابي"}
+
+# The honorifics a compiler puts in front of a shaykh he is naming in full, and the three
+# spellings of the kunya. Neither is part of what a rijālī filed the man under.
+TITLES = {"الشيخ", "الجليل", "الحاكم", "القاضي", "السيد", "الامام", "الفقيه", "الاستاذ",
+          "الحافظ", "العلامه", "الثقه"}
+KUNYA_LEADING = {"ابو", "ابي", "ابا"}
+
+
+def unkunya(tokens):
+    """The name with its leading titles and kunya off, when a nasab is left standing.
+
+    The kunya comes off only when a «بن» remains behind it. That is what keeps «أبي الصباح
+    الكناني», «أبي خديجة» and «أبي عبيدة الحذاء» out of the rule: there the kunya is the whole
+    of the name the books file him under, and dropping it would look up a different man.
+    «أبو عبد الله» and its kin are three words, not two, so the ism behind them is not eaten.
+    """
+    rest = list(tokens)
+    while len(rest) > 2 and rest[0] in TITLES:
+        rest = rest[1:]
+    if len(rest) > 2 and rest[0] in KUNYA_LEADING:
+        rest = rest[3 if len(rest) > 3 and rest[1] in ("عبد", "ال") else 2:]
+    if rest == list(tokens) or len(rest) < 2 or "بن" not in rest:
+        return []
+    return rest
 
 
 def loosen(tokens, rules=None):
@@ -156,13 +183,21 @@ def trims(tokens):
             yield tokens[:count]
 
 
+# The four tables a widened key is tried against, in the order their evidence is worth.
+TIERS = ("headings", "aliases", "shortened", "alias_shortened")
+
+
 def widen(folded, data, rules=None):
     """The men a name reaches once the lookup is relaxed, and what it took to reach them.
 
-    Each form is tried against the headings, then the aliases, then the shortened headings,
-    then the shortened aliases, and the first form that finds anybody ends the search. Forms
-    of one word are never tried: a bare «حسن» names nobody in particular. A name the roster
-    knows as an Imam's is not widened at all.
+    Every form is tried against the headings before any of them is tried against the aliases,
+    and so on down the four tiers: a heading is what a rijālī filed the man under, and it
+    outranks an alias whichever form reached it. Asking tier by tier rather than form by form
+    is what finds Ibn Qūlawayh at the head of his own book — «أبو القاسم جعفر بن محمد بن
+    قولويه القمي الفقيه», whose trimmed form is among his aliases and whose kunya-less form is
+    his heading, and the alias answered first and then failed the gate that aliases must pass.
+    Forms of one word are never tried: a bare «حسن» names nobody in particular. A name the
+    roster knows as an Imam's is not widened at all.
     """
     rules = RECALL if rules is None else rules
     loose = data.get("loose")
@@ -172,6 +207,9 @@ def widen(folded, data, rules=None):
     starts = [(tokens, "")]
     if "relative" in rules and len(tokens) > 2 and tokens[0] in RELATIVE_LEADING:
         starts.append((tokens[1:], "relative"))
+    if "kunya" in rules and unkunya(tokens):
+        starts.append((unkunya(tokens), "kunya"))
+    probes = []
     for start, dropped in starts:
         forms = [(start, "")]
         if "trim" in rules:
@@ -183,18 +221,17 @@ def widen(folded, data, rules=None):
                 # and «علي بن الحسين» to nine men, when it is the fourth Imam in both.
                 continue
             used = [r for r, changed in (
-                ("relative", dropped), ("trim", cut),
+                ("relative", dropped == "relative"), ("kunya", dropped == "kunya"),
+                ("trim", cut),
                 ("article", loosen(form, {"article"} & rules) != " ".join(form)),
                 ("ibn", loosen(form, {"ibn"} & rules) != " ".join(form))) if changed]
-            if not used and "short" not in rules:
-                tiers = ("headings", "aliases")
-            else:
-                tiers = ("headings", "aliases", "shortened", "alias_shortened")
-            probe = loosen(form, rules)
-            for tier in tiers:
-                found = loose[tier].get(probe)
-                if found:
-                    return sorted(found), "+".join(used) or "short", tier
+            allowed = TIERS[:2] if not used and "short" not in rules else TIERS
+            probes.append((loosen(form, rules), "+".join(used) or "short", allowed))
+    for tier in TIERS:
+        for probe, used, allowed in probes:
+            found = tier in allowed and loose[tier].get(probe)
+            if found:
+                return sorted(found), used, tier
     return [], "", ""
 
 
