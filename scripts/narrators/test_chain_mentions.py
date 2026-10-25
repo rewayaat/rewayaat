@@ -42,3 +42,19 @@ def test_a_collective_is_still_a_step_and_not_prose():
     questions that keeps it a collective, and that order is not to change."""
     assert not cm.not_a_man("عِدَّةٌ مِنْ أَصْحَابِنَا")
     assert cm.kind_of(["عدة", "من", "اصحابنا"], False) == "collective"
+
+
+def test_an_abbreviated_blessing_ends_the_name():
+    """«حدثني أبي ره» is al-Ṣadūq's father with «رحمه الله» shortened to two letters. Read as
+    a name it was the commonest unresolved step in the corpus, 460 of them."""
+    found = kinds("حدثني أَبِي ره عن سَعْدِ بْنِ عَبْدِ اللَّهِ")
+    assert ("relative", "أَبِي") in found
+    assert not any("ره" in t for _, t in found)
+
+
+def test_a_persian_yeh_is_the_last_letter_of_a_name():
+    """ی sits outside the ء-ي block, so the span's tail trimmer took it for punctuation and
+    «أَبِی» was cut to «أَبِ», which is nobody. The Qom editions are typeset with it."""
+    found = kinds("حدثني أَبِی ره عن مُحَمَّدِ بْنِ یَحْیَی")
+    assert ("relative", "أَبِی") in found
+    assert ("name", "مُحَمَّدِ بْنِ یَحْیَی") in found

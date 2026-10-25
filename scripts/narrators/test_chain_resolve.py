@@ -94,3 +94,33 @@ def test_a_name_the_exact_key_finds_is_untouched():
 def test_an_imams_name_is_not_widened_to_a_narrator():
     data = index(man("n1", "موسى بن جعفر البغدادي"))
     assert read(data, "ابيه موسى بن جعفر")[0] == [("none", "")]
+
+
+def imams_read(data, *texts):
+    """The outcome and Imam for each step of one chain."""
+    mentions = [{"text": t, "kind": "name", "start": 0, "end": len(t)} for t in texts]
+    rows = cr.resolve_chain(mentions, data, "ʿUyūn akhbār al-Riḍā", {}, "")
+    return [(row["outcome"], row.get("imam_id") or row.get("person_id", "")) for row in rows]
+
+
+def test_a_father_and_a_son_in_two_links_are_the_imams():
+    """The golden chain, written out with no blessing on any step. «موسى بن جعفر» alone went
+    to the narrator of that name, and the five steps behind it were left with nobody."""
+    data = index(man("n1", "موسى بن جعفر البغدادي", "موسى بن جعفر"))
+    assert imams_read(data, "موسى بن جعفر", "ابيه جعفر بن محمد", "ابيه محمد بن علي",
+                      "ابيه علي بن الحسين") == [
+        ("chosen", "i07"), ("chosen", "i06"), ("chosen", "i05"), ("chosen", "i04")]
+
+
+def test_one_full_name_on_its_own_is_still_the_narrator():
+    """Nothing above may be read off a single link: it is the pair that settles it."""
+    data = index(man("n1", "موسى بن جعفر البغدادي", "موسى بن جعفر"))
+    assert imams_read(data, "موسى بن جعفر") == [("one", "n1")]
+
+
+def test_a_title_with_a_full_name_needs_no_blessing():
+    """«الصادق جعفر بن محمد» says the laqab and the nasab both, and no narrator answers to
+    the pair; bare «جعفر بن محمد» is several men and is left alone."""
+    data = index(man("n1", "جعفر بن محمد بن يونس", "جعفر بن محمد"))
+    assert imams_read(data, "الصادق جعفر بن محمد") == [("one", "i06")]
+    assert imams_read(data, "جعفر بن محمد") == [("one", "n1")]

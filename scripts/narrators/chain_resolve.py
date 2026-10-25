@@ -712,6 +712,29 @@ COMPILERS_FATHER = {
 # so the resolver called it `one` 23 times in Mishkāt al-Anwār. It is listed, not guessed:
 # the candidates are widened to every man who carries the kunya, and only a neighbour the
 # books pair with one of them (`support`) can choose between them.
+def names_imam(folded, imam):
+    """Whether a chain's words name this one of the fourteen, in full or shortened.
+
+    `identify` answers for the forms that name him *and nobody else*; this answers the
+    looser question, asked only where the chain has already said whose father this is.
+    «محمد بن علي» is a narrator's name a hundred times over, and it is al-Bāqir's name in
+    the one place where the link before it is al-Ṣādiq and the span opens «أبيه».
+    """
+    if not folded or imam not in imams.BY_ID:
+        return False
+    entry = imams.BY_ID[imam]
+    return any(same_name(folded, form)
+               for form in (key(entry["name_ar"]), *entry["exact"]))
+
+
+def read_as_imam(row, imam, because):
+    """Make one chain step one of the fourteen, dropping whatever the narrators made of it."""
+    row["kind"], row["target"], row["outcome"], row["imam_id"] = "imam", "imam", "chosen", imam
+    row["because"] = because
+    for gone in ("person_id", "candidates", "backed"):
+        row.pop(gone, None)
+
+
 SHARED_KUNYA = {
     "ابي بصير": ("n000902", "n030321"),
     "ابو بصير": ("n000902", "n030321"),
@@ -854,6 +877,50 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
             row["because"] = "the books file the narrator beside him with this Imam"
         else:
             row["outcome"], row["candidates"] = "several", list(found)
+
+    for position in range(len(rows) - 1):
+        # Two links that can only be the Imams: a full name the roster knows, and behind it
+        # «أبيه» with the name of that man's father. al-Ṣadūq writes the golden chain out
+        # this way, every step in full and not a blessing anywhere in it, and «موسى بن
+        # جعفر» at the head of it was going to Mūsā b. Jaʿfar al-Baghdādī, a narrator filed
+        # under the same two words — which left «أبيه جعفر بن محمد» and the five steps
+        # behind it with nobody at all. One full name is not enough to read the roster off.
+        # A father and a son in consecutive links are: no two narrators in these chains
+        # carry an Imam's name and his father's in that order.
+        row, after = rows[position], rows[position + 1]
+        if row["kind"] not in ("name", "imam") or after["kind"] != "name":
+            continue
+        tokens = keys[position + 1].split()
+        if len(tokens) < 3 or tokens[0] not in RELATIVE_LEADING:
+            continue
+        son = imams.identify(keys[position])
+        father = imams.FATHER_OF.get(son[0]) if len(son) == 1 else ""
+        if not father or not names_imam(" ".join(tokens[1:]), father):
+            continue
+        read_as_imam(row, son[0], "his son is named in the link behind him")
+        read_as_imam(after, father, f"the father of {imams.BY_ID[son[0]]['name_en']}")
+
+    for position, row in enumerate(rows):
+        # «أبيه موسى بن جعفر» — the relative word stayed inside the span and behind it is one
+        # of the fourteen written out in full. A bare full name is never read off the roster,
+        # because «موسى بن جعفر» is a narrator of that name as well; it is read here because
+        # the link before this one is the Imam whose father the span claims to be, and no
+        # narrator satisfies both halves at once. This is also what tells «أبيه علي بن
+        # الحسين» apart in its two readings: the fourth Imam where al-Bāqir stands before it,
+        # and al-Ṣadūq's own father where nobody does.
+        if row["kind"] != "name" or row["outcome"] != "none" or not position:
+            continue
+        tokens = keys[position].split()
+        if len(tokens) < 3 or tokens[0] not in RELATIVE_LEADING:
+            continue
+        before = rows[position - 1].get("imam_id") or ""
+        for _ in range(2 if tokens[0] in ("جده", "جدي") else 1):
+            before = imams.FATHER_OF.get(before, "")
+        if not before or not names_imam(" ".join(tokens[1:]), before):
+            continue
+        kin = "grandfather" if tokens[0] in ("جده", "جدي") else "father"
+        read_as_imam(row, before, f"the {kin} of "
+                     f"{imams.BY_ID[rows[position - 1]['imam_id']]['name_en']}")
 
     for position, row in enumerate(rows):
         if row.get("kind") not in ("name", "imam"):

@@ -175,3 +175,24 @@ CHAIN_FORMS = {
     "ابي الحسن الاول", "ابي الحسن الثاني", "ابي الحسن الثالث", "ابي جعفر الثاني",
     "ابي جعفر الباقر", "ابي عبد الله الصادق", "ابي الحسن موسي", "ابي الحسن الماضي",
 }
+
+
+def _carries_a_title(form, titles):
+    """Whether a roster form holds one of the hand-written chain forms as a run of its words."""
+    words = form.split()
+    for title in titles:
+        said = title.split()
+        if len(words) <= len(said):
+            continue
+        if any(words[at:at + len(said)] == said for at in range(len(words) - len(said) + 1)):
+            return True
+    return False
+
+
+# A full name is not written above, because «جعفر بن محمد» really is several men. A full name
+# that carries one of those forms with it is a different thing: «الصادق جعفر بن محمد» and
+# «أبي عبد الله جعفر بن محمد» say the title and the nasab both, and no narrator answers to the
+# pair. So every roster form holding a hand-written one among its words is read as a chain
+# form too, blessing or no blessing, and `identify` still decides which of the fourteen it is.
+CHAIN_FORMS |= {form for imam in ROSTER for form in imam["exact"]
+                if _carries_a_title(form, tuple(CHAIN_FORMS))}

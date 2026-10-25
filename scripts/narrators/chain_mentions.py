@@ -53,8 +53,12 @@ _NOT_ARABIC = re.compile(r"[^ء-ي]")
 # too long. 1,006 runs were lost that way.
 WORD = re.compile(r"[^\s\u200b-\u200f\u202a-\u202e\u2066-\u2069:\[\]()]+")
 
-# The tail of a link should be the last letter of the name, not the comma after it.
-_TRAILING = re.compile(r"[^ء-يًٌٍَُِّْٰ]+$")
+# The tail of a link should be the last letter of the name, not the comma after it. The
+# Persian letters _FOLD knows about are letters here too: ی sits at U+06CC, outside the
+# ء-ي block, so a Qom-typeset «أَبِی ره» had its last letter trimmed off as punctuation
+# and the span read «أَبِ», which is nobody. 427 chain heads in al-Sadūq's books and the
+# «محمد بن یحیی» of Thawāb al-Aʿmāl were cut short that way.
+_TRAILING = re.compile(r"[^ء-يیکۀەھٱًٌٍَُِّْٰ]+$")
 
 # Words that join one name to the next, or end the chain. None of them is part of a name.
 JOINERS = {
@@ -101,6 +105,11 @@ ALIAS = {"المعروف", "والمعروف", "المعروفة", "يعرف", "
 BLESSINGS = {
     "عليه", "عليها", "عليهم", "عليهما", "السلام", "صلى", "واله", "وسلم", "وعلى", "رضي",
     "رحمه", "تعالى", "ع", "عج", "عليهالسلام", "صلواته", "صلوات", "اجمعين", "لعنه",
+    # The abbreviations a printed edition uses for the same words. Thawab al-A'mal writes
+    # «حدثني أبي ره» where another edition writes «حدثني أبي رحمه الله», and with «ره»
+    # unknown the cutter read «أبي ره» as a name, which names nobody: 460 steps of
+    # al-Saduq's own father, the commonest single unresolved name in the corpus.
+    "ره", "قدس", "سره",
 }
 
 # Not all of them say the same thing. «عليه السلام» is said of an Imam and of nobody else
