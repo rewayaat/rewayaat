@@ -1,6 +1,7 @@
 <!--
   The bookcase on the home page and on /books: every book standing face-out on a wall
-  ledge in its own cover, sized by its number of narrations, its name on the wall below.
+  ledge in its own cover, turned to show its spine, sized by its number of narrations,
+  its name on the wall below. Iron brackets hold each ledge at its two ends.
 
   Expects ${shelf} (BookShelf.arrange) in the model. `limit` is how many books a phone
   shows before the "show all" toggle; 0 shows them all. Rows hold five books, four on a
@@ -16,9 +17,10 @@
            th:classappend="${limit > 0 and it.index >= limit} ? 'shelf-book--overflow' : ''"
            th:style="|${item.style};--c5:${it.index % 5};--c4:${it.index % 4};--c2:${it.index % 2}|">
             <div class="shelf-book__stand">
-                <span class="shelf-book__glow" aria-hidden="true"></span>
                 <div class="shelf-book__slot"><div class="shelf-book__body">
-                    <span class="shelf-book__block" aria-hidden="true"></span>
+                    <!-- The spine is cut from the book's own cover, so its leather and border match. -->
+                    <span class="shelf-book__spine" aria-hidden="true"
+                          th:style="${item.hasCover} ? |--cover:url(/img/books/covers/${book.slug}-400.webp)| : ''"></span>
                     <th:block th:if="${item.hasCover}">
                         <img class="shelf-book__front"
                              th:src="@{/img/books/covers/{s}-400.webp(s=${book.slug})}"
@@ -39,6 +41,7 @@
                       aria-hidden="true"></span>
             </div>
             <div class="shelf-book__lip">
+                <span class="shelf-book__bracket" aria-hidden="true"></span>
                 <span class="shelf-book__plate">
                     <span class="shelf-book__title" th:text="${isArabic} ? (${book.nameAr} ?: ${book.name}) : ${book.name}">Al-Kafi</span>
                     <span class="shelf-book__count"><span th:text="${#numbers.formatInteger(book.count, 0, 'COMMA')}">14,242</span> <span th:text="#{books.card.narrations}">narrations</span></span>
@@ -50,7 +53,7 @@
              th:style="|--c5:${n % 5 + i};--c4:${n % 4 + i};--c2:${n % 2 + i}|"
              th:classappend="|${(5 - n % 5) % 5 > i ? 'shelf-gap--5' : ''} ${(4 - n % 4) % 4 > i ? 'shelf-gap--4' : ''} ${n % 2 > i ? 'shelf-gap--2' : ''}|">
             <div class="shelf-book__stand"><div class="shelf-book__slot"></div></div>
-            <div class="shelf-book__lip"></div>
+            <div class="shelf-book__lip"><span class="shelf-book__bracket"></span></div>
         </div>
     </div>
 </div>
