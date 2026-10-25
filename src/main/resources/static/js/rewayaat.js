@@ -5052,9 +5052,10 @@ function setupVue(query, page, sortFields) {
                 });
                 return seen.join(',');
             },
+            // The rail badge counts what the panel draws, not the steps the cutter called
+            // names: a chain written out as the fourteen showed 3 beside "9 links".
             namedInChain: function(narration) {
-                var people = (narration && narration.chain_people) || [];
-                return people.filter(function(one) { return one && one.k === 'name'; }).length;
+                return this.chainOf(narration).length;
             },
             identifiedInChain: function(narration) {
                 return this.countInChain(narration, 'man');

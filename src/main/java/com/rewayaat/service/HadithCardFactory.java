@@ -249,7 +249,11 @@ public class HadithCardFactory {
             row.put("chainEndsInBody", ends);
         }
         row.put("chain", links);
-        row.put("chainNamed", named);
+        // The rail badge used to count only the steps the cutter called names, so a chain
+        // written out as the fourteen — every step of it an Imam — showed 3 beside a panel
+        // whose first words are "9 links". The badge counts what the panel draws.
+        row.put("chainNamed", links.size());
+        row.put("chainNames", named);
         row.put("chainIdentified", identified);
         row.put("chainNotFound", notFound);
         row.put("chainGroups", groups);
