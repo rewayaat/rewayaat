@@ -31,9 +31,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * to one of those is correct English rather than a leak.
  *
  * <p>Named {@code …IntegrationTest} because it boots the application and walks real
- * pages, which needs a live Elasticsearch. That suffix is what the CI workflow excludes
- * — a runner has no Elasticsearch — so under any other name this would fail there and
- * block the deploy rather than guard anything.
+ * pages, which needs a live Elasticsearch. CI runs it: the workflow passes
+ * {@code -Dtestcontainers.enabled=true}, which is what makes {@link TestElasticsearch}
+ * start one, and excludes nothing but {@code HodaAlQuranQualityCheck}. The suffix is a
+ * statement about what the test needs, not an exemption from the gate.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class ArabicLinksStayArabicIntegrationTest extends ElasticsearchTestSupport {
