@@ -438,7 +438,11 @@ public class BookPageController {
                 "edition", "publisher", "notes");
         List<String> fields = new ArrayList<>(List.of(
                 "number", "english", "arabic", "volume", "topic_tags", "llm_similar",
-                "chain_people"));
+                // chain_links / chain_links_en are the spans that turn the names inside the
+                // printed isnad into links. Without them the card still draws its RIJAL
+                // panel from chain_people, so the omission read as "the panel works, the
+                // chain is plain text" rather than as a missing field.
+                "chain_people", "chain_links", "chain_links_en"));
         for (String field : translated) {
             fields.add(field);
             fields.add(field + "_ar");
