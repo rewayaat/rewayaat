@@ -46,6 +46,11 @@ public class NarratorController {
     @Autowired
     private com.rewayaat.service.ProminentNarrators prominent;
 
+    // Which of the Fourteen an id names, for the two client surfaces that would otherwise
+    // read «kind: imam» and call the Prophet an Imam.
+    @Autowired
+    private com.rewayaat.service.Honorifics honorifics;
+
     /**
      * The little the preview card needs, and nothing else.
      *
@@ -128,6 +133,12 @@ public class NarratorController {
             if (narrator.get(field) != null) {
                 brief.put(field, narrator.get(field));
             }
+        }
+        // Prophet, Imam or Fāṭima — the index files all three as «imam» and the card and
+        // the chain panel each need to say which.
+        String house = honorifics.houseOf(narrator.get("person_id"));
+        if (house != null) {
+            brief.put("house", house);
         }
         // The seal's ring and the card's footer: narrations his name stands in.
         brief.put("chains", prominent.chainsOf(String.valueOf(narrator.get("person_id"))));

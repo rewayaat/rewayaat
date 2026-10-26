@@ -116,8 +116,17 @@
         var said = link.querySelector("[data-rijal-said]");
         var life = link.querySelector("[data-rijal-life]");
         if (imam) {
-            show(who, t("rijal.imam", "Imam") + " " + name(brief)
-                + " (" + t("rijal.salutation", "") + ")");
+            // «Imam The Prophet Muḥammad (a.s.)» — the index files all fourteen as «imam»,
+            // and this line read that one field. The Prophet is not an Imam, Fāṭima is not
+            // an Imam, and the Prophet takes the ṣalawāt rather than «ʿalayhi al-salām».
+            // The server says which of the three; the bundles say what each is called. A
+            // title or a salutation that is empty for this house is left off, not printed
+            // as a stray space or an empty bracket.
+            var house = brief.house || "imam";
+            var title = t("rijal.house.title." + house, house === "imam" ? "Imam" : "");
+            var salute = t("rijal.house.salutation." + house, "");
+            show(who, (title ? title + " " : "") + name(brief)
+                + (salute ? " (" + salute + ")" : ""));
             return;
         }
         // On the English site the display name is the Latin reading beneath the Arabic

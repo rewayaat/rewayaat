@@ -250,9 +250,12 @@
             : t("narrators.preview.says", arabic() ? "ما تقوله الكتب" : "What the books say");
         // An Imam gets the same block with the reason there is no word in it, in the same
         // sentence the rijāl panel uses beside a chain.
+        // Prophet, Imam or Fāṭima: three different sentences, because only twelve of the
+        // fourteen are Imams and the card should not tell a reader otherwise.
+        var house = man.house || "imam";
         var says = imamOf(man)
-            ? '<p class="pv__imam">' + escaped(t("rijal.imam.note",
-                arabic() ? "الكتب لا تحكم على الأئمة" : "The books do not grade the Imams")) + "</p>"
+            ? '<p class="pv__imam">' + escaped(t("rijal.house.note." + house,
+                arabic() ? "الكتب لا تحكم على أهل البيت" : "The books do not grade the Ahl al-Bayt")) + "</p>"
             : '<div class="pv__rows">' + saidRows(man) + "</div>" + caveat;
         var chains = man.chains
             ? '<b>' + escaped(digits(Number(man.chains).toLocaleString(arabic() ? "ar" : "en"))) + "</b> "

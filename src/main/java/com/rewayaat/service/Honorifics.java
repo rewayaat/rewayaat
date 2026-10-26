@@ -29,6 +29,10 @@ public class Honorifics {
     private static final String PROPHET_AR =
             "صلى الله عليه وآله";
 
+    /** The two of the Fourteen who are not Imams, by the roster's ids. */
+    private static final String PROPHET_ID = "i00";
+    private static final String LADY_ID = "i13";
+
     /** Every form the narrator index actually stores, in both scripts, and Fāṭima. */
     private static final Map<String, String> EN = Map.ofEntries(
             Map.entry("the Prophet", PROPHET_EN),
@@ -62,6 +66,34 @@ public class Honorifics {
             Map.entry("المهدي", IMAM_AR),
             Map.entry("فاطمة", LADY_AR),
             Map.entry("الزهراء", LADY_AR));
+
+    /**
+     * Which of the Fourteen a narrator id names: {@code prophet}, {@code imam},
+     * {@code lady}, or null for a narrator.
+     *
+     * <p>The index files all fourteen under {@code kind: "imam"}, which is true of twelve
+     * of them. The Prophet is not an Imam and neither is Fāṭima, and every page that read
+     * that one field was calling them one — «Imam The Prophet Muḥammad (a.s.)» beside a
+     * chain, over a name that takes the ṣalawāt and not «ʿalayhi al-salām». The ids are
+     * assigned by the hand-kept roster in {@code scripts/narrators/imams.py} and are the
+     * only place the three are distinguishable, so the reading of them lives here, beside
+     * the salutations it governs, and the wording hangs off it in the bundles.
+     */
+    public String houseOf(Object personId) {
+        String id = personId == null ? "" : personId.toString().trim();
+        if (PROPHET_ID.equals(id)) {
+            return "prophet";
+        }
+        if (LADY_ID.equals(id)) {
+            return "lady";
+        }
+        if (id.length() == 3 && id.charAt(0) == 'i' && Character.isDigit(id.charAt(1))
+                && Character.isDigit(id.charAt(2))) {
+            int ordinal = Integer.parseInt(id.substring(1));
+            return ordinal >= 1 && ordinal <= 12 ? "imam" : null;
+        }
+        return null;
+    }
 
     /** One name, saluted if it is one of the Fourteen and left alone if it is not. */
     public String of(Object name, boolean arabic) {

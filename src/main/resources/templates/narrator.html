@@ -29,7 +29,14 @@
              column with the width of the panel empty beside it. -->
         <div class="rijal__head">
             <div class="rijal__names">
-            <div class="hub-hero__eyebrow" th:text="#{narrator.eyebrow}">Narrator</div>
+            <!-- «NARRATOR» over the Prophet's name was the plainest version of this page's
+                 one mistake: the index files all fourteen as «imam» and none of them is a
+                 narrator in the sense this word carries. Each of the three says what he or
+                 she is; everyone else is a narrator. -->
+            <div class="hub-hero__eyebrow"
+                 th:with="house=${@honorifics.houseOf(narrator['person_id'])}"
+                 th:text="${house != null ? #messages.msg('narrator.house.eyebrow.' + house)
+                                          : #messages.msg('narrator.eyebrow')}">Narrator</div>
             <h1 class="hub-hero__title" dir="rtl" lang="ar" th:text="${displayAr}">اسم الراوي</h1>
             <!-- Not on an Arabic page: «زرارة بن أعين» followed by «Zurarah ibn A'yan» is
                  a transliteration serving a reader who does not need one. -->
@@ -82,8 +89,14 @@
             <!-- The Imams hold no entry in any rijal book, because no rijali assesses the man
                  he is assessing narrators for. Their pages say so rather than reading as a man
                  nobody troubled to grade. -->
-            <p class="hub-hero__imam-note" th:if="${narrator['kind'] == 'imam'}"
-               th:text="#{narrator.imam.note}">The rijal books do not assess the Imams.</p>
+            <!-- th:with on a block around it, never beside the th:if: Thymeleaf runs th:if
+                 first and the variable would still be null, which is how the «rests on»
+                 note below went a release without ever rendering. -->
+            <th:block th:with="house=${@honorifics.houseOf(narrator['person_id'])}">
+                <p class="hub-hero__imam-note" th:if="${house != null}"
+                   th:text="${#messages.msg('narrator.house.note.' + house)}">The rijal books
+                    do not assess the Imams.</p>
+            </th:block>
         </div>
 
         <!-- The generations and the facts share the foot of the panel, which is where the
@@ -995,10 +1008,12 @@
             and page it should follow.</span>
     </div>
 
-    <p class="narrator-provenance" th:if="${narrator['kind'] == 'imam'}"
-       th:text="#{narrator.provenance.imam}">
-        This page is not assembled from entries. It gathers the chains that name him.
-    </p>
+    <th:block th:with="house=${@honorifics.houseOf(narrator['person_id'])}">
+        <p class="narrator-provenance" th:if="${house != null}"
+           th:text="${#messages.msg('narrator.house.provenance.' + house)}">
+            This page is not assembled from entries. It gathers the chains that name him.
+        </p>
+    </th:block>
     <p class="narrator-provenance" th:if="${narrator.mention_count > 0 and narrator['kind'] != 'imam'}"
        th:text="#{narrator.provenanceWithMentions(${@localeDigits.of(narrator.entry_count)},
                  ${@localeDigits.of(narrator.mention_count)})}">
