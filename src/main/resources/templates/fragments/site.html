@@ -211,7 +211,7 @@
                      th:src="@{/img/hdb-emblem.webp}" class="brand-logo--emblem"
                      width="300" height="304" alt="The Hadith Database"/>
             </a>
-            <div th:replace="~{fragments/site :: navlinks('books')}"></div>
+            <div th:replace="~{fragments/site :: navlinks(${navCurrent} ?: 'books')}"></div>
             <div th:replace="~{fragments/site :: navsearch}"></div>
 
             <!-- The same auth block the home page carries, down to the element ids, so a
@@ -219,7 +219,8 @@
                  here rather than an apparently signed-out site. -->
             <div class="menu-context-row ms-auto">
                 <div class="d-flex gap-2 top-actions flex-nowrap">
-                    <button class="btn btn-dark btn-sm top-action auth-action" id="authSignInBtn" type="button">
+                    <button th:unless="${navCurrent == 'signin'}"
+                            class="btn btn-dark btn-sm top-action auth-action" id="authSignInBtn" type="button">
                         <i class="fa fa-right-to-bracket" aria-hidden="true"></i>
                         <span class="auth-action__label" th:text="#{nav.signin}">Sign In</span>
                     </button>

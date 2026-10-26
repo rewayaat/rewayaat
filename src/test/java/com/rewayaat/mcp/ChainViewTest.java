@@ -344,4 +344,27 @@ class ChainViewTest {
         assertEquals("unidentified", step.get("status"));
         assertNull(step.get("narrator"));
     }
+
+    @Test
+    void aNameOtherMenAnswerToDoesNotClaimOnlyOneManBearsIt() {
+        // `one` says one man is filed under the name, which is not the same as one man
+        // bearing it: «يونس» is a three-line notice's whole heading and an alias of Yunus
+        // b. Abd al-Rahman. The resolver counts the others into `a`.
+        Map<String, Object> source = Map.of("chain_people", List.of(
+                Map.of("p", "n1", "s", 0, "e", 5, "t", "يونس", "g", "yunus",
+                        "k", "name", "o", "one", "a", 3),
+                Map.of("p", "n2", "s", 9, "e", 14, "t", "حماد", "g", "hammad",
+                        "k", "name", "o", "one")));
+        Map<String, Object> isnad = ChainView.isnad(source, "en", Map.of(), BASE);
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> steps = (List<Map<String, Object>>) isnad.get("steps");
+
+        assertEquals("filed_under", steps.get(0).get("basis"));
+        assertEquals("sole_name", steps.get(1).get("basis"),
+                "a step with no `a` is a name no other man answers to");
+        @SuppressWarnings("unchecked")
+        Map<String, String> legend = (Map<String, String>) isnad.get("legend");
+        assertTrue(legend.get("filed_under").contains("other men's entries mention"),
+                "the legend must say what the weaker claim rests on: " + legend);
+    }
 }

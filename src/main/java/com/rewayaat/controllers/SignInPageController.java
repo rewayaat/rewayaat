@@ -27,6 +27,9 @@ public class SignInPageController {
     @GetMapping("/signin.html")
     public String signIn(Model model, HttpServletRequest request) {
         PageLocale.of(request).applyTo(model, "/signin.html");
+        // The shared header marks the page it is on and hides its own Sign In control here,
+        // where the reader is already looking at the form it would send them to.
+        model.addAttribute("navCurrent", "signin");
         return "signin";
     }
 }
