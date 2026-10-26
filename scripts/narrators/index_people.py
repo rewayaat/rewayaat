@@ -1410,58 +1410,7 @@ def document(person, source, headless):
             rests_on = "late"
 
     anchor = source.get(person.get("anchor")) or {}
-    display = (anchor.get("primary_english_name") or person.get("primary_english_name")
-               or anchor.get("primary_arabic_name") or "He")
 
-    # The blurb a reader wants before the eight entries: when he lived, where, and where the
-    # books leave him. It is assembled from the statements below it and says nothing they do
-    # not — the books are named, so a reader can see whose judgment each clause carries.
-    said = []
-    if imams_named:
-        said.append(f"{display} kept company with " + join_names(imams_named))
-    elif life["city"]:
-        said.append(f"{display} was of {life['city']}")
-    if life["city"] and imams_named:
-        said.append(f"and was of {life['city']}")
-    if life["died"]:
-        said.append((f"and died in {life['died']} AH") if said
-                    else f"{display} died in {life['died']} AH")
-    where = ""
-    if standing == "disputed":
-        where = ("The books are divided about him: " + join_names(sorted(for_him))
-                 + (" hold" if len(for_him) > 1 else " holds") + " him reliable, while "
-                 + join_names(sorted(against_him))
-                 + (" weaken" if len(against_him) > 1 else " weakens") + " him.")
-    elif standing == "trusted":
-        where = join_names(sorted(for_him)) + (" hold" if len(for_him) > 1 else " holds") + \
-            " him reliable."
-    elif standing == "weakened":
-        where = join_names(sorted(against_him)) + (" weaken" if len(against_him) > 1 else " weakens") + \
-            " him."
-    blurb = ((" ".join(said) + ". ") if said else "") + where
-
-    display_ar = anchor.get("primary_arabic_name") or person.get("primary_arabic_name")
-    said_ar = []
-    if imams_named_ar:
-        said_ar.append((display_ar + " " if display_ar else "") + "من أصحاب "
-                       + join_names_ar(imams_named_ar))
-    elif life["city_ar"]:
-        said_ar.append((display_ar + " من " if display_ar else "من ") + life["city_ar"])
-    if life["city_ar"] and imams_named_ar:
-        said_ar.append("وكان من " + life["city_ar"])
-    if life["died_ar"]:
-        said_ar.append(("وتوفي سنة " + life["died_ar"] + " هـ") if said_ar
-                       else ((display_ar + " " if display_ar else "") + "توفي سنة "
-                             + life["died_ar"] + " هـ"))
-    where_ar = ""
-    if standing == "disputed":
-        where_ar = ("اختلفت فيه الكتب: يوثّقه " + join_names_ar(for_him_ar)
-                    + "، ويضعّفه " + join_names_ar(against_him_ar) + ".")
-    elif standing == "trusted" and for_him_ar:
-        where_ar = "يوثّقه " + join_names_ar(for_him_ar) + "."
-    elif standing == "weakened" and against_him_ar:
-        where_ar = "يضعّفه " + join_names_ar(against_him_ar) + "."
-    blurb_ar = (("، ".join(said_ar) + ". ") if said_ar else "") + where_ar
     def key_of(book, pages):
         """Which of this man's records a statement was read from."""
         same = [k for k in keys if k.split(":")[0] == book]
@@ -1571,6 +1520,59 @@ def document(person, source, headless):
         made = bool(display_en)
     if display_ar == nasab_ar:
         nasab_ar = None
+
+    # The blurb opens on the man's name, so it is written after the heading is settled: it
+    # used to recite the whole nasab a second time, directly under the line that already
+    # shows it.
+    display = display_en or display_ar or "He"
+    # The blurb a reader wants before the eight entries: when he lived, where, and where the
+    # books leave him. It is assembled from the statements below it and says nothing they do
+    # not — the books are named, so a reader can see whose judgment each clause carries.
+    said = []
+    if imams_named:
+        said.append(f"{display} kept company with " + join_names(imams_named))
+    elif life["city"]:
+        said.append(f"{display} was of {life['city']}")
+    if life["city"] and imams_named:
+        said.append(f"and was of {life['city']}")
+    if life["died"]:
+        said.append((f"and died in {life['died']} AH") if said
+                    else f"{display} died in {life['died']} AH")
+    where = ""
+    if standing == "disputed":
+        where = ("The books are divided about him: " + join_names(sorted(for_him))
+                 + (" hold" if len(for_him) > 1 else " holds") + " him reliable, while "
+                 + join_names(sorted(against_him))
+                 + (" weaken" if len(against_him) > 1 else " weakens") + " him.")
+    elif standing == "trusted":
+        where = join_names(sorted(for_him)) + (" hold" if len(for_him) > 1 else " holds") + \
+            " him reliable."
+    elif standing == "weakened":
+        where = join_names(sorted(against_him)) + (" weaken" if len(against_him) > 1 else " weakens") + \
+            " him."
+    blurb = ((" ".join(said) + ". ") if said else "") + where
+
+    said_ar = []
+    if imams_named_ar:
+        said_ar.append((display_ar + " " if display_ar else "") + "من أصحاب "
+                       + join_names_ar(imams_named_ar))
+    elif life["city_ar"]:
+        said_ar.append((display_ar + " من " if display_ar else "من ") + life["city_ar"])
+    if life["city_ar"] and imams_named_ar:
+        said_ar.append("وكان من " + life["city_ar"])
+    if life["died_ar"]:
+        said_ar.append(("وتوفي سنة " + life["died_ar"] + " هـ") if said_ar
+                       else ((display_ar + " " if display_ar else "") + "توفي سنة "
+                             + life["died_ar"] + " هـ"))
+    where_ar = ""
+    if standing == "disputed":
+        where_ar = ("اختلفت فيه الكتب: يوثّقه " + join_names_ar(for_him_ar)
+                    + "، ويضعّفه " + join_names_ar(against_him_ar) + ".")
+    elif standing == "trusted" and for_him_ar:
+        where_ar = "يوثّقه " + join_names_ar(for_him_ar) + "."
+    elif standing == "weakened" and against_him_ar:
+        where_ar = "يضعّفه " + join_names_ar(against_him_ar) + "."
+    blurb_ar = (("، ".join(said_ar) + ". ") if said_ar else "") + where_ar
 
     return {
         "person_id": person["person_id"],
