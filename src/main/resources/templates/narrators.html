@@ -125,9 +125,14 @@
                                       ? ' +' + ${@localeDigits.of(#lists.size(said['books']) - 1)} : '')">Rijāl al-Najāshī</span>
                     <!-- A verdict that no early rijālī gives, or that rests on a book of
                          disputed ascription, says so here rather than passing as the rest. -->
+                    <!-- The condition cannot read the th:with beside it: Thymeleaf evaluates
+                         th:if first, so «rests» was null here and this note never once rendered
+                         on this page. -->
                     <span class="narrator-result__standing narrator-result__said"
+                          th:if="${found['standing_rests_on'] != null
+                                   and found['standing_rests_on'] != ''
+                                   and found['standing_rests_on'] != 'early'}"
                           th:with="rests=${found['standing_rests_on']}"
-                          th:if="${rests != null and rests != '' and rests != 'early'}"
                           th:text="#{'narrator.standing.restsOn.' + ${rests}}">later only</span>
                 </div>
             </a>

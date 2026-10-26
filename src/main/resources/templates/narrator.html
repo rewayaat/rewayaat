@@ -184,9 +184,11 @@
                 </th:block>
             </span>
             <a class="corpus-band__link" th:href="${chainsUrl}"
+               th:if="${narrator['kind'] != 'imam'
+                        and narrator.teacher_count + narrator.student_count
+                            + (narrator['chain_only_count'] ?: 0) > 0}"
                th:with="chainMen=${narrator.teacher_count + narrator.student_count
                                    + (narrator['chain_only_count'] ?: 0)}"
-               th:if="${narrator['kind'] != 'imam' and chainMen > 0}"
                th:text="${@counts.of(chainMen, 'narrator.reach.chainMen')}">
                 261 men stand with him in the chains →</a>
         </div>
