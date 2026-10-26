@@ -16780,3 +16780,50 @@ div.ledger__cell {
     content: " · ";
     color: var(--text-muted);
 }
+
+/* The way out of an empty column. Where no book names a man's teachers the column used to
+   end on its own note; it now carries a link to the isnād section below, set in the same
+   small muted type as the note it follows so it reads as the rest of that sentence, and
+   gold on the arrow so it is visibly somewhere to go. */
+a.chains__note--to {
+    display: block;
+    margin-top: 0.45rem;
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    color: var(--accent-gold, #c8a23d);
+    text-decoration: none;
+    border-bottom: 1px dotted color-mix(in srgb, var(--accent-gold, #c8a23d) 45%, transparent);
+    padding-bottom: 1px;
+    width: fit-content;
+}
+
+a.chains__note--to:hover,
+a.chains__note--to:focus-visible {
+    border-bottom-style: solid;
+}
+
+/* The lineage under the heading. It is long by nature — twenty-five generations in the worst
+   case — so it is set small, muted and loose, with its label on its own line above it, and
+   it wraps rather than pushing the hero wide. */
+.rijal__nasab {
+    margin: 0.6rem 0 0;
+    max-width: 62ch;
+    font-size: 0.78rem;
+    line-height: 1.8;
+    color: var(--text-muted);
+}
+
+.rijal__nasab-label {
+    display: block;
+    font-family: var(--font-ui);
+    font-size: 0.64rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint, var(--text-muted));
+    margin-bottom: 0.15rem;
+}
+
+[dir="rtl"] .rijal__nasab-label {
+    letter-spacing: normal;
+    text-transform: none;
+}

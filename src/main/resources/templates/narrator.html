@@ -36,6 +36,14 @@
             <p class="hub-hero__also"
                th:if="${!#strings.isEmpty(displayEn) and #locale.language != 'ar'}"
                th:text="${displayEn}">Transliterated name</p>
+            <!-- The lineage, once, where the heading above is the shorter name the books
+                 cite him by. An entry's first line establishes who is being written about,
+                 and al-Najāshī establishes Ibn Adhinah through twenty-five generations to
+                 ʿAdnān; that belongs on the page, but not as the page's name. -->
+            <p class="rijal__nasab" th:if="${!#strings.isEmpty(narrator['nasab_ar'])}">
+                <span class="rijal__nasab-label" th:text="#{narrator.nasab}">The entry opens on his line:</span>
+                <span dir="rtl" lang="ar" th:text="${narrator['nasab_ar']}">نسبه</span>
+            </p>
             </div>
             <!-- The seal says two things a reader cannot guess: the tile's colour is the
                  earliest Imam he transmitted from, and the ring's length is how much of
@@ -607,6 +615,15 @@
                    th:text="#{narrator.chains.noTeachers}">
                     No book names anyone he narrates from.
                 </p>
+                <!-- A zero here is a fact about the rijal books, not about the man, and left on
+                     its own it reads as the second thing. Where no book names a teacher but the
+                     chains put men above him, the note hands the reader the place those men are
+                     listed instead of ending the column. -->
+                <a class="chains__note chains__note--to" th:href="'#same-isnad'"
+                   th:if="${#lists.isEmpty(narrator.narrated_from) and !#lists.isEmpty(narrator.chain_from)}"
+                   th:text="${@counts.of(#lists.size(narrator.chain_from), 'narrator.reach.chainMen')}">
+                    76 men stand with him in the chains &rarr;
+                </a>
                 <ul class="chains__list">
                     <li class="chains__row" th:each="man : ${narrator.narrated_from}">
                         <span class="chains__name"
@@ -637,6 +654,11 @@
                    th:text="#{narrator.chains.noStudents}">
                     No book names anyone who takes from him.
                 </p>
+                <a class="chains__note chains__note--to" th:href="'#same-isnad'"
+                   th:if="${#lists.isEmpty(narrator.narrated_to) and !#lists.isEmpty(narrator.chain_to)}"
+                   th:text="${@counts.of(#lists.size(narrator.chain_to), 'narrator.reach.chainMen')}">
+                    76 men stand with him in the chains &rarr;
+                </a>
                 <ul class="chains__list">
                     <li class="chains__row" th:each="man : ${narrator.narrated_to}">
                         <span class="chains__name"
@@ -765,7 +787,7 @@
         <!-- What the books do not say of him, only show him standing in. Khoei lists the
              chains a man appears in as well as writing him up, and 87% of every link in this
              corpus comes from a list of that kind. It is true and it is a weaker claim. -->
-        <section class="chains__indexed"
+        <section class="chains__indexed" id="same-isnad"
                  th:if="${!#lists.isEmpty(narrator.chain_from) or !#lists.isEmpty(narrator.chain_to)}">
             <h2 class="hub-group__label" th:text="#{narrator.chains.indexedHeading}">
                 Also stands beside him in the chain indexes

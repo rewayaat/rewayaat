@@ -342,6 +342,73 @@ def name_only(heading):
     return heading
 
 
+# A page name and a genealogy are not the same thing. Al-Najāshī opens his entry on Ibn
+# Adhinah with twenty-five generations back to ʿAdnān, because an entry's first line is
+# where a book establishes who it is talking about; every citation after it, al-Najāshī's
+# own included, writes «عمر بن أذينة». Taking the anchor entry's opening line as the man's
+# name put the whole nasab in the page's heading, in its slug, and in every chain list that
+# names him. So: where the anchor's name runs past a nasab's length, the page takes the
+# fullest heading a book actually files him under that still fits, and prints the long form
+# once in the body under his other names.
+NASAB_IS_LONG = 7      # «a bn b bn c bn d» is seven words — a name; eight is a lineage
+HEADING_IS_ENOUGH = 3  # «عمر بن أذينة»: his own name and one link, at the very least
+
+
+def _nasab_links(name):
+    """The names in a nasab, with the «بن» and the prose words between them dropped."""
+    return [normalize_arabic(word) for word in name.split()
+            if word not in NOT_A_NAME_WORD and normalize_arabic(word)]
+
+
+def short_heading(long_name, headings):
+    """The fullest heading among «headings» that names the man without reciting his line.
+
+    A candidate has to be his: it opens on the same ism, and every name in it is a name the
+    long form carries, so «ابن أذينة البصري» — which adds a nisba the nasab never had — is
+    not silently promoted over what the books print. Nothing qualifying means the long form
+    stays: a nasab cut at a point no book cuts it is a name we invented.
+    """
+    words = long_name.split() if long_name else []
+    if len(words) <= NASAB_IS_LONG:
+        return long_name
+    mine = _nasab_links(long_name)
+    if not mine:
+        return long_name
+    best = None
+    for heading in sorted(set(headings), key=lambda h: (-len(h.split()), h)):
+        parts = heading.split()
+        if not HEADING_IS_ENOUGH <= len(parts) <= NASAB_IS_LONG:
+            continue
+        if name_only(heading) != heading:
+            continue
+        links = _nasab_links(heading)
+        if not links or links[0] != mine[0] or not set(links) <= set(mine):
+            continue
+        best = heading
+        break
+    return best or long_name
+
+
+def english_for_heading(arabic, aliases, table):
+    """A book's own spelling of this heading where one exists, else ours.
+
+    Shortening the Arabic strands the English: the anchor's English name is the long form,
+    or in two cases a truncation ending in an ellipsis, which is not a name at all. The
+    spelling a book printed is still better than the one we generate, so the aliases are
+    searched for it first, folded, before falling back to the table.
+    """
+    made = transliterate.english_for(arabic, table)
+    if not made:
+        return None, False
+    def fold(text):
+        return re.sub(r"[^a-z]", "", text.lower())
+    target = fold(made)
+    for alias in aliases:
+        if fold(alias) == target:
+            return alias, False
+    return made, True
+
+
 NOT_A_NAME_WORD = {"بن", "ابن", "أبو", "أبي", "أبا", "ال", "عن", "مولى"}
 
 
@@ -1451,6 +1518,10 @@ def document(person, source, headless):
     # «زرارة بن أعين» and «سهل بن زياد» among them.
     headings_ar = {n["value"] for n in values(person, "primary_names") if n.get("value")}
     headings_ar |= {e["heading_ar"] for e in entries if e.get("heading_ar")}
+    # The anchor's own opening line, explicitly: the heading below may shorten it, and a
+    # search for the lineage, or a chain name resolved against it, must still reach him.
+    headings_ar |= {n for n in (anchor.get("primary_arabic_name"),
+                                person.get("primary_arabic_name")) if n}
     search_ar = searchable(sorted(headings_ar),
                            sorted({n["value"] for n in values(person, "arabic_aliases")
                                    if n.get("value")}), HOLDERS)
@@ -1483,11 +1554,23 @@ def document(person, source, headless):
         whole = [h for h in sorted(headings_ar, key=lambda h: len(h.split()))
                  if 2 <= len(h.split()) and name_only(h) == h]
         display_ar = whole[0] if whole else clean
+    # The whole line, kept for the body: a reader who wants to see the lineage the entry
+    # opens with should not have to take our word that we shortened a real name.
+    nasab_ar = display_ar
+    display_ar = short_heading(display_ar, headings_ar)
     display_en = anchor.get("primary_english_name") or person.get("primary_english_name")
+    if display_en and display_en.rstrip().endswith(("...", "\u2026")):
+        display_en = None      # a truncation, not a name
     made = False
+    if display_ar != nasab_ar:
+        # The Arabic moved to his filing name, so the English follows it rather than going on
+        # reciting a lineage the Arabic beside it no longer does.
+        display_en, made = english_for_heading(display_ar, names_en, TRANSLITERATION)
     if not display_en and display_ar:
         display_en = transliterate.english_for(display_ar, TRANSLITERATION)
         made = bool(display_en)
+    if display_ar == nasab_ar:
+        nasab_ar = None
 
     return {
         "person_id": person["person_id"],
@@ -1498,6 +1581,9 @@ def document(person, source, headless):
         # True where no book printed him an English name and we made one from his Arabic, so
         # a page can say so rather than passing our spelling off as a book's.
         "display_en_made": made,
+        # The anchor entry's opening line, where the heading above is a shorter name a book
+        # files him under. None where the two are the same, so a page can show it or not.
+        "nasab_ar": nasab_ar,
         "anchor_key": person.get("anchor"),
         "slug": slugify(display_en or ""),
         "names_ar": sorted(set(names_ar)),
@@ -1584,6 +1670,7 @@ MAPPING = {
         "display_ar": {"type": "text", "analyzer": "arabic_names",
                        "fields": {"keyword": {"type": "keyword", "ignore_above": 256}}},
         "display_en": {"type": "text", "fields": {"keyword": {"type": "keyword", "ignore_above": 256}}},
+        "nasab_ar": {"type": "text", "analyzer": "arabic_names"},
         "names_ar": {"type": "text", "analyzer": "arabic_names"},
         "headings_ar": {"type": "text", "analyzer": "arabic_names"},
         "search_ar": {"type": "text", "analyzer": "arabic_names"},
