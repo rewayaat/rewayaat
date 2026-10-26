@@ -184,9 +184,9 @@
                 </th:block>
             </span>
             <a class="corpus-band__link" th:href="${chainsUrl}"
-               th:unless="${narrator['kind'] == 'imam'}"
                th:with="chainMen=${narrator.teacher_count + narrator.student_count
                                    + (narrator['chain_only_count'] ?: 0)}"
+               th:if="${narrator['kind'] != 'imam' and chainMen > 0}"
                th:text="${@counts.of(chainMen, 'narrator.reach.chainMen')}">
                 261 men stand with him in the chains →</a>
         </div>
@@ -205,7 +205,8 @@
         <a class="narrator-tab" th:href="${booksUrl}"
            th:classappend="${view == 'books'} ? 'is-active' : ''">
             <span th:text="#{narrator.tab.books}">What the books say</span>
-            <span class="narrator-tab__count" th:text="${@localeDigits.grouped(narrator.entry_count)}">10</span>
+            <span class="narrator-tab__count" th:if="${narrator.entry_count > 0}"
+                  th:text="${@localeDigits.grouped(narrator.entry_count)}">10</span>
         </a>
         <a class="narrator-tab" th:href="${chainsUrl}"
            th:classappend="${view == 'chains'} ? 'is-active' : ''">
@@ -214,13 +215,15 @@
                  Only 1,383 of the 15,518 have one of those at all, so counting them alone
                  printed «0» over a tab holding hundreds of men from the chain indexes. -->
             <span class="narrator-tab__count"
+                  th:if="${narrator.teacher_count + narrator.student_count
+                           + (narrator['chain_only_count'] ?: 0) > 0}"
                   th:text="${@localeDigits.grouped(narrator.teacher_count + narrator.student_count
                                                    + (narrator['chain_only_count'] ?: 0))}">63</span>
         </a>
         <a class="narrator-tab" th:href="${narrationsUrl}"
            th:classappend="${view == 'narrations'} ? 'is-active' : ''">
             <span th:text="#{narrator.tab.narrations}">Narrations</span>
-            <span class="narrator-tab__count"
+            <span class="narrator-tab__count" th:if="${narrationTotal > 0}"
                   th:text="${@localeDigits.grouped(narrationTotal)}">1,504</span>
         </a>
     </nav>
@@ -599,13 +602,24 @@
       evidence than one named in a single chain note.
     -->
     <div th:if="${view == 'chains'}">
+        <!-- The zero problem. «Narrates from 0» is a true count of a particular thing — men a
+             rijal book names as his teacher — and read without that qualification it says the
+             database is empty about a man 83 chains run through. The distinction the whole tab
+             rests on is therefore stated before either column is read, not in a caveat under
+             the last section, and each count carries a line saying what it counts. -->
+        <p class="chains__lead" th:text="#{narrator.chains.lead}">
+            Two kinds of evidence, kept apart.
+        </p>
         <section class="chains">
             <div class="chains__side">
                 <h2 class="hub-group__label">
                     <span th:text="#{narrator.ledger.narratesFrom}">Narrates from</span>
                     <span class="hub-group__note"
+                          th:if="${!#lists.isEmpty(narrator.narrated_from)}"
                           th:text="${@localeDigits.grouped(narrator.teacher_count)}">37</span>
                 </h2>
+                <p class="chains__basis" th:if="${!#lists.isEmpty(narrator.narrated_from)}"
+                   th:text="#{narrator.chains.namedByBook}">named by a book</p>
                 <p class="chains__note" th:if="${#lists.isEmpty(narrator.narrated_from)}"
                    th:text="#{narrator.chains.noTeachers}">
                     No book names anyone he narrates from.
@@ -643,8 +657,11 @@
                 <h2 class="hub-group__label">
                     <span th:text="#{narrator.ledger.narratedTo}">Narrated to</span>
                     <span class="hub-group__note"
+                          th:if="${!#lists.isEmpty(narrator.narrated_to)}"
                           th:text="${@localeDigits.grouped(narrator.student_count)}">26</span>
                 </h2>
+                <p class="chains__basis" th:if="${!#lists.isEmpty(narrator.narrated_to)}"
+                   th:text="#{narrator.chains.namedByBook}">named by a book</p>
                 <p class="chains__note" th:if="${#lists.isEmpty(narrator.narrated_to)}"
                    th:text="#{narrator.chains.noStudents}">
                     No book names anyone who takes from him.
@@ -843,10 +860,6 @@
                 </li>
             </ul>
         </section>
-
-        <p class="chains__caveat" th:text="#{narrator.chains.caveat}">
-            The men above are those a book names as his teachers or his pupils.
-        </p>
     </div>
 
     <!-- The narrations that name him, in the same card the search results and chapter pages
