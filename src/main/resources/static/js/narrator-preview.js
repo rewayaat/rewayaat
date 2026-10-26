@@ -361,7 +361,17 @@
         if (!target || !target.closest) {
             return null;
         }
-        return target.closest("a.chain-name");
+        var name = target.closest("a.chain-name");
+        // The RIJĀL panel beside the chain is itself a preview: every step there opens in
+        // place with the man, what the books say of him and when he lived. A card on top of
+        // that repeats what the reader is already looking at and costs them a dismissal
+        // before they can reach his page, so a name inside the panel is left alone and
+        // behaves as the link it is. In running chain text, where there is no such panel,
+        // the card still earns its place.
+        if (name && name.closest(".rijal__chain")) {
+            return null;
+        }
+        return name;
     }
 
     document.addEventListener("click", function (event) {

@@ -135,7 +135,10 @@
                                 <!-- Bracket notation again: only a link with a man behind it has an href. -->
                                 <!-- «chain-name» is what the preview card binds to, and a
                                      backref points at a narration rather than at a man, so
-                                     it is left off that one. -->
+                                     it is left off that one. Inside this panel the card is
+                                     suppressed anyway — narrator-preview.js lets a name in
+                                     .rijal__chain through to the page, since the panel has
+                                     already said everything the card would. -->
                                 <a class="rijal-link__words arabic-text" dir="rtl" lang="ar"
                                    th:classappend="${link.kind == 'backref'} ? '' : ' chain-name'"
                                    th:if="${link['href'] != null}" th:href="${link['href']}"
