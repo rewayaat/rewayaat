@@ -123,9 +123,18 @@
             // title or a salutation that is empty for this house is left off, not printed
             // as a stray space or an empty bracket.
             var house = brief.house || "imam";
-            var title = t("rijal.house.title." + house, house === "imam" ? "Imam" : "");
-            var salute = t("rijal.house.salutation." + house, "");
-            show(who, (title ? title + " " : "") + name(brief)
+            var called = name(brief);
+            var title = house === "imam" ? t("rijal.imam", "Imam") : "";
+            var salute = house === "imam"
+                ? t("rijal.salutation", "")
+                : t("rijal.salutation." + house, "");
+            // «محمد بن عبد الله صلى الله عليه وآله (صلى الله عليه وآله)» — the index stores
+            // the Prophet's Arabic name with his ṣalawāt already in it, and saying it twice
+            // is not saying it twice over.
+            if (salute && called.indexOf(salute) !== -1) {
+                salute = "";
+            }
+            show(who, (title ? title + " " : "") + called
                 + (salute ? " (" + salute + ")" : ""));
             return;
         }
