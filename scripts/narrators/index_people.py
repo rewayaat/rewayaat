@@ -1754,6 +1754,61 @@ def roster_documents(like):
     return documents
 
 
+def attach_served(doc, beside, by_id):
+    """Put the corpus's own count on a man's isnād rows, and add the men no index names.
+
+    Both halves of «In the same isnād» say the same weak thing — these two stood together
+    in a chain — but they are counted two different ways, because the evidence differs.
+
+    A row a rijālī index already prints takes the unordered count, singletons included:
+    the order is the book's claim and not ours, and the index is the support a lone
+    co-occurrence would otherwise lack. Before this read the directional, floored count,
+    71 of the 11,207 such rows carried a number; 3,301 of them do now.
+
+    A man no index names has nothing behind him but the chains, so the direction is read
+    from them and a single co-occurrence is held back, that being exactly what one
+    mis-resolved name produces.
+
+    Returns (rows given a count, rows the corpus added).
+    """
+    shared = beside.get("beside") or {}
+    marked = placed = 0
+    # Read once, before anything is appended: a man a book already places stays where the
+    # book put him rather than being printed a second time.
+    every_list = tuple(relations_join.RELATION_FIELDS) + ("imams_from", "imams_to")
+    already = {row.get("person_id") for field in every_list
+               for row in (doc.get(field) or []) if row.get("person_id")}
+    for field, side in (("chain_from", "before"), ("chain_to", "after")):
+        counted = beside.get(side) or {}
+        rows = list(doc.get(field) or [])
+        for row in rows:
+            narrations = shared.get(row.get("person_id"))
+            if narrations:
+                # A pairing both the books and the corpus hold. One row, saying so.
+                row["narrations"] = narrations
+                marked += 1
+        for pid, narrations in sorted(counted.items(), key=lambda s: (-s[1], s[0])):
+            man = by_id.get(pid)
+            if pid in already or not man:
+                continue
+            rows.append({
+                "name": man.get("display_en"), "name_ar": man.get("display_ar"),
+                "display_en": man.get("display_en"),
+                "display_ar": man.get("display_ar"),
+                "person_id": pid, "slug": man.get("slug"),
+                "books": [], "books_ar": [], "narrations": narrations,
+                "kind": "chain", "stated": False, "unsaid": False,
+            })
+            placed += 1
+        doc[field] = rows
+    # The count under his name reads «N men stand with him in the chains», built from these
+    # two lists. It is set when the document is built, before any of this, so it has to be
+    # taken again or the headline undercounts what the page goes on to print.
+    doc["chain_only_count"] = (len(doc.get("chain_from") or [])
+                               + len(doc.get("chain_to") or []))
+    return marked, placed
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -1897,44 +1952,13 @@ def main():
                   f"stay book-only", file=sys.stderr)
         by_id = {d["person_id"]: d for d in documents if d.get("person_id")}
         placed = marked = 0
-        every_list = tuple(relations_join.RELATION_FIELDS) + ("imams_from", "imams_to")
         for doc in documents:
             beside = seen_here.get(doc.get("person_id"))
             if not beside:
                 continue
-            # Read once, before anything is appended: a man a book already places stays
-            # where the book put him rather than being printed a second time.
-            already = {row.get("person_id") for field in every_list
-                       for row in (doc.get(field) or []) if row.get("person_id")}
-            for field, side in (("chain_from", "before"), ("chain_to", "after")):
-                counted = beside[side]
-                rows = list(doc.get(field) or [])
-                for row in rows:
-                    narrations = counted.get(row.get("person_id"))
-                    if narrations:
-                        # A pairing both the books and the corpus hold. One row, saying so.
-                        row["narrations"] = narrations
-                        marked += 1
-                for pid, narrations in sorted(counted.items(), key=lambda s: (-s[1], s[0])):
-                    man = by_id.get(pid)
-                    if pid in already or not man:
-                        continue
-                    rows.append({
-                        "name": man.get("display_en"), "name_ar": man.get("display_ar"),
-                        "display_en": man.get("display_en"),
-                        "display_ar": man.get("display_ar"),
-                        "person_id": pid, "slug": man.get("slug"),
-                        "books": [], "books_ar": [], "narrations": narrations,
-                        "kind": "chain", "stated": False, "unsaid": False,
-                    })
-                    placed += 1
-                doc[field] = rows
-            # The count under his name reads «N men stand with him in the chains», built
-            # from these two lists. It is set when the document is built, before any of
-            # this, so it has to be taken again or the headline undercounts what the page
-            # goes on to print.
-            doc["chain_only_count"] = (len(doc.get("chain_from") or [])
-                                       + len(doc.get("chain_to") or []))
+            was_marked, was_placed = attach_served(doc, beside, by_id)
+            marked += was_marked
+            placed += was_placed
         counts["isnad rows the books also hold, now counted here too"] = marked
         counts["men the corpus puts beside him that no index names"] = placed
     for label, n in counts.most_common():

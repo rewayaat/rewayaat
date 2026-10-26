@@ -13,7 +13,9 @@ printed chain, consecutive spans are a man and the man he took from. Counting th
 over the whole corpus gives, for each narrator, who came immediately before and after him
 and in how many narrations.
 
-Two deliberate limits:
+Two deliberate limits, both of them on the men no book index names at all — where an
+index has named the pairing, `beside` reports it whatever the corpus says about the order
+and however few times it holds it:
 
 * A pairing seen in a single narration is not reported. Half of them are singletons, and a
   single pair is exactly what one mis-resolved name produces; the ones worth printing are
@@ -89,8 +91,18 @@ def build(host="http://localhost:9200", index="rewayaat_hadith",
                        if v >= least and not k.startswith(IMAM_PREFIX)}
         kept_after = {k: v for k, v in after[who].items()
                       if v >= least and not k.startswith(IMAM_PREFIX)}
-        if kept_before or kept_after:
-            out[who] = {"before": kept_before, "after": kept_after}
+        # And the same pairings with both limits lifted: every man the corpus ever stands
+        # next to him, which way round and how often not asked. Neither limit holds once a
+        # rijālī index has named the pairing itself. The order is then the book's claim and
+        # not ours — the books put ʿAlī b. al-Ḥasan b. Faḍḍāl above Aḥmad b. Muhammad b.
+        # Saʿīd where the corpus has him below, 51 times — and a lone co-occurrence is no
+        # longer an unsupported singleton, because the index is the support.
+        beside = Counter()
+        beside.update(before[who])
+        beside.update(after[who])
+        beside = {k: v for k, v in beside.items() if not k.startswith(IMAM_PREFIX)}
+        if kept_before or kept_after or beside:
+            out[who] = {"before": kept_before, "after": kept_after, "beside": beside}
     return out, steps
 
 
