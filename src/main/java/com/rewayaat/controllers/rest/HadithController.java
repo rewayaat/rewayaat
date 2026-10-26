@@ -165,7 +165,10 @@ public class HadithController {
                 strictMatchMode,
                 0,
                 topicTags,
-                topicTagsAny).result();
+                topicTagsAny)
+                // so an isnād link on the Arabic site stays on the Arabic site
+                .withLinkPrefix(request == null ? "" : PageLocale.of(request).prefix())
+                .result();
         // Recorded after the answer exists, so the result count is part of the row and a
         // search that found nothing is as visible as a popular one. Never before: a reader
         // waits on the search, not on us keeping notes about it.
@@ -256,12 +259,17 @@ public class HadithController {
             @Parameter(name = "per_page", description = "Number of similar hadith to include per page.")
             @RequestParam(value = "per_page", defaultValue = "8", required = false) int perPage,
             @Parameter(name = "all", description = "If true, returns the full similar-hadith collection.", required = false)
-            @RequestParam(value = "all", defaultValue = "false", required = false) boolean all) throws Exception {
+            @RequestParam(value = "all", defaultValue = "false", required = false) boolean all,
+            @Parameter(name = "lang", description = "The site language the caller is reading, so the narrator links in each chain stay inside it.", required = false)
+            @RequestParam(value = "lang", defaultValue = "", required = false) String lang) throws Exception {
         if (page < 1) {
             page = 1;
         }
+        // The panel is filled by an XHR to a path with no /ar prefix on it, so the language
+        // has to be asked for. Anything else means English, which is the site's default.
+        String linkPrefix = "ar".equals(lang) ? "/ar" : "";
         if (all) {
-            return similarHadithService.findSimilar(id, 0, Integer.MAX_VALUE);
+            return similarHadithService.findSimilar(id, 0, Integer.MAX_VALUE, linkPrefix);
         }
         if (perPage > 25) {
             perPage = 25;
@@ -269,7 +277,7 @@ public class HadithController {
         if (perPage < 0) {
             perPage = 0;
         }
-        return similarHadithService.findSimilar(id, page - 1, perPage);
+        return similarHadithService.findSimilar(id, page - 1, perPage, linkPrefix);
     }
 
     @CrossOrigin(origins = { "*" }, allowCredentials = "false")

@@ -1,0 +1,116 @@
+#!/usr/bin/env python3
+"""Records whose heading is a name lifted out of a chain clause about somebody else.
+
+Khoei's Mu'jam indexes narrations as well as men. Among its profiles are entries whose whole
+text is one relation — «وروى عنه إسماعيل بن مرار», «روى عن ابن بكير، وروى عنه القاسم بن
+يحيى» — about a subject the entry never names. The extraction took the only name present,
+the one inside the clause, and made it the heading. The record then looks like a biography of
+that man and is not one: it is a note that he transmitted to or from somebody else.
+
+They are not entries, and `is_entry` already keeps them off the page. They are still attached
+to people as mentions, so they bring their teachers and students into the chains tab and the
+ledger's counts, and the accuracy audit judges them as if they were entries — fourteen of the
+fifteen strays the audit found in its hardest band were records of this kind, which is why
+that band read 81.8% against 98.2% for the entries a reader actually sees.
+
+The test is deliberately narrow, because two looser ones failed on inspection: the whole body
+is a single short relation clause, and this record's own heading stands inside it. A normal
+rijal sentence like Ardabili's «روى عنه التلعكبري وسمع منه سنة ٣٦٥» names the transmitter and
+not the subject, so it does not match; an entry that mentions its own man later in a long
+passage does not match either. Twenty drawn at random were all of the intended shape.
+
+Writes tmp/narrators_sources/<book>_relation_stub.json, read by build_people.relation_stubs.
+
+Usage:
+    python3 scripts/narrators/find_relation_stubs.py --dry-run
+    python3 scripts/narrators/find_relation_stubs.py
+"""
+import argparse
+from collections import Counter, defaultdict
+import glob
+import json
+import os
+import random
+import re
+import sys
+
+W = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
+sys.path.insert(0, f'{W}/scripts/narrators')
+from identity import write_json_atomic  # noqa: E402
+from narrator_schema import normalize_arabic  # noqa: E402
+
+TMP = f'{W}/tmp'
+# «روى عنه», «وروى عن», «يروي عنه» — the clause opens on the relation and nothing else
+RELATION = re.compile(r"^\s*(?:و?روى\s+عنه?\b|و?يروي\s+عنه?\b)")
+MAX_BODY = 80
+
+
+def body_of(profile):
+    for item in profile.get("source_assessments") or []:
+        text = (item.get("assessment_ar") or "").strip()
+        if text:
+            return text
+    return ""
+
+
+def is_relation_stub(profile):
+    """Its whole text is one relation clause, and the heading it was given sits inside it."""
+    heading = profile.get("primary_arabic_name") or ""
+    if len(heading.split()) < 2:
+        # a one-word heading is too weak a signal: it matches inside almost any clause
+        return False
+    body = body_of(profile)
+    if not body or len(body) > MAX_BODY or not RELATION.match(body):
+        return False
+    return normalize_arabic(heading) in normalize_arabic(body)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--normalized-dir", default=os.path.join(TMP, "narrators_normalized"))
+    parser.add_argument("--out-dir", default=os.path.join(TMP, "narrators_sources"))
+    parser.add_argument("--sample", type=int, default=0, help="print N at random, to read them")
+    parser.add_argument("--dry-run", action="store_true", help="count, write nothing")
+    args = parser.parse_args()
+
+    found, counts = defaultdict(list), Counter()
+    for path in sorted(glob.glob(os.path.join(args.normalized_dir, "*.json"))):
+        book = os.path.basename(path)[:-5]
+        with open(path) as handle:
+            profiles = json.load(handle)
+        if not isinstance(profiles, list):
+            continue
+        for profile in profiles:
+            if not isinstance(profile, dict) or "source_index" not in profile:
+                continue
+            counts["profiles read"] += 1
+            if is_relation_stub(profile):
+                found[book].append({"source_key": f"{book}:{profile['source_index']}",
+                                    "heading": profile.get("primary_arabic_name"),
+                                    "text": body_of(profile)})
+    total = sum(len(v) for v in found.values())
+    print(f"  {counts['profiles read']:7,}  profiles read")
+    print(f"  {total:7,}  are a relation clause naming their own heading")
+    for book, rows in sorted(found.items(), key=lambda kv: -len(kv[1])):
+        print(f"      {len(rows):6,}  {book}")
+
+    if args.sample:
+        random.seed(7)
+        pool = [r for rows in found.values() for r in rows]
+        print(f"\n{min(args.sample, len(pool))} at random, to read:")
+        for row in random.sample(pool, min(args.sample, len(pool))):
+            print(f"  {row['source_key']:15s} «{row['heading']}»")
+            print(f"      «{row['text'][:95]}»")
+
+    if args.dry_run:
+        return
+    os.makedirs(args.out_dir, exist_ok=True)
+    for book, rows in found.items():
+        path = os.path.join(args.out_dir, f"{book}_relation_stub.json")
+        write_json_atomic(path, sorted(rows, key=lambda r: r["source_key"]), indent=1)
+        print(f"wrote {len(rows):6,} -> {path}")
+
+
+if __name__ == "__main__":
+    main()

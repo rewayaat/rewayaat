@@ -1,0 +1,116 @@
+{
+ "i01": {
+  "person_id": "i01",
+  "display_ar": "علي بن أبي طالب",
+  "display_en": "ʿAlī ibn Abī Ṭālib",
+  "slug": "ali-ibn-abi-talib"
+ },
+ "i05": {
+  "person_id": "i05",
+  "display_ar": "محمد بن علي الباقر",
+  "display_en": "Muḥammad al-Bāqir",
+  "slug": "muhammad-al-baqir"
+ },
+ "i06": {
+  "person_id": "i06",
+  "display_ar": "جعفر بن محمد الصادق",
+  "display_en": "Jaʿfar al-Ṣādiq",
+  "slug": "jafar-al-sadiq"
+ },
+ "n000034": {
+  "person_id": "n000034",
+  "display_ar": "إبراهيم بن هاشم",
+  "display_en": "Ibrahim ibn Hashim",
+  "slug": "ibrahim-ibn-hashim"
+ },
+ "n000093": {
+  "person_id": "n000093",
+  "display_ar": "الحسن بن علي بن زياد الوشاء",
+  "display_en": "Al-Hasan ibn 'Ali ibn Ziyad al-Washa'",
+  "slug": "al-hasan-ibn-ali-ibn-ziyad-al-washa"
+ },
+ "n000098": {
+  "person_id": "n000098",
+  "display_ar": "الحسن بن موسى الخشاب",
+  "display_en": "al-Hasan ibn Musa al-Khashshab",
+  "slug": "al-hasan-ibn-musa-al-khashshab"
+ },
+ "n000170": {
+  "person_id": "n000170",
+  "display_ar": "الحسين بن محمد بن عمران بن أبى بكر الاشعري القمي",
+  "display_en": "Al-Husayn ibn Muhammad ibn 'Imran ibn Abi Bakr al-Ash'ari al-Qummi",
+  "slug": "al-husayn-ibn-muhammad-ibn-imran-ibn-abi-bakr-al-ashari-al-q"
+ },
+ "n000706": {
+  "person_id": "n000706",
+  "display_ar": "علي بن إبراهيم بن هاشم",
+  "display_en": "Ali ibn Ibrahim ibn Hashim",
+  "slug": "ali-ibn-ibrahim-ibn-hashim"
+ },
+ "n000966": {
+  "person_id": "n000966",
+  "display_ar": "محمد بن أحمد بن يحيى بن عمران بن عبد الله بن سعد بن مالك",
+  "display_en": "Muhammad ibn Ahmad ibn Yahya ibn Imran ibn Abdallah ibn Sa'd ibn Malik",
+  "slug": "muhammad-ibn-ahmad-ibn-yahya-ibn-imran-ibn-abdallah-ibn-sad-"
+ },
+ "n000974": {
+  "person_id": "n000974",
+  "display_ar": "محمد بن الحسن بن فروخ الصفار",
+  "display_en": "Muhammad ibn al-Hasan ibn Furukh al-Saffar",
+  "slug": "muhammad-ibn-al-hasan-ibn-furukh-al-saffar"
+ },
+ "n001068": {
+  "person_id": "n001068",
+  "display_ar": "محمد بن الحسن بن أحمد بن الوليد",
+  "display_en": "Muhammad ibn al-Hasan ibn Ahmad ibn al-Walid",
+  "slug": "muhammad-ibn-al-hasan-ibn-ahmad-ibn-al-walid"
+ },
+ "n001142": {
+  "person_id": "n001142",
+  "display_ar": "معلى بن محمد",
+  "display_en": "Mu'alla ibn Muhammad",
+  "slug": "mualla-ibn-muhammad"
+ },
+ "n001239": {
+  "person_id": "n001239",
+  "display_ar": "يعقوب بن يزيد بن حماد الانباري السلمي",
+  "display_en": "Ya'qub ibn Yazid ibn Hammad al-Anbari al-Sulami",
+  "slug": "yaqub-ibn-yazid-ibn-hammad-al-anbari-al-sulami"
+ },
+ "n015846": {
+  "person_id": "n015846",
+  "display_ar": "علي بن أبي حمزة - واسم أبي حمزة سالم - البطائني أبو الحسن مولى الانصار",
+  "display_en": "ʿAlī b. Abī Ḥamza",
+  "slug": "ali-b-abi-hamza"
+ },
+ "n029388": {
+  "person_id": "n029388",
+  "display_ar": "الحسين بن يزيد بن محمد بن عبد الملك النوفلي نوفل النخع",
+  "display_en": "al-Husayn ibn Zayd al-Nawfali",
+  "slug": "al-husayn-ibn-zayd-al-nawfali"
+ },
+ "n030321": {
+  "person_id": "n030321",
+  "display_ar": "يحيى بن أبي القاسم أبي بصير ويحيى بن القاسم الحذاء",
+  "display_en": "Yahya ibn Abi al-Qasim al-Hadda'",
+  "slug": "yahya-ibn-abi-al-qasim-al-hadda"
+ },
+ "n034836": {
+  "person_id": "n034836",
+  "display_ar": "محمد بن يحيى أبو جعفر العطار القمي",
+  "display_en": "Muhammad ibn Yahya al-'Attar",
+  "slug": "muhammad-ibn-yahya-al-attar"
+ },
+ "n036590": {
+  "person_id": "n036590",
+  "display_ar": "اسماعيل بن ابي زياد السكوني",
+  "display_en": "Ismail ibn Abi Ziyad al-Sakuni",
+  "slug": "ismail-ibn-abi-ziyad-al-sakuni"
+ },
+ "n069052": {
+  "person_id": "n069052",
+  "display_ar": "محمد بن عيسى بن عبيد اليقطيني",
+  "display_en": "Muhammad ibn Isa ibn Ubayd al-Yaqutini",
+  "slug": "muhammad-ibn-isa-ibn-ubayd-al-yaqutini"
+ }
+}

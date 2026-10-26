@@ -56,4 +56,23 @@ public class LocaleDigits {
         }
         return out.toString();
     }
+
+    /**
+     * A whole number grouped in thousands, in the page's own digits and separator.
+     *
+     * <p>«4915» is a string of digits a reader has to count; «4,915» he reads at a glance.
+     * Arabic groups the same way but marks it with ٬ (U+066C), not an ASCII comma, which in
+     * Arabic script reads as a stray Latin mark between two numerals. The grouping is done
+     * first on the western digits and the mark swapped after, so English keeps its comma.
+     */
+    public String grouped(Object value) {
+        if (value == null) {
+            return null;
+        }
+        String western = value instanceof Number number
+                ? String.format("%,d", number.longValue())
+                : String.valueOf(value);
+        String localised = of(western);
+        return localised.equals(western) ? western : localised.replace(',', '\u066c');
+    }
 }

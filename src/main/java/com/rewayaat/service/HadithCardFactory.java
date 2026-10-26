@@ -1,7 +1,9 @@
 package com.rewayaat.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rewayaat.core.ChainLinks;
 import com.rewayaat.core.HadithDisplaySegmenter;
+import com.rewayaat.core.ImamInBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
@@ -14,6 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Shapes one narration for the shared hadith card.
@@ -77,9 +80,19 @@ public class HadithCardFactory {
         row.put("number", number);
         String bookLabel = localised(source, "book", book, locale);
         row.put("label", (bookLabel + (number.isBlank() ? "" : " #" + number)).trim());
-        row.put("englishChain", str(segmented.get("englishChain")));
+        // The isnād carries a link on each name whose man the rijāl books identify; the
+        // spans were measured against this same segmenter's output (see ChainLinks).
+        Object chainLinks = source.get("chain_links");
+        // English is what most readers of this site see, and its links are not resolved a
+        // second time: the English chain was aligned against the Arabic one name for name,
+        // so a name carries the man the Arabic name in the same place was given and the two
+        // languages cannot disagree about the same isnād (see chain_links_en.py).
+        Object chainLinksEn = source.get("chain_links_en");
+        row.put("englishChain", ChainLinks.render(str(segmented.get("englishChain")),
+                chainLinksEn, locale.prefix()));
         row.put("english", firstNonBlank(str(segmented.get("englishContent")), str(source.get("english"))));
-        row.put("arabicChain", str(segmented.get("arabicChain")));
+        row.put("arabicChain", ChainLinks.render(str(segmented.get("arabicChain")),
+                chainLinks, locale.prefix()));
         row.put("arabic", firstNonBlank(str(segmented.get("arabicContent")), str(source.get("arabic"))));
         row.put("notes", notesFor(source, locale));
         row.put("metadata", metadataRows(source, number, locale));
@@ -87,6 +100,7 @@ public class HadithCardFactory {
         row.put("tagSlugs", tagSlugs(source));
         row.put("similarCount", source.get("llm_similar") instanceof List<?> l ? l.size() : 0);
         row.put("shareUrl", baseUrl + "/hadith/" + id);
+        addChain(row, source.get("chain_people"), str(row.get("arabic")), locale);
         // The generated share card, in the two themes the share menu offers. Dark is the
         // default and is what og:image points at; light exists for the newsletter, whose
         // templates are white.
@@ -95,6 +109,190 @@ public class HadithCardFactory {
                 "english", stripHtml(str(source.get("english"))),
                 "arabic", stripHtml(str(source.get("arabic"))))));
         return row;
+    }
+
+    /**
+     * The isnād as the rijāl panel draws it: one entry per link, in the order the chain
+     * says them, with the counts the panel's summary line is made of.
+     *
+     * <p>Nothing here is worked out from the narration text. The resolver decided offline
+     * who each phrase is and stored the answer as {@code chain_people}; this only sorts
+     * those answers into the four kinds of link the panel draws differently. A narration
+     * with no {@code chain_people} gets an empty list and no panel, rather than a panel
+     * that says it knows nothing.
+     *
+     * <p>A relative («أبيه») the resolver named a man for is drawn as that man. One it did
+     * not is drawn as an unidentified name, because that is what it is to a reader: a
+     * step in the chain that no book holds an entry for.
+     *
+     * <p>{@code open} marks a link whose connector to the one below is dashed, which is
+     * every step that touches a collective or an unidentified man on either side. The weak
+     * joint is a property of the pair, not of one link, so it is decided here once and the
+     * stylesheet only draws it.
+     */
+    private static void addChain(Map<String, Object> row, Object stored, String body,
+                                 PageLocale locale) {
+        List<Map<String, Object>> links = new ArrayList<>();
+        int identified = 0;
+        int notFound = 0;
+        int groups = 0;
+        int several = 0;
+        int imams = 0;
+        int named = 0;
+        if (stored instanceof List<?> items) {
+            for (Object item : items) {
+                if (!(item instanceof Map<?, ?> raw)) {
+                    continue;
+                }
+                String words = str(raw.get("t"));
+                if (words.isBlank()) {
+                    continue;
+                }
+                String person = str(raw.get("p"));
+                String slug = str(raw.get("g"));
+                String declared = str(raw.get("k"));
+                String kind;
+                List<Map<String, String>> candidates = candidatesOf(raw.get("c"), locale);
+                // A pointer inside a quoted chain. Muḥsinī's Muʿjam prints «[231/2] الكافي:»
+                // and then al-Kāfī's own isnād, so its «وعنه» reaches back inside al-Kāfī,
+                // where this book has printed nothing. There is no narration here to link
+                // it to, so the step names the book that holds the answer instead.
+                String quotedFrom = str(raw.get("qf"));
+                if (!quotedFrom.isBlank()) {
+                    Map<String, Object> quoted = new LinkedHashMap<>();
+                    quoted.put("words", words);
+                    quoted.put("kind", "backref");
+                    quoted.put("person", "");
+                    quoted.put("weak", false);
+                    quoted.put("quotedFrom", quotedFrom);
+                    links.add(quoted);
+                    continue;
+                }
+                // «وبهذا الإسناد» — the chain above, repeated. Not a man and not an
+                // unnamed one either: it points at a narration, and the step says which.
+                if ("backref_chain".equals(declared)) {
+                    Map<String, Object> back = new LinkedHashMap<>();
+                    back.put("words", words);
+                    back.put("kind", "backref");
+                    back.put("person", "");
+                    back.put("weak", false);
+                    String refers = str(raw.get("r"));
+                    if (!refers.isBlank()) {
+                        back.put("href", locale.prefix() + "/hadith/" + refers);
+                        back.put("number", str(raw.get("rn")));
+                    }
+                    links.add(back);
+                    continue;
+                }
+                if ("collective".equals(declared)) {
+                    kind = "collective";
+                    groups++;
+                } else if ("imam".equals(declared) && !person.isBlank()) {
+                    // Counted on his own. Nobody grades an Imam, so he is not one of the
+                    // men the rijāl books identified; left out of every count, though, the
+                    // summary stopped adding up — a chain of the fourteen written out in
+                    // full read "9 links · 1 identified · 3 not found".
+                    kind = "imam";
+                    imams++;
+                } else if (!person.isBlank()) {
+                    kind = "man";
+                    identified++;
+                } else if (!candidates.isEmpty()) {
+                    // The resolver found two to nine men of this name and would not pick
+                    // one. That is not "not found", and counting it as such told the reader
+                    // nobody was known when several men were; it is its own kind and count.
+                    kind = "several";
+                    several++;
+                } else {
+                    kind = "unknown";
+                    notFound++;
+                }
+                if ("name".equals(declared)) {
+                    named++;
+                }
+                // An undecided step is open like an unidentified one: the joint is not known.
+                boolean open = "collective".equals(kind) || "unknown".equals(kind)
+                        || "several".equals(kind);
+                Map<String, Object> link = new LinkedHashMap<>();
+                link.put("words", words);
+                link.put("kind", kind);
+                link.put("person", person);
+                link.put("weak", open);
+                if (!person.isBlank() && !"collective".equals(kind)) {
+                    link.put("href", locale.prefix() + "/narrator/" + person
+                            + (slug.isBlank() ? "" : "/" + slug));
+                }
+                if ("several".equals(kind)) {
+                    link.put("candidates", candidates);
+                    String refused = str(raw.get("rf"));
+                    if (!refused.isBlank()) {
+                        link.put("refused", refused);
+                    }
+                }
+                links.add(link);
+            }
+        }
+        for (int i = 0; i < links.size(); i++) {
+            boolean below = i + 1 < links.size() && (Boolean) links.get(i + 1).get("weak");
+            links.get(i).put("open", (Boolean) links.get(i).get("weak") || below);
+        }
+        // Where the isnād does not name an Imam, the narration itself often does: «… قال:
+        // سمعت أبا عبد الله جعفر بن محمد عليهما السلام يقول». The report rests on him
+        // either way, and a panel that stopped at the last narrator was showing a chain
+        // that looked truncated. He is not added as a step — he is not in the chain, and
+        // the counts above are counts of the chain — but the panel says where it ends.
+        Map<String, String> ends = ImamInBody.endsInBody(stored, body, locale.prefix());
+        if (ends != null) {
+            if (locale.isArabic()) {
+                ends.put("words", ends.get("wordsAr"));
+            }
+            row.put("chainEndsInBody", ends);
+        }
+        row.put("chain", links);
+        // The rail badge used to count only the steps the cutter called names, so a chain
+        // written out as the fourteen — every step of it an Imam — showed 3 beside a panel
+        // whose first words are "9 links". The badge counts what the panel draws.
+        row.put("chainNamed", links.size());
+        row.put("chainNames", named);
+        row.put("chainIdentified", identified);
+        row.put("chainNotFound", notFound);
+        row.put("chainGroups", groups);
+        row.put("chainSeveral", several);
+        row.put("chainImams", imams);
+        row.put("chainIds", links.stream().map(l -> str(l.get("person")))
+                .filter(v -> !v.isBlank()).distinct().collect(Collectors.joining(",")));
+    }
+
+    /**
+     * The men an undecided step could be, each with the page that would settle it. Built
+     * the way a {@code man} link is, so a candidate lands on the same URL the identified
+     * step would have. Anything without a person id is skipped; a name the index could not
+     * supply falls back to the id rather than an empty link.
+     */
+    private static List<Map<String, String>> candidatesOf(Object stored, PageLocale locale) {
+        List<Map<String, String>> found = new ArrayList<>();
+        if (!(stored instanceof List<?> items)) {
+            return found;
+        }
+        for (Object item : items) {
+            if (!(item instanceof Map<?, ?> raw)) {
+                continue;
+            }
+            String person = str(raw.get("p"));
+            if (person.isBlank()) {
+                continue;
+            }
+            String slug = str(raw.get("g"));
+            String name = str(raw.get("n"));
+            Map<String, String> candidate = new LinkedHashMap<>();
+            candidate.put("person", person);
+            candidate.put("name", name.isBlank() ? person : name);
+            candidate.put("title", str(raw.get("h")));
+            candidate.put("href", locale.prefix() + "/narrator/" + person
+                    + (slug.isBlank() ? "" : "/" + slug));
+            found.add(candidate);
+        }
+        return found;
     }
 
     /**
@@ -231,15 +429,9 @@ public class HadithCardFactory {
 
     private static String reportHref(String id, String book, String number, String baseUrl) {
         String descriptor = (book + (number.isBlank() ? "" : " #" + number)).trim();
-        String subject = "Hadith Report: " + (descriptor.isBlank() ? "Hadith " + id : descriptor);
-        String body = String.join("\n",
-                "Please review the hadith linked below.", "",
-                "Hadith link: " + baseUrl + "/hadith/" + id,
-                "Hadith id: " + id, "",
-                "Issue summary:", "- ", "",
-                "What seems incorrect:", "- ", "",
-                "Suggested correction (optional):", "- ");
-        return "mailto:rewayaat.org@gmail.com?subject=" + encode(subject) + "&body=" + encode(body);
+        return "/contact?about=narration&id=" + encode(id)
+                + "&label=" + encode(descriptor.isBlank() ? "Hadith " + id : descriptor)
+                + "&url=" + encode(baseUrl + "/hadith/" + id);
     }
 
     private String write(Object value) {

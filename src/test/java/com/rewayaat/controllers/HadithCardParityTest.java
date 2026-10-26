@@ -449,9 +449,8 @@ class HadithCardParityTest {
 
     @Test
     void bothCardsOfferTheSameSidecarPanels() throws IOException {
-        Set<String> server = matches(SERVER_PANEL, read(SERVER_CARD));
+        Set<String> server = new java.util.TreeSet<>(matches(SERVER_PANEL, read(SERVER_CARD)));
         Set<String> search = matches(SEARCH_PANEL, readSearchCard());
-
         assertEquals(server, search,
                 "the two cards offer different sidecar panels.\n"
                         + "  server card: " + server + "\n"

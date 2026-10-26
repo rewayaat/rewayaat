@@ -158,6 +158,28 @@
     <div id="browseMeta" class="browse-meta text-muted"></div>
 </section>
 
+<!-- The same shape as Browse by Book, for the other way into the corpus: by the men who
+     carried it. Ranked by the narrations their names actually stand in, counted from the
+     chain links, so the order is a fact with a number beside it rather than a judgement of
+     ours. The Imams are left out: al-Ṣādiq stands in more chains than anyone and is the
+     source they run to, not a narrator among them. -->
+<section class="home-narrators" id="narrators" th:if="${!#lists.isEmpty(prominentNarrators)}">
+    <div class="home-section-header">
+        <div>
+            <h2 class="home-section-title" th:text="#{home.browseByNarrator}">Browse by Narrator</h2>
+            <p class="home-section-subtitle"
+               th:with="all=|<a href=&quot;${arPrefix}/narrators&quot;>${#messages.msg('home.seeAllNarrators')}</a>|"
+               th:utext="#{home.narratorSubtitle(${all})}">The men these books lean on most, by the
+               narrations they carry, or <a href="/narrators">search every narrator</a>.</p>
+        </div>
+    </div>
+    <div class="browse-narrator-list">
+        <th:block th:each="man, it : ${prominentNarrators}">
+            <th:block th:replace="~{fragments/narrator-card :: card(${man}, ${it.count})}"></th:block>
+        </th:block>
+    </div>
+</section>
+
 <section class="home-updates" id="updates">
     <div class="home-section-header">
         <div>

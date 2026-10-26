@@ -1,0 +1,47 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  One narrator card, for Browse by Narrator on the home page and on the narrators hub, so
+  the two cannot drift. It carries what a reader wants before opening the page: who he is
+  (the seal and the names), what the books say of him in their own word, and how much rests
+  on him. The standing is never ours: a man the books divide on shows one word from each
+  side, and a man the books mention without judging shows «مهمل», not a blank.
+  Sahl b. Ziyad: thiqa (al-Tusi) against da'if and da'if jiddan (al-Fihrist, al-Najashi).
+  Ibrahim b. Hashim: 4,056 narrations, four books, no word at all.
+-->
+<a class="ncard" th:fragment="card(man, place)"
+   th:href="@{${arPrefix} + '/narrator/' + ${man.person_id} + '/' + ${man.slug}}"
+   th:title="${man.full}">
+    <span class="ncard__rank" aria-hidden="true" th:text="${@localeDigits.of(place)}">1</span>
+    <span class="ncard__seal"
+          th:utext="${@seals.of(man.person_id, man.display_ar, man.ordinals, man.chains, 44)}"></span>
+    <span class="ncard__ar" dir="rtl" lang="ar" th:text="${man.name}">زرارة بن أعين</span>
+    <!-- Only the English site carries the Latin reading. -->
+    <span class="ncard__en" th:if="${man['latin'] != null}" th:text="${man.latin}">Zurarah ibn A'yan</span>
+    <span class="ncard__stand">
+        <th:block th:if="${#lists.isEmpty(man.words)}">
+            <!-- Muhmal: the books hold him and state no word. Said in full, so it reads as a
+                 finding about the record and not as a card that failed to load. -->
+            <span class="word word--none" th:text="#{narrator.standing.unstatedBrief}">مهمل · mentioned, no judgement</span>
+        </th:block>
+        <th:block th:unless="${#lists.isEmpty(man.words)}">
+            <span class="word" th:each="w : ${man.words}" th:classappend="'word--' + ${w.leaning}">
+                <b dir="rtl" lang="ar" th:text="${w.arabic ?: w.word}">ثقة</b>
+                <span th:if="${w.gloss != null and !man['divided']}" th:text="${w.gloss}">trustworthy</span>
+            </span>
+            <span class="whose" th:if="${man['divided']}" th:text="#{narrators.card.divide}">the books divide</span>
+            <span class="whose" th:unless="${man['divided']}"
+                  th:with="w=${man.words[0]}"
+                  th:text="${w.book} + (${w.more} > 0 ? ' +' + ${@localeDigits.of(w.more)} : '')">Rijāl al-Najāshī</span>
+        </th:block>
+    </span>
+    <span class="ncard__foot">
+        <span class="ncard__count"
+              th:text="${@counts.of(man.chains, 'home.narratorChains')}">911 chains</span>
+        <span class="ncard__books"
+              th:text="${@counts.of(man.book_count, 'narrators.books')}">4 books</span>
+    </span>
+</a>
+</body>
+</html>

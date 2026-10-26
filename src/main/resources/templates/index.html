@@ -46,7 +46,13 @@
     <link href="/css/noty.css" rel="stylesheet" th:href="@{/css/noty.css}"/>
     <link href="/css/manuscript.css" rel="stylesheet" th:href="@{/css/manuscript.css}"/>
     <link href="/css/bookshelf.css" rel="stylesheet" th:href="@{/css/bookshelf.css}"/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600;700&family=Scheherazade+New:wght@400;700&family=Aref+Ruqaa+Ink:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap"
+    <!-- In the head, not in the home-content fragment where it used to sit. That
+         fragment is inside #welcome, which Vue owns: on a search page Vue takes the
+         section down and the <link> went with it, so the narrator strip over a set of
+         results was styled by manuscript.css alone and the cards in it never turned
+         navy. A stylesheet has no business living inside a reactive subtree. -->
+    <link href="/css/narrator-cards.css" rel="stylesheet" th:href="@{/css/narrator-cards.css}"/>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Literata:opsz,wght@7..72,400;7..72,500;7..72,600;7..72,700&family=Cormorant+Garamond:wght@500;600;700&family=Scheherazade+New:wght@400;700&family=Aref+Ruqaa+Ink:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap"
           rel="stylesheet"/>
     <link href="/css/pace.css" rel="stylesheet" th:href="@{/css/pace.css}"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
@@ -76,6 +82,7 @@
                      the navbar carries the field itself, which is what the link was
                      standing in for. -->
                 <a href="#browse" class="home-nav-link"><i class="fa fa-layer-group" aria-hidden="true"></i><span th:text="#{nav.browse}">Browse</span></a>
+                <a href="/narrators" th:href="@{${arPrefix} ?: '' } + '/narrators'" class="home-nav-link"><i class="fa fa-users" aria-hidden="true"></i><span th:text="#{nav.rijal}">Rijāl</span></a>
                 <a href="/updates.html" th:href="@{${arPrefix} ?: '' } + '/updates.html'" class="home-nav-link"><i class="fa fa-bolt" aria-hidden="true"></i><span th:text="#{nav.updates}">Updates</span></a>
             </div>
 	        <div id="queryBar" class="navbar-search">
@@ -156,6 +163,43 @@
 <section id="hadithView" class="mb-4" v-cloak>
     <div class="hadith-layout">
         <div class="hadith-content">
+        <!-- A search for a person, answered as a person. «Sahl b. Ziyad» used to return two
+             thousand narrations he stands in and no way to ask who he was; the strip appears
+             only when the query names a man the Rijal books head, and says where they leave
+             him before the narrations start. -->
+        <div class="narrator-strip" v-if="narratorMatches.length">
+            <div class="narrator-strip__label">
+                {{ t(narratorMatches.length === 1 ? 'js.narratorStrip.one' : 'js.narratorStrip.many',
+                     narratorMatches.length === 1 ? 'A narrator by this name' : 'Narrators by this name') }}
+            </div>
+            <div class="narrator-strip__cards">
+                <a class="narrator-strip__card" v-for="narrator in narratorMatchesShown"
+                   :key="narrator.person_id" :href="narratorUrl(narrator)">
+                    <div class="narrator-strip__name" dir="rtl" lang="ar">{{ narrator.display_ar }}</div>
+                    <!-- The Arabic site stays Arabic: the Latin reading is for the English one. -->
+                    <div class="narrator-strip__name-en" v-if="narrator.display_en && !arabicSite">{{ narrator.display_en }}</div>
+                    <div class="narrator-strip__meta">
+                        <!-- The book's own word, as everywhere else: «ثقة», not a
+                             standing this site worked out and wrote in its own voice. -->
+                        <span class="narrator-strip__standing"
+                              :class="'narrator-strip__standing--' + saidOf(narrator).leaning"
+                              v-if="saidOf(narrator).word">
+                            {{ saidOf(narrator).word }}
+                        </span>
+                        <span>{{ narratorCount(narrator.entry_count, 'narrators.entries') }}</span>
+                        <span v-if="imamLine(narrator)">{{ imamLine(narrator) }}</span>
+                    </div>
+                </a>
+                <button type="button" class="narrator-strip__more"
+                        v-if="narratorMatches.length > 3"
+                        v-on:click="narratorMatchesExpanded = !narratorMatchesExpanded">
+                    {{ narratorMatchesExpanded
+                        ? t('js.narratorStrip.fewer', 'Show fewer')
+                        : t('js.narratorStrip.more', 'Show {0} more')
+                            .replace('{0}', narratorMatches.length - 3) }}
+                </button>
+            </div>
+        </div>
         <div class="tag-filter-bar tag-filter-bar--results mb-3"
              v-if="collectionMode || totalHits || allNarrations.length > 0">
             <div class="tag-filter-bar__results-head">
@@ -363,6 +407,29 @@
                                         <span class="hadith-sidecar__rail-label" th:text="#{sidecar.details}">DETAILS</span>
                                         <span class="hadith-sidecar__rail-icon"><i class="fa fa-info-circle" aria-hidden="true"></i></span>
                                     </button>
+                                    <!-- The chain as a chain. The server-rendered card has
+                                         carried this panel since the rijāl tab was built;
+                                         the search results are drawn here in the browser
+                                         instead, from the same chain_people the API already
+                                         sends, so a reader searching for a man met his
+                                         narrations with no way into their isnāds. -->
+                                    <button type="button"
+                                            class="hadith-sidecar__rail-btn"
+                                            data-hub-panel="rijal"
+                                            v-bind:data-rijal-for="narration._id"
+                                            v-if="chainOf(narration).length"
+                                            v-bind:class="{'is-active': isNarrationSidecarTabActive(narration, 'rijal')}"
+                                            v-bind:aria-selected="isNarrationSidecarTabActive(narration, 'rijal') ? 'true' : 'false'"
+                                            v-bind:title="t('rijal.title', 'The men of the chain')"
+                                            v-on:click="setNarrationSidecarTab(narration, 'rijal')">
+                                        <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
+                                        <span class="hadith-sidecar__rail-label" th:text="#{sidecar.rijal}">RIJĀL</span>
+                                        <span class="hadith-sidecar__rail-icon"><i class="fa fa-link" aria-hidden="true"></i></span>
+                                        <span class="hadith-sidecar__rail-badge"
+                                              v-bind:class="{'is-zero': namedInChain(narration) === 0}">
+                                            {{ namedInChain(narration) }}
+                                        </span>
+                                    </button>
                                     <button type="button"
                                             class="hadith-sidecar__rail-btn"
                                             v-bind:class="{'is-active': isNarrationSidecarTabActive(narration, 'similar')}"
@@ -404,6 +471,87 @@
                                          v-if="activeNarrationSidecarTab(narration) === 'metadata'">
                                         <hadith-details v-bind:narration="narration"
                                                         v-bind:hadith-number="narration.number"></hadith-details>
+                                    </div>
+                                    <!-- The same markup the server renders, so rijal-chain.js
+                                         fills it here exactly as it does there: it reads the
+                                         ids off the panel and asks for the briefs once. -->
+                                    <div class="hadith-sidecar__panel-body rijal"
+                                         v-if="activeNarrationSidecarTab(narration) === 'rijal'"
+                                         v-bind:data-rijal-for="narration._id"
+                                         v-bind:data-rijal-ids="chainIdsOf(narration)">
+                                        <p class="rijal__summary">
+                                            <strong>{{ narratorCount(chainOf(narration).length, 'rijal.summary.links') }}</strong>
+                                            <span class="rijal__dot" aria-hidden="true">·</span>
+                                            <span>{{ narratorCount(identifiedInChain(narration), 'rijal.summary.identified') }}</span>
+                                            <template v-if="imamsInChain(narration) > 0">
+                                                <span class="rijal__dot" aria-hidden="true">&middot;</span>
+                                                <span>{{ narratorCount(imamsInChain(narration), 'rijal.summary.imams') }}</span>
+                                            </template>
+                                            <template v-if="notFoundInChain(narration) > 0">
+                                                <span class="rijal__dot" aria-hidden="true">&middot;</span>
+                                                <span>{{ narratorCount(notFoundInChain(narration), 'rijal.summary.notFound') }}</span>
+                                            </template>
+                                            <template v-if="severalInChain(narration) > 0">
+                                                <span class="rijal__dot" aria-hidden="true">&middot;</span>
+                                                <span>{{ narratorCount(severalInChain(narration), 'rijal.summary.several') }}</span>
+                                            </template>
+                                            <template v-if="groupsInChain(narration) > 0">
+                                                <span class="rijal__dot" aria-hidden="true">&middot;</span>
+                                                <span>{{ narratorCount(groupsInChain(narration), 'rijal.summary.groups') }}</span>
+                                            </template>
+                                            <span class="rijal__ends" data-rijal-ends hidden>
+                                                <span class="rijal__dot" aria-hidden="true">·</span>
+                                                <span data-rijal-ends-text></span>
+                                            </span>
+                                        </p>
+                                        <p class="rijal__status" data-rijal-status role="status" hidden></p>
+                                        <ol class="rijal__chain">
+                                            <li v-for="(link, at) in chainOf(narration)"
+                                                class="rijal-link"
+                                                v-bind:class="'rijal-link--' + link.kind + (link.open ? ' is-open' : '')"
+                                                v-bind:data-rijal-id="link.person"
+                                                v-bind:style="'--i:' + at">
+                                                <span class="rijal-link__mark" aria-hidden="true"></span>
+                                                <div class="rijal-link__card">
+                                                    <a v-if="link.href" class="rijal-link__words arabic-text"
+                                                       v-bind:class="{'chain-name': link.kind !== 'backref'}"
+                                                       dir="rtl" lang="ar" v-bind:href="link.href">{{ link.words }}</a>
+                                                    <span v-else class="rijal-link__words arabic-text"
+                                                          dir="rtl" lang="ar">{{ link.words }}</span>
+                                                    <p class="rijal-link__who" data-rijal-who hidden></p>
+                                                    <p class="rijal-link__said" data-rijal-said hidden></p>
+                                                    <p class="rijal-link__life" data-rijal-life hidden></p>
+                                                    <!-- Men the resolver found and would not
+                                                         choose between. Each is a link to his
+                                                         own page, so the reader can settle it.
+                                                         The server twin is in hadith-card.html. -->
+                                                    <p class="rijal-link__candidates" v-if="link.kind === 'several'">
+                                                        <span class="rijal-link__candidates-lede">{{ t('rijal.several.lede', '').replace('{0}', localeDigits(link.candidates.length)) }}</span>
+                                                        <a class="rijal-link__candidate arabic-text" dir="rtl" lang="ar"
+                                                           v-for="c in link.candidates" v-bind:key="c.person"
+                                                           v-bind:href="c.href"><span>{{ c.name }}</span><span
+                                                              class="rijal-link__candidate-title" v-if="c.title">{{ c.title }}</span></a>
+                                                    </p>
+                                                    <p class="rijal-link__note" v-if="link.kind === 'collective'">{{ t('rijal.collective', '') }}</p>
+                                                    <p class="rijal-link__note" v-if="link.kind === 'backref'">
+                                                        <span v-if="link.quotedFrom">{{ t('rijal.backref.quoted', '') }}
+                                                            <bdi lang="ar">{{ link.quotedFrom }}</bdi></span>
+                                                        <a v-else-if="link.href" v-bind:href="link.href">{{ t('rijal.backref', '').replace('{0}', link.number) }}</a>
+                                                        <span v-else>{{ t('rijal.backref.unknown', '') }}</span>
+                                                    </p>
+                                                </div>
+                                            </li>
+                                        </ol>
+                                        <!-- The Imam the report rests on, where the isnād
+                                             did not name him and the narration does. The
+                                             server works him out: the roster of the
+                                             fourteen lives in one place. -->
+                                        <p class="rijal__in-body" v-if="narration.chainEndsInBody">
+                                            <span class="rijal__in-body-lede">{{ t('rijal.inBody.lede', 'Reported from') }}</span>
+                                            <a class="rijal__in-body-name"
+                                               v-bind:href="narration.chainEndsInBody.href">{{ imamWords(narration.chainEndsInBody) }}</a>
+                                            <span class="rijal__in-body-note">{{ t('rijal.inBody.note', '') }}</span>
+                                        </p>
                                     </div>
                                     <div class="hadith-sidecar__panel-body hadith-sidecar__panel-body--split"
                                          v-else-if="activeNarrationSidecarTab(narration) === 'similar'">
@@ -910,7 +1058,7 @@
             <div>
                 <div class="site-footer__label" th:text="#{footer.contact}">Contact</div>
                 <div class="site-footer__links">
-                    <a href="mailto:rewayaat.org@gmail.com">rewayaat.org@gmail.com</a>
+                    <a href="/contact" th:href="@{${arPrefix} ?: '' } + '/contact'" th:text="#{footer.contactPage}">Write to us</a>
                     <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer" th:text="#{footer.github}">GitHub Repository</a>
                     <a th:if="${academyHost}" href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" th:text="#{footer.academy}">Academy of Islam</a>
                 </div>
@@ -922,7 +1070,7 @@
             <div class="site-footer__social">
                 <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer" title="GitHub"><i class="fa-brands fa-github"></i></a>
                 <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer" title="REST API"><i class="fa fa-code"></i></a>
-                <a href="mailto:rewayaat.org@gmail.com" title="Email" th:title="#{footer.email}"><i class="fa fa-envelope"></i></a>
+                <a href="/contact" th:href="@{${arPrefix} ?: '' } + '/contact'" title="Write to us" th:title="#{footer.contactPage}"><i class="fa fa-envelope"></i></a>
             </div>
             <span th:text="#{footer.disclaimer}">Content and translations remain the responsibility of their original sources.</span>
         </div>
@@ -940,6 +1088,11 @@
 <th:block th:replace="~{fragments/i18n-js :: i18n}"></th:block>
 <script src="/js/vue-components.js" th:src="@{/js/vue-components.js}"></script>
 <script src="/js/rewayaat.js" th:src="@{/js/rewayaat.js}"></script>
+<script src="/js/narrator-preview.js" th:src="@{/js/narrator-preview.js}" defer></script>
+<script src="/js/narrator-drawer.js" th:src="@{/js/narrator-drawer.js}" defer></script>
+<!-- The chain panel on a search result is drawn by Vue from chain_people; this is
+     what fills it with what the books say of each man, the same as on a hadith page. -->
+<script src="/js/rijal-chain.js" th:src="@{/js/rijal-chain.js}" defer></script>
 <script src="/js/site-announcement.js" th:src="@{/js/site-announcement.js}"></script>
 <script src="/js/locale-preference.js" th:src="@{/js/locale-preference.js}"></script>
     <script src="/js/nav-menu.js" th:src="@{/js/nav-menu.js}" defer></script>
@@ -1017,7 +1170,7 @@
                 borderRadius: '12px', padding: '20px 22px',
                 maxWidth: '380px', width: 'calc(100vw - 48px)',
                 boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(212,148,10,0.15)',
-                fontFamily: "'Inter', sans-serif", color: '#e0e0e0',
+                fontFamily: "'Manrope', sans-serif", color: '#e0e0e0',
                 opacity: '0', transform: 'translateY(12px)',
                 transition: 'opacity 0.4s, transform 0.4s',
                 boxSizing: 'border-box',

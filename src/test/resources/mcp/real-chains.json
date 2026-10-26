@@ -1,0 +1,614 @@
+{
+ "Al-Kafi-Volume-1-Kulayni:10": {
+  "book": "Al-Kāfi",
+  "number": "10",
+  "chapter": "The Book of Intelligence and Ignorance",
+  "arabic": " 9ـ عَلِيُّ بْنُ إِبْرَاهِيمَ عَنْ أَبِيهِ عَنِ النَّوْفَلِيِّ عَنِ السَّكُونِيِّ عَنْ أَبِي عَبْدِ الله (عَلَيْهِ السَّلام) قَالَ قَالَ رَسُولُ الله (صَلَّى اللهُ عَلَيْهِ وَآلِه) إِذَا بَلَغَكُمْ عَنْ رَجُلٍ حُسْنُ حَالٍ فَانْظُرُوا فِي حُسْنِ عَقْلِهِ فَإِنَّمَا يُجَازَى بِعَقْلِهِ.",
+  "english": " 9. Ali ibn Ibrahim has narrated from his father from al-Nawfali from al-Sakuni that Abu ‘Abdillah (as) said: Rasulullah (sw) said, “If you would hear good things about a man, you should examine how good his intelligence is, because he will be recompensed according to his intelligence.”",
+  "volume": "1",
+  "chain_links": [
+   {
+    "p": "n000706",
+    "s": 3,
+    "t": "عَلِيُّ بْنُ إِبْرَاهِيمَ",
+    "e": 28,
+    "g": "ali-ibn-ibrahim-ibn-hashim"
+   },
+   {
+    "p": "n000034",
+    "s": 34,
+    "t": "أَبِيهِ",
+    "e": 41,
+    "g": "ibrahim-ibn-hashim"
+   },
+   {
+    "p": "n029388",
+    "s": 47,
+    "t": "النَّوْفَلِيِّ",
+    "e": 61,
+    "g": "al-husayn-ibn-zayd-al-nawfali"
+   },
+   {
+    "p": "n036590",
+    "s": 67,
+    "t": "السَّكُونِيِّ",
+    "e": 80,
+    "g": "ismail-ibn-abi-ziyad-al-sakuni"
+   },
+   {
+    "p": "i06",
+    "s": 86,
+    "t": "أَبِي عَبْدِ الله",
+    "e": 103,
+    "g": "jafar-al-sadiq"
+   }
+  ],
+  "chain_links_en": [
+   {
+    "p": "n000706",
+    "s": 3,
+    "t": "Ali ibn Ibrahim",
+    "e": 18,
+    "g": "ali-ibn-ibrahim-ibn-hashim"
+   },
+   {
+    "p": "n029388",
+    "s": 53,
+    "t": "al-Nawfali",
+    "e": 63,
+    "g": "al-husayn-ibn-zayd-al-nawfali"
+   },
+   {
+    "p": "n036590",
+    "s": 69,
+    "t": "al-Sakuni",
+    "e": 78,
+    "g": "ismail-ibn-abi-ziyad-al-sakuni"
+   },
+   {
+    "p": "i06",
+    "s": 84,
+    "t": "Abu ‘Abdillah",
+    "e": 97,
+    "g": "jafar-al-sadiq"
+   }
+  ],
+  "chain_people": [
+   {
+    "p": "n000706",
+    "s": 3,
+    "t": "عَلِيُّ بْنُ إِبْرَاهِيمَ",
+    "e": 28,
+    "g": "ali-ibn-ibrahim-ibn-hashim",
+    "k": "name",
+    "o": "convention"
+   },
+   {
+    "p": "n000034",
+    "s": 34,
+    "t": "أَبِيهِ",
+    "e": 41,
+    "g": "ibrahim-ibn-hashim",
+    "k": "relative",
+    "o": "chosen"
+   },
+   {
+    "p": "n029388",
+    "s": 47,
+    "t": "النَّوْفَلِيِّ",
+    "e": 61,
+    "g": "al-husayn-ibn-zayd-al-nawfali",
+    "k": "name",
+    "o": "one"
+   },
+   {
+    "p": "n036590",
+    "s": 67,
+    "t": "السَّكُونِيِّ",
+    "e": 80,
+    "g": "ismail-ibn-abi-ziyad-al-sakuni",
+    "k": "name",
+    "o": "one"
+   },
+   {
+    "p": "i06",
+    "s": 86,
+    "t": "أَبِي عَبْدِ الله",
+    "e": 103,
+    "g": "jafar-al-sadiq",
+    "k": "imam",
+    "o": "one"
+   }
+  ]
+ },
+ "Al-Kafi-Volume-2-Kulayni:969": {
+  "book": "Al-Kāfi",
+  "number": "969",
+  "chapter": "The Sins",
+  "arabic": "10ـ الْحُسَيْنُ بْنُ مُحَمَّدٍ عَنْ مُعَلَّى بْنِ مُحَمَّدٍ عَنِ الْوَشَّاءِ عَنْ عَلِيِّ بْنِ أَبِي حَمْزَةَ عَنْ أَبِي بَصِيرٍ عَنْ أَبِي جَعْفَرٍ (عَلَيهِ السَّلام) قَالَ سَمِعْتُهُ يَقُولُ اتَّقُوا الْمُحَقَّرَاتِ مِنَ الذُّنُوبِ فَإِنَّ لَهَا طَالِباً يَقُولُ أَحَدُكُمْ أُذْنِبُ وَأَسْتَغْفِرُ إِنَّ الله عَزَّ وَجَلَّ يَقُولُ وَنَكْتُبُ ما قَدَّمُوا وَآثارَهُمْ وَكُلَّ شَيْ‏ءٍ أَحْصَيْناهُ فِي إِمامٍ مُبِينٍ وَقَالَ عَزَّ وَجَلَّ إِنَّها إِنْ تَكُ مِثْقالَ حَبَّةٍ مِنْ خَرْدَلٍ فَتَكُنْ فِي صَخْرَةٍ أَوْ فِي السَّماواتِ أَوْ فِي الأرْضِ يَأْتِ بِهَا الله إِنَّ الله لَطِيفٌ خَبِيرٌ.",
+  "english": "10. Al-Husayn ibn Muhammad has narrated from Mu’alla ibn Muhammad from al- Washsha’ from Ali ibn abu Hamza from abu Basir who has said the following: “I heard abu la’ far (a.s.) saying, ‘Stay away from insignificant sins because there is demand for them. One of you will say, ‘I sin and ask forgiveness.’ Allah, the Most Majestic, the Most Holy, has said, ‘It is We who bring the dead to life and record the deeds of human beings and their consequences (of continual effects). We keep everything recorded in an illustrious Imam (leader).’ (36:12) Allah, the Most Majestic, the Most Holy, in the words of Luqman, has also said, ‘My son, Allah keeps the records of all the good and evil deeds, even if they are as small as a grain of mustard seed, hidden in a rock or in the heavens or the earth. Allah is subtle and All-aware.’” (31:16) ",
+  "volume": "2",
+  "chain_links": [
+   {
+    "p": "n000170",
+    "s": 4,
+    "t": "الْحُسَيْنُ بْنُ مُحَمَّدٍ",
+    "e": 30,
+    "g": "al-husayn-ibn-muhammad-ibn-imran-ibn-abi-bakr-al-ashari-al-q"
+   },
+   {
+    "p": "n001142",
+    "s": 36,
+    "t": "مُعَلَّى بْنِ مُحَمَّدٍ",
+    "e": 59,
+    "g": "mualla-ibn-muhammad"
+   },
+   {
+    "p": "n000093",
+    "s": 65,
+    "t": "الْوَشَّاءِ",
+    "e": 76,
+    "g": "al-hasan-ibn-ali-ibn-ziyad-al-washa"
+   },
+   {
+    "p": "n015846",
+    "s": 82,
+    "t": "عَلِيِّ بْنِ أَبِي حَمْزَةَ",
+    "e": 109,
+    "g": "ali-b-abi-hamza"
+   },
+   {
+    "p": "n030321",
+    "s": 115,
+    "t": "أَبِي بَصِيرٍ",
+    "e": 128,
+    "g": "yahya-ibn-abi-al-qasim-al-hadda"
+   },
+   {
+    "p": "i05",
+    "s": 134,
+    "t": "أَبِي جَعْفَرٍ",
+    "e": 148,
+    "g": "muhammad-al-baqir"
+   }
+  ],
+  "chain_links_en": [
+   {
+    "p": "n000170",
+    "s": 4,
+    "t": "Al-Husayn ibn Muhammad",
+    "e": 26,
+    "g": "al-husayn-ibn-muhammad-ibn-imran-ibn-abi-bakr-al-ashari-al-q"
+   },
+   {
+    "p": "n001142",
+    "s": 45,
+    "t": "Mu’alla ibn Muhammad",
+    "e": 65,
+    "g": "mualla-ibn-muhammad"
+   },
+   {
+    "p": "n000093",
+    "s": 71,
+    "t": "al- Washsha",
+    "e": 82,
+    "g": "al-hasan-ibn-ali-ibn-ziyad-al-washa"
+   },
+   {
+    "p": "n015846",
+    "s": 89,
+    "t": "Ali ibn abu Hamza",
+    "e": 106,
+    "g": "ali-b-abi-hamza"
+   },
+   {
+    "p": "n030321",
+    "s": 112,
+    "t": "abu Basir",
+    "e": 121,
+    "g": "yahya-ibn-abi-al-qasim-al-hadda"
+   }
+  ],
+  "chain_people": [
+   {
+    "p": "n000170",
+    "s": 4,
+    "t": "الْحُسَيْنُ بْنُ مُحَمَّدٍ",
+    "e": 30,
+    "g": "al-husayn-ibn-muhammad-ibn-imran-ibn-abi-bakr-al-ashari-al-q",
+    "k": "name",
+    "o": "chosen"
+   },
+   {
+    "p": "n001142",
+    "s": 36,
+    "t": "مُعَلَّى بْنِ مُحَمَّدٍ",
+    "e": 59,
+    "g": "mualla-ibn-muhammad",
+    "k": "name",
+    "o": "one"
+   },
+   {
+    "p": "n000093",
+    "s": 65,
+    "t": "الْوَشَّاءِ",
+    "e": 76,
+    "g": "al-hasan-ibn-ali-ibn-ziyad-al-washa",
+    "k": "name",
+    "o": "one"
+   },
+   {
+    "p": "n015846",
+    "s": 82,
+    "t": "عَلِيِّ بْنِ أَبِي حَمْزَةَ",
+    "e": 109,
+    "g": "ali-b-abi-hamza",
+    "k": "name",
+    "o": "one"
+   },
+   {
+    "p": "n030321",
+    "s": 115,
+    "t": "أَبِي بَصِيرٍ",
+    "e": 128,
+    "g": "yahya-ibn-abi-al-qasim-al-hadda",
+    "k": "name",
+    "o": "one"
+   },
+   {
+    "p": "i05",
+    "s": 134,
+    "t": "أَبِي جَعْفَرٍ",
+    "e": 148,
+    "g": "muhammad-al-baqir",
+    "k": "imam",
+    "o": "convention"
+   }
+  ]
+ },
+ "Kamil-al-Ziyarat-Qummi:409": {
+  "book": "Kāmil al-Ziyārāt",
+  "number": "409",
+  "chapter": "The Ziyārah of Ĥusain (a.s.) Erases Sins",
+  "arabic": "1 حَدَّثَنِي مُحَمَّدُ بْنُ الْحَسَنِ بْنِ الْوَلِيدِ عَنْ مُحَمَّدِ بْنِ الْحَسَنِ الصَّفَّارِ عَنِ الْحَسَنِ بْنِ مُوسَى الْخَشَّابِ عَنْ بَعْضِ رِجَالِهِ عَنْ أَبِي عَبْدِ اللَّهِ (ع) قَالَ إِنَّ زَائِرَ الْحُسَيْنِ جَعَلَ ذُنُوبَهُ جِسْراً بَابَ دَارِهِ ثُمَّ عَبَرَهَا كَمَا يُخَلِّفُ أَحَدُكُمُ الْجِسْرَ وَرَاءَهُ إِذَا عَبَرَ",
+  "english": "1. Muḥammad ibn Ḥasan ibn Walīd narrated to me from Muḥammad ibn Ḥasan Al-Saffār, from Ḥasan ibn Mūsā Al-Khashāb, from some of his scholars, who said: Abū ‘Abdillāh (Imam Sādiq (a.s.)) said: Those who go to the Ziyārah of Ḥusain (a.s.) place their sins at the door of their house like a bridge and then leave them behind by crossing it in the same way that one leaves a bridge behind after having crossed it.",
+  "volume": "1",
+  "chain_links": [
+   {
+    "p": "n001068",
+    "s": 13,
+    "t": "مُحَمَّدُ بْنُ الْحَسَنِ بْنِ الْوَلِيدِ",
+    "e": 53,
+    "g": "muhammad-ibn-al-hasan-ibn-ahmad-ibn-al-walid"
+   },
+   {
+    "p": "n000974",
+    "s": 59,
+    "t": "مُحَمَّدِ بْنِ الْحَسَنِ الصَّفَّارِ",
+    "e": 95,
+    "g": "muhammad-ibn-al-hasan-ibn-furukh-al-saffar"
+   },
+   {
+    "p": "n000098",
+    "s": 101,
+    "t": "الْحَسَنِ بْنِ مُوسَى الْخَشَّابِ",
+    "e": 134,
+    "g": "al-hasan-ibn-musa-al-khashshab"
+   },
+   {
+    "p": "i06",
+    "s": 162,
+    "t": "أَبِي عَبْدِ اللَّهِ",
+    "e": 182,
+    "g": "jafar-al-sadiq"
+   }
+  ],
+  "chain_people": [
+   {
+    "p": "n001068",
+    "s": 13,
+    "t": "مُحَمَّدُ بْنُ الْحَسَنِ بْنِ الْوَلِيدِ",
+    "e": 53,
+    "g": "muhammad-ibn-al-hasan-ibn-ahmad-ibn-al-walid",
+    "k": "name",
+    "o": "one"
+   },
+   {
+    "p": "n000974",
+    "s": 59,
+    "t": "مُحَمَّدِ بْنِ الْحَسَنِ الصَّفَّارِ",
+    "e": 95,
+    "g": "muhammad-ibn-al-hasan-ibn-furukh-al-saffar",
+    "k": "name",
+    "o": "one"
+   },
+   {
+    "p": "n000098",
+    "s": 101,
+    "t": "الْحَسَنِ بْنِ مُوسَى الْخَشَّابِ",
+    "e": 134,
+    "g": "al-hasan-ibn-musa-al-khashshab",
+    "k": "name",
+    "o": "one"
+   },
+   {
+    "p": "",
+    "s": 140,
+    "t": "بَعْضِ رِجَالِهِ",
+    "e": 156,
+    "g": "",
+    "k": "collective",
+    "o": "collective"
+   },
+   {
+    "p": "i06",
+    "s": 162,
+    "t": "أَبِي عَبْدِ اللَّهِ",
+    "e": 182,
+    "g": "jafar-al-sadiq",
+    "k": "imam",
+    "o": "one"
+   }
+  ],
+  "chain_links_en": [
+   {
+    "p": "n001068",
+    "s": 3,
+    "t": "Muḥammad ibn Ḥasan ibn Walīd",
+    "e": 31,
+    "g": "muhammad-ibn-al-hasan-ibn-ahmad-ibn-al-walid"
+   },
+   {
+    "p": "n000974",
+    "s": 52,
+    "t": "Muḥammad ibn Ḥasan Al-Saffār",
+    "e": 80,
+    "g": "muhammad-ibn-al-hasan-ibn-furukh-al-saffar"
+   },
+   {
+    "p": "n000098",
+    "s": 87,
+    "t": "Ḥasan ibn Mūsā Al-Khashāb",
+    "e": 112,
+    "g": "al-hasan-ibn-musa-al-khashshab"
+   }
+  ]
+ },
+ "Al-Kafi-Volume-1-Kulayni:878": {
+  "book": "Al-Kāfi",
+  "number": "878",
+  "chapter": "The list of the Names of those who saw the Twelfth Imam (a.s.)",
+  "arabic": " 14ـ عَلِيُّ بْنُ مُحَمَّدٍ عَنْ مُحَمَّدٍ وَالْحَسَنِ ابْنَيْ عَلِيِّ بْنِ إِبْرَاهِيمَ أَنَّهُمَا حَدَّثَاهُ فِي سَنَةِ تِسْعٍ وَسَبْعِينَ وَمِائَتَيْنِ عَنْ مُحَمَّدِ بْنِ عَبْدِ الرَّحْمَنِ الْعَبْدِيِّ عَنْ ضَوْءِ بْنِ عَلِيٍّ الْعِجْلِيِّ عَنْ رَجُلٍ مِنْ أَهْلِ فَارِسَ سَمَّاهُ أَنَّ أَبَا مُحَمَّدٍ أَرَاهُ إِيَّاهُ.",
+  "english": " 14. Ali ibn Muhammad has narrated from Muhammad and al-Hassan, two sons of Ali ibn Ibrahim narrated to him in the year two hundred seventy nine from Muhammad ibn ‘Abd al-Rahman al-‘Abdi from Daw’ ibn Ali al-‘Ijli from a man from the people of Fars whose name he mentioned that Abu Muhammad (al-Askari (a.s.)) showed him (the twelfth Imam (a.s.) to him.",
+  "volume": "1",
+  "chain_links": [],
+  "chain_people": [
+   {
+    "p": "",
+    "s": 4,
+    "t": "عَلِيُّ بْنُ مُحَمَّدٍ",
+    "e": 26,
+    "g": "",
+    "k": "name",
+    "o": "several"
+   },
+   {
+    "p": "",
+    "s": 32,
+    "t": "مُحَمَّدٍ",
+    "e": 41,
+    "g": "",
+    "k": "name",
+    "o": "several"
+   },
+   {
+    "p": "",
+    "s": 43,
+    "t": "َالْحَسَنِ ابْنَيْ عَلِيِّ بْنِ إِبْرَاهِيمَ أَنَّهُمَا حَدَّثَاهُ",
+    "e": 109,
+    "g": "",
+    "k": "name",
+    "o": "none"
+   },
+   {
+    "p": "",
+    "s": 159,
+    "t": "مُحَمَّدِ بْنِ عَبْدِ الرَّحْمَنِ الْعَبْدِيِّ",
+    "e": 205,
+    "g": "",
+    "k": "name",
+    "o": "none"
+   },
+   {
+    "p": "",
+    "s": 211,
+    "t": "ضَوْءِ بْنِ عَلِيٍّ الْعِجْلِيِّ",
+    "e": 243,
+    "g": "",
+    "k": "name",
+    "o": "none"
+   },
+   {
+    "p": "",
+    "s": 249,
+    "t": "رَجُلٍ مِنْ أَهْلِ فَارِسَ سَمَّاهُ",
+    "e": 284,
+    "g": "",
+    "k": "collective",
+    "o": "collective"
+   }
+  ]
+ },
+ "Uyun-akhbar-al-Rida-Volume-2-Saduq:139": {
+  "book": "ʿUyūn akhbār al-Riḍā",
+  "number": "139",
+  "chapter": "Traditions about Ar-Ridha (a.s.)",
+  "arabic": "139 - وَبِهذَا الإِسنادِ عَنْ عَلِىِّ بْنِ أَبِي طالِبٍ‏ عَلَيْهِالسَّلامُ قالَ: الطّاعونُ مِيْتَةٌ وَحِيّةً.",
+  "english": "31-139 According to the same documentation, Ali ibn Abi Talib (a.s.) said, “Plague is sudden death.”",
+  "volume": "2",
+  "chain_links": [
+   {
+    "p": "i01",
+    "s": 30,
+    "t": "عَلِىِّ بْنِ أَبِي طالِبٍ",
+    "e": 55,
+    "g": "ali-ibn-abi-talib"
+   }
+  ],
+  "chain_people": [
+   {
+    "p": "",
+    "r": "Uyun-akhbar-al-Rida-Volume-2-Saduq:4",
+    "s": 6,
+    "t": "وَبِهذَا الإِسنادِ",
+    "e": 24,
+    "g": "",
+    "k": "backref_chain",
+    "rn": "4",
+    "o": "backref_chain"
+   },
+   {
+    "p": "i01",
+    "s": 30,
+    "t": "عَلِىِّ بْنِ أَبِي طالِبٍ",
+    "e": 55,
+    "g": "ali-ibn-abi-talib",
+    "k": "imam",
+    "o": "one"
+   }
+  ]
+ },
+ "Al-Kafi-Volume-6-Kulayni:1308": {
+  "book": "Al-Kāfi",
+  "number": "1308",
+  "chapter": "Excellence of Salt",
+  "arabic": "عَنْهُ عَنْ يَعْقُوبَ بْنِ يَزِيدَ رَفَعَهُ قَالَ قَالَ أَبُو عَبْدِ اللَّهِ ( عليه السلام ) مَنْ ذَرَّ عَلَى أَوَّلِ لُقْمَةٍ مِنْ طَعَامِهِ الْمِلْحَ ذَهَبَ عَنْهُ بِنَمَشِ الْوَجْهِ .",
+  "english": "8. It is narrated from the narrator of the previous Hadith from Ya’qub ibn Yazid in a marfu’ manner who has said the following: “Abu ‘Abd Allah (a.s.), has said, ‘If one spreads salt on the first morsel of his food, blemish of skin goes away from his face.’” ",
+  "volume": "6",
+  "chain_links": [
+   {
+    "p": "n034836",
+    "s": 0,
+    "t": "عَنْهُ",
+    "e": 6,
+    "g": "muhammad-ibn-yahya-al-attar"
+   },
+   {
+    "p": "n001239",
+    "s": 12,
+    "t": "يَعْقُوبَ بْنِ يَزِيدَ",
+    "e": 34,
+    "g": "yaqub-ibn-yazid-ibn-hammad-al-anbari-al-sulami"
+   }
+  ],
+  "chain_people": [
+   {
+    "p": "n034836",
+    "r": "Al-Kafi-Volume-6-Kulayni:1307",
+    "s": 0,
+    "t": "عَنْهُ",
+    "e": 6,
+    "g": "muhammad-ibn-yahya-al-attar",
+    "k": "backref_man",
+    "rn": "1307",
+    "o": "convention"
+   },
+   {
+    "p": "n001239",
+    "s": 12,
+    "t": "يَعْقُوبَ بْنِ يَزِيدَ",
+    "e": 34,
+    "g": "yaqub-ibn-yazid-ibn-hammad-al-anbari-al-sulami",
+    "k": "name",
+    "o": "one"
+   }
+  ],
+  "chain_links_en": [
+   {
+    "p": "n001239",
+    "s": 64,
+    "t": "Ya’qub ibn Yazid",
+    "e": 80,
+    "g": "yaqub-ibn-yazid-ibn-hammad-al-anbari-al-sulami"
+   }
+  ]
+ },
+ "Mujam-al-Ahadith-al-Mutabara-Muhsini:268": {
+  "book": "Muʿjam al-Aḥādīth al-Muʿtabara",
+  "number": "268",
+  "chapter": "Safwan b. Yahya",
+  "arabic": "[2/182] تهذيب الاحكام: باسناده عن محمد بن احمد بن يحيى عن محمد بن عيسى اليقطيني قال: بعث الي ابوالحسن الرضا عليه السلام رزم ثياب وغلمانا وحجة لي وحجة لاخى موسى بن عبيد وحجة ليونس بن عبدالرحمن فامرنا ان نحج عنه فكانت بيننا مائة دينار اثلاثا فيما بيننا فلما اردت ان اعبي الثياب رايت في اضعاف الثياب طينا فقلت للرسول: ما هذا؟ فقال: ليس يوجه بمتاع إلا جعل فيه طينا من قبر الحسين عليه السلام ثم قال الرسول: قال ابوالحسن عليه السلام: هو امان باذن الله، وامرنا بالمال بامور من صلة اهل بيته وقوم محاويج لايؤبه لهم، وامر بدفع ثلاثمائة دينار إلى رحم امرأة كانت له وامرنى ان اطلقها عنه وامتعها بهذا المال، وامرنى ان اشهد على طلاقها صفوان ابن يحيى وآخر، نسي محمد بن عيسى اسمه",
+  "english": "2. [2/182] Tahdhib al-Ahkam: Via his chain to Muhammad b. Ahmad b. Yahya from Muhammad b. Isa al-Yaqtini who said: Abu al-Hasan al-Ridha عليه السلام sent me a bundle of clothes, servants and money covering [the expenses of] my Hajj, that of my brother Musa b. Ubayd, and for Yunus b. Abd al-Rahman – ordering us to make the Hajj on his behalf, so we had a hundred gold coins to be divided up three ways between us. When I wanted to ready the clothes [for the journey] I saw between them some soil, I said to the messenger: what is this? he said: he [the Imam] does not send out any item except that he places in it some soil from the grave of al-Husayn عليه السلام, then the messenger said: Abu al-Hasan عليه السلام said: it [the soil] is to provide you safety by the permission of Allah. He also handed us some additional amount to be used to maintain relation with the people of his house and to assist a group who were needy and went un-cared for [in Madina]. He ordered that three hundred gold coins be given to a relation of a woman who was under him [his wife] and ordered me to divorce her on his behalf and provide for her from this amount. He ordered me to make Safwan b. Yahya and another man – whose name Muhammad b. Isa forgot – as witnesses to the divorce. ",
+  "volume": "1",
+  "chain_links": [
+   {
+    "p": "n000966",
+    "s": 34,
+    "t": "محمد بن احمد بن يحيى",
+    "e": 54,
+    "g": "muhammad-ibn-ahmad-ibn-yahya-ibn-imran-ibn-abdallah-ibn-sad-"
+   },
+   {
+    "p": "n069052",
+    "s": 58,
+    "t": "محمد بن عيسى اليقطيني",
+    "e": 79,
+    "g": "muhammad-ibn-isa-ibn-ubayd-al-yaqutini"
+   }
+  ],
+  "chain_people": [
+   {
+    "p": "",
+    "s": 23,
+    "t": "باسناده",
+    "e": 30,
+    "qf": "تهذيب الاحكام",
+    "g": "",
+    "k": "backref_chain",
+    "o": "backref_chain"
+   },
+   {
+    "p": "n000966",
+    "s": 34,
+    "t": "محمد بن احمد بن يحيى",
+    "e": 54,
+    "g": "muhammad-ibn-ahmad-ibn-yahya-ibn-imran-ibn-abdallah-ibn-sad-",
+    "k": "name",
+    "o": "one"
+   },
+   {
+    "p": "n069052",
+    "s": 58,
+    "t": "محمد بن عيسى اليقطيني",
+    "e": 79,
+    "g": "muhammad-ibn-isa-ibn-ubayd-al-yaqutini",
+    "k": "name",
+    "o": "chosen"
+   }
+  ],
+  "chain_links_en": [
+   {
+    "p": "n000966",
+    "s": 46,
+    "t": "Muhammad b. Ahmad b. Yahya",
+    "e": 72,
+    "g": "muhammad-ibn-ahmad-ibn-yahya-ibn-imran-ibn-abdallah-ibn-sad-"
+   },
+   {
+    "p": "n069052",
+    "s": 78,
+    "t": "Muhammad b. Isa al-Yaqtini",
+    "e": 104,
+    "g": "muhammad-ibn-isa-ibn-ubayd-al-yaqutini"
+   }
+  ]
+ },
+ "Nahj-al-Balagha-Radi:125": {
+  "book": "Nahj al-Balāgha",
+  "number": "125",
+  "chapter": "Exhorting people for jihad",
+  "arabic": "وَلَقَدْ بَلَغَنِي أَنَّ الرَّجُلَ مِنْهُمْ كَانَ يَدْخُلُ عَلَى المَرْأَةِ المُسْلِمَةِ، وَالاْخْرَى المُعَاهَدَةِ فيَنْتَزِعُ حِجْلَهَا وَقُلْبَهَا وَقَلاَئِدَهَا، وَرِعَاثَهَا ما تَمْتَنِعُ مِنْهُ إِلاَّ بِالاسْتِرْجَاعِ وَالاِسْتِرْحَامِ ثُمَّ انْصَرَفُوا وَافِرِينَ مَا نَالَ رَجُلاً مِنْهُمْ كَلْمٌ وَلاَ أُرِيقَ لَهُمْ دَمٌ، فَلَوْ أَنَّ امْرَأً مُسْلِماً مَاتَ مِن بَعْدِ هَذا أَسَفاً مَا كَانَ بِهِ مَلُوماً، بَلْ كَانَ بِهِ عِنْدِي جَدِيراً.",
+  "english": "I have come to know that every one of them entered upon Muslim women and other women under protection of Islam and took away their ornaments from legs, arms, necks and ears and no woman could resist it except by pronouncing the verse, “We are for Allāh and to Him we shall return.” (Qur’ān, 2:156) Then they got back laden with wealth without any wound or loss of life. If any Muslim dies of grief after all this he is not to be blamed but rather there is justification for him before me.",
+  "volume": "1"
+ }
+}

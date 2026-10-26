@@ -55,6 +55,35 @@ final class ToolArguments {
         return Math.max(min, Math.min(max, value));
     }
 
+    /** A boolean flag, absent meaning false. A string "true" is accepted; anything else is refused. */
+    static boolean optionalBoolean(Map<String, Object> arguments, String key) {
+        if (arguments == null || arguments.get(key) == null) {
+            return false;
+        }
+        Object raw = arguments.get(key);
+        if (raw instanceof Boolean flag) {
+            return flag;
+        }
+        String text = String.valueOf(raw).trim().toLowerCase(java.util.Locale.ROOT);
+        if (text.equals("true")) {
+            return true;
+        }
+        if (text.equals("false") || text.isEmpty()) {
+            return false;
+        }
+        throw new IllegalArgumentException("The '" + key + "' argument must be true or false.");
+    }
+
+    /** The {@code language} argument: {@code en} (default) or {@code ar}. */
+    static String language(Map<String, Object> arguments) {
+        String language = optionalString(arguments, "language", "en").toLowerCase(java.util.Locale.ROOT);
+        if (!language.equals("en") && !language.equals("ar")) {
+            throw new IllegalArgumentException(
+                    "The 'language' argument must be 'en' or 'ar'; got '" + language + "'.");
+        }
+        return language;
+    }
+
     static List<String> stringList(Map<String, Object> arguments, String key) {
         List<String> values = new ArrayList<>();
         if (arguments == null || arguments.get(key) == null) {

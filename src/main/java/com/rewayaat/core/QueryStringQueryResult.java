@@ -60,6 +60,18 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
     private List<String> queryFields = null;
     private final ObjectMapper mapper = new ObjectMapper();
 
+    /** «/ar» where the reader is reading Arabic, so a link does not drop him into English. */
+    private String linkPrefix = "";
+
+    public QueryStringQueryResult withLinkPrefix(String prefix) {
+        this.linkPrefix = prefix == null ? "" : prefix;
+        return this;
+    }
+
+    private static String text(Object value) {
+        return value == null ? "" : String.valueOf(value);
+    }
+
     public QueryStringQueryResult(String query, int page, int perPage,
             List<SortOptions> sortBuilders, boolean strictMatchMode, int maxResultWindow) {
         this(query, page, perPage, sortBuilders, strictMatchMode, maxResultWindow, Collections.emptyList(),
@@ -160,6 +172,25 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
             }
         }
         HadithDisplaySegmenter.enrich(result);
+        // The isnād carries its links here too. They were rendered on a hadith's own page
+        // and on a narrator's narrations, and not in search results — which is the page a
+        // reader actually arrives on, so the whole feature was invisible to most of them.
+        // A chain the search has highlighted keeps its highlight and loses its links: the
+        // spans are offsets into the stored text, and ChainLinks drops any whose covered
+        // text no longer matches rather than slicing a name in half.
+        result.put("arabicChain", ChainLinks.render(text(result.get("arabicChain")),
+                result.get("chain_links"), linkPrefix));
+        result.put("englishChain", ChainLinks.render(text(result.get("englishChain")),
+                result.get("chain_links_en"), linkPrefix));
+        // Where the isnād names no Imam and the narration does, say where the chain ends.
+        // Computed here rather than in the browser so that the roster of the fourteen
+        // stays in one place: the search card draws its chain from chain_people in JS,
+        // and a second copy of «which kunya is which Imam» is how the two come to differ.
+        Object endsInBody = ImamInBody.endsInBody(result.get("chain_people"),
+                text(result.get("arabicContent")), linkPrefix);
+        if (endsInBody != null) {
+            result.put("chainEndsInBody", endsInBody);
+        }
         hadithes.add(mapper.convertValue(result, HadithObject.class));
     }
 
@@ -211,6 +242,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                             qs.query(residualQuery);
                             qs.fields(queryFields != null ? queryFields : SEARCHABLE_FIELDS);
                             qs.fuzzyPrefixLength(FUZZY_PREFIX_LENGTH);
+                            qs.phraseSlop(PHRASE_SLOP);
                             if (strictMatchMode) {
                                 qs.defaultOperator(Operator.And);
                             }
@@ -330,6 +362,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                             qs.query(residualQuery);
                             qs.fields(queryFields != null ? queryFields : SEARCHABLE_FIELDS);
                             qs.fuzzyPrefixLength(FUZZY_PREFIX_LENGTH);
+                            qs.phraseSlop(PHRASE_SLOP);
                             if (strictMatchMode) {
                                 qs.defaultOperator(Operator.And);
                             }
@@ -380,6 +413,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                 .highlightQuery(q -> q.queryString(qs -> {
                     qs.query(buildHighlightQueryString(query)).fields(SEARCHABLE_FIELDS);
                     qs.fuzzyPrefixLength(FUZZY_PREFIX_LENGTH);
+                    qs.phraseSlop(PHRASE_SLOP);
                     if (strictMatchMode) {
                         qs.defaultOperator(Operator.And);
                     }
@@ -436,6 +470,18 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
      * Anything absent here is deliberately unsearchable - annotations, footnotes, gradings,
      * translation suggestions, the llm_similar bookkeeping and the semantic sources.
      */
+    /**
+     * How far a quoted phrase may stretch.
+     *
+     * <p>A reader quoting a narration is quoting one edition of it, and the editions
+     * differ in what they put between the words: «قال أبو عبد الله عليه السلام» in one
+     * book, «قال أبو عبد الله (ع)» in another, and the salutation is dropped from the
+     * query in {@code HadithQueryService} rather than guessed at. Four is the width of
+     * the longest of those insertions, «صلى الله عليه وآله», and no wider: a phrase is
+     * still a phrase.
+     */
+    private static final double PHRASE_SLOP = 4;
+
     private static final List<String> SEARCHABLE_FIELDS = List.of(
             "english", "arabic", "chapter", "notes",
             "book.text", "volume.text", "part.text", "section.text",

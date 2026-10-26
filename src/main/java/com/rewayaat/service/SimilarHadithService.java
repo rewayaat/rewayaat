@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.rewayaat.config.ESClientProvider;
+import com.rewayaat.core.ChainLinks;
 import com.rewayaat.core.HadithDisplaySegmenter;
 import com.rewayaat.core.HadithObjectCollection;
 import com.rewayaat.core.HadithSourceFilter;
@@ -37,18 +38,30 @@ public class SimilarHadithService {
             .build();
 
     public HadithObjectCollection findSimilar(String hadithId, int page, int pageSize) {
+        return findSimilar(hadithId, page, pageSize, "");
+    }
+
+    /**
+     * @param linkPrefix the locale prefix the narrator links in these chains carry, so that
+     *     a reader on the Arabic site who opens the similar panel stays on the Arabic site.
+     *     It is part of the cache key rather than applied afterwards, because the chains are
+     *     rendered into the cached rows and two readers must not share one rendering.
+     */
+    public HadithObjectCollection findSimilar(String hadithId, int page, int pageSize,
+                                              String linkPrefix) {
         if (hadithId == null || hadithId.trim().isEmpty()) {
             return new HadithObjectCollection(new ArrayList<>(), 0);
         }
         String safeId = hadithId.trim();
+        String prefix = linkPrefix == null ? "" : linkPrefix;
         int safePage = Math.max(page, 0);
         int safePageSize = Math.max(pageSize, 0);
 
-        CachedResult cached = cache.getIfPresent(safeId);
+        CachedResult cached = cache.getIfPresent(safeId + '\n' + prefix);
         if (cached == null) {
-            cached = loadFromES(safeId);
+            cached = loadFromES(safeId, prefix);
             if (cached != null) {
-                cache.put(safeId, cached);
+                cache.put(safeId + '\n' + prefix, cached);
             }
         }
         if (cached == null || cached.items.isEmpty()) {
@@ -69,7 +82,7 @@ public class SimilarHadithService {
                 cached.items.size());
     }
 
-    private CachedResult loadFromES(String hadithId) {
+    private CachedResult loadFromES(String hadithId, String linkPrefix) {
         try (ESClientProvider provider = new ESClientProvider()) {
             // 1. Load source doc to get llm_similar field
             GetResponse<Map> sourceResp = provider.client().get(
@@ -127,6 +140,16 @@ public class SimilarHadithService {
                     mutableSource.put("matchReason", entry.reason);
                 }
                 HadithDisplaySegmenter.enrich(mutableSource);
+                // The same links the chain carries on a hadith's own page and in a search
+                // result. A similar narration is read as a chain first - whether the two
+                // reports share a narrator is the question the panel is there to answer -
+                // and the names sat there as plain text until now.
+                mutableSource.put("arabicChain", ChainLinks.render(
+                        stringValue(mutableSource.get("arabicChain")),
+                        mutableSource.get("chain_links"), linkPrefix));
+                mutableSource.put("englishChain", ChainLinks.render(
+                        stringValue(mutableSource.get("englishChain")),
+                        mutableSource.get("chain_links_en"), linkPrefix));
                 results.add(mapper.convertValue(mutableSource, HadithObject.class));
             }
 

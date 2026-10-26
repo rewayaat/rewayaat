@@ -10,6 +10,16 @@ rewayaat.iml
 *.war
 *.ear
 */data/*
+# ...but the narrator tables are source, not output: the conventions are what eight auditors
+# agreed about reading isnāds and cannot be rebuilt without their runs, and the
+# transliteration map is what gives 4,110 men an English name. Both were silently dropped by
+# the rule above until 2026-10-15.
+!scripts/data/narrators/
+!scripts/data/narrators/*.json
+# The same goes for the corpus repairs: which character a narration lost is a reading that
+# was decided case by case, against the Qur'an, a formula, or a parallel clause in the same
+# hadith. Rebuilding it means making those judgements again.
+!scripts/data/corpus_text_repairs.json
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*

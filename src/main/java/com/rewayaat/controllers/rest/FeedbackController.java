@@ -1,6 +1,7 @@
 package com.rewayaat.controllers.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,6 +22,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
+/** Not part of the public API: it exists for the site's own feedback widget. */
+@Hidden
 @RestController
 @RequestMapping("/v1/feedback")
 @Tag(name = "Feedback")

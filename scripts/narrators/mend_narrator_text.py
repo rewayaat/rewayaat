@@ -1,0 +1,257 @@
+#!/usr/bin/env python3
+"""Mends in the built artifacts what the extractor now keeps out of them.
+
+Two defects, both of them OpenITI's text showing through into a man's name, both fixed at the
+point the file is read in `extract_openiti.py`. This is for everything built before that: the
+book extractions, the people index the chain resolver reads, and the narrator index
+Elasticsearch serves.
+
+**The severed «س».**
+
+al-Fihrist lost almost every word-final «س» and put «أآلهتنا» in its place, so «سليم بن قيس
+الهلالي» is filed as «سليم بن قيأآلهتنا الهلالي». The rule fires only where an Arabic letter
+stands immediately before, which is what separates a severed word from «أَآلِهَتُنَا», a real
+word the Qur'an uses — and it is pointed by hand at narrator files, never at narration text.
+
+**The milestone in the name.** Jami' al-Ruwat writes «إسماعيل بن دينار ms0154 كوفي», and the
+name was cut out of the raw text, so OpenITI's page marks went into the index as part of a
+man's name — 187 of them, 68 more carrying «PageV01P301», and the same marks inside the
+entry text quoted on his page.
+
+Usage:
+    python3 scripts/narrators/mend_narrator_text.py --files      # the artifacts on disk
+    python3 scripts/narrators/mend_narrator_text.py --live       # the narrator index
+    python3 scripts/narrators/mend_narrator_text.py --english    # names made from a bad one
+"""
+import argparse
+import json
+import os
+import re
+import sys
+
+W = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
+sys.path.insert(0, f'{W}/scripts/narrators')
+from extract_openiti import MANGLED_SIN, MILESTONE                # noqa: E402
+
+TMP = f'{W}/tmp'
+ES = os.environ.get("ES_HOST", "http://localhost:9200")
+INDEX = "rewayaat_narrators"
+CHUNK = 8 << 20          # people_index.json is one 100MB line; it is read in pieces
+CARRY = 64               # kept between pieces so a severed word is never split in two
+
+# A mark takes one neighbouring space with it, so «إسماعيل بن دينار ms0154 كوفي» closes up
+# to one space rather than two. Tidying the whole text afterwards instead would reach every
+# other double space in the file, which is not this tool's business — and in a file read in
+# pieces it would also trim at the seams between them.
+MILESTONE_GAP = re.compile(r" ?(?:" + MILESTONE.pattern + r") ?")
+
+# **Invisible characters.** OpenITI writes «المعروف ب‌:ماكردويه» with a zero-width
+# non-joiner inside it. It shows as nothing, but a name is matched against chain text
+# literally, so a name carrying one can never match. The corpus repair of 2026-10-22 took
+# these out of the narration text; this takes them out of the names.
+INVISIBLE = re.compile("[\u200b-\u200f\u202a-\u202e\u2060\ufeff]")
+
+# what each rule puts in place of what it finds
+RULES = ((MANGLED_SIN, "س"), (MILESTONE_GAP, " "), (INVISIBLE, ""))
+
+
+def mend_text(text):
+    """Every rule, over one piece of text. Returns the text and how much it changed."""
+    total = 0
+    for rule, instead in RULES:
+        text, n = rule.subn(instead, text)
+        total += n
+    return text, total
+
+FILES = [
+    f'{TMP}/narrators_chains/people_index.json',
+    f'{TMP}/narrators_book_ardabili.json',
+    f'{TMP}/narrators_book_ardabili_openiti.json',
+    f'{TMP}/narrators_book_fihrist.json',
+    f'{TMP}/narrators_book_fihrist_openiti.json',
+    f'{TMP}/narrators_book_tusi.json',
+    f'{TMP}/narrators_book_tusi_openiti.json',
+    f'{TMP}/narrators_sources/narrators_book_fihrist.before_moveflags.json',
+]
+
+
+def mend_file(path):
+    """Rewrite one file in place, reading it in pieces so a 100MB line costs 8MB of memory."""
+    if not os.path.exists(path):
+        return None
+    out = path + ".mending"
+    mended = 0
+    with open(path, encoding="utf-8") as src, open(out, "w", encoding="utf-8") as dst:
+        carry = ""
+        while True:
+            piece = src.read(CHUNK)
+            if not piece:
+                break
+            piece = carry + piece
+            # hold back the tail, in case a severed word straddles the join
+            keep, piece = piece[-CARRY:], piece[:-CARRY] if len(piece) > CARRY else ("", piece)
+            fixed, n = mend_text(piece)
+            mended += n
+            dst.write(fixed)
+            carry = keep
+        fixed, n = mend_text(carry)
+        mended += n
+        dst.write(fixed)
+    os.replace(out, path)
+    return mended
+
+
+def post(path, body):
+    from urllib.request import Request, urlopen
+    call = Request(f"{ES}{path}", data=body.encode() if isinstance(body, str)
+                   else json.dumps(body).encode(),
+                   headers={"Content-Type": "application/x-ndjson" if isinstance(body, str)
+                            else "application/json"})
+    return json.load(urlopen(call, timeout=120))
+
+
+def mend_value(value):
+    """Mend every string inside a document, however deep it sits."""
+    if isinstance(value, str):
+        # a whole field, so a mark that stood at its head can leave no gap behind
+        fixed, n = mend_text(value)
+        return (fixed.strip() if n else fixed), n
+    if isinstance(value, list):
+        out, total = [], 0
+        for item in value:
+            got, n = mend_value(item)
+            out.append(got)
+            total += n
+        return out, total
+    if isinstance(value, dict):
+        out, total = {}, 0
+        for key, item in value.items():
+            got, n = mend_value(item)
+            out[key] = got
+            total += n
+        return out, total
+    return value, 0
+
+
+def mend_live(dry):
+    after, seen, touched, mended = None, 0, [], 0
+    while True:
+        body = {"size": 500, "sort": ["person_id"]}
+        if after:
+            body["search_after"] = after
+        hits = post(f"/{INDEX}/_search", body)["hits"]["hits"]
+        if not hits:
+            break
+        for hit in hits:
+            seen += 1
+            fixed, n = mend_value(hit["_source"])
+            if n:
+                mended += n
+                touched.append((hit["_id"], fixed, n))
+        after = hits[-1]["sort"]
+    print(f"  {seen:,} records read, {len(touched):,} carry damaged text "
+          f"({mended:,} occurrences)")
+    for person, _, n in touched[:6]:
+        print(f"     {person}  ×{n}")
+    if dry:
+        print("  dry run: nothing written")
+        return
+    for at in range(0, len(touched), 200):
+        lines = []
+        for person, fixed, _ in touched[at:at + 200]:
+            lines.append(json.dumps({"index": {"_index": INDEX, "_id": person}}))
+            lines.append(json.dumps(fixed, ensure_ascii=False))
+        got = post("/_bulk?refresh=true", "\n".join(lines) + "\n")
+        if got.get("errors"):
+            bad = [i for i in got["items"] if i.get("index", {}).get("error")]
+            print(f"  ! {len(bad)} failed; first: {bad[0]['index']['error']}")
+            return
+    print(f"  wrote {len(touched):,} records")
+
+
+# What the transliterator made of «أآلهتنا» before the Arabic was mended: «Idris» was written
+# «Idriaalhatna», and the slug followed it into the URL.
+SEVERED_EN = re.compile(r"a?alhatn|alihatun|lhatna|ms\d{3,5}|PageV\d+P\d+", re.I)
+
+
+def mend_english(dry):
+    """Remake the English name from the mended Arabic, for the records that were built from it.
+
+    Only names this pipeline made itself are touched: where a rijālī book gives a man an
+    English name of its own, `display_en_made` is false and the book's name stands.
+    """
+    sys.path.insert(0, f"{W}/scripts/narrators")
+    import index_people
+    import transliterate
+    learned = transliterate.load(transliterate.MAP)
+    after, touched = None, []
+    while True:
+        body = {"size": 500, "sort": ["person_id"]}
+        if after:
+            body["search_after"] = after
+        hits = post(f"/{INDEX}/_search", body)["hits"]["hits"]
+        if not hits:
+            break
+        for hit in hits:
+            person = hit["_source"]
+            english = person.get("display_en") or ""
+            if not SEVERED_EN.search(english):
+                continue
+            if not person.get("display_en_made"):
+                print(f"  ! {hit['_id']} carries a book's own English name; left alone")
+                continue
+            made = transliterate.english_for(person.get("display_ar", ""), learned)
+            if not made:
+                print(f"  ! {hit['_id']} could not be transliterated; left alone")
+                continue
+            person["display_en"] = made
+            person["slug"] = index_people.slugify(made)
+            touched.append((hit["_id"], english, made, person))
+        after = hits[-1]["sort"]
+    print(f"  {len(touched):,} English names made from a damaged Arabic name")
+    for person, was, now, _ in touched[:8]:
+        print(f"     {person}  {was[:40]:42s} -> {now[:40]}")
+    if dry:
+        print("  dry run: nothing written")
+        return
+    for at in range(0, len(touched), 200):
+        lines = []
+        for person, _, _, fixed in touched[at:at + 200]:
+            lines.append(json.dumps({"index": {"_index": INDEX, "_id": person}}))
+            lines.append(json.dumps(fixed, ensure_ascii=False))
+        got = post("/_bulk?refresh=true", "\n".join(lines) + "\n")
+        if got.get("errors"):
+            bad = [i for i in got["items"] if i.get("index", {}).get("error")]
+            print(f"  ! {len(bad)} failed; first: {bad[0]['index']['error']}")
+            return
+    print(f"  wrote {len(touched):,} records")
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--files", action="store_true", help="mend the artifacts on disk")
+    parser.add_argument("--live", action="store_true", help="mend the narrator index")
+    parser.add_argument("--english", action="store_true",
+                        help="remake the English name and slug of records transliterated "
+                             "from a damaged name")
+    parser.add_argument("--dry-run", action="store_true")
+    args = parser.parse_args()
+    if args.files:
+        for path in FILES:
+            mended = mend_file(path) if not args.dry_run else None
+            name = os.path.relpath(path, W)
+            if mended is None:
+                print(f"  {name}: {'skipped (dry run)' if args.dry_run else 'not here'}")
+            else:
+                print(f"  {name}: mended {mended:,}")
+    if args.live:
+        mend_live(args.dry_run)
+    if args.english:
+        mend_english(args.dry_run)
+    if not args.files and not args.live and not args.english:
+        parser.print_help()
+
+
+if __name__ == "__main__":
+    main()

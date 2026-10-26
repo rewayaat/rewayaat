@@ -104,6 +104,8 @@ public class HadithQueryService {
         if (query == null) {
             query = "";
         }
+        query = balanceDelimiters(query);
+        query = dropHonorifics(query);
         // splits query by all spaces that are not enclosed by double quotes or brackets
         List<String> splitted = new ArrayList<>();
         List<String> allFieldItems = new ArrayList<>();
@@ -115,15 +117,20 @@ public class HadithQueryService {
             if (i != query.length() - 1) {
                 nextChar = query.charAt(i + 1);
             }
+            // A delimiter that balanceDelimiters has escaped is text, not punctuation:
+            // counting it would keep the term open and swallow the rest of the query.
+            boolean escaped = i > 0 && query.charAt(i - 1) == '\\';
             if (currChar == ' ' && nextingLevel == 0) {
                 splitted.add(result.toString());
                 result.setLength(0);
             } else {
-                if (currChar == ')' | currChar == ']'
-                    || (currChar == '\"' && (nextChar == null || nextChar == ' '))) {
-                    nextingLevel--;
-                } else if (currChar == '(' | currChar == '[' | currChar == '\"') {
-                    nextingLevel++;
+                if (!escaped) {
+                    if (currChar == ')' | currChar == ']'
+                        || (currChar == '\"' && (nextChar == null || nextChar == ' '))) {
+                        nextingLevel--;
+                    } else if (currChar == '(' | currChar == '[' | currChar == '\"') {
+                        nextingLevel++;
+                    }
                 }
                 result.append(currChar);
             }
@@ -136,6 +143,15 @@ public class HadithQueryService {
             }
             s = normalizeFieldAlias(s);
             s = stripArabicDiacritics(s);
+            s = escapePunctuation(s);
+            if (s.isEmpty() || !hasWordCharacter(s)) {
+                // A term can empty out here and not before: «ـ», a tatweel on its own, is
+                // all diacritic and nothing else, and the salutation leaves its punctuation
+                // behind when it goes. An empty term between two operators leaves
+                // «AND  AND», which the query parser refuses, and a term of pure
+                // punctuation searches for nothing.
+                continue;
+            }
             if (!strictMatchMode && !isArabicScript(s) &&
                     !s.contains("~") && !s.contains(":") && !s.contains("^") && !s.contains("(") && !s.contains("\"") &&
                     !s.startsWith("+") && !s.startsWith("-")) {
@@ -194,6 +210,118 @@ public class HadithQueryService {
             return token;
         }
         return ARABIC_DIACRITICS.matcher(token).replaceAll("");
+    }
+
+    /**
+     * The salutation after a name, in every form the corpus and its readers write it.
+     *
+     * <p>Bracketed or bare, abbreviated or spelled out: «(ع)», «[ع]», «عليه السلام»,
+     * «صلى الله عليه وآله». Diacritics are already gone by the time this runs.
+     */
+    private static final java.util.regex.Pattern HONORIFIC = java.util.regex.Pattern.compile(
+            "[\\(\\[]\\s*(?:ع|ص|س|عج|رض|عليه\\s+السلام|عليها\\s+السلام|عليهم\\s+السلام|"
+            + "عليهما\\s+السلام|صلى\\s+الله\\s+عليه\\s+وآله(?:\\s+وسلم)?|رضي\\s+الله\\s+عنه)\\s*[\\)\\]]"
+            + "|(?<![\\u0621-\\u064a])(?:عليه\\s+السلام|عليها\\s+السلام|عليهم\\s+السلام|"
+            + "عليهما\\s+السلام|صلى\\s+الله\\s+عليه\\s+وآله(?:\\s+وسلم)?|رضي\\s+الله\\s+عنه)"
+            + "(?![\\u0621-\\u064a])");
+
+    /**
+     * Takes the salutation out of a reader's query.
+     *
+     * <p>The corpus does not write it one way. «عليه السلام» stands in 9,447 narrations,
+     * «(عليه السلام)» in 3,605, «( عليه السلام )» in 2,361, «(ع)» in 806 — so a phrase
+     * copied out of one book cannot match the same hadith in another, and a reader who
+     * pastes a narration back into the search gets nothing. It carries no search signal
+     * either way: it follows every name in twenty thousand narrations. Dropping it from
+     * the query lets all the forms match each other.
+     *
+     * <p>A query that is nothing but a salutation keeps it, so that searching for the
+     * phrase itself still works.
+     */
+    private String dropHonorifics(String query) {
+        String stripped = HONORIFIC.matcher(query).replaceAll(" ").replaceAll("\\s+", " ").trim();
+        return stripped.isEmpty() ? query : stripped;
+    }
+
+    /** Whether a term has anything in it to search for, once punctuation is discounted. */
+    private boolean hasWordCharacter(String token) {
+        for (int i = 0; i < token.length(); i++) {
+            if (Character.isLetterOrDigit(token.charAt(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** A field name is ASCII: {@code book:}, {@code id:}. Arabic before a colon never is. */
+    private static final java.util.regex.Pattern FIELD_PREFIX =
+            java.util.regex.Pattern.compile("^[+-]?[A-Za-z_][A-Za-z0-9_.]*:");
+
+    /**
+     * Makes one term safe for the query parser without taking away the syntax we offer.
+     *
+     * <p>Readers paste hadith, and hadith are punctuated: «قَالَ:» ends a clause, «[ع]»
+     * abbreviates a salutation. The parser reads a colon as a field separator and a
+     * bracket as a range, so «قال: AND إن» is a syntax error and the whole search fails
+     * with a 500 rather than a result. Punctuation only keeps its meaning where it could
+     * plausibly have been meant: a colon after an ASCII field name that actually has a
+     * value, and nothing else.
+     */
+    private String escapePunctuation(String token) {
+        if (token == null || token.isEmpty()) {
+            return token == null ? "" : token;
+        }
+        StringBuilder out = new StringBuilder(token.length() + 4);
+        boolean fieldColonAllowed = false;
+        java.util.regex.Matcher field = FIELD_PREFIX.matcher(token);
+        if (field.find()) {
+            // ...but only when something follows it; «book:» alone is as broken as «قال:»
+            fieldColonAllowed = token.length() > field.end();
+        }
+        boolean inQuotes = false;
+        boolean colonSpent = false;
+        for (int i = 0; i < token.length(); i++) {
+            char c = token.charAt(i);
+            if (c == '"') {
+                inQuotes = !inQuotes;
+                out.append(c);
+                continue;
+            }
+            if (inQuotes || c == '\\') {
+                out.append(c);
+                continue;
+            }
+            if (c == ':' && fieldColonAllowed && !colonSpent) {
+                colonSpent = true;          // the first colon names the field; later ones are text
+                out.append(c);
+                continue;
+            }
+            if (c == ':' || c == '[' || c == ']' || c == '{' || c == '}') {
+                out.append('\\').append(c);
+                continue;
+            }
+            out.append(c);
+        }
+        return out.toString();
+    }
+
+    /**
+     * Escapes quotes or brackets the reader left unclosed, across the whole query.
+     *
+     * <p>Half a quoted phrase is not a phrase, and the parser says so by failing. Which
+     * half was meant is unknowable, so both are read as ordinary text.
+     */
+    private String balanceDelimiters(String query) {
+        long quotes = query.chars().filter(c -> c == '"').count();
+        if (quotes % 2 != 0) {
+            query = query.replace("\"", "\\\"");
+        }
+        long open = query.chars().filter(c -> c == '(').count();
+        long close = query.chars().filter(c -> c == ')').count();
+        if (open != close) {
+            query = query.replace("(", "\\(").replace(")", "\\)");
+        }
+        return query;
     }
 
     private String normalizeFieldAlias(String token) {

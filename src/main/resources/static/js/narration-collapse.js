@@ -5,7 +5,8 @@ function label(key, fallback) {
 }
 
 /*
- * Folds long narrations on the server-rendered chapter pages.
+ * Folds long narrations on the server-rendered chapter pages, and the long Rijal entries on
+ * the narrator pages.
  *
  * The search page does this in Vue, through isNarrationCollapsible and a clamp class on
  * .hadith-reading-scroll. The chapter pages render the same card from the Thymeleaf
@@ -94,12 +95,68 @@ function label(key, fallback) {
         });
     }
 
+    /**
+     * The same fold for a Rijal entry.
+     *
+     * al-Khoei's entry on a much-discussed man runs for pages — his Sahl b. Ziyad weighs the
+     * evidence for a couple of thousand words — and printed whole it buries the seven other
+     * books under it. Same threshold, same control, same classes as a narration's fold.
+     */
+    function attachEntry(text) {
+        if (textLength(text) <= COLLAPSE_THRESHOLD) {
+            return;
+        }
+        text.classList.add('narrator-entry__text--clamped');
+
+        var foot = document.createElement('div');
+        foot.className = 'hadith-reading-foot';
+        var b = button(false);
+        foot.appendChild(b);
+        text.parentNode.insertBefore(foot, text.nextSibling);
+
+        b.addEventListener('click', function () {
+            var expanding = text.classList.contains('narrator-entry__text--clamped');
+            var before = expanding ? null : text.getBoundingClientRect().top;
+
+            text.classList.toggle('narrator-entry__text--clamped', !expanding);
+            b.setAttribute('aria-expanded', expanding ? 'true' : 'false');
+            b.querySelector('span').textContent = expanding ? 'Show less' : 'Show the whole entry';
+            b.querySelector('i').className =
+                'fa ' + (expanding ? 'fa-chevron-up' : 'fa-chevron-down');
+
+            if (before !== null) {
+                window.scrollBy(0, text.getBoundingClientRect().top - before);
+            }
+        });
+    }
+
+    /** True the first time it is asked about a node, false every time after. */
+    function fresh(node) {
+        if (node.dataset.foldBound) {
+            return false;
+        }
+        node.dataset.foldBound = '1';
+        return true;
+    }
+
     function start() {
         var scrolls = document.querySelectorAll('.hadith-card .hadith-reading-scroll');
         for (var i = 0; i < scrolls.length; i++) {
-            attach(scrolls[i]);
+            if (fresh(scrolls[i])) {
+                attach(scrolls[i]);
+            }
+        }
+        var entries = document.querySelectorAll('.narrator-entry__text');
+        for (var n = 0; n < entries.length; n++) {
+            if (fresh(entries[n])) {
+                attachEntry(entries[n]);
+            }
         }
     }
+
+    // A narrator's tabs swap the page's main region in place rather than loading it again,
+    // and the entries that arrive that way need their folds.
+    document.addEventListener('rewayaat:view-swapped', start);
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', start);

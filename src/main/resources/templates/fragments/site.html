@@ -53,7 +53,10 @@
     <meta name="twitter:image:alt"
           th:content="${shareImageUrl != null} ? ${seoTitle} : 'Rewayaat — a searchable database of Shia hadith in Arabic and English'"/>
 
-    <script type="application/ld+json" th:utext="${jsonLd}"></script>
+    <!-- A page with nothing structured to say says nothing. This tag went out empty on
+         every narrator page for want of a jsonLd, which is a tag a crawler has to parse
+         and an author has to wonder about. -->
+    <script type="application/ld+json" th:utext="${jsonLd}" th:if="${jsonLd != null}"></script>
     <script type="application/ld+json" th:utext="${breadcrumbJsonLd}" th:if="${breadcrumbJsonLd != null}"></script>
 
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin/>
@@ -73,8 +76,10 @@
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           rel="stylesheet"/>
     <link href="/css/manuscript.css" rel="stylesheet" th:href="@{/css/manuscript.css}"/>
+    <link href="/css/narrator-cards.css" rel="stylesheet" th:href="@{/css/narrator-cards.css}"/>
+    <link href="/css/narrator-folio.css" rel="stylesheet" th:href="@{/css/narrator-folio.css}"/>
     <link th:if="${shelf != null}" href="/css/bookshelf.css" rel="stylesheet" th:href="@{/css/bookshelf.css}"/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600;700&family=Scheherazade+New:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Literata:opsz,wght@7..72,400;7..72,500;7..72,600;7..72,700&family=Cormorant+Garamond:wght@500;600;700&family=Scheherazade+New:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap"
           rel="stylesheet"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
           integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
@@ -135,6 +140,10 @@
             <i class="fa fa-book-open" aria-hidden="true"></i>
             <span th:text="#{nav.browse}">Browse</span>
         </a>
+        <a class="nav-menu__item" href="/narrators" th:href="@{${arPrefix} ?: '' } + '/narrators'">
+            <i class="fa fa-users" aria-hidden="true"></i>
+            <span th:text="#{nav.rijal}">Rijāl</span>
+        </a>
         <a class="nav-menu__item" href="/updates.html"
            th:href="@{${arPrefix} ?: '' } + '/updates.html'">
             <i class="fa fa-bolt" aria-hidden="true"></i>
@@ -166,8 +175,8 @@
     <div class="search-entry-shell nav-search__shell">
         <i class="fa fa-search search-magnifier" aria-hidden="true"></i>
         <input type="search" name="q" class="nav-search__input" data-nav-search-input
-               th:placeholder="#{search.navPlaceholder}" placeholder="Search the narrations"
-               th:aria-label="#{search.navPlaceholder}" aria-label="Search the narrations"/>
+               th:placeholder="#{search.navPlaceholder}" placeholder="Search narrations and narrators"
+               th:aria-label="#{search.navPlaceholder}" aria-label="Search narrations and narrators"/>
         <button type="submit" class="btn btn-primary search-btn-with-border nav-search__btn">
             <!-- Under 768px the word is hidden and this is the button's only label.
                  Without it the button was a blank 34px square on every hub and static
@@ -182,6 +191,8 @@
 <div th:fragment="navlinks(current)" class="d-flex home-nav-links">
     <a href="/books" th:href="@{${arPrefix} ?: '' } + '/books'" class="home-nav-link"
        th:classappend="${current == 'books'} ? ' is-current' : ''"><i class="fa fa-book-open" aria-hidden="true"></i><span th:text="#{nav.books}">Books</span></a>
+    <a href="/narrators" th:href="@{${arPrefix} ?: '' } + '/narrators'" class="home-nav-link"
+       th:classappend="${current == 'narrators'} ? ' is-current' : ''"><i class="fa fa-users" aria-hidden="true"></i><span th:text="#{nav.rijal}">Rijāl</span></a>
     <a href="/updates.html" th:href="@{${arPrefix} ?: '' } + '/updates.html'" class="home-nav-link"
        th:classappend="${current == 'updates'} ? ' is-current' : ''"><i class="fa fa-bolt" aria-hidden="true"></i><span th:text="#{nav.updates}">Updates</span></a>
 </div>
@@ -268,6 +279,29 @@
     <span class="hub-ornament__line"></span>
 </div>
 
+<!--
+  A type-to-filter box over a long list. Only drawn where the list is long enough to
+  be hard to scan: the caller passes the size and the threshold lives here, so every
+  list on the site agrees about what "long" is.
+
+  The list itself is rendered whole by the server and js/hub-filter.js only hides rows,
+  so a reader without scripts gets the complete, crawlable list and no dead control:
+  the input is there but inert, which is why it carries no submit button and why the
+  form refuses to submit.
+-->
+<form th:fragment="hubfilter(unit, count)" th:if="${count > 10}"
+      class="hub-filter" role="search" onsubmit="return false">
+    <label class="visually-hidden" th:for="'hub-filter-' + ${unit}"
+           th:text="#{'hub.filter.' + ${unit}}">Filter</label>
+    <span class="hub-filter__field">
+        <span class="hub-filter__icon" aria-hidden="true">&#128269;</span>
+        <input class="hub-filter__input" type="search" autocomplete="off"
+               th:id="'hub-filter-' + ${unit}" data-hub-filter
+               th:placeholder="#{'hub.filter.' + ${unit}}">
+    </span>
+    <span class="hub-filter__count" data-hub-filter-count aria-live="polite"></span>
+</form>
+
 <footer th:fragment="sitefooter" class="site-footer">
     <div class="container">
         <div class="site-footer__grid">
@@ -285,6 +319,8 @@
                 <div class="site-footer__label" th:text="#{footer.explore}">Explore</div>
                 <div class="site-footer__links">
                     <a href="/books" th:href="@{${arPrefix} ?: '' } + '/books'" th:text="#{footer.allBooks}">All Books</a>
+                    <a href="/narrators" th:href="@{${arPrefix} ?: '' } + '/narrators'"
+                       th:text="#{nav.rijal}">Rijāl</a>
                     <a href="/updates.html" th:href="@{${arPrefix} ?: '' } + '/updates.html'"
                        th:text="#{footer.updates}">Updates</a>
                     <a href="/search_tips.html" th:href="@{${arPrefix} ?: '' } + '/search_tips.html'"
@@ -296,7 +332,11 @@
             <div>
                 <div class="site-footer__label" th:text="#{footer.contact}">Contact</div>
                 <div class="site-footer__links">
-                    <a href="mailto:rewayaat.org@gmail.com">rewayaat.org@gmail.com</a>
+                    <!-- The page, not the address. A mailto needs a desktop mail client,
+                         arrives with no context, and cannot be validated or rate limited;
+                         the form carries the page the reader came from. -->
+                    <a href="/contact" th:href="@{${arPrefix} ?: '' } + '/contact'"
+                       th:text="#{footer.contactPage}">Write to us</a>
                     <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer" th:text="#{footer.github}">GitHub Repository</a>
                     <a th:if="${academyHost}" href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" th:text="#{footer.academy}">Academy of Islam</a>
                 </div>
@@ -313,6 +353,7 @@
 <th:block th:fragment="analytics">
     <script src="/js/share-card-modal.js" th:src="@{/js/share-card-modal.js}"></script>
     <script src="/js/hub-pages.js" th:src="@{/js/hub-pages.js}"></script>
+    <script src="/js/meta-drawer.js" th:src="@{/js/meta-drawer.js}" defer></script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-3HSRTQD7GM"></script>
     <script>
         window.dataLayer = window.dataLayer || [];

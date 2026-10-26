@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.Hidden;
 import com.rewayaat.service.ArabicNames;
 import com.rewayaat.service.LocaleDigits;
 import com.rewayaat.service.PageLocale;
+import com.rewayaat.service.StructuredData;
 import org.springframework.context.MessageSource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -436,7 +437,12 @@ public class BookPageController {
         List<String> translated = List.of("book", "part", "section", "chapter", "source",
                 "edition", "publisher", "notes");
         List<String> fields = new ArrayList<>(List.of(
-                "number", "english", "arabic", "volume", "topic_tags", "llm_similar"));
+                "number", "english", "arabic", "volume", "topic_tags", "llm_similar",
+                // chain_links / chain_links_en are the spans that turn the names inside the
+                // printed isnad into links. Without them the card still draws its RIJAL
+                // panel from chain_people, so the omission read as "the panel works, the
+                // chain is plain text" rather than as a missing field.
+                "chain_people", "chain_links", "chain_links_en"));
         for (String field : translated) {
             fields.add(field);
             fields.add(field + "_ar");
@@ -620,24 +626,7 @@ public class BookPageController {
         crumbs.add(Map.of("name", msg(locale, "nav.books"), "url", prefix + "/books"));
         trail.forEach((name, url) -> crumbs.add(Map.of("name", name, "url", prefix + url)));
         model.addAttribute("breadcrumbs", crumbs);
-        model.addAttribute("breadcrumbJsonLd", breadcrumbJsonLd(crumbs));
-    }
-
-    private String breadcrumbJsonLd(List<Map<String, String>> crumbs) {
-        List<Map<String, Object>> items = new ArrayList<>();
-        int position = 1;
-        for (Map<String, String> crumb : crumbs) {
-            items.add(new LinkedHashMap<>(Map.of(
-                    "@type", "ListItem",
-                    "position", position++,
-                    "name", crumb.get("name"),
-                    "item", BASE_URL + crumb.get("url"))));
-        }
-        Map<String, Object> ld = new LinkedHashMap<>();
-        ld.put("@context", "https://schema.org");
-        ld.put("@type", "BreadcrumbList");
-        ld.put("itemListElement", items);
-        return write(ld);
+        model.addAttribute("breadcrumbJsonLd", StructuredData.breadcrumbs(crumbs));
     }
 
     private String booksIndexJsonLd(List<BookCatalog.Book> books) {

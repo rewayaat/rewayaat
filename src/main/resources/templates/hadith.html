@@ -43,7 +43,14 @@
     <link href="/css/sweetalert.css" rel="stylesheet" th:href="@{/css/sweetalert.css}"/>
     <link href="/css/noty.css" rel="stylesheet" th:href="@{/css/noty.css}"/>
     <link href="/css/manuscript.css" rel="stylesheet" th:href="@{/css/manuscript.css}"/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@400;500;600;700&family=Cormorant+Garamond:wght@500;600;700&family=Scheherazade+New:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap"
+    <!-- These two heads are hand-rolled rather than the sitehead fragment, and they
+         were loading manuscript.css alone. Both carry the site nav, whose
+         marked-up placeholder is styled here, and the hadith page carries the
+         rijāl panel and the narrator card as well: without this the placeholder
+         laid itself out as a static flex child and printed over the search
+         button. -->
+    <link href="/css/narrator-cards.css" rel="stylesheet" th:href="@{/css/narrator-cards.css}"/>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Literata:opsz,wght@7..72,400;7..72,500;7..72,600;7..72,700&family=Cormorant+Garamond:wght@500;600;700&family=Scheherazade+New:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap"
           rel="stylesheet"/>
     <link href="/css/pace.css" rel="stylesheet" th:href="@{/css/pace.css}"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
@@ -52,7 +59,7 @@
     <style>
         .hp-hero { padding-top: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--bs-border-color); margin-bottom: 2rem; }
         .hp-hero__book { font-family: 'Cormorant Garamond', serif; font-weight: 700; font-size: 1.75rem; line-height: 1.2; color: var(--bs-body-color); margin-bottom: 0.25rem; }
-        .hp-hero__number { font-family: 'Source Serif 4', serif; font-size: 1.1rem; color: var(--bs-secondary-color); }
+        .hp-hero__number { font-family: 'Literata', serif; font-size: 1.1rem; color: var(--bs-secondary-color); }
         .hp-hero__path { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin-top: 0.75rem; font-size: 0.9rem; color: var(--bs-secondary-color); }
         .hp-hero__path-sep { opacity: 0.4; }
         .hp-hero__path-link { color: var(--bs-secondary-color); text-decoration: none; }
@@ -62,7 +69,7 @@
         .hp-tag { display: inline-block; padding: 0.15rem 0.6rem; font-size: 0.78rem; border-radius: 999px; background: var(--bs-tertiary-bg); color: var(--bs-secondary-color); }
         .hp-text-block { padding: 0; }
         .hp-text-block__arabic { font-family: 'Scheherazade New', serif; font-size: 1.6rem; line-height: 2.2; direction: rtl; text-align: right; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--bs-border-color); }
-        .hp-text-block__english { font-family: 'Source Serif 4', serif; font-size: 1.1rem; line-height: 1.75; }
+        .hp-text-block__english { font-family: 'Literata', serif; font-size: 1.1rem; line-height: 1.75; }
         .hp-meta-row { display: flex; flex-wrap: wrap; gap: 1rem 2rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--bs-border-color); }
         .hp-meta-item { font-size: 0.85rem; }
         .hp-meta-item__label { color: var(--bs-secondary-color); font-weight: 500; }
@@ -76,7 +83,7 @@
         .hp-related__title { font-family: 'Cormorant Garamond', serif; font-weight: 700; font-size: 1.3rem; margin-bottom: 0.85rem; }
         .hp-related__list { list-style: none; padding: 0; margin: 0; }
         .hp-related__list li { padding: 0.6rem 0; border-bottom: 1px solid var(--bs-border-color); }
-        .hp-related__list a { font-family: 'Source Serif 4', serif; font-weight: 600; text-decoration: none; }
+        .hp-related__list a { font-family: 'Literata', serif; font-weight: 600; text-decoration: none; }
         .hp-related__list a:hover { text-decoration: underline; }
         .hp-related__excerpt { display: block; font-size: 0.88rem; line-height: 1.5; color: var(--bs-secondary-color); margin-top: 0.15rem; }
         .hp-onward { display: flex; flex-wrap: wrap; gap: 1.5rem; }
@@ -199,7 +206,7 @@
             <div>
                 <div class="site-footer__label" th:text="#{footer.contact}">Contact</div>
                 <div class="site-footer__links">
-                    <a href="mailto:rewayaat.org@gmail.com">rewayaat.org@gmail.com</a>
+                    <a href="/contact" th:href="@{${arPrefix} ?: '' } + '/contact'" th:text="#{footer.contactPage}">Write to us</a>
                     <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer" th:text="#{footer.github}">GitHub Repository</a>
                     <a th:if="${academyHost}" href="https://academyofislam.com" target="_blank" rel="noopener noreferrer" th:text="#{footer.academy}">Academy of Islam</a>
                 </div>
@@ -211,7 +218,7 @@
             <div class="site-footer__social">
                 <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer" title="GitHub"><i class="fa fa-github"></i></a>
                 <a href="/swagger-ui.html" target="_blank" rel="noopener noreferrer" title="REST API" th:title="#{footer.restApi}"><i class="fa fa-code"></i></a>
-                <a href="mailto:rewayaat.org@gmail.com" title="Email" th:title="#{footer.email}"><i class="fa fa-envelope"></i></a>
+                <a href="/contact" th:href="@{${arPrefix} ?: '' } + '/contact'" title="Write to us" th:title="#{footer.contactPage}"><i class="fa fa-envelope"></i></a>
             </div>
             <span th:text="#{footer.disclaimer}">Content and translations remain the responsibility of their original sources.</span>
         </div>
@@ -234,7 +241,10 @@
 </script>
 <th:block th:replace="~{fragments/i18n-js :: i18n}"></th:block>
 <script src="/js/share-card-modal.js" th:src="@{/js/share-card-modal.js}"></script>
+<script src="/js/narrator-preview.js" th:src="@{/js/narrator-preview.js}" defer></script>
+<script src="/js/rijal-chain.js" th:src="@{/js/rijal-chain.js}" defer></script>
 <script src="/js/hub-pages.js" th:src="@{/js/hub-pages.js}"></script>
+<script src="/js/meta-drawer.js" th:src="@{/js/meta-drawer.js}" defer></script>
 <script src="/js/site-announcement.js" th:src="@{/js/site-announcement.js}"></script>
 <script src="/js/locale-preference.js" th:src="@{/js/locale-preference.js}"></script>
     <script src="/js/nav-menu.js" th:src="@{/js/nav-menu.js}" defer></script>

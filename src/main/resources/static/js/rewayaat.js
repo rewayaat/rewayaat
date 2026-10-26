@@ -1264,9 +1264,19 @@ function applyAuthState() {
     if (signInBtn) {
         signInBtn.classList.toggle('d-none', isAuthed);
         // The server already rendered this label in the page's language; rebuilding the
-        // button here threw that away and put English back on the Arabic page.
-        signInBtn.innerHTML = '<i class="fa fa-right-to-bracket" aria-hidden="true"></i> '
-            + t('nav.signin', 'Sign In');
+        // button here threw that away and put English back on the Arabic page. It threw
+        // the label's own element away too, so the word could not be hidden where the bar
+        // is crowded — on the pages this file runs on, and on no others, the sign-in
+        // button stayed full width between 768px and 992px and squeezed the search field.
+        // Rebuilt as elements rather than as a string, so the span survives and the
+        // translated word needs no escaping.
+        var signInIcon = document.createElement('i');
+        signInIcon.className = 'fa fa-right-to-bracket';
+        signInIcon.setAttribute('aria-hidden', 'true');
+        var signInLabel = document.createElement('span');
+        signInLabel.className = 'auth-action__label';
+        signInLabel.textContent = t('nav.signin', 'Sign In');
+        signInBtn.replaceChildren(signInIcon, signInLabel);
     }
     var mobileToggle = document.getElementById('authMobileToggle');
     if (mobileToggle) {
@@ -2393,7 +2403,7 @@ function openHadithEditorModal(options) {
             create: false,
             hideSelected: true,
             maxOptions: 400,
-            searchField: ['text', 'value']
+            searchField: ['text', 'value', 'ar']
         });
     }
 
@@ -2594,6 +2604,16 @@ function initSelect2(select2_id) {
         },
         maxItems: null,
         placeholder: SEARCH_PLACEHOLDER_DEFAULT,
+        // Two kinds of suggestion, kept apart so the reader can see which is which: the men
+        // the rijāl books head, and the words the corpus actually uses. A name typed into
+        // this box used to offer only words, and the one thing a reader searching «zurara»
+        // most likely wants is the man.
+        optgroups: [
+            {value: 'narrators', label: t('js.suggest.narrators', 'Narrators')},
+            {value: 'terms', label: t('js.suggest.terms', 'Terms in the narrations')}
+        ],
+        optgroupField: 'group',
+        lockOptgroupOrder: true,
         loadThrottle: 250,
         load: function(query, callback) {
             var term = (query || '').trim();
@@ -2603,18 +2623,53 @@ function initSelect2(select2_id) {
             if (term.indexOf(' ') >= 0) {
                 return callback();
             }
-            var url = '/v1/terms/top?term=' + encodeURIComponent(term.replace(/["']/g, ""));
-            fetch(url)
+            var clean = term.replace(/["']/g, "");
+            // Asked for together, so the list does not jump as a second answer lands. Either
+            // side may fail on its own without costing the reader the other.
+            var terms = fetch('/v1/terms/top?term=' + encodeURIComponent(clean))
                 .then(function(response) { return response.json(); })
-                .then(function(data) {
-                    var results = data.map(function(item) {
-                        return { value: item, text: item };
+                .catch(function() { return []; });
+            var men = fetch('/v1/narrators?per_page=4&q=' + encodeURIComponent(clean))
+                .then(function(response) { return response.ok ? response.json() : null; })
+                .then(function(payload) {
+                    // A name three thousand men share names nobody — the same floor the
+                    // narrator strip uses, for the same reason.
+                    if (!payload || !payload.narrators || payload.total > 150) {
+                        return [];
+                    }
+                    return payload.narrators.filter(function(man) {
+                        return man && man.entry_count > 0;
                     });
-                    callback(results);
                 })
-                .catch(function() {
-                    callback();
+                .catch(function() { return []; });
+            Promise.all([men, terms]).then(function(both) {
+                var results = both[0].map(function(man) {
+                    // The value is what gets searched, and the row shows the name and
+                    // nothing else. Arabic first on the Arabic site: this preferred the
+                    // transliteration in both languages, so «زرارة» typed into the
+                    // Arabic box answered «Zurarah ibn A'yan» and then searched the
+                    // corpus for that. The other spelling stays matchable through
+                    // `searchField`, which carries `ar` for this reason.
+                    var arabicPage = (window.I18N_LOCALE === 'ar');
+                    var ar = man.display_ar || '';
+                    var en = man.display_en || '';
+                    var label = arabicPage ? (ar || en) : (en || ar);
+                    return {
+                        value: label,
+                        text: label,
+                        ar: arabicPage ? en : ar,
+                        group: 'narrators'
+                    };
                 });
+                var seen = {};
+                results.forEach(function(row) { seen[row.value.toLowerCase()] = true; });
+                (Array.isArray(both[1]) ? both[1] : []).forEach(function(item) {
+                    if (!seen[String(item).toLowerCase()]) {
+                        results.push({value: item, text: item, group: 'terms'});
+                    }
+                });
+                callback(results);
+            }).catch(function() { callback(); });
         },
         onItemAdd: function() {
             if (!suppressSearchGlow) {
@@ -3602,18 +3657,37 @@ function loadRecentUpdates() {
                         + escapeHtml(entryText(update, 'title') || t('js.update', 'Update')) + '</h3>' +
                     '<p class="recent-update-summary">'
                         + escapeHtml(entryText(update, 'summary') || '') + '</p>';
+                // Three, always. One entry ships six bullets and the next four, so the
+                // two cards stood at different heights and the row read as broken. The
+                // rest are on the updates page, which is what the card links to.
+                var HOME_HIGHLIGHTS = 3;
                 if (highlights.length) {
                     var list = document.createElement('ul');
                     list.className = 'recent-update-list';
-                    highlights.forEach(function(item) {
+                    highlights.slice(0, HOME_HIGHLIGHTS).forEach(function(item) {
                         var li = document.createElement('li');
                         li.textContent = item;
                         list.appendChild(li);
                     });
+                    if (highlights.length > HOME_HIGHLIGHTS) {
+                        var more = document.createElement('li');
+                        more.className = 'recent-update-list__more';
+                        more.textContent = t('js.updateMore', '+{0} more in this release')
+                            .replace('{0}', localeDigits(highlights.length - HOME_HIGHLIGHTS));
+                        list.appendChild(more);
+                    }
                     link.appendChild(list);
                 }
                 card.appendChild(link);
-                if (update.previewVideo) {
+                // An entry may carry its clip at the top level or inside `why`, which is
+                // where the updates page reads it from. The rijāl release has it only
+                // there, so the home card showed no clip at all while the updates page
+                // played one.
+                var why = update.why || {};
+                var clip = update.previewVideo || why.previewVideo
+                    || (/\.mp4($|\?)/.test(why.video || '') ? why.video : '');
+                var clipPoster = update.previewPoster || why.previewPoster || why.poster || '';
+                if (clip) {
                     // A silent loop that runs only while the card is on screen: a preview of
                     // what the update ships, not a player to operate. The iframe path below
                     // cannot do this - a cross-origin player will not loop or stay quiet on
@@ -3622,13 +3696,15 @@ function loadRecentUpdates() {
                     // The modifier drops the height cap that exists for the 4:3 recording
                     // in the older entry; this one is wider than it is tall and would sit
                     // letterboxed inside it.
+                    // One shape for every card. The recordings are 4:3, 16:9 and
+                    // 1600x1088, and left to themselves they made three different
+                    // cards; the frame is fixed and the picture is cropped into it.
                     preview.className = 'recent-update-video recent-update-video--file';
-                    preview.style.aspectRatio = update.previewAspect || '16 / 9';
                     var video = document.createElement('video');
                     video.className = 'recent-update-video__file';
-                    video.src = update.previewVideo;
-                    if (update.previewPoster) {
-                        video.poster = update.previewPoster;
+                    video.src = clip;
+                    if (clipPoster) {
+                        video.poster = clipPoster;
                     }
                     // The properties, not just the attributes: autoplay policy reads the
                     // muted state, and nothing is fetched until the card is scrolled to.
@@ -3773,10 +3849,10 @@ function buildPdfExportMarkup(options) {
         '<title>' + title + '</title>' +
         '<link rel="preconnect" href="https://fonts.googleapis.com">' +
         '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
-        '<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Manrope:wght@500;700;800&family=Source+Serif+4:wght@400;600;700&display=swap" rel="stylesheet">' +
+        '<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Manrope:wght@500;700;800&family=Literata:opsz,wght@7..72,400;7..72,600;7..72,700&display=swap" rel="stylesheet">' +
         '<style>' +
         ':root{color-scheme:light;--ink:#1d2f3f;--muted:#6e6251;--paper:#f8f1e4;--card:#fffdf8;--line:rgba(64,49,26,.14);--accent:#8b6b31;--accent-strong:#174d77;}' +
-        '*{box-sizing:border-box;}html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:"Source Serif 4",Georgia,serif;line-height:1.7;}' +
+        '*{box-sizing:border-box;}html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:"Literata",Georgia,serif;line-height:1.7;}' +
         'body{padding:28px;}body::before{content:"";position:fixed;inset:0;background:radial-gradient(circle at top left,rgba(139,107,49,.08),transparent 32%),radial-gradient(circle at top right,rgba(23,77,119,.06),transparent 28%);pointer-events:none;}' +
         '.pdf-shell{position:relative;max-width:980px;margin:0 auto;}' +
         '.pdf-header{padding:24px 28px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(145deg,rgba(255,253,248,.98),rgba(244,232,207,.96));box-shadow:0 20px 45px rgba(57,42,21,.12);}' +
@@ -4584,6 +4660,8 @@ function setupVue(query, page, sortFields) {
             sortFields: sortFields,
             page: isCollectionMode() ? page : 1,
             totalHits: 0,
+            narratorMatches: [],
+            narratorMatchesExpanded: false,
             pageSize: SEARCH_PAGE_SIZE,
             book_blurbs: bookBlurbs,
             collectionMode: isCollectionMode(),
@@ -4720,6 +4798,11 @@ function setupVue(query, page, sortFields) {
             },
             pageLabel: function() {
                 return 'Page ' + this.page + ' of ' + this.totalPages;
+            },
+            narratorMatchesShown: function() {
+                return this.narratorMatchesExpanded
+                    ? this.narratorMatches
+                    : this.narratorMatches.slice(0, 3);
             },
             resultsHeadingText: function() {
                 if (this.collectionMode) {
@@ -4886,6 +4969,147 @@ function setupVue(query, page, sortFields) {
             }
         },
         methods: {
+            // The page's own strings reach the template through here. t() is a module
+            // function and a template can only call a method, so the narrator strip was
+            // carrying its English inline — on a site that serves Arabic.
+            t: function(key, fallback) {
+                return t(key, fallback);
+            },
+            // Arabic-Indic digits on the Arabic site. Another module function a template
+            // cannot reach, for the same reason t() needed this treatment.
+            localeDigits: function(value) {
+                return localeDigits(value);
+            },
+            // «1 books» is wrong in English and «١١ كتب» is wrong in Arabic. The rule
+            // lives in narrator-preview.js, which every page carrying a chain loads;
+            // without it the bare plural still reads.
+            narratorCount: function(howMany, base) {
+                if (typeof window.narratorCountPhrase === 'function') {
+                    return window.narratorCountPhrase(howMany, base);
+                }
+                return t(base, '{0}').replace('{0}', localeDigits(howMany));
+            },
+            // The chain of one narration, shaped the way the server shapes it for the card
+            // it renders: the same four kinds of link, the same «open» joint where the
+            // chain is broken, so one stylesheet and one script serve both.
+            chainOf: function(narration) {
+                var people = (narration && narration.chain_people) || [];
+                var prefix = (window.I18N_LOCALE === 'ar') ? '/ar' : '';
+                var links = [];
+                for (var i = 0; i < people.length; i++) {
+                    var one = people[i] || {};
+                    var words = one.t || '';
+                    if (!words) {
+                        continue;
+                    }
+                    var person = one.p || '';
+                    /* «وبهذا الإسناد» points at a narration rather than at a man, so it
+                       gets that narration's URL and not a narrator's. The server twin of
+                       this is HadithCardFactory.addChain. */
+                    if (one.k === 'backref_chain') {
+                        links.push({
+                            words: words, kind: 'backref', person: '', weak: false, open: false,
+                            number: one.rn || '',
+                            href: one.r ? prefix + '/hadith/' + encodeURIComponent(one.r) : ''
+                        });
+                        continue;
+                    }
+                    /* The resolver found several men of this name and would not choose
+                       between them. That is not «not found» — it knows exactly who they
+                       are — so the step names them and lets the reader settle it. */
+                    var several = !person && (one.c || []).length > 0;
+                    var kind = one.k === 'collective' ? 'collective'
+                        : (one.k === 'imam' && person) ? 'imam'
+                        : person ? 'man'
+                        : several ? 'several' : 'unknown';
+                    var weak = kind === 'collective' || kind === 'unknown' || several;
+                    links.push({
+                        words: words, kind: kind, person: person, weak: weak, open: weak,
+                        candidates: (one.c || []).map(function(c) {
+                            return {
+                                person: c.p || '', name: c.n || '', title: c.h || '',
+                                href: prefix + '/narrator/' + (c.p || '') + (c.g ? '/' + c.g : '')
+                            };
+                        }),
+                        href: (person && kind !== 'collective')
+                            ? prefix + '/narrator/' + person + (one.g ? '/' + one.g : '')
+                            : ''
+                    });
+                }
+                // A joint is open when either end of it is, which is a property of the pair.
+                for (var at = 0; at < links.length; at++) {
+                    var below = at + 1 < links.length && links[at + 1].weak;
+                    links[at].open = links[at].weak || below;
+                }
+                return links;
+            },
+            chainIdsOf: function(narration) {
+                var seen = [];
+                this.chainOf(narration).forEach(function(link) {
+                    if (link.person && seen.indexOf(link.person) < 0) {
+                        seen.push(link.person);
+                    }
+                });
+                return seen.join(',');
+            },
+            // The rail badge counts what the panel draws, not the steps the cutter called
+            // names: a chain written out as the fourteen showed 3 beside "9 links".
+            namedInChain: function(narration) {
+                return this.chainOf(narration).length;
+            },
+            identifiedInChain: function(narration) {
+                return this.countInChain(narration, 'man');
+            },
+            imamsInChain: function(narration) {
+                return this.countInChain(narration, 'imam');
+            },
+            severalInChain: function(narration) {
+                return this.countInChain(narration, 'several');
+            },
+            notFoundInChain: function(narration) {
+                return this.countInChain(narration, 'unknown');
+            },
+            groupsInChain: function(narration) {
+                return this.countInChain(narration, 'collective');
+            },
+            countInChain: function(narration, kind) {
+                return this.chainOf(narration).filter(function(link) {
+                    return link.kind === kind;
+                }).length;
+            },
+            // What the first book to grade him calls him, in that book's own word.
+            // Nothing here is this site's judgement, so nothing here is phrased as one.
+            saidOf: function(narrator) {
+                var rows = (narrator && narrator.said_by) || [];
+                if (!rows.length) {
+                    return {word: '', leaning: ''};
+                }
+                var first = rows[0];
+                var arabic = window.I18N_LOCALE === 'ar';
+                return {
+                    word: (arabic && first.said_ar) ? first.said_ar : first.said,
+                    leaning: first.leaning || ''
+                };
+            },
+            /* The Imam a chain ends on without naming him, in the language of the page.
+               Both forms come from the server, which decided which Imam it is; this only
+               picks the one the reader is reading. */
+            imamWords: function(ends) {
+                if (!ends) {
+                    return '';
+                }
+                return (window.I18N_LOCALE === 'ar' && ends.wordsAr) ? ends.wordsAr : ends.words;
+            },
+            // The Imams he transmitted under, in the language of the page.
+            imamLine: function(narrator) {
+                var life = narrator && narrator.life;
+                if (!life) {
+                    return '';
+                }
+                var arabic = window.I18N_LOCALE === 'ar';
+                var names = (arabic ? life.imams_ar : life.imams) || [];
+                return names.join(arabic ? '\u060c ' : ', ');
+            },
             loadTaxonomy: function() {
                 var self = this;
                 return fetchTaxonomyMap()
@@ -5821,6 +6045,55 @@ function setupVue(query, page, sortFields) {
                 reqUrl += '&match_mode=' + encodeURIComponent(resolveSearchMatchModeParam());
                 xhr.open('GET', reqUrl);
                 xhr.send();
+                this.fetchNarratorMatches(queryToUse);
+            },
+            /**
+             * Narrators whose name answers to the same query.
+             *
+             * A reader searching «Sahl b. Ziyad» usually wants the man, not the 2,000
+             * narrations he stands in, and until now there was nowhere for that to land. The
+             * strip appears only when the query really names someone the Rijal books head:
+             * a query that matches nothing shows nothing, and a query that matches a man
+             * weakly — one whose entry count is low and whose name only half-matches — is not
+             * worth a strip above the narrations either.
+             */
+            /** «/narrator/n000515/sahl-ibn-ziyad» — the id resolves it, the name reads. */
+            narratorUrl: function(narrator) {
+                if (!narrator || !narrator.person_id) {
+                    return '#';
+                }
+                return '/narrator/' + narrator.person_id + (narrator.slug ? '/' + narrator.slug : '');
+            },
+            fetchNarratorMatches: function(query) {
+                var self = this;
+                var text = (query || '').trim();
+                if (text.length < 3 || this.collectionMode) {
+                    this.narratorMatches = [];
+                    return;
+                }
+                fetch('/v1/narrators?q=' + encodeURIComponent(text) + '&per_page=12')
+                    .then(function(response) { return response.ok ? response.json() : null; })
+                    .then(function(payload) {
+                        var found = (payload && payload.narrators) || [];
+                        // A name three thousand men share names nobody. «muhammad» matched
+                        // 3,685 and the strip offered three obscure ones as though the
+                        // reader had asked for them; «zurara» matches 25 and «bazanti» 3.
+                        // Past this many the query is a word, not a man, and the strip is
+                        // worse than nothing above the narrations.
+                        if ((payload && payload.total) > 150) {
+                            self.narratorMatches = [];
+                            return;
+                        }
+                        // Three are shown and the rest wait behind a button: a name
+                        // like «al-Hasan» is borne by a dozen men the books head
+                        // separately, and the reader who wants the twelfth should not
+                        // have to leave the results to find him.
+                        self.narratorMatchesExpanded = false;
+                        self.narratorMatches = found.filter(function(narrator) {
+                            return narrator && narrator.entry_count > 0;
+                        }).slice(0, 12);
+                    })
+                    .catch(function() { self.narratorMatches = []; });
             },
             narrationDomId: function(narration) {
                 if (!narration) {
@@ -5889,7 +6162,16 @@ function setupVue(query, page, sortFields) {
                     return 'metadata';
                 }
                 var activeTab = String(narration.sidecarActiveTab || 'metadata').trim();
-                if (activeTab !== 'similar' && activeTab !== 'quran') {
+                // The panels this card knows. «rijal» was added when the chain panel came
+                // to the search results, and leaving it out of the list here is what made
+                // the tab light up and the panel stay on metadata.
+                if (['similar', 'quran', 'rijal'].indexOf(activeTab) < 0) {
+                    return 'metadata';
+                }
+                // The rijal tab is not drawn for a narration without an isnad, so it cannot
+                // be the selected one either. Nothing sets it today but a click on the
+                // button, which is absent; this keeps it so if a default or a link ever does.
+                if (activeTab === 'rijal' && this.isNarrationSidecarTabDisabled(narration, activeTab)) {
                     return 'metadata';
                 }
                 return activeTab;
@@ -5899,7 +6181,7 @@ function setupVue(query, page, sortFields) {
                     return;
                 }
                 var nextTab = String(tab || 'metadata').trim();
-                if (nextTab !== 'similar' && nextTab !== 'quran') {
+                if (['similar', 'quran', 'rijal'].indexOf(nextTab) < 0) {
                     nextTab = 'metadata';
                 }
                 if (this.isNarrationSidecarTabDisabled(narration, nextTab)) {
@@ -5935,6 +6217,12 @@ function setupVue(query, page, sortFields) {
                     return narration.quranicInsightsCountLoading
                         || narration.quranicInsightsCount === null
                         || Number(narration.quranicInsightsCount) <= 0;
+                }
+                // The chain is on the narration already — nothing is fetched to decide
+                // whether there is one — so the panel is open whenever the resolver read an
+                // isnād out of it. Anything else this card does not know is still refused.
+                if (tab === 'rijal') {
+                    return !this.chainOf(narration).length;
                 }
                 return true;
             },
@@ -6002,7 +6290,7 @@ function setupVue(query, page, sortFields) {
                 }
                 var loadingStartedAt = Date.now();
                 narration.similarCountLoading = true;
-                fetch('/v1/narrations/similar?id=' + encodeURIComponent(sourceId) + '&per_page=0')
+                fetch('/v1/narrations/similar?lang=' + (window.I18N_LOCALE || 'en') + '&id=' + encodeURIComponent(sourceId) + '&per_page=0')
                     .then(function(resp) { return resp.json(); })
                     .then(function(data) {
                         var total = Number(data && data.totalResultSetSize);
@@ -6034,7 +6322,7 @@ function setupVue(query, page, sortFields) {
                 }
                 narration.similarError = '';
                 var size = perPage || 10;
-                var reqUrl = '/v1/narrations/similar?id=' + encodeURIComponent(sourceId);
+                var reqUrl = '/v1/narrations/similar?lang=' + (window.I18N_LOCALE || 'en') + '&id=' + encodeURIComponent(sourceId);
                 if (includeAll) {
                     reqUrl += '&all=true';
                 } else {

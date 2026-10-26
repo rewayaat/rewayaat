@@ -1,0 +1,121 @@
+<!doctype html>
+<html th:lang="${htmlLang} ?: 'en'" th:dir="${htmlDir} ?: 'ltr'" lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/site :: sitehead}"></head>
+<body>
+<nav th:replace="~{fragments/site :: sitenav}"></nav>
+
+<main class="container py-3">
+    <nav th:replace="~{fragments/site :: crumbtrail}"></nav>
+
+    <header class="hub-hero">
+        <div class="hub-hero__eyebrow" th:text="#{contact.eyebrow}">Contact</div>
+        <h1 class="hub-hero__title" th:text="#{contact.title}">Write to us</h1>
+        <p class="hub-hero__lede" th:text="#{contact.lede}">Tell us what is wrong.</p>
+    </header>
+
+    <!-- Every value below comes from the URL and is the reader's to forge. They are printed
+         with th:text or as attribute values only, never the unescaped form. -->
+    <div class="contact">
+        <div class="contact-done" id="contact-done" role="status" hidden>
+            <h2 class="contact-done__title" th:text="#{contact.success.title}">Sent</h2>
+            <p th:text="#{contact.success.body}">Thank you.</p>
+            <a th:href="${arPrefix} + '/'" th:text="#{contact.success.home}">Back to the site</a>
+        </div>
+
+        <form class="contact-form" id="contact-form" method="post" action="/v1/contact"
+              th:action="@{/v1/contact}" novalidate>
+            <div class="contact-context" th:if="${!#strings.isEmpty(contactLabel) or !#strings.isEmpty(contactId)}">
+                <div class="contact-context__label" th:text="#{contact.context.label}">About</div>
+                <div class="contact-context__value">
+                    <span th:text="${!#strings.isEmpty(contactLabel) ? contactLabel : contactId}">Al-Kāfi #951</span>
+                    <a th:if="${contactUrlSafe}" th:href="${contactUrl}" rel="noopener"
+                       th:text="#{contact.context.back}">Back to the page</a>
+                </div>
+                <p class="contact-context__note" th:text="#{contact.context.note}">This is sent with your message.</p>
+            </div>
+
+            <input type="hidden" name="id" th:value="${contactId}"/>
+            <input type="hidden" name="label" th:value="${contactLabel}"/>
+            <input type="hidden" name="url" th:value="${contactUrl}"/>
+            <input type="hidden" name="locale" th:value="${contactLocale}"/>
+
+            <div class="contact-field">
+                <label for="contact-kind" th:text="#{contact.kind.label}">What is this about</label>
+                <select id="contact-kind" name="kind" required>
+                    <option value="narration" th:selected="${about == 'narration'}" th:text="#{contact.kind.narration}">narration</option>
+                    <option value="narrator" th:selected="${about == 'narrator'}" th:text="#{contact.kind.narrator}">narrator</option>
+                    <option value="site" th:selected="${about == 'site'}" th:text="#{contact.kind.site}">site</option>
+                    <option value="other" th:text="#{contact.kind.other}">other</option>
+                </select>
+            </div>
+
+            <div class="contact-field">
+                <label for="contact-message" th:text="#{contact.message.label}">Your message</label>
+                <textarea id="contact-message" name="message" rows="6" minlength="10" maxlength="4000"
+                          required th:placeholder="#{contact.message.placeholder}"
+                          aria-describedby="contact-message-help"></textarea>
+                <p class="contact-field__help" id="contact-message-help" th:text="#{contact.message.help}">At least 10 characters.</p>
+            </div>
+
+            <div class="contact-field">
+                <label for="contact-email" th:text="#{contact.email.label}">Your email</label>
+                <input id="contact-email" name="email" type="email" maxlength="254" autocomplete="email"
+                       aria-describedby="contact-email-help"/>
+                <p class="contact-field__help" id="contact-email-help" th:text="#{contact.email.help}">Without it we cannot reply.</p>
+            </div>
+
+            <div class="contact-field">
+                <label for="contact-name" th:text="#{contact.name.label}">Your name</label>
+                <input id="contact-name" name="name" type="text" maxlength="100" autocomplete="name"/>
+            </div>
+
+            <div class="contact-trap" hidden aria-hidden="true">
+                <input name="website" type="text" tabindex="-1" autocomplete="off" value=""/>
+            </div>
+
+            <p class="contact-error" id="contact-error" role="alert" hidden></p>
+
+            <button type="submit" class="contact-submit" id="contact-submit" th:text="#{contact.submit}">Send</button>
+        </form>
+
+        <noscript>
+            <p class="contact-field__help" th:text="#{contact.noscript}">Without JavaScript this form still sends.</p>
+        </noscript>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/site :: sitefooter}"></footer>
+<th:block th:replace="~{fragments/site :: analytics}"></th:block>
+
+<script th:inline="javascript">
+(function () {
+    var form = document.getElementById('contact-form');
+    var done = document.getElementById('contact-done');
+    var err = document.getElementById('contact-error');
+    var btn = document.getElementById('contact-submit');
+    var generic = /*[[#{contact.error.generic}]]*/ 'Could not send.';
+    var sending = /*[[#{contact.sending}]]*/ 'Sending';
+    var label = btn.textContent;
+    function fail(text) { err.textContent = text; err.hidden = false; btn.disabled = false; btn.textContent = label; }
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        err.hidden = true;
+        if (!form.checkValidity()) { form.reportValidity(); return; }
+        var data = {};
+        new FormData(form).forEach(function (v, k) { data[k] = v; });
+        btn.disabled = true; btn.textContent = sending;
+        fetch(form.getAttribute('action'), {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+            body: JSON.stringify(data)
+        }).then(function (r) {
+            return r.json().catch(function () { return {}; }).then(function (j) { return {ok: r.ok && j.ok, j: j}; });
+        }).then(function (res) {
+            if (res.ok) { form.hidden = true; done.hidden = false; done.scrollIntoView({block: 'center'}); }
+            else { fail(res.j.message || generic); }
+        }).catch(function () { fail(generic); });
+    });
+})();
+</script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 package com.rewayaat.controllers;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
  * accepts the challenge on the MCP host or an allowed parent of it, and this is the same
  * host, so that is satisfied.
  */
+/** Machine endpoints — not something an API reader calls. */
+@Hidden
 @RestController
 public class WellKnownController {
 

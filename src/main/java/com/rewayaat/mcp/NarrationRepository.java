@@ -84,6 +84,23 @@ public class NarrationRepository {
      * would have returned ({@code غدير}: 17 down to 13). With them, every query measured is
      * at parity or within 0.1%.
      */
+    /**
+     * What the resolved chain adds, fetched only when a tool is going to show it. A chain is
+     * three arrays of spans and a twelve-step one runs to several kilobytes, so a search that
+     * is not going to display it should not pay to read it.
+     */
+    private static final List<String> CHAIN_FIELDS = List.of(
+            "chain_people", "chain_links_en");
+
+    private static List<String> fields(boolean withChain) {
+        if (!withChain) {
+            return SUMMARY_FIELDS;
+        }
+        List<String> all = new ArrayList<>(SUMMARY_FIELDS);
+        all.addAll(CHAIN_FIELDS);
+        return all;
+    }
+
     private static final List<String> SEARCH_FIELDS = List.of(
             "semantic_matn_source^4",
             "english^2",
@@ -146,6 +163,12 @@ public class NarrationRepository {
      */
     public Page search(String query, int from, int size, List<String> topicTags, String book,
                        boolean preciseMatch) throws Exception {
+        return search(query, from, size, topicTags, book, preciseMatch, false);
+    }
+
+    /** As above, optionally carrying each hit's resolved chain for a tool that will show it. */
+    public Page search(String query, int from, int size, List<String> topicTags, String book,
+                       boolean preciseMatch, boolean withChain) throws Exception {
         String enhanced = queryService.enhanceQuery(query, QueryMode.SEARCH, preciseMatch);
         String finalQuery = enhanced == null || enhanced.isBlank() ? "*" : enhanced.trim();
         if (book != null && !book.isBlank()) {
@@ -164,7 +187,7 @@ public class NarrationRepository {
                 List.of())
                 .queryFields(SEARCH_FIELDS);
 
-        QueryStringQueryResult.RawResult raw = search.rawResult(SUMMARY_FIELDS);
+        QueryStringQueryResult.RawResult raw = search.rawResult(fields(withChain));
         List<Narration> narrations = new ArrayList<>();
         for (QueryStringQueryResult.RawHit hit : raw.hits()) {
             narrations.add(new Narration(hit.id(), hit.source()));
@@ -180,6 +203,12 @@ public class NarrationRepository {
      * is the difference between "these appear to be the main ones" and an answer.
      */
     public Page chapter(String book, String chapter, String volume, int from, int size) throws Exception {
+        return chapter(book, chapter, volume, from, size, false);
+    }
+
+    /** As above, optionally carrying each narration's resolved chain. */
+    public Page chapter(String book, String chapter, String volume, int from, int size,
+                        boolean withChain) throws Exception {
         SearchRequest request = new SearchRequest.Builder()
                 .index(ESClientProvider.INDEX)
                 .query(q -> q.bool(b -> {
@@ -190,7 +219,7 @@ public class NarrationRepository {
                     }
                     return b;
                 }))
-                .source(s -> s.filter(f -> f.includes(SUMMARY_FIELDS)))
+                .source(s -> s.filter(f -> f.includes(fields(withChain))))
                 // `number` is a keyword, so the default sort would order it lexically -
                 // 1, 10, 100, 2. HadithQueryService already owns the numeric script sort
                 // the website uses for the same field; reuse it rather than restate it.
@@ -213,6 +242,11 @@ public class NarrationRepository {
 
     /** One narration by id, or {@code null} when the id is not in the corpus. */
     public Narration get(String id) throws Exception {
+        return get(id, false);
+    }
+
+    /** As {@link #get(String)}, optionally carrying the resolved chain of transmission. */
+    public Narration get(String id, boolean withChain) throws Exception {
         if (id == null || id.isBlank()) {
             return null;
         }
@@ -220,7 +254,7 @@ public class NarrationRepository {
             GetResponse<Map> response = provider.client().get(g -> g
                     .index(ESClientProvider.INDEX)
                     .id(id.trim())
-                    .sourceIncludes(SUMMARY_FIELDS), Map.class);
+                    .sourceIncludes(fields(withChain)), Map.class);
             if (!response.found() || response.source() == null) {
                 return null;
             }
@@ -368,6 +402,54 @@ public class NarrationRepository {
                     "no such verse: surah must be 1-114 and ayah at least 1; got \"" + raw + "\"");
         }
         return surah + ":" + ayah;
+    }
+
+    /**
+     * The narrations in whose chain a resolver linked a name to one man.
+     *
+     * <p>The match is on the stored person id, not on his name, which is the whole difference
+     * from searching the Arabic text for it: a search for «محمد بن يحيى» finds every man who
+     * bears the name, and this finds the one the resolver decided each occurrence was. The
+     * cost of that precision is in the other direction. A step the resolver could not settle
+     * ({@code several}, {@code none}) is not linked to anybody, so a narration whose chain
+     * mentions him only there is not found - the total is a floor, not a census, and the tool
+     * says so.
+     *
+     * <p>{@code chain_people.p} is a flattened object array, not a nested one, which is enough
+     * for "is this man anywhere in the chain" and not enough to ask "by which basis" - the
+     * basis of one step cannot be correlated with the person of another in a flattened array.
+     * So the basis is reported per hit, from the hit's own steps, and never counted here.
+     *
+     * <p>Ordered by book and then numerically by number, so a page is stable and paging
+     * through a man with 4,630 narrations visits each once.
+     */
+    public Page byNarrator(String personId, String book, int from, int size) throws Exception {
+        SearchRequest request = new SearchRequest.Builder()
+                .index(ESClientProvider.INDEX)
+                .query(q -> q.bool(b -> {
+                    b.filter(f -> f.term(t -> t.field("chain_people.p.keyword").value(personId)));
+                    if (book != null && !book.isBlank()) {
+                        b.filter(f -> f.term(t -> t.field("book").value(book.trim())));
+                    }
+                    return b;
+                }))
+                .source(s -> s.filter(f -> f.includes(fields(true))))
+                .sort(so -> so.field(f -> f.field("book")))
+                .sort(queryService.setupSortBuilders("number:asc"))
+                .from(Math.max(0, from))
+                .size(Math.max(0, size))
+                .trackTotalHits(t -> t.enabled(true))
+                .build();
+
+        try (ESClientProvider provider = new ESClientProvider()) {
+            SearchResponse<Map> response = provider.client().search(request, Map.class);
+            List<Narration> narrations = new ArrayList<>();
+            for (Hit<Map> hit : response.hits().hits()) {
+                narrations.add(new Narration(hit.id(), asSource(hit.source())));
+            }
+            long total = response.hits().total() == null ? narrations.size() : response.hits().total().value();
+            return new Page(narrations, total);
+        }
     }
 
     /** Distinct book names with their narration counts, largest first. */

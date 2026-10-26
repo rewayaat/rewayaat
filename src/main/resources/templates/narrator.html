@@ -1,0 +1,1024 @@
+<!doctype html>
+<html th:lang="${htmlLang} ?: 'en'" th:dir="${htmlDir} ?: 'ltr'" lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/site :: sitehead}"></head>
+<body>
+<nav th:replace="~{fragments/site :: sitenav}"></nav>
+
+<main class="container py-3 narrator-page">
+    <nav th:replace="~{fragments/site :: crumbtrail}"></nav>
+
+    <!-- The notice, as a rijāl dictionary sets one: the man, his seal, the generation he
+         belongs to, and one sentence saying what the books between them amount to. What
+         each book actually says, with its pages, is the evidence for that sentence and
+         follows it under the tabs - a reader wants the claim before the apparatus.
+
+         This replaced a navy banner carrying four counting tiles. Every count on them was
+         already printed in the tab strip below, so what the tiles added was repetition at
+         the loudest point on the page. -->
+    <!-- The same navy head the books, volumes and chapters carry, so a narrator reads as
+         part of this site rather than as a feature bolted onto it. What is inside it is
+         what the rijal books claim about the man: his name, the generations they place
+         him in, where he was from, when he died, and the sentence those books amount to.
+
+         Figures counted out of this corpus are deliberately NOT in here. They are in the
+         band below, under a label that says where they come from, because "548 narrations"
+         set beside a man's name reads as a fact about the man when it is a fact about
+         this collection. -->
+    <header class="hub-hero hub-hero--rijal">
+        <!-- Seal and name on one line. Stacked, the seal sat alone at the top of a tall
+             column with the width of the panel empty beside it. -->
+        <div class="rijal__head">
+            <div class="rijal__names">
+            <div class="hub-hero__eyebrow" th:text="#{narrator.eyebrow}">Narrator</div>
+            <h1 class="hub-hero__title" dir="rtl" lang="ar" th:text="${displayAr}">اسم الراوي</h1>
+            <!-- Not on an Arabic page: «زرارة بن أعين» followed by «Zurarah ibn A'yan» is
+                 a transliteration serving a reader who does not need one. -->
+            <p class="hub-hero__also"
+               th:if="${!#strings.isEmpty(displayEn) and #locale.language != 'ar'}"
+               th:text="${displayEn}">Transliterated name</p>
+            <!-- The lineage the anchor entry opens on is not repeated here. It is the first
+                 line of a book's notice on him, so it is read where that notice is quoted, in
+                 Tarājim; printing it under the heading said the same thing twice. -->
+            </div>
+            <!-- The seal says two things a reader cannot guess: the tile's colour is the
+                 earliest Imam he transmitted from, and the ring's length is how much of
+                 this corpus runs through him. Neither is written anywhere else on the
+                 page, so the mark carries its own key. -->
+            <span class="hub-hero__seal">
+                <span th:utext="${@seals.of(narratorId, displayAr, narrator['imam_ordinals'], chainsThrough, 84)}"></span>
+                <button type="button" class="hub-hero__seal-key"
+                        th:attr="aria-label=#{narrator.seal.key.label}">
+                    <span aria-hidden="true">?</span>
+                    <span class="hub-hero__seal-note" role="tooltip"
+                          th:text="#{narrator.seal.key(${@localeDigits.grouped(chainsThrough)})}">
+                        The ring grows with the chains that run through him.</span>
+                </button>
+            </span>
+        </div>
+
+        <!-- What the books amount to, ruled off from the name above it. -->
+        <div class="rijal__says">
+            <p class="hub-hero__intro-text" th:if="${!#strings.isEmpty(narrator.blurb)}"
+               th:text="${@honorifics.salute(narrator.blurb, isArabic)}">A sentence about him.</p>
+
+            <!-- Only where no book grades him at all. The absence is the finding: 14,330 of
+                 15,518 men are never graded by any of the seven, and for them this line and
+                 the facts beside it are the whole of what is known. Not on an Imam's page:
+                 the note below says the same thing there, and says it at length. -->
+            <p class="hub-hero__standing"
+               th:if="${#lists.isEmpty(narrator['said_by']) and narrator['kind'] != 'imam'}"
+               th:text="#{'narrator.standing.' + ${narrator.standing}}">No book grades him</p>
+            <!-- On whose word. The seven books are not seven equal voices: al-Najāshī and
+                 al-Ṭūsī wrote within reach of these men, al-Ardabīlī and al-Khoei are reading
+                 the same early books a reader of this page can read, and the ascription of
+                 the Ḍuʿafāʾ to Ibn al-Ghaḍāʾirī is disputed. -->
+            <p class="hub-hero__rests"
+               th:if="${narrator['standing_rests_on'] != null
+                       and narrator['standing_rests_on'] != ''
+                       and narrator['standing_rests_on'] != 'early'}"
+               th:text="#{'narrator.standing.restsOn.' + ${narrator['standing_rests_on']}}">
+                on later scholars only
+            </p>
+            <!-- The Imams hold no entry in any rijal book, because no rijali assesses the man
+                 he is assessing narrators for. Their pages say so rather than reading as a man
+                 nobody troubled to grade. -->
+            <p class="hub-hero__imam-note" th:if="${narrator['kind'] == 'imam'}"
+               th:text="#{narrator.imam.note}">The rijal books do not assess the Imams.</p>
+        </div>
+
+        <!-- The generations and the facts share the foot of the panel, which is where the
+             width that was going spare now goes. -->
+        <div class="rijal__foot">
+            <div class="rijal__gens">
+            <p class="rijal__gens-label" th:if="${!#lists.isEmpty(narrator['imam_ordinals'])}"
+               th:text="#{narrator.gens.label}">When he lived</p>
+            <!-- The thirteen marks, his own inked. A man the books place under no Imam
+                 gets no strip at all: thirteen blanks would say «we looked and found
+                 none», which the record does not claim. -->
+            <th:block th:utext="${@seals.generations(narrator['imam_ordinals'],
+                                   #lists.isEmpty(narrator.life.imams) ? ''
+                                   : #messages.msg('narrator.gens.aria',
+                                       @honorifics.join(isArabic
+                                         and !#lists.isEmpty(narrator.life['imams_ar'])
+                                         ? narrator.life['imams_ar'] : narrator.life.imams,
+                                         ' · ', isArabic)))}"></th:block>
+            <!-- What the preview behind each mark draws from (js/narrator-gens.js): the
+                 thirteen spans in years, which of them are his, and his death. -->
+            <script th:if="${!#lists.isEmpty(narrator['imam_ordinals'])}" th:inline="javascript">
+                window.RIJAL_GENS = {
+                    eras: /*[[${@eras.forPage(isArabic)}]]*/ [],
+                    lit: /*[[${narrator['imam_ordinals']}]]*/ [],
+                    died: /*[[${narrator.life.died}]]*/ null,
+                    name: /*[[${isArabic or #strings.isEmpty(displayEn) ? displayAr : displayEn}]]*/ ""
+                };
+            </script>
+            <p class="hub-hero__gens-key" th:if="${!#lists.isEmpty(narrator['imam_ordinals'])}">
+                <span th:text="#{narrator.gens.key}">The Prophet, then the twelve Imams in order</span>
+                <th:block th:if="${!#lists.isEmpty(narrator.life.imams)}">
+                    <span class="rijal__gens-dot" aria-hidden="true">·</span>
+                    <span class="rijal__gens-marked"
+                          th:text="#{narrator.gens.marked(${@honorifics.join(isArabic
+                                     and !#lists.isEmpty(narrator.life['imams_ar'])
+                                     ? narrator.life['imams_ar'] : narrator.life.imams,
+                                     isArabic ? '، ' : ', ', isArabic)})}">in gold: al-Riḍā</span>
+                </th:block>
+            </p>
+            </div>
+
+            <!-- Each of these says what it is. Unlabelled they were three pills reading
+                 «al-Jawād, al-Hādī, al-ʿAskarī», «Rayy» and «10 entries in 7 books», and
+                 nothing on the page said which was a lifetime and which a birthplace. -->
+            <div class="hub-hero__stats">
+                <span class="hub-stat" th:if="${narrator.life.city != null}">
+                    <span class="hub-stat__label" th:text="#{narrator.from}">From</span>
+                    <span class="hub-stat__value"
+                          th:text="${isArabic and narrator.life.city_ar != null
+                                     ? narrator.life.city_ar : narrator.life.city}">Kufa</span>
+                </span>
+                <span class="hub-stat" th:if="${narrator.life.died != null}">
+                    <span class="hub-stat__label" th:text="#{narrator.died}">Died</span>
+                    <span class="hub-stat__value"
+                          th:text="#{narrator.yearAh(${@localeDigits.of(narrator.life.died)})}">150 AH</span>
+                </span>
+                <!-- A book that files him among «من لم يرو عن واحد من الأئمة» has answered
+                     the question of when he lived, and the answer is that he kept company
+                     with no Imam. Printed because the alternative - an empty line where the
+                     Imams would be - reads as though nobody had looked. -->
+                <span class="hub-stat" th:if="${narrator.life['no_imam']}">
+                    <span class="hub-stat__label" th:text="#{narrator.underImams}">Imams</span>
+                    <span class="hub-stat__value" th:text="#{narrator.noImam}">Narrated from no Imam</span>
+                </span>
+                <!-- «4 books, 5 entries» is one message rather than two counts with words
+                     spliced between them: Arabic does not take that word order. -->
+                <a class="hub-stat" th:href="${booksUrl}" th:unless="${narrator['kind'] == 'imam'}">
+                    <span class="hub-stat__label" th:text="#{narrator.writtenAboutIn}">Written about in</span>
+                    <span class="hub-stat__value"
+                          th:text="#{narrator.booksEntries(${@localeDigits.of(#lists.size(books))},
+                                    ${@localeDigits.grouped(narrator.entry_count)})}">4 books, 5 entries</span>
+                </a>
+            </div>
+        </div>
+
+    </header>
+
+    <!-- Everything in this band is counted out of the corpus this site holds, and the band
+         says so before it says anything else. The distinction it draws is the one a reader
+         will otherwise get wrong: the head above reports what the rijal books claim about a
+         man, which is a claim about him; these are counts of narrations and chains indexed
+         here, which are facts about this collection and would change if the collection did.
+         A man who transmitted a thousand narrations of which this site holds twelve has a
+         twelve here, and the label is what keeps that from reading as a verdict on him. -->
+    <section class="corpus-band" th:if="${narrationTotal > 0 or narrator['kind'] != 'imam'}"
+             aria-labelledby="corpus-band-label">
+        <p class="corpus-band__label" id="corpus-band-label"
+           th:text="#{narrator.corpus.label}">In this collection</p>
+        <div class="corpus-band__row">
+            <span class="corpus-band__figure">
+                <span class="corpus-band__count"
+                      th:text="${@localeDigits.grouped(narrationTotal)}">1,750</span>
+                <span th:text="${@counts.of(narrationTotal, 'narrator.reach.narrations')}">narrations</span>
+                <th:block th:if="${!#lists.isEmpty(narrationBooks)}">
+                    <span class="corpus-band__dot" aria-hidden="true">·</span>
+                    <span th:text="#{narrator.reach.share(${@localeDigits.of(narrationBooks[0].share)},
+                                                          ${narrationBooks[0].book})}">59% of them in Al-Kāfi</span>
+                </th:block>
+            </span>
+            <a class="corpus-band__link" th:href="${chainsUrl}"
+               th:if="${narrator['kind'] != 'imam'
+                        and narrator.teacher_count + narrator.student_count
+                            + (narrator['chain_only_count'] ?: 0) > 0}"
+               th:with="chainMen=${narrator.teacher_count + narrator.student_count
+                                   + (narrator['chain_only_count'] ?: 0)}"
+               th:text="${@counts.of(chainMen, 'narrator.reach.chainMen')}">
+                261 men stand with him in the chains →</a>
+        </div>
+        <p class="corpus-band__note" th:text="#{narrator.corpus.note}">
+            Counted from the narrations and chains this database holds.</p>
+    </section>
+
+    <div th:replace="~{fragments/site :: ornament}"></div>
+
+    <!-- Two tabs, in the URL rather than in script: what the books say of him is one reading,
+         the narrations he stands in another, and a reader wants one at a time. -->
+    <nav class="narrator-tabs" th:attr="aria-label=#{narrator.tabs.label}">
+        <a class="narrator-tab" th:href="${overviewUrl}"
+           th:classappend="${view == 'overview'} ? 'is-active' : ''"
+           th:text="#{narrator.tab.overview}">Overview</a>
+        <a class="narrator-tab" th:href="${booksUrl}"
+           th:classappend="${view == 'books'} ? 'is-active' : ''">
+            <span th:text="#{narrator.tab.books}">What the books say</span>
+            <span class="narrator-tab__count" th:if="${narrator.entry_count > 0}"
+                  th:text="${@localeDigits.grouped(narrator.entry_count)}">10</span>
+        </a>
+        <a class="narrator-tab" th:href="${chainsUrl}"
+           th:classappend="${view == 'chains'} ? 'is-active' : ''">
+            <span th:text="#{narrator.tab.chains}">Teachers &amp; students</span>
+            <!-- Every man the tab lists, not only the ones a book calls teacher or pupil.
+                 Only 1,383 of the 15,518 have one of those at all, so counting them alone
+                 printed «0» over a tab holding hundreds of men from the chain indexes. -->
+            <span class="narrator-tab__count"
+                  th:if="${narrator.teacher_count + narrator.student_count
+                           + (narrator['chain_only_count'] ?: 0) > 0}"
+                  th:text="${@localeDigits.grouped(narrator.teacher_count + narrator.student_count
+                                                   + (narrator['chain_only_count'] ?: 0))}">63</span>
+        </a>
+        <a class="narrator-tab" th:href="${narrationsUrl}"
+           th:classappend="${view == 'narrations'} ? 'is-active' : ''">
+            <span th:text="#{narrator.tab.narrations}">Narrations</span>
+            <span class="narrator-tab__count" th:if="${narrationTotal > 0}"
+                  th:text="${@localeDigits.grouped(narrationTotal)}">1,504</span>
+        </a>
+    </nav>
+
+    <!-- Everything below is what a tab switches: narrator-tabs.js replaces this region in
+         place, so the navy head and the corpus band above it are not repainted. The
+         tabs stay ordinary links to ordinary URLs, which is what a crawler, a shared link
+         and a reader without script all need. -->
+    <div id="narrator-view" class="narrator-view">
+
+    <!-- One row per book, not one per entry. A book read into several profiles used to repeat
+         its verdict three times over; here each book states its position once, and a book that
+         takes two — Mamaqani quotes al-Najashi's «weak» before concluding «thiqa» himself — is
+         marked as divided rather than shown twice as if it were two books. -->
+    <div th:if="${view == 'overview'}">
+    <section class="narrator-stands" th:if="${!#lists.isEmpty(narrator.where_books_stand)}">
+        <h2 class="hub-group__label" th:text="#{narrator.stands.heading}">Where each book stands</h2>
+        <table class="narrator-stands__table">
+            <tbody>
+            <tr th:each="stand : ${narrator.where_books_stand}">
+                <th scope="row" th:text="${stand.book_title}">Rijāl al-Najāshī</th>
+                <td>
+                    <!-- The chip is the grade word and its page, kept on one line; the quoted
+                         scholar goes beneath it, outside the chip. On a phone the relay note
+                         inside the chip stacked a word to a line on the Arabic page
+                         («نقلاً عن …»), and the chip became a block six lines tall. -->
+                    <span class="narrator-stands__entry" th:each="pos : ${stand.positions}">
+                    <span class="narrator-stands__position"
+                          th:classappend="'narrator-stands__position--' + ${pos.leaning}">
+                        <span class="narrator-stands__word-ar" dir="rtl" lang="ar"
+                              th:if="${pos['said_ar'] != null}"
+                              th:text="${pos['said_ar']}">ثقة</span>
+                        <span th:if="${#locale.language != 'ar' or pos['said_ar'] == null}"
+                              th:text="${pos.said}">thiqa — trustworthy</span>
+                        <span class="narrator-stands__page" th:if="${!#lists.isEmpty(pos.pages)}"
+                              th:text="#{narrator.stands.page(${@localeDigits.of(pos.pages[0])})}">p. 183</span>
+                    </span>
+                    <!-- Whom a compiler is quoting. Al-Khoei's Muʿjam gathers the early
+                         rijālīs and then adjudicates, and 442 of his 615 positions here
+                         are a quotation. A scholar cites «al-Najāshī waththaqahu» and
+                         «al-Khoei waththaqahu» differently, so the table has to say
+                         which of the two it is holding. -->
+                    <span class="narrator-stands__relays"
+                          th:if="${!#lists.isEmpty(pos.relays)}"
+                          th:text="#{narrator.stands.relaying(${#strings.listJoin(
+                                     #locale.language == 'ar' and !#lists.isEmpty(pos.relays_ar)
+                                     ? pos.relays_ar : pos.relays, '، ')})}">
+                        quoting al-Najāshī</span>
+                    </span>
+                    <span class="narrator-stands__divided" th:if="${stand.divided}"
+                          th:text="#{narrator.stands.divided}">
+                        this book takes both sides — see its entries below
+                    </span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <p class="narrator-stands__note" th:if="${narrator.standing == 'disputed'}"
+           th:text="#{narrator.stands.note}">
+            A grade is the judgment of the scholar who wrote it, not of the tradition.
+        </p>
+    </section>
+
+    </div>
+
+
+    <div th:if="${view == 'books'}">
+    <!-- One block per entry, in the order the tradition reads the books. Each carries the
+         book's own words: a verdict is never paraphrased here, and never shown without the
+         page it stands on. -->
+    <h2 class="hub-group__label" th:text="#{narrator.entries.heading}">In the Rijal books</h2>
+
+    <section class="narrator-entries">
+        <article class="narrator-entry" th:each="entry, st : ${narrator.entries}">
+            <header class="narrator-entry__head">
+                <h3 class="narrator-entry__book" th:text="${entry.book_title}">Rijāl al-Najāshī</h3>
+                <span class="narrator-entry__author" th:if="${entry.book_author != null}"
+                      th:text="${entry.book_author}">Author</span>
+                <span class="narrator-entry__page" th:if="${entry.page_first != null}"
+                      th:text="#{narrator.stands.page(${@localeDigits.of(entry.page_first)})}">p. 183</span>
+                <!-- The tint comes from the entry's own «grade_leaning». It used to be read out
+                     of the page's «said_by» rows, which have no row for 492 graded entries;
+                     Sahl b. Ziyād's «كذاب» is one of them and rendered grey. The class names are joined from halves because two double underscores in one expression read as a Thymeleaf preprocessor pair. -->
+                <span class="narrator-entry__grade" th:if="${entry.grade_said != null}"
+                      th:classappend="${'narrator-verdict_' + '_grade--' + entry.grade
+                                      + (entry.grade_leaning != null ? ' narrator-entry_' + '_grade--' + entry.grade_leaning : '')}"
+                      th:text="${isArabic and entry.grade_said_ar != null ? entry.grade_said_ar : entry.grade_said}">thiqa — trustworthy</span>
+            </header>
+
+
+            <!-- The citation apparatus. A page number alone cannot be cited in print: the
+                 entry number and, for al-Khoei, the volume are what a footnote needs, and the
+                 edition is stated once per book, on its first entry, because the same line
+                 under each of Ṭūsī's three would be noise. Where the record holds no edition
+                 (Jāmiʿ, Māmaqānī, Ḍuʿafāʾ) nothing is printed rather than a guess. -->
+            <p class="narrator-entry__cite"
+               th:if="${entry.entry_number != null or entry.volume != null}">
+                <span th:if="${entry.volume != null}"
+                      th:text="#{narrator.entries.volume(${@localeDigits.of(entry.volume)})}">Vol. 19</span>
+                <span th:if="${entry.entry_number != null}"
+                      th:text="#{narrator.entries.number(${@localeDigits.of(entry.entry_number)})}">Entry no. 12010</span>
+            </p>
+            <p class="narrator-entry__edition"
+               th:if="${(st.index == 0 or narrator.entries[st.index - 1].book != entry.book)
+                        and (isArabic ? entry.edition_ar != null : entry.edition_en != null)}"
+               th:text="#{narrator.entries.edition(${isArabic ? entry.edition_ar : entry.edition_en})}">Edition</p>
+
+            <!-- Entries of one book can share a page under different headings. Two
+                 discussions of «محمد بن يحيى» in Khoei's volume 19 are not two books agreeing,
+                 so each says which of the book's entries it is, under what heading, and what
+                 else the book heads him with. -->
+            <div class="narrator-entry__series"
+                 th:if="${entry.book_entry_total != null and entry.book_entry_total > 1}">
+                <p class="narrator-entry__series-line">
+                    <span th:text="#{narrator.entries.nth(
+                            ${#messages.msgOrNull('narrator.ordinal.' + entry.book_entry_index) != null
+                              ? #messages.msg('narrator.ordinal.' + entry.book_entry_index)
+                              : @localeDigits.of(entry.book_entry_index)},
+                            ${@localeDigits.of(entry.book_entry_total)})}">The second of 3 entries on him in this book</span>
+                    <span th:if="${entry.heading_ar != null}" th:text="#{narrator.entries.under}">under</span>
+                    <bdi dir="rtl" lang="ar" class="narrator-entry__series-heading"
+                         th:if="${entry.heading_ar != null}" th:text="${entry.heading_ar}">الاسم</bdi><span>.</span>
+                    <span th:if="${!#lists.isEmpty(entry.shares_page_with)}" th:text="#{narrator.entries.sharesPage}">It stands on the same page as another of them.</span>
+                </p>
+                <th:block th:with="others = ${entry.same_work_other_headings.?[#this != #vars.entry.heading_ar]}">
+                    <p class="narrator-entry__series-line" th:if="${!#lists.isEmpty(others)}">
+                        <span th:text="#{narrator.entries.otherHeadings}">His other headings there:</span>
+                        <th:block th:each="h, hs : ${others}">
+                            <bdi dir="rtl" lang="ar" class="narrator-entry__series-heading"
+                                 th:if="${others.indexOf(h) == hs.index}" th:text="${h}">اسم</bdi>
+                        </th:block>
+                    </p>
+                </th:block>
+            </div>
+
+            <!-- A book heads the same man differently — «سهل بن زياد» in one, «سهل بن زياد
+                 الآدمي الرازي» in another — and the heading is part of what that book says.
+                 Most entries open with that name, though, so it is printed only where the
+                 book's own words below do not already carry it. -->
+            <p class="narrator-entry__heading" dir="rtl" lang="ar"
+               th:if="${entry.heading_ar != null and (entry.text_ar == null
+                       or !#strings.startsWith(entry.text_ar, entry.heading_ar))}"
+               th:text="${entry.heading_ar}">الاسم كما يذكره الكتاب</p>
+
+            <p class="narrator-entry__note" th:if="${entry.book_note != null}"
+               th:attr="lang=${isArabic} ? 'en' : null, dir=${isArabic} ? 'ltr' : null"
+               th:text="${entry.book_note}">A note about this book.</p>
+
+            <!-- Al-Kashshī's Ikhtiyār is not a biographical notice; it is every report he
+                 could find about the man. Zurāra's runs to 38 printed pages, and al-Khoei's
+                 to 44, so this page was emptying 91,000 characters onto the screen of the
+                 man a reader is likeliest to look up. 234 entries are over 5,000 characters
+                 and 27 over 20,000, and they belong to exactly the famous men.
+
+                 Folded, not cut: a disclosure keeps every word in the markup, so a reader
+                 without scripts and a crawler both still have the whole entry. The summary
+                 says what is inside — how many pages the book spends on him — because that
+                 is itself a fact a scholar wants. -->
+            <blockquote class="narrator-entry__text" dir="rtl" lang="ar"
+                        th:if="${entry.text_ar != null
+                                 and #strings.length(entry.text_ar) &lt;= 4000}"
+                        th:text="${entry.text_ar}">نص الترجمة.</blockquote>
+            <details class="narrator-entry__long"
+                     th:if="${entry.text_ar != null
+                             and #strings.length(entry.text_ar) &gt; 4000}">
+                <summary th:text="${#lists.size(entry.pages) > 1
+                                    ? #messages.msg('narrator.entries.longPages',
+                                        @localeDigits.of(#lists.size(entry.pages)))
+                                    : #messages.msg('narrator.entries.long')}">
+                    38 pages of reports — show them</summary>
+                <blockquote class="narrator-entry__text" dir="rtl" lang="ar"
+                            th:text="${entry.text_ar}">نص الترجمة.</blockquote>
+            </details>
+
+            <!-- An Arabic page gives the book's own words and stops. The English rendering
+                 of al-Najāshī is for a reader who cannot read him, and on «/ar» it was
+                 putting whole English paragraphs under the Arabic. -->
+            <p class="narrator-entry__text-en"
+               th:if="${entry.text_en != null and #locale.language != 'ar'}"
+               th:text="${entry.text_en}">The entry in English.</p>
+
+            <p class="narrator-entry__generation" th:if="${!#lists.isEmpty(entry.under_imams)}">
+                <span class="narrator-entry__label" th:text="#{narrator.entries.listedUnder}">Listed under</span>
+                <span th:text="${@honorifics.join(
+                                 isArabic and !#lists.isEmpty(entry.under_imams_ar)
+                                 ? entry.under_imams_ar : entry.under_imams,
+                                 isArabic ? '، ' : ', ', isArabic)}">al-Jawād (ʿa)</span>
+            </p>
+        </article>
+    </section>
+
+    <!-- Below the notices, not above them. Every name a book heads him under is
+         eighty chips for a man like al-Barqi, and placed first they pushed the
+         entries this tab is named for off the screen. The overview's «all N names»
+         still links to #also-named and still lands here. -->
+    <!-- The names he is headed under, first on the overview because «is this the right man?»
+         is the first question a reader brings to a rijāl page, and the names are how he
+         answers it: a reader who came looking for one of them can see that this is the same
+         man. It was a tab of its own, and a tab holding one row of chips is a page that looks
+         broken. One chip each: run together with separators they read as one long unbroken
+         name. -->
+    <section class="narrator-names" id="also-named"
+             th:if="${!#lists.isEmpty(narrator.names_ar) or !#lists.isEmpty(narrator['names_group_ar'])
+                     or (!isArabic and !#lists.isEmpty(narrator['names_group_en']))}">
+        <h2 class="hub-group__label" th:text="#{narrator.names.heading}">Also named</h2>
+        <ul class="narrator-names__chips">
+            <li class="narrator-names__chip" th:each="name : ${alsoNamesAr}"
+                dir="rtl" lang="ar" th:text="${name}">اسم</li>
+        </ul>
+        <!-- Not on an Arabic page: a Latin spelling of «زرارة» is for a reader who cannot
+             read «زرارة», and the chips above already give every Arabic form. -->
+        <!-- Labelled, because unlabelled they read as 44 more names the books head him
+             under. They are the same names in our alphabet. -->
+        <div class="narrator-names__group" th:if="${!#lists.isEmpty(alsoNamesEn) and !isArabic}">
+        <span class="narrator-names__group-label" th:text="#{narrator.names.latin}">
+            The same names, transliterated</span>
+        <ul class="narrator-names__chips narrator-names__chips--latin">
+            <li class="narrator-names__chip" th:each="name : ${alsoNamesEn}"
+                th:text="${name}">A name</li>
+        </ul>
+        </div>
+        <!-- «آل أعين» is a house and «المحدّث» an epithet; neither is a name he answered to,
+             and run in with the chips above they read as two more spellings of Zurāra. Each
+             kind is a labelled row of its own, Arabic first and, on an English page only,
+             its Latin rendering after it. -->
+        <th:block th:each="kind : ${ {'family', 'title'} }">
+          <th:block th:with="ar = ${narrator['names_group_ar'].?[kind == #vars.kind]},
+                             en = ${isArabic ? {} : narrator['names_group_en'].?[kind == #vars.kind]}">
+            <div class="narrator-names__group" th:if="${!#lists.isEmpty(ar) or !#lists.isEmpty(en)}">
+                <span class="narrator-names__group-label"
+                      th:text="${kind == 'family'} ? #{narrator.names.family} : #{narrator.names.title}">Family</span>
+                <ul class="narrator-names__chips narrator-names__chips--group">
+                    <li class="narrator-names__chip" th:each="g : ${ar}"
+                        dir="rtl" lang="ar" th:text="${g['value']}">آل</li>
+                    <li class="narrator-names__chip narrator-names__chip--latin" th:each="g : ${en}"
+                        th:text="${g['value']}">Banu</li>
+                </ul>
+            </div>
+          </th:block>
+        </th:block>
+    </section>
+
+    <!-- Grades we hold for him that we cannot tie to a passage. They are not counted among
+         the books' positions above, and they do not set the standing in the hero: a verdict a
+         reader cannot open is not evidence, and half the stated grades in the corpus are of
+         this kind. Shown because withholding them would hide what the record contains, named
+         for exactly what they are. -->
+    <section class="narrator-stands narrator-stands--unsourced"
+             th:if="${!#lists.isEmpty(narrator.reported_without_a_passage)}">
+        <h2 class="hub-group__label" th:text="#{narrator.unsourced.heading}">
+            Attributed, not quoted</h2>
+        <!-- This said «these grades are in our records, but there is no passage here to read
+             them against», which tells a rijālī about our database and nothing about the
+             books. What he needs is the attribution, the book it is made to, and the fact
+             that no text of that book is quoted for it; whether we hold the entry is our
+             business. One line, in the books' terms, and the table carries the rest. -->
+        <p class="narrator-stands__note narrator-stands__note--short"
+           th:text="#{narrator.unsourced.short}">
+            Attributed to these books, with no passage of them quoted here, and so not
+            counted among the positions above.
+        </p>
+        <table class="narrator-stands__table">
+            <tbody>
+            <tr th:each="stand : ${narrator.reported_without_a_passage}">
+                <th scope="row" th:text="${stand.book_title}">Tanqīḥ al-Maqāl</th>
+                <td><span class="narrator-stands__position narrator-stands__position--unsourced"
+                          th:each="said : ${stand.grades}" th:text="${said}">thiqa</span>
+                    <!-- which of the two it is: a book with no entry of his that we hold, or
+                         an entry we hold that does not say it. The second is the stronger
+                         admission and the reader is owed the difference. -->
+                    <span class="narrator-stands__why"
+                          th:if="${stand.reason != null}"
+                          th:text="#{'narrator.unsourced.reason.' + ${stand.reason}}">
+                        not in the entry we hold</span></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+    </div>
+
+    <div th:if="${view == 'overview'}">
+    <!-- Where he came from and when he lived, each statement under the book that makes it.
+         Two books often disagree here too, and both are shown. -->
+    <section class="narrator-facts"
+             th:if="${!#lists.isEmpty(narrator.cities_or_tribes) or !#lists.isEmpty(narrator.death_years)
+                     or !#lists.isEmpty(narrator.generations)}">
+        <h2 class="hub-group__label" th:text="#{narrator.facts.heading}">What the books state about him</h2>
+        <dl class="narrator-facts__list">
+            <th:block th:if="${!#lists.isEmpty(narrator.generations)}">
+                <dt th:text="#{narrator.facts.generation}">Generation</dt>
+                <dd th:each="fact : ${narrator.generations}">
+                    <span th:text="${isArabic and fact['value_ar'] != null
+                                     ? fact['value_ar'] : fact.value}">a companion of al-Sadiq</span>
+                    <span class="narrator-facts__source"
+                          th:text="#{narrator.facts.source(${isArabic and fact['book_title_ar'] != null
+                                     ? fact['book_title_ar'] : fact.book_title})}">— book</span>
+                    <span class="narrator-facts__source" th:if="${!#lists.isEmpty(fact.also)}"
+                          th:text="#{narrator.facts.alsoIn(${#strings.listJoin(
+                                     isArabic and !#lists.isEmpty(fact['also_ar'])
+                                     ? fact['also_ar'] : fact.also, '، ')})}">
+                        and also in another book</span>
+                </dd>
+            </th:block>
+            <th:block th:if="${!#lists.isEmpty(narrator.cities_or_tribes)}">
+                <dt th:text="#{narrator.facts.cityOrTribe}">City or tribe</dt>
+                <dd th:each="fact : ${narrator.cities_or_tribes}">
+                    <span th:text="${isArabic and fact['value_ar'] != null
+                                     ? fact['value_ar'] : fact.value}">Kufa</span>
+                    <span class="narrator-facts__source"
+                          th:text="#{narrator.facts.source(${isArabic and fact['book_title_ar'] != null
+                                     ? fact['book_title_ar'] : fact.book_title})}">— book</span>
+                    <span class="narrator-facts__source" th:if="${!#lists.isEmpty(fact.also)}"
+                          th:text="#{narrator.facts.alsoIn(${#strings.listJoin(
+                                     isArabic and !#lists.isEmpty(fact['also_ar'])
+                                     ? fact['also_ar'] : fact.also, '، ')})}">
+                        and also in another book</span>
+                </dd>
+            </th:block>
+            <th:block th:if="${!#lists.isEmpty(narrator.death_years)}">
+                <dt th:text="#{narrator.facts.died}">Died</dt>
+                <dd th:each="fact : ${narrator.death_years}">
+                    <span th:text="#{narrator.yearAh(${@localeDigits.of(fact.value)})}">260 AH</span>
+                    <span class="narrator-facts__source"
+                          th:text="#{narrator.facts.source(${isArabic and fact['book_title_ar'] != null
+                                     ? fact['book_title_ar'] : fact.book_title})}">— book</span>
+                    <span class="narrator-facts__source" th:if="${!#lists.isEmpty(fact.also)}"
+                          th:text="#{narrator.facts.alsoIn(${#strings.listJoin(
+                                     isArabic and !#lists.isEmpty(fact['also_ar'])
+                                     ? fact['also_ar'] : fact.also, '، ')})}">
+                        and also in another book</span>
+                </dd>
+            </th:block>
+        </dl>
+    </section>
+
+    <!-- The overview keeps one question: can I trust the chain I read his name in? A man the
+         books file under forty names (al-Hasan ibn Mahbub: 18 Arabic, 22 Latin) put forty
+         chips above the verdicts and pushed them down past the first screen. Six here, the
+         headings a book actually files him under first, then the rest one link away on the
+         Tarajim tab, where the whole list lives. -->
+    <th:block th:with="narNameTotal = ${alsoNameTotal},
+                       heads = ${#lists.sort(#lists.toList(#sets.toSet(narrator.entries.![heading_ar].?[#this != null])))}">
+    <section class="narrator-names narrator-names--short" th:if="${narNameTotal > 0}">
+      <th:block th:with="headN = ${#lists.size(heads) > 6 ? 6 : #lists.size(heads)}">
+        <h2 class="hub-group__label" th:text="#{narrator.names.heading}">Also named</h2>
+        <ul class="narrator-names__chips">
+            <li class="narrator-names__chip" th:each="name, st : ${heads}" th:if="${st.index < 6}"
+                dir="rtl" lang="ar" th:text="${name}">اسم</li>
+            <li class="narrator-names__chip" th:each="name, st : ${alsoNamesAr}" th:if="${st.index < 6 - headN and !#lists.contains(heads, name)}"
+                dir="rtl" lang="ar" th:text="${name}">اسم</li>
+        </ul>
+        <a class="narrator-names__all" th:if="${narNameTotal > 6}" th:href="${booksUrl} + '#also-named'"
+           th:text="#{narrator.names.all(${@localeDigits.of(narNameTotal)})}">all 40 names</a>
+      </th:block>
+    </section>
+    </th:block>
+
+    <!-- The colophon a notice ends on: how much was read to make this page, and whose
+         pagination the page numbers above are. A reader citing «p. 220» is citing an
+         edition, and the page has to say which one that is. -->
+    <div class="folio-colophon" th:unless="${narrator['kind'] == 'imam'}">
+        <span class="folio-colophon__orn" aria-hidden="true">۞</span>
+        <p th:text="#{narrator.colophon(${@counts.of(narrator.entry_count, 'narrators.entries')},
+                      ${@counts.of(#lists.size(books), 'narrators.books')})}">
+            Nine entries across five books. Pages follow the editions this database holds.</p>
+    </div>
+
+    </div>
+
+    <!--
+      Whom he takes from and who takes from him. This is the evidence a rijali argument about
+      a man's generation actually runs on — two men of one name are told apart by the company
+      they keep — and until now the page carried the counts with no way to read them. Each
+      name shows which books record the link, because a teacher four books name is better
+      evidence than one named in a single chain note.
+    -->
+    <div th:if="${view == 'chains'}">
+        <!-- The zero problem. «Narrates from 0» is a true count of a particular thing — men a
+             rijal book names as his teacher — and read without that qualification it says the
+             database is empty about a man 83 chains run through. The qualification rides on
+             each count instead of in a paragraph above them: a column says what it counts,
+             and a zero hands the reader the chains where the men it does not hold are listed. -->
+        <section class="chains">
+            <div class="chains__side">
+                <h2 class="hub-group__label">
+                    <span th:text="#{narrator.ledger.narratesFrom}">Narrates from</span>
+                    <span class="hub-group__note"
+                          th:if="${!#lists.isEmpty(narrator.narrated_from)}"
+                          th:text="${@localeDigits.grouped(narrator.teacher_count)}">37</span>
+                </h2>
+                <p class="chains__basis" th:if="${!#lists.isEmpty(narrator.narrated_from)}"
+                   th:text="#{narrator.chains.namedByBook}">named by a book</p>
+                <p class="chains__note" th:if="${#lists.isEmpty(narrator.narrated_from)}"
+                   th:text="#{narrator.chains.noTeachers}">
+                    No book names anyone he narrates from.
+                </p>
+                <!-- A zero here is a fact about the rijal books, not about the man, and left on
+                     its own it reads as the second thing. Where no book names a teacher but the
+                     chains put men above him, the note hands the reader the place those men are
+                     listed instead of ending the column. -->
+                <a class="chains__note chains__note--to" th:href="'#same-isnad'"
+                   th:if="${#lists.isEmpty(narrator.narrated_from) and !#lists.isEmpty(narrator.chain_from)}"
+                   th:text="${@counts.of(#lists.size(narrator.chain_from), 'narrator.reach.chainMen')}">
+                    76 men stand with him in the chains &rarr;
+                </a>
+                <ul class="chains__list">
+                    <li class="chains__row" th:each="man : ${narrator.narrated_from}">
+                        <span class="chains__name"
+                              th:attr="lang=${isArabic and #strings.toString(shown).matches('.*[A-Za-z].*')} ? 'en' : null,
+                                       dir=${isArabic and #strings.toString(shown).matches('.*[A-Za-z].*')} ? 'ltr' : null"
+                              th:with="shown=${isArabic ? (man['name_ar'] != null ? man['name_ar'] : (man['display_ar'] != null ? man['display_ar'] : man.name)) : (man['display_en'] != null and !#strings.toString(man.name).matches('.*[A-Za-z].*') ? man['display_en'] : man.name)}"><!--
+                             The name links to the man's own page wherever the books let him be identified.
+                             Where they do not — a name two men answer to, or one no record holds — it stays
+                             plain text rather than guessing, which is the same rule the chains follow. --><a
+                              th:if="${man['person_id'] != null}"
+                              th:href="(${arPrefix} ?: '') + '/narrator/' + ${man['person_id']}
+                                       + (${man['slug']} != null and !${#strings.isEmpty(man['slug'])} ? '/' + ${man['slug']} : '')"
+                              th:text="${shown}">Ibn Abī ʿUmayr</a><span
+                              th:if="${man['person_id'] == null}" th:text="${shown}">Ibn Abī ʿUmayr</span></span>
+                        <span class="chains__books"
+                          th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
+                                     ? man['books_ar'] : man.books, ' · ')}">al-Najāshī</span>
+                    </li>
+                </ul>
+            </div>
+            <div class="chains__side">
+                <h2 class="hub-group__label">
+                    <span th:text="#{narrator.ledger.narratedTo}">Narrated to</span>
+                    <span class="hub-group__note"
+                          th:if="${!#lists.isEmpty(narrator.narrated_to)}"
+                          th:text="${@localeDigits.grouped(narrator.student_count)}">26</span>
+                </h2>
+                <p class="chains__basis" th:if="${!#lists.isEmpty(narrator.narrated_to)}"
+                   th:text="#{narrator.chains.namedByBook}">named by a book</p>
+                <p class="chains__note" th:if="${#lists.isEmpty(narrator.narrated_to)}"
+                   th:text="#{narrator.chains.noStudents}">
+                    No book names anyone who takes from him.
+                </p>
+                <a class="chains__note chains__note--to" th:href="'#same-isnad'"
+                   th:if="${#lists.isEmpty(narrator.narrated_to) and !#lists.isEmpty(narrator.chain_to)}"
+                   th:text="${@counts.of(#lists.size(narrator.chain_to), 'narrator.reach.chainMen')}">
+                    76 men stand with him in the chains &rarr;
+                </a>
+                <ul class="chains__list">
+                    <li class="chains__row" th:each="man : ${narrator.narrated_to}">
+                        <span class="chains__name"
+                              th:attr="lang=${isArabic and #strings.toString(shown).matches('.*[A-Za-z].*')} ? 'en' : null,
+                                       dir=${isArabic and #strings.toString(shown).matches('.*[A-Za-z].*')} ? 'ltr' : null"
+                              th:with="shown=${isArabic ? (man['name_ar'] != null ? man['name_ar'] : (man['display_ar'] != null ? man['display_ar'] : man.name)) : (man['display_en'] != null and !#strings.toString(man.name).matches('.*[A-Za-z].*') ? man['display_en'] : man.name)}"><!--
+                             The name links to the man's own page wherever the books let him be identified.
+                             Where they do not — a name two men answer to, or one no record holds — it stays
+                             plain text rather than guessing, which is the same rule the chains follow. --><a
+                              th:if="${man['person_id'] != null}"
+                              th:href="(${arPrefix} ?: '') + '/narrator/' + ${man['person_id']}
+                                       + (${man['slug']} != null and !${#strings.isEmpty(man['slug'])} ? '/' + ${man['slug']} : '')"
+                              th:text="${shown}">al-Kulaynī</a><span
+                              th:if="${man['person_id'] == null}" th:text="${shown}">al-Kulaynī</span></span>
+                        <!-- Where this pairing comes from. A book's chain index names it, or the
+                         chains this database serves put the two together so many times, or
+                         both — in which case the books are named and the count follows them. -->
+                    <span class="chains__books"><span
+                          th:if="${!#lists.isEmpty(man.books)}"
+                          th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
+                                     ? man['books_ar'] : man.books, ' · ')}">Khoei</span><span
+                          th:if="${man['narrations'] != null}" class="chains__here"
+                          th:classappend="${!#lists.isEmpty(man.books)} ? 'chains__here--after' : ''"
+                          th:text="${@counts.of(man['narrations'], 'narrator.chains.here')}">12 chains here</span></span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+        <!-- The Imams, apart. Everyone transmits from them, so mixed into the list above they
+             bury the names that actually identify a man. -->
+        <section class="chains__imams" th:if="${!#lists.isEmpty(narrator.imams_from)}">
+            <h2 class="hub-group__label" th:text="#{narrator.chains.fromImams}">Narrated from the Imams</h2>
+            <!-- One row per Imam under his roster name, set in one script: the Latin form on
+                 an English page, the Arabic on an Arabic one. The same Imam under six
+                 spellings, Arabic and Latin alternating on one baseline, was the wall this
+                 replaces. -->
+            <ul class="chains__list">
+                <li class="chains__row" th:each="imam : ${narrator.imams_from}">
+                    <span class="chains__name"
+                          th:attr="dir=${isArabic} ? 'rtl' : null, lang=${isArabic} ? 'ar' : null"
+                          th:with="shown=${@honorifics.of(isArabic and imam['name_ar'] != null
+                                     ? imam['name_ar'] : imam.name, isArabic)}"><!--
+                         The Imam's name goes to his own page, the same as every other name
+                         in these lists. His row is settled against the roster by name, so
+                         imam_id is always there; the slug is stamped beside it at build
+                         time only so this does not have to link through a bare id. --><a
+                          th:if="${imam['imam_id'] != null}"
+                          th:href="(${arPrefix} ?: '') + '/narrator/' + ${imam['imam_id']}
+                                   + (${imam['slug']} != null and !${#strings.isEmpty(imam['slug'])} ? '/' + ${imam['slug']} : '')"
+                          th:text="${shown}">Jaʿfar al-Ṣādiq (ʿa)</a><span
+                          th:if="${imam['imam_id'] == null}" th:text="${shown}">Jaʿfar al-Ṣādiq (ʿa)</span></span>
+                    <span class="chains__books"
+                          th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(imam['books_ar'])
+                                     ? imam['books_ar'] : imam.books, ' · ')}">al-Najāshī</span>
+                </li>
+            </ul>
+        </section>
+
+        <!-- Names our records attach to him out of an entry that does not contain them. The
+             audit put a single relation name at 34.4% upheld; where the cited entry names
+             the man it is 73.3%, and these are the rest. Shown, because the record holds
+             them, and apart, because the entry cited cannot be read to say it. -->
+        <section class="chains__indexed chains__indexed--unsaid"
+                 th:if="${!#lists.isEmpty(narrator.unsaid_from) or !#lists.isEmpty(narrator.unsaid_to)}">
+            <h2 class="hub-group__label" th:text="#{narrator.chains.unsaidHeading}">
+                Named with him, but not in the entry we hold
+            </h2>
+            <p class="chains__note" th:text="#{narrator.chains.unsaidNote}">
+                Our records tie these men to him on the authority of these books, but the
+                entries we hold do not name them.
+            </p>
+            <ul class="chains__list chains__list--indexed">
+                <li class="chains__row" th:each="man : ${narrator.unsaid_from}">
+                    <span class="chains__who"><span class="chains__dir" th:text="#{narrator.chains.dirFrom}">from</span>
+                    <span class="chains__name"
+                          th:attr="lang=${isArabic and #strings.toString(shown).matches('.*[A-Za-z].*')} ? 'en' : null,
+                                   dir=${isArabic and #strings.toString(shown).matches('.*[A-Za-z].*')} ? 'ltr' : null"
+                          th:with="shown=${isArabic ? (man['name_ar'] != null ? man['name_ar'] : (man['display_ar'] != null ? man['display_ar'] : man.name)) : (man['display_en'] != null and !#strings.toString(man.name).matches('.*[A-Za-z].*') ? man['display_en'] : man.name)}"><!--
+                         The name links to the man's own page wherever the books let him be identified.
+                         Where they do not — a name two men answer to, or one no record holds — it stays
+                         plain text rather than guessing, which is the same rule the chains follow. --><a
+                          th:if="${man['person_id'] != null}"
+                          th:href="(${arPrefix} ?: '') + '/narrator/' + ${man['person_id']}
+                                   + (${man['slug']} != null and !${#strings.isEmpty(man['slug'])} ? '/' + ${man['slug']} : '')"
+                          th:text="${shown}">اسم</a><span
+                          th:if="${man['person_id'] == null}" th:text="${shown}">اسم</span></span></span>
+                    <!-- Where this pairing comes from. A book's chain index names it, or the
+                         chains this database serves put the two together so many times, or
+                         both — in which case the books are named and the count follows them. -->
+                    <span class="chains__books"><span
+                          th:if="${!#lists.isEmpty(man.books)}"
+                          th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
+                                     ? man['books_ar'] : man.books, ' · ')}">Khoei</span><span
+                          th:if="${man['narrations'] != null}" class="chains__here"
+                          th:classappend="${!#lists.isEmpty(man.books)} ? 'chains__here--after' : ''"
+                          th:text="${@counts.of(man['narrations'], 'narrator.chains.here')}">12 chains here</span></span>
+                </li>
+                <li class="chains__row" th:each="man : ${narrator.unsaid_to}">
+                    <span class="chains__who"><span class="chains__dir" th:text="#{narrator.chains.dirTo}">to</span>
+                    <span class="chains__name"
+                          th:attr="lang=${isArabic and #strings.toString(shown).matches('.*[A-Za-z].*')} ? 'en' : null,
+                                   dir=${isArabic and #strings.toString(shown).matches('.*[A-Za-z].*')} ? 'ltr' : null"
+                          th:with="shown=${isArabic ? (man['name_ar'] != null ? man['name_ar'] : (man['display_ar'] != null ? man['display_ar'] : man.name)) : (man['display_en'] != null and !#strings.toString(man.name).matches('.*[A-Za-z].*') ? man['display_en'] : man.name)}"><!--
+                         The name links to the man's own page wherever the books let him be identified.
+                         Where they do not — a name two men answer to, or one no record holds — it stays
+                         plain text rather than guessing, which is the same rule the chains follow. --><a
+                          th:if="${man['person_id'] != null}"
+                          th:href="(${arPrefix} ?: '') + '/narrator/' + ${man['person_id']}
+                                   + (${man['slug']} != null and !${#strings.isEmpty(man['slug'])} ? '/' + ${man['slug']} : '')"
+                          th:text="${shown}">اسم</a><span
+                          th:if="${man['person_id'] == null}" th:text="${shown}">اسم</span></span></span>
+                    <!-- Where this pairing comes from. A book's chain index names it, or the
+                         chains this database serves put the two together so many times, or
+                         both — in which case the books are named and the count follows them. -->
+                    <span class="chains__books"><span
+                          th:if="${!#lists.isEmpty(man.books)}"
+                          th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
+                                     ? man['books_ar'] : man.books, ' · ')}">Khoei</span><span
+                          th:if="${man['narrations'] != null}" class="chains__here"
+                          th:classappend="${!#lists.isEmpty(man.books)} ? 'chains__here--after' : ''"
+                          th:text="${@counts.of(man['narrations'], 'narrator.chains.here')}">12 chains here</span></span>
+                </li>
+            </ul>
+        </section>
+
+        <!-- What the books do not say of him, only show him standing in. Khoei lists the
+             chains a man appears in as well as writing him up, and 87% of every link in this
+             corpus comes from a list of that kind. It is true and it is a weaker claim. -->
+        <section class="chains__indexed" id="same-isnad"
+                 th:if="${!#lists.isEmpty(narrator.chain_from) or !#lists.isEmpty(narrator.chain_to)}">
+            <h2 class="hub-group__label" th:text="#{narrator.chains.indexedHeading}">
+                Also stands beside him in the chain indexes
+            </h2>
+            <p class="chains__note" th:text="#{narrator.chains.indexedNote}">
+                No book says these men were his teachers or his pupils.
+            </p>
+            <ul class="chains__list chains__list--indexed">
+                <li class="chains__row" th:each="man : ${narrator.chain_from}">
+                    <span class="chains__who"><span class="chains__dir" th:text="#{narrator.chains.dirFrom}">from</span>
+                    <span class="chains__name"
+                          th:attr="lang=${isArabic and #strings.toString(shown).matches('.*[A-Za-z].*')} ? 'en' : null,
+                                   dir=${isArabic and #strings.toString(shown).matches('.*[A-Za-z].*')} ? 'ltr' : null"
+                          th:with="shown=${isArabic ? (man['name_ar'] != null ? man['name_ar'] : (man['display_ar'] != null ? man['display_ar'] : man.name)) : (man['display_en'] != null and !#strings.toString(man.name).matches('.*[A-Za-z].*') ? man['display_en'] : man.name)}"><!--
+                         The name links to the man's own page wherever the books let him be identified.
+                         Where they do not — a name two men answer to, or one no record holds — it stays
+                         plain text rather than guessing, which is the same rule the chains follow. --><a
+                          th:if="${man['person_id'] != null}"
+                          th:href="(${arPrefix} ?: '') + '/narrator/' + ${man['person_id']}
+                                   + (${man['slug']} != null and !${#strings.isEmpty(man['slug'])} ? '/' + ${man['slug']} : '')"
+                          th:text="${shown}">اسم</a><span
+                          th:if="${man['person_id'] == null}" th:text="${shown}">اسم</span></span></span>
+                    <!-- Where this pairing comes from. A book's chain index names it, or the
+                         chains this database serves put the two together so many times, or
+                         both — in which case the books are named and the count follows them. -->
+                    <span class="chains__books"><span
+                          th:if="${!#lists.isEmpty(man.books)}"
+                          th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
+                                     ? man['books_ar'] : man.books, ' · ')}">Khoei</span><span
+                          th:if="${man['narrations'] != null}" class="chains__here"
+                          th:classappend="${!#lists.isEmpty(man.books)} ? 'chains__here--after' : ''"
+                          th:text="${@counts.of(man['narrations'], 'narrator.chains.here')}">12 chains here</span></span>
+                </li>
+                <li class="chains__row" th:each="man : ${narrator.chain_to}">
+                    <span class="chains__who"><span class="chains__dir" th:text="#{narrator.chains.dirTo}">to</span>
+                    <span class="chains__name"
+                          th:attr="lang=${isArabic and #strings.toString(shown).matches('.*[A-Za-z].*')} ? 'en' : null,
+                                   dir=${isArabic and #strings.toString(shown).matches('.*[A-Za-z].*')} ? 'ltr' : null"
+                          th:with="shown=${isArabic ? (man['name_ar'] != null ? man['name_ar'] : (man['display_ar'] != null ? man['display_ar'] : man.name)) : (man['display_en'] != null and !#strings.toString(man.name).matches('.*[A-Za-z].*') ? man['display_en'] : man.name)}"><!--
+                         The name links to the man's own page wherever the books let him be identified.
+                         Where they do not — a name two men answer to, or one no record holds — it stays
+                         plain text rather than guessing, which is the same rule the chains follow. --><a
+                          th:if="${man['person_id'] != null}"
+                          th:href="(${arPrefix} ?: '') + '/narrator/' + ${man['person_id']}
+                                   + (${man['slug']} != null and !${#strings.isEmpty(man['slug'])} ? '/' + ${man['slug']} : '')"
+                          th:text="${shown}">اسم</a><span
+                          th:if="${man['person_id'] == null}" th:text="${shown}">اسم</span></span></span>
+                    <!-- Where this pairing comes from. A book's chain index names it, or the
+                         chains this database serves put the two together so many times, or
+                         both — in which case the books are named and the count follows them. -->
+                    <span class="chains__books"><span
+                          th:if="${!#lists.isEmpty(man.books)}"
+                          th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
+                                     ? man['books_ar'] : man.books, ' · ')}">Khoei</span><span
+                          th:if="${man['narrations'] != null}" class="chains__here"
+                          th:classappend="${!#lists.isEmpty(man.books)} ? 'chains__here--after' : ''"
+                          th:text="${@counts.of(man['narrations'], 'narrator.chains.here')}">12 chains here</span></span>
+                </li>
+            </ul>
+        </section>
+    </div>
+
+    <!-- The narrations that name him, in the same card the search results and chapter pages
+         use, with the same tag filter bar. They are gathered by his name: the chains are not
+         yet resolved to people, so a distinctive name gathers his narrations exactly and a
+         common one gathers his namesakes' too. Saying which names were searched is the least
+         a reader needs to judge that. -->
+    <section class="narrator-narrations" th:if="${view == 'narrations' and narrationTotal > 0}">
+        <!-- Arabic names set inline in an English sentence broke across the line in both
+             directions at once; they sit on their own row as chips. -->
+        <!-- Two different lists, and the note has to say which one this is. By person id
+             the set is exact and there is no namesake to warn about; by name it is the
+             old search, and the warning stands. -->
+        <div class="narrator-narrations__caveat">
+            <p th:if="${chainsThrough > 0}" th:text="#{narrator.narrations.byChain}">
+                Every narration whose chain this database resolves to him.
+            </p>
+            <p th:unless="${chainsThrough > 0}" th:text="#{narrator.narrations.caveat}">
+                Found by searching the chains for these names.
+            </p>
+            <details class="narrator-narrations__names" th:unless="${chainsThrough > 0}">
+                <summary th:text="#{narrator.narrations.namesSearched(${@localeDigits.of(#lists.size(searchedNames))})}">The names searched</summary>
+                <ul class="narrator-names__chips">
+                    <li class="narrator-names__chip" th:each="name : ${searchedNames}"
+                        dir="rtl" lang="ar" th:text="${name}">اسم</li>
+                </ul>
+            </details>
+        </div>
+
+        <!-- Where his narrations sit, made clickable: «93% in al-Kāfi» is a fact a reader
+             should be able to open rather than only read. -->
+        <details class="tag-filter-bar tag-filter-bar--results narrator-filter mb-3" th:if="${!#lists.isEmpty(bookFacets)}"
+                 th:attr="open=${activeBook != null} ? 'open'">
+            <summary class="tag-filter-bar__head">
+                <span class="tag-filter-bar__label" th:text="#{narrator.filter.book}">Filter by Book</span>
+                <a class="tag-filter-bar__clear" th:if="${activeBook != null}" th:href="${clearBookUrl}"
+                   th:text="#{narrator.filter.clear}">Clear</a>
+            </summary>
+            <div class="tag-filter-bar__pills">
+                <a class="topic-pill tag-filter-bar__pill" th:each="facet : ${bookFacets}"
+                   th:href="${facet.active} ? ${clearBookUrl} : ${facet.url}"
+                   th:classappend="${facet.active} ? 'topic-pill--active' : ''">
+                    <span class="tag-filter-bar__pill-label" th:text="${facet.label}">Al-Kāfi</span>
+                    <span class="tag-filter-bar__pill-count"
+                          th:text="${@localeDigits.of(facet.count)}">1396</span>
+                </a>
+            </div>
+        </details>
+
+        <details class="tag-filter-bar tag-filter-bar--results narrator-filter mb-3" th:if="${!#lists.isEmpty(tagFacets)}"
+                 th:attr="open=${activeTag != null} ? 'open'">
+            <summary class="tag-filter-bar__head">
+                <span class="tag-filter-bar__label" th:text="#{narrator.filter.tag}">Filter by Tag</span>
+                <a class="tag-filter-bar__clear" th:if="${activeTag != null}" th:href="${clearTagUrl}"
+                   th:text="#{narrator.filter.clear}">Clear</a>
+            </summary>
+            <div class="tag-filter-bar__pills">
+                <a class="topic-pill tag-filter-bar__pill" th:each="facet : ${tagFacets}"
+                   th:href="${facet.active} ? ${clearTagUrl} : ${facet.url}"
+                   th:classappend="${facet.active} ? 'topic-pill--active' : ''">
+                    <span class="tag-filter-bar__pill-label" th:text="${facet.label}">Tag</span>
+                    <span class="tag-filter-bar__pill-count"
+                          th:text="${@localeDigits.of(facet.count)}">2</span>
+                </a>
+            </div>
+        </details>
+
+        <!-- The index is the default; the full card stays one link away. -->
+        <p class="narrator-layout">
+            <a class="narrator-layout__link" th:href="${layoutToggleUrl}"
+               th:text="${cardLayout} ? #{narrator.narrations.layout.compact} : #{narrator.narrations.layout.cards}">Show full cards</a>
+        </p>
+
+        <ol class="narration-index" th:unless="${cardLayout}">
+            <li class="narration-index__row" th:each="narration : ${narrations}"
+                th:id="'hadith-' + ${narration.id}">
+                <div class="narration-index__chain"
+                     th:if="${!#strings.isEmpty(narration.compactChain)}"
+                     th:attr="dir=${narration.compactChainArabic} ? 'rtl' : null,
+                              lang=${narration.compactChainArabic} ? 'ar' : null"
+                     th:utext="${narration.compactChain}">Chain</div>
+                <p class="narration-index__matn"
+                   th:attr="dir=${narration.compactMatnArabic} ? 'rtl' : null,
+                            lang=${narration.compactMatnArabic} ? 'ar' : null"
+                   th:classappend="${narration.compactMatnArabic} ? 'arabic-text' : ''"
+                   th:text="${narration.compactMatn}">The opening of the text.</p>
+                <div class="narration-index__foot">
+                    <span class="narration-index__cite" th:text="${narration.label}">Al-Kāfi #1</span>
+                    <span class="narration-index__volume"
+                          th:if="${!#strings.isEmpty(narration.compactVolume)}"
+                          th:text="#{narrator.narrations.volume(${narration.compactVolume})}">Volume 1</span>
+                    <a class="narration-index__open" th:href="${narration.url}"
+                       th:text="#{narrator.narrations.open}">Read the narration</a>
+                </div>
+            </li>
+        </ol>
+
+        <div id="hadithView" class="hadith-static-list" th:if="${cardLayout}">
+            <div class="hadith-layout">
+                <div class="hadith-content">
+                    <div class="hadith-entry" th:each="narration : ${narrations}">
+                        <div th:replace="~{fragments/hadith-card :: card(${narration}, ${narration.number})}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <nav class="hub-pager" th:if="${narrationsPage > 1 or narrationsHasMore}"
+             th:attr="aria-label=#{narrator.pager.label}">
+            <a class="hub-pager__link hub-pager__link--prev" th:if="${narrationsPage > 1}"
+               th:href="${narrationsPrevUrl}">
+                <i class="fa fa-arrow-left" aria-hidden="true"></i>
+                <span class="hub-pager__meta"><span class="hub-pager__title"
+                      th:text="#{narrator.pager.previous}">Previous</span></span>
+            </a>
+            <a class="hub-pager__link hub-pager__link--next" th:if="${narrationsHasMore}"
+               th:href="${narrationsNextUrl}">
+                <span class="hub-pager__meta"><span class="hub-pager__title"
+                      th:text="#{narrator.pager.more}">More narrations</span></span>
+                <i class="fa fa-arrow-right" aria-hidden="true"></i>
+            </a>
+        </nav>
+    </section>
+
+    <!-- Where a reader who knows better can say so. A rijāl page invites correction in a
+         way a narration does not: the entries are ours to have mis-read, and a scholar who
+         spots it should not have to hunt for an address. -->
+    <div class="narrator-report">
+        <a class="narrator-report__link" th:href="(${arPrefix} ?: '') + ${reportHref}">
+            <i class="fa fa-flag" aria-hidden="true"></i>
+            <span th:text="#{narrator.report}">Report an issue with this page</span>
+        </a>
+        <span class="narrator-report__note" th:text="#{narrator.reportNote}">Tell us the book
+            and page it should follow.</span>
+    </div>
+
+    <p class="narrator-provenance" th:if="${narrator['kind'] == 'imam'}"
+       th:text="#{narrator.provenance.imam}">
+        This page is not assembled from entries. It gathers the chains that name him.
+    </p>
+    <p class="narrator-provenance" th:if="${narrator.mention_count > 0 and narrator['kind'] != 'imam'}"
+       th:text="#{narrator.provenanceWithMentions(${@localeDigits.of(narrator.entry_count)},
+                 ${@localeDigits.of(narrator.mention_count)})}">
+        This page is assembled from 5 entries and 9 mentions in the chains.
+    </p>
+    <p class="narrator-provenance" th:unless="${narrator.mention_count > 0 or narrator['kind'] == 'imam'}"
+       th:text="#{narrator.provenance(${@localeDigits.of(narrator.entry_count)})}">
+        This page is assembled from 5 entries.
+    </p>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/site :: sitefooter}"></footer>
+<!-- Folds al-Khoei's longer entries, and the narrations below them, with the same control
+     the chapter pages use. Without it the page is long but whole. -->
+<script src="/js/narration-collapse.js" th:src="@{/js/narration-collapse.js}"></script>
+<script src="/js/narrator-preview.js" th:src="@{/js/narrator-preview.js}" defer></script>
+<script src="/js/narrator-gens.js" th:src="@{/js/narrator-gens.js}" defer></script>
+<script src="/js/narrator-tabs.js" th:src="@{/js/narrator-tabs.js}" defer></script>
+<script src="/js/rijal-chain.js" th:src="@{/js/rijal-chain.js}" defer></script>
+<th:block th:replace="~{fragments/site :: analytics}"></th:block>
+</body>
+</html>

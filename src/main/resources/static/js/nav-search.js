@@ -54,6 +54,29 @@
         setTimeout(apply, 0);
     }
 
+    /**
+     * One narrator, as a row in the list.
+     *
+     * The value is what gets searched. On the Arabic site that is the Arabic name: the
+     * list used to put the transliteration first in both languages, so «زرارة» typed
+     * into the Arabic box answered «Zurarah ibn A'yan» and then searched for it.
+     */
+    function narratorOption(man) {
+        var ar = man.display_ar || '';
+        var en = man.display_en || '';
+        var label = arabicSite() ? (ar || en) : (en || ar);
+        return {
+            value: label,
+            text: label,
+            // The row shows the name and nothing else. The other spelling is still
+            // matched on, through `searchField` below: Tom Select filters what the
+            // endpoint returned against the typed query, so an Arabic name dropped
+            // out of `text` would stop «زرارة» finding the man on the English site.
+            ar: arabicSite() ? en : ar,
+            group: 'narrators'
+        };
+    }
+
     function submit(control, form) {
         // Whatever is half-typed counts as a term, the way Enter behaves on the
         // search page: one key, one term, and the search runs.
@@ -105,6 +128,17 @@
             maxItems: null,
             dropdownParent: 'body',
             placeholder: placeholder,
+            // Two kinds of suggestion, kept apart and labelled, exactly as the search
+            // page does them. This control offered only words: a reader typing a man's
+            // name into the field that says it searches the narrators was shown eight
+            // spellings of the word and no man.
+            optgroups: [
+                { value: 'narrators', label: t('js.suggest.narrators', 'Narrators') },
+                { value: 'terms', label: t('js.suggest.terms', 'Terms in the narrations') }
+            ],
+            optgroupField: 'group',
+            lockOptgroupOrder: true,
+            searchField: ['text', 'ar'],
             loadThrottle: 250,
             load: function (query, callback) {
                 var term = (query || '').trim();
@@ -113,14 +147,36 @@
                 if (term.length < 2 || term.indexOf(' ') >= 0) {
                     return callback();
                 }
-                fetch(SUGGEST_URL + encodeURIComponent(term.replace(/["']/g, '')))
+                var clean = term.replace(/["']/g, '');
+                // Asked for together so the list does not jump as a second answer lands;
+                // either side may fail without costing the reader the other.
+                var terms = fetch(SUGGEST_URL + encodeURIComponent(clean))
                     .then(function (response) { return response.json(); })
-                    .then(function (data) {
-                        callback((data || []).map(function (item) {
-                            return { value: item, text: item };
-                        }));
+                    .catch(function () { return []; });
+                var men = fetch('/v1/narrators?per_page=4&q=' + encodeURIComponent(clean))
+                    .then(function (response) { return response.ok ? response.json() : null; })
+                    .then(function (payload) {
+                        // A name three thousand men share names nobody — the same floor
+                        // the strip over the results uses, for the same reason.
+                        if (!payload || !payload.narrators || payload.total > 150) {
+                            return [];
+                        }
+                        return payload.narrators.filter(function (man) {
+                            return man && man.entry_count > 0;
+                        });
                     })
-                    .catch(function () { callback(); });
+                    .catch(function () { return []; });
+                Promise.all([men, terms]).then(function (both) {
+                    var results = both[0].map(narratorOption);
+                    var seen = {};
+                    results.forEach(function (row) { seen[row.value.toLowerCase()] = true; });
+                    (Array.isArray(both[1]) ? both[1] : []).forEach(function (item) {
+                        if (!seen[String(item).toLowerCase()]) {
+                            results.push({ value: item, text: item, group: 'terms' });
+                        }
+                    });
+                    callback(results);
+                }).catch(function () { callback(); });
             },
             render: {
                 option_create: function (data, escape) {
@@ -137,6 +193,68 @@
             onDropdownOpen: function () { alignDropdown(this, shell); },
             onType: function () { alignDropdown(this, shell); }
         });
+
+        /*
+         * The placeholder, with the two words a reader needs emphasised.
+         *
+         * An HTML placeholder is plain text: it takes a colour and a weight as a whole
+         * and cannot carry markup, so «narrations» and «narrators» could not be picked
+         * out of it. This is a real element laid over the field, shown only while the
+         * control is empty, and it is aria-hidden because the input keeps its own
+         * placeholder and label for anyone not looking at it.
+         */
+        var hint = document.createElement('span');
+        hint.className = 'nav-search__hint';
+        hint.setAttribute('aria-hidden', 'true');
+        hint.innerHTML = t('search.navPlaceholder.html', '');
+        if (hint.innerHTML && shell) {
+            shell.appendChild(hint);
+            // The native placeholder has to go, not merely be made transparent: a
+            // ::placeholder rule was losing to something more specific and the two
+            // strings printed on top of each other. The input keeps its aria-label,
+            // so clearing the attribute costs a screen reader nothing.
+            // The placeholder was this field's accessible name, so it is moved to an
+            // aria-label before being taken away rather than simply dropped.
+            if (!control.control_input.getAttribute('aria-label')) {
+                control.control_input.setAttribute('aria-label', placeholder);
+            }
+            // Tom Select rewrites the placeholder whenever it refreshes its state, so
+            // removing the attribute once was not enough: it came back on blur and
+            // printed under the hint again. Clear the setting it writes from, and
+            // clear the attribute on every sync.
+            control.settings.placeholder = '';
+            control.control_input.removeAttribute('placeholder');
+            // Gone the moment the field is live, not when the suggestion list catches
+            // up. Tom Select's own `type` event is throttled with the loader, so the
+            // first few keystrokes were landing on top of the hint and the two strings
+            // overlapped until the dropdown opened. The raw `input` event fires on
+            // every keystroke, and focus hides it outright: a focused field has a
+            // caret in it, which says what the placeholder was there to say.
+            var focused = false;
+            var syncHint = function () {
+                control.control_input.removeAttribute('placeholder');
+                var typed = (control.control_input && control.control_input.value) || '';
+                var empty = !focused && !typed && !(control.items && control.items.length);
+                shell.classList.toggle('has-hint', empty);
+            };
+            syncHint();
+            control.control_input.addEventListener('input', syncHint);
+            control.on('item_add', syncHint);
+            control.on('item_remove', syncHint);
+            // On the text box itself, not on Tom Select's wrapper: its focus event did
+            // not fire for a caret placed in the field, so the hint stayed up under
+            // the typing.
+            control.control_input.addEventListener('focus', function () {
+                focused = true; syncHint();
+            });
+            control.control_input.addEventListener('blur', function () {
+                focused = false; syncHint();
+            });
+            hint.addEventListener('mousedown', function (e) {
+                e.preventDefault();
+                control.focus();
+            });
+        }
 
         // Tom Select highlights the first suggestion as soon as the list opens, so
         // "is a suggestion active" is true from the first keystroke and cannot stand

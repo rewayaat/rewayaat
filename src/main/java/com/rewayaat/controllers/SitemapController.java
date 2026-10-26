@@ -25,6 +25,7 @@ import com.rewayaat.service.PageLocale;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -88,6 +89,9 @@ public class SitemapController {
      */
     private long expiries;
 
+    private volatile List<String> cachedNarratorPaths = List.of();
+    private volatile Instant narratorsCachedAt = Instant.EPOCH;
+
     private final BookCatalog catalog;
     private final ArabicIndexing arabicIndexing;
 
@@ -148,6 +152,16 @@ public class SitemapController {
             xml.append("    <loc>").append(BASE_URL).append("/sitemap-hadith-").append(i).append(".xml</loc>\n");
             xml.append("  </sitemap>\n");
         }
+        // The narrator pages were in no sitemap at all. Fifteen thousand of them are served,
+        // server-rendered, each with its canonical and its Arabic alternate, and the only way
+        // in was a link from a chain on a narration page. A crawler that never reaches a
+        // chain never reaches a rijāl page.
+        for (int i = 1; i <= narratorSitemapPages(); i++) {
+            xml.append("  <sitemap>\n");
+            xml.append("    <loc>").append(BASE_URL).append("/sitemap-narrators-").append(i)
+                    .append(".xml</loc>\n");
+            xml.append("  </sitemap>\n");
+        }
 
         xml.append("</sitemapindex>");
         return ResponseEntity.ok()
@@ -164,6 +178,11 @@ public class SitemapController {
 
         appendLocalisedUrl(xml, "/", "1.0", "weekly");
         appendLocalisedUrl(xml, "/books", "0.9", "weekly");
+        // The narrator index, the hub every one of the 15,518 narrator pages hangs off.
+        // It carries its own lede and SEO copy in both languages and was listed nowhere,
+        // the same omission /privacy had. The query form of it is a search, not a page,
+        // and only the bare path is listed.
+        appendLocalisedUrl(xml, "/narrators", "0.8", "weekly");
         appendLocalisedUrl(xml, "/updates.html", "0.6", "weekly");
         // A static file rather than a template, so it exists in English only:
         // PageLocale.hasArabicVersion says so and this emits the single entry.
@@ -172,6 +191,8 @@ public class SitemapController {
         // sitemap at all - neither half. Nothing failed; it was simply never listed,
         // which is the failure mode a sitemap written by hand has.
         appendLocalisedUrl(xml, "/privacy", "0.3", "yearly");
+        // The bare contact page only; the prefilled variants are noindex.
+        appendLocalisedUrl(xml, "/contact", "0.3", "yearly");
 
         xml.append("</urlset>");
         return ResponseEntity.ok()
@@ -285,6 +306,110 @@ public class SitemapController {
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_XML)
                 .body(xml.toString());
+    }
+
+    @RequestMapping(value = "/sitemap-narrators-{page}.xml", method = RequestMethod.GET,
+                    produces = MediaType.APPLICATION_XML_VALUE)
+    public ResponseEntity<String> narratorSitemap(@PathVariable("page") int page) {
+        if (page < 1) {
+            page = 1;
+        }
+        StringBuilder xml = new StringBuilder();
+        xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        xml.append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n");
+        try {
+            List<String> paths = narratorPaths();
+            int from = (page - 1) * PAGE_SIZE;
+            if (from < paths.size()) {
+                for (String path : paths.subList(from, Math.min(from + PAGE_SIZE, paths.size()))) {
+                    // Lower than a narration's 0.8: a man's page is a reference entry, and
+                    // the narrations are what this site is for.
+                    appendUrl(xml, path, "0.6", "monthly");
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error listing narrators for sitemap page {}", page, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+        xml.append("</urlset>");
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_XML).body(xml.toString());
+    }
+
+    private int narratorSitemapPages() {
+        try {
+            int found = narratorPaths().size();
+            return Math.max(1, (found + PAGE_SIZE - 1) / PAGE_SIZE);
+        } catch (Exception e) {
+            LOGGER.warn("Could not size the narrator sitemap: {}", e.getMessage());
+            return 0;
+        }
+    }
+
+    /**
+     * Every narrator page, as the path its canonical uses.
+     *
+     * <p>The men moved to the roster of the Fourteen are left out: their pages answer with a
+     * 301 to the Imam's own page, and a sitemap full of redirects is a sitemap a crawler
+     * learns to distrust.
+     */
+    private synchronized List<String> narratorPaths() throws IOException {
+        if (!cachedNarratorPaths.isEmpty()
+                && Duration.between(narratorsCachedAt, Instant.now()).compareTo(CACHE_TTL) < 0) {
+            return cachedNarratorPaths;
+        }
+        List<String> paths = new ArrayList<>();
+        try (ESClientProvider provider = new ESClientProvider()) {
+            ElasticsearchClient client = provider.client();
+            String pitId = client.openPointInTime(p -> p
+                    .index("rewayaat_narrators")
+                    .keepAlive(t -> t.time(PIT_KEEP_ALIVE))).id();
+            try {
+                List<FieldValue> cursor = null;
+                while (true) {
+                    final List<FieldValue> after = cursor;
+                    SearchResponse<Map> response = client.search(s -> {
+                        s.pit(p -> p.id(pitId).keepAlive(t -> t.time(PIT_KEEP_ALIVE)))
+                                .size(PAGE_SIZE)
+                                .trackTotalHits(t -> t.enabled(false))
+                                .query(q -> q.bool(b -> b.mustNot(m -> m
+                                        .exists(e -> e.field("moved_to")))))
+                                .source(src -> src.filter(f -> f.includes("person_id", "slug")))
+                                .sort(so -> so.field(f -> f.field("_shard_doc")
+                                        .order(SortOrder.Asc)));
+                        if (after != null) {
+                            s.searchAfter(after);
+                        }
+                        return s;
+                    }, Map.class);
+                    List<Hit<Map>> hits = response.hits().hits();
+                    if (hits.isEmpty()) {
+                        break;
+                    }
+                    for (Hit<Map> hit : hits) {
+                        Map<?, ?> row = hit.source();
+                        if (row == null) {
+                            continue;
+                        }
+                        Object personValue = row.get("person_id");
+                        Object slugValue = row.get("slug");
+                        String person = personValue == null ? "" : String.valueOf(personValue).trim();
+                        String slug = slugValue == null ? "" : String.valueOf(slugValue).trim();
+                        if (person.isEmpty() || "null".equals(person)) {
+                            continue;
+                        }
+                        paths.add("/narrator/" + person
+                                + (slug.isEmpty() || "null".equals(slug) ? "" : "/" + slug));
+                    }
+                    cursor = hits.get(hits.size() - 1).sort();
+                }
+            } finally {
+                final String closing = pitId;
+                client.closePointInTime(c -> c.id(closing));
+            }
+        }
+        cachedNarratorPaths = List.copyOf(paths);
+        narratorsCachedAt = Instant.now();
+        return cachedNarratorPaths;
     }
 
     /** Returns the slice of IDs belonging to one sitemap page, or null while a cold pod is still scanning. */

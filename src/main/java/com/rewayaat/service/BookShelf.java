@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * The books as they stand on the bookcase drawn on the home page and on {@code /books}.
@@ -69,7 +67,6 @@ public final class BookShelf {
 
     /** log10 of the smallest collection the scale is drawn for; anything smaller is the minimum. */
     private static final double SMALLEST_LOG = 1.6;
-    private static final String[] EDGE_TONES = {"#ddcca6", "#bfa97c", "#d8c59c", "#b39a6a", "#cfb98b", "#a88f60"};
 
     private static final Map<String, Boolean> COVER_EXISTS = new ConcurrentHashMap<>();
 
@@ -99,12 +96,15 @@ public final class BookShelf {
         double reach = Math.max(0, Math.min(1, (Math.log10(Math.max(book.count(), 1)) - SMALLEST_LOG) / (top - SMALLEST_LOG)));
         // A slight, fixed per-book wobble in height, so books of near-equal size don't line up exactly.
         double wobble = ((book.slug().hashCode() & 0xffff) / 65535.0 * 2 - 1) * 0.015;
-        double scale = Math.min(1.0, 0.86 + 0.13 * reach + wobble);
-        int layers = (int) Math.round(3 + 7 * reach);
-        String edges = IntStream.rangeClosed(1, layers)
-                .mapToObj(i -> "-" + i + "px " + i + "px 0 " + EDGE_TONES[(i - 1) % EDGE_TONES.length])
-                .collect(Collectors.joining(", "));
-        return String.format(Locale.ROOT, "--scale:%.3f;--edges:%s;--gilt:url(%s%s.webp)",
-                scale, edges, GILT, book.slug());
+        // 0.80 floor: at 0.86 the log scale was real but a 45-narration book and al-Kafi differed by
+        // a hand's breadth at most; this makes the difference readable across the room.
+        double scale = Math.min(1.0, 0.80 + 0.19 * reach + wobble);
+        // The page block is a side face, so its depth is a length: 4px for the slimmest volume, 20px
+        // for al-Kafi. --rise is how far its far edge climbs the board (the shelf is seen from above),
+        // and --tilt the same as a slope, so the side face can be sheared without dividing lengths in CSS.
+        double depth = 4 + 16 * reach;
+        double rise = 2.5 + 0.25 * depth;
+        return String.format(Locale.ROOT, "--scale:%.3f;--depth:%.1fpx;--rise:%.1fpx;--tilt:%.3f;--gilt:url(%s%s.webp)",
+                scale, depth, rise, rise / depth, GILT, book.slug());
     }
 }

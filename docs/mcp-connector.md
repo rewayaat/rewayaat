@@ -77,15 +77,49 @@ shape; the rest are for Claude and for ChatGPT's developer mode.
 | Tool | Arguments | Returns |
 |---|---|---|
 | `search` | `query` | `{results: [{id, title, url}]}` — ChatGPT's fixed shape |
-| `fetch` | `id` | `{id, title, text, url, metadata}` — ChatGPT's fixed shape |
-| `search_hadith` | `query`, `book?`, `topic_tags?`, `match_mode?`, `limit?`, `offset?` | Full narrations **plus `total_matches`** |
-| `get_chapter` | `book`, `chapter`, `volume?`, `limit?`, `offset?` | A chapter in order **plus `chapter_size`** |
+| `fetch` | `id` | `{id, title, text, url, metadata}` — ChatGPT's fixed shape; the chain is `metadata.isnad`, English with the Arabic beside it (the schema cannot take a `language`, and `ArchitectureRulesTest` holds it at one argument) |
+| `search_hadith` | `query`, `book?`, `topic_tags?`, `match_mode?`, `include_isnad?`, `language?`, `limit?`, `offset?` | Full narrations **plus `total_matches`** |
+| `get_chapter` | `book`, `chapter`, `volume?`, `include_isnad?`, `language?`, `limit?`, `offset?` | A chapter in order **plus `chapter_size`** |
+| `lookup_narrator` | `name` or `id`, `limit?` | What the Rijal books say of a man, book by book |
+| `hadith_of_narrator` | `id`, `book?`, `language?`, `limit?`, `offset?` | The narrations whose chain names him **plus `total_narrations`**, and his place in each |
 | `find_similar` | `id`, `match_type?`, `limit?` | Judged links with the written reason |
 | `verses_for_hadith` | `id`, `limit?` | Qur'anic verses with tafsīr extracts |
 | `hadith_for_verse` | `verse`, `limit?`, `offset?` | Narrations judged to bear on a verse **plus `total_matches`** |
 
 Every tool is annotated `readOnlyHint: true`, which ChatGPT requires before it will treat one
 as a knowledge source.
+
+### Chains and narrators
+
+Every name in an isnād is resolved offline to a man and stored on the narration as
+`chain_people` (every step, in printed order, including those that resolved to nobody) and
+`chain_links` / `chain_links_en` (the linked spans only). `ChainView` shapes that for a model.
+
+- **Where it appears.** `fetch` always carries the chain, in `metadata.isnad` (ChatGPT's fixed
+  shape has one free-form field). Search results and chapters stay lean and carry it only with
+  `include_isnad`, which also lowers the page ceiling to 6: a six-step chain with names and links
+  is about 2,400 characters, so a default 8-hit page would otherwise gain some 20,000.
+- **Each step is one of five statuses**: `identified`, `ambiguous` (several men bear the name,
+  nothing chooses), `unidentified` (no Rijal entry), `group` («بعض أصحابنا»), `reference` («وبهذا
+  الإسناد», or a chain quoted from another book). Only `identified` carries a `narrator`, and only
+  when the resolver stored a person; an outcome the view does not recognise degrades to
+  `unidentified`, never to a name.
+- **`basis` says how an identified man was reached**: `sole_name`, `context` (several men bear
+  the name; one was chosen from the neighbouring names) or `convention` (a bare name taken to mean
+  one man in this author's chains). The audits measured these at different accuracies
+  (`narrator-system.md`), so the connector does not merge them.
+- **Printed order, not travel order.** Step 1 is the compiler's own source and the last step is
+  nearest the Imam; the output says so.
+- **English is aligned, not resolved.** `chain_links_en` holds spans only for names that were
+  linked, so a step the translation drops, or the Arabic left unanswered, comes back in Arabic
+  with `words_language: "ar"`. Spans are matched to steps by person, walking forward, never by
+  position.
+- **No steps is not no chain.** About 5,900 narrations have no `chain_people`, among them 272 in
+  al-Kāfī that print a chain this analysis does not cover; the note says so.
+- **`hadith_of_narrator` takes an id, not a name**, and matches `chain_people.p.keyword`, so it
+  finds the man the resolver decided on, not every man who bears the name. The total is a floor:
+  a step left unanswered is linked to nobody. `basis` is reported per hit; it cannot be counted
+  across the result because `chain_people` is a flattened array, not a nested one.
 
 ### `total_matches` and `chapter_size`
 
@@ -288,7 +322,13 @@ catches up.
 `McpProtocolIntegrationTest` speaks the real transport — session id, `tools/list`,
 `tools/call`, both the JSON and SSE framings — and pins the parts of the contract that are
 not ours to choose. It seeds its own index with an explicit mapping: under a dynamic one
-`book` becomes a text field and every term filter would match nothing while still passing.
+`book` becomes a text field and every term filter would match nothing while still passing. The
+chain tests seed nine narrations copied out of the live index (`src/test/resources/mcp/`) so the
+shapes asserted on are the real ones; `ChainViewTest` runs the same fixtures without Spring.
+
+On a machine whose Docker engine is newer than the one Testcontainers' client speaks, add
+`-DargLine=-Dapi.version=1.44` alongside `-Dtestcontainers.enabled=true`; the default is
+`localhost:9200`, which these tests write test indices to.
 
 Probing a running server by hand:
 
@@ -456,13 +496,19 @@ no cost to being correct. Measured before the fix: `MCP-Protocol-Version: 1999-0
 
 ## Not built yet
 
-- **`lookup_narrator` — deliberately out of scope for the first version.** Not a gap to be
-  closed before shipping. Narrator work is complete through Phase 2 (29,305 merged profiles in
-  `tmp/narrators_merged.json`), but Phase 3, the Elasticsearch import, has not started and
-  there is no `rewayaat_narrators` index; building the tool means building that pipeline
-  first, which is its own project and not a prerequisite for serving narrations. It remains
-  the strongest "no webpage can answer this" case in the evaluation, so it is the natural
-  first addition after v1 — once Phase 3 lands, on its own schedule.
+- **The gap between a printed chain and an analysed one.** Both `lookup_narrator` and
+  `hadith_of_narrator` ship now, against the `rewayaat_narrators` index of 15,518 people —
+  the "out of scope for v1" note that stood here is obsolete, and the over-clustered June
+  merge in `tmp/narrators_merged.json` was abandoned rather than fixed; it must not be
+  indexed. What is still missing is coverage, not capability. About 5,900 narrations carry
+  no analysed chain at all, and 272 of those are in al-Kāfī and *do* print one, so
+  `fetch` returns their text with no `metadata.isnad`. A caller cannot tell that case from a
+  narration that genuinely has no isnād. Until the resolver closes it, treat an absent
+  `isnad` as "not analysed", never as "no chain".
+- **A step's words are not always a name.** `Al-Kafi-Volume-1-Kulayni:1319` is a birth-and-death
+  notice whose analysed steps include «وُلِدَ» and month names. They surface honestly, as
+  `status: unidentified` carrying no narrator, which is the right failure — but they are noise
+  in the output, and the fix belongs in the chain pipeline, not here.
 - **Semantic `search_hadith`.** Matching is BM25, and this is much less of a gap than it
   first appears. Vector search exists to bridge the distance between how a person phrases a
   question and how the text is actually written — but on this surface there is already a

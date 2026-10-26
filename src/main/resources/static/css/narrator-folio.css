@@ -1,0 +1,877 @@
+/* ===========================================================================
+   The narrator's page: its navy head, and the band of counts beneath it.
+
+   The head is the site's own `hub-hero`, the same panel a book, a volume and a
+   chapter open with, so a narrator reads as part of this site. It carries only
+   what the rijal books claim about the man — his name, the generations they
+   place him in, where he was from, when he died, and the sentence those books
+   amount to.
+
+   Everything counted out of this corpus lives in the band below it instead, and
+   the band is labelled before it prints a figure. That split is the point: what
+   the books say is a claim about a man, what we counted is a fact about this
+   collection, and a reader who cannot tell them apart reads "548 narrations" as
+   a measure of the man.
+
+   This replaces a paper folio and, before it, a navy banner with four counting
+   tiles. The tiles repeated the tab strip; the folio was the only head on the
+   site that did not look like the others.
+   =========================================================================== */
+
+/* ── The thirteen marks ─────────────────────────────────────────────────────
+   Rendered by @seals.generations, so the pigment ramp is not written down a
+   third time. The lit marks arrive with an inline hsl() from the Java, which
+   was mixed for paper; on the navy head they are lifted rather than respelled,
+   so the ramp stays in one place. */
+
+.gens {
+    display: grid;
+    grid-template-columns: repeat(13, 1fr);
+    gap: 2px;
+    margin: 0.75rem 0 0;
+    max-width: 17rem;
+}
+
+.gens__mark {
+    display: block;
+    height: 7px;
+    border-radius: 2px;
+    background: var(--border-strong);
+}
+
+/* ── The head, read downward ────────────────────────────────────────────────
+   Three bands ruled in gold, not two columns. The split layout the books use
+   suits a book: a short title on one side, a paragraph of introduction on the
+   other, both about the same length. A narrator's head is lopsided — a seal, a
+   name, thirteen marks and a row of facts on one side against one sentence on
+   the other — so the left ran long, the right ran out after two lines, and the
+   seal sat alone at the top with the width of the panel empty beside it.
+
+   Downward, each band uses the whole width: the man, then what the books say of
+   him, then when he lived and where it is written. */
+
+.hub-hero--rijal {
+    display: grid;
+    gap: 1.15rem;
+    padding: 2.1rem 2.4rem 1.9rem;
+    text-align: start;
+}
+
+/* ── Band one: the seal, and the name beside it ─────────────────────────── */
+
+/* The name takes the panel's own start edge, the one every band below rules from.
+   With the seal first, the eyebrow and the name began a seal's width inside the
+   panel while the sentence, the strip and the facts all began at the edge — so the
+   name read as though it had been nudged toward the middle for no reason. The seal
+   is aria-hidden, so putting it last costs a reader nothing. */
+.rijal__head {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+}
+
+.rijal__names { min-width: 0; flex: 1 1 auto; }
+
+.hub-hero--rijal .hub-hero__seal {
+    display: block;
+    flex: none;
+    line-height: 0;
+}
+
+/* On navy the seal's unlit track has to come up out of the ground, where on
+   paper it sat against it. */
+.hub-hero--rijal .hub-hero__seal .nseal__track { stroke: rgba(255, 255, 255, 0.18); }
+.hub-hero--rijal .hub-hero__seal .nseal__ring { stroke: var(--gold-light); }
+
+.hub-hero--rijal .hub-hero__eyebrow {
+    margin-bottom: 0.3rem;
+    color: var(--gold-light, #f3e5b8);
+    opacity: 0.85;
+}
+
+/* The name is Arabic, so it is set in the Arabic face rather than the ornament
+   face the other heroes use for their Latin titles. */
+.hub-hero--rijal .hub-hero__title {
+    font-family: var(--font-arabic);
+    font-weight: 700;
+    font-size: clamp(2rem, 4.4vw, 2.9rem);
+    line-height: 1.3;
+    letter-spacing: 0;
+    margin: 0 0 0.15rem;
+    /* The h1 carries dir="rtl" for the Arabic name while the block it sits in is as
+       wide as the panel, so the name aligned to its own direction and walked off to
+       the far edge, away from the eyebrow and the transliteration it belongs to.
+       Physical sides, keyed to the page's direction, as .ncard__ar already does. */
+    text-align: left;
+}
+
+html[dir="rtl"] .hub-hero--rijal .hub-hero__title { text-align: right; }
+
+/* Both of these are the man's name. At 1rem against a 2.9rem Arabic the Latin read
+   as a caption on the Arabic rather than as the same name written the other way, and
+   an English reader was given the smaller of the two. */
+.hub-hero--rijal .hub-hero__also {
+    position: relative;
+    /* Scheherazade's descenders reach well below its baseline, and the name above is
+       set at up to 2.9rem, so the gap has to clear both. */
+    margin: 1.05rem 0 0;
+    font-family: var(--font-reference);
+    font-style: italic;
+    font-size: clamp(1.15rem, 2.1vw, 1.5rem);
+    line-height: 1.3;
+    color: var(--gold-light, #f3e5b8);
+    opacity: 0.88;
+}
+
+/* ── Band two: what the books amount to ─────────────────────────────────── */
+
+.rijal__says {
+    position: relative;
+    z-index: 1;
+    padding-top: 1.1rem;
+    border-top: 1px solid rgba(243, 229, 184, 0.22);
+}
+
+.hub-hero--rijal .hub-hero__intro-text {
+    max-width: 62ch;
+    margin: 0;
+    font-size: 1.05rem;
+    line-height: 1.65;
+    color: #fff;
+    text-align: start;
+}
+
+.hub-hero--rijal .hub-hero__standing,
+.hub-hero--rijal .hub-hero__rests,
+.hub-hero--rijal .hub-hero__imam-note {
+    max-width: 62ch;
+    margin: 0.6rem 0 0;
+    font-size: 0.92rem;
+    color: rgba(243, 229, 184, 0.78);
+}
+
+.hub-hero--rijal .hub-hero__rests { font-style: italic; opacity: 0.85; }
+
+/* ── Band three: the generations, and where it is written ───────────────── */
+
+.rijal__foot {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem 2.5rem;
+    padding-top: 1.05rem;
+    border-top: 1px solid rgba(243, 229, 184, 0.22);
+}
+
+.rijal__gens { min-width: 0; }
+
+.rijal__gens-label {
+    margin: 0 0 0.5rem;
+    font-family: var(--font-ui);
+    font-size: 0.63rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(243, 229, 184, 0.62);
+}
+
+/* The one part of the key a reader needs: which mark is his. In the same gold as the
+   mark, so the sentence and the strip point at each other. */
+.rijal__gens-marked { color: var(--gold-light, #f3e5b8); opacity: 0.95; }
+.rijal__gens-dot { margin: 0 0.15rem; opacity: 0.5; }
+.hub-hero--rijal .gens { margin: 0; }
+.hub-hero--rijal .gens__mark { background: rgba(255, 255, 255, 0.16); }
+
+.hub-hero--rijal .gens__mark.is-lit {
+    filter: brightness(1.32) saturate(1.05);
+    box-shadow: 0 0 6px rgba(243, 229, 184, 0.35);
+}
+
+.hub-hero--rijal .hub-hero__gens-key {
+    position: relative;
+    margin: 0.45rem 0 0;
+    font-family: var(--font-ui);
+    font-size: 0.68rem;
+    letter-spacing: 0.02em;
+    color: rgba(243, 229, 184, 0.55);
+}
+
+.hub-hero--rijal .hub-hero__stats {
+    margin: 0;
+    justify-content: flex-end;
+    gap: 0.45rem;
+}
+
+/* The facts are label-then-value, not value-then-label: "From Kufa" is a fact
+   about a man, where a book's "14,242 narrations" is a quantity, and the two
+   do not want the same word order. */
+.hub-hero--rijal .hub-stat {
+    gap: 0.45rem;
+    padding: 0.4rem 0.9rem;
+    border-color: rgba(243, 229, 184, 0.28);
+}
+
+.hub-hero--rijal .hub-stat__label {
+    font-size: 0.63rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(243, 229, 184, 0.62);
+}
+
+.hub-hero--rijal .hub-stat__value {
+    font-size: 0.86rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: #fff;
+}
+
+a.hub-stat { text-decoration: none; transition: background 150ms ease, border-color 150ms ease; }
+a.hub-stat:hover,
+a.hub-stat:focus-visible {
+    background: rgba(243, 229, 184, 0.14);
+    border-color: rgba(243, 229, 184, 0.55);
+}
+
+/* ── The band of counts ──────────────────────────────────────────────────
+   Paper, directly under the navy head and directly above the light tabs, so
+   the page reads head / counts / apparatus. The label comes first and is not
+   decorative: it is the sentence that stops the figures being read as a
+   verdict on the man. */
+
+.corpus-band {
+    margin: -1.25rem 0 1.5rem;
+    padding: 1rem 1.6rem 0.9rem;
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    background: var(--gold-bg, #fdf8ed);
+}
+
+.corpus-band__label {
+    margin: 0 0 0.5rem;
+    font-family: var(--font-ui);
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gold-dark, #a07e28);
+}
+
+.corpus-band__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.3rem 1.1rem;
+}
+
+.corpus-band__figure { font-size: 0.88rem; color: var(--text-secondary); }
+
+.corpus-band__count {
+    margin-inline-end: 0.15rem;
+    font-family: var(--font-reference);
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.corpus-band__dot { margin: 0 0.15rem; color: var(--text-muted); }
+
+.corpus-band__link {
+    margin-inline-start: auto;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--primary);
+}
+
+.corpus-band__note {
+    margin: 0.5rem 0 0;
+    font-size: 0.72rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+}
+
+/* ── The colophon, at the foot of the notice ─────────────────────────────── */
+
+.folio-colophon {
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+    margin: 1.5rem 0 0.5rem;
+    padding: 0.75rem 0 0;
+    border-top: 1px solid var(--border);
+    font-size: 0.74rem;
+    color: var(--text-muted);
+}
+
+.folio-colophon__orn { font-family: var(--font-arabic); font-size: 1.1rem; color: var(--gold); }
+.folio-colophon p { margin: 0; }
+
+/* The shared hero centres itself on a phone, which suits a book: a short title and a
+   row of counts sit well centred. A narrator's head is a seal, a name, a thirteen-mark
+   strip and a sentence, and centring put the seal hard left of centred text with the
+   sentence left-aligned under it — three alignments in one panel. `start`, not `left`,
+   so the Arabic page mirrors with everything else. */
+@media (max-width: 767.98px) {
+    .hub-hero--rijal,
+    .hub-hero--rijal .hub-hero__intro { text-align: start; }
+    .hub-hero--rijal .hub-hero__stats { justify-content: flex-start; }
+    .hub-hero--rijal { padding: 1.7rem 1.4rem 1.6rem; gap: 1rem; }
+    .rijal__head { gap: 0.9rem; }
+    .rijal__foot { align-items: flex-start; gap: 0.9rem; }
+    .hub-hero--rijal .gens { max-width: 14rem; }
+}
+
+@media (max-width: 640px) {
+    .corpus-band { padding-inline: 1.1rem; }
+    .corpus-band__link { margin-inline-start: 0; }
+}
+
+/* ── The evidence: what each book actually says ──────────────────────────── */
+/* The folio's second act, and only here: the overview is the notice, so the word
+   a book uses is set in the Arabic face at reading size and in the colour of its
+   leaning, with the chip it used to sit in taken off - a chip makes a label of a
+   word a scholar means to quote. The Tarājim tab is the apparatus and keeps the
+   chips, because there a reader is scanning entries rather than reading a notice.
+   5.9:1 for taʿdīl and 6.4:1 for jarḥ on this ground. */
+
+.narrator-stands__table th {
+    font-family: var(--font-reference);
+    font-weight: 400;
+    font-size: 0.97rem;
+    color: var(--text);
+}
+
+.narrator-stands__table th,
+.narrator-stands__table td { padding-block: 0.6rem; vertical-align: baseline; }
+
+.narrator-stands__table .narrator-stands__entry {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.1rem 0.7rem;
+}
+
+.narrator-stands__table .narrator-stands__position {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    margin-right: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    font-weight: 400;
+    color: var(--text-secondary);
+}
+
+.narrator-stands__table .narrator-stands__word-ar {
+    font-family: var(--font-arabic);
+    font-weight: 700;
+    font-size: 1.7rem;
+    line-height: 1.1;
+    color: var(--primary);
+    direction: rtl;
+    unicode-bidi: isolate;
+}
+
+.narrator-stands__table .narrator-stands__position--for .narrator-stands__word-ar { color: #2f6f4e; }
+.narrator-stands__table .narrator-stands__position--against .narrator-stands__word-ar { color: #a33b2c; }
+/* A grade we cannot tie to a passage keeps its deliberate colourlessness: it is not
+   evidence until there is a page under it, and colour would make it look like one. */
+.narrator-stands__table .narrator-stands__position--unsourced .narrator-stands__word-ar {
+    color: var(--text-muted);
+}
+
+/* The page, ruled off at the end of the line as a folio reference is. */
+.narrator-stands__table .narrator-stands__page {
+    margin-inline-start: auto;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ===========================================================================
+   The tabs, made readable.
+
+   Measured before touching anything: body text across the three tabs ran
+   11.2–12.8px and the section labels 11.84px, most of it on --text-muted
+   (#94a3b8), which is 2.9:1 on this page — below AA for any size. A page whose
+   whole purpose is quoting what seven books say about a man was setting those
+   quotations smaller than its own furniture.
+
+   Nothing is restructured here. Type goes up, the greys come up to a legal
+   contrast, and the rows that run to hundreds get the leading to be scanned.
+   Scoped to #narrator-view so the books, volume and chapter pages, which share
+   several of these classes, are untouched.
+   =========================================================================== */
+
+#narrator-view {
+    /* #94a3b8 is 2.9:1 on this ground; #64748b is 4.8:1 and still reads as the
+       quiet half of the page. Rebinding the token itself, not only the handful of
+       classes named below, because the muted grey reaches this page through a
+       dozen more — the fact labels, the colophon, the provenance line, "Listed
+       under" — and every one of them was under AA at 11–13px. */
+    --rv-quiet: #64748b;
+    --text-muted: #64748b;
+}
+
+/* A disclosure summary is a control, and at 4.12:1 it was the one piece of this
+   page a reader is meant to click and could least easily read. */
+#narrator-view summary { color: var(--text-secondary, #4a5568); }
+
+/* Section labels. 11.84px uppercase with wide tracking is a caption, and these
+   are the headings a reader navigates the tab by. */
+#narrator-view .hub-group__label {
+    font-size: 0.82rem;
+    letter-spacing: 0.1em;
+    color: var(--text-secondary, #4a5568);
+}
+
+/* ── Tarājim: the notices themselves ────────────────────────────────────── */
+
+/* The English of an entry is the entry, for most readers of this site. */
+#narrator-view .narrator-entry__text-en {
+    font-size: 1rem;
+    line-height: 1.75;
+    color: var(--text, #1a1a2e);
+}
+
+#narrator-view .narrator-entry__edition,
+#narrator-view .narrator-entry__series,
+#narrator-view .narrator-entry__generation {
+    font-size: 0.8rem;
+    color: var(--rv-quiet);
+}
+
+#narrator-view .narrator-entry__note { font-size: 0.88rem; }
+
+/* ── The names ──────────────────────────────────────────────────────────── */
+
+#narrator-view .narrator-names__chip {
+    padding: 0.3rem 0.8rem;
+    font-size: 0.88rem;
+}
+
+#narrator-view .narrator-names__group-label {
+    font-size: 0.78rem;
+    color: var(--text-secondary, #4a5568);
+}
+
+/* ── What the books state, and on whose word ────────────────────────────── */
+
+#narrator-view .narrator-stands__why,
+#narrator-view .narrator-stands__page {
+    font-size: 0.8rem;
+    color: var(--rv-quiet);
+}
+
+#narrator-view .narrator-report__note { font-size: 0.82rem; color: var(--rv-quiet); }
+
+/* ── Teachers & students: two hundred and seventy-five rows ─────────────── */
+/* At 0.5rem of padding and 11.2px for the source, this was a column of grey
+   the eye slides off. The name carries the row; the books behind it stay
+   quiet but legible; the leading is what makes a list this long scannable. */
+
+#narrator-view .chains__row {
+    padding: 0.62rem 0.6rem;
+    gap: 1.2rem;
+}
+
+#narrator-view .chains__name { font-size: 0.97rem; }
+
+#narrator-view .chains__books {
+    font-size: 0.78rem;
+    color: var(--rv-quiet);
+}
+
+#narrator-view .chains__dir {
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    color: var(--rv-quiet);
+}
+
+#narrator-view .chains__note,
+#narrator-view .chains__caveat {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--text-secondary, #4a5568);
+}
+
+/* Two columns of 137 rows each is narrower than the names in them want to be;
+   at this type size the gutter has to grow with them. */
+#narrator-view .chains__list--indexed { column-gap: 3rem; }
+
+@media (max-width: 860px) {
+    #narrator-view .chains__list--indexed { column-count: 1; }
+}
+
+/* ── The seal's own key ──────────────────────────────────────────────────────
+   The mark carries two facts nothing else on the page states: the tile's colour
+   is the earliest Imam he transmitted from, and the ring's length is how much of
+   this collection runs through him. A reader cannot guess either, so the seal
+   explains itself. CSS only — hover or keyboard focus, no script. */
+
+.hub-hero--rijal .hub-hero__seal { position: relative; }
+
+.hub-hero__seal-key {
+    position: absolute;
+    top: -9px;
+    inset-inline-end: -11px;
+    width: 1.05rem;
+    height: 1.05rem;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid rgba(243, 229, 184, 0.5);
+    border-radius: 50%;
+    background: rgba(10, 22, 40, 0.85);
+    font-family: var(--font-ui);
+    font-size: 0.6rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--gold-light, #f3e5b8);
+    cursor: help;
+}
+
+.hub-hero__seal-key:hover,
+.hub-hero__seal-key:focus {
+    border-color: var(--gold, #c8a23d);
+    background: rgba(10, 22, 40, 0.96);
+}
+
+.hub-hero__seal-note {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    /* Opening from the start edge sent it off the panel, and .hub-hero clips its
+       overflow so the end of the sentence simply vanished. The seal sits at the
+       panel's inline end, so the note hangs from its own end edge and grows inward,
+       which is the only direction with room. */
+    inset-inline-end: 0;
+    z-index: 5;
+    width: max-content;
+    max-width: min(24rem, 70vw);
+    padding: 0.6rem 0.8rem;
+    border: 1px solid rgba(243, 229, 184, 0.35);
+    border-radius: 8px;
+    background: #0a1628;
+    box-shadow: 0 10px 28px -10px rgba(0, 0, 0, 0.7);
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    font-weight: 400;
+    line-height: 1.55;
+    letter-spacing: 0;
+    text-align: start;
+    color: rgba(245, 236, 214, 0.92);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.14s ease, visibility 0s linear 0.14s;
+}
+
+.hub-hero__seal-key:hover .hub-hero__seal-note,
+.hub-hero__seal-key:focus .hub-hero__seal-note {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.14s ease, visibility 0s;
+}
+
+@media (max-width: 640px) {
+    .hub-hero__seal-note { max-width: min(18rem, 78vw); }
+}
+
+/* ── The name chips, with something to look at ───────────────────────────────
+   Fifteen bordered rectangles of grey text is a list pretending to be a design.
+   These are the forms the books head one man under, and a reader scans them to
+   answer "is this my man?", so they want to be legible objects: the Arabic in
+   the Arabic face at reading size, a warm paper face with a gold hairline, and
+   a lift when the pointer finds one. The transliterations stay quieter — they
+   are a reading of the names above, not more names. */
+
+#narrator-view .narrator-names__chip {
+    border: 1px solid rgba(200, 162, 61, 0.34);
+    border-radius: 999px;
+    background: linear-gradient(180deg, #fffdf7 0%, #fdf6e6 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(60, 45, 15, 0.06);
+    font-family: var(--font-arabic);
+    font-size: 1.08rem;
+    line-height: 1.5;
+    color: var(--text, #1a1a2e);
+    transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+#narrator-view .narrator-names__chip:hover {
+    border-color: var(--gold, #c8a23d);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 4px 10px -4px rgba(60, 45, 15, 0.22);
+    transform: translateY(-1px);
+}
+
+/* The Latin reading of the same names: the UI face, a size down, on plain paper. */
+#narrator-view .narrator-names__chips--latin .narrator-names__chip,
+#narrator-view .narrator-names__chip--latin {
+    font-family: var(--font-ui);
+    font-size: 0.86rem;
+    background: var(--surface, #fff);
+    border-color: var(--border-strong, #d1d8e0);
+    color: var(--text-secondary, #4a5568);
+}
+
+#narrator-view .narrator-names__chips--latin .narrator-names__chip:hover,
+#narrator-view .narrator-names__chip--latin:hover { border-color: var(--gold, #c8a23d); }
+
+#narrator-view .narrator-names__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+/* ── Room to breathe: the gutter on a phone, and the gaps between sections ──
+   The page container is pushed to 4px of side padding under 768px, which is
+   right for the hadith card (it carries its own padding and wants the width)
+   and wrong for everything on a narrator's page: the rows here add 4px of
+   their own, so a name sat 8px from the glass and the book behind it ran into
+   the other edge. The narrator page takes a real gutter back.
+
+   The sections below the tabs carried no margin between them at all, so «In
+   the same isnād» was printed hard against the last row of the list above it.
+   Adjacent margins collapse, so the ones that already set 2rem keep it.     */
+@media (max-width: 768px) {
+    main.container.narrator-page {
+        padding-inline: 1rem !important;
+    }
+}
+
+#narrator-view section + section,
+#narrator-view .chains + section {
+    margin-block-start: 2rem;
+}
+
+/* A list runs to the heading of whatever follows it unless it says otherwise. */
+#narrator-view .chains__list {
+    margin-block-end: 1.6rem;
+}
+
+#narrator-view .chains__note {
+    margin-block-end: 1.6rem;
+}
+
+/* ── The preview behind each mark (js/narrator-gens.js) ──────────────────────
+   The strip is only something to point at once the script has said so (.is-live): without
+   it the marks are a picture and nothing on them should invite a hover. The band above and
+   below the marks counts as part of the strip, because a 7px mark is a hard thing to hit. */
+
+.hub-hero--rijal .gens.is-live {
+    cursor: pointer;
+    padding-block: 9px;
+    margin-block: -9px;
+    border-radius: 4px;
+    outline: none;
+}
+.hub-hero--rijal .gens.is-live:focus-visible {
+    box-shadow: 0 0 0 2px rgba(243, 229, 184, 0.75);
+}
+.hub-hero--rijal .gens.is-live .gens__mark {
+    transition: transform 0.16s ease, background-color 0.16s ease, box-shadow 0.16s ease;
+}
+.hub-hero--rijal .gens.is-live .gens__mark.is-active {
+    transform: scaleY(1.85);
+    background-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 0 1px rgba(243, 229, 184, 0.95), 0 0 10px rgba(243, 229, 184, 0.5);
+}
+.hub-hero--rijal .gens.is-live .gens__mark.is-lit.is-active {
+    filter: brightness(1.55) saturate(1.1);
+}
+.rijal__gens-hint { color: rgba(243, 229, 184, 0.5); font-style: italic; }
+
+/* The card: paper under a navy head, edged in the era's own pigment, so the colour of the
+   mark a reader pointed at is the colour of what opens. It never takes the pointer, so moving
+   along the strip moves the card with it instead of being caught by it. */
+.gens-card {
+    --paper: #fffcf5;
+    --ink: #1b2a3e;
+    --ink-soft: #5d6878;
+    --navy-1: #0f2440;
+    --navy-2: #1c3d66;
+    position: absolute;
+    z-index: 1085;
+    width: min(21rem, calc(100vw - 1.5rem));
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid rgba(15, 36, 64, 0.2);
+    border-radius: 10px;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset,
+                0 24px 50px -18px rgba(8, 20, 38, 0.6),
+                0 6px 16px -6px rgba(8, 20, 38, 0.32);
+    font-family: var(--font-ui);
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-5px) scale(0.98);
+    transform-origin: var(--arrow-x, 50%) 0;
+    /* as the name card does: visibility flips at once on the way in and waits out the fade on
+       the way out */
+    transition: opacity 0.16s ease, transform 0.18s ease, visibility 0s linear 0.18s;
+}
+.gens-card.is-above { transform: translateY(5px) scale(0.98); transform-origin: var(--arrow-x, 50%) 100%; }
+.gens-card.is-open {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition: opacity 0.16s ease, transform 0.18s ease, visibility 0s;
+}
+
+.gens-card__arrow {
+    position: absolute;
+    top: -6px;
+    left: calc(var(--arrow-x, 50%) - 6px);
+    width: 12px;
+    height: 12px;
+    background: var(--navy-1);
+    border-left: 1px solid rgba(15, 36, 64, 0.2);
+    border-top: 1px solid rgba(15, 36, 64, 0.2);
+    transform: rotate(45deg);
+    transition: left 0.16s ease;
+}
+.gens-card.is-above .gens-card__arrow {
+    top: auto;
+    bottom: -6px;
+    background: var(--paper);
+    border: 0;
+    border-right: 1px solid rgba(15, 36, 64, 0.2);
+    border-bottom: 1px solid rgba(15, 36, 64, 0.2);
+}
+
+.gens-card__head {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.75rem 0.95rem 0.7rem;
+    border-radius: 9px 9px 0 0;
+    background:
+        radial-gradient(ellipse 80% 120% at 100% 0%, rgba(243, 229, 184, 0.12), transparent 60%),
+        linear-gradient(135deg, var(--navy-1), var(--navy-2));
+    border-bottom: 3px solid var(--era);
+}
+.gens-card__chip {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 8px;
+    background: linear-gradient(160deg, var(--era), var(--era-deep));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 0 0 1px rgba(243, 229, 184, 0.45);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+}
+.gens-card__who { min-width: 0; }
+.gens-card__kicker {
+    margin: 0;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(243, 229, 184, 0.72);
+}
+.gens-card__name {
+    margin: 0.12rem 0 0;
+    font-family: var(--font-reference);
+    font-size: 1.02rem;
+    line-height: 1.2;
+    color: #fff;
+}
+.gens-card__name[lang="ar"] { font-family: "Scheherazade New", "Amiri", serif; font-size: 1.25rem; line-height: 1.35; }
+.gens-card__ar {
+    margin-inline-start: auto;
+    padding-inline-start: 0.5rem;
+    font-family: "Scheherazade New", "Amiri", serif;
+    font-size: 1.15rem;
+    line-height: 1.3;
+    white-space: nowrap;
+    color: var(--gold-light, #f3e5b8);
+}
+
+.gens-card__span {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.15rem 0.55rem;
+    padding: 0.7rem 0.95rem 0.15rem;
+}
+.gens-card__span-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+}
+.gens-card__years {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+.gens-card__meta { font-size: 0.74rem; color: var(--ink-soft); }
+
+.gens-card__chart { display: block; width: 100%; height: auto; padding: 0.2rem 0.35rem 0; }
+.gens-card__chart text { font-family: var(--font-ui); }
+.gens-card .gc-lane { font-size: 7.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; fill: var(--ink-soft); }
+.gens-card .gc-lane--him { letter-spacing: 0.02em; text-transform: none; font-size: 8.5px; fill: #6b4e12; }
+.gens-card .gc-era { opacity: 0.3; }
+.gens-card .gc-era.is-his { opacity: 0.6; }
+.gens-card .gc-era.is-on { opacity: 1; stroke: #c8a23d; stroke-width: 1.5; }
+.gens-card .gc-era-name { font-size: 8px; font-weight: 600; fill: rgba(255, 255, 255, 0.92); }
+.gens-card .gc-era-name.is-on { font-size: 9px; font-weight: 700; fill: #fff; }
+.gens-card .gc-overlap { opacity: 0.1; }
+.gens-card .gc-guide { stroke-width: 1; stroke-dasharray: 2 2; opacity: 0.7; }
+.gens-card .gc-him { fill: #c8a23d; stroke: rgba(107, 78, 18, 0.45); stroke-width: 0.75; }
+.gens-card .gc-him-tail { stroke: #c8a23d; stroke-width: 2; stroke-dasharray: 2 2.5; stroke-linecap: round; }
+.gens-card .gc-death { stroke: var(--ink); stroke-width: 1.4; }
+.gens-card .gc-era-name.is-over { font-size: 8.5px; fill: var(--ink); }
+.gens-card .gc-death-label { font-size: 8px; font-weight: 600; fill: var(--ink); }
+/* labels that a dashed guide can run through carry a halo of the card's paper */
+.gens-card .gc-death-label, .gens-card .gc-era-name.is-over, .gens-card .gc-lane {
+    paint-order: stroke; stroke: var(--paper); stroke-width: 3px; stroke-linejoin: round;
+}
+.gens-card .gc-axis { stroke: rgba(15, 36, 64, 0.28); stroke-width: 1; }
+.gens-card .gc-tick { stroke: rgba(15, 36, 64, 0.28); stroke-width: 1; }
+.gens-card .gc-tick-label { font-size: 8px; fill: var(--ink-soft); font-variant-numeric: tabular-nums; }
+
+.gens-card__verdict {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin: 0.35rem 0.95rem 0;
+    padding: 0.5rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    line-height: 1.4;
+    background: rgba(15, 36, 64, 0.05);
+}
+.gens-card__verdict i {
+    flex: none;
+    width: 0.55rem;
+    height: 0.55rem;
+    margin-top: 0.3rem;
+    border-radius: 50%;
+}
+.gens-card__verdict.is-with { background: rgba(200, 162, 61, 0.15); color: #4f3a0c; }
+.gens-card__verdict.is-with i { background: #c8a23d; box-shadow: 0 0 0 2px rgba(200, 162, 61, 0.3); }
+.gens-card__verdict.is-meet i { border: 1.5px solid var(--era); }
+.gens-card__verdict.is-apart { color: var(--ink-soft); }
+.gens-card__verdict.is-apart i { background: rgba(15, 36, 64, 0.22); }
+.gens-card__note { margin: 0.45rem 0.95rem 0.8rem; font-size: 0.66rem; line-height: 1.4; color: #848d9a; }
+
+@media (prefers-reduced-motion: reduce) {
+    .gens-card, .gens-card.is-open, .gens-card__arrow,
+    .hub-hero--rijal .gens.is-live .gens__mark { transition: none; }
+}

@@ -7,6 +7,7 @@ import com.rewayaat.service.ArabicNames;
 import com.rewayaat.service.BookCatalog;
 import com.rewayaat.service.LocaleDigits;
 import com.rewayaat.service.PageLocale;
+import com.rewayaat.service.StructuredData;
 import com.rewayaat.service.HadithCardFactory;
 import com.rewayaat.service.QuranicInsightsService;
 import com.rewayaat.service.SimilarHadithService;
@@ -174,7 +175,7 @@ public class HadithPageController {
         model.addAttribute("card", card);
 
         model.addAttribute("breadcrumbs", crumbs);
-        model.addAttribute("breadcrumbJsonLd", breadcrumbJsonLd(crumbs));
+        model.addAttribute("breadcrumbJsonLd", StructuredData.breadcrumbs(crumbs));
         model.addAttribute("chapterUrl",
                 chapter.map(c -> locale.prefix() + c.url()).orElse(null));
         // The link back up to the chapter named it in English on the Arabic page, the
@@ -316,28 +317,6 @@ public class HadithPageController {
             LOGGER.warn("Could not load similar narrations for {}", id, e);
         }
         return links;
-    }
-
-    private String breadcrumbJsonLd(List<Map<String, String>> crumbs) {
-        List<Map<String, Object>> items = new ArrayList<>();
-        int position = 1;
-        for (Map<String, String> crumb : crumbs) {
-            items.add(new LinkedHashMap<>(Map.of(
-                    "@type", "ListItem",
-                    "position", position++,
-                    "name", crumb.get("name"),
-                    "item", BASE_URL + crumb.get("url"))));
-        }
-        Map<String, Object> ld = new LinkedHashMap<>();
-        ld.put("@context", "https://schema.org");
-        ld.put("@type", "BreadcrumbList");
-        ld.put("itemListElement", items);
-        try {
-            return JSON.writerWithDefaultPrettyPrinter().writeValueAsString(ld);
-        } catch (Exception e) {
-            LOGGER.warn("Could not build the breadcrumb JSON-LD", e);
-            return "{}";
-        }
     }
 
     private static String encode(String segment) {

@@ -59,11 +59,11 @@
        a serif stack in Noto Naskh Arabic, rather than in whatever the device falls
        back to. Google Fonts serves those two by unicode-range, so a page without
        Arabic in them never downloads them. */
-    --font-body:        "Inter", "IBM Plex Sans Arabic", "Segoe UI", system-ui, sans-serif;
-    --font-display:     "Inter", "IBM Plex Sans Arabic", "Segoe UI", system-ui, sans-serif;
-    --font-ui:          "Inter", "IBM Plex Sans Arabic", "Segoe UI", system-ui, sans-serif;
-    --font-reference:   "Source Serif 4", "Noto Naskh Arabic", Georgia, serif;
-    --font-ornament:    "Cormorant Garamond", "Noto Naskh Arabic", "Source Serif 4", serif;
+    --font-body:        "Manrope", "IBM Plex Sans Arabic", "Segoe UI", system-ui, sans-serif;
+    --font-display:     "Manrope", "IBM Plex Sans Arabic", "Segoe UI", system-ui, sans-serif;
+    --font-ui:          "Manrope", "IBM Plex Sans Arabic", "Segoe UI", system-ui, sans-serif;
+    --font-reference:   "Literata", "Noto Naskh Arabic", Georgia, serif;
+    --font-ornament:    "Cormorant Garamond", "Noto Naskh Arabic", "Literata", serif;
     --font-arabic:      "Scheherazade New", "Amiri", serif;
     --font-mono:        "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
 
@@ -1015,8 +1015,11 @@ a:hover {
         display: none;
     }
 }
-body.is-collection-mode .home-nav-links,
-body.is-search-mode .home-nav-links {
+/* Collection mode replaces the whole chrome with the collection's own, so the home
+   nav goes. A search does not: the reader is still on the site and still wants Books,
+   Rijal and Updates. Hiding them left the results page with no visible navigation at
+   all above a phone, and the only way out was the hamburger. */
+body.is-collection-mode .home-nav-links {
     display: none !important;
 }
 
@@ -2384,6 +2387,20 @@ main.container::before {
 .hadith-chain strong,
 .hadith-chain em {
     color: inherit !important;
+}
+
+/* Each name in the isnād that the rijāl books identify is a link to that man's page. A chain
+   is read as one sentence, so the links are marked by an underline and not by colour: eight
+   names in eight bright words would read as a list of buttons rather than a chain. */
+.hadith-chain .chain-name {
+    text-decoration: none;
+    border-bottom: 1px dotted rgba(200, 162, 61, 0.5);
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+.hadith-chain .chain-name:hover,
+.hadith-chain .chain-name:focus-visible {
+    color: var(--accent-gold, #c8a23d) !important;
+    border-bottom-color: rgba(200, 162, 61, 0.9);
 }
 
 .arabic-text,
@@ -5051,9 +5068,17 @@ code.welcome {
 
 .home-section-subtitle {
     color: var(--text-secondary);
-    font-size: 0.88rem;
+    /* 0.88rem sat tight under an 800-weight title and read as a caption on it rather
+       than as the line that says what the section is for. */
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-top: 0.4rem;
     margin-bottom: 0;
 }
+
+/* The header and the grid under it had nothing between them, so "The men these books
+   lean on most…" sat on the first row of cards. */
+.home-section-header { margin-bottom: 1.15rem; }
 
 /* Pace loading */
 .pace {
@@ -5278,9 +5303,7 @@ body::after {
 }
 
 
-
 /* Colour lives with the chip at the end of this file, for the same reason. */
-
 
 
 /* Hidden select shouldn't leak white bg */
@@ -5597,7 +5620,6 @@ main.container {
 .home-search .ts-control input::placeholder {
     color: rgba(255,255,255,0.4) !important;
 }
-
 
 
 .home-hero__search .search-inline-btn {
@@ -7098,6 +7120,7 @@ body.is-resizing-sidecar * {
 
 .hadith-english {
     font-size: 1rem;
+    font-weight: 500;
     line-height: 1.68;
     color: #233247;
 }
@@ -8539,7 +8562,6 @@ body.is-resizing-sidecar * {
 }
 
 
-
 .search-controls {
     right: 0.8rem;
     gap: 0.35rem;
@@ -9144,11 +9166,6 @@ body.is-search-mode .site-nav .search-entry-shell {
 }
 
 
-
-
-
-
-
 .site-nav .ts-control > .item,
 .navbar-search .ts-control > .item,
 .home-search .ts-control > .item {
@@ -9169,7 +9186,6 @@ body.is-search-mode .site-nav .search-entry-shell {
 }
 
 
-
 .home-search .ts-control .item .remove,
 .navbar-search .ts-control .item .remove {
     /* Position and size are the chip block's at the end of this file, which
@@ -9178,7 +9194,6 @@ body.is-search-mode .site-nav .search-entry-shell {
        sits on the middle of the label. */
     line-height: 1 !important;
 }
-
 
 
 .topic-pill {
@@ -12308,7 +12323,6 @@ body.is-search-mode .site-nav .search-entry-shell {
    of this file now. */
 
 
-
 /* The submit button keeps its navy fill and its gold-light text: that pairing
    was chosen for contrast — 9.29:1 — and it is what keeps the button reading as
    the action rather than as more of the field. Its rule follows the field's to
@@ -13355,4 +13369,3453 @@ html:not([dir="rtl"]) .site-nav .nav-search__shell input::placeholder {
    line is taller and the star centres on that instead. */
 [dir="rtl"] .hub-chapter__index {
     margin-top: calc((1.12rem * 1.6 - 2.15rem) / 2);
+}
+/* ── Narrator pages ─────────────────────────────────────────────────────────────
+   A narrator page is a page of quotations: every line on it belongs to a named book
+   at a named page, and the layout has to keep that visible. The entry blocks carry
+   the book's own words in Arabic; the verdict chips at the top carry the books'
+   disagreement, which is usually the reason a reader came. */
+
+.narrator-name-ar {
+    font-family: var(--font-arabic);
+    line-height: 1.5;
+}
+
+.narrator-name-en {
+    margin: 0.35rem 0 0;
+    font-family: var(--font-ui);
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.narrator-verdicts {
+    list-style: none;
+    margin: 0.6rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.narrator-verdict {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.86);
+}
+
+.narrator-verdict__book {
+    font-family: var(--font-ui);
+    letter-spacing: 0.02em;
+}
+
+/* The grade is a word from the book, not a score of ours, so it is set as a quoted
+   label rather than a coloured badge; only trust and its opposite are tinted, and
+   then only enough to be scannable down a column. */
+.narrator-verdict__grade {
+    font-family: var(--font-ui);
+    font-weight: 600;
+    padding: 0.05rem 0.45rem;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.narrator-verdict__grade--thiqa,
+.narrator-verdict__grade--saduq,
+.narrator-verdict__grade--hasan {
+    background: rgba(120, 190, 140, 0.22);
+}
+
+.narrator-verdict__grade--daif,
+.narrator-verdict__grade--very_weak,
+.narrator-verdict__grade--kadhdhab,
+.narrator-verdict__grade--non_existent {
+    background: rgba(220, 120, 110, 0.24);
+}
+
+.narrator-verdict__where {
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.76rem;
+}
+
+.narrator-entries {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+}
+
+.narrator-entry {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.1rem 1.3rem;
+}
+
+.narrator-entry__head {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 0.7rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.narrator-entry__book {
+    margin: 0;
+    font-family: var(--font-ui);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.narrator-entry__author,
+.narrator-entry__page {
+    font-family: var(--font-ui);
+    font-size: 0.76rem;
+    color: var(--text-muted);
+}
+
+.narrator-entry__grade {
+    margin-left: auto;
+    font-family: var(--font-ui);
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.1rem 0.5rem;
+    border-radius: 3px;
+    background: var(--bg-subtle);
+    color: var(--text-secondary);
+}
+
+.narrator-entry__heading {
+    margin: 0 0 0.5rem;
+    font-family: var(--font-arabic);
+    font-size: 1.15rem;
+    color: var(--text);
+}
+
+/* Ibn al-Ghada'iri's book carries Khoei's doubt about its ascription. It sits above the
+   text rather than below it: a reader should meet the caveat before the verdict. */
+.narrator-entry__note {
+    margin: 0 0 0.6rem;
+    padding: 0.4rem 0.6rem;
+    border-left: 3px solid var(--gold);
+    background: var(--gold-bg);
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.narrator-entry__text {
+    margin: 0;
+    font-family: var(--font-arabic);
+    font-size: 1.22rem;
+    line-height: 2.05;
+    color: var(--text);
+}
+
+.narrator-entry__text-en {
+    margin: 0.7rem 0 0;
+    font-size: 0.92rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+}
+
+.narrator-entry__generation {
+    margin: 0.7rem 0 0;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+}
+
+.narrator-entry__label {
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-right: 0.4rem;
+}
+
+.narrator-facts,
+.narrator-names {
+    margin-bottom: 2rem;
+}
+
+.narrator-facts__list {
+    margin: 0;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.35rem 1.2rem;
+    font-size: 0.88rem;
+}
+
+/* The columns are named, not left to auto-placement. A <dt> is followed by one <dd>
+   per book that states the fact, and auto-placement drops every <dd> after the first
+   into whichever cell comes next - which is column 1, the max-content label column. One
+   long statement there sized that column to 1,359px and pushed the document 193px wider
+   than the viewport. It was a horizontal scrollbar in English and, once the page could
+   be read right to left, half of it off the edge. */
+.narrator-facts__list dt {
+    grid-column: 1;
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding-top: 0.15rem;
+}
+
+.narrator-facts__list dd {
+    grid-column: 2;
+    margin: 0;
+    color: var(--text);
+}
+
+.narrator-facts__source {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.narrator-names__list {
+    font-family: var(--font-arabic);
+    font-size: 1.05rem;
+    line-height: 2;
+    color: var(--text-secondary);
+}
+
+.narrator-provenance {
+    margin: 0 0 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: var(--text-muted);
+}
+
+@media (max-width: 640px) {
+    .narrator-facts__list {
+        grid-template-columns: 1fr;
+        gap: 0.15rem;
+    }
+
+    .narrator-facts__list dt,
+    .narrator-facts__list dd {
+        grid-column: 1;
+    }
+
+    .narrator-facts__list dt {
+        margin-top: 0.6rem;
+    }
+
+    .narrator-entry__grade {
+        margin-left: 0;
+    }
+}
+
+/* The narrator search: one field, because a name is all a reader has. */
+
+.narrator-search__lead {
+    max-width: 52ch;
+    margin: 0.6rem auto 0;
+    font-family: 'Literata', Georgia, serif;
+    font-size: 0.88rem;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.78);
+}
+
+.narrator-search {
+    display: flex;
+    gap: 0.5rem;
+    max-width: 34rem;
+    margin: 1.2rem auto 0;
+}
+
+.narrator-search__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0.6rem 0.9rem;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.95);
+    font-size: 0.92rem;
+    color: var(--text);
+}
+
+.narrator-search__button {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 5px;
+    background: var(--gold);
+    color: #23180a;
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.narrator-search__button:hover {
+    background: var(--gold-dark);
+    color: #fff;
+}
+
+.narrator-results {
+    margin-bottom: 2rem;
+}
+
+.narrator-result__name {
+    font-family: var(--font-arabic);
+    font-size: 1.28rem;
+    line-height: 1.6;
+    color: var(--text);
+}
+
+.narrator-result__name-en {
+    margin-top: 0.15rem;
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+}
+
+/* What tells one man of a name from another: the Imams he transmitted under, the year he
+   died, where he lived. Dim, because it is there to be scanned down a column of twenty
+   cards rather than read, and separated by middots so a row reads as one line. */
+
+.narrator-result__life {
+    margin-top: 0.35rem;
+    font-family: var(--font-ui);
+    font-size: 0.76rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+}
+
+/* The middot hangs off the end of the part before it, not the start of the part after:
+   on a card narrow enough to wrap, a leading separator opens the second line. */
+
+.narrator-result__life > span:not(:last-child)::after {
+    content: "·";
+    margin: 0 0.4rem;
+    opacity: 0.55;
+}
+
+.narrator-result__era {
+    color: var(--text-secondary);
+}
+
+.narrator-result__died {
+    white-space: nowrap;
+}
+
+/* Said by a record with no passage behind it. Fainter and dotted, because the page is
+   repeating it rather than standing behind it. */
+
+/* On whose authority a verdict rests, where it is not the early rijāl. Set under the badge
+   rather than beside it: a reader who takes in «Held weak» and stops reading has still been
+   told the wrong thing, so the qualification sits in the same breath. */
+
+/* The books quoted rather than summarised. The word they used carries the colour, since
+   that is the thing a reader is looking for; the book's name sits quieter beside it. */
+
+.narrator-said {
+    margin-top: 0.8rem;
+}
+
+.narrator-said__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 0.3rem;
+}
+
+.narrator-said__word {
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.18rem 0.6rem;
+    border-radius: 3px;
+}
+
+.narrator-said__row--for .narrator-said__word {
+    background: rgba(120, 190, 140, 0.26);
+    color: #d7f0dd;
+}
+
+.narrator-said__row--against .narrator-said__word {
+    background: rgba(220, 120, 110, 0.26);
+    color: #f6dcd9;
+}
+
+.narrator-said__row--mixed .narrator-said__word {
+    background: rgba(200, 162, 61, 0.28);
+    color: #f3e5b8;
+}
+
+.narrator-said__books {
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.narrator-said__relayed,
+.narrator-stands__relays {
+    font-family: var(--font-ui);
+    font-size: 0.72rem;
+    opacity: 0.7;
+    font-style: italic;
+}
+
+.narrator-standing__rests {
+    margin-top: 0.35rem;
+    font-family: var(--font-ui);
+    font-size: 0.74rem;
+    letter-spacing: 0.04em;
+    opacity: 0.82;
+}
+
+/* A long entry folded away. The summary is a line a reader chooses to open, not a control
+   that looks like a button: this is a book's own text, and the page should not dress it up. */
+
+.narrator-entry__long > summary {
+    cursor: pointer;
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    color: var(--gold-dark);
+    padding: 0.45rem 0;
+    list-style-position: inside;
+}
+
+.narrator-entry__long > summary:hover {
+    text-decoration: underline;
+}
+
+.narrator-entry__long[open] > summary {
+    margin-bottom: 0.4rem;
+}
+
+.narrator-result__source {
+    font-family: var(--font-ui);
+    font-size: 0.74rem;
+    color: var(--text-secondary);
+}
+
+.narrator-result__said {
+    opacity: 0.72;
+    border-bottom: 1px dotted currentColor;
+}
+
+/* The verdict is the one thing on the card a reader came for, so it carries colour where
+   nothing else on the card does — and only where a book actually grades him. */
+
+.narrator-result__standing {
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+/* The hero's badges are light on a dark panel; a card is dark on light, so the same three
+   hues are taken down rather than reused as they stand. */
+
+.narrator-result__standing--trusted {
+    color: #2f6b43;
+}
+
+.narrator-result__standing--weakened {
+    color: #9b3028;
+}
+
+.narrator-result__standing--disputed {
+    color: var(--gold-dark);
+}
+
+/* Where each book stands: a table, because the reader's question is comparative — who says
+   what — and chips scattered under a heading answered it badly. */
+
+.narrator-standing {
+    display: inline-block;
+    margin-top: 0.7rem;
+    padding: 0.2rem 0.7rem;
+    border-radius: 3px;
+    font-family: var(--font-ui);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.narrator-standing--disputed { background: rgba(200, 162, 61, 0.28); color: #f3e5b8; }
+.narrator-standing--trusted  { background: rgba(120, 190, 140, 0.26); color: #d7f0dd; }
+.narrator-standing--weakened { background: rgba(220, 120, 110, 0.26); color: #f6dcd9; }
+.narrator-standing--unstated { background: rgba(255, 255, 255, 0.14); color: rgba(255,255,255,0.8); }
+.narrator-standing--not_graded { background: rgba(255, 255, 255, 0.10); color: rgba(255,255,255,0.72); }
+
+.narrator-imam-note {
+    margin: 0.9rem 0 0;
+    max-width: 48ch;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.78);
+}
+
+.narrator-stands {
+    margin-bottom: 2.4rem;
+}
+
+.narrator-stands__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.narrator-stands__table th {
+    width: 16rem;
+    padding: 0.5rem 1rem 0.5rem 0;
+    text-align: left;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    color: var(--primary);
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+}
+
+.narrator-stands__table td {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.narrator-stands__position {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    margin-right: 0.8rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 3px;
+    background: var(--bg-subtle);
+}
+
+.narrator-stands__position--for { background: rgba(120, 190, 140, 0.2); }
+.narrator-stands__position--against { background: rgba(220, 120, 110, 0.18); }
+/* A grade we cannot tie to a passage: shown, but without the colour that reads as a verdict
+   the reader can check. No green, no red — it is not evidence until there is a page behind it. */
+.narrator-stands__position--unsourced {
+    background: rgba(140, 140, 140, 0.14);
+    font-style: italic;
+}
+.narrator-stands--unsourced { opacity: 0.86; margin-block-start: 1.25rem; }
+/* Why this grade is set aside, beside the grade itself: quiet, because it is a note
+   about our evidence and not part of what the book says. */
+/* Relations our records hold out of an entry that does not name the man: the same quiet
+   treatment the set-aside grades get, because it is the same admission. */
+.chains__indexed--unsaid { opacity: 0.9; }
+.chains__indexed--unsaid .chains__name { font-style: italic; }
+
+.narrator-stands__why {
+    margin-inline-start: 0.4rem;
+    font-size: 0.74rem;
+    color: var(--text-muted);
+}
+
+.narrator-stands__page {
+    font-size: 0.76rem;
+    color: var(--text-muted);
+}
+
+.narrator-stands__divided {
+    display: inline-block;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.narrator-stands__note {
+    margin: 0.9rem 0 0;
+    max-width: 62ch;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+}
+
+/* The narrator strip above search results: present only when the query names a man. */
+
+.narrator-strip {
+    margin: 0 0 1.1rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--gold);
+    border-radius: 5px;
+    background: var(--surface-warm);
+}
+
+.narrator-strip__label {
+    font-family: var(--font-ui);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.6rem;
+}
+
+.narrator-strip__cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.narrator-strip__card {
+    flex: 1 1 15rem;
+    min-width: 0;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: var(--surface);
+    text-decoration: none;
+    color: inherit;
+}
+
+.narrator-strip__card:hover {
+    border-color: var(--gold);
+}
+
+.narrator-strip__name {
+    font-family: var(--font-arabic);
+    font-size: 1.15rem;
+    line-height: 1.5;
+    color: var(--text);
+}
+
+.narrator-strip__name-en {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.narrator-strip__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.35rem;
+    font-family: var(--font-ui);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+.narrator-strip__standing {
+    padding: 0.05rem 0.4rem;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+.narrator-strip__standing--disputed { background: var(--gold-bg); color: var(--gold-dark); }
+.narrator-strip__standing--trusted  { background: rgba(120, 190, 140, 0.22); color: #2f6b45; }
+.narrator-strip__standing--weakened { background: rgba(220, 120, 110, 0.18); color: #8d3a32; }
+
+.narrator-narrations {
+    margin-bottom: 2.5rem;
+}
+
+.narrator-narrations__caveat {
+    max-width: 72ch;
+    margin: 0 0 1.1rem;
+    font-size: 0.8rem;
+    line-height: 1.65;
+    color: var(--text-muted);
+}
+
+.narrator-narrations__caveat p {
+    margin: 0 0 0.5rem;
+}
+
+.narrator-narrations__caveat .narrator-names__chip {
+    font-size: 0.95rem;
+    padding: 0.12rem 0.55rem;
+}
+
+/* A Rijal entry folded to a readable height, with the same control a long narration uses. */
+.narrator-entry__text--clamped {
+    max-height: 15rem;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
+}
+
+/* A hero chip says what it is before it says the value. */
+.hub-stat__label {
+    margin-right: 0.35rem;
+    font-family: var(--font-ui);
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.62;
+}
+
+.narrator-entry__grade {
+    text-transform: none;
+    letter-spacing: 0.02em;
+    font-size: 0.8rem;
+}
+
+/* Narrator page tabs. Links, not script: each tab is a URL, and the page works without JS. */
+
+.narrator-tabs {
+    display: flex;
+    gap: 0.35rem;
+    margin: 0 0 1.6rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.narrator-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.6rem 1.1rem;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 5px 5px 0 0;
+    margin-bottom: -1px;
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+
+.narrator-tab:hover {
+    color: var(--primary);
+    background: var(--bg-subtle);
+}
+
+.narrator-tab--active {
+    border-color: var(--border);
+    background: var(--surface);
+    color: var(--primary);
+}
+
+.narrator-tab__count {
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px;
+    background: var(--bg-subtle);
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.narrator-tab--active .narrator-tab__count {
+    background: var(--gold-bg);
+    color: var(--gold-dark);
+}
+
+/* Aliases as chips. A dot-separated run of twenty Arabic names reads as one long name. */
+.narrator-names__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0 0 0.6rem;
+    padding: 0;
+    list-style: none;
+}
+
+.narrator-names__chip {
+    padding: 0.22rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    font-family: var(--font-arabic);
+    font-size: 1.02rem;
+    line-height: 1.7;
+    color: var(--text);
+}
+
+.narrator-names__chips--latin .narrator-names__chip {
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+}
+
+/* ==========================================================================
+   The narrator's seal and the chronology band
+   ==========================================================================
+   Both sit in the blue hero on a narrator page.
+
+   The seal is the man's name in a roundel and never a portrait. No likeness of
+   any of these people exists, there are more than sixteen thousand of them, and
+   for the Prophet and the Imams a depiction is prohibited outright. Calligraphy
+   inside an ornamental frame is the tradition's own answer, and because it is
+   text rather than an image it needs no exception for any entry.
+
+   The band answers "when was he". A rijal entry says "a companion of al-Sadiq"
+   and leaves the reader to know what that means; the band shades that imamate
+   and marks the death year on the same axis, so an entry whose generation and
+   whose death year disagree shows it rather than hiding it. */
+
+.narrator-seal {
+    float: inline-end;
+    display: grid;
+    place-items: center;
+    width: 4rem;
+    height: 4rem;
+    margin-inline-start: 1rem;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 35%, rgba(255, 255, 255, 0.10), rgba(0, 0, 0, 0.20));
+    border: 1px solid rgba(200, 162, 61, 0.55);
+    box-shadow: inset 0 0 0 3px rgba(200, 162, 61, 0.12);
+}
+
+.narrator-seal__mark {
+    font-family: "Scheherazade New", "Amiri", serif;
+    /* The mark is one or two words and the roundel is fixed, so the type gives way
+       rather than the frame: أبو رافع has to sit where زرارة does. */
+    font-size: clamp(0.66rem, 1.4vw, 1.05rem);
+    line-height: 1.1;
+    max-width: 3.2rem;
+    text-align: center;
+    color: var(--gold, #c8a23d);
+    overflow: hidden;
+}
+
+/* Six ring treatments, picked by the person's id, so two seals side by side in a
+   list of narrators are told apart by more than the word inside them. */
+.narrator-seal--v0 { box-shadow: inset 0 0 0 3px rgba(200, 162, 61, 0.12); }
+.narrator-seal--v1 { box-shadow: inset 0 0 0 1px rgba(200, 162, 61, 0.45); }
+.narrator-seal--v2 { box-shadow: inset 0 0 0 5px rgba(200, 162, 61, 0.10); }
+.narrator-seal--v3 { box-shadow: inset 0 0 0 2px rgba(200, 162, 61, 0.30), inset 0 0 0 6px rgba(200, 162, 61, 0.10); }
+.narrator-seal--v4 { border-style: double; border-width: 3px; }
+.narrator-seal--v5 { box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.10); }
+
+@keyframes chronoSheen {
+    from { background-position: 180% 0; opacity: 0.9; }
+    to   { background-position: -80% 0; opacity: 0; }
+}
+
+@keyframes chronoStrike {
+    from { opacity: 0; transform: translate(-50%, 0.7rem); }
+    to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@media (max-width: 575.98px) {
+    .narrator-seal { width: 3rem; height: 3rem; }}
+
+/* ── The narrator in numbers ────────────────────────────────────────────────────
+   A ledger row rather than a set of cards: these are figures read across against
+   each other — how many take from him, how the books divide on him, how much of
+   the corpus his name carries — and boxes would break that reading into five
+   unrelated facts. */
+
+.ledger {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 0 2rem;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-warm);
+}
+
+.ledger__cell {
+    flex: 1 1 9rem;
+    min-width: 0;
+    padding: 0.95rem 1.1rem;
+    border-inline-start: 1px solid var(--border);
+}
+
+.ledger__cell:first-child {
+    border-inline-start: none;
+}
+
+.ledger__value {
+    font-family: 'Literata', Georgia, serif;
+    font-size: 1.75rem;
+    line-height: 1.1;
+    color: var(--primary);
+}
+
+.ledger__for { color: #2f6b45; }
+.ledger__against { color: #8d3a32; }
+
+.ledger__slash {
+    color: var(--text-faint);
+    margin: 0 0.1rem;
+}
+
+.ledger__label {
+    margin-top: 0.3rem;
+    font-family: var(--font-ui);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--gold-dark);
+}
+
+.ledger__note {
+    margin-top: 0.15rem;
+    font-size: 0.74rem;
+    line-height: 1.4;
+    color: var(--text-muted);
+}
+
+@media (max-width: 575.98px) {
+    .ledger__value { font-size: 1.4rem; }
+}
+
+/* Teachers and students, side by side: the two directions of a chain read against
+   each other, not one list after the other. */
+
+.chains {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2.5rem;
+    margin-bottom: 1.2rem;
+}
+
+.chains__side {
+    flex: 1 1 22rem;
+    min-width: 0;
+}
+
+.chains__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--border);
+}
+
+.chains__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem 0.2rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.chains__name {
+    font-size: 0.92rem;
+    color: var(--text);
+}
+
+/* Which books record the link — the weight behind the name. */
+.chains__books {
+    flex: 0 0 auto;
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-align: end;
+}
+
+.chains__note,
+.chains__caveat {
+    max-width: 72ch;
+    font-size: 0.8rem;
+    line-height: 1.65;
+    color: var(--text-muted);
+}
+
+.chains__caveat {
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--border);
+    margin-bottom: 2.5rem;
+}
+
+/* The ledger's cells are links now. */
+a.ledger__cell {
+    text-decoration: none;
+    color: inherit;
+    transition: background 160ms ease;
+}
+
+a.ledger__cell:hover {
+    background: var(--gold-bg);
+}
+
+a.ledger__cell:hover .ledger__note {
+    color: var(--gold-dark);
+}
+
+.narrator-tab.is-active {
+    border-color: var(--border);
+    background: var(--surface);
+    color: var(--primary);
+}
+
+.narrator-tab.is-active .narrator-tab__count {
+    background: var(--gold-bg);
+    color: var(--gold-dark);
+}
+
+/* ===========================================================================
+   The narrator preview — what a reader gets when he taps a name in an isnād.
+
+   Six lines and a way through: his name, what the books call him and which
+   books, when and where he lived, how much is written about him. It sits beside
+   the name on a desktop and rises from the bottom edge on a phone, where a
+   popover anchored to a word inside a line of Arabic has nowhere to go.
+
+   The grade word is allowed its colour here. Inside the hadith text the names
+   stay uncoloured - a chain must read as the compiler wrote it, not as this
+   site scores it - but a card the reader asked for is apparatus, and apparatus
+   may say which way a judgement leans.
+   =========================================================================== */
+.narrator-preview {
+    position: absolute;
+    z-index: 1090;
+    width: min(20rem, calc(100vw - 2rem));
+    overflow: hidden;
+    /* --surface is translucent in the later palette, and the hadith underneath read
+       straight through the card. A popover over running text must be opaque — and a
+       white card on a near-white page is only a shadow, so it carries a dark head, a
+       drawn edge and a shadow deep enough to lift it off the text it covers. */
+    background: var(--surface-warm, #fff);
+    border: 1px solid rgba(15, 36, 64, 0.22);
+    border-radius: 8px;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset,
+                0 18px 40px -12px rgba(15, 36, 64, 0.45),
+                0 4px 12px -4px rgba(15, 36, 64, 0.28),
+                0 0 0 1px rgba(15, 36, 64, 0.06);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px) scale(0.985);
+    /* visibility is a discrete property: transitioned, it flips at the halfway mark, so
+       the card would still be `hidden` for 80ms after it was told to open - and focus()
+       on a hidden element is silently ignored. The reader who opened the card by keyboard
+       was then left on the name he came from. So it flips at once on the way in, and is
+       held back to the end of the fade on the way out. */
+    transition: opacity 0.16s ease, transform 0.16s ease, visibility 0s linear 0.16s;
+}
+
+.narrator-preview.is-open {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition: opacity 0.16s ease, transform 0.16s ease, visibility 0s;
+}
+
+.narrator-preview.is-waiting {
+    /* The fetch is one small document; a spinner would flash and go. */
+    cursor: progress;
+}
+
+/* The head, where the name is: the navy the rest of the site names things on, under a
+   gold rule. It is also what the card is recognised by at a glance. */
+.narrator-preview .np__head {
+    padding: 0.8rem 1rem 0.75rem;
+    background: linear-gradient(180deg, var(--primary, #1e3a5f), var(--primary-dark, #0f2440));
+    border-bottom: 2px solid var(--gold, #c8a23d);
+}
+
+.narrator-preview .np__rest {
+    padding: 0.8rem 1rem 1rem;
+}
+
+.narrator-preview .np__shut {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.45rem;
+    padding: 0.1rem 0.35rem;
+    font-size: 1.3rem;
+    line-height: 1;
+    color: rgba(255, 255, 255, 0.72);
+    background: none;
+    border: 0;
+    cursor: pointer;
+}
+
+[dir="rtl"] .narrator-preview .np__shut {
+    right: auto;
+    left: 0.4rem;
+}
+
+.narrator-preview .np__shut:hover {
+    color: #fff;
+}
+
+.narrator-preview .np__name {
+    margin: 0;
+    /* The name is RTL inside an LTR card, so its line starts at the right - where the
+       close button is. The inset keeps the two apart in either direction. */
+    padding-right: 1.5rem;
+    padding-left: 0.1rem;
+    font-family: var(--font-arabic);
+    font-size: 1.3rem;
+    line-height: 1.45;
+    color: #fff;
+}
+
+.narrator-preview .np__name-en {
+    margin: 0.15rem 0 0;
+    font-size: 0.8rem;
+    letter-spacing: 0.01em;
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.narrator-preview .np__said-rows {
+    margin: 0 0 0.6rem;
+    padding: 0.5rem 0.65rem;
+    background: var(--surface-cool, #f8fafc);
+    border-left: 3px solid var(--border-strong, #d1d8e0);
+    border-radius: 3px;
+}
+
+[dir="rtl"] .narrator-preview .np__said-rows {
+    border-left: 0;
+    border-right: 3px solid var(--border-strong, #d1d8e0);
+}
+
+.narrator-preview .np__said {
+    margin: 0;
+    font-size: 0.82rem;
+    line-height: 1.5;
+}
+
+.narrator-preview .np__said + .np__said {
+    margin-top: 0.3rem;
+}
+
+.narrator-preview .np__word {
+    display: inline;
+    font-weight: 600;
+    color: var(--text, #1a1a2e);
+}
+
+.narrator-preview .np__word[lang="ar"] {
+    font-family: var(--font-arabic);
+    font-size: 1.05rem;
+}
+
+/* The English reading of the term, following the term itself. */
+.narrator-preview .np__gloss {
+    margin-left: 0.4rem;
+    font-weight: 400;
+    color: var(--text-secondary, #4a5568);
+}
+
+.narrator-preview .np__gloss::before {
+    content: "\2014\00a0";
+    color: var(--text-faint, #cbd5e1);
+}
+
+.narrator-preview .np__said--for .np__word {
+    color: #0a7a5a;
+}
+
+.narrator-preview .np__said--against .np__word {
+    color: #a33a2a;
+}
+
+.narrator-preview .np__books,
+.narrator-preview .np__rests,
+.narrator-preview .np__unstated {
+    display: block;
+    font-size: 0.74rem;
+    color: var(--text-secondary, #4a5568);
+}
+
+.narrator-preview .np__rests {
+    margin: 0.35rem 0 0;
+    font-style: italic;
+}
+
+.narrator-preview .np__unstated {
+    margin: 0;
+}
+
+.narrator-preview .np__life,
+.narrator-preview .np__weight {
+    margin: 0 0 0.2rem;
+    font-size: 0.78rem;
+    color: var(--text-secondary, #4a5568);
+}
+
+.narrator-preview .np__weight {
+    color: var(--text-muted, #94a3b8);
+}
+
+.narrator-preview .np__dot {
+    padding: 0 0.4rem;
+    color: var(--text-faint, #cbd5e1);
+}
+
+.narrator-preview .np__go {
+    display: inline-block;
+    margin-top: 0.6rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--accent, #1e3a5f);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(200, 162, 61, 0.55);
+}
+
+.narrator-preview .np__go::after {
+    content: " \2192";
+}
+
+[dir="rtl"] .narrator-preview .np__go::after {
+    content: " \2190";
+}
+
+.narrator-preview .np__go:hover {
+    color: var(--gold-dark, #a07e28);
+    border-bottom-color: var(--gold, #c8a23d);
+}
+
+/* On a phone the card leaves the name behind and rises from the bottom edge,
+   where a thumb already is and where nothing has to be measured against the
+   width of one word in a line of Arabic. */
+.narrator-preview.is-sheet {
+    position: fixed;
+    top: auto !important;
+    left: 0 !important;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-height: 72vh;
+    overflow-y: auto;
+    padding: 0;
+    border: 0;
+    border-radius: 14px 14px 0 0;
+    transform: translateY(100%);
+    box-shadow: 0 -8px 32px -8px rgba(15, 36, 64, 0.35);
+}
+
+.narrator-preview.is-sheet.is-open {
+    transform: none;
+}
+
+/* The grab bar a sheet is expected to have, even though this one is dismissed by
+   tapping away rather than by dragging. */
+.narrator-preview.is-sheet .np__head {
+    position: relative;
+    padding: 1.1rem 1.15rem 0.85rem;
+}
+
+.narrator-preview.is-sheet .np__rest {
+    padding: 0.95rem 1.15rem calc(1.2rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* The grab bar a sheet is expected to have, even though this one is dismissed by
+   tapping away rather than by dragging. */
+.narrator-preview.is-sheet .np__head::before {
+    content: "";
+    position: absolute;
+    top: 0.45rem;
+    left: 50%;
+    width: 2.4rem;
+    height: 4px;
+    margin-left: -1.2rem;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .narrator-preview,
+    .narrator-preview.is-sheet {
+        transition: opacity 0.01s linear, visibility 0.01s;
+        transform: none;
+    }
+}
+
+/* A linked name should look reachable without turning the isnād into a row of
+   buttons. The dotted gold rule above stays; this adds a faint gold wash under
+   the word on hover, so the whole name lights rather than just its underline. */
+.hadith-chain .chain-name {
+    border-radius: 2px;
+    transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+
+.hadith-chain .chain-name:hover,
+.hadith-chain .chain-name:focus-visible {
+    background-color: rgba(200, 162, 61, 0.1);
+    box-shadow: 0 0 0 2px rgba(200, 162, 61, 0.1);
+}
+
+/* A grade is coloured by which way it leans - «ثقة» for the man, «كذاب» against him,
+   and everything the lists do not classify in neither hue. These names come from the
+   books' own words, which is what both cards now show; the older names kept their rules
+   above and are left where they are. */
+.narrator-result__standing--for {
+    color: #2f6b43;
+}
+
+.narrator-result__standing--against {
+    color: #9b3028;
+}
+
+.narrator-result__standing--mixed {
+    color: var(--gold-dark, #a07e28);
+}
+
+.narrator-strip__standing--for {
+    background: rgba(120, 190, 140, 0.22);
+    color: #2f6b45;
+}
+
+.narrator-strip__standing--against {
+    background: rgba(220, 120, 110, 0.18);
+    color: #8d3a32;
+}
+
+.narrator-strip__standing--mixed {
+    background: var(--gold-bg, #fdf8ed);
+    color: var(--gold-dark, #a07e28);
+}
+
+/* ── The rijāl tab ─────────────────────────────────────────────────────────────
+   The isnād drawn as a chain: a list item to a link, the visual chain being CSS over an
+   ordered list. The sidecar is navy, so a link is a pane of lighter navy with a hairline
+   edge, and the mark is what tells the four kinds apart at a glance — a filled gold
+   diamond for a man the books know, a hollow one for a name they do not, a hexagon for a
+   phrase that names nobody, a star for the Imam. Colour by standing lives here and
+   nowhere in the hadith text, which must read as the compiler wrote it. */
+.rijal {
+    --rijal-line: rgba(200, 162, 61, 0.7);
+    --rijal-gap: 0.95rem;
+    --rijal-mark: 1.5rem;
+    color: #eef3fa;
+}
+
+.rijal__summary {
+    margin: 0 0 0.75rem;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: rgba(238, 243, 250, 0.82);
+}
+
+.rijal__summary strong {
+    color: #fff0bf;
+    font-weight: 700;
+}
+
+.rijal__dot {
+    margin-inline: 0.3rem;
+    opacity: 0.55;
+}
+
+.rijal__status {
+    margin: 0 0 0.6rem;
+    font-size: 0.72rem;
+    color: rgba(238, 243, 250, 0.7);
+}
+
+.rijal__chain {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.rijal-link {
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--rijal-mark) minmax(0, 1fr);
+    column-gap: 0.5rem;
+    margin-block-start: var(--rijal-gap);
+}
+
+.rijal-link:first-child {
+    margin-block-start: 0;
+}
+
+/* The connector to the link below: a rule down the centre of the mark column, from this
+   link's own mark to the next one. */
+.rijal-link:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: calc(var(--rijal-mark) / 2 - 1px);
+    top: 0.9rem;
+    height: calc(100% + var(--rijal-gap) - 0.9rem + 0.8rem);
+    width: 0;
+    border-inline-start: 2px solid var(--rijal-line);
+    transform-origin: top;
+    transition: border-color 160ms ease;
+}
+
+/* Where the step is a collective or an unidentified man the chain is open, and the
+   connector says so without a word. */
+.rijal-link.is-open::before {
+    border-inline-start-style: dashed;
+    border-inline-start-color: rgba(238, 243, 250, 0.5);
+}
+
+.rijal-link__mark {
+    position: relative;
+    z-index: 1;
+    width: 1.05rem;
+    height: 1.05rem;
+    margin-block-start: 0.35rem;
+    justify-self: center;
+    background: var(--gold, #c8a23d);
+    transform: rotate(45deg) scale(0.82);
+    border-radius: 2px;
+    box-shadow: 0 0 0 3px rgba(17, 40, 68, 0.9);
+}
+
+.rijal-link--unknown .rijal-link__mark {
+    background: #183554;
+    border: 2px solid var(--gold, #c8a23d);
+}
+
+.rijal-link--collective .rijal-link__mark {
+    background: rgba(238, 243, 250, 0.55);
+    border: 0;
+    border-radius: 0;
+    transform: none;
+    width: 1.1rem;
+    height: 1.1rem;
+    clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0 50%);
+    box-shadow: none;
+}
+
+.rijal-link--imam .rijal-link__mark {
+    background: var(--gold, #c8a23d);
+    border: 0;
+    border-radius: 0;
+    transform: none;
+    width: 1.3rem;
+    height: 1.3rem;
+    margin-block-start: 0.2rem;
+    clip-path: polygon(50% 0, 62% 35%, 98% 38%, 70% 60%, 80% 95%, 50% 75%, 20% 95%, 30% 60%, 2% 38%, 38% 35%);
+    box-shadow: none;
+}
+
+.rijal-link__card {
+    min-width: 0;
+    padding: 0.55rem 0.7rem 0.6rem;
+    border: 1px solid rgba(238, 243, 250, 0.16);
+    border-radius: 8px;
+    background: rgba(238, 243, 250, 0.07);
+    transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.rijal-link--collective .rijal-link__card,
+.rijal-link--unknown .rijal-link__card {
+    border-style: dashed;
+}
+
+.rijal-link--imam .rijal-link__card {
+    border-color: rgba(200, 162, 61, 0.65);
+    background: rgba(200, 162, 61, 0.12);
+}
+
+.rijal-link:hover .rijal-link__card {
+    transform: translateY(-1px);
+    border-color: rgba(238, 243, 250, 0.34);
+}
+
+.rijal-link:hover::before {
+    border-inline-start-color: var(--gold, #c8a23d);
+}
+
+.rijal-link__card p {
+    margin: 0.2rem 0 0;
+}
+
+.rijal-link__words {
+    display: block;
+    font-size: 1.12rem;
+    line-height: 1.7;
+    color: #fff;
+    text-decoration: none;
+}
+
+a.rijal-link__words:hover,
+a.rijal-link__words:focus-visible {
+    color: #fff0bf;
+    text-decoration: underline;
+    text-decoration-color: rgba(200, 162, 61, 0.7);
+    text-underline-offset: 0.2em;
+}
+
+.rijal-link__who {
+    font-size: 0.8rem;
+    color: rgba(238, 243, 250, 0.82);
+}
+
+.rijal-link__said {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    font-size: 0.78rem;
+}
+
+.rijal-link__grade {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.1rem 0.5rem;
+}
+
+.rijal-link__word {
+    font-weight: 700;
+    color: #f3e5b8;
+}
+
+.rijal-link__grade--for .rijal-link__word {
+    color: #8fd3a4;
+}
+
+.rijal-link__grade--against .rijal-link__word {
+    color: #f4a097;
+}
+
+.rijal-link__said--none,
+.rijal-link__books,
+.rijal-link__life,
+.rijal-link__note {
+    font-size: 0.72rem;
+    color: rgba(238, 243, 250, 0.62);
+}
+
+.rijal-link__note {
+    font-style: italic;
+}
+
+[dir="rtl"] .rijal-link__note {
+    font-style: normal;
+}
+
+[dir="rtl"] .rijal-link__who {
+    font-size: 0.95rem;
+}
+
+[dir="rtl"] .rijal-link__said,
+[dir="rtl"] .rijal-link__said--none,
+[dir="rtl"] .rijal-link__books,
+[dir="rtl"] .rijal-link__life,
+[dir="rtl"] .rijal-link__note,
+[dir="rtl"] .rijal__summary,
+[dir="rtl"] .rijal__status {
+    font-size: 0.9rem;
+}
+
+/* The assembly. Every link and connector is in the page from the first frame; these only
+   animate it into place once, when the panel is first opened (rijal-chain.js adds
+   .is-assembling and takes it away again, so returning to the tab does not replay it). */
+@keyframes rijalLand {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rijalDraw {
+    from { transform: scaleY(0); }
+    to   { transform: scaleY(1); }
+}
+
+@keyframes rijalGlow {
+    from { top: -4rem; opacity: 0; }
+    12%  { opacity: 1; }
+    88%  { opacity: 1; }
+    to   { top: 100%; opacity: 0; }
+}
+
+.rijal.is-assembling .rijal-link {
+    animation: rijalLand 260ms ease-out backwards;
+    animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+.rijal.is-assembling .rijal-link:not(:last-child)::before {
+    animation: rijalDraw 260ms ease-out backwards;
+    animation-delay: calc((var(--i, 0) + 1) * 60ms);
+}
+
+.rijal.is-assembling .rijal__chain::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    height: 4rem;
+    top: -4rem;
+    pointer-events: none;
+    background: linear-gradient(180deg, transparent, rgba(243, 229, 184, 0.26), transparent);
+    animation: rijalGlow 900ms ease-in-out both;
+    animation-delay: calc(var(--n, 1) * 60ms + 200ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rijal.is-assembling .rijal-link,
+    .rijal.is-assembling .rijal-link:not(:last-child)::before,
+    .rijal.is-assembling .rijal__chain::after {
+        animation: none;
+    }
+
+    .rijal-link__card {
+        transition: none;
+    }
+}
+
+/* The region a narrator's tabs switch. It is replaced in place rather than fetched as a
+   new page, and this is the only sign of that: a half-second of dimming if the request
+   takes long enough to notice, and nothing at all if it does not. */
+.narrator-view {
+    transition: opacity 0.18s ease;
+}
+
+.narrator-view.is-loading {
+    opacity: 0.45;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .narrator-view {
+        transition: none;
+    }
+}
+
+/* ===========================================================================
+   Browse by Narrator — the other way into the corpus, built to stand beside
+   Browse by Book rather than under it: same grid, same card weight, same gold
+   top rule, and the counts in the same place. What differs is what a card is
+   about, so the Arabic name leads at reading size and the book's own word for
+   the man sits under it.
+   =========================================================================== */
+.browse-narrator-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.85rem;
+    margin-bottom: 1.2rem;
+}
+
+.browse-narrator-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-height: 132px;
+    padding: 1rem 1rem 0.9rem;
+    text-decoration: none;
+    color: inherit;
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(245, 248, 252, 0.98));
+    border: 1px solid rgba(30, 58, 95, 0.12);
+    border-top: 3px solid rgba(30, 58, 95, 0.7);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 10px 24px rgba(15, 23, 42, 0.05);
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease,
+                background 180ms ease;
+}
+
+.browse-narrator-card:hover,
+.browse-narrator-card:focus-visible {
+    border-color: rgba(26, 58, 107, 0.35);
+    border-top-color: #d5aa4d;
+    background: linear-gradient(180deg, #eef3fb, #dde8f7);
+    box-shadow: 0 8px 24px rgba(26, 58, 107, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+}
+
+/* The place in the order, which is the whole point of the section: these twelve
+   are not a selection, they are the top of a count. */
+.browse-narrator-rank {
+    position: absolute;
+    top: 0.55rem;
+    right: 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--text-faint, #cbd5e1);
+}
+
+[dir="rtl"] .browse-narrator-rank {
+    right: auto;
+    left: 0.75rem;
+}
+
+.browse-narrator-name {
+    font-family: var(--font-arabic);
+    font-size: 1.22rem;
+    line-height: 1.5;
+    color: var(--text, #1a1a2e);
+    padding-inline-end: 1.4rem;
+}
+
+.browse-narrator-latin {
+    font-size: 0.78rem;
+    line-height: 1.35;
+    color: var(--text-secondary, #4a5568);
+}
+
+.browse-narrator-said {
+    margin-top: 0.35rem;
+    font-size: 0.76rem;
+    line-height: 1.4;
+}
+
+.browse-narrator-word {
+    font-weight: 700;
+    color: var(--text, #1a1a2e);
+}
+
+.browse-narrator-said--for .browse-narrator-word {
+    color: #2f6b43;
+}
+
+.browse-narrator-said--against .browse-narrator-word {
+    color: #9b3028;
+}
+
+.browse-narrator-said--mixed .browse-narrator-word {
+    color: var(--gold-dark, #a07e28);
+}
+
+.browse-narrator-whose {
+    display: block;
+    color: var(--text-muted, #94a3b8);
+}
+
+.browse-narrator-count {
+    margin-top: auto;
+    padding-top: 0.5rem;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--primary-light, #2d5a8e);
+}
+
+/* The verdict cell of the ledger. «2 / 5» under «Reliable / weak» read as a fraction or a
+   score out of something; they are two counts of books, so each now carries its own word
+   and the slash is gone. */
+.ledger__value--verdicts {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.1rem 0.9rem;
+    font-size: 1rem;
+    line-height: 1.3;
+}
+
+.ledger__verdict {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    white-space: nowrap;
+}
+
+.ledger__verdict-count {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.ledger__verdict-word {
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    opacity: 0.85;
+}
+
+.ledger__verdict--for {
+    color: #2f6b43;
+}
+
+.ledger__verdict--against {
+    color: #9b3028;
+}
+
+.ledger__verdict--none {
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: var(--text-muted, #94a3b8);
+    /* The standing is a word of the discipline's, and «مهمل · Muhmal» is longer than the
+       counts in the tiles beside it. Nowrap is right for «3 call him reliable» and wrong
+       here: it ran the line out of its tile and over the narration count. */
+    white-space: normal;
+    line-height: 1.35;
+}
+
+/* Reporting a mistake. Quiet, at the foot of the page, next to the line that says what the
+   page was assembled from - the two belong together: here is where this came from, and
+   here is how to tell us it is wrong. */
+.narrator-report {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 0.9rem;
+    margin: 2rem 0 0.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border, #e8ecf1);
+}
+
+.narrator-report__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.4rem 0.85rem;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--primary, #1e3a5f);
+    text-decoration: none;
+    background: var(--surface-cool, #f8fafc);
+    border: 1px solid var(--border-strong, #d1d8e0);
+    border-radius: 999px;
+    transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.narrator-report__link:hover,
+.narrator-report__link:focus-visible {
+    color: var(--gold-dark, #a07e28);
+    border-color: var(--gold, #c8a23d);
+    background: var(--gold-bg, #fdf8ed);
+}
+
+.narrator-report__note {
+    font-size: 0.78rem;
+    color: var(--text-muted, #94a3b8);
+}
+
+/* ===========================================================================
+   The narrator page's tab strip and its reading column.
+
+   Two faults, one of them silent: the template marks the open tab `is-active`
+   and the rules above style `.narrator-tab--active`, so for as long as the page
+   has existed no tab has ever looked open — five grey words in a row, and the
+   reader left to work out which one he was on from the content below. The
+   second is that the strip was styled like a form control rather than like the
+   spine of the page it heads.
+
+   So: the open tab now carries the page's surface and a gold rule along its
+   top, the strip scrolls rather than wraps on a narrow screen, and the column
+   of text under it is set to a width and a measure a scholar can read down.
+   =========================================================================== */
+.narrator-tabs {
+    gap: 0.15rem;
+    margin: 0 0 1.8rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    background: linear-gradient(180deg, rgba(238, 243, 250, 0), rgba(238, 243, 250, 0.55));
+}
+
+.narrator-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.narrator-tab {
+    position: relative;
+    flex: 0 0 auto;
+    padding: 0.7rem 1.15rem 0.65rem;
+    font-size: 0.86rem;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    border-radius: 8px 8px 0 0;
+    transition: color 150ms ease, background 150ms ease;
+}
+
+/* The open tab, which the stylesheet never matched: it lifts out of the strip,
+   takes the page's own surface, and is capped in gold so the eye finds it from
+   across the page. */
+.narrator-tab.is-active {
+    color: var(--primary, #1e3a5f);
+    font-weight: 700;
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #e8ecf1);
+    border-bottom-color: var(--surface, #fff);
+}
+
+.narrator-tab.is-active::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -1px;
+    right: -1px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold, #c8a23d), var(--gold-light, #f3e5b8));
+    border-radius: 8px 8px 0 0;
+}
+
+.narrator-tab.is-active .narrator-tab__count {
+    background: var(--gold-bg, #fdf8ed);
+    color: var(--gold-dark, #a07e28);
+}
+
+.narrator-tab:focus-visible {
+    outline: 2px solid var(--border-focus, #2563eb);
+    outline-offset: -2px;
+}
+
+/* The reading column. An entry from al-Kashshī runs for pages, and it was being
+   set the full width of a desktop window: ninety words to the line, which no
+   one reads twice. A measure, a larger size and more leading turn the tab into
+   something a reader stays inside. */
+.narrator-entry__text,
+.narrator-stands__note,
+.narrator-facts p,
+.narrator-provenance {
+    max-width: 68ch;
+}
+
+.narrator-entry__text {
+    font-size: 1.02rem;
+    line-height: 1.85;
+    color: var(--text, #1a1a2e);
+}
+
+.narrator-entry__text[dir="rtl"],
+.narrator-entry__text .arabic-text {
+    font-size: 1.28rem;
+    line-height: 2.1;
+}
+
+/* One entry from one book is one unit of reading, so it is given the edges of
+   one: a rule down its start side, air around it, and the book's name sitting
+   on that rule rather than floating above a wall of text. */
+.narrator-entry {
+    /* Logical, and air on both sides. This was `0.2rem 0 1.4rem 1.1rem` — physical, with
+       nothing on the right — so the rule and its padding landed on the left of an English
+       page while the Arabic notice inside, being RTL, began hard against the right edge of
+       the card with no margin at all. */
+    padding-block: 0.2rem 1.4rem;
+    padding-inline: 1.2rem;
+    border-inline-start: 2px solid var(--border, #e8ecf1);
+    margin-bottom: 1.6rem;
+}
+
+.narrator-entry:hover {
+    border-inline-start-color: var(--gold, #c8a23d);
+}
+
+.narrator-entry__head {
+    margin-bottom: 0.55rem;
+}
+
+/* An Arabic passage inside an English page: the measure above cut it to a column, and the
+   column then sat against the page's left edge while the words themselves ran to the
+   right, which reads as a mistake. A printed Arabic edition anchors the block to the right
+   margin, so this does the same — and because «right» is right in either page direction,
+   the margins here are deliberately physical rather than logical. */
+.narrator-entry__text[dir="rtl"] {
+    max-width: 46rem;
+    margin-left: auto;
+    margin-right: 0;
+}
+
+/* The translation sits under it on the other side, as a facing page would. */
+.narrator-entry__text-en {
+    max-width: 62ch;
+    margin-inline-end: auto;
+}
+
+/* «The books disagree about him» on a card: the one line that keeps a count from reading
+   as an endorsement. */
+.browse-narrator-divided {
+    display: block;
+    margin-top: 0.15rem;
+    font-weight: 600;
+    color: var(--gold-dark, #a07e28);
+}
+
+/* ===========================================================================
+   The citation layer.
+
+   A design review read this page as a rijālī would and found that everything he
+   would copy into a footnote — the page number, the author, the book a fact is
+   attributed to — was the faintest and smallest text on the screen: 12px at
+   around 3:1 against white, under every contrast floor there is. The page's
+   whole promise is that each verdict is quoted from the book named beside it,
+   and the naming was set as decoration.
+
+   So the apparatus is raised to the body's own grey and to a size it can be
+   read at. The grade word keeps its colour and its weight; what changes is that
+   the citation beside it is no longer a whisper.
+   =========================================================================== */
+.narrator-entry__author,
+.narrator-entry__page,
+.narrator-stands__page,
+.narrator-facts__source,
+.ledger__note {
+    color: var(--text-secondary, #4a5568);
+}
+
+.narrator-entry__author,
+.narrator-entry__page {
+    font-size: 0.845rem;
+}
+
+.narrator-stands__page {
+    font-size: 0.86rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.narrator-facts__source {
+    font-size: 0.845rem;
+}
+
+.ledger__note {
+    font-size: 0.78rem;
+}
+
+/* The page number is what a reader came for, so it sits on the chip rather than
+   trailing after it, and it does not wrap away from the word it belongs to. */
+.narrator-stands__position {
+    white-space: nowrap;
+}
+
+/* The books' own word, in the books' own script, on the English page too. A
+   reader of rijāl looks for «ثقة» — "thiqa — trustworthy" is a transliteration
+   of a lexeme he was never shown. */
+.narrator-stands__word-ar,
+.narrator-entry__word-ar,
+.narrator-said__word-ar {
+    margin-inline-end: 0.4rem;
+    font-family: var(--font-arabic);
+    font-size: 1.08em;
+    font-weight: 700;
+}
+
+/* ===========================================================================
+   The phone tab strip.
+
+   At 390px the strip scrolls, silently: «Overview | What the books say | Teache»
+   and nothing to say that Narrations and Names exist 300px to the right. The
+   two tabs a researcher reaches for are the two he cannot see, on the device he
+   is most likely to be holding during a lesson.
+
+   The counts make each tab self-explanatory, so they wrap instead of scrolling.
+   =========================================================================== */
+@media (max-width: 640px) {
+    .narrator-tabs {
+        flex-wrap: wrap;
+        overflow-x: visible;
+        gap: 0.3rem 0.2rem;
+        border-bottom: 0;
+    }
+
+    .narrator-tab {
+        flex: 1 1 calc(50% - 0.2rem);
+        justify-content: center;
+        padding: 0.6rem 0.5rem;
+        font-size: 0.82rem;
+        border: 1px solid var(--border, #e8ecf1);
+        border-radius: 8px;
+        background: var(--surface-cool, #f8fafc);
+    }
+
+    .narrator-tab.is-active {
+        border-color: var(--gold, #c8a23d);
+        background: var(--surface, #fff);
+    }
+
+    /* The gold cap belongs to a strip of tabs along an edge; wrapped into a grid
+       they are cards, and the cap reads as a crack across one of them. */
+    .narrator-tab.is-active::before {
+        display: none;
+    }
+
+    /* «men the books name →» wrapped the arrow onto a line of its own. */
+    .ledger__note {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+/* ==========================================================================
+   Narrator page: legibility and what looks clickable
+   ========================================================================== */
+
+/* The ledger's cell for the span he was active in is the page the reader is already on, so
+   it is a div. It keeps the look of its linked neighbours and none of their hover, which
+   would promise a destination that is not there. */
+div.ledger__cell {
+    color: inherit;
+}
+
+/* The label sat at 10.9px in gold on a pale ground, about 4.0:1 and short of AA for text
+   this small. It is the navy of the page at 70% and a touch larger: a label that is read
+   before the figure under it is understood, not an ornament. */
+.ledger__label {
+    font-size: 0.74rem;
+    color: color-mix(in srgb, var(--primary) 70%, transparent);
+}
+
+/* «Narrator» over the title, 11px at three-quarters opacity on navy. A little larger and
+   nearer to opaque, still smaller and quieter than the name beneath it. */
+.hub-hero__eyebrow {
+    font-size: 0.82rem;
+    color: rgba(243, 229, 184, 0.92);
+}
+
+/* The hero's facts were rounded, bordered, gold-valued pills, which is what a button looks
+   like, and two of the three do nothing when clicked. A fact is plain type: a muted gold
+   label, a white value, no outline. The one that does lead somewhere, the books that wrote
+   about him, is an anchor and keeps only an underline on hover to say so. */
+.hub-hero .hub-stat {
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: none;
+}
+
+.hub-hero .hub-stat__label {
+    opacity: 1;
+    color: rgba(243, 229, 184, 0.78);
+}
+
+.hub-hero .hub-stat__value {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.hub-hero a.hub-stat:hover {
+    background: none;
+    border: none;
+}
+
+.hub-hero a.hub-stat:hover .hub-stat__value {
+    color: #fff;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+}
+
+@media (max-width: 480px) {
+    /* Three facts side by side, wrapping only when they must, instead of three rows each
+       the width of the screen. */
+    .hub-hero .hub-hero__stats {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.35rem 1rem;
+    }
+
+    .hub-hero .hub-stat {
+        gap: 0.3rem;
+        font-size: 0.72rem;
+    }
+
+    .hub-hero .hub-stat__value {
+        font-size: 0.84rem;
+    }
+}
+
+/* The same grade word, tinted as it is in the overview's table: green for a book that
+   speaks for him, red for one that speaks against, nothing for a word the indexer leaves
+   undecided. The tint is the table's own, so one word is never two colours. */
+.narrator-entry__grade--for {
+    background: rgba(120, 190, 140, 0.2);
+}
+
+.narrator-entry__grade--against {
+    background: rgba(220, 120, 110, 0.18);
+}
+
+/* ===========================================================================
+   The narrator page, second reading.
+
+   A design review read the page the way a scholar who cites rijāl entries does and found
+   five things; this block is the CSS half of them. It is appended rather than folded into
+   the blocks above because those repeat by design.
+   =========================================================================== */
+
+/* Scheherazade sets small for its nominal size: at 20.48px a line of al-Kashshī read as
+   fine print. 22px with 1.85 leading is 40.7px a line, a little tighter than the 43px it
+   replaces because the larger face carries more of the space itself. The measure is given
+   in em of the new size, not rem, so that it follows the type: an entry with no English
+   beside it, which Zurāra's al-Najāshī entry is, would otherwise run the whole width of the
+   card at a size that no longer fits its 46rem. */
+.narrator-entry__text[dir="rtl"],
+.narrator-entry__text .arabic-text {
+    font-size: 1.375rem;
+    line-height: 1.85;
+}
+
+.narrator-entry__text[dir="rtl"] {
+    max-width: 34em;
+}
+
+/* The explanation of the set-aside grades is one sentence with the rest behind a
+   disclosure. It ran four lines above a table that is sometimes three rows. */
+.narrator-stands__note--short {
+    margin-block-end: 0.3rem;
+}
+
+.narrator-stands__more {
+    margin: 0 0 0.9rem;
+    max-width: 62ch;
+}
+
+.narrator-stands__more > summary {
+    cursor: pointer;
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    color: var(--text-secondary, #4a5568);
+}
+
+.narrator-stands__more > .narrator-stands__note {
+    margin-block-start: 0.4rem;
+}
+
+/* A grade chip is the word and its page on one line, and the quoted scholar sits beneath
+   it. Inside the chip the relay note on the Arabic page («نقلاً عن …») stacked a word to a
+   line at 390px, which made one chip a block six lines tall. */
+.narrator-stands__entry {
+    display: inline-block;
+    vertical-align: top;
+    margin-inline-end: 0.8rem;
+    margin-block-end: 0.15rem;
+}
+
+.narrator-stands__entry > .narrator-stands__position {
+    margin-inline-end: 0;
+}
+
+.narrator-stands__entry > .narrator-stands__relays {
+    display: block;
+    margin-block-start: 0.15rem;
+    padding-inline-start: 0.5rem;
+    white-space: normal;
+}
+
+/* Under 640px the row is a stack: the book's name, then its chips. Beside the name the
+   chips had only what the 16rem name column left them. */
+@media (max-width: 640px) {
+    .narrator-stands__table,
+    .narrator-stands__table tbody,
+    .narrator-stands__table tr,
+    .narrator-stands__table th,
+    .narrator-stands__table td {
+        display: block;
+        width: 100%;
+    }
+
+    .narrator-stands__table th {
+        padding: 0.6rem 0 0.1rem;
+        border-bottom: 0;
+        text-align: start;
+    }
+
+    .narrator-stands__table td {
+        padding: 0.1rem 0 0.6rem;
+    }
+}
+
+/* The narrations tab as an index: the chain, the opening of the text, the citation and a
+   way through. A full card is about 570px and Zurāra has 1,233 narrations, which made the
+   tab a landing page. */
+.narration-index {
+    list-style: none;
+    margin: 0 0 1.5rem;
+    padding: 0;
+}
+
+.narration-index__row {
+    padding: 0.8rem 0;
+    border-bottom: 1px solid var(--border, #e8ecf1);
+}
+
+.narration-index__chain {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: var(--text-secondary, #4a5568);
+}
+
+.narration-index__chain[dir="rtl"] {
+    font-family: var(--font-arabic);
+    font-size: 1rem;
+    line-height: 1.8;
+}
+
+.narration-index__matn {
+    margin: 0.25rem 0 0.35rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.narration-index__matn[dir="rtl"] {
+    font-family: var(--font-arabic);
+    font-size: 1.15rem;
+    line-height: 1.8;
+}
+
+.narration-index__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.2rem 1rem;
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    color: var(--text-secondary, #4a5568);
+}
+
+.narration-index__cite {
+    font-weight: 600;
+}
+
+.narration-index__open {
+    margin-inline-start: auto;
+    font-weight: 600;
+}
+
+.narrator-layout {
+    margin: 0 0 0.4rem;
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    text-align: end;
+}
+
+/* The filters and the list of names searched are folded so that the first narration is
+   close to the top. The summary keeps the label the open block used to carry. */
+.narrator-filter > summary,
+.narrator-narrations__names > summary {
+    cursor: pointer;
+    list-style: none;
+}
+
+.narrator-filter > summary::-webkit-details-marker,
+.narrator-narrations__names > summary::-webkit-details-marker {
+    display: none;
+}
+
+.narrator-filter > summary::before,
+.narrator-narrations__names > summary::before {
+    content: "\25B8";
+    display: inline-block;
+    margin-inline-end: 0.4rem;
+    transition: transform 0.15s ease;
+}
+
+.narrator-filter[open] > summary::before,
+.narrator-narrations__names[open] > summary::before {
+    transform: rotate(90deg);
+}
+
+[dir="rtl"] .narrator-filter > summary::before,
+[dir="rtl"] .narrator-narrations__names > summary::before {
+    content: "\25C2";
+}
+
+.narrator-narrations__names > summary {
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    color: var(--text-secondary, #4a5568);
+}
+
+.narrator-filter:not([open]) {
+    margin-bottom: 0.4rem !important;
+}
+
+/* A folded filter is one line, not a card. The shared filter bar is padded and shadowed for
+   a block of pills, and folded it was a 90px slab holding a single label pushed to the far
+   edge by the bar's space-between. */
+.tag-filter-bar.narrator-filter {
+    padding: 0.55rem 0.9rem;
+    border-radius: 12px;
+    box-shadow: none;
+}
+
+.narrator-filter > .tag-filter-bar__head {
+    justify-content: flex-start;
+    margin-bottom: 0;
+}
+
+.narrator-filter[open] > .tag-filter-bar__head {
+    margin-bottom: 0.6rem;
+}
+
+/* ==========================================================================
+   The narrator page, last pass: the citation apparatus, the grouped names, the Imams and
+   the indexed lists, and a quieter use of gold.
+   ========================================================================== */
+
+/* The apparatus under an entry's heading line. A footnote needs the entry number and, for
+   al-Khoei, the volume, so they are stated, but in small type: they are how a reader finds
+   the passage in print, not what the entry says. */
+.narrator-entry__cite,
+.narrator-entry__edition,
+.narrator-entry__series {
+    margin: 0.25rem 0 0;
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: var(--text-secondary, #4a5568);
+}
+
+.narrator-entry__cite span + span::before {
+    content: "·";
+    margin: 0 0.45rem;
+    color: var(--text-muted);
+}
+
+.narrator-entry__edition {
+    color: var(--text-muted);
+    font-size: 0.76rem;
+}
+
+/* Al-Khoei heads one man three times on one page; the note says so in a sentence the
+   reader meets before the text, so a second discussion is not read as a second book. */
+.narrator-entry__series {
+    margin-bottom: 0.6rem;
+}
+
+.narrator-entry__series-heading {
+    font-family: var(--font-arabic);
+    font-size: 1rem;
+    margin-inline-end: 0.35rem;
+    color: var(--text);
+}
+
+.narrator-entry__cite + .narrator-entry__edition,
+.narrator-entry__cite + .narrator-entry__series,
+.narrator-entry__edition + .narrator-entry__series {
+    margin-top: 0.1rem;
+}
+
+.narrator-entry__cite {
+    margin-bottom: 0.1rem;
+}
+
+/* A grade that leans both ways takes the same warm neutral the overview's table gives it,
+   so one word is never two colours. Sahl b. Ziyād's «كذاب» has no said_by row at all and
+   was grey until the tint came from the entry's own leaning. */
+.narrator-entry__grade--mixed {
+    background: var(--bg-subtle);
+    color: var(--gold-dark, #a07e28);
+}
+
+/* Family and epithet, each on a row of its own under a small label. «آل أعين» is a house,
+   not a spelling of his name, and set among the chips it read as one. */
+.narrator-names__group {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.2rem 0.8rem;
+    margin-top: 0.3rem;
+}
+
+.narrator-names__group-label {
+    flex: 0 0 5.5rem;
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+[dir="rtl"] .narrator-names__group-label {
+    letter-spacing: 0.02em;
+    font-size: 0.82rem;
+}
+
+.narrator-names__chips--group {
+    flex: 1 1 12rem;
+    margin-bottom: 0.3rem;
+}
+
+.narrator-names__chip--latin {
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+}
+
+/* The Imams under the same two-column rows as the teachers: one Imam to a row, the roster
+   name, and the books that say it. */
+.chains__imams {
+    max-width: 34rem;
+    margin: 0 0 2rem;
+}
+
+/* The indexed lists were 50 rows each with «from» or «to» alone in a left column and the
+   name centred in what was left. The direction is now a small label inside the name's own
+   cell, the row is the teachers' row, and the list runs in two columns so a long one is
+   half as tall. */
+.chains__who {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.chains__dir {
+    flex: 0 0 auto;
+    font-family: var(--font-ui);
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+[dir="rtl"] .chains__dir {
+    letter-spacing: 0;
+    font-size: 0.78rem;
+}
+
+.chains__list--indexed {
+    column-count: 2;
+    column-gap: 2.5rem;
+}
+
+.chains__list--indexed .chains__row {
+    break-inside: avoid;
+}
+
+@media (max-width: 767.98px) {
+    .chains__list--indexed {
+        column-count: 1;
+    }
+
+    .narrator-names__group-label {
+        flex-basis: 100%;
+    }
+}
+
+/* Gold keeps the chronology and the ornament. The section rules, the open tab's cap and
+   its count had all been gold as well, so nothing on the page was marked by it. The rule
+   under a section label is the page's own hairline here, and the open tab is capped in the
+   navy its label is set in. The hadith pages and the home page use gold the same sparing
+   way, for a mark and not for structure. */
+.narrator-view .hub-group__label::after {
+    background: var(--border);
+}
+
+.narrator-tab.is-active::before {
+    background: var(--primary);
+}
+
+.narrator-tab.is-active .narrator-tab__count,
+.narrator-tab--active .narrator-tab__count {
+    background: var(--bg-subtle);
+    color: var(--primary);
+}
+
+/* The series note is two short lines, not one run of prose: set inline, Arabic headings
+   and an English sentence flipped each other's punctuation in al-Khoei's three entries on
+   Muhammad b. Yahya. Each heading is isolated, and the note is kept off the entry's text. */
+.narrator-entry__series {
+    margin: 0.2rem 0 0.9rem;
+}
+
+.narrator-entry__series-line {
+    margin: 0;
+    font-family: var(--font-ui);
+    font-size: 0.8rem;
+    line-height: 1.8;
+    color: var(--text-secondary, #4a5568);
+}
+
+.narrator-entry__series-heading + .narrator-entry__series-heading::before {
+    content: "·";
+    margin-inline-end: 0.35rem;
+    color: var(--text-muted);
+}
+
+.narrator-entry__edition {
+    margin-bottom: 0.2rem;
+}
+
+/* The Imams' rows are as wide as the teachers' are, and the books wrap rather than push
+   the name into a three-line column, which is what Jaʿfar al-Ṣādiq's six books did. */
+.chains__imams {
+    max-width: 52rem;
+}
+
+.chains__imams .chains__name {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+.chains__imams .chains__books {
+    flex: 1 1 auto;
+}
+
+/* The wrapped tab grid on a phone outlined the open tab in gold; it takes the same navy
+   the open tab has on a desktop. */
+@media (max-width: 640px) {
+    .narrator-tab.is-active {
+        border-color: var(--primary);
+    }
+}
+
+/* ===========================================================================
+   The verdict chips.
+
+   «ثقة thiqa — trustworthy» was set as a pastel wash behind a word: readable, but it
+   read as a highlighter mark rather than as a thing the page is asserting. A grade is
+   the most consequential word on a narrator's page — a reader scans for it and stops —
+   so it is set as a chip with an edge: a jewelled green that holds its own beside the
+   gold, a hairline border, and an inner highlight that lifts it off the paper.
+
+   Four surfaces carry the same word and two of them are navy, so the tokens come in
+   pairs. Nothing here changes which word is shown or which colour it earns; that is
+   decided by the book, upstream.
+   =========================================================================== */
+
+:root {
+    /* Jade rather than the generic --success green: this sits next to gold on navy. */
+    --verdict-for-ink:        #0c5138;
+    --verdict-for-face:       linear-gradient(180deg, #f1fbf6 0%, #e2f4ea 100%);
+    --verdict-for-edge:       #9bd2b6;
+
+    --verdict-against-ink:    #8a2e25;
+    --verdict-against-face:   linear-gradient(180deg, #fdf4f3 0%, #f8e6e3 100%);
+    --verdict-against-edge:   #e0aaa3;
+
+    --verdict-plain-ink:      var(--text-secondary);
+    --verdict-plain-face:     linear-gradient(180deg, #f9fbfd 0%, #eff3f8 100%);
+    --verdict-plain-edge:     var(--border-strong);
+
+    /* On the navy hero and in the rijāl panel, where the paper is dark. */
+    --verdict-for-ink-dark:    #c8efda;
+    --verdict-for-face-dark:   linear-gradient(180deg, rgba(32,116,82,0.60) 0%, rgba(18,78,55,0.72) 100%);
+    --verdict-for-edge-dark:   rgba(150, 221, 183, 0.55);
+
+    --verdict-against-ink-dark:  #f6cdc7;
+    --verdict-against-face-dark: linear-gradient(180deg, rgba(140,52,44,0.58) 0%, rgba(104,36,30,0.72) 100%);
+    --verdict-against-edge-dark: rgba(230, 160, 150, 0.5);
+
+    --verdict-plain-ink-dark:    rgba(238, 243, 250, 0.82);
+    --verdict-plain-face-dark:   linear-gradient(180deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.07) 100%);
+    --verdict-plain-edge-dark:   rgba(200, 162, 61, 0.42);
+}
+
+/* The chip itself, on light paper. A pill, because a grade is a label and not a heading. */
+.narrator-entry__grade,
+.narrator-said__word {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    padding: 0.2rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid var(--verdict-plain-edge);
+    background: var(--verdict-plain-face);
+    color: var(--verdict-plain-ink);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    font-family: var(--font-ui);
+    font-weight: 650;
+    letter-spacing: 0.03em;
+    text-transform: none;
+    white-space: nowrap;
+}
+
+.narrator-said__row--for .narrator-said__word,
+.narrator-entry__grade--for {
+    border-color: var(--verdict-for-edge);
+    background: var(--verdict-for-face);
+    color: var(--verdict-for-ink);
+}
+
+.narrator-said__row--against .narrator-said__word,
+.narrator-entry__grade--against {
+    border-color: var(--verdict-against-edge);
+    background: var(--verdict-against-face);
+    color: var(--verdict-against-ink);
+}
+
+/* Where the books divide on one man, the chip carries both edges rather than picking
+   a side: a gold hairline, which is the page's colour for «it depends who you follow». */
+.narrator-entry__grade--mixed {
+    border-color: rgba(200, 162, 61, 0.55);
+    background: linear-gradient(180deg, #fefaf0 0%, #faf2df 100%);
+    color: #7a5c14;
+}
+
+/* The books' own word keeps its script and its weight inside the chip. */
+.narrator-said__word-ar,
+.narrator-entry__word-ar,
+.narrator-stands__word-ar {
+    font-size: 1.04em;
+    opacity: 0.92;
+}
+
+/* The navy hero, where the same chips sit on dark paper. */
+.narrator-verdict__grade {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    padding: 0.16rem 0.65rem;
+    border-radius: 999px;
+    border: 1px solid var(--verdict-plain-edge-dark);
+    background: var(--verdict-plain-face-dark);
+    color: var(--verdict-plain-ink-dark);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 1px 2px rgba(6, 18, 34, 0.3);
+    letter-spacing: 0.03em;
+}
+
+/* The light tokens, not the dark ones. These classes are emitted in exactly one
+   place — narrator.html's entry chip, which sits on the white card of a Tarājim
+   notice — so the dark set put #c8efda on near-white at 1.25:1, a chip whose word
+   could not be read at all. The block that set them assumed this was the hero's
+   chip; the hero renders .narrator-said__word, which keeps the dark set below. */
+.narrator-verdict__grade--thiqa,
+.narrator-verdict__grade--saduq,
+.narrator-verdict__grade--hasan {
+    border-color: var(--verdict-for-edge);
+    background: var(--verdict-for-face);
+    color: var(--verdict-for-ink);
+}
+
+.narrator-verdict__grade--daif,
+.narrator-verdict__grade--very_weak,
+.narrator-verdict__grade--kadhdhab,
+.narrator-verdict__grade--non_existent {
+    border-color: var(--verdict-against-edge);
+    background: var(--verdict-against-face);
+    color: var(--verdict-against-ink);
+}
+
+/* The rijāl panel on a hadith card: the same word, the same chip, a size down, because
+   there it sits inside a chain step rather than under a name. */
+.rijal-link__word {
+    display: inline-flex;
+    align-items: baseline;
+    padding: 0.08rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid var(--verdict-plain-edge-dark);
+    background: var(--verdict-plain-face-dark);
+    color: var(--verdict-plain-ink-dark);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    font-weight: 650;
+}
+
+.rijal-link__grade--for .rijal-link__word {
+    border-color: var(--verdict-for-edge-dark);
+    background: var(--verdict-for-face-dark);
+    color: var(--verdict-for-ink-dark);
+}
+
+.rijal-link__grade--against .rijal-link__word {
+    border-color: var(--verdict-against-edge-dark);
+    background: var(--verdict-against-face-dark);
+    color: var(--verdict-against-ink-dark);
+}
+
+/* ===========================================================================
+   The verdict chips, placed on the right paper.
+
+   The block above assumed the hero's chips were .narrator-verdict__grade. They are not:
+   the hero renders .narrator-said__word, which sits on navy, and the light treatment put
+   a near-white pill on a dark card. The table under «Where each book stands» is the one
+   on paper, and it renders .narrator-stands__position, which the block above never named.
+
+   So: .narrator-said__word and .rijal-link__word are dark-paper chips, and
+   .narrator-stands__position, .narrator-entry__grade and the ledger's word are light.
+   =========================================================================== */
+
+/* On the navy hero. */
+.narrator-said__word {
+    border: 1px solid var(--verdict-plain-edge-dark);
+    background: var(--verdict-plain-face-dark);
+    color: var(--verdict-plain-ink-dark);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 1px 2px rgba(6, 18, 34, 0.32);
+    text-transform: none;
+    font-size: 0.8rem;
+    letter-spacing: 0.02em;
+}
+
+.narrator-said__row--for .narrator-said__word {
+    border-color: var(--verdict-for-edge-dark);
+    background: var(--verdict-for-face-dark);
+    color: var(--verdict-for-ink-dark);
+}
+
+.narrator-said__row--against .narrator-said__word {
+    border-color: var(--verdict-against-edge-dark);
+    background: var(--verdict-against-face-dark);
+    color: var(--verdict-against-ink-dark);
+}
+
+/* On paper: the table of where each book stands, and the entries tab. */
+.narrator-stands__position {
+    padding: 0.2rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid var(--verdict-plain-edge);
+    background: var(--verdict-plain-face);
+    color: var(--verdict-plain-ink);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    font-weight: 600;
+}
+
+.narrator-stands__position--for {
+    border-color: var(--verdict-for-edge);
+    background: var(--verdict-for-face);
+    color: var(--verdict-for-ink);
+}
+
+.narrator-stands__position--against {
+    border-color: var(--verdict-against-edge);
+    background: var(--verdict-against-face);
+    color: var(--verdict-against-ink);
+}
+
+/* A grade with no passage behind it keeps its deliberate colourlessness: it is not
+   evidence until there is a page under it, and a chip must not make it look like one. */
+.narrator-stands__position--unsourced {
+    border-color: var(--border-strong);
+    background: linear-gradient(180deg, #fafafa 0%, #f1f2f4 100%);
+    color: var(--text-muted);
+    box-shadow: none;
+}
+
+/* The ledger cell. «1 call him reliable» is a count and a verdict in one line, so the
+   word takes the chip's colour without its box — a pill around a running phrase would
+   fight the number beside it. */
+.ledger__verdict--for .ledger__verdict-word,
+.ledger__verdict--for .ledger__verdict-count {
+    color: var(--verdict-for-ink);
+}
+
+.ledger__verdict--against .ledger__verdict-word,
+.ledger__verdict--against .ledger__verdict-count {
+    color: var(--verdict-against-ink);
+}
+
+/* The Imam the report rests on, where the isnād did not name him. Below the chain and
+   quieter than a step, because he is not one: he stands in the narration's own words. */
+.rijal__in-body {
+    margin: 0.75rem 0 0;
+    padding-top: 0.6rem;
+    border-top: 1px dashed rgba(200, 162, 61, 0.35);
+    font-size: 0.76rem;
+    line-height: 1.6;
+    color: rgba(238, 243, 250, 0.72);
+}
+
+.rijal__in-body-lede {
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-size: 0.68rem;
+    color: rgba(238, 243, 250, 0.52);
+}
+
+.rijal__in-body-name {
+    color: #f3e5b8;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(200, 162, 61, 0.5);
+}
+
+.rijal__in-body-name:hover {
+    color: #fff;
+}
+
+.rijal__in-body-note {
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 0.7rem;
+    font-style: italic;
+    color: rgba(238, 243, 250, 0.5);
+}
+
+[dir="rtl"] .rijal__in-body-note {
+    font-style: normal;
+}
+
+[dir="rtl"] .rijal__in-body-lede {
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 0.74rem;
+}
+
+
+/* ── The navbar between a tablet and a laptop ───────────────────────────────
+   Bootstrap's .container is 696px wide up to 992px and 936px above it, but the
+   search button takes its word back at 768px and the sign-in button never gave
+   its label up at all. Between those two points the row asked for more than it
+   had — 34px of mark, 277px of links, 84px of button and 156px of account
+   controls inside 696px — and the field took the shortfall: 142px, of which
+   31px is its own padding and 84px the button, leaving 27px of input and a
+   placeholder reading "S".
+
+   So the compact treatment now runs to the point where the container actually
+   widens, which is where the language toggle has always dropped its own label.
+   The icon each button keeps is the label it has at phone widths, and says the
+   same thing in both languages. */
+@media (max-width: 991.98px) {
+    /* The width has to be taken by name: the rule that sets it to 84px, and the one
+       that widens it to 94px, both use !important. */
+    .site-nav .search-btn-with-border {
+        min-width: var(--search-action-height) !important;
+        width: var(--search-action-height) !important;
+        padding: 0 !important;
+    }
+
+    .site-nav .search-btn-with-border .search-btn__text {
+        display: none;
+    }
+
+    .site-nav .search-btn-with-border .search-btn__icon-mobile {
+        display: inline-block;
+        font-size: 0.82rem;
+    }
+
+    .site-nav .top-actions .auth-action__label {
+        display: none;
+    }
+
+    .site-nav .top-actions .auth-action i {
+        margin-inline-end: 0;
+    }
+}
+
+/* Overview pass: the short "also named" row. Six chips and a link to the full list on the
+   Tarajim tab replace up to forty (al-Hasan ibn Mahbub) that sat above the verdicts. */
+.narrator-names--short .narrator-names__chips { margin-bottom: 0.5rem; }
+.narrator-names__all {
+    display: inline-block;
+    font-size: 0.85rem;
+    color: var(--navy-700, #1e3a5f);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+[dir="rtl"] .narrator-names__all { text-align: right; }
+
+/* The seal beside the name in a narrator's hero. Logical properties, so the seal sits at
+   the start edge in both directions. On a phone the hero centres its text, so the seal
+   stacks above it. */
+.narrator-id { display: flex; align-items: center; gap: 1.1rem; }
+.narrator-id__seal { flex: none; display: block; line-height: 0; }
+.narrator-id__text { min-width: 0; flex: 1 1 auto; }
+.narrator-id .nseal__track { stroke: rgba(255, 255, 255, 0.22); }
+@media (max-width: 767.98px) {
+    .narrator-id { flex-direction: column; gap: 0.7rem; }
+}
+
+/* The seal costs the identity column 72px plus its gap, and the name paid for it:
+   «الحسن بن محبوب السراد» broke across two lines while the blurb beside it sat on one.
+   The narrator hero gets the even split, and the seal lines up with the eyebrow rather
+   than floating against the middle of the name. */
+.hub-hero--sealed { grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); }
+.hub-hero--sealed .narrator-id { align-items: flex-start; }
+.hub-hero--sealed .narrator-id__seal { margin-top: 0.15rem; }
+@media (max-width: 767.98px) {
+    .hub-hero--sealed { grid-template-columns: 1fr; }
+    .hub-hero--sealed .narrator-id { align-items: center; }
+}
+/* ── A linked name in an isnād, made plainly clickable ───────────────────────
+   The earlier passes marked these with a dotted gold rule and nothing else:
+   no weight, no colour at rest. The reasoning was sound — eight bright words
+   in a chain read as a row of buttons rather than as a sentence — but the
+   result was a link most readers never found.
+
+   Weight and colour, not an icon. An icon per name would put eight glyphs in a
+   sentence of eight names, and the convention it borrows (↗) means "leaves this
+   site", which these do not. Weight picks the name out of the connective tissue
+   («from», «عن») that surrounds it; the navy says link in the site's own palette
+   rather than browser blue; the solid gold rule under it replaces the dotted
+   hint. Hover and keyboard focus then light the whole word in gold.
+
+   #1b4a7a on the card is 7.6:1, and the gold hover state 5.1:1, both above AA.
+   The backref links (a repeated «عنه» pointing up the chain) are deliberately
+   left out: they are not names and do not lead to a man's page. */
+.hadith-chain .chain-name {
+    font-weight: 600;
+    /* `.hadith-chain *` sets `color: inherit !important` so the chain reads as one
+       muted line, which is why the hover rule above has always carried !important
+       too. The resting colour needs the same to be seen at all. */
+    color: #1b4a7a !important;
+    border-bottom: 1px solid rgba(200, 162, 61, 0.45);
+    border-radius: 2px;
+    transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.hadith-chain .chain-name:hover,
+.hadith-chain .chain-name:focus-visible {
+    color: #8a6420 !important;
+    border-bottom-color: var(--gold, #c8a23d);
+    background-color: rgba(200, 162, 61, 0.13);
+    box-shadow: 0 0 0 2px rgba(200, 162, 61, 0.13);
+}
+
+/* The Arabic chain carries the same names at a larger size, where a 600 weight in
+   Scheherazade is heavy enough to shout. It takes the colour and the rule only. */
+.hadith-chain--arabic .chain-name {
+    font-weight: 400;
+}
+
+/* ── Contact page ───────────────────────────────────────────────────────────
+   Appended as one block; the file's earlier duplicate blocks are left alone.
+   Logical properties throughout so /ar/contact mirrors. */
+.contact {
+    max-inline-size: 44rem;
+    margin-inline: auto;
+    padding-block-end: 2rem;
+}
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+}
+.contact-field label {
+    display: block;
+    margin-block-end: 0.35rem;
+    font-weight: 600;
+    color: var(--text);
+}
+.contact-field input[type="text"],
+.contact-field input[type="email"],
+.contact-field select,
+.contact-field textarea {
+    inline-size: 100%;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid rgba(16, 35, 63, 0.35);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--text);
+    font: inherit;
+}
+.contact-field textarea { resize: vertical; min-block-size: 9rem; }
+.contact-field input:focus-visible,
+.contact-field select:focus-visible,
+.contact-field textarea:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 1px;
+}
+.contact-field__help {
+    margin: 0.35rem 0 0;
+    font-size: 0.875rem;
+    color: #4a5568;
+}
+.contact-context {
+    padding: 0.9rem 1.1rem;
+    border: 1px solid var(--border);
+    border-inline-start: 3px solid var(--gold);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text);
+}
+.contact-context__label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #4a5568;
+}
+.contact-context__value {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1rem;
+    align-items: baseline;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+.contact-context__note {
+    margin: 0.3rem 0 0;
+    font-size: 0.875rem;
+    color: #4a5568;
+}
+.contact-error {
+    margin: 0;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid #b42318;
+    border-radius: 10px;
+    background: #fef3f2;
+    color: #7a271a;
+}
+.contact-error[hidden], .contact-done[hidden], .contact-form[hidden] { display: none; }
+.contact-submit {
+    align-self: flex-start;
+    padding: 0.7rem 1.6rem;
+    border: 0;
+    border-radius: 999px;
+    background: var(--primary);
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+}
+.contact-submit:hover { filter: brightness(1.15); }
+.contact-submit:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.contact-submit:disabled { opacity: 0.65; cursor: progress; }
+.contact-done {
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+    border-block-start: 3px solid var(--gold);
+    border-radius: 14px;
+    background: var(--surface);
+    color: var(--text);
+}
+.contact-done__title { margin-block-start: 0; font-size: 1.35rem; }
+@media (max-width: 480px) {
+    .contact-submit { inline-size: 100%; align-self: stretch; }
+}
+
+/* ── The recent updates on the home page ─────────────────────────────────────
+   Two cards that were two different heights with two different clip shapes and
+   a wall of bullets each. One frame, one crop, three bullets, and a clamp on
+   the summary, so the row reads as a pair. */
+
+.recent-updates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+    gap: 1.1rem;
+    align-items: stretch;
+}
+
+.recent-update-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--border, #e8ecf1);
+    border-radius: 14px;
+    background: linear-gradient(180deg, #fff 0%, #fbfcfe 100%);
+    box-shadow: 0 1px 2px rgba(16, 35, 63, 0.05);
+    transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.recent-update-card:hover {
+    border-color: rgba(200, 162, 61, 0.55);
+    box-shadow: 0 2px 6px rgba(16, 35, 63, 0.08), 0 16px 32px -16px rgba(16, 35, 63, 0.3);
+    transform: translateY(-2px);
+}
+
+.recent-update-card__link {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    gap: 0.35rem;
+    padding: 1.1rem 1.2rem 0.9rem;
+    text-decoration: none;
+    color: inherit;
+}
+
+.recent-update-date {
+    font-family: var(--font-ui);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold-dark, #a07e28);
+}
+
+.recent-update-title {
+    margin: 0;
+    font-family: var(--font-reference);
+    font-size: 1.18rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--text, #1a1a2e);
+    text-wrap: balance;
+}
+
+/* Two lines each, whatever the entry writes, so the titles beneath them line up. */
+.recent-update-summary {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--text-secondary, #4a5568);
+}
+
+.recent-update-list {
+    margin: 0.5rem 0 0;
+    padding-inline-start: 1.05rem;
+    font-size: 0.86rem;
+    line-height: 1.6;
+    color: var(--text-secondary, #4a5568);
+}
+
+.recent-update-list li { margin-bottom: 0.15rem; }
+.recent-update-list li::marker { color: var(--gold, #c8a23d); }
+
+.recent-update-list__more {
+    list-style: none;
+    margin-inline-start: -1.05rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--primary, #1e3a5f);
+}
+
+/* One frame for every clip. The recordings are 4:3, 16:9 and 1600x1088; left to
+   their own ratios they gave the row three different cards. */
+.recent-updates-grid .recent-update-video {
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    margin: 0;
+    border-top: 1px solid var(--border, #e8ecf1);
+    background: #0a1628;
+    overflow: hidden;
+}
+
+.recent-updates-grid .recent-update-video__file,
+.recent-updates-grid .recent-update-video iframe {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    border: 0;
+}
+
+/* ── The home page's sections, all on the same ground ────────────────────────
+   Browse and Updates sat in a bordered, rounded, tinted panel; Narrators and
+   Collections sat on the page. Three sections down the same column, two of them
+   boxed, reads as though the boxes mean something. They do not. The page itself
+   is the ground, and the bookcase and the cards are objects enough on it. */
+.home-browse,
+.home-updates {
+    padding: 0;
+    /* !important only because the rule this undoes carries it, and the panel is
+       painted by three things at once: the element, a ::before glow and an
+       ::after corner. All three go. */
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+}
+
+.home-browse::before,
+.home-browse::after,
+.home-updates::before,
+.home-updates::after { content: none !important; }
+
+/* The space the panel's padding used to give between sections now belongs to
+   the sections themselves. */
+.home-browse,
+.home-narrators,
+.home-updates { margin-block: 0 2.6rem; }
+
+/* ── A type-to-filter box over a long list (chapters, parts, volumes) ───────
+   Appended, per this file's convention. The control sits under the section
+   heading and above the list it narrows, close enough to read as belonging to
+   it. Logical properties throughout so the Arabic page mirrors.               */
+.hub-filter {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin: -0.35rem 0 1.15rem;
+}
+
+.hub-filter__field {
+    position: relative;
+    display: block;
+    flex: 1 1 18rem;
+    max-width: 26rem;
+}
+
+.hub-filter__icon {
+    position: absolute;
+    inset-inline-start: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.82rem;
+    line-height: 1;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.hub-filter__input {
+    width: 100%;
+    padding: 0.55rem 0.9rem;
+    padding-inline-start: 2.35rem;
+    font-family: var(--font-ui);
+    font-size: 0.94rem;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.hub-filter__input::placeholder {
+    color: #64748b;
+}
+
+.hub-filter__input:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(200, 162, 61, 0.18);
+}
+
+/* The running tally beside the box. It says how much of the list is left rather
+   than how much was taken away: a reader scanning for one chapter wants to know
+   whether to keep typing. */
+.hub-filter__count {
+    font-family: var(--font-ui);
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #64748b;
+}
+
+.hub-filter__empty {
+    margin: 0 0 1.4rem;
+    font-family: var(--font-ui);
+    font-size: 0.94rem;
+    color: #64748b;
+}
+
+@media (max-width: 576px) {
+    .hub-filter__field {
+        flex-basis: 100%;
+        max-width: none;
+    }
+}
+
+/* The matched run inside a filtered row. A wash rather than a block of colour:
+   the row is a link, and a solid highlight behind link text reads as a second
+   control. Inherits the colour so the mark never fights the row's own ink. */
+.hub-filter__hit {
+    padding: 0;
+    color: inherit;
+    background: rgba(200, 162, 61, 0.34);
+    border-radius: 2px;
+    box-shadow: 0 0 0 1px rgba(200, 162, 61, 0.28);
+}
+
+/* A step the resolver found several men for and would not choose between. The card is the
+   navy one, so its ink is light: the lede sits at 0.82 of the panel's pale ink, which
+   measured 6.0:1 to 6.7:1 against the card as rendered (#284361 to #284b73), and the names
+   are the full pale ink at 8.0:1 to 9.1:1 with a gold underline to say they are links. The dashed border is the
+   unidentified step's, because the joint above and below it is just as open. */
+.rijal-link--several .rijal-link__mark {
+    background: #183554;
+    border: 2px dashed var(--gold, #c8a23d);
+}
+
+.rijal-link--several .rijal-link__card {
+    border-style: dashed;
+}
+
+.rijal-link__candidates {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.15rem 0.6rem;
+    margin: 0.35rem 0 0;
+    padding-block-start: 0.35rem;
+    border-block-start: 1px solid rgba(238, 243, 250, 0.16);
+    font-size: 0.74rem;
+    color: rgba(238, 243, 250, 0.82);
+}
+
+.rijal-link__candidates-lede {
+    flex-basis: 100%;
+    margin-inline-start: 0.1rem;
+}
+
+.rijal-link__candidate {
+    color: #eef3fa;
+    font-size: 0.95rem;
+    text-decoration: underline;
+    text-decoration-color: var(--gold, #c8a23d);
+    text-underline-offset: 0.25em;
+}
+
+.rijal-link__candidate:hover,
+.rijal-link__candidate:focus-visible {
+    color: #ffffff;
+    text-decoration-thickness: 2px;
+}
+
+[dir="rtl"] .rijal-link__candidates {
+    font-size: 0.9rem;
+}
+
+/* The epithet that tells three men of one name apart, set after the name in a quieter
+   weight and the same pale ink, so it stays above 4.5:1 on the card. */
+.rijal-link__candidate-title {
+    margin-inline-start: 0.4em;
+    font-size: 0.8em;
+    opacity: 0.9;
+}
+
+.rijal-link__candidate-title::before {
+    content: "\00b7\00a0";
+}
+
+/* The tarājim card had 0.2rem of padding above its heading and 1.4rem below it.
+   That top value is left over from when the entry was a rule down one side and
+   nothing else: with no top edge to clear, the book's name starting almost at the
+   element's own origin looked deliberate. The card gained a border, a background
+   and a 6px radius afterwards, and the heading has sat 3px off a visible edge ever
+   since, while the sides kept 19px and the foot 22px. Matched to the sides. */
+.narrator-entry {
+    padding-block: 1.1rem 1.4rem;
+}
+
+/* The grade pill is pushed to the far end of the header row by an auto margin, and
+   that margin was `margin-left`. On the Arabic site the row runs the other way, so
+   the auto absorbed the space on the pill's left and left it stranded mid-row
+   against the citation instead of out at the edge — «ثقة» floating beside the page
+   number while its English twin sat pinned to the opposite margin. Logical, and the
+   physical end reset to zero, because the rule above still names `margin-left` and
+   two auto margins would centre the pill rather than push it anywhere. */
+.narrator-entry__grade {
+    margin-inline-start: auto;
+    margin-inline-end: 0;
+}
+
+@media (max-width: 640px) {
+    /* Narrow enough that the pill belongs on the line with the citation rather than
+       pushed away from it. The existing rule says `margin-left: 0`, which only
+       cancels the push on an English page. */
+    .narrator-entry__grade {
+        margin-inline-start: 0;
+    }
+}
+
+/* A teacher or student the books let us identify is now a link to his own page. The anchor
+   was added without a rule of its own, so it took the browser's default blue — the one
+   colour on a manuscript page that announces itself as a web link, and it fell on exactly
+   the rows we know most about, so the better-attested half of the column looked foreign.
+   Treated like the names in an isnād instead: the row's own colour, a dotted gold rule
+   underneath, gold on hover. .chain-name is not reused because that rule is scoped to
+   .hadith-chain and carries a background and box-shadow that belong to running prose. */
+.chains__name a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted rgba(200, 162, 61, 0.5);
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.chains__name a:hover,
+.chains__name a:focus-visible {
+    color: var(--accent-gold, #c8a23d);
+    border-bottom-color: rgba(200, 162, 61, 0.9);
+}
+
+/* Where a row in «In the same isnād» comes from. A book's chain index prints as the book's
+   name, in the muted grey every citation on this page uses; a pairing the served chains
+   attest prints as a count, in gold, so the two readings are told apart at a glance without
+   a legend. A row both hold names the books first and puts the count after them. */
+.chains__here {
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    color: var(--accent-gold, #c8a23d);
+    white-space: nowrap;
+}
+
+.chains__here--after::before {
+    content: " · ";
+    color: var(--text-muted);
+}
+
+/* The way out of an empty column. Where no book names a man's teachers the column used to
+   end on its own note; it now carries a link to the isnād section below, set in the same
+   small muted type as the note it follows so it reads as the rest of that sentence, and
+   gold on the arrow so it is visibly somewhere to go. */
+a.chains__note--to {
+    display: block;
+    margin-top: 0.45rem;
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    color: var(--accent-gold, #c8a23d);
+    text-decoration: none;
+    border-bottom: 1px dotted color-mix(in srgb, var(--accent-gold, #c8a23d) 45%, transparent);
+    padding-bottom: 1px;
+    width: fit-content;
+}
+
+a.chains__note--to:hover,
+a.chains__note--to:focus-visible {
+    border-bottom-style: solid;
+}
+
+
+/* The qualification on a count, on its own line under the column's name so the number is
+   never read bare. */
+.chains__basis {
+    margin: -0.7rem 0 1.1rem;
+    font-family: var(--font-ui);
+    font-size: 0.64rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-faint, var(--text-muted));
+}
+
+[dir="rtl"] .chains__basis {
+    letter-spacing: normal;
+    text-transform: none;
+    font-size: 0.7rem;
 }

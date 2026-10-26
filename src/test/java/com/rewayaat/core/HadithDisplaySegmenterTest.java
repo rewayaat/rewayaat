@@ -7,6 +7,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class HadithDisplaySegmenterTest {
@@ -2979,5 +2980,395 @@ class HadithDisplaySegmenterTest {
         assertTrue(chain.contains("جعفر بن محمد"), "Chain should include narrator");
         assertFalse(chain.contains("نور"), "Chain should not include the saying");
         assertTrue(content.contains("نور"), "Content should include the saying");
+    }
+
+    @Test
+    void readsTheChainThatEndsOnTwoMenAnsweringTogether() {
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "11- أَحْمَدُ بْنُ مُحَمَّدٍ عَنِ ابْنِ أَبِي نَجْرَانَ عَمَّنْ ذَكَرَهُ "
+                + "عَنْ أَبِي عَبْدِ اللهِ (عَلَيْهِ السَّلام) وَيَزِيدَ بْنِ حَمَّادٍ وَغَيْرِهِ "
+                + "عَنْ أَبِي جَمِيلَةَ عَنْ أَبِي جَعْفَرٍ وَأَبِي عَبْدِ اللهِ (عَلَيْهِ السَّلام) "
+                + "قَالا مَا مِنْ أَحَدٍ إِلا وَهُوَ يُصِيبُ حَظّاً مِنَ الزِّنَى.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain, "A chain ending on the dual «قالا» must still be read");
+        assertNotNull(content);
+        assertTrue(chain.contains("ابْنِ أَبِي نَجْرَانَ"));
+        assertTrue(chain.contains("أَبِي جَمِيلَةَ"));
+        assertTrue(content.contains("مَا مِنْ أَحَدٍ"));
+        assertFalse(chain.contains("يُصِيبُ حَظّاً"));
+    }
+
+    @Test
+    void stopsTheChainAtTheDualVerbRatherThanTheNextSingularOne() {
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "6ـ حَمَّادٌ عَنْ حَرِيزٍ عَنْ زُرَارَةَ وَالْفُضَيْلِ قَالاَ قُلْنَا لَهُ "
+                + "الصَّلَوَاتُ فِي جَمَاعَةٍ فَرِيضَةٌ هِيَ فَقَالَ الصَّلَوَاتُ فَرِيضَةٌ.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("زُرَارَةَ وَالْفُضَيْلِ"));
+        // Before the dual was a marker the chain had to wait for «فَقَالَ» and swallowed
+        // the question the two men asked.
+        assertFalse(chain.contains("قُلْنَا لَهُ"), "The chain must end at the dual verb");
+        assertTrue(content.contains("قُلْنَا لَهُ"));
+    }
+
+    @Test
+    void readsTheRouteABookQuotesRatherThanWalks() {
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "4 وَ رَوَاهُ صَافِي الْبَرْقِيُّ عَنْ أَبِي عَبْدِ اللَّهِ (ع) قَالَ "
+                + "مَنْ زَارَ أَبَا عَبْدِ اللَّهِ (ع) ثَلَاثَ سِنِينَ مُتَوَالِيَاتٍ غَفَرَ اللَّهُ لَهُ ذُنُوبَهُ.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        assertNotNull(chain, "«و رواه فلان عن فلان» is a chain the book quotes");
+        assertTrue(chain.contains("صَافِي الْبَرْقِيُّ"));
+        assertFalse(chain.contains("ثَلَاثَ سِنِينَ"));
+    }
+
+    @Test
+    void readsTheConjunctionLooseBeforeAnOpeningFormula() {
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "1161 - وَ فِي رِوَايَةِ زُرَارَةَ عَنْ أَبِي جَعْفَرٍ عَلَيْهِ اَلسَّلاَمُ قَالَ "
+                + "«وَ إِنْ كُنْتَ خَلْفَ إِمَامٍ فَلاَ تَقْرَأَنَّ شَيْئاً فِي اَلْأَوَّلَتَيْنِ».");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        assertNotNull(chain, "«و في رواية» is the same opening as «وفي رواية»");
+        assertTrue(chain.contains("زُرَارَةَ"));
+        assertFalse(chain.contains("خَلْفَ إِمَامٍ"));
+    }
+
+    @Test
+    void anOpeningFormulaDoesNotVouchForADistantVerb() {
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "722 - وَ رُوِيَ: «أَنَّ عَلِيّاً عَلَيْهِ اَلسَّلاَمُ مَرَّ عَلَى مَنَارَةٍ "
+                + "طَوِيلَةٍ فَأَمَرَ بِهَدْمِهَا، ثُمَّ قَالَ «لاَ تُرْفَعُ اَلْمَنَارَةُ إِلاَّ مَعَ سَطْحِ اَلْمَسْجِدِ».");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        // Two words of formula must not read what the Imam did as isnād on their strength.
+        assertFalse(chain.contains("مَنَارَةٍ"), "The chain ends at the formula");
+        assertTrue(content.contains("مَنَارَةٍ"));
+    }
+
+    @Test
+    void readsTheClauseAfterABookShorthandForAChainAlreadyGiven() {
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "10ـ وَبِهَذَا الإِسْنَادِ أَنَّ أَمِيرَ الْمُؤْمِنِينَ (عَلَيْهِ الْسَّلام) "
+                + "اشْتَكَى عَيْنُهُ فَعَادَهُ النَّبِيُّ (صلّى اللهُ عَلَيْهِ وَآلِه) فَإِذَا هُوَ يَصِيحُ فَقَالَ "
+                + "أَمَا وَاللهِ لَوْ كَانَ وَجَعُكَ بِي لَصَبَرْتُ.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain, "«وبهذا الإسناد» is the whole chain al-Kulaynī gives here");
+        assertNotNull(content);
+        assertTrue(chain.contains("وَبِهَذَا الإِسْنَادِ"));
+        assertFalse(chain.contains("اشْتَكَى"), "What follows «أنّ» is the narration");
+        assertTrue(content.contains("اشْتَكَى"));
+    }
+
+    @Test
+    void readsTheChainThatEndsOnTheBlessingAndNoVerb() {
+        Map<String, Object> source = new HashMap<>();
+        source.put("arabic", "1 عَلِيُّ بْنُ إِبْرَاهِيمَ عَنْ أَبِيهِ عَنِ ابْنِ أَبِي عُمَيْرٍ عَنْ هِشَامِ بْنِ "
+                + "الْحَكَمِ عَنْ أَبِي عَبْدِ الله (عَلَيْهِ السَّلام) فِي مِيزَابَيْنِ سَالا أَحَدُهُمَا بَوْلٌ "
+                + "وَالآخَرُ مَاءُ الْمَطَرِ فَاخْتَلَطَا فَأَصَابَ ثَوْبَ رَجُلٍ لَمْ يَضُرَّهُ ذَلِكَ.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        String content = (String) source.get("arabicContent");
+        assertNotNull(chain, "A chain can end on the blessing with nobody said to speak");
+        assertNotNull(content);
+        assertTrue(chain.contains("هِشَامِ بْنِ الْحَكَمِ"));
+        assertTrue(chain.contains("أَبِي عَبْدِ الله"));
+        assertFalse(chain.contains("مِيزَابَيْنِ"));
+        assertTrue(content.contains("مِيزَابَيْنِ"));
+    }
+
+    @Test
+    void looksPastAVerbThatGaveNothingUsable() {
+        Map<String, Object> source = new HashMap<>();
+        // The only «قال» in the entry stands at the very end with two words behind it, so
+        // the marker that passed the gate produced no usable split. That used to end the
+        // search before the routes that can read this entry were reached.
+        source.put("arabic", "2 عَلِيُّ بْنُ إِبْرَاهِيمَ عَنْ أَبِيهِ عَنِ ابْنِ أَبِي عُمَيْرٍ عَنْ حَمَّادِ بْنِ "
+                + "عُثْمَانَ عَنِ الْحَلَبِيِّ عَنْ أَبِي عَبْدِ الله (عَلَيْهِ السَّلام) فِي الرَّجُلِ يَقْتُلُ "
+                + "الْبَقَّةَ وَالْبُرْغُوثَ وَالْقَمْلَةَ وَالذُّبَابَ فِي الصَّلاةِ أَ يَنْقُضُ صَلاتَهُ وَوُضُوءَهُ قَالَ لا.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("arabicChain");
+        assertNotNull(chain);
+        assertTrue(chain.contains("الْحَلَبِيِّ"));
+        assertFalse(chain.contains("الْبَقَّةَ"));
+    }
+
+    @Test
+    void doesNotReadARijaliVerdictOnAManAsAChainHeStandsIn() {
+        Map<String, Object> source = new HashMap<>();
+        // Kitāb al-Ḍuʿafāʾ prints no isnāds; its entries are al-Ghaḍāʾirī's verdicts. A
+        // chain of names does not end a sentence halfway along itself.
+        source.put("arabic", "1 - يونس بن ظبيان، كوفي. غال، كذاب وضاع للحديث. روى عن أبي عبد الله "
+                + "(عليه السلام). لا يلتفت إلى حديثه.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        assertNull(source.get("arabicChain"), "A verdict on a man is not a chain");
+    }
+    @Test
+    void doesNotReadTheTranslatedMatnAsIsnadBecauseItSaysFrom() {
+        Map<String, Object> source = new HashMap<>();
+        // al-Kāfī 7:321. The chain ends on «قال»; the English says so at character 137 and
+        // then runs into inheritance law, whose every clause says «from the father» and
+        // «from father and mother». The tail test counts those words, refused the right
+        // boundary, and took the last «said, ‘» in the entry — 982 characters later.
+        source.put("arabic", "مُحَمَّدُ بْنُ يَحْيَى عَنْ أَحْمَدَ بْنِ مُحَمَّدٍ عَنِ الْحَسَنِ بْنِ عَلِيٍّ عَنْ "
+                + "عَبْدِ اللهِ بْنِ الْمُغِيرَةِ عَنْ مُوسَى بْنِ بَكْرٍ قَالَ قُلْتُ لِزُرَارَةَ إِنَّ "
+                + "بُكَيْراً حَدَّثَنِي عَنْ أَبِي جَعْفَرٍ (عَلَيْهِ السَّلام) أَنَّ الإخْوَةَ لِلأبِ "
+                + "وَالأخَوَاتِ لِلأبِ وَالأمِّ يُزَادُونَ وَيُنْقَصُونَ لأنَّهُنَّ لا يَكُنَّ أَكْثَرَ "
+                + "نَصِيباً مِنَ الإخْوَةِ وَالأخَوَاتِ لِلأبِ وَالأمِّ لَوْ كَانُوا مَكَانَهُنَّ لأنَّ "
+                + "اللهَ عَزَّ وَجَلَّ يَقُولُ إِنِ امْرُؤٌ هَلَكَ لَيْسَ لَهُ وَلَدٌ وَلَهُ أُخْتٌ فَلَها "
+                + "نِصْفُ ما تَرَكَ وَهُوَ يَرِثُها إِنْ لَمْ يَكُنْ لَها وَلَدٌ يَقُولُ يَرِثُ جَمِيعَ "
+                + "مَالِهَا إِنْ لَمْ يَكُنْ لَهَا وَلَدٌ فَأَعْطَوْا مَنْ سَمَّى اللهُ لَهُ النِّصْفَ "
+                + "كَمَلا وَعَمَدُوا فَأَعْطَوُا الَّذِي سَمَّى اللهُ لَهُ الْمَالَ كُلَّهُ أَقَلَّ مِنَ "
+                + "النِّصْفِ وَالْمَرْأَةُ لا تَكُونُ أَبَداً أَكْثَرَ نَصِيباً مِنْ رَجُلٍ لَوْ كَانَ "
+                + "مَكَانَهَا قَالَ فَقَالَ زُرَارَةُ وَهَذَا قَائِمٌ عِنْدَ أَصْحَابِنَا لإ يَخْتَلِفُونَ "
+                + "فِيهِ.");
+        source.put("english", "9. Muhammad ibn Yahya has narrated from Ahmad ibn Muhammad from al-Flassan ibn Ali from "
+                + "‘Abd Allah ibn al-Mughirah from Musa ibn Bakr who has narrated the following: “I once "
+                + "said to Zurarah that ibn Bukayr has narrated to me from abu Ja‘far (a.s.), that the "
+                + "shares of brothers from the father and sisters from father and mother increase and "
+                + "decrease. It is because their shares are not greater than the share of brothers and "
+                + "sisters from father and mother if they were in their place. Allah, most Majestic, most "
+                + "Glorious, says, ‘. . . if a man dies who does not leave behind a child and he has a "
+                + "sister, she receives one-half of the legacy and he receives the entire legacy if she "
+                + "does not leave behind any children.’ He says that he receives the entire legacy, which "
+                + "she leaves behind if she does not leave behind a child. Despite this, they give complete"
+                + " to one whose share Allah has mentioned as One-half and they give less than One-half to "
+                + "one whom Allah has given the entire legacy. The share of woman is never more than the "
+                + "share of man if he was in her place. He (the narrator) has said that Zurarah then said, "
+                + "‘This is applied by our people without any difference.’”");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("englishChain");
+        String content = (String) source.get("englishContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("Musa ibn Bakr"), "The last man of the chain belongs to it");
+        assertFalse(chain.contains("Zurarah"), "What he said is the narration");
+        assertTrue(content.contains("Zurarah"));
+    }
+
+    @Test
+    void readsTheWholeEnglishChainWhereItWasCutAfterOneName() {
+        Map<String, Object> source = new HashMap<>();
+        // Maʿānī al-Akhbār 27. The old boundary stopped after the first of six names,
+        // leaving an English chain two fifths the length of the Arabic one — shorter than
+        // the chain of any narration where the two languages agree. The band's lower end
+        // is also what keeps the rescue from cutting there: al-Ṣadūq's translator repeats
+        // «that he said:» between every link, and the first of them is three names early.
+        source.put("arabic", "حدثنا محمد بن موسى بن المتوكل، قال: حدثنا علي بن الحسين السعد آبادي، عن أحمد بن أبي عبد "
+                + "الله البرقي، عن أبيه، عن ربيع الوراق، عن صالح بن سهل عن أبي عبد الله عليه السلام في قول "
+                + "الله عز وجل \" كل شئ هالك إلا وجهه \" قال: نحن.");
+        source.put("english", "2.      We were told by Muhammed bin Musa bin Mutawakkil, that he said: We were told by "
+                + "Ali bin Husain al-Sa’d-Abadi, from Ahmad bin Abi Abdillah al-Barqi, from his father, "
+                + "from Rabee’ al-Warraq, from Salih bin Sahl, from Abu Abdillah, peace be upon him, with "
+                + "regards to the saying of Allah, Exalted and Glorious is He: «Everything is to perish, "
+                + "except for His Face» (28:88). He said: Us.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("englishChain");
+        assertNotNull(chain);
+        assertTrue(chain.contains("Salih bin Sahl"),
+                "The man who heard the Imam belongs to the chain, not only the first name");
+    }
+    @Test
+    void readsTheEnglishRouteThatNamesNobody() {
+        Map<String, Object> source = new HashMap<>();
+        // Faqīh 1029. The Arabic route is «و روي» and nothing more, and the English says
+        // «It is narrated:» and nothing more. Not one word stands in front of that formula
+        // for the score gate to read, so the whole of the narration was read as isnād —
+        // 725 characters of it against the Arabic's sixteen.
+        source.put("arabic", "1029 - وَ رُوِيَ: «أَنَّهُ مَنْ تَكَلَّمَ فِي صَلاَتِهِ نَاسِياً كَبَّرَ تَكْبِيرَاتٍ "
+                + "وَ مَنْ تَكَلَّمَ فِي صَلاَتِهِ مُتَعَمِّداً فَعَلَيْهِ إِعَادَةُ اَلصَّلاَةِ وَ مَنْ "
+                + "أَنَّ فِي صَلاَتِهِ فَقَدْ تَكَلَّمَ. وإن نسيت الظهر حتى غربت الشمس وقد صليت العصر فان"
+                + " أمكنك أن تصليها قبل ان تفوتك المغرب فابدأ بها والا فصل المغرب ثم صل بعدها الظهر، وان "
+                + "نسيت الظهر وقد ذكرتها وأنت تصلى العصر فاجعل التي تصليها الظهر - إن لم تخش أن يفوتك "
+                + "وقتب العص - ثم صل العصر بعد ذلك، فان خفت أن يفوتك وقت العصر فابدأ بالعصر، وإن نسيت "
+                + "الظهر والعصر ثم ذكرتهما عند غروب الشمس فصل الظهر ثم صل العصر إن كنت لا تخاف فوات "
+                + "إحديهما، فإن خفت أن يفوتك إحداهما فابدأ بالعصر ولا تؤخرها فيكون قد فاتتك جميعا ، ثم صل"
+                + " الأولى بعد ذلك على أثرها ومتى فاتتك صلاة فصلها إذا ذكرت فإن ذكرتها وأنت في وقت فريضة "
+                + "أخرى فصل التي أنت في وقتها ثم صل الصلاة الفائتة، ومن فاتته الظهر والعصر جميعا، ثم "
+                + "ذكرهما وقد بقي من النهار بمقدار ما يصليهما جميعا بدأ بالظهر ثم بالعصر، وإن بقي بمقدار "
+                + "ما يصلي إحديهما بدأ بالعصر وإن بقي من النهار بمقدار ما يصلي ست ركعات بدأ بالظهر.");
+        source.put("english", "Hadith.1029 - It is narrated: \"If someone speaks during their prayer out of "
+                + "forgetfulness, they should make additional takbir (saying 'Allahu Akbar'). But if "
+                + "someone speaks during their prayer intentionally, they must repeat the prayer. If "
+                + "someone makes an utterance during their prayer, they have indeed spoken”. If you "
+                + "forget the Dhuhr (noon) prayer until the sun sets and you have already prayed Asr "
+                + "(afternoon) prayer, then if it is possible to perform Dhuhr before missing Maghrib "
+                + "(sunset) prayer, you should start with Dhuhr. Otherwise, pray Maghrib first and then "
+                + "perform Dhuhr afterward. If you remember Dhuhr while you are performing Asr, then "
+                + "consider the prayer you are performing as Dhuhr—unless you fear that the time for Asr "
+                + "will expire. Then perform Asr after that. If you fear that the time for Asr will "
+                + "expire, perform Asr first. If you forget both Dhuhr and Asr prayers and remember them "
+                + "at sunset, then perform Dhuhr first and then Asr, provided that you do not fear "
+                + "missing one of them. If you fear missing one, perform Asr first, so that neither of "
+                + "them is completely missed. Then, afterward, perform the Dhuhr prayer immediately "
+                + "after. Whenever you miss a prayer, perform it as soon as you remember. If you remember"
+                + " it while you are in the time of another obligatory prayer, perform the current prayer"
+                + " first, then perform the missed prayer afterward. If a person misses both Dhuhr and "
+                + "Asr prayers and remembers them with enough time left in the day to perform both, they "
+                + "should start with Dhuhr and then perform Asr. If there is only enough time to perform "
+                + "one of the two prayers, they should begin with Asr. If there is enough daylight left "
+                + "to perform six units of prayer, they should begin with Dhuhr.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("englishChain");
+        String content = (String) source.get("englishContent");
+        assertNotNull(chain);
+        assertNotNull(content);
+        assertTrue(chain.contains("It is narrated"));
+        assertFalse(chain.contains("forgetfulness"), "What is narrated is the narration");
+        assertTrue(content.contains("forgetfulness"));
+    }
+
+    @Test
+    void readsTheEnglishChainOfTwoMenThatScoresNothing() {
+        Map<String, Object> source = new HashMap<>();
+        // al-Kāfī 8:73. «71. Abaan, from Abu Baseer who said:» holds one «from», which the
+        // score gate counts as no chain language at all, so the boundary at character 35
+        // was refused and the narration read as isnād to its end. The Arabic chain beside
+        // it is thirty-two characters long and settles the question.
+        source.put("arabic", "أَبَانٌ عَنْ أَبِي بَصِيرٍ قَالَ كُنْتُ جَالِساً عِنْدَ أَبِي عَبْدِ اللَّهِ (عليه "
+                + "السلام) إِذْ دَخَلَتْ عَلَيْنَا أُمُّ خَالِدٍ الَّتِي كَانَ قَطَعَهَا يُوسُفُ بْنُ "
+                + "عُمَرَ تَسْتَأْذِنُ عَلَيْهِ فَقَالَ أَبُو عَبْدِ اللَّهِ (عليه السلام) أَ يَسُرُّكَ "
+                + "أَنْ تَسْمَعَ كَلَامَهَا قَالَ فَقُلْتُ نَعَمْ قَالَ فَأَذِنَ لَهَا قَالَ وَ "
+                + "أَجْلَسَنِي مَعَهُ عَلَى الطِّنْفِسَةِ قَالَ ثُمَّ دَخَلَتْ فَتَكَلَّمَتْ فَإِذَا "
+                + "امْرَأَةٌ بَلِيغَةٌ فَسَأَلَتْهُ عَنْهُمَا فَقَالَ لَهَا تَوَلَّيْهِمَا قَالَتْ "
+                + "فَأَقُولُ لِرَبِّي إِذَا لَقِيتُهُ إِنَّكَ أَمَرْتَنِي بِوَلَايَتِهِمَا قَالَ نَعَمْ "
+                + "قَالَتْ فَإِنَّ هَذَا الَّذِي مَعَكَ عَلَى الطِّنْفِسَةِ يَأْمُرُنِي بِالْبَرَاءَةِ "
+                + "مِنْهُمَا وَ كَثِيرٌ النَّوَّاءُ يَأْمُرُنِي بِوَلَايَتِهِمَا فَأَيُّهُمَا خَيْرٌ وَ "
+                + "أَحَبُّ إِلَيْكَ قَالَ هَذَا وَ اللَّهِ أَحَبُّ إِلَيَّ مِنْ كَثِيرٍ النَّوَّاءِ وَ "
+                + "أَصْحَابِهِ إِنَّ هَذَا تَخَاصَمَ فَيَقُولُ وَ مَنْ لَمْ يَحْكُمْ بِما أَنْزَلَ "
+                + "اللَّهُ فَأُولئِكَ هُمُ الْكافِرُونَ وَ مَنْ لَمْ يَحْكُمْ بِما أَنْزَلَ اللَّهُ "
+                + "فَأُولئِكَ هُمُ الظَّالِمُونَ وَ مَنْ لَمْ يَحْكُمْ بِما أَنْزَلَ اللَّهُ فَأُولئِكَ "
+                + "هُمُ الْفاسِقُونَ.");
+        source.put("english", "71. Abaan, from Abu Baseer who said: ‘I was seated in the presence of Abu Abdullah "
+                + "(asws) when mother of Khalid who had been cut off by Yusuf Bin Umar came up, seeking "
+                + "permission to see him (asws). Abu Abdullah (asws) said: ‘Would you like to listen to "
+                + "her speech?’ I said, ‘Yes’. He (asws) said: ‘Grant her permission’, and he (asws) made"
+                + " me sit alongside him (asws) upon the seat. Then she came in. She spoke eloquently. So"
+                + " she asked about the two of them. He (asws) said to her: ‘Befriend the two of them’ "
+                + "She said, ‘Shall I say to my Lord (azwj) when I meet Him (azwj) that you (asws) "
+                + "ordered me to befriend them?’ He (asws) said: ‘Yes’. She said, ‘But the one who is "
+                + "seated with you (asws) upon the seat (Abu Baseer) has ordered me to keep away "
+                + "(Tabarra) from those two whilst Kaseer Al-Nawa has ordered me to befriend those two. "
+                + "So, which one is better and more beloved to you (asws)?’ He (asws) said: ‘By Allah "
+                + "(azwj)! This one here is more beloved to me (asws) than Kaseer Al-Nawa and his "
+                + "companions. This one here argues by saying: “[5:44] and whoever did not judge by what "
+                + "Allah revealed, those are they that are the unbelievers”; “[5:45] and whoever did not "
+                + "judge by what Allah revealed, those are they that are the unjust”; “[5:47] And the "
+                + "followers of the Injeel should have judged by what Allah revealed in it; and whoever "
+                + "did not judge by what Allah revealed, those are they that are the transgressors”.");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("englishChain");
+        assertNotNull(chain);
+        assertTrue(chain.contains("Abu Baseer"));
+        assertFalse(chain.contains("mother of Khalid"), "What he said is the narration");
+    }
+
+    @Test
+    void leavesAnEnglishChainShorterThanTheArabicAlone() {
+        Map<String, Object> source = new HashMap<>();
+        // al-Kāfī 4:163. The English chain ends on «who has said the following» and says no
+        // more — three fifths of the Arabic standing beside it, because the translation
+        // drops what the Arabic names. A measurement is not a reason to lengthen a chain
+        // into the narration, so a chain that merely runs short is left as it is.
+        source.put("arabic", "2ـ أَحْمَدُ بْنُ أَبِي عَبْدِ الله عَنْ عُثْمَانَ بْنِ عِيسَى عَمَّنْ حَدَّثَهُ عَنْ "
+                + "أَبِي عَبْدِ الله (عَلَيْهِ السَّلاَم) فِي قَوْلِ الله عَزَّ وَجَلَّ كَذلِكَ يُرِيهِمُ"
+                + " الله أَعْمالَهُمْ حَسَراتٍ عَلَيْهِمْ قَالَ هُوَ الرَّجُلُ يَدَعُ مَالَهُ لا "
+                + "يُنْفِقُهُ فِي طَاعَةِ الله بُخْلاً ثُمَّ يَمُوتُ فَيَدَعُهُ لِمَنْ يَعْمَلُ فِيهِ "
+                + "بِطَاعَةِ الله أَوْ فِي مَعْصِيَةِ الله فَإِنْ عَمِلَ بِهِ فِي طَاعَةِ الله رَآهُ فِي "
+                + "مِيزَانِ غَيْرِهِ فَرَآهُ حَسْرَةً وَقَدْ كَانَ الْمَالُ لَهُ وَإِنْ كَانَ عَمِلَ بِهِ"
+                + " فِي مَعْصِيَةِ الله قَوَّاهُ بِذَلِكَ الْمَالِ حَتَّى عَمِلَ بِهِ فِي مَعْصِيَةِ الله"
+                + " عَزَّ وَجَلَّ.");
+        source.put("english", "2. Ahmad ibn abu ‘Abd Allah has narrated from ‘Uthman ibn ‘Isa from those whom he has "
+                + "mentioned who has said the following: “This is about the meaning of the words of "
+                + "Allah, the Most Majestic, the Most Glorious, Thus Allah shows them their deeds that "
+                + "will make them regretful. (2:162)’ Abu ‘Abd Allah (a.s.), has said, This is a man who "
+                + "keeps his property without spending in obedience to Allah due to his stinginess. He "
+                + "then dies and leaves it (the property) for one who spends it in obedience to Allah or "
+                + "in disobedience of Allah. If it is spent in obedience of Allah and finds it in the "
+                + "balance of the other person, he then becomes regretful; it was his property. If it is "
+                + "spent in disobedience of Allah, he is the one who enabled the spender through that "
+                + "property to disobey Allah, the Most Majestic, the Most Glorious.’”");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        String chain = (String) source.get("englishChain");
+        assertNotNull(chain);
+        assertTrue(chain.contains("who has said the following"));
+        assertFalse(chain.contains("Most Majestic"), "The chain is not lengthened to fit");
+    }
+    @Test
+    void doesNotReadASermonAsAnIsnadWhereTheArabicFoundNone() {
+        Map<String, Object> source = new HashMap<>();
+        // al-Khiṣāl 27-4 is a list of al-Ṣādiq's sayings with no chain at all, and the
+        // Arabic splitter says so. The English one found a verb of saying somewhere inside
+        // it and read 1,536 characters as isnād. Ninety-six narrations came out that way —
+        // al-Tawḥīd's opening praise of God, Nahj al-Balāgha's sermons, the Faqīh's own
+        // instructions for entering the Kaaba, and a chapter heading among them.
+        source.put("arabic", "27-4 انتظروا الفرج، ولا تيأسوا من روح الله، فان أحب الاعمال إلى الله عز وجل انتظار "
+                + "الفرج ما دام عليه العبد المؤمنتوكلوا على الله عز وجل عند ركعتي الفجر اذا صليتموها، "
+                + "ففيها تعطوا الرغائبلا تخرجوا بالسيوف إلى الحرم. ولا يصلين أحدكم وبين يديه سيف فان "
+                + "القبلة أمنأتموا برسول الله صلى الله عليه وآله حجكم إذا خرجتم إلى بيت الله، فان تركه "
+                + "جفاء وبذلك أمرتم، [وأتموا] بالقبور التي ألزمكم الله عز وجل حقها وزيارتها، واطلبوا "
+                + "الرزق عندهاولا تستصغروا قليل الآثام، فان الصغير يحصى ويرجع إلى الكبيروأطيلوا السجود، "
+                + "فما من عمل أشد على إبليس من أن يرى ابن آدم ساجدا، لانه أمر بالسجود فعصى، وهذا امر "
+                + "بالسجود فأطاع فنجاأكثروا ذكر الموت ويوم خروجكم من القبور وقيامكم بين يدي الله عز وجل "
+                + "تهون عليكم المصائبإذا اشتكى أحدكم عينيه فليقرأ آية الكرسي وليضمر في نفسه أنها تبرأ، "
+                + "فانه يعافي إن شاء اللهتوقوا الذنوب فما من بلية ولا نقص رزق إلا بذنب حتى الخدش والكبوة "
+                + "والمصيبةقال الله عز وجل: \"وَمَا أَصَابَكُمْ مِنْ مُصِيبَةٍ فَبِ");
+        source.put("english", "27-4 Be hopeful. Do not lose hopes in God’s Mercy. The best deed in the sight of the "
+                + "Honorable the Exalted God is being hopeful for relief so that one can survive with "
+                + "that hope.You should seek God’s help by reliance on Him when you say your morning "
+                + "prayers, since that is the time when the rewards are bestowed.Do not enter a shrine "
+                + "with a sword.You should not put the sword in front of you while you pray, since the "
+                + "Qibla (prayer direction) is a secure turning point.Whenever you go on the Hajj "
+                + "pilgrimage, you should also go and visit the shrine of God’s Prophet (MGB). It would "
+                + "be ungrateful not to do so.You should also visit other shrines which the Honorable the"
+                + " Exalted God has made it incumbent upon you to visit. You should ask for your share of"
+                + " daily bread there.Do not underestimate minor sins since they might lead to major "
+                + "sins.Lengthen your prostration because nothing is harsher for Sa");
+
+        HadithDisplaySegmenter.enrich(source);
+
+        assertNull(source.get("arabicChain"), "There is no chain in this entry");
+        assertNull(source.get("englishChain"),
+                "And an English verb of saying does not make one");
     }
 }

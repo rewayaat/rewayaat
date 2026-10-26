@@ -1,12 +1,12 @@
 {
-  "id": "mcp-connector-2026-09",
+  "id": "chain-links-2026-10",
   "active": true,
-  "icon": "fa-plug",
-  "label": "New for researchers:",
-  "text": "search all 50,038 narrations from inside Claude and ChatGPT, with every source linked.",
+  "icon": "fa-link",
+  "label": "New:",
+  "text": "Names in a chain now resolve to the narrator who carried them, and to what the rijal books say of him.",
   "linkText": "See how",
-  "linkUrl": "/updates.html#connector",
-  "label_ar": "جديد للباحثين:",
-  "text_ar": "ابحث في ٥٠٬٠٣٨ رواية من داخل Claude وChatGPT، مع رابط لكل مصدر.",
+  "linkUrl": "/updates.html",
+  "label_ar": "جديد:",
+  "text_ar": "أسماء السند صارت توصل إلى الراوي الذي حملها، وإلى ما قالته فيه كتب الرجال.",
   "linkText_ar": "كيف يعمل"
 }
