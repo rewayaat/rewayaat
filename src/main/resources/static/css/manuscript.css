@@ -16803,19 +16803,6 @@ a.chains__note--to:focus-visible {
 }
 
 
-/* What the two columns count, said before either is read. The tab's whole structure is the
-   distinction between a book's claim and a fact about these chains, and a reader who meets
-   «Narrates from 0» without it reads the zero as an empty database. */
-.chains__lead {
-    max-width: 76ch;
-    margin: 0 0 2rem;
-    font-size: 0.85rem;
-    line-height: 1.8;
-    color: var(--text-muted);
-    padding-inline-start: 0.9rem;
-    border-inline-start: 2px solid color-mix(in srgb, var(--accent-gold, #c8a23d) 40%, transparent);
-}
-
 /* The qualification on a count, on its own line under the column's name so the number is
    never read bare. */
 .chains__basis {
