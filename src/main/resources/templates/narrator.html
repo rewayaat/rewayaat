@@ -651,9 +651,16 @@
                                        + (${man['slug']} != null and !${#strings.isEmpty(man['slug'])} ? '/' + ${man['slug']} : '')"
                               th:text="${shown}">al-Kulaynī</a><span
                               th:if="${man['person_id'] == null}" th:text="${shown}">al-Kulaynī</span></span>
-                        <span class="chains__books"
+                        <!-- Where this pairing comes from. A book's chain index names it, or the
+                         chains this database serves put the two together so many times, or
+                         both — in which case the books are named and the count follows them. -->
+                    <span class="chains__books"><span
+                          th:if="${!#lists.isEmpty(man.books)}"
                           th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
-                                     ? man['books_ar'] : man.books, ' · ')}">Khoei</span>
+                                     ? man['books_ar'] : man.books, ' · ')}">Khoei</span><span
+                          th:if="${man['narrations'] != null}" class="chains__here"
+                          th:classappend="${!#lists.isEmpty(man.books)} ? 'chains__here--after' : ''"
+                          th:text="${@counts.of(man['narrations'], 'narrator.chains.here')}">12 chains here</span></span>
                     </li>
                 </ul>
             </div>
@@ -716,9 +723,16 @@
                                    + (${man['slug']} != null and !${#strings.isEmpty(man['slug'])} ? '/' + ${man['slug']} : '')"
                           th:text="${shown}">اسم</a><span
                           th:if="${man['person_id'] == null}" th:text="${shown}">اسم</span></span></span>
-                    <span class="chains__books"
+                    <!-- Where this pairing comes from. A book's chain index names it, or the
+                         chains this database serves put the two together so many times, or
+                         both — in which case the books are named and the count follows them. -->
+                    <span class="chains__books"><span
+                          th:if="${!#lists.isEmpty(man.books)}"
                           th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
-                                     ? man['books_ar'] : man.books, ' · ')}">Khoei</span>
+                                     ? man['books_ar'] : man.books, ' · ')}">Khoei</span><span
+                          th:if="${man['narrations'] != null}" class="chains__here"
+                          th:classappend="${!#lists.isEmpty(man.books)} ? 'chains__here--after' : ''"
+                          th:text="${@counts.of(man['narrations'], 'narrator.chains.here')}">12 chains here</span></span>
                 </li>
                 <li class="chains__row" th:each="man : ${narrator.unsaid_to}">
                     <span class="chains__who"><span class="chains__dir" th:text="#{narrator.chains.dirTo}">to</span>
@@ -734,9 +748,16 @@
                                    + (${man['slug']} != null and !${#strings.isEmpty(man['slug'])} ? '/' + ${man['slug']} : '')"
                           th:text="${shown}">اسم</a><span
                           th:if="${man['person_id'] == null}" th:text="${shown}">اسم</span></span></span>
-                    <span class="chains__books"
+                    <!-- Where this pairing comes from. A book's chain index names it, or the
+                         chains this database serves put the two together so many times, or
+                         both — in which case the books are named and the count follows them. -->
+                    <span class="chains__books"><span
+                          th:if="${!#lists.isEmpty(man.books)}"
                           th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
-                                     ? man['books_ar'] : man.books, ' · ')}">Khoei</span>
+                                     ? man['books_ar'] : man.books, ' · ')}">Khoei</span><span
+                          th:if="${man['narrations'] != null}" class="chains__here"
+                          th:classappend="${!#lists.isEmpty(man.books)} ? 'chains__here--after' : ''"
+                          th:text="${@counts.of(man['narrations'], 'narrator.chains.here')}">12 chains here</span></span>
                 </li>
             </ul>
         </section>
@@ -767,9 +788,16 @@
                                    + (${man['slug']} != null and !${#strings.isEmpty(man['slug'])} ? '/' + ${man['slug']} : '')"
                           th:text="${shown}">اسم</a><span
                           th:if="${man['person_id'] == null}" th:text="${shown}">اسم</span></span></span>
-                    <span class="chains__books"
+                    <!-- Where this pairing comes from. A book's chain index names it, or the
+                         chains this database serves put the two together so many times, or
+                         both — in which case the books are named and the count follows them. -->
+                    <span class="chains__books"><span
+                          th:if="${!#lists.isEmpty(man.books)}"
                           th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
-                                     ? man['books_ar'] : man.books, ' · ')}">Khoei</span>
+                                     ? man['books_ar'] : man.books, ' · ')}">Khoei</span><span
+                          th:if="${man['narrations'] != null}" class="chains__here"
+                          th:classappend="${!#lists.isEmpty(man.books)} ? 'chains__here--after' : ''"
+                          th:text="${@counts.of(man['narrations'], 'narrator.chains.here')}">12 chains here</span></span>
                 </li>
                 <li class="chains__row" th:each="man : ${narrator.chain_to}">
                     <span class="chains__who"><span class="chains__dir" th:text="#{narrator.chains.dirTo}">to</span>
@@ -785,9 +813,16 @@
                                    + (${man['slug']} != null and !${#strings.isEmpty(man['slug'])} ? '/' + ${man['slug']} : '')"
                           th:text="${shown}">اسم</a><span
                           th:if="${man['person_id'] == null}" th:text="${shown}">اسم</span></span></span>
-                    <span class="chains__books"
+                    <!-- Where this pairing comes from. A book's chain index names it, or the
+                         chains this database serves put the two together so many times, or
+                         both — in which case the books are named and the count follows them. -->
+                    <span class="chains__books"><span
+                          th:if="${!#lists.isEmpty(man.books)}"
                           th:text="${#strings.listJoin(isArabic and !#lists.isEmpty(man['books_ar'])
-                                     ? man['books_ar'] : man.books, ' · ')}">Khoei</span>
+                                     ? man['books_ar'] : man.books, ' · ')}">Khoei</span><span
+                          th:if="${man['narrations'] != null}" class="chains__here"
+                          th:classappend="${!#lists.isEmpty(man.books)} ? 'chains__here--after' : ''"
+                          th:text="${@counts.of(man['narrations'], 'narrator.chains.here')}">12 chains here</span></span>
                 </li>
             </ul>
         </section>

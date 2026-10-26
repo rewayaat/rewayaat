@@ -37,6 +37,7 @@ from grade_evidence import shown  # noqa: E402
 import imams  # noqa: E402
 import relation_evidence  # noqa: E402
 import relations_join  # noqa: E402
+import isnad_neighbours  # noqa: E402
 from narrator_schema import (imam_generations, is_reasoned, normalize_arabic,  # noqa: E402
                              normalize_english, says_no_imam)
 import transliterate  # noqa: E402
@@ -1558,7 +1559,7 @@ def document(person, source, headless):
         # not of everyone who stands beside him in an index of chains
         "teacher_count": len(narrated_from),
         "student_count": len(narrated_to),
-        "chain_only_count": len(chain_from) + len(chain_to),
+        "chain_only_count": len(chain_from) + len(chain_to),  # grown below by isnad_neighbours
         # The years his imamates cover, first to last — but never past his own death. The
         # ledger reads this as «Active, AH», and al-Kazim's imamate running to 183 had
         # Zurara, who died in 150, active for thirty-three years after it.
@@ -1792,6 +1793,61 @@ def main():
                         link["slug"] = slug
                         slugged += 1
         counts["Imam rows given the roster slug, so the name can link"] = slugged
+
+        # «In the same isnād» is built from the chain indexes the rijāl books print, which
+        # are a summary of what their authors read rather than the chains this database
+        # serves. For Aḥmad b. Idrīs the books give 66 names; the corpus puts him beside
+        # 121 men, 108 of them unnamed by any index. Both are the same weak claim — these
+        # men stood together in a chain, nobody called anyone a teacher — so they belong in
+        # one list, with every row saying which it came from.
+        try:
+            seen_here, chain_steps = isnad_neighbours.build(args.es_host)
+        except Exception as unreachable:  # noqa: BLE001 - any failure means book-only
+            seen_here, chain_steps = {}, 0
+            print(f"  could not read the served chains ({unreachable}); the isnād lists "
+                  f"stay book-only", file=sys.stderr)
+        by_id = {d["person_id"]: d for d in documents if d.get("person_id")}
+        placed = marked = 0
+        every_list = tuple(relations_join.RELATION_FIELDS) + ("imams_from", "imams_to")
+        for doc in documents:
+            beside = seen_here.get(doc.get("person_id"))
+            if not beside:
+                continue
+            # Read once, before anything is appended: a man a book already places stays
+            # where the book put him rather than being printed a second time.
+            already = {row.get("person_id") for field in every_list
+                       for row in (doc.get(field) or []) if row.get("person_id")}
+            for field, side in (("chain_from", "before"), ("chain_to", "after")):
+                counted = beside[side]
+                rows = list(doc.get(field) or [])
+                for row in rows:
+                    narrations = counted.get(row.get("person_id"))
+                    if narrations:
+                        # A pairing both the books and the corpus hold. One row, saying so.
+                        row["narrations"] = narrations
+                        marked += 1
+                for pid, narrations in sorted(counted.items(), key=lambda s: (-s[1], s[0])):
+                    man = by_id.get(pid)
+                    if pid in already or not man:
+                        continue
+                    rows.append({
+                        "name": man.get("display_en"), "name_ar": man.get("display_ar"),
+                        "display_en": man.get("display_en"),
+                        "display_ar": man.get("display_ar"),
+                        "person_id": pid, "slug": man.get("slug"),
+                        "books": [], "books_ar": [], "narrations": narrations,
+                        "kind": "chain", "stated": False, "unsaid": False,
+                    })
+                    placed += 1
+                doc[field] = rows
+            # The count under his name reads «N men stand with him in the chains», built
+            # from these two lists. It is set when the document is built, before any of
+            # this, so it has to be taken again or the headline undercounts what the page
+            # goes on to print.
+            doc["chain_only_count"] = (len(doc.get("chain_from") or [])
+                                       + len(doc.get("chain_to") or []))
+        counts["isnad rows the books also hold, now counted here too"] = marked
+        counts["men the corpus puts beside him that no index names"] = placed
     for label, n in counts.most_common():
         print(f"  {n:7d}  {label}")
     for label, n in IMAM_STATS.most_common():

@@ -16764,3 +16764,19 @@ div.ledger__cell {
     color: var(--accent-gold, #c8a23d);
     border-bottom-color: rgba(200, 162, 61, 0.9);
 }
+
+/* Where a row in «In the same isnād» comes from. A book's chain index prints as the book's
+   name, in the muted grey every citation on this page uses; a pairing the served chains
+   attest prints as a count, in gold, so the two readings are told apart at a glance without
+   a legend. A row both hold names the books first and puts the count after them. */
+.chains__here {
+    font-family: var(--font-ui);
+    font-size: 0.7rem;
+    color: var(--accent-gold, #c8a23d);
+    white-space: nowrap;
+}
+
+.chains__here--after::before {
+    content: " · ";
+    color: var(--text-muted);
+}
