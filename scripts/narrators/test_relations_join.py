@@ -4,7 +4,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from relations_join import arabic_key, join, join_rows, lookup, whose  # noqa: E402
+from relations_join import (arabic_key, join, join_rows, lookup, settled_for,  # noqa: E402
+                             whose)
 
 
 def person(pid, display_ar, headings=(), names_ar=(), names_en=(), display_en=None, slug=None):
@@ -181,3 +182,41 @@ def test_join_puts_the_display_names_on_every_document():
     docs = [dict(PEOPLE[0], narrated_to=[row("Harun ibn Muslim", "A")])] + PEOPLE[1:]
     join(docs)
     assert docs[0]["narrated_to"][0]["display_ar"] == "هارون بن مسلم"
+
+
+# --- rows a judge settled, where no name reaches one man ---------------------------------
+
+def test_a_judged_row_is_placed_on_the_man_the_judge_named():
+    """«محمد بن علي» is two men; the page it sits on decides which, and a judge read it."""
+    people = [person("n1", "محمد بن علي الكوفي", headings=["محمد بن علي"]),
+              person("n2", "محمد بن علي القمي", headings=["محمد بن علي"]),
+              person("n3", "أحمد بن محمد")]
+    tables, slugs = lookup(people), {"n1": "n1", "n2": "n2"}
+    rows = [row("محمد بن علي", "Khoei", name_ar="محمد بن علي")]
+    settled = {"n3|chain_from|محمد بن علي": {"person_id": "n2"}}
+    out = join_rows(rows, tables, slugs, None, settled, "n3", "chain_from")
+    assert out[0]["person_id"] == "n2"
+    assert out[0]["settled_by"] == "judge"
+
+
+def test_a_judgement_never_overrules_a_name_that_reaches_one_man():
+    people = [person("n1", "محمد بن علي الكوفي", headings=["محمد بن علي الكوفي"]),
+              person("n2", "محمد بن علي القمي"), person("n3", "أحمد بن محمد")]
+    tables, slugs = lookup(people), {"n1": "n1", "n2": "n2"}
+    rows = [row("محمد بن علي الكوفي", "Khoei", name_ar="محمد بن علي الكوفي")]
+    settled = {"n3|chain_from|محمد بن علي الكوفي": {"person_id": "n2"}}
+    out = join_rows(rows, tables, slugs, None, settled, "n3", "chain_from")
+    assert out[0]["person_id"] == "n1"
+    assert "settled_by" not in out[0]
+
+
+def test_a_judgement_for_another_page_is_not_read_here():
+    """The same name on another man's page is a different question, and keyed as one."""
+    people = [person("n1", "محمد بن علي الكوفي", headings=["محمد بن علي"]),
+              person("n2", "محمد بن علي القمي", headings=["محمد بن علي"]),
+              person("n3", "أحمد بن محمد")]
+    tables, slugs = lookup(people), {"n1": "n1", "n2": "n2"}
+    rows = [row("محمد بن علي", "Khoei", name_ar="محمد بن علي")]
+    settled = {"n9|chain_from|محمد بن علي": {"person_id": "n2"}}
+    out = join_rows(rows, tables, slugs, None, settled, "n3", "chain_from")
+    assert out[0].get("person_id") is None

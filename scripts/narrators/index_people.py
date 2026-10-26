@@ -1902,8 +1902,11 @@ def main():
     # أبي عبد الله», or Khoei's index read in English against the Arabic of the rest —
     # arrived as two rows each carrying one book. Regrouped by the man the name reaches,
     # which also puts his id on the row so the page can link it.
+    settled = relations_join.load_settled()
+    if settled:
+        print(f"  {len(settled):,} rows a judge settled, where no name reaches one man")
     counts["teacher and student rows joined to another naming the same man"] = \
-        relations_join.join(documents)
+        relations_join.join(documents, settled)
 
     if documents and args.dump:
         with open(args.dump + ".part", "w") as handle:
@@ -1922,7 +1925,7 @@ def main():
         # rewrites, so a second pass over rows it has already grouped changes nothing
         # except the names it could not read the first time.
         counts["rows joined to an Imam, once the roster was in the set"] = \
-            relations_join.join(documents)
+            relations_join.join(documents, settled)
         # The Imams' own block is built from imams_from/imams_to, which relations_join does
         # not touch — those rows are settled by name against the roster long before it runs,
         # and they already carry imam_id. They only lack the slug, so a link had to go to

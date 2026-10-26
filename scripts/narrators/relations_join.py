@@ -186,13 +186,39 @@ def _spelling(row):
     return ("latin", latin) if latin else ("row", id(row))
 
 
-def join_rows(rows, tables, slugs, displays=None):
+def settled_for(settled, subject, field, row):
+    """The man a judge settled this row on, where no name reaches one man.
+
+    A name two men answer to is dropped by `whose` on purpose, and about half of those
+    rows can still be settled by reading the page: the dating, the direction of the claim,
+    which candidate the served chains stand beside him, which candidate's own entry names
+    him back. That reading is done offline and lands in a table keyed by the man, the list
+    and the folded name — the same row the page prints. The judge's answer is consulted
+    only after the names have failed, so it can never overrule a name that does reach one
+    man.
+    """
+    if not settled or not subject or not field:
+        return None
+    kind, key = _spelling(row)
+    if kind not in ("arabic", "latin"):
+        return None
+    return (settled.get(f"{subject}|{field}|{key}") or {}).get("person_id")
+
+
+def join_rows(rows, tables, slugs, displays=None, settled=None, subject=None, field=None):
     """Regroup one relation list by the man each row names, keeping the printed order."""
     if not rows:
         return []
     order, groups = [], defaultdict(list)
+    by_name, by_judge = set(), set()
     for row in rows:
         pid = whose(row, tables)
+        if pid:
+            by_name.add(pid)
+        else:
+            pid = settled_for(settled, subject, field, row)
+            if pid:
+                by_judge.add(pid)
         # A row reaching nobody falls back to its own spelling, which is what the grouping
         # did before any of this: two rows that are the same name are the same row whether
         # or not we can say whose name it is. Only a row with no key at all stands alone,
@@ -205,12 +231,28 @@ def join_rows(rows, tables, slugs, displays=None):
     for gkey in order:
         members = groups[gkey]
         pid = gkey[1] if gkey[0] == "man" else None
-        out.append(_merge(members, pid, slugs, displays)
-                   if (len(members) > 1 or pid) else members[0])
+        joined = (_merge(members, pid, slugs, displays)
+                  if (len(members) > 1 or pid) else members[0])
+        # Said on the row, because it is a different kind of claim from a name that
+        # reaches one man, and a reader is entitled to know which one he is reading.
+        if pid and pid in by_judge and pid not in by_name:
+            joined["settled_by"] = "judge"
+        out.append(joined)
     return out
 
 
-def join(documents):
+def load_settled(path=None):
+    """The judged rows, or nothing at all if the table has not been built."""
+    path = path or os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        "scripts", "data", "narrators", "settled_relations.json")
+    if not os.path.exists(path):
+        return {}
+    with open(path, encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def join(documents, settled=None):
     """Regroup every relation list on every document. Returns how many rows went away."""
     tables = lookup(documents)
     slugs = {doc.get("person_id"): doc.get("slug") for doc in documents if doc.get("person_id")}
@@ -223,7 +265,8 @@ def join(documents):
             rows = doc.get(field)
             if not rows:
                 continue
-            joined = join_rows(rows, tables, slugs, displays)
+            joined = join_rows(rows, tables, slugs, displays, settled,
+                               doc.get("person_id"), field)
             removed += len(rows) - len(joined)
             doc[field] = joined
     return removed
@@ -272,6 +315,9 @@ def main():
     parser.add_argument("--show", help="print one person's joined rows and stop")
     args = parser.parse_args()
 
+    settled = load_settled()
+    if settled:
+        print(f"  {len(settled):,} rows a judge settled", file=sys.stderr)
     names = ["person_id", "slug", "headings_ar", "names_ar", "display_ar",
              "names_en", "display_en"]
     print("reading the names every narrator answers to", file=sys.stderr)
@@ -296,7 +342,8 @@ def main():
             if not before:
                 continue
             rows += len(before)
-            after = join_rows(before, tables, slugs, displays)
+            after = join_rows(before, tables, slugs, displays, settled,
+                              pid, field)
             if after != before:
                 changed[field] = after
                 removed += len(before) - len(after)
