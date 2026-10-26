@@ -16802,28 +16802,3 @@ a.chains__note--to:focus-visible {
     border-bottom-style: solid;
 }
 
-/* The lineage under the heading. It is long by nature — twenty-five generations in the worst
-   case — so it is set small, muted and loose, with its label on its own line above it, and
-   it wraps rather than pushing the hero wide. */
-.rijal__nasab {
-    margin: 0.6rem 0 0;
-    max-width: 62ch;
-    font-size: 0.78rem;
-    line-height: 1.8;
-    color: var(--text-muted);
-}
-
-.rijal__nasab-label {
-    display: block;
-    font-family: var(--font-ui);
-    font-size: 0.64rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-faint, var(--text-muted));
-    margin-bottom: 0.15rem;
-}
-
-[dir="rtl"] .rijal__nasab-label {
-    letter-spacing: normal;
-    text-transform: none;
-}

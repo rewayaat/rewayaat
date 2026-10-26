@@ -36,14 +36,9 @@
             <p class="hub-hero__also"
                th:if="${!#strings.isEmpty(displayEn) and #locale.language != 'ar'}"
                th:text="${displayEn}">Transliterated name</p>
-            <!-- The lineage, once, where the heading above is the shorter name the books
-                 cite him by. An entry's first line establishes who is being written about,
-                 and al-Najāshī establishes Ibn Adhinah through twenty-five generations to
-                 ʿAdnān; that belongs on the page, but not as the page's name. -->
-            <p class="rijal__nasab" th:if="${!#strings.isEmpty(narrator['nasab_ar'])}">
-                <span class="rijal__nasab-label" th:text="#{narrator.nasab}">The entry opens on his line:</span>
-                <span dir="rtl" lang="ar" th:text="${narrator['nasab_ar']}">نسبه</span>
-            </p>
+            <!-- The lineage the anchor entry opens on is not repeated here. It is the first
+                 line of a book's notice on him, so it is read where that notice is quoted, in
+                 Tarājim; printing it under the heading said the same thing twice. -->
             </div>
             <!-- The seal says two things a reader cannot guess: the tile's colour is the
                  earliest Imam he transmitted from, and the ring's length is how much of
