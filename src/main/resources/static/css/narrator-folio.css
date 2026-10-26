@@ -660,3 +660,218 @@ a.hub-stat:focus-visible {
 #narrator-view .chains__note {
     margin-block-end: 1.6rem;
 }
+
+/* ── The preview behind each mark (js/narrator-gens.js) ──────────────────────
+   The strip is only something to point at once the script has said so (.is-live): without
+   it the marks are a picture and nothing on them should invite a hover. The band above and
+   below the marks counts as part of the strip, because a 7px mark is a hard thing to hit. */
+
+.hub-hero--rijal .gens.is-live {
+    cursor: pointer;
+    padding-block: 9px;
+    margin-block: -9px;
+    border-radius: 4px;
+    outline: none;
+}
+.hub-hero--rijal .gens.is-live:focus-visible {
+    box-shadow: 0 0 0 2px rgba(243, 229, 184, 0.75);
+}
+.hub-hero--rijal .gens.is-live .gens__mark {
+    transition: transform 0.16s ease, background-color 0.16s ease, box-shadow 0.16s ease;
+}
+.hub-hero--rijal .gens.is-live .gens__mark.is-active {
+    transform: scaleY(1.85);
+    background-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 0 1px rgba(243, 229, 184, 0.95), 0 0 10px rgba(243, 229, 184, 0.5);
+}
+.hub-hero--rijal .gens.is-live .gens__mark.is-lit.is-active {
+    filter: brightness(1.55) saturate(1.1);
+}
+.rijal__gens-hint { color: rgba(243, 229, 184, 0.5); font-style: italic; }
+
+/* The card: paper under a navy head, edged in the era's own pigment, so the colour of the
+   mark a reader pointed at is the colour of what opens. It never takes the pointer, so moving
+   along the strip moves the card with it instead of being caught by it. */
+.gens-card {
+    --paper: #fffcf5;
+    --ink: #1b2a3e;
+    --ink-soft: #5d6878;
+    --navy-1: #0f2440;
+    --navy-2: #1c3d66;
+    position: absolute;
+    z-index: 1085;
+    width: min(21rem, calc(100vw - 1.5rem));
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid rgba(15, 36, 64, 0.2);
+    border-radius: 10px;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset,
+                0 24px 50px -18px rgba(8, 20, 38, 0.6),
+                0 6px 16px -6px rgba(8, 20, 38, 0.32);
+    font-family: var(--font-ui);
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-5px) scale(0.98);
+    transform-origin: var(--arrow-x, 50%) 0;
+    /* as the name card does: visibility flips at once on the way in and waits out the fade on
+       the way out */
+    transition: opacity 0.16s ease, transform 0.18s ease, visibility 0s linear 0.18s;
+}
+.gens-card.is-above { transform: translateY(5px) scale(0.98); transform-origin: var(--arrow-x, 50%) 100%; }
+.gens-card.is-open {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition: opacity 0.16s ease, transform 0.18s ease, visibility 0s;
+}
+
+.gens-card__arrow {
+    position: absolute;
+    top: -6px;
+    left: calc(var(--arrow-x, 50%) - 6px);
+    width: 12px;
+    height: 12px;
+    background: var(--navy-1);
+    border-left: 1px solid rgba(15, 36, 64, 0.2);
+    border-top: 1px solid rgba(15, 36, 64, 0.2);
+    transform: rotate(45deg);
+    transition: left 0.16s ease;
+}
+.gens-card.is-above .gens-card__arrow {
+    top: auto;
+    bottom: -6px;
+    background: var(--paper);
+    border: 0;
+    border-right: 1px solid rgba(15, 36, 64, 0.2);
+    border-bottom: 1px solid rgba(15, 36, 64, 0.2);
+}
+
+.gens-card__head {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.75rem 0.95rem 0.7rem;
+    border-radius: 9px 9px 0 0;
+    background:
+        radial-gradient(ellipse 80% 120% at 100% 0%, rgba(243, 229, 184, 0.12), transparent 60%),
+        linear-gradient(135deg, var(--navy-1), var(--navy-2));
+    border-bottom: 3px solid var(--era);
+}
+.gens-card__chip {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 8px;
+    background: linear-gradient(160deg, var(--era), var(--era-deep));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 0 0 1px rgba(243, 229, 184, 0.45);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+}
+.gens-card__who { min-width: 0; }
+.gens-card__kicker {
+    margin: 0;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(243, 229, 184, 0.72);
+}
+.gens-card__name {
+    margin: 0.12rem 0 0;
+    font-family: var(--font-reference);
+    font-size: 1.02rem;
+    line-height: 1.2;
+    color: #fff;
+}
+.gens-card__name[lang="ar"] { font-family: "Scheherazade New", "Amiri", serif; font-size: 1.25rem; line-height: 1.35; }
+.gens-card__ar {
+    margin-inline-start: auto;
+    padding-inline-start: 0.5rem;
+    font-family: "Scheherazade New", "Amiri", serif;
+    font-size: 1.15rem;
+    line-height: 1.3;
+    white-space: nowrap;
+    color: var(--gold-light, #f3e5b8);
+}
+
+.gens-card__span {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.15rem 0.55rem;
+    padding: 0.7rem 0.95rem 0.15rem;
+}
+.gens-card__span-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+}
+.gens-card__years {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+.gens-card__meta { font-size: 0.74rem; color: var(--ink-soft); }
+
+.gens-card__chart { display: block; width: 100%; height: auto; padding: 0.2rem 0.35rem 0; }
+.gens-card__chart text { font-family: var(--font-ui); }
+.gens-card .gc-lane { font-size: 7.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; fill: var(--ink-soft); }
+.gens-card .gc-lane--him { letter-spacing: 0.02em; text-transform: none; font-size: 8.5px; fill: #6b4e12; }
+.gens-card .gc-era { opacity: 0.3; }
+.gens-card .gc-era.is-his { opacity: 0.6; }
+.gens-card .gc-era.is-on { opacity: 1; stroke: #c8a23d; stroke-width: 1.5; }
+.gens-card .gc-era-name { font-size: 8px; font-weight: 600; fill: rgba(255, 255, 255, 0.92); }
+.gens-card .gc-era-name.is-on { font-size: 9px; font-weight: 700; fill: #fff; }
+.gens-card .gc-overlap { opacity: 0.1; }
+.gens-card .gc-guide { stroke-width: 1; stroke-dasharray: 2 2; opacity: 0.7; }
+.gens-card .gc-him { fill: #c8a23d; stroke: rgba(107, 78, 18, 0.45); stroke-width: 0.75; }
+.gens-card .gc-him-tail { stroke: #c8a23d; stroke-width: 2; stroke-dasharray: 2 2.5; stroke-linecap: round; }
+.gens-card .gc-death { stroke: var(--ink); stroke-width: 1.4; }
+.gens-card .gc-era-name.is-over { font-size: 8.5px; fill: var(--ink); }
+.gens-card .gc-death-label { font-size: 8px; font-weight: 600; fill: var(--ink); }
+/* labels that a dashed guide can run through carry a halo of the card's paper */
+.gens-card .gc-death-label, .gens-card .gc-era-name.is-over, .gens-card .gc-lane {
+    paint-order: stroke; stroke: var(--paper); stroke-width: 3px; stroke-linejoin: round;
+}
+.gens-card .gc-axis { stroke: rgba(15, 36, 64, 0.28); stroke-width: 1; }
+.gens-card .gc-tick { stroke: rgba(15, 36, 64, 0.28); stroke-width: 1; }
+.gens-card .gc-tick-label { font-size: 8px; fill: var(--ink-soft); font-variant-numeric: tabular-nums; }
+
+.gens-card__verdict {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin: 0.35rem 0.95rem 0;
+    padding: 0.5rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    line-height: 1.4;
+    background: rgba(15, 36, 64, 0.05);
+}
+.gens-card__verdict i {
+    flex: none;
+    width: 0.55rem;
+    height: 0.55rem;
+    margin-top: 0.3rem;
+    border-radius: 50%;
+}
+.gens-card__verdict.is-with { background: rgba(200, 162, 61, 0.15); color: #4f3a0c; }
+.gens-card__verdict.is-with i { background: #c8a23d; box-shadow: 0 0 0 2px rgba(200, 162, 61, 0.3); }
+.gens-card__verdict.is-meet i { border: 1.5px solid var(--era); }
+.gens-card__verdict.is-apart { color: var(--ink-soft); }
+.gens-card__verdict.is-apart i { background: rgba(15, 36, 64, 0.22); }
+.gens-card__note { margin: 0.45rem 0.95rem 0.8rem; font-size: 0.66rem; line-height: 1.4; color: #848d9a; }
+
+@media (prefers-reduced-motion: reduce) {
+    .gens-card, .gens-card.is-open, .gens-card__arrow,
+    .hub-hero--rijal .gens.is-live .gens__mark { transition: none; }
+}

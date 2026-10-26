@@ -99,6 +99,16 @@
                                          and !#lists.isEmpty(narrator.life['imams_ar'])
                                          ? narrator.life['imams_ar'] : narrator.life.imams,
                                          ' · ', isArabic)))}"></th:block>
+            <!-- What the preview behind each mark draws from (js/narrator-gens.js): the
+                 thirteen spans in years, which of them are his, and his death. -->
+            <script th:if="${!#lists.isEmpty(narrator['imam_ordinals'])}" th:inline="javascript">
+                window.RIJAL_GENS = {
+                    eras: /*[[${@eras.forPage(isArabic)}]]*/ [],
+                    lit: /*[[${narrator['imam_ordinals']}]]*/ [],
+                    died: /*[[${narrator.life.died}]]*/ null,
+                    name: /*[[${isArabic or #strings.isEmpty(displayEn) ? displayAr : displayEn}]]*/ ""
+                };
+            </script>
             <p class="hub-hero__gens-key" th:if="${!#lists.isEmpty(narrator['imam_ordinals'])}">
                 <span th:text="#{narrator.gens.key}">The Prophet, then the twelve Imams in order</span>
                 <th:block th:if="${!#lists.isEmpty(narrator.life.imams)}">
@@ -942,6 +952,7 @@
      the chapter pages use. Without it the page is long but whole. -->
 <script src="/js/narration-collapse.js" th:src="@{/js/narration-collapse.js}"></script>
 <script src="/js/narrator-preview.js" th:src="@{/js/narrator-preview.js}" defer></script>
+<script src="/js/narrator-gens.js" th:src="@{/js/narrator-gens.js}" defer></script>
 <script src="/js/narrator-tabs.js" th:src="@{/js/narrator-tabs.js}" defer></script>
 <script src="/js/rijal-chain.js" th:src="@{/js/rijal-chain.js}" defer></script>
 <th:block th:replace="~{fragments/site :: analytics}"></th:block>

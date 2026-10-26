@@ -398,6 +398,10 @@
 
     // The search results count entries and books too, and count them the same way.
     window.narratorCountPhrase = countPhrase;
+    // The marks' preview (narrator-gens.js) colours every era and counts in the page's digits,
+    // and the ramp is not written down a third time.
+    window.narratorPigment = pigment;
+    window.narratorDigits = digits;
 
     window.addEventListener("resize", shut);
     window.addEventListener("hashchange", shut);
