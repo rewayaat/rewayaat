@@ -380,6 +380,11 @@ def load_people(path, books):
     with open(path) as handle:
         people = json.load(handle)
     headings, aliases = defaultdict(set), defaultdict(set)
+    # Every man who answers to a name, his own heading or anybody's quoted alias, with
+    # nothing suppressed. Not a candidate table — `held_by` must not widen — but the only
+    # way to tell a name one man alone bears from one his filing merely won.
+    answers_to = defaultdict(set)
+    held_as_alias = []
     teachers, students, by_id = {}, {}, {}
     imams_of, fathers, is_imam = {}, {}, {}
     for person in people:
@@ -394,10 +399,11 @@ def load_people(path, books):
             folded = key(name)
             if folded and folded not in RELATIVE:
                 headings[folded].add(pid)
-        for name in person.get("names_ar") or []:
-            folded = key(name)
-            if folded and folded not in RELATIVE and folded not in headings:
-                aliases[folded].add(pid)
+                answers_to[folded].add(pid)
+        # The aliases are read in a second pass, below, once every heading is known: an alias
+        # is dropped when the name is somebody's heading, and asking that of a table still
+        # being filled made the answer depend on the order the file happened to be in.
+        held_as_alias.append((pid, person.get("names_ar") or []))
         teachers[pid] = {key(r.get("name_ar") or r.get("name"))
                          for field in ("narrated_from", "chain_from", "unsaid_from")
                          for r in person.get(field) or []}
@@ -420,6 +426,14 @@ def load_people(path, books):
             for relation in person.get(field) or []:
                 name = relation.get("name_ar") or relation.get("name") or ""
                 imams_of[pid] |= imams.from_relation(name, key(name))
+
+    for pid, names in held_as_alias:
+        for name in names:
+            folded = key(name)
+            if folded and folded not in RELATIVE:
+                answers_to[folded].add(pid)
+                if folded not in headings:
+                    aliases[folded].add(pid)
 
     # A name with its trailing nisbas taken off. A chain writes a man as short as it likes,
     # and the books file him as long as they like: al-Kāfī opens 58 chains «الحسين بن محمد
@@ -478,7 +492,8 @@ def load_people(path, books):
             # a shorter one would trade a father nobody holds for a namesake somebody does.
             break
 
-    return {"headings": headings, "aliases": aliases, "teachers": teachers,
+    return {"headings": headings, "aliases": aliases, "answers_to": answers_to,
+            "teachers": teachers,
             "students": students, "by_id": by_id, "imams_of": imams_of, "fathers": fathers,
             "is_imam": is_imam, "extends": extends, "shortened": shortened,
             "shortened_own": shortened_own,
@@ -587,6 +602,63 @@ def spells_out(fullest, person):
         if len(words) > len(want) and words[:len(want)] == want:
             return True
     return False
+
+
+def past_the_alias(folded, lone, before, after, data, compiler):
+    """The man the chain attests, where the only man filed under the name is a stub.
+
+    `held_by` answers from the headings alone and consults the aliases only when no heading
+    matches, and `load_people` says why: an alias is any name an entry mentions, chains
+    quoted inside it included, so Zurāra carries «محمد بن مسلم» and Isḥāq b. ʿAmmār carries
+    «ابن أبي عمير». Letting those contest a heading would hand away names the books file
+    plainly.
+
+    The cost is that a name is `one` — the outcome that asks for no corroboration — whenever
+    a single man is filed under it, however thin his filing and however many fuller men
+    answer to it. «يونس» is al-Kāfī's case: the whole heading of a three-line Ṭūsī notice,
+    «يونس ابن خال أبي المستهل», a companion of al-Bāqir with no relation recorded against
+    him; and an alias of Yūnus b. ʿAbd al-Raḥmān, whom al-Najāshī writes up at length as the
+    mawlā of the house of Yaqṭīn. 482 chains took the notice, several of them handing it the
+    Yūnus who stands next to Muḥammad b. ʿĪsā al-Yaqṭīnī — who is that man's own student.
+
+    `past_the_stub` does not reach this: it looks for a fuller filing of *the same* man, and
+    these are two men. So the stub is looked past here on the same terms, but to a different
+    man and on the chain's word rather than the name's:
+
+    - The man filed under the name must be a stub — no teacher and no student recorded
+      anywhere against him. A record with relations has been checked by somebody and is not
+      displaced by a name that merely appears inside another entry.
+    - The man replacing him must answer to the name and be attested transmitting with the
+      very name standing next to him in this chain, which is what a `chosen` rests on.
+    - He must not have outlived the compiler, the same dating rule the candidates passed.
+    Every such man is returned, because the count is what the caller needs: one is a
+    `chosen`, an inference from the chain recorded with its reason; two are a question and
+    not an answer, and the name is better left ambiguous than given to either. Never `one` —
+    whatever this finds, the name is not one only a single man bears.
+    """
+    if data["teachers"].get(lone) or data["students"].get(lone):
+        return []
+    backed = []
+    for pid in sorted(data.get("answers_to", {}).get(folded, ())):
+        if pid == lone or pid not in data["by_id"] or outlived(pid, compiler, data):
+            continue
+        why = support(pid, before, after, data["teachers"], data["students"])
+        if why:
+            backed.append((pid, why))
+    return backed
+
+
+def contested_by(folded, lone, data):
+    """How many other men answer to this name, so a `one` does not overclaim.
+
+    A reader is told `sole_name` means "only one man in the Rijal books bears this name".
+    That is true of most names and false of the ones a filing won: `held_by` stopped at the
+    headings, and the men carrying the name among their aliases were never counted. This
+    counts them, and the count is what turns that claim into the weaker one the data
+    supports.
+    """
+    answers = data.get("answers_to", {}).get(folded) or set()
+    return max(len(answers - {lone}), 0)
 
 
 def past_the_nisba(folded, lone, before, after, data):
@@ -854,6 +926,22 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
                 row["outcome"], row["person_id"] = "chosen", fuller
                 row["because"] = (f"{why}; the one man filed under this name alone is a "
                                   f"notice with no teacher and no student recorded")
+            else:
+                backed = past_the_alias(keys[position], candidates[0],
+                                        before, after, data, compiler)
+                stub = ("the one man filed under this name alone is a notice with no "
+                        "teacher and no student recorded")
+                if len(backed) == 1:
+                    row["outcome"], row["person_id"] = "chosen", backed[0][0]
+                    row["because"] = (f"{backed[0][1]}; {stub}, and this man answers to "
+                                      f"the name too")
+                elif backed:
+                    # Two men the chain attests and a stub that nothing vouches for. A list
+                    # a reader can judge beats a link to whichever of them sorted first.
+                    row.pop("person_id", None)
+                    row["outcome"] = "several"
+                    row["candidates"] = [candidates[0]] + [pid for pid, _ in backed]
+                    row["because"] = f"{stub}; more than one other man answers to the name"
         else:
             backed = [(pid, support(pid, before, after, data["teachers"], data["students"]))
                       for pid in candidates]
@@ -1084,6 +1172,15 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
         if imam:
             row.pop("person_id")
             row["target"], row["imam_id"] = "imam", imam
+
+    # How many other men answer to the name, recorded only where the outcome claims that one
+    # man bears it. `chosen` and `convention` already publish their reasoning and the Imams
+    # are settled by the roster rather than by a count of namesakes, so neither is counted.
+    for position, row in enumerate(rows):
+        if row["outcome"] == "one" and row.get("person_id"):
+            also = contested_by(keys[position], row["person_id"], data)
+            if also:
+                row["also"] = also
 
     return rows
 

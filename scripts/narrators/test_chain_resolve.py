@@ -150,3 +150,77 @@ def test_a_heading_outranks_an_alias_whichever_form_reached_it():
     data["aliases"]["ابو القاسم جعفر بن محمد"] = {"n2"}
     data["loose"]["aliases"]["ابو القاسم جعفر بن محمد"] = {"n2"}
     assert read(data, "ابو القاسم جعفر بن محمد بن قولويه القمي الفقيه")[0] == [("one", "n1")]
+
+
+def filed(pid, heading, *aliases, teachers=(), students=()):
+    """A man filed under one heading whose entry also mentions other names.
+
+    `man` puts every name in both lists, which is the ordinary case. This separates them,
+    because whether a name is a heading or an alias is the whole question below.
+    """
+    return {"person_id": pid, "books": ["najashi"], "headings_ar": [heading],
+            "display_ar": heading, "names_ar": [heading] + list(aliases),
+            "narrated_from": [{"name_ar": n} for n in teachers],
+            "narrated_to": [{"name_ar": n} for n in students]}
+
+
+def test_a_relationless_stub_is_looked_past_to_the_man_the_chain_attests():
+    """«يونس» was the whole heading of a Ṭūsī notice with no relation recorded, and an alias
+    of Yūnus b. ʿAbd al-Raḥmān, whose own student stands next to it here. 482 chains took
+    the notice, which `held_by` reached because it stops at the headings."""
+    data = index(filed("n1", "يونس"),
+                 filed("n2", "يونس بن عبد الرحمن", "يونس", students=["محمد بن عيسى"]))
+    outcomes, rows = read(data, "محمد بن عيسى", "يونس")
+    assert outcomes[1] == ("chosen", "n2"), outcomes
+    assert "no teacher and no student recorded" in rows[1]["because"]
+
+
+def test_a_filed_man_the_books_connect_is_not_displaced_by_an_alias():
+    """The guard that keeps the rule narrow. Zurāra carries «محمد بن مسلم» among his names;
+    the man filed under it has relations of his own, so the alias does not reach him."""
+    data = index(filed("n1", "محمد بن مسلم", teachers=["حمران"]),
+                 filed("n2", "زرارة بن أعين", "محمد بن مسلم", students=["ابن أبي عمير"]))
+    outcomes, _ = read(data, "ابن أبي عمير", "محمد بن مسلم")
+    assert outcomes[1] == ("one", "n1"), outcomes
+
+
+def test_two_attested_namesakes_leave_the_name_unanswered():
+    data = index(filed("n1", "يونس"),
+                 filed("n2", "يونس بن عبد الرحمن", "يونس", students=["محمد بن عيسى"]),
+                 filed("n3", "يونس بن يعقوب", "يونس", students=["محمد بن عيسى"]))
+    outcomes, rows = read(data, "محمد بن عيسى", "يونس")
+    assert outcomes[1][0] == "several", outcomes
+    assert set(rows[1]["candidates"]) == {"n1", "n2", "n3"}
+
+
+def test_an_unattested_namesake_does_not_displace_the_stub():
+    """The rule rests on the chain's word. A fuller man who answers to the name but whom no
+    book places beside this neighbour changes nothing."""
+    data = index(filed("n1", "يونس"),
+                 filed("n2", "يونس بن عبد الرحمن", "يونس", students=["هشام بن الحكم"]))
+    outcomes, _ = read(data, "محمد بن عيسى", "يونس")
+    assert outcomes[1] == ("one", "n1"), outcomes
+
+
+def test_a_one_records_how_many_other_men_answer_to_the_name():
+    """`sole_name` tells a reader only one man bears the name. Where a filing won it instead,
+    the count is what keeps the published claim honest."""
+    data = index(filed("n1", "محمد بن مسلم", teachers=["حمران"]),
+                 filed("n2", "زرارة بن أعين", "محمد بن مسلم", students=["ابن أبي عمير"]))
+    _, rows = read(data, "ابن أبي عمير", "محمد بن مسلم")
+    assert rows[1]["also"] == 1, rows[1]
+
+    alone = index(man("n1", "الحسين بن سعيد الأهوازي"))
+    _, rows = read(alone, "الحسين بن سعيد الأهوازي")
+    assert "also" not in rows[0], rows[0]
+
+
+def test_the_alias_table_does_not_depend_on_the_order_people_are_read():
+    """An alias is dropped when the name is somebody's heading. Asking that of a table still
+    being filled made «يونس» an alias of n2 or not according to which man came first."""
+    stub = filed("n1", "يونس")
+    fuller = filed("n2", "يونس بن عبد الرحمن", "يونس")
+    one_way = index(stub, fuller)
+    other_way = index(fuller, stub)
+    assert one_way["aliases"].get("يونس") == other_way["aliases"].get("يونس")
+    assert one_way["answers_to"]["يونس"] == other_way["answers_to"]["يونس"] == {"n1", "n2"}
