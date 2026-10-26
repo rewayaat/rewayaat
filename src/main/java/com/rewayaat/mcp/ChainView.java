@@ -22,7 +22,8 @@ import java.util.Set;
  *       Everything else is one of four kinds of unanswered step, and each says which kind.
  *       There is no path by which a guess becomes a name.</li>
  *   <li><b>How the man was reached travels with the identification.</b> A plain name that only
- *       one man holds ({@code sole_name}) is not the same claim as a name that several men hold
+ *       one man is filed under and no other man answers to ({@code sole_name}) is not the
+ *       same claim as one his filing merely won ({@code filed_under}), nor as a name several men hold
  *       and the resolver chose between ({@code context}), nor as a bare name that in this
  *       author's chains is taken to mean one particular man ({@code convention}). The audits
  *       measured them at different accuracies, so the output keeps them apart.</li>
@@ -50,6 +51,7 @@ public final class ChainView {
 
     /** The ways a link was reached, as stored in {@code chain_people.o}, in the output's words. */
     private static final String SOLE_NAME = "sole_name";
+    private static final String FILED_UNDER = "filed_under";
     private static final String CONTEXT = "context";
     private static final String CONVENTION = "convention";
     private static final String UNRECORDED = "unrecorded";
@@ -64,7 +66,7 @@ public final class ChainView {
     /** One step of a chain before it is given names. */
     record Step(int index, String person, String slug, String kind, String outcome,
                 String arabic, String english, String refersTo, String refNumber,
-                String quotedFrom) {
+                String quotedFrom, int alsoAnswering) {
 
         /** The five things a step can be, decided only from what the resolver stored. */
         String status() {
@@ -82,7 +84,11 @@ public final class ChainView {
 
         String basis() {
             return switch (outcome) {
-                case "one" -> SOLE_NAME;
+                // `one` means one man was filed under the name. Where other men answer to it
+                // too - their entries mention it, so the resolver never weighed them against
+                // his filing - saying only one man bears it would be false. The loader counts
+                // them; see chain_resolve.contested_by.
+                case "one" -> alsoAnswering > 0 ? FILED_UNDER : SOLE_NAME;
                 case "chosen" -> CONTEXT;
                 case "convention" -> CONVENTION;
                 default -> UNRECORDED;
@@ -247,6 +253,10 @@ public final class ChainView {
     /** What each {@code basis} and each status means, given once per result and only if used. */
     static final Map<String, String> LEGEND = Map.of(
             SOLE_NAME, "Only one man in the Rijal books bears this name.",
+            FILED_UNDER, "Only one man is filed under this name, and he is the one named here, "
+                    + "but other men's entries mention the same name. The books' own filing "
+                    + "was followed; it was not weighed against those men. Check it against "
+                    + "the chain before resting anything on it.",
             CONTEXT, "Several men bear this name; this one was chosen because the books show "
                     + "him transmitting with the neighbouring name in a chain. A weaker "
                     + "identification than sole_name.",
@@ -362,7 +372,8 @@ public final class ChainView {
             steps.add(new Step(++index, person, NarrationView.str(row.get("g")),
                     NarrationView.str(row.get("k")), NarrationView.str(row.get("o")),
                     words, englishWords, NarrationView.str(row.get("r")),
-                    NarrationView.str(row.get("rn")), NarrationView.str(row.get("qf"))));
+                    NarrationView.str(row.get("rn")), NarrationView.str(row.get("qf")),
+                    count(row.get("a"))));
         }
         return steps;
     }
@@ -377,6 +388,12 @@ public final class ChainView {
             }
         }
         return rows;
+    }
+
+    /** A count, nought when the key is absent - unlike {@link #number}, whose default is the
+     * end of the sort order. A step without {@code a} is a name no other man answers to. */
+    private static int count(Object value) {
+        return value instanceof Number n ? Math.max(n.intValue(), 0) : 0;
     }
 
     private static int number(Object value) {

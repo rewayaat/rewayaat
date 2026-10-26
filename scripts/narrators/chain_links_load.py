@@ -179,6 +179,13 @@ def main():
                 # «وبهذا الإسناد» is the chain above repeated, not a man. It carries the
                 # narration it points at so the page can name it instead of leaving the
                 # reader with a step that says nothing.
+                # How many other men answer to this name. Only a `one` carries it, and only
+                # when there are any: the claim the reader is shown for a `one` is that a
+                # single man bears the name, and where a filing won it instead the step has
+                # to say so. See chain_resolve.contested_by.
+                if mention.get("also"):
+                    step["a"] = mention["also"]
+                    counts["steps whose name other men answer to as well"] += 1
                 if mention.get("refers_to"):
                     step["r"] = mention["refers_to"]
                     step["rn"] = numbered.get(mention["refers_to"], "")
