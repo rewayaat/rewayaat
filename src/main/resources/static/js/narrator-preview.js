@@ -204,6 +204,15 @@
         return halves[halves.length - 1];
     }
 
+    /* No rijālī assesses the man he is assessing narrators for, so no book grades an
+       Imam and «muhmal» is the wrong reading of that silence: it says the books looked at
+       him and withheld a word, when they never undertook to look. His own page has said so
+       since it was written; this card was the one place that still filed al-Ṣādiq as an
+       ungraded narrator. */
+    function imamOf(man) {
+        return man && man.kind === "imam";
+    }
+
     /** One row per word: the books' own term, and the books that use it. Never averaged. */
     function saidRows(man) {
         var said = man.said_by || [];
@@ -239,6 +248,12 @@
         var heading = divided
             ? t("narrators.preview.divide", arabic() ? "الكتب مختلفة فيه" : "The books divide")
             : t("narrators.preview.says", arabic() ? "ما تقوله الكتب" : "What the books say");
+        // An Imam gets the same block with the reason there is no word in it, in the same
+        // sentence the rijāl panel uses beside a chain.
+        var says = imamOf(man)
+            ? '<p class="pv__imam">' + escaped(t("rijal.imam.note",
+                arabic() ? "الكتب لا تحكم على الأئمة" : "The books do not grade the Imams")) + "</p>"
+            : '<div class="pv__rows">' + saidRows(man) + "</div>" + caveat;
         var chains = man.chains
             ? '<b>' + escaped(digits(Number(man.chains).toLocaleString(arabic() ? "ar" : "en"))) + "</b> "
                 + escaped(t("narrators.preview.chains", arabic() ? "سند" : "chains"))
@@ -255,7 +270,7 @@
             + strip(man)
             + "</div></div>"
             + '<div class="pv__says"><h3>' + escaped(heading) + "</h3>"
-            + '<div class="pv__rows">' + saidRows(man) + "</div>" + caveat + "</div>"
+            + says + "</div>"
             + '<div class="pv__foot"><span>' + chains + "</span>"
             + '<a class="np__go" href="' + escaped(href) + '">'
             + escaped(t("js.preview.open", "Open his page")) + "</a></div>";

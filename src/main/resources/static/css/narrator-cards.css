@@ -265,6 +265,11 @@ html[dir="rtl"] .pv__ar { text-align: right; padding-right: 0; padding-left: 1.4
 
 .pv__rests { margin: 0.4rem 0 0; font-size: 0.72rem; color: var(--text-muted, #94a3b8); }
 
+/* The Imams hold no entry in any rijal book, so their card carries the reason rather
+   than a verdict. Prose, not a term in a grade column: there is no term. */
+.pv__imam { margin: 0; font-size: 0.8rem; line-height: 1.45;
+    color: var(--text-secondary, #4a5568); }
+
 .pv__foot {
     display: flex;
     align-items: baseline;
@@ -330,6 +335,7 @@ html[dir="rtl"] .pv__ar { text-align: right; padding-right: 0; padding-left: 1.4
 .pv__life { color: #bccadf; }
 .pv__dot { color: #8ea3c4; }
 .pv__says h3, .pv__rests { color: #a9bad3; }
+.pv__imam { color: #bccadf; }
 .pv__w--none { color: #bccadf; }
 .pv__b { color: #bccadf; }
 .pv__foot { background: rgba(0, 0, 0, 0.22); border-top: 1px solid rgba(255, 255, 255, 0.12);
