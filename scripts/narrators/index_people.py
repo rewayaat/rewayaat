@@ -32,7 +32,7 @@ import sys
 import unicodedata
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from build_people import MAIN_BOOKS, is_entry, not_entries  # noqa: E402
+from build_people import MAIN_BOOKS, is_entry, not_entries, unnamed_subjects  # noqa: E402
 from grade_evidence import shown  # noqa: E402
 import imams  # noqa: E402
 import relation_evidence  # noqa: E402
@@ -744,6 +744,7 @@ def imam_years():
 YEARS = None
 TRANSLITERATION = {}
 DEATH_YEARS = {}
+UNNAMED = set()  # al-Ṭūsī's «باب من لم يسم» keys, filled in main()
 HOLDERS = {}
 ENGLISH_HOLDERS = {}
 PREFIXES = {}
@@ -989,7 +990,10 @@ def document(person, source, headless):
     """One narrator, as a page will read him."""
     keys = sorted(person["source_keys"],
                   key=lambda k: (BOOK_ORDER.get(k.split(":")[0], 99), int(k.split(":")[1])))
-    entry_keys = [k for k in keys if k in source and is_entry(k, source[k], headless)]
+    # An entry of al-Ṭūsī's «باب من لم يسم» is about the unnamed man, not this one: it stays
+    # joined to him and is not shown as his notice.
+    entry_keys = [k for k in keys if k in source and is_entry(k, source[k], headless)
+                  and k not in UNNAMED]
     person["pages_of"] = {k: (source[k].get("source_pages") or []) for k in keys if k in source}
 
     entries = []
@@ -1859,6 +1863,7 @@ def main():
             if len(english.split()) >= 3:
                 ENGLISH_PREFIXES[" ".join(english.split()[:3])] += 1
     source, headless = profiles(), not_entries(TMP)
+    UNNAMED.update(unnamed_subjects(TMP))
     # Which books the corpus holds printed entries of, so a grade attributed to a book never
     # extracted can say that rather than look like a gap in our reading of it. Māmaqānī has
     # profiles in the record — names and verdicts gathered from other books quoting him —

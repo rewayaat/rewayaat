@@ -94,6 +94,20 @@ def relation_stubs(tmp_dir):
     return keys
 
 
+def unnamed_subjects(tmp_dir):
+    """Main-book keys whose entry is about an unnamed man the heading narrates from.
+
+    al-Ṭūsī's «باب من لم يسم» — see find_relation_stubs.py. Such a key is an entry and keeps
+    its joins: the man it names is the narrator it says. It only never makes anybody an
+    entry-holder, or the section's headings become men of their own beside the real ones.
+    """
+    keys = set()
+    for path in glob.glob(os.path.join(tmp_dir, "narrators_sources", "*_unnamed_subject.json")):
+        with open(path) as handle:
+            keys |= {item["source_key"] for item in json.load(handle)}
+    return keys
+
+
 def is_entry(key, profile, excluded_keys):
     if "printed_entry" in (profile or {}).get("flags", ()):
         return True
@@ -325,9 +339,11 @@ def main():
     people = []
     membership = {}
     headless = not_entries(os.path.join(args.identity_dir, ".."))
+    unnamed = unnamed_subjects(os.path.join(args.identity_dir, ".."))
     for keys, person_id in zip(comps, ids):
         person = assemble(keys, profiles)
-        holds = any(is_entry(k, (profiles.get(k) or (None, None))[1], headless) for k in keys)
+        holds = any(is_entry(k, (profiles.get(k) or (None, None))[1], headless)
+                    and k not in unnamed for k in keys)
         people.append({"person_id": person_id, "anchor": keys[0], "source_keys": keys,
                        "holds_entry": holds, **person})
         for key in keys:
