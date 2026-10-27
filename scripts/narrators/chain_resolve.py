@@ -49,12 +49,43 @@ CLASSICAL = {"tusi", "duafa", "najashi", "ardabili", "kashshi", "fihrist"}
 _PUNCT = re.compile(r"[،؛؟.:()\[\]\"'«»/\\|]")
 _PERSIAN = str.maketrans({"ی": "ي", "ک": "ك", "ۀ": "ه", "ە": "ه", "ي": "ي"})
 
+# A kunya the edition sets as one word: «أبوسعيد الادمي» is «أبو سعيد الآدمي», Sahl b. Ziyād,
+# and «أبوعلي الأشعري», «أبوالحسن محمد بن أحمد…» are the same habit. As one word the kunya
+# matched nobody, and 535 chain names in al-Ṣadūq's books went unread for it. What is left
+# after the particle must be a word of its own, so «أبيه», «أبوه» and «أبان» stay whole, and
+# the pronouns that make a relative of it — «أبويهما», «أبيهما» — are never split off.
+#
+# A kunya with nothing after it stays glued. Standing alone it names whoever in the books
+# answers to it, and in al-Ṣadūq's chains through Sunni transmitters that is the wrong man:
+# split, «أبويزيد» became Jābir b. Yazīd where the chain means Abū Yazīd al-Khālidī, and
+# «أبوعبد الله» before Sufyān became al-Ṣādiq. The spaced spellings already do this; the
+# split does not add to it.
+_GLUED_KUNYA = re.compile(r"^(ابو|ابي|ابا)(\S{3,})$")
+_PRONOUN_TAILS = {"هما", "يهما", "يهم", "يها", "كما", "يكم"}
+KUNYA_PARTICLES = {"ابو", "ابي", "ابا"}
+
+
+def bare_kunya(tokens):
+    """Whether a name is a kunya and nothing else: «أبو حامد», «أبو عبد الله»."""
+    if not tokens or tokens[0] not in KUNYA_PARTICLES:
+        return False
+    return len(tokens) == 2 or (len(tokens) == 3 and tokens[1] in ("عبد", "ال"))
+
+
+def _unglue(word):
+    glued = _GLUED_KUNYA.match(word)
+    if not glued or glued.group(2) in _PRONOUN_TAILS:
+        return [word]
+    return [glued.group(1), glued.group(2)]
+
 
 def key(name):
     """One folded key for a name, whether it came from a chain or from a book's heading."""
     if not name:
         return ""
-    return normalize_arabic(_PUNCT.sub(" ", name).translate(_PERSIAN))
+    folded = normalize_arabic(_PUNCT.sub(" ", name).translate(_PERSIAN))
+    split = [part for word in folded.split() for part in _unglue(word)]
+    return folded if bare_kunya(split) else " ".join(split)
 
 
 def same_name(one, other):
@@ -227,13 +258,29 @@ def widen(folded, data, rules=None):
                 ("article", loosen(form, {"article"} & rules) != " ".join(form)),
                 ("ibn", loosen(form, {"ibn"} & rules) != " ".join(form))) if changed]
             allowed = TIERS[:2] if not used and "short" not in rules else TIERS
-            probes.append((loosen(form, rules), "+".join(used) or "short", allowed))
+            dropped = start[len(form):] if cut and bare_kunya(form) else []
+            probes.append((loosen(form, rules), "+".join(used) or "short", allowed, dropped))
     for tier in TIERS:
-        for probe, used, allowed in probes:
+        for probe, used, allowed, dropped in probes:
             found = tier in allowed and loose[tier].get(probe)
+            if found and dropped:
+                # Trimmed down to a kunya, all that says who this is was the nisba trimmed off,
+                # so the man it reaches must carry some of it himself. Some, not all: an
+                # edition's «محمدبن» is no word of any name, and al-ʿAyyāshī still answers to
+                # «مسعود العياشي». «أبو سعيد المراغي» in a
+                # fourth-century chain was landing on a bare «أبو سعيد», a companion of
+                # al-Ṣādiq, and «أبو العباس الحمادي» on Abū al-ʿAbbās al-Razzāz.
+                found = {pid for pid in found if carries(pid, dropped, data)}
             if found:
                 return sorted(found), used, tier
     return [], "", ""
+
+
+def carries(pid, words, data):
+    """Whether one of these words, not a particle, stands in a name the books give this man."""
+    person = data["by_id"].get(pid) or {}
+    his = {word for name in person.get("names_ar") or [] for word in key(name).split()}
+    return any(word in his for word in words if word not in GLUE)
 
 
 def loosened_tables(headings, aliases, shortened_own, shortened):

@@ -54,6 +54,22 @@ def test_ibn_spelled_out_is_ibn_as_a_particle():
     assert read(data, "محمد ابن الحسن الصفار")[0] == [("one", "n1")]
 
 
+def test_a_kunya_set_as_one_word_is_read_as_two():
+    """«أبوسعيد الادمي» in al-Khiṣāl is Sahl b. Ziyād, whose books write «أبو سعيد الآدمي»."""
+    data = index(man("n1", "سهل بن زياد", "أبو سعيد الآدمي"), man("n2", "أبان بن عثمان"))
+    assert read(data, "أبوسعيد الادمي")[0] == [("one", "n1")]
+    assert read(data, "أبان بن عثمان")[0] == [("one", "n2")]
+    # The relatives keep their pronoun: «أبويهما» is "their parents", nobody's kunya.
+    assert cr.key("أبويهما") == "ابويهما"
+    assert cr.key("أبيهما") == "ابيهما"
+    assert cr.key("أبيه") == "ابيه"
+    assert cr.key("أبوالحسن علي") == "ابو الحسن علي"
+    # A kunya with nothing after it is left as written: alone it names the wrong man.
+    assert cr.key("أبويزيد") == "ابويزيد"
+    assert cr.key("أبوعبد الله") == "ابوعبد الله"
+
+
+
 def test_a_leading_relative_word_is_dropped_from_the_key_and_not_from_the_span():
     data = index(man("n1", "الحسن بن راشد"))
     outcomes, rows = read(data, "جده الحسن بن راشد")
