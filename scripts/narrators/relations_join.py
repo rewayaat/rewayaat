@@ -155,6 +155,18 @@ def _merge(rows, pid, slugs, displays=None):
             if row.get("name_ar"):
                 merged["name_ar"] = row["name_ar"]
                 break
+    # Every Arabic spelling the books gave him, not only the one that won the display. The
+    # chain resolver reads a man's teachers and students by name, and a chain writes him the
+    # way it writes him: once «معلى بن محمد» and «المعلى بن محمد» were folded into the row
+    # «المعلى بن محمد البصري», al-Kāfī's «الحسين بن محمد عن معلى بن محمد» no longer found
+    # al-Ashʿarī al-Qummī's own list, and 500 chains fell back to a three-line Ṭūsī notice.
+    spellings = []
+    for row in rows:
+        for name in (row.get("name_ar"), row.get("name")):
+            if name and _has_arabic(name) and name not in spellings:
+                spellings.append(name)
+    if len(spellings) > 1:
+        merged["spellings_ar"] = spellings
     if pid:
         merged["person_id"] = pid
         if slugs.get(pid):

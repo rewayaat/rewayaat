@@ -451,12 +451,16 @@ def load_people(path, books):
         # is dropped when the name is somebody's heading, and asking that of a table still
         # being filled made the answer depend on the order the file happened to be in.
         held_as_alias.append((pid, person.get("names_ar") or []))
-        teachers[pid] = {key(r.get("name_ar") or r.get("name"))
+        # A row joined by the man carries every spelling the books gave him, and a chain may
+        # write him in any of them (relations_join.py, `spellings_ar`).
+        teachers[pid] = {key(name)
                          for field in ("narrated_from", "chain_from", "unsaid_from")
-                         for r in person.get(field) or []}
-        students[pid] = {key(r.get("name_ar") or r.get("name"))
+                         for r in person.get(field) or []
+                         for name in [r.get("name_ar") or r.get("name")] + (r.get("spellings_ar") or [])}
+        students[pid] = {key(name)
                          for field in ("narrated_to", "chain_to", "unsaid_to")
-                         for r in person.get(field) or []}
+                         for r in person.get(field) or []
+                         for name in [r.get("name_ar") or r.get("name")] + (r.get("spellings_ar") or [])}
         teachers[pid].discard("")
         students[pid].discard("")
         # A rijālī who catalogues the companions catalogues the Imams among them, so a few
