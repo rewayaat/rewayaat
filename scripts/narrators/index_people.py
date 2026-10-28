@@ -1504,7 +1504,11 @@ def document(person, source, headless):
     if clean != display_ar:
         # Prefer a heading of his own that was never contaminated, and only cut when there
         # is none: a book's own filing name beats our repair of another one.
-        whole = [h for h in sorted(headings_ar, key=lambda h: len(h.split()))
+        # Ties broken by the anchor's own name, then alphabetically. headings_ar is a set,
+        # and ordered by length alone the winner among equal lengths was whichever the
+        # interpreter's string hashing put first: «مسلم» or «سليم بن أبي حبة», «بن بابويه» or
+        # «بن موسى», changing from one build to the next with nothing in the books changed.
+        whole = [h for h in sorted(headings_ar, key=lambda h: (len(h.split()), h != clean, h))
                  if 2 <= len(h.split()) and name_only(h) == h]
         display_ar = whole[0] if whole else clean
     # The whole line, kept for the body: a reader who wants to see the lineage the entry
