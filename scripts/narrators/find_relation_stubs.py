@@ -19,7 +19,24 @@ rijal sentence like Ardabili's «روى عنه التلعكبري وسمع من�
 not the subject, so it does not match; an entry that mentions its own man later in a long
 passage does not match either. Twenty drawn at random were all of the intended shape.
 
-Writes tmp/narrators_sources/<book>_relation_stub.json, read by build_people.relation_stubs.
+Al-Ṭūsī has the same thing in another shape. His chapter on al-Ṣādiq's companions closes with
+«باب من لم يسم», the companions whose names are not given, and each is entered by the man who
+narrates from him: «محمد بن سنان، عن الغلام الذي أعتقه أبو عبد الله عليه السلام» is the freed
+slave, not Ibn Sinān — al-Khoei cites it under «الغلام السندي». Read as entries, the section made
+one-entry men of Muḥammad b. Sinān, ʿAlī b. Asbāṭ, ʿAmr b. ʿUthmān and others, each standing
+beside the real man in every chain that names him: 948 chain steps were left undecided by them.
+The section is the test here, not the shape — «زرعة بن محمد، عن سماعة» elsewhere in the book is an
+entry for Zurʿa — and the extraction recorded the section in each profile's notes.
+
+These are kept apart from the relation stubs because they must be treated differently. A
+relation stub never joins anybody; but the man such an entry names really is the narrator it
+says, and where the books have joined it to his own entries — Thaʿlaba b. Maymūn, Isḥāq b.
+ʿAmmār, Abū Bakr al-Ḥaḍramī — the join is right and other records hang on it. Treated as stubs,
+those six men each lost the record to a new person and one lost nine more with it. All the
+entry must not do is make somebody an entry-holder.
+
+Writes tmp/narrators_sources/<book>_relation_stub.json, read by build_people.relation_stubs,
+and <book>_unnamed_subject.json, read by build_people.unnamed_subjects.
 
 Usage:
     python3 scripts/narrators/find_relation_stubs.py --dry-run
@@ -65,6 +82,15 @@ def is_relation_stub(profile):
     return normalize_arabic(heading) in normalize_arabic(body)
 
 
+UNNAMED_SECTION = "باب من لم يسم"
+
+
+def is_unnamed_subject(profile):
+    """An entry of al-Ṭūsī's «باب من لم يسم»: about the unnamed man its heading narrates from."""
+    return (profile.get("book") == "tusi" and UNNAMED_SECTION in (profile.get("notes") or "")
+            and re.search(r"\bعم?ن\b", body_of(profile)) is not None)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -74,7 +100,7 @@ def main():
     parser.add_argument("--dry-run", action="store_true", help="count, write nothing")
     args = parser.parse_args()
 
-    found, counts = defaultdict(list), Counter()
+    found, unnamed, counts = defaultdict(list), defaultdict(list), Counter()
     for path in sorted(glob.glob(os.path.join(args.normalized_dir, "*.json"))):
         book = os.path.basename(path)[:-5]
         with open(path) as handle:
@@ -85,15 +111,19 @@ def main():
             if not isinstance(profile, dict) or "source_index" not in profile:
                 continue
             counts["profiles read"] += 1
+            row = {"source_key": f"{book}:{profile['source_index']}",
+                   "heading": profile.get("primary_arabic_name"), "text": body_of(profile)}
             if is_relation_stub(profile):
-                found[book].append({"source_key": f"{book}:{profile['source_index']}",
-                                    "heading": profile.get("primary_arabic_name"),
-                                    "text": body_of(profile)})
+                found[book].append(row)
+            elif is_unnamed_subject(profile):
+                unnamed[book].append(row)
     total = sum(len(v) for v in found.values())
     print(f"  {counts['profiles read']:7,}  profiles read")
     print(f"  {total:7,}  are a relation clause naming their own heading")
     for book, rows in sorted(found.items(), key=lambda kv: -len(kv[1])):
         print(f"      {len(rows):6,}  {book}")
+    for book, rows in sorted(unnamed.items()):
+        print(f"  {len(rows):7,}  {book} entries about the unnamed man their heading narrates from")
 
     if args.sample:
         random.seed(7)
@@ -108,6 +138,10 @@ def main():
     os.makedirs(args.out_dir, exist_ok=True)
     for book, rows in found.items():
         path = os.path.join(args.out_dir, f"{book}_relation_stub.json")
+        write_json_atomic(path, sorted(rows, key=lambda r: r["source_key"]), indent=1)
+        print(f"wrote {len(rows):6,} -> {path}")
+    for book, rows in unnamed.items():
+        path = os.path.join(args.out_dir, f"{book}_unnamed_subject.json")
         write_json_atomic(path, sorted(rows, key=lambda r: r["source_key"]), indent=1)
         print(f"wrote {len(rows):6,} -> {path}")
 
