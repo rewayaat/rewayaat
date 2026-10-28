@@ -158,12 +158,36 @@ def english_for(arabic, learned):
     return ' '.join(words) if words else ''
 
 
+# Words the books' English gets wrong, set by hand. The phase 1 readers vowelled a name they did
+# not know by guesswork, and the guess can be printed as a book's own English: «عمرو بن شمر», the
+# Juʿfī every chain of Jābir runs through, came out Shumar on one page and Shamar on his namesake's,
+# and a reader who knows him as Shimr took the two for different men. Short and kept that way: a
+# word belongs here only when the right vowelling is not in doubt.
+RESPELLED = {
+    'شمر': 'Shimr',
+}
+
+
+def respell(arabic, english):
+    """«english» with each word «RESPELLED» corrects put right, where the two names align.
+
+    Only a name with as many words in each script can be corrected word for word; any other is
+    returned as it is, since there is no telling which English word renders which Arabic one.
+    """
+    if not arabic or not english:
+        return english
+    ours, theirs = arabic.split(), english.split()
+    if len(ours) != len(theirs):
+        return english
+    return ' '.join(RESPELLED.get(strip(one), other) for one, other in zip(ours, theirs))
+
+
 def load(path=MAP):
     try:
         with open(path) as handle:
-            return json.load(handle)["words"]
+            return {**json.load(handle)["words"], **RESPELLED}
     except (FileNotFoundError, KeyError):
-        return {}
+        return dict(RESPELLED)
 
 
 def main():
