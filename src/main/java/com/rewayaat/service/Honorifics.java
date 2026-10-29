@@ -105,6 +105,26 @@ public class Honorifics {
         return salute == null ? text : text + " " + salute;
     }
 
+    /**
+     * A page's own heading for one of the Fourteen, saluted by who he is and not by how the
+     * index happens to spell him. The hero line prints «The Prophet Muḥammad» and «ʿAlī ibn
+     * Abī Ṭālib», forms no map above holds, so {@link #of} left them bare. The house decides
+     * the salutation; a heading that already carries it is left as it is.
+     */
+    public String titled(Object name, Object personId, boolean arabic) {
+        String text = name == null ? "" : name.toString().trim();
+        String house = houseOf(personId);
+        if (text.isEmpty() || house == null) {
+            return text;
+        }
+        String salute = switch (house) {
+            case "prophet" -> arabic ? PROPHET_AR : PROPHET_EN;
+            case "lady" -> arabic ? LADY_AR : IMAM_EN;
+            default -> arabic ? IMAM_AR : IMAM_EN;
+        };
+        return text.endsWith(salute) ? text : text + " " + salute;
+    }
+
     /** A list of them, each saluted, joined as the caller would have joined them. */
     public String join(List<?> names, String separator, boolean arabic) {
         if (names == null || names.isEmpty()) {
