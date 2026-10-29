@@ -888,6 +888,14 @@
    "voices": 1,
    "applied": true,
    "display": "حذيفة بن اليمان الانصاري"
+  },
+  "Al-Khiṣāl\tالخليل بن احمد": {
+   "person_id": "n066584",
+   "voices": 1,
+   "applied": true,
+   "by_hand": true,
+   "display": "الخليل بن أحمد القاضي",
+   "note": "In al-Khiṣāl «الخليل بن أحمد» is al-Qāḍī al-Sijzī, a shaykh of al-Ṣadūq (Khoei, Mu‘jam, entry on Khiṣāl #116). The resolver gave it to the grammarian of Ardabīlī (d. ~170), who could not have taught al-Ṣadūq. Reported by a reader 2026-10-29 on Al-Khiṣāl #105."
   }
  },
  "corrects": {

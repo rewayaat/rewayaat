@@ -42,7 +42,7 @@
                  a transliteration serving a reader who does not need one. -->
             <p class="hub-hero__also"
                th:if="${!#strings.isEmpty(displayEn) and #locale.language != 'ar'}"
-               th:text="${displayEn}">Transliterated name</p>
+               th:text="${@honorifics.titled(displayEn, narrator['person_id'], false)}">Transliterated name</p>
             <!-- The lineage the anchor entry opens on is not repeated here. It is the first
                  line of a book's notice on him, so it is read where that notice is quoted, in
                  Tarājim; printing it under the heading said the same thing twice. -->
