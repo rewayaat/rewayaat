@@ -1016,6 +1016,46 @@
    "voices": 1,
    "applied": false,
    "display": "ربعي بن خراش"
+  },
+  "Al-Amālī\tابن عمر": {
+   "person_id": "n038037",
+   "voices": 1,
+   "applied": true,
+   "by_hand": true,
+   "display": "عبد الله بن عمر",
+   "note": "«ابن عمر» in these chains is the Companion ʿAbdullāh b. ʿUmar (Nāfiʿ, Mujāhid and ʿĀṣim narrate from him). The resolver was giving it to Ismāʿīl b. ʿUmar al-Kalbī, who carries «ابن عمر» only as an alias. Reported by a reader 2026-10-29 on Al-Khiṣāl #102."
+  },
+  "Al-Tawḥīd\tابن عمر": {
+   "person_id": "n038037",
+   "voices": 1,
+   "applied": true,
+   "by_hand": true,
+   "display": "عبد الله بن عمر",
+   "note": "«ابن عمر» in these chains is the Companion ʿAbdullāh b. ʿUmar (Nāfiʿ, Mujāhid and ʿĀṣim narrate from him). The resolver was giving it to Ismāʿīl b. ʿUmar al-Kalbī, who carries «ابن عمر» only as an alias. Reported by a reader 2026-10-29 on Al-Khiṣāl #102."
+  },
+  "Al-Khiṣāl\tابن عمر": {
+   "person_id": "n038037",
+   "voices": 1,
+   "applied": true,
+   "by_hand": true,
+   "display": "عبد الله بن عمر",
+   "note": "«ابن عمر» in these chains is the Companion ʿAbdullāh b. ʿUmar (Nāfiʿ, Mujāhid and ʿĀṣim narrate from him). The resolver was giving it to Ismāʿīl b. ʿUmar al-Kalbī, who carries «ابن عمر» only as an alias. Reported by a reader 2026-10-29 on Al-Khiṣāl #102."
+  },
+  "Faḍaʾil al-Shīʿa\tابن عمر": {
+   "person_id": "n038037",
+   "voices": 1,
+   "applied": true,
+   "by_hand": true,
+   "display": "عبد الله بن عمر",
+   "note": "«ابن عمر» in these chains is the Companion ʿAbdullāh b. ʿUmar (Nāfiʿ, Mujāhid and ʿĀṣim narrate from him). The resolver was giving it to Ismāʿīl b. ʿUmar al-Kalbī, who carries «ابن عمر» only as an alias. Reported by a reader 2026-10-29 on Al-Khiṣāl #102."
+  },
+  "Mishkāt al-Anwār\tابن عمر": {
+   "person_id": "n038037",
+   "voices": 1,
+   "applied": true,
+   "by_hand": true,
+   "display": "عبد الله بن عمر",
+   "note": "«ابن عمر» in these chains is the Companion ʿAbdullāh b. ʿUmar (Nāfiʿ, Mujāhid and ʿĀṣim narrate from him). The resolver was giving it to Ismāʿīl b. ʿUmar al-Kalbī, who carries «ابن عمر» only as an alias. Reported by a reader 2026-10-29 on Al-Khiṣāl #102."
   }
  },
  "everywhere": {

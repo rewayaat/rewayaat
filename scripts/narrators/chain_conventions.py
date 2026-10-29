@@ -240,7 +240,10 @@ def main():
         "note": "Chain conventions named by the audit's auditors and agreed by them. "
                 "Keys are '<book>\\t<folded name>'; `everywhere` is keyed by the name alone.",
         "settles": table.get("settles", {}),
-        "corrects": table.get("corrects", {}),
+        # A correction written by hand carries `by_hand`; a harvest must not drop it.
+        "corrects": {**{k: v for k, v in (previous.get("corrects") or {}).items()
+                        if v.get("by_hand")},
+                     **table.get("corrects", {})},
         "everywhere": everywhere,
         # Not harvested from the audits: entries written by hand about how a book's pointers
         # are read. A harvest must not drop them.
