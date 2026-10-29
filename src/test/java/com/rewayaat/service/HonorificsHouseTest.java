@@ -59,4 +59,13 @@ class HonorificsHouseTest {
         assertEquals("al-Ṣādiq (ʿa)", honorifics.of("al-Ṣādiq", false));
         assertEquals("فاطمة عليها السلام", honorifics.of("فاطمة", true));
     }
+
+    @Test
+    @DisplayName("The Prophet's own heading takes his salutation; nobody else's does")
+    void theProphetsHeadingIsSaluted() {
+        assertEquals("The Prophet Muḥammad (ṣ)", honorifics.titled("The Prophet Muḥammad", "i00", false));
+        assertEquals("The Prophet Muḥammad (ṣ)", honorifics.titled("The Prophet Muḥammad (ṣ)", "i00", false));
+        assertEquals("Zurarah ibn A'yan", honorifics.titled("Zurarah ibn A'yan", "n000001", false));
+        assertEquals("", honorifics.titled(null, "i00", false));
+    }
 }

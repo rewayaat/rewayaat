@@ -239,7 +239,9 @@ def main():
     write_json_atomic(args.out, {
         "note": "Chain conventions named by the audit's auditors and agreed by them. "
                 "Keys are '<book>\\t<folded name>'; `everywhere` is keyed by the name alone.",
-        "settles": table.get("settles", {}),
+        "settles": {**{k: v for k, v in (previous.get("settles") or {}).items()
+                       if v.get("by_hand")},
+                    **table.get("settles", {})},
         # A correction written by hand carries `by_hand`; a harvest must not drop it.
         "corrects": {**{k: v for k, v in (previous.get("corrects") or {}).items()
                         if v.get("by_hand")},
