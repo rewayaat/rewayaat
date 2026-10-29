@@ -107,16 +107,21 @@ public class Honorifics {
 
     /**
      * A page's own heading for one of the Fourteen, saluted by who he is and not by how the
-     * index happens to spell him. The hero line prints «The Prophet Muḥammad», a form no map
-     * above holds, so {@link #of} left it bare. Only the Prophet is handled here; a heading
-     * that already carries the salutation is left as it is.
+     * index happens to spell him. The hero line prints «The Prophet Muḥammad» and «ʿAlī ibn
+     * Abī Ṭālib», forms no map above holds, so {@link #of} left them bare. The house decides
+     * the salutation; a heading that already carries it is left as it is.
      */
     public String titled(Object name, Object personId, boolean arabic) {
         String text = name == null ? "" : name.toString().trim();
-        if (text.isEmpty() || !"prophet".equals(houseOf(personId))) {
+        String house = houseOf(personId);
+        if (text.isEmpty() || house == null) {
             return text;
         }
-        String salute = arabic ? PROPHET_AR : PROPHET_EN;
+        String salute = switch (house) {
+            case "prophet" -> arabic ? PROPHET_AR : PROPHET_EN;
+            case "lady" -> arabic ? LADY_AR : IMAM_EN;
+            default -> arabic ? IMAM_AR : IMAM_EN;
+        };
         return text.endsWith(salute) ? text : text + " " + salute;
     }
 

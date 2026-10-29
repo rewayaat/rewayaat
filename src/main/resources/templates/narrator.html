@@ -37,7 +37,7 @@
                  th:with="house=${@honorifics.houseOf(narrator['person_id'])}"
                  th:text="${house != null ? #messages.msg('narrator.house.eyebrow.' + house)
                                           : #messages.msg('narrator.eyebrow')}">Narrator</div>
-            <h1 class="hub-hero__title" dir="rtl" lang="ar" th:text="${displayAr}">اسم الراوي</h1>
+            <h1 class="hub-hero__title" dir="rtl" lang="ar" th:text="${@honorifics.titled(displayAr, narrator['person_id'], true)}">اسم الراوي</h1>
             <!-- Not on an Arabic page: «زرارة بن أعين» followed by «Zurarah ibn A'yan» is
                  a transliteration serving a reader who does not need one. -->
             <p class="hub-hero__also"
