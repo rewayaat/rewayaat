@@ -1,5 +1,6 @@
 package com.rewayaat.controllers;
 
+import com.rewayaat.service.ContactFormToken;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -17,7 +18,7 @@ class ContactPageControllerTest {
         ResourceBundleMessageSource messages = new ResourceBundleMessageSource();
         messages.setBasename("messages");
         messages.setDefaultEncoding("UTF-8");
-        return new ContactPageController(messages);
+        return new ContactPageController(messages, new ContactFormToken(""));
     }
 
     @Test
@@ -36,6 +37,7 @@ class ContactPageControllerTest {
         assertEquals("Zurāra ibn Aʿyan", model.getAttribute("contactLabel"));
         assertEquals("https://rewayaat.info/narrator/42", model.getAttribute("contactUrl"));
         assertEquals(true, model.getAttribute("contactUrlSafe"));
+        assertNotNull(model.getAttribute("contactToken"));
     }
 
     @Test

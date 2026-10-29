@@ -2,6 +2,7 @@ package com.rewayaat.controllers.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rewayaat.controllers.ContactPageController;
+import com.rewayaat.service.ContactFormToken;
 import com.rewayaat.service.PageLocale;
 import com.rewayaat.service.UiMessages;
 import io.swagger.v3.oas.annotations.Hidden;
@@ -41,6 +42,13 @@ import java.util.regex.Pattern;
  * the set of kinds are all checked here. Five submissions an hour per address are accepted,
  * counted in memory per pod - enough to stop a script flooding the inbox, and not worth a
  * shared store.
+ *
+ * <p>Two bots got past all of that by posting a random mixed-case string as the message,
+ * slowly and from many addresses. Posts without a valid {@link ContactFormToken}, posts
+ * sent within seconds of the page loading, and messages that are one mixed-case nonsense
+ * word are dropped - and answered as if sent, so the script learns nothing to adapt to.
+ * Only an expired token gets a real error: that is a reader with an old tab, who would
+ * otherwise lose the message without knowing.
  */
 @RestController
 @RequestMapping("/v1/contact")
@@ -60,6 +68,7 @@ public class ContactController {
     static final int PER_HOUR = 5;
     private static final long WINDOW_MS = 3_600_000L;
     private static final Pattern EMAIL = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
+    private static final Pattern ONE_LATIN_WORD = Pattern.compile("^[A-Za-z]+$");
 
     @Value("${rewayaat.resend-api-key:}")
     private String resendApiKey;
@@ -69,6 +78,9 @@ public class ContactController {
 
     @Autowired
     private UiMessages ui;
+
+    @Autowired
+    private ContactFormToken tokens;
 
     private final Map<String, ArrayDeque<Long>> seen = new HashMap<>();
     private LongSupplier clock = System::currentTimeMillis;
@@ -104,8 +116,15 @@ public class ContactController {
             String honeypot = fields.getOrDefault("website", "");
 
             String problem = null;
+            ContactFormToken.Check token = tokens.check(fields.get("token"));
             if (!honeypot.isBlank()) {
                 problem = "api.contact.rejected";
+            } else if (token == ContactFormToken.Check.EXPIRED) {
+                problem = "api.contact.expired";
+            } else if (token != ContactFormToken.Check.VALID || isNonsense(message)) {
+                LOGGER.info("Contact message dropped: token={} message={}", token,
+                        message.substring(0, Math.min(40, message.length())));
+                return reply(200, null, html, locale);
             } else if (!KINDS.contains(kind)) {
                 problem = "api.contact.kind";
             } else if (message.length() < MIN_MESSAGE || message.length() > MAX_MESSAGE) {
@@ -143,6 +162,18 @@ public class ContactController {
             LOGGER.error("Error sending contact message", e);
             return reply(500, ui.in(locale, "api.contact.failed"), html, locale);
         }
+    }
+
+    /**
+     * One run of Latin letters, with capitals scattered past the first letter:
+     * {@code ZBbCPjvpWuSqXYxl}. A real one-word message is capitalised at most at the start.
+     */
+    static boolean isNonsense(String message) {
+        if (!ONE_LATIN_WORD.matcher(message).matches()) {
+            return false;
+        }
+        long innerCapitals = message.substring(1).chars().filter(Character::isUpperCase).count();
+        return innerCapitals >= 2 && innerCapitals < message.length() - 1;
     }
 
     private ResponseEntity<?> reply(int status, String message, boolean html, PageLocale locale) {

@@ -1,5 +1,6 @@
 package com.rewayaat.controllers;
 
+import com.rewayaat.service.ContactFormToken;
 import com.rewayaat.service.PageLocale;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,9 +39,11 @@ public class ContactPageController {
     private static final Set<String> ABOUT = Set.of("narration", "narrator", "site");
 
     private final MessageSource messages;
+    private final ContactFormToken tokens;
 
-    public ContactPageController(MessageSource messages) {
+    public ContactPageController(MessageSource messages, ContactFormToken tokens) {
         this.messages = messages;
+        this.tokens = tokens;
     }
 
     @GetMapping("/contact")
@@ -60,6 +63,7 @@ public class ContactPageController {
         model.addAttribute("contactUrl", link);
         model.addAttribute("contactUrlSafe", isLinkable(link));
         model.addAttribute("contactLocale", locale.tag());
+        model.addAttribute("contactToken", tokens.issue());
         model.addAttribute("seoTitle", msg(locale, "seo.contact.title"));
         model.addAttribute("seoDescription", msg(locale, "seo.contact.description"));
         model.addAttribute("breadcrumbs", crumbs(locale));
