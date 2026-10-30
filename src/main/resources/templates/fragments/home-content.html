@@ -23,7 +23,7 @@
                      to rank for appears in the visible copy. -->
                 <p class="home-hero__lede"
                    th:with="count=${#numbers.formatInteger(totalNarrations, 0, 'COMMA')},
-                            collections=|<a href=&quot;${arPrefix}/books&quot; class=&quot;home-hero__lede-link&quot;>${#messages.msg('home.primaryCollections')}</a>|"
+                            collections=|<a href=&quot;${arPrefix}/books&quot; class=&quot;home-hero__lede-link&quot;>${#messages.msg('home.ledeCollections')}</a>|"
                    th:utext="#{home.lede(${count}, ${collections})}">
                     A searchable database of Shia hadith &mdash; 50,000 narrations of the Prophet and
                     the Ahlul Bayt, in the original Arabic with English translation.
