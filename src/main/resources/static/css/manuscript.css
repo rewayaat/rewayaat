@@ -10238,7 +10238,7 @@ body.is-search-mode .site-nav .search-entry-shell {
     font-weight: 600;
 }
 
-/* "Primary Collections" — the one coloured word in the lede, so it reads as the way in. */
+/* "classical and modern collections" — the one coloured phrase in the lede, so it reads as the way in. */
 .home-hero__lede-link,
 .home-hero__lede a {
     color: var(--gold-light);
