@@ -834,13 +834,46 @@ def _same_value(value):
 
 
 def entry_key_for(person, book, pages, entry_keys):
-    """The entry a statement was read from: its book, and its pages if they say which."""
+    """The entry a statement was read from: its book, and its pages if they say which.
+
+    Where the man holds one entry in the book this answers with it whatever the pages say, and
+    that is deliberate: it is the entry a reader can open, and for a city or a generation it is
+    the right place to send him. What it is not is evidence that the statement was read there —
+    see `read_from_key`, which a verdict is tested against. Tightening this to demand the pages
+    agree was tried and withdrawn: it also governs cities, generations and death years, none of
+    which are tested against a passage, and it silently dropped them from 4,159 pages.
+    """
     same_book = [k for k in entry_keys if k.split(":")[0] == book]
     if len(same_book) == 1:
         return same_book[0]
     for key in same_book:
         held = set(person["pages_of"].get(key) or ())
         if pages and held and set(pages) & held:
+            return key
+    return None
+
+
+def read_from_key(person, book, pages, source):
+    """The record a statement was read from, an entry or not.
+
+    al-Khoei is extracted per mention: besides a man's entry there is a record for each place
+    the Muʿjam speaks of him, each carrying its own pages and its own passage. A grade read
+    from one of those is still about him — «أن سليم بن قيس في نفسه ثقة جليل القدر» stands where
+    that record says it does — but it is not in his entry, and testing it against his entry
+    tests nothing. Of the 2,229 bound that way, 1,622 fail against the passage they were
+    actually read from: «حدثني علي بن إبراهيم بن هاشم» is a chain, not a grading, and a record
+    holding no passage at all carried «thiqa» for Sulaym b. Qays.
+    """
+    if not pages:
+        return None
+    wanted = set(pages)
+    mine = [k for k in person["pages_of"] if k.split(":")[0] == book and k in source]
+    for key in mine:
+        if set(person["pages_of"].get(key) or ()) == wanted:
+            return key
+    for key in mine:
+        held = set(person["pages_of"].get(key) or ())
+        if held and held & wanted:
             return key
     return None
 
@@ -1099,12 +1132,16 @@ def document(person, source, headless):
         if grade.get("grade") in UNSTATED:
             continue
         book, pages = grade.get("source_book"), grade.get("source_pages") or []
+        entry_key = entry_key_for(person, book, pages, entry_keys)
         verdicts.append({"grade": grade.get("grade"), "said": grade.get("raw"),
                          "stated": True,
                          "book": book, "book_title": BOOK_TITLE.get(book, book),
                          "book_title_ar": BOOK_TITLE_AR.get(book), "pages": pages,
                          "book_note": BOOK_NOTE.get(book),
-                         "source_key": entry_key_for(person, book, pages, entry_keys)})
+                         "source_key": entry_key,
+                         # Where the words were read, which is what the grade is tested
+                         # against; the entry above is only where a reader can open them.
+                         "read_from": read_from_key(person, book, pages, source) or entry_key})
 
     # One position per book, not one per profile. A book is read into several profiles — Khoei's
     # entry spans five pages and phase 1 read each — and the same verdict came back once per
@@ -1153,12 +1190,17 @@ def document(person, source, headless):
         if not verdict["source_key"]:
             set_aside(verdict, "no_entry")
             continue
+        # Tested against the words it was read from; still published only where there is an
+        # entry a reader can open. Letting `read_from` license publication as well put every
+        # Tanqīḥ grade back on the pages — that book has no entry here to open — and was
+        # withdrawn.
+        passage_key = verdict["read_from"] or verdict["source_key"]
         # The passage is citable; the question is whether it says it. A verdict is read from
         # a word, and the audit of 2026-10-10 found that where the grade's own word is absent
         # from the cited passage the claim is wrong — 36 of 36 where no verdict word stood at
         # all, 18 of 22 where only another grade's word did. 1,125 of the 4,087 verdicts the
         # page presented as a book's position are of those two kinds, 816 of them Khoei's.
-        if not shown(verdict["grade"], text_of(source[verdict["source_key"]])):
+        if not shown(verdict["grade"], text_of(source[passage_key])):
             set_aside(verdict, "not_in_passage")
             continue
         book = verdict["book"]
@@ -1175,7 +1217,7 @@ def document(person, source, headless):
         # another book had spoken.
         relays, relays_ar = [], []
         if book in LATE_BOOKS:
-            passage = normalize_arabic(text_of(source[verdict["source_key"]]) or "")
+            passage = normalize_arabic(text_of(source[passage_key]) or "")
             # Named for the reader, not keyed: «quoting Rijāl al-Najāshī», not «najashi».
             # In both scripts: an Arabic page was printing «نقلاً عن Ikhtiyār Maʿrifat
             # al-Rijāl», which is the leak this very feature introduced.
