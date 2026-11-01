@@ -1,0 +1,189 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0,
+    "analysis": {
+      "filter": {
+        "ibn_forms": {
+          "type": "synonym",
+          "synonyms": [
+            "ابن => بن"
+          ]
+        }
+      },
+      "analyzer": {
+        "arabic_names": {
+          "tokenizer": "standard",
+          "filter": [
+            "lowercase",
+            "decimal_digit",
+            "arabic_normalization",
+            "ibn_forms"
+          ]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "person_id": {
+        "type": "keyword"
+      },
+      "display_ar": {
+        "type": "text",
+        "analyzer": "arabic_names",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "display_en": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "nasab_ar": {
+        "type": "text",
+        "analyzer": "arabic_names"
+      },
+      "names_ar": {
+        "type": "text",
+        "analyzer": "arabic_names"
+      },
+      "headings_ar": {
+        "type": "text",
+        "analyzer": "arabic_names"
+      },
+      "search_ar": {
+        "type": "text",
+        "analyzer": "arabic_names"
+      },
+      "names_en": {
+        "type": "text"
+      },
+      "normalized_ar": {
+        "type": "text",
+        "analyzer": "arabic_names",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "normalized_en": {
+        "type": "text"
+      },
+      "kunyahs_ar": {
+        "type": "text",
+        "analyzer": "arabic_names"
+      },
+      "titles": {
+        "type": "text",
+        "analyzer": "arabic_names"
+      },
+      "books": {
+        "type": "keyword"
+      },
+      "entry_count": {
+        "type": "integer"
+      },
+      "mention_count": {
+        "type": "integer"
+      },
+      "imam_ordinals": {
+        "type": "integer"
+      },
+      "holds_entry": {
+        "type": "boolean"
+      },
+      "standing_rests_on": {
+        "type": "keyword"
+      },
+      "said_by": {
+        "type": "object",
+        "enabled": false
+      },
+      "display_en_made": {
+        "type": "boolean"
+      },
+      "kunyahs_reported_ar": {
+        "type": "text"
+      },
+      "titles_reported": {
+        "type": "text"
+      },
+      "moved_to": {
+        "type": "keyword"
+      },
+      "entries": {
+        "type": "object",
+        "properties": {
+          "source_key": {
+            "type": "keyword"
+          },
+          "book": {
+            "type": "keyword"
+          },
+          "text_ar": {
+            "type": "text",
+            "analyzer": "arabic_names"
+          },
+          "text_en": {
+            "type": "text"
+          },
+          "grade": {
+            "type": "keyword"
+          },
+          "page_first": {
+            "type": "integer"
+          }
+        }
+      },
+      "narrated_from": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "text",
+            "analyzer": "arabic_names"
+          }
+        }
+      },
+      "narrated_to": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "text",
+            "analyzer": "arabic_names"
+          }
+        }
+      },
+      "teacher_count": {
+        "type": "integer"
+      },
+      "student_count": {
+        "type": "integer"
+      },
+      "verdicts": {
+        "type": "object",
+        "properties": {
+          "grade": {
+            "type": "keyword"
+          },
+          "book": {
+            "type": "keyword"
+          },
+          "source_key": {
+            "type": "keyword"
+          }
+        }
+      }
+    }
+  }
+}

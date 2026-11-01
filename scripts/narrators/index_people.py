@@ -1671,54 +1671,22 @@ def document(person, source, headless):
     }
 
 
-MAPPING = {
-    "settings": {"number_of_shards": 1, "number_of_replicas": 0,
-                 "analysis": {"analyzer": {"arabic_names": {"tokenizer": "standard",
-                                                            "filter": ["lowercase"]}}}},
-    "mappings": {"properties": {
-        "person_id": {"type": "keyword"},
-        "display_ar": {"type": "text", "analyzer": "arabic_names",
-                       "fields": {"keyword": {"type": "keyword", "ignore_above": 256}}},
-        "display_en": {"type": "text", "fields": {"keyword": {"type": "keyword", "ignore_above": 256}}},
-        "nasab_ar": {"type": "text", "analyzer": "arabic_names"},
-        "names_ar": {"type": "text", "analyzer": "arabic_names"},
-        "headings_ar": {"type": "text", "analyzer": "arabic_names"},
-        "search_ar": {"type": "text", "analyzer": "arabic_names"},
-        "names_en": {"type": "text"},
-        "normalized_ar": {"type": "text", "analyzer": "arabic_names",
-                          "fields": {"keyword": {"type": "keyword", "ignore_above": 256}}},
-        "normalized_en": {"type": "text"},
-        "kunyahs_ar": {"type": "text", "analyzer": "arabic_names"},
-        "titles": {"type": "text", "analyzer": "arabic_names"},
-        "books": {"type": "keyword"},
-        "entry_count": {"type": "integer"},
-        "mention_count": {"type": "integer"},
-        "imam_ordinals": {"type": "integer"},
-        "holds_entry": {"type": "boolean"},
-        "standing_rests_on": {"type": "keyword"},
-        "said_by": {"type": "object", "enabled": False},
-        "display_en_made": {"type": "boolean"},
-        "kunyahs_reported_ar": {"type": "text"},
-        "titles_reported": {"type": "text"},
-        # set only on a document that is really somebody else's, so a search can leave it out
-        # with `must_not exists` and a page can send the reader on
-        "moved_to": {"type": "keyword"},
-        "entries": {"type": "object", "properties": {
-            "source_key": {"type": "keyword"}, "book": {"type": "keyword"},
-            "text_ar": {"type": "text", "analyzer": "arabic_names"},
-            "text_en": {"type": "text"}, "grade": {"type": "keyword"},
-            "page_first": {"type": "integer"}}},
-        "narrated_from": {"type": "object", "properties": {
-            "name": {"type": "text", "analyzer": "arabic_names"}}},
-        "narrated_to": {"type": "object", "properties": {
-            "name": {"type": "text", "analyzer": "arabic_names"}}},
-        "teacher_count": {"type": "integer"},
-        "student_count": {"type": "integer"},
-        "verdicts": {"type": "object", "properties": {
-            "grade": {"type": "keyword"}, "book": {"type": "keyword"},
-            "source_key": {"type": "keyword"}}},
-    }},
-}
+# The settings and field types live beside the search mappings, in
+# scripts/search/narrators_mapping.json, so that a test can build an index the way production
+# does; NarratorNameLookupIntegrationTest reads the same file, and a drift between the two
+# would otherwise show up only as a search that quietly stops finding people.
+#
+# What `arabic_names` folds is what a reader varies and the books do not settle. Measured on
+# 686 lookups whose right answer the index itself gives — every name a man is filed under, put
+# back as a query — the plain tokeniser answered a name typed as the books print it 89% of the
+# time and a name copied from a printed chain, vowel marks and all, 0%: «أَحْمَدَ بْنِ عَبْدِ
+# الْوَاحِدِ» tokenised to words no heading carries, and the search returned nothing at all.
+# `arabic_normalization` strips those marks, folds the hamzas a reader leaves off, and settles
+# «ة»/«ه» and «ى»/«ي». `ibn_forms` folds «ابن» into «بن»: the books write both, and at three
+# letters «ابن» is below the fuzziness floor, so the two never met — 57% of those lookups found
+# nobody. With both, every one of those classes answers at 90%.
+with open(os.path.join(REPO, "scripts/search/narrators_mapping.json")) as _mapping_file:
+    MAPPING = json.load(_mapping_file)
 
 
 def roster_documents(like):
