@@ -259,9 +259,11 @@ def widen(folded, data, rules=None):
                 ("ibn", loosen(form, {"ibn"} & rules) != " ".join(form))) if changed]
             allowed = TIERS[:2] if not used and "short" not in rules else TIERS
             dropped = start[len(form):] if cut and bare_kunya(form) else []
-            probes.append((loosen(form, rules), "+".join(used) or "short", allowed, dropped))
+            named = naming_words(start[len(form):]) if cut and not dropped else []
+            probes.append((loosen(form, rules), "+".join(used) or "short", allowed, dropped,
+                           named))
     for tier in TIERS:
-        for probe, used, allowed, dropped in probes:
+        for probe, used, allowed, dropped, named in probes:
             found = tier in allowed and loose[tier].get(probe)
             if found and dropped:
                 # Trimmed down to a kunya, all that says who this is was the nisba trimmed off,
@@ -271,9 +273,66 @@ def widen(folded, data, rules=None):
                 # fourth-century chain was landing on a bare «أبو سعيد», a companion of
                 # al-Ṣādiq, and «أبو العباس الحمادي» on Abū al-ʿAbbās al-Razzāz.
                 found = {pid for pid in found if carries(pid, dropped, data)}
+            elif found and named:
+                found = {pid for pid in found if bears(pid, named, data)}
             if found:
                 return sorted(found), used, tier
     return [], "", ""
+
+
+# What a trim takes off the end of a name that is not a word of the name at all: a prayer, a
+# remark on how the narration came, or the place it was heard. «عبد الواحد بن عبدوس العطار
+# بنيسابور» is the man al-Ṣadūq heard at Nishapur, not a man named Nishapur.
+NOT_NAMING = {"رحمه", "رحمهما", "رحمهم", "الله", "رضي", "رضى", "عنه", "عنهما", "عنهم", "قدس",
+              "سره", "عليه", "وغيره", "وغيرهم", "غيره", "جماعتهم", "جماعه", "وجماعه", "معه",
+              "رفعه", "رفعوه", "يرويه", "كتابه", "انهما", "جميعا", "مثله", "قال", "قالا"}
+HEARD_IN = {"قم", "نيسابور", "نهاوند", "سرخس", "بغداد", "فرغانه", "بلخ", "مرو", "هراه",
+            "سمرقند", "همدان", "قزوين", "مصر", "مكه", "الري", "الكوفه", "البصره", "المدينه"}
+# «محمد بن الوليد ولقبه شباب الصيرفي»: a waw that goes on about the same man.
+SAME_MAN = {"ولقبه", "لقبه", "ويلقب", "ويعرف", "المعروف", "ويكنى"}
+
+
+def naming_words(trimmed):
+    """The trimmed words that say who this is, without the prayers, places and the next man.
+
+    A word opening on a waw starts the next man in the chain: «جميل بن دراج ودرست» is two men,
+    and the edition left the second glued to the first, so nothing after it is this man's.
+    """
+    named = []
+    for word in trimmed:
+        if word in SAME_MAN:
+            continue
+        if word in NOT_NAMING or word in GLUE or word in TITLES:
+            continue   # «القمي الفقيه»: the honorific is no more his name here than before it
+        if word.startswith("و") and len(word) > 3:
+            break
+        if word.startswith("ب") and (word[1:] in HEARD_IN or word.startswith("بال")):
+            continue
+        named.append(word)
+    return named
+
+
+def bears(pid, words, data):
+    """Whether every one of these words stands in a name the books give this man.
+
+    A trim that drops a nisba must land on a man the nisba fits. Audited on 300 links resting
+    on a trim (2026-10-28), the ones whose dropped words are in the man's names were right 92%
+    of the time, and the rest 20%: «محمد بن جعفر الرزاز» was reaching Ibn Baṭṭa, «عبيد الله بن
+    موسى العلوي» a Sayyid of the sixth century. His entries are not searched for the word as
+    well. It scored the same on the audit, and the links only it made were a third wrong,
+    because an entry names other men: al-Khoei's entry on Ibn ʿAwn al-Asadī names «الرزاز» to
+    say that al-Razzāz is somebody else, and al-Barqī's opens on a chain through «النوفلي».
+    """
+    person = data["by_id"].get(pid) or {}
+    his = {_spelled(word) for name in (person.get("names_ar") or [])
+           + (person.get("headings_ar") or []) + [person.get("display_ar") or ""]
+           for word in key(name).split()}
+    return all(_spelled(word) in his for word in words)
+
+
+def _spelled(word):
+    """One spelling for the nisbas the books print two ways: النيشابوري and النيسابوري."""
+    return word.replace("نيشابور", "نيسابور")
 
 
 def carries(pid, words, data):

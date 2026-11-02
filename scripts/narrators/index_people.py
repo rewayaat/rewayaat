@@ -389,6 +389,29 @@ def short_heading(long_name, headings):
     return best or long_name
 
 
+# Al-Khoei sets a man's nisba apart from his name with a colon of its own: «عمرو بن شمر: اليماني:
+# يرفع الحديث إلى علي». The extraction took the first colon for the end of the heading, so 478
+# pages drawn from his book alone were headed by the bare name. For 143 of them that bare name
+# is also another man's page, and the Yamānī who narrates «raised to ʿAlī» sat under the same
+# heading as ʿAmr b. Shimr al-Juʿfī, read by a reviewer as a duplicate of him. The nisba is
+# the book's own way of telling the two apart, so the heading carries it.
+KHOEI_NISBA = re.compile(r'([^:]{2,80}):\s*((?:ال\S+[\s،]*){1,3}):')
+NOT_A_NISBA = {"الشيخ"}  # an honorific: «إبراهيم بن سليمان القطيفي: الشيخ: فاضل»
+
+
+def khoei_nisba(entry):
+    """The nisba al-Khoei prints after the heading of «entry», as a list of words, or []."""
+    if entry.get("book") != "khoei" or not entry.get("heading_ar"):
+        return []
+    found = KHOEI_NISBA.match(entry.get("text_ar") or "")
+    if not found or normalize_arabic(found.group(1)) != normalize_arabic(entry["heading_ar"]):
+        return []
+    words = [w.strip(".،,") for w in found.group(2).replace("،", " ").split()]
+    if "المذهب" in words:   # «العلوي، الزيدي المذهب»: his doctrine, not where he is from
+        words = words[:max(words.index("المذهب") - 1, 0)]
+    return [w for w in words if w and w not in NOT_A_NISBA]
+
+
 def english_for_heading(arabic, aliases, table):
     """A book's own spelling of this heading where one exists, else ours.
 
@@ -1518,7 +1541,17 @@ def document(person, source, headless):
     display_en = anchor.get("primary_english_name") or person.get("primary_english_name")
     if display_en and display_en.rstrip().endswith(("...", "\u2026")):
         display_en = None      # a truncation, not a name
+    display_en = transliterate.respell(display_ar, display_en)
     made = False
+    nisba = []
+    if entries and all(e["book"] == "khoei" for e in entries):
+        nisba = next((khoei_nisba(e) for e in entries if khoei_nisba(e)
+                      and normalize_arabic(e["heading_ar"]) == normalize_arabic(display_ar)), [])
+    nisba = [w for w in nisba if w not in display_ar.split()]
+    if nisba:
+        display_ar = nasab_ar = " ".join([display_ar] + nisba)
+        display_en, made = english_for_heading(display_ar, names_en, TRANSLITERATION)
+        display_en = transliterate.respell(display_ar, display_en)
     if display_ar != nasab_ar:
         # The Arabic moved to his filing name, so the English follows it rather than going on
         # reciting a lineage the Arabic beside it no longer does.

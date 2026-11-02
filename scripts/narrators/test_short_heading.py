@@ -65,3 +65,22 @@ def test_we_spell_it_ourselves_when_no_book_did():
     english, made = english_for_heading("عمر بن أذينة", ["Ibn Adina"], TABLE)
     assert english == "Umar ibn Adhinah"
     assert made is True
+
+
+def test_al_khoei_s_nisba_after_the_colon_is_his_heading():
+    """«عمرو بن شمر: اليماني:» is a second man, told from al-Juʿfī by the nisba alone."""
+    from index_people import khoei_nisba
+    entry = {"book": "khoei", "heading_ar": "عمرو بن شمر",
+             "text_ar": "عمرو بن شمر: اليماني: يرفع الحديث إلى علي عليه السلام"}
+    assert khoei_nisba(entry) == ["اليماني"]
+    entry = {"book": "khoei", "heading_ar": "إبراهيم بن سليمان القطيفي",
+             "text_ar": "إبراهيم بن سليمان القطيفي: الشيخ: فاضل، عالم"}
+    assert khoei_nisba(entry) == []
+    entry = {"book": "khoei", "heading_ar": "أبو الحسين بن الشيبة",
+             "text_ar": "أبو الحسين بن الشيبة: العلوي، الزيدي المذهب: ذكره النجاشي"}
+    assert khoei_nisba(entry) == ["العلوي"]
+
+
+def test_shimr_is_spelled_shimr():
+    assert transliterate.respell("عمرو بن شمر", "Amr ibn Shumar") == "Amr ibn Shimr"
+    assert transliterate.respell("أبو شمر بن أبرهة بن الصباح", "Abu Shamar") == "Abu Shamar"
