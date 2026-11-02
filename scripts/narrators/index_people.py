@@ -353,6 +353,28 @@ def name_only(heading):
 NASAB_IS_LONG = 7      # «a bn b bn c bn d» is seven words — a name; eight is a lineage
 HEADING_IS_ENOUGH = 3  # «عمر بن أذينة»: his own name and one link, at the very least
 
+# A heading the books themselves call a copyist's slip, set right by hand because no rule can
+# tell which slip a book is flagging. Each entry here needs two things and gets neither from a
+# machine: a rijālī saying in so many words that the form is corrupt, and the form he says is
+# right. Only a name one of this man's own books heads him under is accepted (the guard below),
+# so this corrects which heading wins, never invents one.
+#
+# A majority rule was measured instead and refused. Taking the form most of a man's own entries
+# open with would move 374 headings, and what it moves them to is often worse: «محمد بن عبيد
+# الله بن أبي رافع» becomes «محمد بن عبيد», a name cut in the middle of his father's. 183 pages
+# carry a book flagging a slip somewhere in the entry, but most of those flags are about a date
+# or a chain, not the heading, so the class wants reading, not a pattern.
+HEADING_CORRECTED = {
+    # Jāmiʿ al-Ruwāt: «في كتب الرجال الحسن بن حمزة بغير توسط محمد، وهو الموافق لما في كتب
+    # النسب، والظاهر أن توسطه سهو، ولعل منشأه أن كنيته أبو محمد فصحّف ابن محمد» — the rijāl
+    # books have him without «محمد» in the middle, which agrees with the genealogies, and the
+    # insertion is apparently a slip from his kunya Abū Muḥammad. al-Khoei says the same of the
+    # same form: «الظاهر وقوع السهو في نسخة الرجال... من جهة إضافة جملة (ابن محمد)». al-Najāshī
+    # and al-Fihrist both head him without it; Rijāl al-Ṭūsī, which carries the slip, was the
+    # anchor, so the slip was the page's name.
+    "n000164": "الحسن بن حمزة العلوي الطبري",
+}
+
 
 def _nasab_links(name):
     """The names in a nasab, with the «بن» and the prose words between them dropped."""
@@ -851,6 +873,51 @@ def entry_key_for(person, book, pages, entry_keys):
         if pages and held and set(pages) & held:
             return key
     return None
+
+
+# A heading al-Khoei files only to send the reader on: «أحمد بن عبدون أبو عبد الله: = أحمد بن
+# عبد الواحد.» The «=» is his own mark for the other names of one man.
+POINTS_ELSEWHERE = re.compile(r'^[^:]{2,70}:\s*=\s*([^.،؛]{3,70})')
+
+
+def points_elsewhere(documents):
+    """Where a page's only entry does nothing but say «= X», name X on it.
+
+    132 pages are that and nothing else. al-Khoei heads a man under every form his name takes
+    in the chains, and under a variant writes only «=» and the heading he treats as the man's
+    own. `link_khoei_pointers` joins these where it can and refuses where the target names
+    more than one entry — rightly, since a bare «أحمد بن محمد» is pointed at from two men. What
+    it refuses was left standing as a narrator in its own right: a page with no grade, no
+    teacher and no student, which reads as a man about whom the books say nothing, when what
+    the book says is that he is somebody else. This is not the merge — the two stay separate
+    people, and no identity is claimed — it is telling the reader where the book sends him.
+    """
+    by_arabic, _ = relations_join.lookup(documents)
+    everyone = {d["person_id"]: d for d in documents if d.get("person_id")}
+    sent = pointers = 0
+    for doc in documents:
+        entries = doc.get("entries") or []
+        if len(entries) != 1:
+            continue
+        found = POINTS_ELSEWHERE.match((entries[0].get("text_ar") or "").strip())
+        if not found:
+            continue
+        pointers += 1
+        target = by_arabic.get(relations_join.arabic_key(found.group(1)))
+        other = everyone.get(target) if target else None
+        if not other or target == doc.get("person_id"):
+            # The name he points at is not one this index files anybody under, so there is
+            # nobody to send the reader to and the page says nothing new. Reported rather than
+            # passed over: the gap between the two numbers is how much of this class is still
+            # a page that reads as a man the books are silent about.
+            continue
+        book = entries[0]["book"]
+        doc["another_name_for"] = {
+            "person_id": target, "slug": other.get("slug"),
+            "display_ar": other.get("display_ar"), "display_en": other.get("display_en"),
+            "book_title": BOOK_TITLE.get(book, book), "book_title_ar": BOOK_TITLE_AR.get(book)}
+        sent += 1
+    return sent, pointers
 
 
 def read_from_key(person, book, pages, source):
@@ -1561,6 +1628,13 @@ def document(person, source, headless):
     if display_en and display_en.rstrip().endswith(("...", "\u2026")):
         display_en = None      # a truncation, not a name
     made = False
+    corrected = HEADING_CORRECTED.get(person.get("person_id"))
+    if corrected and corrected in headings_ar:
+        # Only which heading wins. nasab_ar is left alone: the lineage read off the entry is
+        # «الحسن بن حمزة بن علي بن عبد الله…», which agrees with the correction and is the
+        # reader's evidence for it, so flattening it here would throw away the proof.
+        display_ar = corrected
+        display_en, made = english_for_heading(display_ar, names_en, TRANSLITERATION)
     if display_ar != nasab_ar:
         # The Arabic moved to his filing name, so the English follows it rather than going on
         # reciting a lineage the Arabic beside it no longer does.
@@ -1926,6 +2000,9 @@ def main():
         print(f"  {len(settled):,} rows a judge settled, where no name reaches one man")
     counts["teacher and student rows joined to another naming the same man"] = \
         relations_join.join(documents, settled)
+    named, pointer_pages = points_elsewhere(documents)
+    counts[f"of {pointer_pages} pages that are only a pointer, the ones now naming "
+           "the man the book points at"] = named
 
     if documents and args.dump:
         with open(args.dump + ".part", "w") as handle:

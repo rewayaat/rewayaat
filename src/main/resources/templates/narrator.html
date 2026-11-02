@@ -75,6 +75,30 @@
             <p class="hub-hero__standing"
                th:if="${#lists.isEmpty(narrator['said_by']) and narrator['kind'] != 'imam'}"
                th:text="#{'narrator.standing.' + ${narrator.standing}}">No book grades him</p>
+            <!-- A page whose one entry does nothing but send the reader on. al-Khoei heads a
+                 man under every form his name takes in the chains, and under the variant he
+                 writes «=» and the heading he treats as the man's own. Where that pointer
+                 could not be joined with certainty — the target names more than one entry —
+                 the variant was left standing as a page of its own, with no grade, no teacher
+                 and no student, which reads as a man the books say nothing about. What the
+                 book says is that he is somebody else. No identity is claimed by this line:
+                 joining the two is the pipeline's to do and it declined. This only reports
+                 what the book says, and sends the reader there. -->
+            <th:block th:with="other=${narrator['another_name_for']}">
+                <p class="hub-hero__rests" th:if="${other != null}">
+                    <span th:text="#{narrator.anotherNameFor(${isArabic
+                                     ? (other['book_title_ar'] ?: other['book_title'])
+                                     : other['book_title']})}">al-Khoei gives this name as
+                        another name for</span>
+                    <a th:href="(${arPrefix} ?: '') + '/narrator/' + ${other['person_id']}
+                                + (${other['slug']} != null
+                                   and !${#strings.isEmpty(other['slug'])}
+                                   ? '/' + ${other['slug']} : '')"
+                       th:text="${isArabic ? other['display_ar']
+                                 : (other['display_en'] ?: other['display_ar'])}">the man
+                        himself</a>
+                </p>
+            </th:block>
             <!-- On whose word. The seven books are not seven equal voices: al-Najāshī and
                  al-Ṭūsī wrote within reach of these men, al-Ardabīlī and al-Khoei are reading
                  the same early books a reader of this page can read, and the ascription of

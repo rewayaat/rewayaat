@@ -183,6 +183,30 @@
             "type": "keyword"
           }
         }
+      },
+      "another_name_for": {
+        "type": "object",
+        "properties": {
+          "person_id": {
+            "type": "keyword"
+          },
+          "slug": {
+            "type": "keyword"
+          },
+          "display_ar": {
+            "type": "text",
+            "analyzer": "arabic_names"
+          },
+          "display_en": {
+            "type": "text"
+          },
+          "book_title": {
+            "type": "keyword"
+          },
+          "book_title_ar": {
+            "type": "keyword"
+          }
+        }
       }
     }
   }
