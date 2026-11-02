@@ -353,6 +353,28 @@ def name_only(heading):
 NASAB_IS_LONG = 7      # «a bn b bn c bn d» is seven words — a name; eight is a lineage
 HEADING_IS_ENOUGH = 3  # «عمر بن أذينة»: his own name and one link, at the very least
 
+# A heading the books themselves call a copyist's slip, set right by hand because no rule can
+# tell which slip a book is flagging. Each entry here needs two things and gets neither from a
+# machine: a rijālī saying in so many words that the form is corrupt, and the form he says is
+# right. Only a name one of this man's own books heads him under is accepted (the guard below),
+# so this corrects which heading wins, never invents one.
+#
+# A majority rule was measured instead and refused. Taking the form most of a man's own entries
+# open with would move 374 headings, and what it moves them to is often worse: «محمد بن عبيد
+# الله بن أبي رافع» becomes «محمد بن عبيد», a name cut in the middle of his father's. 183 pages
+# carry a book flagging a slip somewhere in the entry, but most of those flags are about a date
+# or a chain, not the heading, so the class wants reading, not a pattern.
+HEADING_CORRECTED = {
+    # Jāmiʿ al-Ruwāt: «في كتب الرجال الحسن بن حمزة بغير توسط محمد، وهو الموافق لما في كتب
+    # النسب، والظاهر أن توسطه سهو، ولعل منشأه أن كنيته أبو محمد فصحّف ابن محمد» — the rijāl
+    # books have him without «محمد» in the middle, which agrees with the genealogies, and the
+    # insertion is apparently a slip from his kunya Abū Muḥammad. al-Khoei says the same of the
+    # same form: «الظاهر وقوع السهو في نسخة الرجال... من جهة إضافة جملة (ابن محمد)». al-Najāshī
+    # and al-Fihrist both head him without it; Rijāl al-Ṭūsī, which carries the slip, was the
+    # anchor, so the slip was the page's name.
+    "n000164": "الحسن بن حمزة العلوي الطبري",
+}
+
 
 def _nasab_links(name):
     """The names in a nasab, with the «بن» and the prose words between them dropped."""
@@ -857,13 +879,91 @@ def _same_value(value):
 
 
 def entry_key_for(person, book, pages, entry_keys):
-    """The entry a statement was read from: its book, and its pages if they say which."""
+    """The entry a statement was read from: its book, and its pages if they say which.
+
+    Where the man holds one entry in the book this answers with it whatever the pages say, and
+    that is deliberate: it is the entry a reader can open, and for a city or a generation it is
+    the right place to send him. What it is not is evidence that the statement was read there —
+    see `read_from_key`, which a verdict is tested against. Tightening this to demand the pages
+    agree was tried and withdrawn: it also governs cities, generations and death years, none of
+    which are tested against a passage, and it silently dropped them from 4,159 pages.
+    """
     same_book = [k for k in entry_keys if k.split(":")[0] == book]
     if len(same_book) == 1:
         return same_book[0]
     for key in same_book:
         held = set(person["pages_of"].get(key) or ())
         if pages and held and set(pages) & held:
+            return key
+    return None
+
+
+# A heading al-Khoei files only to send the reader on: «أحمد بن عبدون أبو عبد الله: = أحمد بن
+# عبد الواحد.» The «=» is his own mark for the other names of one man.
+POINTS_ELSEWHERE = re.compile(r'^[^:]{2,70}:\s*=\s*([^.،؛]{3,70})')
+
+
+def points_elsewhere(documents):
+    """Where a page's only entry does nothing but say «= X», name X on it.
+
+    132 pages are that and nothing else. al-Khoei heads a man under every form his name takes
+    in the chains, and under a variant writes only «=» and the heading he treats as the man's
+    own. `link_khoei_pointers` joins these where it can and refuses where the target names
+    more than one entry — rightly, since a bare «أحمد بن محمد» is pointed at from two men. What
+    it refuses was left standing as a narrator in its own right: a page with no grade, no
+    teacher and no student, which reads as a man about whom the books say nothing, when what
+    the book says is that he is somebody else. This is not the merge — the two stay separate
+    people, and no identity is claimed — it is telling the reader where the book sends him.
+    """
+    by_arabic, _ = relations_join.lookup(documents)
+    everyone = {d["person_id"]: d for d in documents if d.get("person_id")}
+    sent = pointers = 0
+    for doc in documents:
+        entries = doc.get("entries") or []
+        if len(entries) != 1:
+            continue
+        found = POINTS_ELSEWHERE.match((entries[0].get("text_ar") or "").strip())
+        if not found:
+            continue
+        pointers += 1
+        target = by_arabic.get(relations_join.arabic_key(found.group(1)))
+        other = everyone.get(target) if target else None
+        if not other or target == doc.get("person_id"):
+            # The name he points at is not one this index files anybody under, so there is
+            # nobody to send the reader to and the page says nothing new. Reported rather than
+            # passed over: the gap between the two numbers is how much of this class is still
+            # a page that reads as a man the books are silent about.
+            continue
+        book = entries[0]["book"]
+        doc["another_name_for"] = {
+            "person_id": target, "slug": other.get("slug"),
+            "display_ar": other.get("display_ar"), "display_en": other.get("display_en"),
+            "book_title": BOOK_TITLE.get(book, book), "book_title_ar": BOOK_TITLE_AR.get(book)}
+        sent += 1
+    return sent, pointers
+
+
+def read_from_key(person, book, pages, source):
+    """The record a statement was read from, an entry or not.
+
+    al-Khoei is extracted per mention: besides a man's entry there is a record for each place
+    the Muʿjam speaks of him, each carrying its own pages and its own passage. A grade read
+    from one of those is still about him — «أن سليم بن قيس في نفسه ثقة جليل القدر» stands where
+    that record says it does — but it is not in his entry, and testing it against his entry
+    tests nothing. Of the 2,229 bound that way, 1,622 fail against the passage they were
+    actually read from: «حدثني علي بن إبراهيم بن هاشم» is a chain, not a grading, and a record
+    holding no passage at all carried «thiqa» for Sulaym b. Qays.
+    """
+    if not pages:
+        return None
+    wanted = set(pages)
+    mine = [k for k in person["pages_of"] if k.split(":")[0] == book and k in source]
+    for key in mine:
+        if set(person["pages_of"].get(key) or ()) == wanted:
+            return key
+    for key in mine:
+        held = set(person["pages_of"].get(key) or ())
+        if held and held & wanted:
             return key
     return None
 
@@ -1122,12 +1222,16 @@ def document(person, source, headless):
         if grade.get("grade") in UNSTATED:
             continue
         book, pages = grade.get("source_book"), grade.get("source_pages") or []
+        entry_key = entry_key_for(person, book, pages, entry_keys)
         verdicts.append({"grade": grade.get("grade"), "said": grade.get("raw"),
                          "stated": True,
                          "book": book, "book_title": BOOK_TITLE.get(book, book),
                          "book_title_ar": BOOK_TITLE_AR.get(book), "pages": pages,
                          "book_note": BOOK_NOTE.get(book),
-                         "source_key": entry_key_for(person, book, pages, entry_keys)})
+                         "source_key": entry_key,
+                         # Where the words were read, which is what the grade is tested
+                         # against; the entry above is only where a reader can open them.
+                         "read_from": read_from_key(person, book, pages, source) or entry_key})
 
     # One position per book, not one per profile. A book is read into several profiles — Khoei's
     # entry spans five pages and phase 1 read each — and the same verdict came back once per
@@ -1176,12 +1280,17 @@ def document(person, source, headless):
         if not verdict["source_key"]:
             set_aside(verdict, "no_entry")
             continue
+        # Tested against the words it was read from; still published only where there is an
+        # entry a reader can open. Letting `read_from` license publication as well put every
+        # Tanqīḥ grade back on the pages — that book has no entry here to open — and was
+        # withdrawn.
+        passage_key = verdict["read_from"] or verdict["source_key"]
         # The passage is citable; the question is whether it says it. A verdict is read from
         # a word, and the audit of 2026-10-10 found that where the grade's own word is absent
         # from the cited passage the claim is wrong — 36 of 36 where no verdict word stood at
         # all, 18 of 22 where only another grade's word did. 1,125 of the 4,087 verdicts the
         # page presented as a book's position are of those two kinds, 816 of them Khoei's.
-        if not shown(verdict["grade"], text_of(source[verdict["source_key"]])):
+        if not shown(verdict["grade"], text_of(source[passage_key])):
             set_aside(verdict, "not_in_passage")
             continue
         book = verdict["book"]
@@ -1198,7 +1307,7 @@ def document(person, source, headless):
         # another book had spoken.
         relays, relays_ar = [], []
         if book in LATE_BOOKS:
-            passage = normalize_arabic(text_of(source[verdict["source_key"]]) or "")
+            passage = normalize_arabic(text_of(source[passage_key]) or "")
             # Named for the reader, not keyed: «quoting Rijāl al-Najāshī», not «najashi».
             # In both scripts: an Arabic page was printing «نقلاً عن Ikhtiyār Maʿrifat
             # al-Rijāl», which is the leak this very feature introduced.
@@ -1543,6 +1652,14 @@ def document(person, source, headless):
         display_en = None      # a truncation, not a name
     display_en = transliterate.respell(display_ar, display_en)
     made = False
+    corrected = HEADING_CORRECTED.get(person.get("person_id"))
+    if corrected and corrected in headings_ar:
+        # Only which heading wins. nasab_ar is left alone: the lineage read off the entry is
+        # «الحسن بن حمزة بن علي بن عبد الله…», which agrees with the correction and is the
+        # reader's evidence for it, so flattening it here would throw away the proof.
+        display_ar = corrected
+        display_en, made = english_for_heading(display_ar, names_en, TRANSLITERATION)
+        display_en = transliterate.respell(display_ar, display_en)
     nisba = []
     if entries and all(e["book"] == "khoei" for e in entries):
         nisba = next((khoei_nisba(e) for e in entries if khoei_nisba(e)
@@ -1704,54 +1821,22 @@ def document(person, source, headless):
     }
 
 
-MAPPING = {
-    "settings": {"number_of_shards": 1, "number_of_replicas": 0,
-                 "analysis": {"analyzer": {"arabic_names": {"tokenizer": "standard",
-                                                            "filter": ["lowercase"]}}}},
-    "mappings": {"properties": {
-        "person_id": {"type": "keyword"},
-        "display_ar": {"type": "text", "analyzer": "arabic_names",
-                       "fields": {"keyword": {"type": "keyword", "ignore_above": 256}}},
-        "display_en": {"type": "text", "fields": {"keyword": {"type": "keyword", "ignore_above": 256}}},
-        "nasab_ar": {"type": "text", "analyzer": "arabic_names"},
-        "names_ar": {"type": "text", "analyzer": "arabic_names"},
-        "headings_ar": {"type": "text", "analyzer": "arabic_names"},
-        "search_ar": {"type": "text", "analyzer": "arabic_names"},
-        "names_en": {"type": "text"},
-        "normalized_ar": {"type": "text", "analyzer": "arabic_names",
-                          "fields": {"keyword": {"type": "keyword", "ignore_above": 256}}},
-        "normalized_en": {"type": "text"},
-        "kunyahs_ar": {"type": "text", "analyzer": "arabic_names"},
-        "titles": {"type": "text", "analyzer": "arabic_names"},
-        "books": {"type": "keyword"},
-        "entry_count": {"type": "integer"},
-        "mention_count": {"type": "integer"},
-        "imam_ordinals": {"type": "integer"},
-        "holds_entry": {"type": "boolean"},
-        "standing_rests_on": {"type": "keyword"},
-        "said_by": {"type": "object", "enabled": False},
-        "display_en_made": {"type": "boolean"},
-        "kunyahs_reported_ar": {"type": "text"},
-        "titles_reported": {"type": "text"},
-        # set only on a document that is really somebody else's, so a search can leave it out
-        # with `must_not exists` and a page can send the reader on
-        "moved_to": {"type": "keyword"},
-        "entries": {"type": "object", "properties": {
-            "source_key": {"type": "keyword"}, "book": {"type": "keyword"},
-            "text_ar": {"type": "text", "analyzer": "arabic_names"},
-            "text_en": {"type": "text"}, "grade": {"type": "keyword"},
-            "page_first": {"type": "integer"}}},
-        "narrated_from": {"type": "object", "properties": {
-            "name": {"type": "text", "analyzer": "arabic_names"}}},
-        "narrated_to": {"type": "object", "properties": {
-            "name": {"type": "text", "analyzer": "arabic_names"}}},
-        "teacher_count": {"type": "integer"},
-        "student_count": {"type": "integer"},
-        "verdicts": {"type": "object", "properties": {
-            "grade": {"type": "keyword"}, "book": {"type": "keyword"},
-            "source_key": {"type": "keyword"}}},
-    }},
-}
+# The settings and field types live beside the search mappings, in
+# scripts/search/narrators_mapping.json, so that a test can build an index the way production
+# does; NarratorNameLookupIntegrationTest reads the same file, and a drift between the two
+# would otherwise show up only as a search that quietly stops finding people.
+#
+# What `arabic_names` folds is what a reader varies and the books do not settle. Measured on
+# 686 lookups whose right answer the index itself gives — every name a man is filed under, put
+# back as a query — the plain tokeniser answered a name typed as the books print it 89% of the
+# time and a name copied from a printed chain, vowel marks and all, 0%: «أَحْمَدَ بْنِ عَبْدِ
+# الْوَاحِدِ» tokenised to words no heading carries, and the search returned nothing at all.
+# `arabic_normalization` strips those marks, folds the hamzas a reader leaves off, and settles
+# «ة»/«ه» and «ى»/«ي». `ibn_forms` folds «ابن» into «بن»: the books write both, and at three
+# letters «ابن» is below the fuzziness floor, so the two never met — 57% of those lookups found
+# nobody. With both, every one of those classes answers at 90%.
+with open(os.path.join(REPO, "scripts/search/narrators_mapping.json")) as _mapping_file:
+    MAPPING = json.load(_mapping_file)
 
 
 def roster_documents(like):
@@ -1949,6 +2034,9 @@ def main():
         print(f"  {len(settled):,} rows a judge settled, where no name reaches one man")
     counts["teacher and student rows joined to another naming the same man"] = \
         relations_join.join(documents, settled)
+    named, pointer_pages = points_elsewhere(documents)
+    counts[f"of {pointer_pages} pages that are only a pointer, the ones now naming "
+           "the man the book points at"] = named
 
     if documents and args.dump:
         with open(args.dump + ".part", "w") as handle:
