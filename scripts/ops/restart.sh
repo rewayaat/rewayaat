@@ -28,8 +28,31 @@ if [ -n "${PORT_PID:-}" ]; then
   sleep 2
 fi
 
-# Fallback: stop any lingering spring-boot:run launcher
-PIDS=$(ps -ef | rg "mvn .*spring-boot:run" | rg -v rg | awk '{print $2}' || true)
+# Fallback: stop any lingering spring-boot:run launcher.
+#
+# This used to shell out to `rg`, which is not installed everywhere, and `set -e` does not
+# catch it because the `|| true` swallows the 127: the fallback silently found nothing and a
+# stuck launcher kept the port. pgrep is in procps and is here anyway, two lines up.
+#
+# pgrep -f matches whole command lines, so it also matches any shell whose own line happens to
+# mention the command — including whatever invoked this script. Killing that is how the `rg`
+# version's sibling bug went: a start command that kills itself exits 144 with an empty log and
+# nothing bound to the port, and it reads as the server dying at startup. So skip this process
+# and every one of its ancestors; a launcher this script should stop is never among them.
+self_and_forebears() {
+  local p=$1
+  while [ -n "$p" ] && [ "$p" -gt 1 ] 2>/dev/null; do
+    printf ' %s' "$p"
+    p=$(ps -o ppid= -p "$p" 2>/dev/null | tr -d ' ')
+  done
+  printf ' '
+}
+MINE=$(self_and_forebears $$)
+PIDS=""
+for p in $(pgrep -f "mvn .*spring-boot:run" || true); do
+  case "$MINE" in *" $p "*) continue ;; esac
+  PIDS="${PIDS:+$PIDS }$p"
+done
 if [ -n "${PIDS:-}" ]; then
   kill $PIDS || true
   sleep 2
