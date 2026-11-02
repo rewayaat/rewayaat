@@ -86,7 +86,9 @@ def test_a_relative_word_alone_stays_unresolved_and_a_kunya_is_not_read_as_one()
 
 
 def test_trailing_nisbas_come_off_the_chains_name_and_a_generation_never_does():
-    data = index(man("n1", "سعد بن عبد الله بن أبي خلف"), man("n2", "أحمد بن محمد بن عيسى"))
+    # A trimmed nisba must be one of the man's names (`bears`), as al-Ashʿarī is Saʿd's.
+    data = index(man("n1", "سعد بن عبد الله بن أبي خلف", "سعد بن عبد الله الأشعري"),
+                 man("n2", "أحمد بن محمد بن عيسى"))
     assert read(data, "سعد بن عبد الله بن أبي خلف الأشعري")[0] == [("one", "n1")]
     # «أحمد بن محمد الأشعري» has one nisba to lose and then nothing but a «بن»: the books
     # file only Ibn ʿĪsā, and dropping a generation is how five men become one.
@@ -96,7 +98,8 @@ def test_trailing_nisbas_come_off_the_chains_name_and_a_generation_never_does():
 
 
 def test_a_widened_key_that_finds_several_men_is_several():
-    data = index(man("n1", "القاسم بن يحيى"), man("n2", "قاسم بن يحيى"))
+    data = index(man("n1", "القاسم بن يحيى", "القاسم الكوفي"),
+                 man("n2", "قاسم بن يحيى", "قاسم الكوفي"))
     outcomes, rows = read(data, "القاسم بن يحيى الكوفي")
     assert outcomes == [("several", "")]
     assert sorted(rows[0]["candidates"]) == ["n1", "n2"]
@@ -240,3 +243,22 @@ def test_the_alias_table_does_not_depend_on_the_order_people_are_read():
     other_way = index(fuller, stub)
     assert one_way["aliases"].get("يونس") == other_way["aliases"].get("يونس")
     assert one_way["answers_to"]["يونس"] == other_way["answers_to"]["يونس"] == {"n1", "n2"}
+
+
+def test_a_trimmed_nisba_must_be_one_of_his_names():
+    """«محمد بن جعفر الرزاز» is held by nobody, and trimmed it reached Ibn Baṭṭa, whom no book
+    calls al-Razzāz. The trimmed word is what said who this was, so the man must carry it."""
+    data = index(man("n1", "محمد بن جعفر", "محمد بن جعفر بن أحمد بن بطة"))
+    assert read(data, "محمد بن جعفر الرزاز")[0] == [("none", "")]
+    data = index(man("n1", "مسعود بن محمد", "مسعود العياشي"))
+    assert read(data, "مسعود بن محمد العياشي")[0] == [("one", "n1")]
+
+
+def test_what_a_trim_takes_off_that_names_nobody_is_not_asked_of_him():
+    """A prayer, the place he was heard, and the next man glued on by a waw are not his name."""
+    assert cr.naming_words(["رحمه", "الله"]) == []
+    assert cr.naming_words(["بنيسابور"]) == []
+    assert cr.naming_words(["ودرست"]) == []
+    assert cr.naming_words(["ولقبه", "شباب", "الصيرفي"]) == ["شباب", "الصيرفي"]
+    data = index(man("n1", "عبد الواحد بن محمد بن عبدوس العطار"))
+    assert read(data, "عبد الواحد بن محمد بن عبدوس العطار بنيسابور")[0] == [("one", "n1")]
