@@ -25,11 +25,11 @@
 .lib-text{position:relative;z-index:2;max-width:36rem;width:100%;text-align:center;text-shadow:0 0 18px rgba(6,14,30,.95)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 #rim{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;overflow:visible}
-#rim text{fill:#dbe4f1;font-family:var(--ui);font-size:12.5px;letter-spacing:.015em;white-space:pre;paint-order:stroke;stroke:rgba(4,10,24,.92);stroke-width:5px;stroke-linejoin:round}
-#rim .n{font-family:var(--display);font-size:20px;font-weight:700;fill:#ffe2a0;font-variant-numeric:lining-nums}
-#rim .s{fill:#c9a24e}
-#rim.small text{font-size:10.5px;letter-spacing:0;stroke-width:2.2px}
-#rim.small .n{font-size:14.5px}
+#rim text{fill:#eef3fa;font-family:var(--ui);font-size:14px;font-weight:700;letter-spacing:.02em;white-space:pre;paint-order:stroke;stroke:rgba(4,10,24,.85);stroke-width:3px;stroke-linejoin:round}
+#rim .n{font-family:var(--display);font-size:22px;font-weight:700;fill:#ffe2a0;font-variant-numeric:lining-nums;letter-spacing:0}
+#rim .s{fill:#c9a24e;stroke:none}
+#rim.small text{font-size:11.5px;letter-spacing:0;stroke-width:2.4px}
+#rim.small .n{font-size:16px}
 .q-by{display:block;font-size:.44em;line-height:1.5;color:#f3e5b8}
 .mk .q-by{color:transparent;text-shadow:none}
 .book{position:absolute;left:var(--x);top:var(--y);width:var(--w);display:block;will-change:transform;text-decoration:none;color:inherit;opacity:calc(.66 + .3 * var(--o,0))}
@@ -162,3 +162,7 @@
 /* Room above the saying, below the navigation bar. */
 .about-page .i-hero{padding-top:64px}
 @media (max-width:760px){.about-page .i-hero{padding-top:44px}}
+[dir="rtl"] #rim text{font-family:var(--ar);font-size:17px;letter-spacing:0}
+[dir="rtl"] #rim .n{font-family:var(--display);font-size:22px}
+[dir="rtl"] #rim.small text{font-size:13.5px}
+[dir="rtl"] #rim.small .n{font-size:16px}
