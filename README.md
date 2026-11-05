@@ -4,7 +4,7 @@ A Shia hadith research platform. 50,038 narrations from 21 books, searchable in 
 and English, cross-linked to similar narrations and to the Quranic verses that
 illuminate them.
 
-Live at **[hadith.academyofislam.com](https://hadith.academyofislam.com)**.
+Live at **[rewayaat.info](https://rewayaat.info)**.
 
 Spring Boot 3.3.2 on Java 17, with Elasticsearch as the only datastore. Everything
 expensive — semantic embeddings, similar-narration judgments, hadith-to-Quran
