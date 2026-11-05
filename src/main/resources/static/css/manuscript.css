@@ -16967,7 +16967,11 @@ body.is-search-mode .site-nav .search-entry-shell:focus-within {
 /* ── Support reminders (support-nudge.js, rewayaat.info only) ───────────────── */
 
 /* The footer's own link under Contact, bold and nothing else. */
-.site-footer__links .support-footer__link { font-weight: 700; }
+/* In the About page's ice blue, the colour of its vowel marks. */
+.site-footer__links .support-footer__link,
+.site-footer__links .support-footer__link:visited { font-weight: 700; color: #7fe3ff !important; }
+.site-footer__links .support-footer__link:hover,
+.site-footer__links .support-footer__link:focus-visible { color: #c4f3ff !important; }
 
 /* A note at the end of a chapter, set like a colophon. */
 .support-slot:empty { display: none; }
