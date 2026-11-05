@@ -93,6 +93,7 @@
       <h2 id="about-us-title" th:text="#{about.us.title}">About us</h2>
       <p>
         <span th:utext="#{about.us.body}">The Hadith Database is an open-source project, built in collaboration with the <a href="https://academyofislam.com" target="_blank" rel="noopener noreferrer">Academy for Learning Islam</a>. We started it in 2017 with one goal: to make the hadith of the Ahl al-Bayt easy to search and read online, in Arabic and English, for anyone, anywhere. Its code is public on GitHub, where anyone can follow the work or contribute.</span>
+        <span th:utext="#{about.us.api}">Every narration and every narrator record is also open to developers through a free public API, and to AI assistants through our connector at rewayaat.info/mcp.</span>
         <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer" th:text="#{about.us.github}">The code on GitHub</a> ·
         <a href="/updates.html" th:href="@{${arPrefix} ?: ''} + '/updates.html'" th:text="#{about.us.updates}">See what's new</a> ·
         <a href="/contact" th:href="@{${arPrefix} ?: ''} + '/contact'" th:text="#{about.us.contact}">Contact us</a>
