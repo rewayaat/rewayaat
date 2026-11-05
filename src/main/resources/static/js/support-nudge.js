@@ -1,7 +1,7 @@
 /*
  * The three quiet reminders that the library takes support, all leading to /about#support:
  *
- *   - a line in the footer of every page;
+ *   - a bold "Support the library" under Contact in the footer of every page;
  *   - a note at the end of a chapter, at most once every 14 days;
  *   - a note after the reader copies a narration or its link, at most once every 30 days.
  *
@@ -54,14 +54,12 @@
   if (path === '/about/thanks') { remember(GIVEN); return; }
   if (path === '/about' || daysSince(GIVEN) < 180) { return; }
 
+  /* The last item under Contact in the footer, in bold. */
   function footerLine() {
-    var bottom = document.querySelector('.site-footer .site-footer__bottom');
-    if (!bottom || document.querySelector('.support-footer')) { return; }
-    var line = el('p', 'support-footer');
-    line.appendChild(el('span', 'support-footer__lead', t('support.footer.lead', 'Carry the light further')));
-    line.appendChild(el('span', 'support-footer__dot', '·'));
-    line.appendChild(askLink('support-footer__link', t('support.footer.link', 'Support the library')));
-    bottom.parentNode.insertBefore(line, bottom);
+    var columns = document.querySelectorAll('.site-footer .site-footer__grid .site-footer__links');
+    var contact = columns[columns.length - 1];
+    if (!contact || contact.querySelector('.support-footer__link')) { return; }
+    contact.appendChild(askLink('support-footer__link', t('support.footer.link', 'Support the library')));
   }
 
   /* Counted as shown only once it is actually on screen, so a reader who never scrolls to

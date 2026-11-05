@@ -16966,31 +16966,8 @@ body.is-search-mode .site-nav .search-entry-shell:focus-within {
 
 /* ── Support reminders (support-nudge.js, rewayaat.info only) ───────────────── */
 
-/* A line in the footer, above the copyright row. */
-.support-footer {
-    margin: 1.4rem 0 0;
-    padding: 0.85rem 0;
-    border-top: 1px solid rgba(233, 196, 106, 0.18);
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: center;
-    gap: 0.35rem 0.6rem;
-    font-size: 0.95rem;
-    letter-spacing: normal;
-}
-.support-footer__lead { color: rgba(255, 255, 255, 0.78); font-style: italic; }
-[dir="rtl"] .support-footer__lead { font-style: normal; }
-.support-footer__dot { color: var(--gold); }
-.support-footer__link,
-.support-footer__link:visited {
-    color: #e9c46a;
-    font-weight: 700;
-    text-decoration: none;
-    border-bottom: 1px solid rgba(233, 196, 106, 0.45);
-}
-.support-footer__link:hover,
-.support-footer__link:focus-visible { color: #ffe2a0; border-bottom-color: #ffe2a0; }
+/* The footer's own link under Contact, bold and nothing else. */
+.site-footer__links .support-footer__link { font-weight: 700; }
 
 /* A note at the end of a chapter, set like a colophon. */
 .support-slot:empty { display: none; }
