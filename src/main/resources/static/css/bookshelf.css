@@ -283,3 +283,56 @@
   .browse-shelf:not(.is-expanded) .shelf-book--gap { display: none; }
   .browse-shelf .browse-book-drawer-toggle { margin-top: 0.75rem; }
 }
+
+/*
+ * The case itself: a walnut carcass around the papered wall. Thick stiles with a running
+ * grain and a bevel, a crown moulding across the top, and a plinth the case stands on.
+ * The frame is drawn outside the wall's own box, so nothing on the shelves moves.
+ */
+.bookcase {
+  --frame: 20px;
+  position: relative;
+  isolation: isolate;
+  margin: calc(var(--frame) + 22px) var(--frame) calc(var(--frame) + 26px);
+  border-radius: 2px;
+  box-shadow:
+    inset 0 12px 16px -10px rgba(var(--cast), .45),
+    inset 0 0 0 1px rgba(var(--cast), .3),
+    inset 0 0 18px rgba(var(--cast), .18);
+}
+.bookcase::before {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  inset: calc(-1 * var(--frame)) calc(-1 * var(--frame)) calc(-1 * var(--frame) - 12px);
+  padding: var(--frame) var(--frame) calc(var(--frame) + 12px);
+  border-radius: 4px;
+  /* Only the frame: the papered wall shows through the middle. */
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  background:
+    repeating-linear-gradient(90deg, rgba(var(--grain), .0) 0 3px, rgba(var(--grain), .16) 3px 4px, rgba(var(--grain), 0) 4px 9px, rgba(255, 220, 170, .05) 9px 10px),
+    repeating-linear-gradient(0deg, rgba(var(--grain), .12) 0 1px, transparent 1px 7px, rgba(255, 220, 170, .04) 7px 8px, transparent 8px 13px),
+    linear-gradient(90deg, var(--wood-lo), var(--wood) 6%, var(--wood-hi) 50%, var(--wood) 94%, var(--wood-lo));
+  box-shadow:
+    inset 0 0 0 1px var(--wood-end),
+    inset 0 1px 0 2px rgba(255, 214, 160, .18),
+    0 0 0 1px var(--wood-end),
+    0 26px 40px -16px rgba(var(--cast), .55);
+}
+/* The crown: a stepped moulding wider than the case, catching the light on its top edge. */
+.bookcase::after {
+  content: ""; position: absolute; z-index: -1; pointer-events: none;
+  left: calc(-1 * var(--frame) - 12px); right: calc(-1 * var(--frame) - 12px);
+  top: calc(-1 * var(--frame) - 22px); height: 26px; border-radius: 3px 3px 1px 1px;
+  background:
+    linear-gradient(var(--wood-top), var(--wood-hi) 22%, var(--wood) 55%, var(--wood-lo) 78%, var(--wood-end)),
+    var(--wood);
+  box-shadow: 0 0 0 1px var(--wood-end), inset 0 1px 0 rgba(255, 226, 180, .35), 0 6px 8px -4px rgba(var(--cast), .6);
+}
+@media (max-width: 520px) {
+  .bookcase { --frame: 10px; margin: calc(var(--frame) + 14px) calc(var(--frame) + 4px) calc(var(--frame) + 22px); }
+  .bookcase::after { height: 18px; top: calc(-1 * var(--frame) - 14px); left: calc(-1 * var(--frame) - 4px); right: calc(-1 * var(--frame) - 4px); }
+}
+/* The home page's section clips what overflows it, so the crown's overhang needs room inside. */
+.home-browse .bookcase { margin-inline: calc(var(--frame) + 14px); }
+@media (max-width: 520px) { .home-browse .bookcase { margin-inline: calc(var(--frame) + 6px); } }
