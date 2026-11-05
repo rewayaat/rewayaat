@@ -16819,3 +16819,76 @@ a.chains__note--to:focus-visible {
     text-transform: none;
     font-size: 0.7rem;
 }
+
+/* ── Search fields: square, taller, lit while in use ────────────────────────
+   One shape for every search field on the site - the home page's, the navbar's on
+   every page and in search mode, and the list filters: square corners, a taller bar
+   with room for the terms, and a gold edge that lights while the field has focus.
+   Appended last on purpose: the rules above set radius and height in several
+   layers, and this is the one place that decides. */
+:root {
+    --search-shell-height: 46px;
+    --search-action-height: 36px;
+}
+@media (max-width: 768px) {
+    :root {
+        --search-shell-height: 44px;
+        --search-action-height: 34px;
+    }
+}
+.home-hero__search {
+    --search-shell-height: 58px;
+    --search-action-height: 44px;
+}
+.site-nav {
+    padding-top: 9px;
+    padding-bottom: 9px;
+}
+.search-entry-shell,
+.search-entry-shell .ts-wrapper,
+.search-entry-shell .ts-wrapper.form-control,
+.search-entry-shell .ts-control,
+.home-search .search-entry-shell,
+.home-search .ts-control,
+body.is-search-mode .site-nav .search-entry-shell,
+.search-bar-glow,
+.search-bar-glow .navbar-search__input,
+.search-bar-glow .ts-control,
+.search-btn-with-border,
+.nav-search__btn,
+.search-inline-btn,
+.hub-filter__input {
+    border-radius: 0 !important;
+}
+.search-entry-shell {
+    height: var(--search-shell-height) !important;
+    min-height: var(--search-shell-height) !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.search-btn-with-border,
+.nav-search__btn {
+    height: var(--search-action-height) !important;
+    min-height: var(--search-action-height);
+    margin-inline-end: 5px;
+}
+.search-entry-shell .ts-control .item {
+    border-radius: 2px !important;
+    padding-block: 3px;
+    font-size: 0.95rem;
+}
+.search-entry-shell:focus-within,
+.home-search .search-entry-shell:focus-within,
+body.is-search-mode .site-nav .search-entry-shell:focus-within {
+    border-color: #e9c46a !important;
+    box-shadow: 0 0 0 1px #e9c46a, 0 0 0 4px rgba(233, 196, 106, 0.22), 0 0 22px rgba(233, 196, 106, 0.3) !important;
+}
+.hub-filter__input:focus {
+    border-color: #c8a23d !important;
+    box-shadow: 0 0 0 1px #c8a23d, 0 0 0 4px rgba(200, 162, 61, 0.2) !important;
+    outline: none;
+}
+#queryBar .ts-control .item,
+.navbar-search .ts-control .item,
+.site-nav .search-entry-shell .ts-control .item {
+    border-radius: 2px !important;
+}
