@@ -1,7 +1,6 @@
 package com.rewayaat.controllers.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import com.rewayaat.controllers.ContactPageController;
 import com.rewayaat.service.PageLocale;
 import com.rewayaat.service.SupportCheckout;
 import io.swagger.v3.oas.annotations.Hidden;
@@ -35,7 +34,7 @@ public class SupportCheckoutController {
     /** Opening a checkout is cheap, but each one is a call to Stripe on our key. */
     private static final int PER_HOUR = 20;
 
-    public record Gift(String interval, Double amount, String dedication, String locale) { }
+    public record Gift(String interval, Double amount, String locale) { }
 
     private final SupportCheckout checkout;
     private final LongSupplier clock;
@@ -67,12 +66,8 @@ public class SupportCheckoutController {
         if (!admit(ContactController.clientAddress(request))) {
             return ResponseEntity.status(429).body(Map.of("error", "busy"));
         }
-        String dedication = ContactPageController.clean(gift.dedication());
-        if (dedication.length() > SupportCheckout.MAX_DEDICATION) {
-            dedication = dedication.substring(0, SupportCheckout.MAX_DEDICATION).trim();
-        }
         try {
-            String url = checkout.open(interval, cents, dedication, base(request),
+            String url = checkout.open(interval, cents, base(request),
                     PageLocale.ofTag(gift.locale()).prefix());
             return ResponseEntity.ok(Map.of("url", url));
         } catch (SupportCheckout.CheckoutFailed e) {

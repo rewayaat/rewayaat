@@ -77,10 +77,6 @@
           <span th:text="#{about.give.otherLabel}">Amount in US dollars</span>
           <span class="give__money"><span aria-hidden="true">$</span><input type="number" inputmode="decimal" min="5" max="10000" step="1" data-other-input></span>
         </label>
-        <label class="give__field">
-          <span th:text="#{about.give.dedication}">In the name of (optional)</span>
-          <input type="text" maxlength="120" data-dedication th:placeholder="#{about.give.dedicationHint}" placeholder="A parent or loved one who has passed"/>
-        </label>
         <button class="give__go" type="submit" data-go>Give $10 a month</button>
         <p class="give__msg" role="status" aria-live="polite" data-msg></p>
         <p class="give__fine" th:text="#{about.give.fine}">Amounts in US dollars. Handled securely by Stripe; your statement will show REWAYAAT. Cancel monthly support any time. Not tax-deductible, and not a khums or zakat channel.</p>

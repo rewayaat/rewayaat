@@ -18,7 +18,7 @@ class SupportCheckoutTest {
 
     @Test
     void aMonthlyGiftIsASubscriptionAtTheChosenAmount() {
-        Map<String, String> p = SupportCheckout.params(SupportCheckout.Interval.MONTH, 1000, "", "https://rewayaat.info", "");
+        Map<String, String> p = SupportCheckout.params(SupportCheckout.Interval.MONTH, 1000, "https://rewayaat.info", "");
         assertEquals("subscription", p.get("mode"));
         assertEquals("1000", p.get("line_items[0][price_data][unit_amount]"));
         assertEquals("usd", p.get("line_items[0][price_data][currency]"));
@@ -28,7 +28,7 @@ class SupportCheckoutTest {
 
     @Test
     void aOneTimeGiftIsAPaymentWithNoRecurrence() {
-        Map<String, String> p = SupportCheckout.params(SupportCheckout.Interval.ONCE, 4321, "", "https://rewayaat.info", "");
+        Map<String, String> p = SupportCheckout.params(SupportCheckout.Interval.ONCE, 4321, "https://rewayaat.info", "");
         assertEquals("payment", p.get("mode"));
         assertEquals("4321", p.get("line_items[0][price_data][unit_amount]"));
         assertNull(p.get("line_items[0][price_data][recurring][interval]"));
@@ -36,21 +36,12 @@ class SupportCheckoutTest {
 
     @Test
     void theSupporterReturnsInTheLanguageTheyGaveIn() {
-        Map<String, String> p = SupportCheckout.params(SupportCheckout.Interval.ONCE, 500, "", "https://rewayaat.info", "/ar");
+        Map<String, String> p = SupportCheckout.params(SupportCheckout.Interval.ONCE, 500, "https://rewayaat.info", "/ar");
         assertEquals("https://rewayaat.info/ar/about/thanks?session_id={CHECKOUT_SESSION_ID}", p.get("success_url"));
         assertEquals("https://rewayaat.info/ar/about#support", p.get("cancel_url"));
         assertEquals("auto", p.get("locale"), "Stripe Checkout rejects \"ar\"; it must stay auto");
     }
 
-    @Test
-    void aDedicationTravelsWithThePaymentNotJustTheSession() {
-        Map<String, String> once = SupportCheckout.params(SupportCheckout.Interval.ONCE, 500, "  My mother ", "b", "");
-        assertEquals("My mother", once.get("metadata[in_name_of]"));
-        assertEquals("My mother", once.get("payment_intent_data[metadata][in_name_of]"));
-        Map<String, String> monthly = SupportCheckout.params(SupportCheckout.Interval.MONTH, 500, "My mother", "b", "");
-        assertEquals("My mother", monthly.get("subscription_data[metadata][in_name_of]"));
-        assertFalse(SupportCheckout.params(SupportCheckout.Interval.ONCE, 500, "", "b", "").containsKey("metadata[in_name_of]"));
-    }
 
     @Test
     void giftsOutsideFiveToTenThousandDollarsAreRefused() {
@@ -65,7 +56,7 @@ class SupportCheckoutTest {
         SupportCheckout closed = new SupportCheckout("  ");
         assertFalse(closed.isOpen());
         assertThrows(SupportCheckout.CheckoutFailed.class,
-                () -> closed.open(SupportCheckout.Interval.ONCE, 500, "", "b", ""));
+                () -> closed.open(SupportCheckout.Interval.ONCE, 500, "b", ""));
     }
 
     @Test
@@ -83,12 +74,12 @@ class SupportCheckoutTest {
         try {
             SupportCheckout checkout = new SupportCheckout("sk_test_abc", HttpClient.newHttpClient(),
                     URI.create("http://127.0.0.1:" + stripe.getAddress().getPort() + "/v1/checkout/sessions"));
-            String url = checkout.open(SupportCheckout.Interval.MONTH, 2500, "Zahra", "https://rewayaat.info", "");
+            String url = checkout.open(SupportCheckout.Interval.MONTH, 2500, "https://rewayaat.info", "");
             assertEquals("https://checkout.stripe.com/c/pay/cs_test", url);
             assertEquals("Bearer sk_test_abc", auth.get());
             String form = URLDecoder.decode(body.get(), StandardCharsets.UTF_8);
             assertTrue(form.contains("line_items[0][price_data][unit_amount]=2500"), form);
-            assertTrue(form.contains("metadata[in_name_of]=Zahra"), form);
+            assertFalse(form.contains("in_name_of"), form);
         } finally {
             stripe.stop(0);
         }
@@ -107,7 +98,7 @@ class SupportCheckoutTest {
             SupportCheckout checkout = new SupportCheckout("sk_test_bad", HttpClient.newHttpClient(),
                     URI.create("http://127.0.0.1:" + stripe.getAddress().getPort() + "/"));
             SupportCheckout.CheckoutFailed failed = assertThrows(SupportCheckout.CheckoutFailed.class,
-                    () -> checkout.open(SupportCheckout.Interval.ONCE, 500, "", "b", ""));
+                    () -> checkout.open(SupportCheckout.Interval.ONCE, 500, "b", ""));
             assertTrue(failed.getMessage().contains("Invalid API Key"));
         } finally {
             stripe.stop(0);

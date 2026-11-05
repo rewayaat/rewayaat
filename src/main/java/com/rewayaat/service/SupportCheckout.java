@@ -22,7 +22,8 @@ import java.util.stream.Collectors;
  * Opens a Stripe Checkout page for a gift from the About page.
  *
  * <p>Each gift carries its own amount ({@code price_data}), so a supporter can give any
- * amount, monthly or once, without a price having to exist in Stripe first. The money goes
+ * amount, monthly or once, without a price having to exist in Stripe first. Nothing about
+ * the supporter but the gift itself is sent: Stripe's own page collects the rest. The money goes
  * to the Rewayaat Stripe account, whose key is {@code REWAYAAT_STRIPE_SECRET_KEY}; with no
  * key set, giving is closed and nothing is sent anywhere.
  *
@@ -36,9 +37,6 @@ public class SupportCheckout {
     public static final long MIN_CENTS = 500;
     /** Ten thousand dollars, the largest gift taken in one go, in cents. */
     public static final long MAX_CENTS = 1_000_000;
-    /** The longest "in the name of" kept; Stripe metadata values allow 500. */
-    public static final int MAX_DEDICATION = 120;
-
     public enum Interval { MONTH, ONCE }
 
     /** Stripe declined, or could not be reached. */
@@ -82,7 +80,7 @@ public class SupportCheckout {
      * @param base where the site is being served, e.g. {@code https://rewayaat.info}
      * @param prefix the language prefix the supporter is reading in, {@code ""} or {@code /ar}
      */
-    public String open(Interval interval, long cents, String dedication, String base, String prefix)
+    public String open(Interval interval, long cents, String base, String prefix)
             throws CheckoutFailed {
         if (!isOpen()) {
             throw new CheckoutFailed("giving is closed: no Stripe key");
@@ -92,7 +90,7 @@ public class SupportCheckout {
                 .header("Authorization", "Bearer " + secretKey)
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .POST(HttpRequest.BodyPublishers.ofString(
-                        encode(params(interval, cents, dedication, base, prefix))))
+                        encode(params(interval, cents, base, prefix))))
                 .build();
         try {
             HttpResponse<String> response = http.send(request, HttpResponse.BodyHandlers.ofString());
@@ -111,10 +109,8 @@ public class SupportCheckout {
     }
 
     /** The form fields of the Checkout Session, in a stable order. */
-    static Map<String, String> params(Interval interval, long cents, String dedication,
-                                     String base, String prefix) {
+    static Map<String, String> params(Interval interval, long cents, String base, String prefix) {
         boolean monthly = interval == Interval.MONTH;
-        String name = dedication == null ? "" : dedication.trim();
         Map<String, String> p = new LinkedHashMap<>();
         p.put("mode", monthly ? "subscription" : "payment");
         p.put("line_items[0][quantity]", "1");
@@ -130,12 +126,7 @@ public class SupportCheckout {
         // Stripe Checkout has no Arabic (Stripe rejects "ar"), so it follows the browser.
         p.put("locale", "auto");
         p.put("metadata[source]", "about");
-        String carried = monthly ? "subscription_data" : "payment_intent_data";
-        p.put(carried + "[metadata][source]", "about");
-        if (!name.isEmpty()) {
-            p.put("metadata[in_name_of]", name);
-            p.put(carried + "[metadata][in_name_of]", name);
-        }
+        p.put((monthly ? "subscription_data" : "payment_intent_data") + "[metadata][source]", "about");
         if (!monthly) {
             p.put("customer_creation", "always");
         }

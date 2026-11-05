@@ -57,7 +57,6 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         interval: mode, amount: n,
-        dedication: form.querySelector('[data-dedication]').value,
         locale: document.documentElement.lang
       })
     }).then(function (r) {

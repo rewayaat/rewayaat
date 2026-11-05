@@ -159,3 +159,6 @@
 .about-page .sky{padding-bottom:44px}
 .about-page .sky>.reach{bottom:62px}
 @media (max-width:760px){.about-page .sky>.reach{bottom:112px}}
+/* Room above the saying, below the navigation bar. */
+.about-page .i-hero{padding-top:64px}
+@media (max-width:760px){.about-page .i-hero{padding-top:44px}}
