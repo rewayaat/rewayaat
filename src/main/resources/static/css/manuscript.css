@@ -16820,7 +16820,7 @@ a.chains__note--to:focus-visible {
     font-size: 0.7rem;
 }
 
-/* ── Search fields: square, taller, lit while in use ────────────────────────
+/* ── Search fields: nearly square, taller, edged in gold while in use ────────────────────────
    One shape for every search field on the site - the home page's, the navbar's on
    every page and in search mode, and the list filters: square corners, a taller bar
    with room for the terms, and a gold edge that lights while the field has focus.
@@ -16858,7 +16858,7 @@ body.is-search-mode .site-nav .search-entry-shell,
 .nav-search__btn,
 .search-inline-btn,
 .hub-filter__input {
-    border-radius: 0 !important;
+    border-radius: 6px !important;
 }
 .search-entry-shell {
     height: var(--search-shell-height) !important;
@@ -16872,23 +16872,47 @@ body.is-search-mode .site-nav .search-entry-shell,
     margin-inline-end: 5px;
 }
 .search-entry-shell .ts-control .item {
-    border-radius: 2px !important;
-    padding-block: 3px;
-    font-size: 0.95rem;
+    border-radius: 6px !important;
+    font-size: 0.97rem;
 }
 .search-entry-shell:focus-within,
 .home-search .search-entry-shell:focus-within,
 body.is-search-mode .site-nav .search-entry-shell:focus-within {
-    border-color: #e9c46a !important;
-    box-shadow: 0 0 0 1px #e9c46a, 0 0 0 4px rgba(233, 196, 106, 0.22), 0 0 22px rgba(233, 196, 106, 0.3) !important;
+    border-color: rgba(233, 196, 106, 0.9) !important;
+    box-shadow: 0 0 0 1px rgba(233, 196, 106, 0.55) !important;
 }
 .hub-filter__input:focus {
     border-color: #c8a23d !important;
-    box-shadow: 0 0 0 1px #c8a23d, 0 0 0 4px rgba(200, 162, 61, 0.2) !important;
+    box-shadow: 0 0 0 1px rgba(200, 162, 61, 0.5) !important;
     outline: none;
 }
 #queryBar .ts-control .item,
 .navbar-search .ts-control .item,
 .site-nav .search-entry-shell .ts-control .item {
-    border-radius: 2px !important;
+    border-radius: 6px !important;
+}
+/* Taller chips. The base rule pins chips at 24px with !important, so this does too. */
+.search-entry-shell .ts-control .item,
+.search-entry-shell .ts-wrapper.multi .ts-control > div {
+    height: 30px !important;
+}
+.search-entry-shell .ts-control .item .remove {
+    height: 22px !important;
+}
+/* Inside the field, the inner layers sit just within its corners; the button is a touch tighter. */
+.search-entry-shell .ts-wrapper,
+.search-entry-shell .ts-wrapper.form-control,
+.search-entry-shell .ts-control {
+    border-radius: 5px !important;
+}
+.search-btn-with-border,
+.nav-search__btn {
+    border-radius: 4px !important;
+}
+.search-entry-shell .search-magnifier,
+.site-nav .nav-search .search-magnifier {
+    font-size: 1.12rem !important;
+}
+.home-hero__search .search-entry-shell .search-magnifier {
+    font-size: 1.28rem !important;
 }
