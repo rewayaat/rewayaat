@@ -16963,3 +16963,117 @@ body.is-search-mode .site-nav .search-entry-shell:focus-within {
         margin-inline-start: 21px;
     }
 }
+
+/* ── Support reminders (support-nudge.js, rewayaat.info only) ───────────────── */
+
+/* A line in the footer, above the copyright row. */
+.support-footer {
+    margin: 1.4rem 0 0;
+    padding: 0.85rem 0;
+    border-top: 1px solid rgba(233, 196, 106, 0.18);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.35rem 0.6rem;
+    font-size: 0.95rem;
+    letter-spacing: normal;
+}
+.support-footer__lead { color: rgba(255, 255, 255, 0.78); font-style: italic; }
+[dir="rtl"] .support-footer__lead { font-style: normal; }
+.support-footer__dot { color: var(--gold); }
+.support-footer__link,
+.support-footer__link:visited {
+    color: #e9c46a;
+    font-weight: 700;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(233, 196, 106, 0.45);
+}
+.support-footer__link:hover,
+.support-footer__link:focus-visible { color: #ffe2a0; border-bottom-color: #ffe2a0; }
+
+/* A note at the end of a chapter, set like a colophon. */
+.support-slot:empty { display: none; }
+.support-note {
+    margin: 2.2rem auto 1.6rem;
+    max-width: 34rem;
+    padding: 1.1rem 1.4rem 1.2rem;
+    text-align: center;
+    border-top: 1px solid rgba(200, 162, 61, 0.45);
+    border-bottom: 1px solid rgba(200, 162, 61, 0.45);
+    letter-spacing: normal;
+}
+.support-note__mark { display: block; color: #c8a23d; font-size: 1.1rem; line-height: 1; margin-bottom: 0.5rem; }
+.support-note__text { margin: 0 0 0.55rem; color: var(--text-muted, #5b6472); font-size: 1rem; line-height: 1.6; }
+.support-note__link,
+.support-note__link:visited {
+    color: #0a1830;
+    font-weight: 700;
+    text-decoration: none;
+    border-bottom: 1px solid #c8a23d;
+}
+.support-note__link:hover,
+.support-note__link:focus-visible { color: #8a6a17; }
+
+/* A note after copying. Bottom corner, opposite the site's own toasts' edge. */
+.support-toast {
+    position: fixed;
+    inset-inline-start: 20px;
+    bottom: 20px;
+    z-index: 2000;
+    width: min(340px, calc(100vw - 32px));
+    padding: 1rem 1.15rem 1rem;
+    background: #0a1830;
+    color: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(233, 196, 106, 0.55);
+    border-radius: 6px;
+    box-shadow: 0 12px 32px rgba(4, 10, 24, 0.35);
+    letter-spacing: normal;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.support-toast.is-in { opacity: 1; transform: none; }
+.support-toast__close {
+    position: absolute;
+    top: 4px;
+    inset-inline-end: 6px;
+    width: 28px;
+    height: 28px;
+    border: 0;
+    background: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+}
+.support-toast__close:hover { color: #fff; }
+.support-toast__quote,
+.support-toast__quote:visited {
+    display: block;
+    margin: 0 0 0.35rem;
+    color: #ffe2a0;
+    font-family: 'Noto Naskh Arabic', 'Amiri', serif;
+    font-size: 1.35rem;
+    line-height: 1.6;
+    text-decoration: none;
+    text-align: center;
+}
+.support-toast__text { margin: 0 0 0.6rem; font-size: 0.88rem; line-height: 1.55; text-align: center; }
+.support-toast__link,
+.support-toast__link:visited {
+    display: block;
+    text-align: center;
+    color: #e9c46a;
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+.support-toast__link:hover,
+.support-toast__link:focus-visible { color: #ffe2a0; text-decoration: underline; }
+@media (max-width: 640px) {
+    .support-toast { inset-inline-start: 16px; bottom: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .support-toast { transition: none; transform: none; }
+}
