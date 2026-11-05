@@ -155,3 +155,7 @@
 .give-band__inner{padding-top:72px}
 .about-us code{color:#14305a}
 @media (max-width:760px){.give-band__inner{padding-top:56px}}
+/* Room under the mission panel so the medallion has air. */
+.about-page .sky{padding-bottom:30px}
+.about-page .sky>.reach{bottom:48px}
+@media (max-width:760px){.about-page .sky>.reach{bottom:94px}}
