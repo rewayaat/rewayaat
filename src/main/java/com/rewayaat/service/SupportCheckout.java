@@ -1,5 +1,6 @@
 package com.rewayaat.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -53,6 +54,7 @@ public class SupportCheckout {
     private final HttpClient http;
     private final URI endpoint;
 
+    @Autowired
     public SupportCheckout(@Value("${rewayaat.stripe.secret-key:}") String secretKey) {
         this(secretKey, HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build(),
                 URI.create("https://api.stripe.com/v1/checkout/sessions"));
@@ -125,6 +127,7 @@ public class SupportCheckout {
         }
         p.put("success_url", base + prefix + "/about/thanks?session_id={CHECKOUT_SESSION_ID}");
         p.put("cancel_url", base + prefix + "/about#support");
+        // Stripe Checkout has no Arabic (Stripe rejects "ar"), so it follows the browser.
         p.put("locale", "auto");
         p.put("metadata[source]", "about");
         String carried = monthly ? "subscription_data" : "payment_intent_data";

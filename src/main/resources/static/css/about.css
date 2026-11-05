@@ -134,3 +134,12 @@
   .give__amts{grid-template-columns:repeat(3,minmax(0,1fr))}
   .about-us__inner{padding:36px 16px 44px}
 }
+
+/* The site's base tracking is tuned for its own headings; at body sizes it closed up the spaces between words. */
+.about-page .sky,.give-band,.about-us,.thanks{letter-spacing:normal}
+/* Philosopher and Raleway carry no Arabic, so the Arabic page sets its own type. */
+[dir="rtl"] .reach-t{font-family:var(--ar);font-weight:700;line-height:1.6;font-size:clamp(1.35rem,3.2vw,2.1rem)}
+[dir="rtl"] .give-band__title,[dir="rtl"] .give__title,[dir="rtl"] .give__go,[dir="rtl"] .thanks__title{font-family:var(--ar)}
+[dir="rtl"] .give-band__kick,[dir="rtl"] .give__seg button{letter-spacing:0}
+.give__amts button.is-other{font:600 .86rem var(--ui);white-space:nowrap}
+[dir="rtl"] .give__amts button.is-other{font-family:var(--ar);font-size:1rem}

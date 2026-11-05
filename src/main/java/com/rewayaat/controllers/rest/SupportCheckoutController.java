@@ -1,5 +1,6 @@
 package com.rewayaat.controllers.rest;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import com.rewayaat.controllers.ContactPageController;
 import com.rewayaat.service.PageLocale;
 import com.rewayaat.service.SupportCheckout;
@@ -40,6 +41,7 @@ public class SupportCheckoutController {
     private final LongSupplier clock;
     private final Map<String, ArrayDeque<Long>> seen = new HashMap<>();
 
+    @Autowired
     public SupportCheckoutController(SupportCheckout checkout) {
         this(checkout, System::currentTimeMillis);
     }

@@ -31,6 +31,7 @@
       var b = document.createElement('button');
       b.type = 'button';
       b.textContent = a === 'other' ? text('other') : money(a);
+      if (a === 'other') { b.className = 'is-other'; }
       b.setAttribute('aria-pressed', String(a === amount));
       b.addEventListener('click', function () {
         amount = a; draw();

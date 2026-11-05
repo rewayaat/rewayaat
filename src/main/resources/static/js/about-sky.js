@@ -13,10 +13,12 @@
   var TILT = -5 * RAD, SPIN = 0.055, FACE = -46 * RAD, EVERY = 2.4, LIFE = 3.9, REACH = 1.8, PERIOD = 15, EMBER = .3;
   var w = 0, h = 0, dpr = 1, t = 0, last = 0, on = true, seed = 7;
   var stars = [], neb = null, glow = null, warm = null, mx = 0, my = 0;
-  var cx = 0, cy = 0, R = 0, beams = [], wait = .4, order = [], next = 0, turn = 0, glyphs = {}, nameFont = '600 40px Raleway, sans-serif', sparks = [], turned = 0, boost = 1, low = 120, lights = new Float32Array(16), ring = null;
+  var cx = 0, cy = 0, R = 0, beams = [], wait = .4, order = [], next = 0, turn = 0, glyphs = {}, nameFont = document.documentElement.lang === 'ar' ? '600 40px "Noto Naskh Arabic", "Scheherazade New", serif' : '600 40px Raleway, sans-serif', sparks = [], turned = 0, boost = 1, low = 120, lights = new Float32Array(16), ring = null;
   /* Mock data, not readers: for launch, the real reader countries from GA4. */
-  var PLACES = window.PLACES.map(function (p) { return { name: p[0].toUpperCase(), lat: p[1], lon: p[2], v: vec([p[1], p[2]]), size: p[3] }; });
+  var ARABIC = document.documentElement.lang === 'ar';
+  var PLACES = window.PLACES.map(function (p) { return { name: ARABIC ? (window.PLACES_AR || {})[p[0]] || p[0] : p[0].toUpperCase(), lat: p[1], lon: p[2], v: vec([p[1], p[2]]), size: p[3] }; });
   var since = PLACES.map(function () { return 99; }), gl = null, glc = null, maps = null, flat = null, flatImg = null, flatTick = 0, U = {}, ready = 0, pack = new Float32Array(PLACES.length * 4);
+  /* On the Arabic page names are drawn whole, so their letters join; Latin names go letter by letter round the sphere. */
   var FONT = getComputedStyle(document.documentElement).getPropertyValue('--display') || 'Georgia, serif';
   function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
   function clamp(v) { return Math.max(0, Math.min(1, v)); }
@@ -217,11 +219,12 @@
     var key = ch + (hot ? 1 : 0);
     if (glyphs[key]) { return glyphs[key]; }
     var s = document.createElement('canvas'), q = s.getContext('2d'), font = nameFont;
-    s.width = 72; s.height = 72;
-    q.font = font; q.textAlign = 'center'; q.textBaseline = 'middle';
+    q.font = font;
+    s.width = Math.max(72, Math.ceil(q.measureText(ch).width) + 28); s.height = 72;
+    q.font = font; q.textAlign = 'center'; q.textBaseline = 'middle'; q.direction = ARABIC ? 'rtl' : 'ltr';
     q.shadowColor = hot ? 'rgba(60,34,4,.55)' : 'rgba(3,8,20,.95)'; q.shadowBlur = hot ? 5 : 10;
     q.fillStyle = hot ? '#fff3cf' : '#ecd9a8';
-    q.fillText(ch, 36, 36); q.fillText(ch, 36, 36);
+    q.fillText(ch, s.width / 2, 36); q.fillText(ch, s.width / 2, 36);
     glyphs[key] = { c: s, adv: q.measureText(ch).width + 8 };
     return glyphs[key];
   }
@@ -231,7 +234,7 @@
     PLACES.slice().sort(function (a, b) { return b.size - a.size; }).forEach(function (p) {
       var fs = base + Math.min(R < 220 ? 2 : 3, p.size / 7), k = fs / 40, x = 0, c = Math.max(.3, Math.cos(p.lat * RAD));
       p.fs = k;
-      p.letters = p.name.split('').map(function (ch) {
+      p.letters = (ARABIC ? [p.name] : p.name.split('')).map(function (ch) {
         var a = ch === ' ' ? 16 : glyph(ch).adv, m = { ch: ch, x: x + a / 2 };
         x += a; return m;
       });
@@ -433,8 +436,9 @@
         var la = Math.hypot(ax, ay), ld = Math.hypot(dx, dy), ka = Math.max(1, .72 / la), kd = Math.max(1, .78 / ld);
         g.setTransform(ax * ka * k2, ay * ka * k2, dx * kd * k2, dy * kd * k2, a.x * dpr, a.y * dpr);
         var edge = clamp((a.z - .06) * 7);
-        g.globalAlpha = show * edge * .24; g.drawImage(glyph(m.ch).c, -36, -36);
-        if (f > .02) { g.globalAlpha = f * edge; g.drawImage(glyph(m.ch, 1).c, -36, -36); }
+        var cold = glyph(m.ch).c;
+        g.globalAlpha = show * edge * .24; g.drawImage(cold, -cold.width / 2, -36);
+        if (f > .02) { var hot = glyph(m.ch, 1).c; g.globalAlpha = f * edge; g.drawImage(hot, -hot.width / 2, -36); }
       });
     });
     g.setTransform(dpr, 0, 0, dpr, 0, 0); g.globalAlpha = 1;
