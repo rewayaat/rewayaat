@@ -16916,3 +16916,17 @@ body.is-search-mode .site-nav .search-entry-shell:focus-within {
 .home-hero__search .search-entry-shell .search-magnifier {
     font-size: 1.28rem !important;
 }
+
+/* Search chips read in bold, in every search bar and in both languages. The base rules
+   set 500 with !important and an older Arabic pass set 700, so this settles both. */
+.search-entry-shell .ts-control .item,
+.search-entry-shell .ts-wrapper.multi .ts-control > div,
+.home-search .ts-control .item,
+.navbar-search .ts-control .item,
+#queryBar .ts-control .item,
+[dir="rtl"] .search-entry-shell .ts-control .item,
+[dir="rtl"] .search-entry-shell .ts-wrapper.multi .ts-control > div,
+[dir="rtl"] .home-search .ts-control .item,
+[dir="rtl"] .navbar-search .ts-control .item {
+    font-weight: 700 !important;
+}

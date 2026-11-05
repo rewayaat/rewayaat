@@ -236,7 +236,8 @@ function resolveScopedBrowsePage(query, onFallback) {
             if (url) {
                 // replace, not assign: the scoped URL is a staging post, and leaving it in
                 // history means Back returns here and redirects forward again.
-                window.location.replace(url);
+                // The API names the English page; the reader stays in the language they are reading.
+                window.location.replace(localeHref(url));
                 return;
             }
             onFallback();
@@ -4604,7 +4605,7 @@ function startBrowseFlow(scopedSelections) {
         .then(function(resp) { return resp.json(); })
         .then(function(data) {
             if (data && data.ok && data.url) {
-                window.location.href = data.url;
+                window.location.href = localeHref(data.url);
                 return;
             }
             // No page of its own: fall back to the search the panel used to run.

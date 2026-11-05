@@ -204,33 +204,41 @@
   /* The library's numbers run around the rim of the globe, like the lettering on a coin. Phones take two arcs. */
   function rim() {
     /*
-     * Each figure is set as one straight piece of text, turned to sit on the arc, rather than
-     * as text along a path: a path lays glyphs out one by one, which pulled Latin letters apart
-     * and broke Arabic joining. Figures run right to left on the Arabic page.
+     * Each word is set as its own short straight piece, turned to sit on the arc. A word is short
+     * enough that its chord hugs the curve, and keeping words whole keeps Latin spacing and Arabic
+     * joining intact, which text along a path did not. Figures run right to left on the Arabic page.
      */
     var svg = document.getElementById('rim'), small = w < 900, NS = 'http://www.w3.org/2000/svg';
-    var items = [].map.call(sky.querySelectorAll('.nums div'), function (d) { return [d.querySelector('b').textContent, d.querySelector('span').textContent]; });
+    var items = [].map.call(sky.querySelectorAll('.nums div'), function (d) { return [d.querySelector('b').textContent.trim(), d.querySelector('span').textContent.trim()]; });
     var rows = small ? [[items.slice(3), R + 34], [items.slice(0, 3), R + 13]] : [[items, R + 18]];
     svg.setAttribute('class', small ? 'small' : '');
     svg.textContent = '';
+    function word(text, cls) {
+      var el = document.createElementNS(NS, 'text');
+      el.setAttribute('text-anchor', 'middle');
+      if (ARABIC) { el.setAttribute('direction', 'rtl'); }
+      el.setAttribute('class', cls); el.textContent = text; svg.appendChild(el);
+      return { el: el, wd: el.getComputedTextLength() };
+    }
+    var space = word('a a', 'l').wd - word('aa', 'l').wd;
+    svg.textContent = '';
     rows.forEach(function (row) {
-      var r = row[1], gap = small ? 16 : 26, units = row[0].map(function (it) {
-        var el = document.createElementNS(NS, 'text');
-        el.setAttribute('text-anchor', 'middle');
-        if (ARABIC) { el.setAttribute('direction', 'rtl'); }
-        var n = document.createElementNS(NS, 'tspan'); n.setAttribute('class', 'n'); n.textContent = it[0];
-        var l = document.createElementNS(NS, 'tspan'); l.setAttribute('class', 'l'); l.textContent = ' ' + it[1];
-        el.appendChild(n); el.appendChild(l); svg.appendChild(el);
-        return { el: el, wd: el.getComputedTextLength() };
+      var r = row[1], gap = small ? 16 : 24, stats = row[0].map(function (it) {
+        var words = [word(it[0], 'n')].concat(it[1].split(/\s+/).map(function (t) { return word(t, 'l'); }));
+        if (ARABIC) { words.reverse(); }
+        var wd = words.reduce(function (s, u) { return s + u.wd; }, 0) + space * (words.length - 1);
+        return { words: words, wd: wd };
       });
-      if (ARABIC) { units.reverse(); }
-      var total = units.reduce(function (s, u) { return s + u.wd; }, 0) + gap * (units.length - 1), at = -total / 2;
-      units.forEach(function (u, k) {
-        var mid = (at + u.wd / 2) / r, deg = mid / RAD;
-        u.el.setAttribute('transform', 'translate(' + (cx + Math.sin(mid) * r) + ' ' + (cy - Math.cos(mid) * r) + ') rotate(' + deg + ')');
-        at += u.wd;
-        if (k < units.length - 1) {
-          var dot = document.createElementNS(NS, 'circle'), dm = (at + gap / 2) / r, dr = r - (small ? 4 : 6);
+      if (ARABIC) { stats.reverse(); }
+      var total = stats.reduce(function (s, u) { return s + u.wd; }, 0) + gap * (stats.length - 1), at = -total / 2;
+      stats.forEach(function (st, k) {
+        st.words.forEach(function (u, j) {
+          var mid = (at + u.wd / 2) / r;
+          u.el.setAttribute('transform', 'translate(' + (cx + Math.sin(mid) * r) + ' ' + (cy - Math.cos(mid) * r) + ') rotate(' + (mid / RAD) + ')');
+          at += u.wd + (j < st.words.length - 1 ? space : 0);
+        });
+        if (k < stats.length - 1) {
+          var dot = document.createElementNS(NS, 'circle'), dm = (at + gap / 2) / r, dr = r + (small ? 4 : 6);
           dot.setAttribute('cx', cx + Math.sin(dm) * dr); dot.setAttribute('cy', cy - Math.cos(dm) * dr); dot.setAttribute('r', small ? 1.4 : 2);
           dot.setAttribute('class', 's'); svg.appendChild(dot);
           at += gap;
