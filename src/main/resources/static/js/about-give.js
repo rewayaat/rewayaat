@@ -24,8 +24,10 @@
   function chosen() { return amount === 'other' ? parseFloat(otherInput.value) : amount; }
   function label() {
     var n = chosen();
-    var shown = isFinite(n) && n > 0 ? money(n) : '';
-    return text(mode === 'month' ? 'month' : 'once').replace('{0}', shown).replace(/\s+/g, ' ').trim();
+    // With no amount yet ("Other", still empty) the sentence has a hole in it, so it says
+    // only how often: "Give monthly", not "Give a month".
+    if (!(isFinite(n) && n > 0)) { return text(mode === 'month' ? 'month-any' : 'once-any'); }
+    return text(mode === 'month' ? 'month' : 'once').replace('{0}', money(n)).replace(/\s+/g, ' ').trim();
   }
   function draw() {
     seg.forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-interval') === mode)); });

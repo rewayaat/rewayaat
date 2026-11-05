@@ -17077,3 +17077,111 @@ body.is-search-mode .site-nav .search-entry-shell:focus-within {
 @media (prefers-reduced-motion: reduce) {
     .support-toast { transition: none; transform: none; }
 }
+
+/* ── The home page under a night sky ──────────────────────────────────────────
+   The About page's sky, carried to the home page: the whole page sits on it, edge to
+   edge, with stars (home-sky.js) the content scrolls over. Only while the home content
+   is on screen: index.html also shows search results, which empty #welcome and keep the
+   light reading background, so every rule here hangs on the same :has() test.
+
+   The sky is painted on the root, not the body: the stars' canvas sits at z-index -1,
+   above the root's background and under everything else, which only works while the
+   body itself is transparent. */
+.home-stars { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; display: none; }
+:root:has(#welcome .home-hero) {
+    background: radial-gradient(120% 75% at 50% -8%, #12305a 0, #0a1a36 34%, #061024 68%, #040a16 100%) fixed, #040a16;
+}
+:root:has(#welcome .home-hero) body {
+    background: transparent !important;
+    color: #e6ecf6;
+}
+:root:has(#welcome .home-hero) body::before,
+:root:has(#welcome .home-hero) body::after { display: none !important; }
+:root:has(#welcome .home-hero) .home-stars { display: block; }
+
+/* The hero is no longer a card: the logo, the line and the search stand in the sky,
+   under a warm lamp glow. */
+:root:has(#welcome .home-hero) .home-hero { position: relative; isolation: isolate; padding: 2.5rem 0 1.25rem; margin-bottom: 0; }
+/* A white fade under the menu, made for the light page, reads as a grey band on the sky. */
+:root:has(#welcome .home-hero) main::before { display: none !important; }
+:root:has(#welcome .home-hero) .home-hero::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    left: 50%;
+    top: -60px;
+    width: min(1000px, 100vw);
+    height: 640px;
+    transform: translateX(-50%);
+    background: radial-gradient(closest-side, rgba(233, 196, 106, 0.16), rgba(233, 196, 106, 0.05) 55%, rgba(233, 196, 106, 0));
+    pointer-events: none;
+}
+:root:has(#welcome .home-hero) .home-hero__card {
+    background: none !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+:root:has(#welcome .home-hero) .home-hero__card::before,
+:root:has(#welcome .home-hero) .home-hero__card::after { display: none !important; }
+:root:has(#welcome .home-hero) .home-hero__lede { color: rgba(236, 241, 250, 0.9); }
+:root:has(#welcome .home-hero) .home-hero__search-note { color: rgba(226, 232, 244, 0.72); }
+
+/* A gold rule and a medallion where the sky's opening ends and the library begins, the
+   same mark that separates the About page's sections. */
+:root:has(#welcome .home-hero) .home-browse { position: relative; padding-top: 3.6rem; }
+:root:has(#welcome .home-hero) .home-browse::before {
+    content: "" !important;
+    position: absolute;
+    top: 1.1rem;
+    left: 8%;
+    right: 8%;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(233, 196, 106, 0), rgba(233, 196, 106, 0.55) 30%, rgba(255, 226, 160, 0.8) 50%, rgba(233, 196, 106, 0.55) 70%, rgba(233, 196, 106, 0));
+}
+:root:has(#welcome .home-hero) .home-browse::after {
+    content: "۞" !important;
+    position: absolute;
+    top: 1.1rem !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translate(-50%, -50%) !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 40px !important;
+    height: 40px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    border: 1px solid rgba(233, 196, 106, 0.55) !important;
+    background: #071226 !important;
+    box-shadow: 0 0 18px rgba(233, 196, 106, 0.22) !important;
+    color: #e9c46a !important;
+    font-size: 1.05rem !important;
+    line-height: 1 !important;
+    opacity: 1 !important;
+    text-shadow: 0 0 10px rgba(233, 196, 106, 0.5);
+}
+
+/* Headings and their lines, light on the sky. */
+/* Two of these are pinned dark with !important by an older pass, so these are too. */
+:root:has(#welcome .home-hero) .home-section-title { color: #f6ead0 !important; }
+:root:has(#welcome .home-hero) .home-section-subtitle { color: rgba(226, 232, 244, 0.8) !important; }
+:root:has(#welcome .home-hero) .home-section-subtitle a,
+:root:has(#welcome .home-hero) .recent-updates-more { color: #e9c46a; }
+:root:has(#welcome .home-hero) .home-section-subtitle a:hover,
+:root:has(#welcome .home-hero) .recent-updates-more:hover { color: #ffe2a0; }
+
+/* The bookcase stands in the sky with a little light on it. */
+/* A box shadow, not a drop-shadow filter: a filter on something this tall is redrawn
+   whenever anything on the page moves, which took the page to a few frames a second. */
+:root:has(#welcome .home-hero) .home-browse .bookcase { box-shadow: 0 28px 60px rgba(0, 0, 0, 0.5), 0 0 80px rgba(233, 196, 106, 0.07); }
+
+/* The footer was already night blue; its own top margin is now the sky. */
+:root:has(#welcome .home-hero) .site-footer { margin-top: 3rem; background: rgba(4, 10, 22, 0.72); }
+
+/* On phones the section headings ran to the screen's edge; on the sky that shows. */
+@media (max-width: 640px) {
+    #welcome .home-section-header { padding-inline: 16px; }
+}

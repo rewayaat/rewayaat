@@ -66,7 +66,7 @@
       </div>
 
       <form class="give" id="give" data-give novalidate
-            th:attr="data-checkout=@{/about/checkout},data-label-month=#{about.give.labelMonth},data-label-once=#{about.give.labelOnce},data-label-busy=#{about.give.busy},data-label-closed=#{about.give.closed},data-label-error=#{about.give.error},data-label-amount=#{about.give.amountError},data-label-other=#{about.give.other}">
+            th:attr="data-checkout=@{/about/checkout},data-label-month=#{about.give.labelMonth},data-label-once=#{about.give.labelOnce},data-label-month-any=#{about.give.labelMonthAny},data-label-once-any=#{about.give.labelOnceAny},data-label-busy=#{about.give.busy},data-label-closed=#{about.give.closed},data-label-error=#{about.give.error},data-label-amount=#{about.give.amountError},data-label-other=#{about.give.other}">
         <h3 class="give__title" th:text="#{about.give.formTitle}">Support this work</h3>
         <div class="give__seg" role="group" th:aria-label="#{about.give.howOften}" aria-label="How often">
           <button type="button" data-interval="month" aria-pressed="true" th:text="#{about.give.monthly}">Monthly</button>
