@@ -196,7 +196,9 @@ public enum PageLocale {
                 || strippedPath.equals("/contact")
                 || strippedPath.equals("/search_tips.html")
                 || strippedPath.equals("/signin.html")
-                || strippedPath.equals("/updates.html");
+                || strippedPath.equals("/updates.html")
+                || strippedPath.equals("/about")
+                || strippedPath.equals("/about/thanks");
     }
 
     /**

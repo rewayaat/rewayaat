@@ -1,0 +1,20 @@
+<!doctype html>
+<html th:lang="${htmlLang} ?: 'en'" th:dir="${htmlDir} ?: 'ltr'" lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/site :: sitehead}"></head>
+<body class="about-page">
+<nav th:replace="~{fragments/site :: sitenav}"></nav>
+
+<main class="thanks">
+  <div class="thanks__card">
+    <div class="thanks__mark" aria-hidden="true">&#1758;</div>
+    <h1 class="thanks__title" th:text="#{about.thanks.title}">Thank you</h1>
+    <p class="thanks__body" th:text="#{about.thanks.body}">May Allah accept it from you. Your support has been received, and Stripe will email your receipt.</p>
+    <p class="thanks__note" th:text="#{about.thanks.monthly}">To change or cancel monthly support, use the link in your receipt.</p>
+    <a class="thanks__back" href="/" th:href="@{${arPrefix} ?: '' } + '/'" th:text="#{about.thanks.back}">Back to the library</a>
+  </div>
+</main>
+
+<footer th:replace="~{fragments/site :: sitefooter}"></footer>
+<th:block th:replace="~{fragments/site :: analytics}"></th:block>
+</body>
+</html>

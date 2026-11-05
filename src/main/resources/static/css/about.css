@@ -1,0 +1,136 @@
+/*
+ * The About page: a night sky holding Imam Ali's saying, small shimmering books, and a
+ * turning Earth that light reaches, then the ask (rewayaat.info only) and About us.
+ * Ported from the design mock; the motion lives in js/about-sky.js.
+ */
+@import url("https://fonts.googleapis.com/css2?family=Philosopher:wght@700&family=Raleway:wght@600&display=swap");
+.about-page{
+  --on-navy:#f5f0e1; --on-navy2:#c6d2e2; --gold:#c8a23d;
+  --ui:"Manrope",system-ui,-apple-system,"Segoe UI",sans-serif; --serif:"Literata",Georgia,serif;
+  --display:"Cormorant Garamond","Literata",Georgia,serif; --ar:"Scheherazade New","Noto Naskh Arabic","Times New Roman",serif;
+}
+.sky{position:relative;overflow:hidden;isolation:isolate;background:radial-gradient(120% 50% at 50% 0,#0c2342 0,#071226 52%,#040a16 100%),#040a16;color:#fff}
+.sky>canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.sky>div{position:relative;z-index:2}
+.i-hero{text-align:center;padding:26px 24px 10px;display:grid;justify-items:center;gap:10px;text-shadow:0 0 18px rgba(6,14,30,.95),0 0 4px rgba(6,14,30,.7)}
+.q-ar{font-family:var(--ar);font-size:clamp(1.85rem,4.4vw,2.8rem);line-height:1.5;color:#fff;direction:rtl;text-wrap:balance}
+.q-en{font-family:var(--display);font-size:clamp(1.16rem,3vw,1.95rem);font-weight:600;line-height:1.22;color:#f3e5b8;max-width:32em;text-wrap:balance}
+@font-face{font-family:"HD Marks";src:url("/fonts/about-marks.woff2") format("woff2");font-display:block}
+.q-ar,.m-quote .ar{position:relative}
+.mk{position:absolute;inset:0;font-family:"HD Marks";color:var(--mk,#7fe3ff);text-shadow:0 0 calc(.16em) var(--mk,#7fe3ff);pointer-events:none}
+.q-src{font-size:.84rem;color:#c6d2e2}
+.q-src a{color:inherit;white-space:nowrap}
+.q-src .nb{white-space:nowrap}
+.lib{display:grid;justify-items:center;align-content:start;padding:14px 24px 0}
+.lib-text{position:relative;z-index:2;max-width:36rem;width:100%;text-align:center;text-shadow:0 0 18px rgba(6,14,30,.95)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+#rim{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;overflow:visible}
+#rim text{fill:#dbe4f1;font-family:var(--ui);font-size:12.5px;letter-spacing:.015em;white-space:pre;paint-order:stroke;stroke:rgba(4,10,24,.92);stroke-width:5px;stroke-linejoin:round}
+#rim .n{font-family:var(--display);font-size:20px;font-weight:700;fill:#ffe2a0;font-variant-numeric:lining-nums}
+#rim .s{fill:#c9a24e}
+#rim.small text{font-size:10.5px;letter-spacing:0;stroke-width:2.2px}
+#rim.small .n{font-size:14.5px}
+.q-by{display:block;font-size:.44em;line-height:1.5;color:#f3e5b8}
+.mk .q-by{color:transparent;text-shadow:none}
+.book{position:absolute;left:var(--x);top:var(--y);width:var(--w);display:block;will-change:transform;text-decoration:none;color:inherit;opacity:calc(.66 + .3 * var(--o,0))}
+.float{position:relative;display:block;aspect-ratio:2/3;transform:perspective(1100px) rotateX(8deg) rotateY(var(--t)) rotate(var(--r));transform-style:preserve-3d}
+.book.l .float{transform-origin:0 50%}
+.book.r .float{transform-origin:100% 50%}
+.stack{position:absolute;inset:1.2% 0 1.2% 1%;transform:translateZ(-4px);border-radius:2px;background:#f4e6c5;box-shadow:0 0 0 .5px #d7b566,0 6px 9px -3px rgba(0,0,0,.65);transition:box-shadow .9s}
+.lid{position:absolute;inset:0;transform-origin:100% 50%;transform-style:preserve-3d}
+.front,.back{position:absolute;inset:0;display:block;backface-visibility:hidden;border-radius:2px}
+.front{box-shadow:0 6px 9px -3px rgba(0,0,0,.65);background:#111;isolation:isolate;overflow:hidden}
+.front img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;border-radius:2px;filter:brightness(var(--br,1))}
+.front .gold{opacity:calc(.3 + .7 * var(--o,0));filter:brightness(calc(1 + 1.5 * var(--o,0)))}
+.front::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,#000 40%,#8a6c3a 50%,#000 60%);background-size:320% 100%;background-position:calc(125% - 150% * var(--o,0)) 0;mix-blend-mode:color-dodge;pointer-events:none}
+.back{transform:rotateY(180deg);background:#f4e6c5}
+.pg{position:absolute;inset:0;overflow:hidden;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:.3em;padding:10% 9%;direction:rtl;font-family:var(--ar);font-size:clamp(3.4px,.44vw,4.8px);line-height:1.5;text-align:center;color:#3a2a14}
+.pg.b{background:radial-gradient(95% 80% at 90% 50%,#f4e6c6,#e4d0a4 62%,#c4ab7c),linear-gradient(270deg,#b9a678,#f8eeda 20%)}
+.pg.a{background:radial-gradient(95% 80% at 10% 50%,#f4e6c6,#e4d0a4 62%,#c4ab7c),linear-gradient(90deg,#b9a678,#f8eeda 20%)}
+.pg::after{content:"";position:absolute;inset:-30%;background:linear-gradient(115deg,transparent 42%,rgba(255,226,150,.9) 50%,transparent 58%);background-size:300% 100%;background-position:130% 0;opacity:.45;pointer-events:none}
+.pg h5{margin:0;font:inherit;color:#8a6516}
+.pg p{margin:0}
+@keyframes page-shimmer{0%{background-position:130% 0}100%{background-position:-30% 0}}
+@media (prefers-reduced-motion:no-preference){.float{animation:bob 11s ease-in-out infinite}.book:nth-of-type(2n) .float{animation-duration:14s;animation-delay:-4s}.book:nth-of-type(3n) .float{animation-duration:17s;animation-delay:-9s}@keyframes bob{0%,100%{translate:0 -3px}50%{translate:0 3px}}@keyframes gold-breathe{0%,100%{opacity:.72}50%{opacity:1}}}
+.nums{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 28px}
+.nums b{display:block;font-family:var(--display);font-size:1.8rem;line-height:1.15;font-weight:700;color:#fff;font-variant-numeric:lining-nums tabular-nums}
+.nums span{display:block;font-size:.84rem;line-height:1.3;color:#c6d2e2;white-space:nowrap}
+.sky>.reach{position:absolute;left:50%;bottom:18px;translate:-50% 0;z-index:2;width:max-content;max-width:min(95%,880px);padding:12px 26px 14px;border-radius:0;background:rgba(2,6,16,.88);box-shadow:0 0 40px 22px rgba(2,6,16,.72),inset 0 0 0 1px rgba(232,198,120,.55);text-align:center}
+.reach-t{display:block;font-family:Philosopher,var(--display);font-size:clamp(1.3rem,3.4vw,2.2rem);font-weight:700;line-height:1.16;text-wrap:balance;font-variant-numeric:lining-nums;text-shadow:none;color:#ffd98c;background:linear-gradient(100deg,#ffe2a0 0,#fff4d6 34%,#ffe9b8 56%,#fff8e4 72%,#ffe2a0 100%);background-size:240% 100%;background-position:0 0;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 16px rgba(255,190,90,.32))}
+@keyframes sheen{to{background-position:-240% 0}}
+@media (prefers-reduced-motion:no-preference){.reach-t{animation:sheen 12s linear infinite}}
+.sky::after{content:"";position:absolute;left:12%;right:12%;bottom:0;height:190px;z-index:0;pointer-events:none;background:radial-gradient(50% 100% at 50% 100%,#040a16 34%,rgba(4,10,22,.82) 62%,rgba(4,10,22,0))}
+@media (max-width:760px){.sky::after{left:0;right:0}}
+.q-en br.narrow{display:none}
+@media (max-width:760px){.q-en br{display:none}.q-en br.narrow{display:inline}.i-hero{padding-inline:12px}.reach-t br.wide{display:none}.i-hero{padding-top:30px}.lib{padding:26px 16px 0}.lib a.book:nth-of-type(n+7){display:none}.book{left:var(--mx);top:auto;bottom:var(--my);width:var(--mw)}.sky>.reach{bottom:64px}.book .float,.book .ray{--sh:var(--msh)}.nums{flex-wrap:nowrap;gap:8px 16px}.nums b{font-size:1.4rem}}
+
+/* The page around the sky. */
+.about-page{background:#040a16}
+.about-page main{display:block}
+.sky{min-height:620px}
+
+/*
+ * The ask continues the night: one dark band under the sky, the case for giving beside a
+ * form drawn with the same gold hairlines as the mission panel.
+ */
+.give-band{position:relative;background:radial-gradient(70% 90% at 78% 0,#0f2848 0,#081530 48%,#050c1c 100%);color:var(--on-navy);border-top:1px solid rgba(232,198,120,.18)}
+.give-band__inner{max-width:1080px;margin:0 auto;padding:56px 24px 64px;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:48px;align-items:start}
+.give-band__kick{font:600 .74rem var(--ui);letter-spacing:.16em;text-transform:uppercase;color:#e6c766}
+.give-band__title{font-family:Philosopher,var(--display);font-weight:700;font-size:clamp(2rem,4.2vw,2.8rem);line-height:1.1;margin:.25em 0 .4em;color:#fff3d4}
+.give-band__lede{font-family:var(--serif);font-size:1.06rem;line-height:1.7;color:var(--on-navy2);margin:0}
+.give-band__lede strong{color:#fff;font-weight:600}
+.m-quote{margin:26px 0 0;border-top:1px solid rgba(230,199,102,.3);padding-top:18px}
+.m-quote .ar{font-family:var(--ar);font-size:1.55rem;line-height:1.8;color:#fff;direction:rtl;text-align:right}
+.m-quote figcaption{margin-top:6px}
+.m-quote .en{display:block;font-family:var(--serif);font-size:.96rem;color:var(--on-navy2)}
+.m-quote cite{display:block;font-style:normal;font:500 .78rem var(--ui);color:#e6c766;margin-top:8px}
+.m-quote cite a{color:inherit}
+
+.give{position:relative;display:grid;gap:16px;padding:26px 24px 22px;background:linear-gradient(180deg,rgba(14,30,58,.82),rgba(5,12,28,.9));border:1px solid rgba(232,198,120,.45);box-shadow:0 30px 60px -20px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,236,190,.08)}
+.give::before{content:"";position:absolute;inset:5px;border:1px solid rgba(232,198,120,.12);pointer-events:none}
+.give__title{margin:0;font-family:Philosopher,var(--display);font-weight:700;font-size:1.35rem;color:#ffe2a0;letter-spacing:.01em}
+.give__seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid rgba(232,198,120,.4)}
+.give__seg button{border:0;background:transparent;color:#c9d4e4;min-height:44px;font:600 .9rem var(--ui);letter-spacing:.04em;cursor:pointer}
+.give__seg button[aria-pressed="true"]{background:linear-gradient(180deg,#e9c46a,#c8a23d);color:#1a1405}
+.give__amts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.give__amts button{min-height:46px;border:1px solid rgba(232,198,120,.3);background:rgba(255,255,255,.03);color:#f3e5b8;font:700 1.02rem var(--display);font-variant-numeric:lining-nums tabular-nums;cursor:pointer}
+.give__amts button:hover{border-color:rgba(232,198,120,.7)}
+.give__amts button[aria-pressed="true"]{border-color:#e9c46a;background:rgba(233,196,106,.14);color:#fff;box-shadow:inset 0 0 0 1px #e9c46a,0 0 18px rgba(233,196,106,.2)}
+.give__other,.give__field{display:grid;gap:6px;font:500 .8rem var(--ui);color:#aebbd0}
+.give__money{display:flex;align-items:center;gap:8px;border:1px solid rgba(232,198,120,.35);padding:0 12px;background:rgba(255,255,255,.04)}
+.give__money span{color:#e6c766;font:700 1.1rem var(--display)}
+.give input{width:100%;min-height:44px;border:0;background:transparent;color:#fff;font:500 .95rem var(--ui);outline:none}
+.give__field input{border:1px solid rgba(232,198,120,.35);padding:0 12px;background:rgba(255,255,255,.04)}
+.give input::placeholder{color:#7d8aa0}
+.give__money:focus-within,.give__field input:focus{border-color:#e9c46a;box-shadow:0 0 0 3px rgba(233,196,106,.18)}
+.give__go{min-height:52px;border:0;cursor:pointer;background:linear-gradient(180deg,#f3d27a,#c8a23d);color:#1a1405;font:700 1.08rem Philosopher,var(--display);letter-spacing:.02em;box-shadow:0 10px 26px -8px rgba(233,196,106,.55)}
+.give__go:hover{filter:brightness(1.06)}
+.give__go:disabled{opacity:.7;cursor:progress}
+.give__msg{margin:0;min-height:1.2em;font:500 .85rem var(--ui);color:#ffd98c;text-align:center}
+.give__msg:empty{display:none}
+.give__fine{margin:0;font:400 .74rem/1.55 var(--ui);color:#8f9cb3}
+.give button:focus-visible,.give__go:focus-visible{outline:2px solid #ffe2a0;outline-offset:2px}
+@media (prefers-reduced-motion:no-preference){.give__amts button,.give__seg button{transition:background .15s,border-color .15s,box-shadow .15s}}
+
+/* About us: a quiet, light close. */
+.about-us{background:#f5f7fa;color:#1a1a2e}
+.about-us__inner{max-width:1080px;margin:0 auto;padding:44px 24px 52px}
+.about-us h2{font-family:var(--display);font-weight:700;font-size:1.9rem;color:#14305a;margin:0 0 .4em}
+.about-us p{font-family:var(--serif);font-size:1.02rem;line-height:1.75;margin:0;max-width:62rem}
+.about-us a{color:#2d5a8e}
+.about-us__note{margin-top:14px!important;font:400 .84rem/1.6 var(--ui)!important;color:#4a5568}
+
+/* The page Stripe returns to. */
+.thanks{min-height:60vh;display:grid;place-items:center;padding:64px 16px;background:radial-gradient(70% 90% at 50% 0,#0f2848 0,#081530 50%,#050c1c 100%)}
+.thanks__card{max-width:560px;text-align:center;padding:40px 32px;border:1px solid rgba(232,198,120,.45);background:rgba(5,12,28,.6);color:#c9d4e4}
+.thanks__mark{font-size:2rem;color:#e6c766}
+.thanks__title{font-family:Philosopher,var(--display);font-weight:700;font-size:2.4rem;color:#ffe2a0;margin:.2em 0 .4em}
+.thanks__body{font-family:var(--serif);font-size:1.1rem;line-height:1.7;color:#f3e5b8}
+.thanks__note{font:400 .9rem var(--ui);color:#9fb0c8}
+.thanks__back{display:inline-block;margin-top:14px;padding:12px 22px;border:1px solid rgba(232,198,120,.6);color:#ffe2a0;text-decoration:none;font:600 .9rem var(--ui)}
+
+@media (max-width:760px){
+  .give-band__inner{grid-template-columns:minmax(0,1fr);gap:32px;padding:40px 16px 48px}
+  .give__amts{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .about-us__inner{padding:36px 16px 44px}
+}

@@ -1,0 +1,111 @@
+<!doctype html>
+<html th:lang="${htmlLang} ?: 'en'" th:dir="${htmlDir} ?: 'ltr'" lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/site :: sitehead}"></head>
+<body class="about-page">
+<nav th:replace="~{fragments/site :: sitenav}"></nav>
+
+<main>
+  <!--
+    The sky: Imam Ali's saying, ten small books, and a turning Earth with the library's
+    numbers on its rim. Everything here is real HTML a crawler can read; js/about-sky.js
+    only paints the canvas behind it. The numbers are drawn on the rim by the script and
+    kept here as a list for screen readers and crawlers.
+  -->
+  <section class="sky" id="sky" th:attr="data-earth=@{/img/about/earth.webp},data-countries=@{/img/about/countries.png}" aria-labelledby="about-quote">
+  <canvas id="sky-c" aria-hidden="true"></canvas>
+  <svg id="rim" aria-hidden="true"></svg>
+  <div class="i-hero">
+    <h1 class="visually-hidden" id="about-quote" th:text="#{about.heading}">About the Hadith Database</h1>
+    <div class="q-ar" lang="ar"><span class="q-by">قَالَ الْإِمَامُ عَلِيٌّ عَلَيْهِ السَّلَامُ</span>إِنَّمَا مَثَلِي بَيْنَكُمْ مَثَلُ السِّرَاجِ فِي الظُّلْمَةِ<br>يَسْتَضِيءُ بِهِ مَنْ وَلَجَهَا</div>
+    <div class="q-en" th:utext="#{about.quote.en}">Imam Ali (a.s.): I am among you like a lamp in the darkness. Whoever enters the darkness sees by its light.</div>
+    <div class="q-src"><a href="/hadith/Nahj-al-Balagha-Radi:900" th:href="@{${arPrefix} ?: ''} + '/hadith/Nahj-al-Balagha-Radi:900'"><span th:text="#{about.quote.source}">Nahj al-Balāgha 900</span></a></div>
+  </div>
+  <div class="lib">
+    <a class="book l" tabindex="-1" data-side="l" data-d="0.9" href="/books/al-kafi" th:href="@{${arPrefix} ?: ''} + '/books/al-kafi'" title="Al-Kāfi" style="--x:2.5%;--y:12%;--w:3.6%;--t:12deg;--r:-5deg;--sh:0;--msh:0;--mx:6%;--my:8px;--mw:8%;--br:1.05"><span class="ray"></span><span class="float"><span class="stack"><span class="pg b"><p>فَإِنَّكُمْ سَوْفَ تَحْتَاجُونَ إِلَيْهَا</p></span></span><span class="lid"><span class="front"><img src="/img/books/covers/al-kafi.webp" th:src="@{/img/books/covers/al-kafi.webp}" loading="lazy" alt="Al-Kāfi"><img class="gold" src="/img/about/gold-al-kafi.webp" th:src="@{/img/about/gold-al-kafi.webp}" loading="lazy" alt=""></span><span class="back pg a"><p>احْتَفِظُوا بِكُتُبِكُمْ</p></span></span></span></a>
+    <a class="book r" tabindex="-1" data-side="r" data-d="0.8" href="/books/al-tawhid" th:href="@{${arPrefix} ?: ''} + '/books/al-tawhid'" title="Al-Tawḥīd" style="--x:92.5%;--y:14%;--w:3.2%;--t:-14deg;--r:6deg;--sh:-1;--msh:-1;--mx:54%;--my:12px;--mw:8%;--br:1.25"><span class="ray"></span><span class="float"><span class="stack"><span class="pg b"><p>الْمِصْبَاحُ هُوَ الْعِلْمُ</p></span></span><span class="lid"><span class="front"><img src="/img/books/covers/al-tawhid.webp" th:src="@{/img/books/covers/al-tawhid.webp}" loading="lazy" alt="Al-Tawḥīd"><img class="gold" src="/img/about/gold-al-tawhid.webp" th:src="@{/img/about/gold-al-tawhid.webp}" loading="lazy" alt=""></span><span class="back pg a"><p>مَثَلُ نُورِهِ كَمِشْكَاةٍ</p></span></span></span></a>
+    <a class="book l" tabindex="-1" data-side="l" data-d="0.5" href="/books/al-amali" th:href="@{${arPrefix} ?: ''} + '/books/al-amali'" title="Al-Amālī" style="--x:10%;--y:23%;--w:3%;--t:14deg;--r:7deg;--sh:0;--msh:0;--mx:21%;--my:14px;--mw:8%;--br:1.1"><span class="ray"></span><span class="float"><span class="stack"><span class="pg b"><p>وَنُورُ الْأَبْصَارِ</p></span></span><span class="lid"><span class="front"><img src="/img/books/covers/al-amali.webp" th:src="@{/img/books/covers/al-amali.webp}" loading="lazy" alt="Al-Amālī"><img class="gold" src="/img/about/gold-al-amali.webp" th:src="@{/img/about/gold-al-amali.webp}" loading="lazy" alt=""></span><span class="back pg a"><p>إِنَّ الْعِلْمَ حَيَاةُ الْقُلُوبِ</p></span></span></span></a>
+    <a class="book r" tabindex="-1" data-side="r" data-d="0.9" href="/books/mishkat-al-anwar" th:href="@{${arPrefix} ?: ''} + '/books/mishkat-al-anwar'" title="Mishkāt al-Anwār" style="--x:86%;--y:25%;--w:3.6%;--t:-12deg;--r:-6deg;--sh:-1;--msh:-1;--mx:69%;--my:6px;--mw:8%;--br:0.95"><span class="ray"></span><span class="float"><span class="stack"><span class="pg b"><p>فَسَوْفَ تَحْتَاجُونَ إِلَيْهَا</p></span></span><span class="lid"><span class="front"><img src="/img/books/covers/mishkat-al-anwar.webp" th:src="@{/img/books/covers/mishkat-al-anwar.webp}" loading="lazy" alt="Mishkāt al-Anwār"><img class="gold" src="/img/about/gold-mishkat-al-anwar.webp" th:src="@{/img/about/gold-mishkat-al-anwar.webp}" loading="lazy" alt=""></span><span class="back pg a"><p>احْتَفِظُوا بِكُتُبِكُمْ</p></span></span></span></a>
+    <a class="book l" tabindex="-1" data-side="l" data-d="0.6" href="/books/man-la-yahduruh-al-faqih" th:href="@{${arPrefix} ?: ''} + '/books/man-la-yahduruh-al-faqih'" title="Man Lā Yaḥḍuruh al-Faqīh" style="--x:3%;--y:43%;--w:3.2%;--t:10deg;--r:-4deg;--sh:0;--msh:0;--mx:36%;--my:6px;--mw:8%;--br:0.95"><span class="ray"></span><span class="float"><span class="stack"><span class="pg b"><p>وَأَمْرُكُمْ رُشْدٌ</p></span></span><span class="lid"><span class="front"><img src="/img/books/covers/man-la-yahduruh-al-faqih.webp" th:src="@{/img/books/covers/man-la-yahduruh-al-faqih.webp}" loading="lazy" alt="Man Lā Yaḥḍuruh al-Faqīh"><img class="gold" src="/img/about/gold-man-la-yahduruh-al-faqih.webp" th:src="@{/img/about/gold-man-la-yahduruh-al-faqih.webp}" loading="lazy" alt=""></span><span class="back pg a"><p>كَلاَمُكُمْ نُورٌ</p></span></span></span></a>
+    <a class="book r" tabindex="-1" data-side="r" data-d="0.5" href="/books/mizan-al-hikma" th:href="@{${arPrefix} ?: ''} + '/books/mizan-al-hikma'" title="Mīzān al-Ḥikma" style="--x:93.5%;--y:45%;--w:3%;--t:-10deg;--r:4deg;--sh:-1;--msh:-1;--mx:84%;--my:12px;--mw:8%;--br:1.2"><span class="ray"></span><span class="float"><span class="stack"><span class="pg b"><p>يُحْيِي الْقُلُوبَ</p></span></span><span class="lid"><span class="front"><img src="/img/books/covers/mizan-al-hikma.webp" th:src="@{/img/books/covers/mizan-al-hikma.webp}" loading="lazy" alt="Mīzān al-Ḥikma"><img class="gold" src="/img/about/gold-mizan-al-hikma.webp" th:src="@{/img/about/gold-mizan-al-hikma.webp}" loading="lazy" alt=""></span><span class="back pg a"><p>إِنَّ حَدِيثَنَا</p></span></span></span></a>
+    <a class="book l" tabindex="-1" data-side="l" data-d="0.4" href="/books/ghurar-al-hikam" th:href="@{${arPrefix} ?: ''} + '/books/ghurar-al-hikam'" title="Ghurar al-Ḥikam" style="--x:11%;--y:51%;--w:3.6%;--t:16deg;--r:-8deg;--sh:0;--msh:0;--mx:0%;--my:0px;--mw:8%;--br:1.2"><span class="ray"></span><span class="float"><span class="stack"><span class="pg b"><p>الْعَقْلِ</p></span></span><span class="lid"><span class="front"><img src="/img/books/covers/ghurar-al-hikam.webp" th:src="@{/img/books/covers/ghurar-al-hikam.webp}" loading="lazy" alt="Ghurar al-Ḥikam"><img class="gold" src="/img/about/gold-ghurar-al-hikam.webp" th:src="@{/img/about/gold-ghurar-al-hikam.webp}" loading="lazy" alt=""></span><span class="back pg a"><p>الْعِلْمُ مِصْبَاحُ</p></span></span></span></a>
+    <a class="book r" tabindex="-1" data-side="r" data-d="0.4" href="/books/al-khisal" th:href="@{${arPrefix} ?: ''} + '/books/al-khisal'" title="Al-Khiṣāl" style="--x:85%;--y:53%;--w:3.2%;--t:-16deg;--r:8deg;--sh:-1;--msh:-1;--mx:0%;--my:0px;--mw:8%;--br:1.05"><span class="ray"></span><span class="float"><span class="stack"><span class="pg b"><p>يُحْيِي الْقُلُوبَ</p></span></span><span class="lid"><span class="front"><img src="/img/books/covers/al-khisal.webp" th:src="@{/img/books/covers/al-khisal.webp}" loading="lazy" alt="Al-Khiṣāl"><img class="gold" src="/img/about/gold-al-khisal.webp" th:src="@{/img/about/gold-al-khisal.webp}" loading="lazy" alt=""></span><span class="back pg a"><p>إِنَّ حَدِيثَنَا</p></span></span></span></a>
+    <a class="book l" tabindex="-1" data-side="l" data-d="0.8" href="/books/kitab-al-du-afa" th:href="@{${arPrefix} ?: ''} + '/books/kitab-al-du-afa'" title="Kitāb al-Ḍuʿafāʾ" style="--x:2%;--y:71%;--w:3%;--t:12deg;--r:5deg;--sh:0;--msh:0;--mx:0%;--my:0px;--mw:8%;--br:1.15"><span class="ray"></span><span class="float"><span class="stack"><span class="pg b"><p>ابْنُ بُكَيْرٍ عُبَيْدُ بْنُ زُرَارَةَ</p></span></span><span class="lid"><span class="front"><img src="/img/books/covers/kitab-al-du-afa.webp" th:src="@{/img/books/covers/kitab-al-du-afa.webp}" loading="lazy" alt="Kitāb al-Ḍuʿafāʾ"><img class="gold" src="/img/about/gold-kitab-al-du-afa.webp" th:src="@{/img/about/gold-kitab-al-du-afa.webp}" loading="lazy" alt=""></span><span class="back pg a"><p>مُحَمَّدُ بْنُ يَحْيَى أَحْمَدُ بْنُ مُحَمَّدٍ ابْنُ فَضَّالٍ</p></span></span></span></a>
+    <a class="book r" tabindex="-1" data-side="r" data-d="0.8" href="/books/uyun-akhbar-al-rida" th:href="@{${arPrefix} ?: ''} + '/books/uyun-akhbar-al-rida'" title="ʿUyūn akhbār al-Riḍā" style="--x:95%;--y:73%;--w:3.4%;--t:-12deg;--r:-5deg;--sh:-1;--msh:-1;--mx:0%;--my:0px;--mw:8%;--br:1.05"><span class="ray"></span><span class="float"><span class="stack"><span class="pg b"><p>وَأَمْرُكُمْ رُشْدٌ</p></span></span><span class="lid"><span class="front"><img src="/img/books/covers/uyun-akhbar-al-rida.webp" th:src="@{/img/books/covers/uyun-akhbar-al-rida.webp}" loading="lazy" alt="ʿUyūn akhbār al-Riḍā"><img class="gold" src="/img/about/gold-uyun-akhbar-al-rida.webp" th:src="@{/img/about/gold-uyun-akhbar-al-rida.webp}" loading="lazy" alt=""></span><span class="back pg a"><p>كَلاَمُكُمْ نُورٌ</p></span></span></span></a>
+    <div class="lib-text">
+      <div class="nums sr">
+        <div><b>50,000+</b><span th:text="#{about.stat.narrations}">narrations</span></div>
+        <div><b>21</b><span th:text="#{about.stat.books}">books</span></div>
+        <div><b>15,000+</b><span th:text="#{about.stat.narrators}">narrators</span></div>
+        <div><b>14,000+</b><span th:text="#{about.stat.tafsir}">linked tafsīrs</span></div>
+        <div><b>36,000+</b><span th:text="#{about.stat.links}">cross-links</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="reach"><span class="reach-t" th:utext="#{about.mission}">Our mission is to spread the light of the Ahlul Bayt across the globe, word by word.</span></div>
+  </section>
+
+  <!--
+    The ask. It is in the HTML on every host, so all hosts serve the same page, but it is
+    shown only on rewayaat.info: hadith.academyofislam.com is the Academy's own host and
+    takes no money. SiteBrandAdvice forbids gating crawler-readable content by host, so
+    the script decides, not the server.
+  -->
+  <section class="give-band" id="support" hidden data-support aria-labelledby="support-title">
+    <div class="give-band__inner">
+      <div class="give-band__case">
+        <div class="give-band__kick" th:text="#{about.give.kicker}">Support the library</div>
+        <h2 class="give-band__title" id="support-title" th:text="#{about.give.title}">Carry the light further</h2>
+        <p class="give-band__lede" th:utext="#{about.give.lede}">Your support pays for <strong>hosting</strong> and <strong>software development</strong>: the cloud infrastructure behind a growing community of readers, new AI-powered features, and bringing more books into the library. We hope it stays with you as sadaqa jāriya.</p>
+        <figure class="m-quote">
+          <div class="ar" lang="ar">صَدَقَةٌ أَجْرَاهَا فِي حَيَاتِهِ فَهِيَ تَجْرِي بَعْدَ مَوْتِهِ</div>
+          <figcaption>
+            <span class="en" th:text="#{about.give.quote}">A charity that he established in his lifetime, it continues after his death.</span>
+            <cite><span th:text="#{about.give.quoteBy}">Imam al-Ṣādiq</span>, <a href="/hadith/Al-Kafi-Volume-7-Kulayni:193" th:href="@{${arPrefix} ?: ''} + '/hadith/Al-Kafi-Volume-7-Kulayni:193'" th:text="#{about.give.quoteSource}">al-Kāfi 7:193</a> · <span th:text="#{about.give.quoteGrade}">Majlisī</span>: <span lang="ar">موثق على الظاهر</span></cite>
+          </figcaption>
+        </figure>
+      </div>
+
+      <form class="give" id="give" data-give novalidate
+            th:attr="data-checkout=@{/about/checkout},data-label-month=#{about.give.labelMonth},data-label-once=#{about.give.labelOnce},data-label-busy=#{about.give.busy},data-label-closed=#{about.give.closed},data-label-error=#{about.give.error},data-label-amount=#{about.give.amountError},data-label-other=#{about.give.other}">
+        <h3 class="give__title" th:text="#{about.give.formTitle}">Support this work</h3>
+        <div class="give__seg" role="group" th:aria-label="#{about.give.howOften}" aria-label="How often">
+          <button type="button" data-interval="month" aria-pressed="true" th:text="#{about.give.monthly}">Monthly</button>
+          <button type="button" data-interval="once" aria-pressed="false" th:text="#{about.give.once}">One time</button>
+        </div>
+        <div class="give__amts" role="group" th:aria-label="#{about.give.amount}" aria-label="Amount" data-amounts></div>
+        <label class="give__other" data-other hidden>
+          <span th:text="#{about.give.otherLabel}">Amount in US dollars</span>
+          <span class="give__money"><span aria-hidden="true">$</span><input type="number" inputmode="decimal" min="5" max="10000" step="1" data-other-input></span>
+        </label>
+        <label class="give__field">
+          <span th:text="#{about.give.dedication}">In the name of (optional)</span>
+          <input type="text" maxlength="120" data-dedication th:placeholder="#{about.give.dedicationHint}" placeholder="A parent or loved one who has passed"/>
+        </label>
+        <button class="give__go" type="submit" data-go>Give $10 a month</button>
+        <p class="give__msg" role="status" aria-live="polite" data-msg></p>
+        <p class="give__fine" th:text="#{about.give.fine}">Amounts in US dollars. Handled securely by Stripe; your statement will show REWAYAAT. Cancel monthly support any time. Received by Fadhel Solutions Inc. Not tax-deductible, and not a khums or zakat channel.</p>
+      </form>
+    </div>
+  </section>
+
+  <section class="about-us" aria-labelledby="about-us-title">
+    <div class="about-us__inner">
+      <h2 id="about-us-title" th:text="#{about.us.title}">About us</h2>
+      <p>
+        <span th:text="#{about.us.body}">The Hadith Database is an open-source project, built in collaboration with the Academy for Learning Islam. We started it in 2017 with one goal: to make the hadith of the Ahl al-Bayt easy to search and read online, in Arabic and English, for anyone, anywhere. Its code is public on GitHub, where anyone can follow the work or contribute.</span>
+        <a href="https://github.com/rewayaat/rewayaat" target="_blank" rel="noopener noreferrer" th:text="#{about.us.github}">The code on GitHub</a> ·
+        <a href="/updates.html" th:href="@{${arPrefix} ?: ''} + '/updates.html'" th:text="#{about.us.updates}">See what's new</a> ·
+        <a href="/contact" th:href="@{${arPrefix} ?: ''} + '/contact'" th:text="#{about.us.contact}">Contact us</a>
+      </p>
+      <p class="about-us__note" th:text="#{about.us.note}">The narrations are collected from translations of the primary sources, in print and online, and their contents and translations remain the responsibility of those sources. Some features, such as links between similar narrations, are generated with AI and may contain mistakes.</p>
+    </div>
+  </section>
+</main>
+
+<footer th:replace="~{fragments/site :: sitefooter}"></footer>
+<th:block th:replace="~{fragments/site :: analytics}"></th:block>
+<script src="/js/about-places.js" th:src="@{/js/about-places.js}"></script>
+<script src="/js/about-sky.js" th:src="@{/js/about-sky.js}"></script>
+<script src="/js/about-give.js" th:src="@{/js/about-give.js}"></script>
+</body>
+</html>

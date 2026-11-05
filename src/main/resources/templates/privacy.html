@@ -53,11 +53,12 @@
 
         <section class="tips-card">
             <h2 class="tips-card__title"><i class="fa fa-share-nodes" aria-hidden="true"></i> <span th:text="#{privacy.sharing.title}">Who else sees anything</span></h2>
-            <p th:text="#{privacy.sharing.body}">Three services, each for one job:</p>
+            <p th:text="#{privacy.sharing.body}">Four services, each for one job:</p>
             <p class="tips-card__note">
                 <strong>Google Analytics</strong> — <span th:text="#{privacy.sharing.analytics}">page views on the website, to see which parts are used. Not loaded on the connector.</span><br/>
                 <strong>Sentry</strong> — <span th:text="#{privacy.sharing.sentry}">errors, so faults are noticed and fixed.</span><br/>
-                <strong>Resend</strong> — <span th:text="#{privacy.sharing.resend}">sends verification and password-reset email, and receives your address in order to do so.</span>
+                <strong>Resend</strong> — <span th:text="#{privacy.sharing.resend}">sends verification and password-reset email, and receives your address in order to do so.</span><br/>
+                <strong>Stripe</strong> — <span th:text="#{privacy.sharing.stripe}">handles payments made on the About page. It receives your payment details and email for that purpose; we never see your card.</span>
             </p>
         </section>
 
