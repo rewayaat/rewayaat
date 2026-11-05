@@ -158,4 +158,4 @@
 /* Room under the mission panel so the medallion has air. */
 .about-page .sky{padding-bottom:44px}
 .about-page .sky>.reach{bottom:62px}
-@media (max-width:760px){.about-page .sky>.reach{bottom:94px}}
+@media (max-width:760px){.about-page .sky>.reach{bottom:112px}}
