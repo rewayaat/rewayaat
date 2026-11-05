@@ -144,3 +144,14 @@
 .give__amts button.is-other{font:600 .86rem var(--ui);white-space:nowrap}
 [dir="rtl"] .give__amts button.is-other{font-family:var(--ar);font-size:1rem}
 .about-us code{font-size:.9em;padding:.05em .35em;background:#e8edf4;border-radius:3px;direction:ltr;unicode-bidi:isolate}
+
+/*
+ * The ask is its own section, not more of the sky: it appears only on rewayaat.info, so it
+ * is set off by a gold rule and a medallion on a distinct navy, the way the footer is.
+ */
+.give-band{border-top:0;background:linear-gradient(180deg,#0e2244 0,#0a1a36 55%,#081530 100%)}
+.give-band::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(232,198,120,.75) 18%,rgba(232,198,120,.75) 82%,transparent)}
+.give-band::after{content:"\06DE";position:absolute;top:0;left:50%;translate:-50% -50%;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:#060e1e;border:1px solid rgba(232,198,120,.75);color:#e6c766;font-size:20px;line-height:1;box-shadow:0 0 0 5px #060e1e,0 0 24px rgba(233,196,106,.25)}
+.give-band__inner{padding-top:72px}
+.about-us code{color:#14305a}
+@media (max-width:760px){.give-band__inner{padding-top:56px}}
