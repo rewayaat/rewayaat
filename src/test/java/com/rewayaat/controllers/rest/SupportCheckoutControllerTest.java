@@ -41,6 +41,18 @@ class SupportCheckoutControllerTest {
     }
 
     @Test
+    void onlyRewayaatInfoTakesGifts() {
+        FakeCheckout fake = new FakeCheckout("sk_test_x");
+        SupportCheckoutController c = new SupportCheckoutController(fake);
+        var gift = new SupportCheckoutController.Gift("month", 10.0, "en");
+        assertEquals(503, c.open(gift, request("hadith.academyofislam.com")).getStatusCode().value());
+        assertEquals(503, c.open(gift, request("rewayaat-mirror.example")).getStatusCode().value());
+        assertTrue(fake.calls.isEmpty());
+        assertEquals(200, c.open(gift, request("www.rewayaat.info")).getStatusCode().value());
+        assertEquals(200, c.open(gift, request("localhost")).getStatusCode().value());
+    }
+
+    @Test
     void anAmountOutOfRangeOrAnUnknownIntervalIsRefused() {
         FakeCheckout fake = new FakeCheckout("sk_test_x");
         SupportCheckoutController c = new SupportCheckoutController(fake);

@@ -16930,3 +16930,36 @@ body.is-search-mode .site-nav .search-entry-shell:focus-within {
 [dir="rtl"] .navbar-search .ts-control .item {
     font-weight: 700 !important;
 }
+
+/* The Enter key beside the word: pressing Enter in the field does the same thing.
+   Drawn as ↵ in both languages, because the key wears that shape on Arabic keyboards
+   too. It goes wherever the word goes; where the button shrinks to a square, the
+   magnifier is its only label. */
+.search-btn-with-border .search-btn__enter {
+    display: inline-block;
+    margin-inline-start: 0.5em;
+    font-size: 0.78em;
+    opacity: 0.85;
+    transform: rotate(90deg);
+}
+@media (max-width: 991.98px) {
+    .site-nav .search-btn-with-border .search-btn__enter { display: none; }
+}
+@media (max-width: 768px) {
+    .search-btn-with-border .search-btn__enter { display: none !important; }
+}
+
+/* Room between the magnifier and where typing starts. The glass is pinned over the
+   field, so the field itself steps in; chips, caret and placeholder all move with it.
+   Phones hide the glass, so they keep the full width. */
+@media (min-width: 769px) {
+    .search-entry-shell .ts-wrapper,
+    .search-entry-shell > .nav-search__input {
+        margin-inline-start: 10px;
+    }
+    /* The rotating example is laid over the field rather than in it, and sat flush
+       against the glass; this lines it up with the caret. */
+    .search-entry-shell .search-ghost-text {
+        margin-inline-start: 21px;
+    }
+}

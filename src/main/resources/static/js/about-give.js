@@ -1,11 +1,14 @@
 /*
- * The giving form on the About page. Shown on every host but the Academy's, which takes
- * no money; the HTML is the same everywhere so crawlers see one page. A gift is posted
+ * The giving form on the About page. Shown on rewayaat.info only (and on a developer's
+ * machine); the Academy's mirror takes no money, and neither does any other host. The
+ * HTML is the same everywhere so crawlers see one page, and /about/checkout refuses
+ * other hosts too. A gift is posted
  * to /about/checkout, which answers with the Stripe Checkout page to go to.
  */
 (function () {
   var band = document.querySelector('[data-support]');
-  if (!band || location.hostname === 'hadith.academyofislam.com') { return; }
+  var GIVING_HOSTS = ['rewayaat.info', 'www.rewayaat.info', 'localhost', '127.0.0.1'];
+  if (!band || GIVING_HOSTS.indexOf(location.hostname) < 0) { return; }
   band.hidden = false;
 
   var form = band.querySelector('[data-give]'), box = form.querySelector('[data-amounts]');

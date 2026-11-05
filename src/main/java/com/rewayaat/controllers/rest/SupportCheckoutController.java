@@ -53,7 +53,7 @@ public class SupportCheckoutController {
     @PostMapping(value = "/about/checkout", consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, String>> open(@RequestBody Gift gift, HttpServletRequest request) {
-        if (!checkout.isOpen()) {
+        if (!checkout.isOpen() || !takesGifts(request)) {
             return ResponseEntity.status(503).body(Map.of("error", "closed"));
         }
         SupportCheckout.Interval interval = "once".equals(gift.interval())
@@ -74,6 +74,17 @@ public class SupportCheckoutController {
             LOGGER.warn("Stripe checkout failed: {}", e.getMessage());
             return ResponseEntity.status(502).body(Map.of("error", "stripe"));
         }
+    }
+
+    /**
+     * Giving is rewayaat.info's alone. The Academy's mirror runs this same application and
+     * takes no money, so a gift posted to any other host is refused here as well as hidden
+     * on the page. A developer's own machine counts, so the form can be tried.
+     */
+    static boolean takesGifts(HttpServletRequest request) {
+        String host = request.getServerName();
+        return "rewayaat.info".equals(host) || "www.rewayaat.info".equals(host)
+                || "localhost".equals(host) || "127.0.0.1".equals(host);
     }
 
     /**
