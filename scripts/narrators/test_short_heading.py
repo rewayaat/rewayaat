@@ -150,3 +150,13 @@ def test_a_compound_ism_is_not_prose():
 def test_a_long_lineage_is_left_alone():
     name = "سلامة بن محمد بن إسماعيل بن عبد الله بن موسى بن أبي الاكرم"
     assert name_only(name) == name
+
+
+def test_an_aside_between_dashes_is_dropped_and_the_nisba_after_it_kept():
+    assert name_only("علي بن أبي حمزة - واسم أبي حمزة سالم - البطائني أبو الحسن"
+                     ) == "علي بن أبي حمزة البطائني أبو الحسن"
+
+
+def test_a_dash_before_a_name_is_only_a_line_break():
+    name = "جعفر بن محمد بن علي بن - الحسين بن علي بن أبي طالب"
+    assert name_only(name) == name.replace(" -", "")

@@ -381,6 +381,19 @@ def _tidy(words):
     """The page's marks taken out, and a reading in quotation marks — «أحمر " أحمد " بن
     معاوية», the edition's variant for one word — dropped whole."""
     kept, quoted = [], None
+    words = list(words)
+    # An aside set off by dashes — «علي بن أبي حمزة - واسم أبي حمزة سالم - البطائني» — is
+    # dropped whole when it opens on prose, so the nisba after it is not cut off with it. A
+    # dash before a name («… بن علي بن - الحسين») is a line break, and only it goes.
+    i = 0
+    while i < len(words):
+        if words[i] in ("-", "–") and i + 1 < len(words) and PROSE.fullmatch(words[i + 1]):
+            close = next((j for j in range(i + 2, min(len(words), i + 12))
+                          if words[j] in ("-", "–")), None)
+            if close is not None:
+                del words[i:close + 1]
+                continue
+        i += 1
     for word in words:
         if word == '"':
             if quoted is None:
@@ -2235,6 +2248,10 @@ def main():
         print(f"dumped {len(documents):,} people -> {args.dump}")
     if documents:
         roster = roster_documents(documents[0])
+        for doc in roster:
+            # Built from documents[0] as a template, they would join under that man's names.
+            doc.pop("_join_ar", None)
+            doc.pop("_join_en", None)
         documents += roster
         counts["the fourteen, who hold no entry anywhere"] = len(roster)
         # Again, now that the fourteen are in the set. The pass above ran before them, so
