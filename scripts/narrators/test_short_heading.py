@@ -84,3 +84,69 @@ def test_al_khoei_s_nisba_after_the_colon_is_his_heading():
 def test_shimr_is_spelled_shimr():
     assert transliterate.respell("عمرو بن شمر", "Amr ibn Shumar") == "Amr ibn Shimr"
     assert transliterate.respell("أبو شمر بن أبرهة بن الصباح", "Abu Shamar") == "Abu Shamar"
+
+
+# ── Run-on headings: the name with the entry's text cut off it ──────────────────────────
+from index_people import name_only  # noqa: E402
+
+
+def test_a_citation_is_cut_off_al_ardabilis_heading():
+    """n035229 was published as this whole line, slug and all."""
+    assert name_only("يحيى بن حبيب في الكافي عدة من أصحابنا عن سهل بن زياد عن أحمد بن عيسى"
+                     ) == "يحيى بن حبيب"
+
+
+def test_the_man_who_reports_from_him_is_cut_off_with_the_chain():
+    assert name_only("سوادة القطان الحسن بن علي بن فضال عنه عن أبي الحسن الرضا عليه السلام في"
+                     ) == "سوادة القطان"
+    assert name_only("أبو بكر بن عبد الله الأشعري عبد المطلب بن زياد عنه عن أبي عبد الله"
+                     ) == "أبو بكر بن عبد الله الأشعري"
+    assert name_only("شرحبيل الكندي ابن مسكان عنه عن أبي عبد الله عليه السلام في") == "شرحبيل الكندي"
+
+
+def test_a_name_repeated_after_an_is_where_the_subject_ends():
+    assert name_only("يحيى الحذا زكريا الخزاز عن يحيى الحذا") == "يحيى الحذا"
+    assert name_only("على بن عبد الله البجلي عمرو بن سعيد عن علي بن عبد الله عن أبي الحسن"
+                     ) == "على بن عبد الله البجلي"
+
+
+def test_a_reporter_named_after_anhu_is_not_the_subjects_name():
+    assert name_only("محمد بن الحسين بن هارون الكندي الطحان الكوفي أبو جعفر عنه التلعكبري"
+                     ) == "محمد بن الحسين بن هارون الكندي الطحان الكوفي أبو جعفر"
+
+
+def test_a_report_leaves_a_one_word_name():
+    assert name_only("واصل قال الكشي قال محمد بن مسعود حدثني أبو على المحمودي") == "واصل"
+
+
+def test_a_describing_phrase_on_a_one_word_name_stays():
+    assert name_only("إسحاق صاحب الحيتان") == "إسحاق صاحب الحيتان"
+    assert name_only("يحيى أخو آدم") == "يحيى أخو آدم"
+
+
+def test_the_later_books_praise_is_cut_off():
+    assert name_only("مصطفى بن الحسن الحسيني التفرشي السيد الاجل جليل القدر رفيع الشأن"
+                     ) == "مصطفى بن الحسن الحسيني التفرشي"
+
+
+def test_the_printed_pages_marks_are_dropped_not_cut_at():
+    assert name_only("سليمان بن المتوكل الغزال الكناسي - الكوفي") == "سليمان بن المتوكل الغزال الكناسي الكوفي"
+    assert name_only("عبد الملك بن ms0871 المعافى") == "عبد الملك بن المعافى"
+
+
+def test_a_variant_reading_in_quotation_marks_is_dropped():
+    assert name_only('أحمر " أحمد " بن معاوية') == "أحمر بن معاوية"
+
+
+def test_the_salutation_inside_a_name_is_not_prose():
+    name = "أبو رافع مولى رسول اللّه صلّى اللّه عليه و آله و سلم"
+    assert name_only(name).startswith("أبو رافع مولى رسول اللّه صلّى اللّه عليه و آله")
+
+
+def test_a_compound_ism_is_not_prose():
+    assert name_only("عبد الجليل بن أبي الحسين القزويني الشيخ الواعظ").startswith("عبد الجليل بن")
+
+
+def test_a_long_lineage_is_left_alone():
+    name = "سلامة بن محمد بن إسماعيل بن عبد الله بن موسى بن أبي الاكرم"
+    assert name_only(name) == name

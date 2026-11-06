@@ -35,6 +35,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from build_people import MAIN_BOOKS, is_entry, not_entries, unnamed_subjects  # noqa: E402
 from grade_evidence import shown  # noqa: E402
 import imams  # noqa: E402
+IMAM_ROSTER = imams   # the module: a local named «imams» in document() is a set
 import relation_evidence  # noqa: E402
 import relations_join  # noqa: E402
 import isnad_neighbours  # noqa: E402
@@ -267,8 +268,56 @@ def learn_transliterations(profiles):
 # موسى بن أبي الاكرم» is thirteen words of genuine lineage — so the cut is made at the prose
 # and never at a length.
 PROSE = re.compile(r'(?:كنية|المعروف|يعرف|يكنى|قدوة|سيدنا|مولانا|رحمه|رضي|قدس|عداده|وهو|'
-                   r'وكان|قال|ذكره|روى|صاحب|المشايخ|ثقة|ضعيف|مجهول|عالم|فقيه|نزيل|أسند)')
+                   r'وكان|قال|ذكره|روى|صاحب|المشايخ|ثقة|ضعيف|مجهول|عالم|فقيه|نزيل|أسند|'
+                   # A citation: al-Ardabīlī follows a name with the places it stands in a
+                   # chain, «يحيى بن حبيب في الكافي عدة من أصحابنا عن سهل بن زياد…», and
+                   # al-Kashshī with the report itself, «واصل قال الكشي…».
+                   r'في|وفي|وفى|عن|عنه|عنهم|عنهما|جميعا|رفعه|حدثني|حدثنا|أخبرنا|أخبرني|اخبرنا|'
+                   r'سمعت|سمع|يروى|يروي|عدة|تقدم|يأتي|يأتى|كما|نسخة|وأخرى|كتاب|له|به|إلى|الى|'
+                   # What a book says about the man after naming him: who he is, whose brother,
+                   # where he lived, what his school was.
+                   r'هو|هما|انه|أنه|وقيل|قيل|ويقال|وكانه|اسمه|واسمه|لقبه|ذكر|ذكرناه|صرح|عده|'
+                   r'وصفه|كذا|أخو|اخو|أخت|ختن|ابنه|عم|رسوله|من|الذي|قد|لم|لا|غير|أو|سكن|'
+                   r'انتقل|ساكن|الساكن|المقيم|يستفاد|رجل|وجه|شهد|طعن|مختلط|متكلم|تابعي|أصله|'
+                   r'واقفي|فطحي|عامي|قاضي|وثقه|وضعفه|ضعفه|غال|غالي|كأنه|كانه|وكيل|سيد|ممن|يطعن|وبعض|صحب|واخذ|وأخذ|أخذ|'
+                   r'ملقب|الملقب|استثناه|شيخنا|بحلة|بكسر|بفتح|بضم|واسكان|وإسكان|باني|وأخوه|الشيح|واسم|'
+                   # A note on spelling: «الجيني بالجيم والنون».
+                   r'بال(?:جيم|حاء|خاء|زاي|راء|نون|واو|عين|غين|باء|تاء|ثاء|سين|شين|صاد|ضاد|طاء|ظاء|فاء|قاف|كاف|لام|ميم|هاء|ياء|دال|ذال|معجمة|مهملة)|'
+                   # The later books' praise: «… التفرشي السيد الاجل جليل القدر رفيع الشأن».
+                   r'الشيخ|شيخ|السيد|الامام|الإمام|جليل|الجليل|الاجل|الأجل|فاضل|عظيم|ورع|'
+                   r'متبحر|مصنف|أستاذ|استاذ|"|؟)')
+# Marks of the printed page and of the digital edition, which sit inside a name without being
+# part of it: a line-break hyphen («… بن عبد الله - الكوفي»), OpenITI's milestones and page
+# markers. Dropped from a name, never cut at.
+ARTIFACT = re.compile(r'(?:-|–|ms\d+|PageV\w+|\(|\))')
+# Words after which «صالح» is the man's piety and not his name: «… الحسنى صالح ورع».
+PRAISE_AFTER = {"ورع", "فاضل", "محدث", "فقيه", "عالم", "ثقة", "دين"}
+# A citation names a second man before the cut: «سوادة القطان الحسن بن علي بن فضال عنه عن أبي
+# الحسن» is Sawāda, and then al-Ḥasan b. Faḍḍāl, who reports from him.
+CITATION = {"عن", "عنه", "جميعا", "رفعه"}
+# Where a cut may leave a single word. A one-word ism is a name — «واصل», «عيثمة» — when
+# what follows is a citation or a report; when it is «أخو آدم» or «صاحب الحيتان», the phrase
+# is how the books tell this Yaḥyā or this Isḥāq from every other, and it stays.
+ONE_WORD_OK = CITATION | {"في", "وفي", "وفى", "قال", "اسمه", "واسمه", "هو", "وهو", "الذي",
+                          "ويقال", "وقيل", "حدثني", "تقدم", "نسخة", "سمع", "يروى", "يروي", "من",
+                          "بكسر", "بفتح", "بضم"}
 AFTER_NASAB = ("بن", "ابن", "أبي", "أبو", "ابو")
+# The list as it stood before 2026-11-06. The names it already cut were given a heading by
+# the rule below and reviewed; a name only the wider list cuts is handled differently, so
+# this is kept to tell the two apart. See document().
+EARLIER_PROSE = re.compile(r'(?:كنية|المعروف|يعرف|يكنى|قدوة|سيدنا|مولانا|رحمه|رضي|قدس|عداده|'
+                           r'وهو|وكان|قال|ذكره|روى|صاحب|المشايخ|ثقة|ضعيف|مجهول|عالم|فقيه|'
+                           r'نزيل|أسند)')
+
+
+def cut_by_earlier_list(heading):
+    words = (heading or "").split()
+    for position, word in enumerate(words):
+        if position and words[position - 1] in AFTER_NASAB:
+            continue
+        if EARLIER_PROSE.fullmatch(word.strip('،,.:()')):
+            return len(' '.join(words[:position]).strip(' -،,').split()) >= 2
+    return False
 
 
 # A heading that describes a group, a topic or a relation instead of naming a man. Al-Kashshī
@@ -328,18 +377,102 @@ def generation_ar(value):
     return "من أصحاب " + " و".join(found)
 
 
+def _tidy(words):
+    """The page's marks taken out, and a reading in quotation marks — «أحمر " أحمد " بن
+    معاوية», the edition's variant for one word — dropped whole."""
+    kept, quoted = [], None
+    for word in words:
+        if word == '"':
+            if quoted is None:
+                quoted = []
+            else:
+                quoted = None
+            continue
+        if quoted is not None:
+            quoted.append(word)
+            continue
+        if not ARTIFACT.fullmatch(word):
+            kept.append(word)
+    if quoted is not None:          # an opening mark never closed is not a variant
+        kept += ['"'] + quoted
+    # «و» alone is the salutation's «عليه و آله» inside a name, and only a stray at its end.
+    while kept and kept[-1] in ("بن", "ابن", "بنت", "و"):
+        kept.pop()
+    return kept
+
+
+def _second_man(words, after):
+    """Where the man who reports from the subject starts, in a citation's opening words.
+
+    «after» is what follows the cut. The text after «عن» often repeats the subject's own name
+    («يحيى الحذا زكريا الخزاز عن يحيى الحذا»), and then that is where he ends. Otherwise the
+    reporter is the last name that opens a new man: an ism with «بن» after it, a «عبد …» with
+    «بن» after it, or a kunya, none of them following a «بن» that would make it a father's name.
+    """
+    folded = [normalize_arabic(w) for w in words]
+    echo = []
+    for word in after[1:]:
+        if PROSE.fullmatch(word.strip('،,.:')):
+            break
+        echo.append(normalize_arabic(word))
+    echoed = bool(echo) and 0 < len(echo) < len(folded) and folded[:len(echo)] == echo
+    starts = []
+    for i in range(1, len(words)):
+        word, before = folded[i], folded[i - 1]
+        if before in {"بن", "ابن", "بنت", "ابو", "ابي", "ابا", "ام", "عبد"} or word.startswith("و"):
+            continue
+        nxt = folded[i + 1] if i + 1 < len(words) else ""
+        third = folded[i + 2] if i + 2 < len(words) else ""
+        # A nisba closes a name and does not open one: in «شرحبيل الكندي ابن مسكان» the
+        # second man is «ابن مسكان», and «الكندي» is the first man's.
+        nisba = word.startswith("ال") and word.endswith(("ي", "ى"))
+        if word == "ابن" and before.startswith("ال") and before.endswith(("ي", "ى")):
+            starts.append(i)
+        elif not nisba and (nxt in {"بن", "ابن"} or (word == "عبد" and third in {"بن", "ابن"})
+                            or word in {"ابو", "ابي"}):
+            starts.append(i)
+    # The echo is the stronger evidence only where it ends on a man's beginning: «علي بن عبد
+    # الله البجلي عمرو بن سعيد عن علي بن عبد الله» echoes three words of a five-word name.
+    if echoed and (len(echo) in starts or not starts):
+        return len(echo)
+    return starts[-1] if starts else None
+
+
 def name_only(heading):
-    """A heading with the prose cut off it, or the heading unchanged when it carries none."""
+    """A heading with the prose cut off it, or the heading unchanged when it carries none.
+
+    The printed page's own marks are taken out either way, so a heading carrying one is not
+    a clean heading."""
     if not heading:
         return heading
-    words = heading.split()
+    words = _tidy(heading.split())
     for position, word in enumerate(words):
-        if position and words[position - 1] in AFTER_NASAB:
-            continue   # «محمد بن المعروف» is a name, not a name followed by a remark
-        if PROSE.fullmatch(word.strip('،,.:()')):
-            cut = ' '.join(words[:position]).strip(' -،,')
-            return cut if len(cut.split()) >= 2 else heading
-    return heading
+        if position and words[position - 1] in AFTER_NASAB + ("عبد",):
+            continue   # «محمد بن المعروف», «عبد الجليل»: a name, not a name and a remark
+        bare = word.strip('،,.:')
+        if bare == "صالح":
+            if position + 1 < len(words) and words[position + 1] in PRAISE_AFTER:
+                bare = "PRAISE"
+            else:
+                continue
+        if bare != "PRAISE" and not PROSE.fullmatch(bare):
+            continue
+        kept = words[:position]
+        # «عنه» followed by a name is «… and so-and-so reports from him»: the man before it
+        # is the subject. Followed by the chain or nothing, the man before it is the reporter.
+        reporter_after = (bare == "عنه" and position + 1 < len(words)
+                          and not PROSE.fullmatch(words[position + 1].strip('،,.:')))
+        if bare in CITATION and not reporter_after:
+            second = _second_man(kept, words[position:])
+            if second:
+                kept = kept[:second]
+        while kept and kept[-1] in ("بن", "ابن", "بنت", "و"):
+            kept.pop()
+        cut = ' '.join(kept).strip(' -،,')
+        if not cut or (len(cut.split()) == 1 and (cut in HANGING or bare not in ONE_WORD_OK)):
+            return ' '.join(words)
+        return cut
+    return ' '.join(words)
 
 
 # A page name and a genealogy are not the same thing. Al-Najāshī opens his entry on Ibn
@@ -1590,7 +1723,9 @@ def document(person, source, headless):
                     if n.get("value")]
     own_headings += [normalize_arabic(e["heading_ar"]) for e in entries if e.get("heading_ar")]
     group_kind = {n: not_a_personal_name(n, own_headings) for n in set(all_names_ar)}
-    names_ar = [n for n in all_names_ar if not group_kind[n]]
+    # A name that ran on into the entry's text is the name and not the text: «يحيى بن حبيب في
+    # الكافي عدة من أصحابنا عن سهل بن زياد…» is shown, searched and listed as «يحيى بن حبيب».
+    names_ar = list(dict.fromkeys(name_only(n) for n in all_names_ar if not group_kind[n]))
     names_group_ar = [{"value": n, "kind": group_kind[n]} for n in sorted(set(all_names_ar))
                       if group_kind[n]]
     # The names a book actually headed an entry with, apart from every name merely written
@@ -1607,6 +1742,10 @@ def document(person, source, headless):
     # search for the lineage, or a chain name resolved against it, must still reach him.
     headings_ar |= {n for n in (anchor.get("primary_arabic_name"),
                                 person.get("primary_arabic_name")) if n}
+    # The page's heading is chosen from the headings as the books print them; the cleaned
+    # forms are what is searched and listed.
+    raw_headings_ar = set(headings_ar)
+    headings_ar = {name_only(h) for h in headings_ar} - {""}
     search_ar = searchable(sorted(headings_ar),
                            sorted({n["value"] for n in values(person, "arabic_aliases")
                                    if n.get("value")}), HOLDERS)
@@ -1633,6 +1772,12 @@ def document(person, source, headless):
         {t["value"] for t in values(person, "titles") if t.get("value")})
 
     clean = name_only(display_ar)
+    # «أبو عبد الله شيخ من أصحابنا» is a shaykh, and cut to «أبو عبد الله» he would be taken
+    # for al-Ṣādiq and his page sent to the Imam's. A cut that leaves an Imam's name is not made.
+    if (clean != display_ar and len(IMAM_ROSTER.identify(normalize_arabic(clean))) == 1
+            and len(IMAM_ROSTER.identify(normalize_arabic(display_ar))) != 1):
+        clean = display_ar
+    cut_prose = clean != display_ar
     if clean != display_ar:
         # Prefer a heading of his own that was never contaminated, and only cut when there
         # is none: a book's own filing name beats our repair of another one.
@@ -1640,13 +1785,30 @@ def document(person, source, headless):
         # and ordered by length alone the winner among equal lengths was whichever the
         # interpreter's string hashing put first: «مسلم» or «سليم بن أبي حبة», «بن بابويه» or
         # «بن موسى», changing from one build to the next with nothing in the books changed.
-        whole = [h for h in sorted(headings_ar, key=lambda h: (len(h.split()), h != clean, h))
-                 if 2 <= len(h.split()) and name_only(h) == h]
+        candidates = [h for h in raw_headings_ar if 2 <= len(h.split()) and name_only(h) == h]
+        if cut_by_earlier_list(display_ar):
+            # Cut by the earlier list: his shortest clean heading, as these have always had.
+            whole = sorted(candidates, key=lambda h: (len(h.split()), h != clean, h))
+        else:
+            # Cut only by the wider list. The cut name is read off his own entry, so it
+            # stands unless a book heads him with exactly those words: falling back to the
+            # shortest clean heading swapped one name for another he is also filed under,
+            # «علي بن أبي حمزة البطائني» for «ابن السراج», «عبد الله بن السراج» for «عبد
+            # الله». A one-word cut still looks for a fuller heading, though not one that
+            # merely opens another heading of his.
+            folded = {h: normalize_arabic(h) for h in candidates}
+            same = [h for h in sorted(candidates) if folded[h] == normalize_arabic(clean)]
+            if same or len(clean.split()) >= 2:
+                whole = same or [clean]
+            else:
+                whole = [h for h in sorted(candidates, key=lambda h: (len(h.split()), h))
+                         if not any(other != h and folded[other].startswith(folded[h] + " ")
+                                    for other in candidates)]
         display_ar = whole[0] if whole else clean
     # The whole line, kept for the body: a reader who wants to see the lineage the entry
     # opens with should not have to take our word that we shortened a real name.
     nasab_ar = display_ar
-    display_ar = short_heading(display_ar, headings_ar)
+    display_ar = short_heading(display_ar, raw_headings_ar)
     display_en = anchor.get("primary_english_name") or person.get("primary_english_name")
     if display_en and display_en.rstrip().endswith(("...", "\u2026")):
         display_en = None      # a truncation, not a name
@@ -1669,9 +1831,14 @@ def document(person, source, headless):
         display_ar = nasab_ar = " ".join([display_ar] + nisba)
         display_en, made = english_for_heading(display_ar, names_en, TRANSLITERATION)
         display_en = transliterate.respell(display_ar, display_en)
-    if display_ar != nasab_ar:
+    # The anchor's English was made from the line the Arabic was cut free of when it runs
+    # well past the Arabic; a book's English a word or two longer is its own spelling.
+    runs_on = bool(cut_prose and display_en
+                   and len(display_en.split()) > len(display_ar.split()) + 2)
+    if display_ar != nasab_ar or runs_on:
         # The Arabic moved to his filing name, so the English follows it rather than going on
-        # reciting a lineage the Arabic beside it no longer does.
+        # reciting a lineage the Arabic beside it no longer does — or the prose the Arabic
+        # was cut free of, which the anchor's English was made from.
         display_en, made = english_for_heading(display_ar, names_en, TRANSLITERATION)
     if not display_en and display_ar:
         display_en = transliterate.english_for(display_ar, TRANSLITERATION)
@@ -1732,6 +1899,16 @@ def document(person, source, headless):
         where_ar = "يضعّفه " + join_names_ar(against_him_ar) + "."
     blurb_ar = (("، ".join(said_ar) + ". ") if said_ar else "") + where_ar
 
+    # Each entry's heading as the page prints it — «filed under …», the short list of his
+    # names — is the name, not the citation it ran into. Done last, so every choice above
+    # was made from the headings as the books print them.
+    for entry in entries:
+        if entry.get("heading_ar"):
+            entry["heading_ar"] = name_only(entry["heading_ar"])
+        if entry.get("same_work_other_headings"):
+            entry["same_work_other_headings"] = [name_only(h) for h in
+                                                 entry["same_work_other_headings"]]
+
     return {
         "person_id": person["person_id"],
         # the anchor entry's own heading, not the longest name the merge found: that gave Ibn Abi
@@ -1754,7 +1931,7 @@ def document(person, source, headless):
         # find Zurāra even though the page no longer lists it among his names.
         "names_group_ar": names_group_ar,
         "names_group_en": names_group_en,
-        "normalized_ar": sorted({normalize_arabic(n) for n in all_names_ar}),
+        "normalized_ar": sorted({normalize_arabic(name_only(n)) for n in all_names_ar} - {""}),
         "normalized_en": sorted({n.lower() for n in all_names_en}),
         "kunyahs_ar": kunyahs,
         "titles": titles,
