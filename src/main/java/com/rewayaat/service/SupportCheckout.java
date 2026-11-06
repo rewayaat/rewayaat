@@ -126,6 +126,10 @@ public class SupportCheckout {
         // Stripe Checkout has no Arabic (Stripe rejects "ar"), so it follows the browser.
         p.put("locale", "auto");
         p.put("metadata[source]", "about");
+        // A "promotion code" field on Stripe's page, so a code made in the dashboard (a 100%
+        // one for testing the live flow, say) can be entered. Codes exist only if someone
+        // makes them; with none, the field accepts nothing.
+        p.put("allow_promotion_codes", "true");
         p.put((monthly ? "subscription_data" : "payment_intent_data") + "[metadata][source]", "about");
         if (!monthly) {
             p.put("customer_creation", "always");

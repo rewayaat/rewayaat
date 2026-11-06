@@ -35,6 +35,14 @@ class SupportCheckoutTest {
     }
 
     @Test
+    void bothKindsOfGiftTakeAPromotionCode() {
+        for (SupportCheckout.Interval interval : SupportCheckout.Interval.values()) {
+            Map<String, String> p = SupportCheckout.params(interval, 1000, "https://rewayaat.info", "");
+            assertEquals("true", p.get("allow_promotion_codes"), interval.name());
+        }
+    }
+
+    @Test
     void theSupporterReturnsInTheLanguageTheyGaveIn() {
         Map<String, String> p = SupportCheckout.params(SupportCheckout.Interval.ONCE, 500, "https://rewayaat.info", "/ar");
         assertEquals("https://rewayaat.info/ar/about/thanks?session_id={CHECKOUT_SESSION_ID}", p.get("success_url"));
