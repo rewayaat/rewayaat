@@ -228,7 +228,7 @@
                                 key: 'cited_from',
                                 icon: 'fa fa-quote-right',
                                 label: t('js.citedFrom', 'Cited from'),
-                                html: this.escapeHtml(localeField(this.narration, 'cited_from')),
+                                html: this.markedText(localeField(this.narration, 'cited_from')),
                                 clickable: false
                             });
                         }
@@ -246,7 +246,7 @@
                                 key: 'publisher',
                                 icon: 'fa fa-building',
                                 label: t('js.publisher', 'Publisher'),
-                                html: this.escapeHtml(localeField(this.narration, 'publisher')),
+                                html: this.markedText(localeField(this.narration, 'publisher')),
                                 clickable: false
                             });
                         }
@@ -289,6 +289,17 @@
                         var div = document.createElement('div');
                         div.textContent = value == null ? '' : String(value);
                         return div.innerHTML;
+                    },
+                    // A metadata value a search matched arrives with the matched words in
+                    // <span class="highlight">, which QueryStringQueryResult overlays from the
+                    // .text sub-field. Escaped whole, the markup showed as text ("li <span
+                    // class=...>Ibn</span> Abi al-Hadid"); rendered raw, the value could carry
+                    // any HTML. So: escape everything, then give back exactly the highlight
+                    // pairs, and nothing else.
+                    markedText: function(value) {
+                        return this.escapeHtml(value).replace(
+                            /&lt;span class="highlight"&gt;([\s\S]*?)&lt;\/span&gt;/g,
+                            '<span class="highlight">$1</span>');
                     },
                     handleViewportResize: function() {
                         this.mobileViewport = window.innerWidth <= 768;
