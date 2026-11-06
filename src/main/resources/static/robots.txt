@@ -10,4 +10,18 @@ Disallow: /swagger-ui.html
 # Blocked, they were indexed anyway from the links in every card's action rail, which is
 # what Search Console reported as "Indexed, though blocked by robots.txt".
 
+# Crawlers that read the whole corpus over and over, at a request a second or more each,
+# for little a reader of this site gets back. Slowed, not shut out: a crawl-delay of ten
+# seconds is still the whole corpus in a week. A named group replaces the one above for
+# that crawler, so its Disallow lines are repeated here.
+User-agent: Epochal-Search
+User-agent: Reflectionbot
+User-agent: ElevenlabsCrawler
+User-agent: SemrushBot
+Crawl-delay: 10
+Allow: /
+Disallow: /v1/
+Disallow: /mcp
+Disallow: /swagger-ui.html
+
 Sitemap: https://rewayaat.info/sitemap.xml

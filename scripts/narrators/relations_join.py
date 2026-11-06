@@ -78,12 +78,21 @@ def lookup(documents):
         pid = doc.get("person_id")
         if not pid:
             continue
-        for name in list(doc.get("headings_ar") or []) + list(doc.get("names_ar") or []) \
-                + [doc.get("display_ar")]:
+        # «_join_ar», where index_people supplies it, is the names as the books print them,
+        # before a run-on heading was cut back to the name: a cut name can be the name of a
+        # second record of the same man, and two holders would make it reach nobody.
+        joined = doc.get("_join_ar")
+        if joined is None:
+            joined = list(doc.get("headings_ar") or []) + list(doc.get("names_ar") or []) \
+                + [doc.get("display_ar")]
+        for name in joined:
             folded = arabic_key(name)
             if folded and len(folded.split()) >= _LEAST_WORDS:
                 arabic[folded].add(pid)
-        for name in list(doc.get("names_en") or []) + [doc.get("display_en")]:
+        joined_en = doc.get("_join_en")
+        if joined_en is None:
+            joined_en = list(doc.get("names_en") or []) + [doc.get("display_en")]
+        for name in joined_en:
             folded = english_key(name)
             if folded and len(folded.split()) >= _LEAST_WORDS:
                 english[folded].add(pid)

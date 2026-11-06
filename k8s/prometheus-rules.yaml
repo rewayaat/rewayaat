@@ -100,15 +100,19 @@ spec:
             summary: "rewayaat-v2 memory above 85% of limit"
             description: "{{ $labels.pod }} working set is {{ $value | humanizePercentage }} of its memory limit; the next step is an OOM kill."
 
+        # Counts what reaches the application. It used to count every request at the
+        # ingress, so the denylist answering a fleet 403 at the door still fired it: on
+        # 2026-11-05 two thirds of a 21 req/s "surge" were refusals that cost the pods
+        # nothing. The 429s of the per-address limit are left out for the same reason.
         - alert: RewayaatV2TrafficSurge
           expr: |
-            sum(rate(nginx_ingress_controller_requests{exported_namespace="rewayaat-v2"}[5m])) > 15
-          for: 5m
+            sum(rate(nginx_ingress_controller_requests{exported_namespace="rewayaat-v2",status!~"403|429"}[5m])) > 15
+          for: 10m
           labels:
             severity: warning
           annotations:
-            summary: "rewayaat-v2 ingress above 15 req/s for 5 minutes"
-            description: "Normal load is 1 to 2 req/s. The 2026-09-25 scrape burst from Tencent SG (43.172.0.0/16, 43.173.0.0/16) ran at 40 to 60 req/s and took the site down."
+            summary: "rewayaat-v2 serving above 15 req/s for 10 minutes"
+            description: "Requests reaching the app (refusals excluded). Normal is 4 to 8 req/s, most of it declared crawlers (ClaudeBot, OAI-SearchBot, Amazonbot, Applebot). A surge is usually a fleet of rotating Chrome user agents: check the ingress logs for new cloud ranges and rerun scripts/ops/cloud_denylist.py; RewayaatV2HighLatency says whether readers are feeling it."
 
         - alert: RewayaatV2AutoscalerMaxedOut
           expr: |

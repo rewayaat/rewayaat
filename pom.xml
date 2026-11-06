@@ -12,6 +12,10 @@
 		<docker.image.prefix>rewayaat</docker.image.prefix>
 		<elasticsearch.client.version>9.2.0</elasticsearch.client.version>
 		<mcp.version>2.0.1</mcp.version>
+		<!-- Overrides Spring Boot's managed 1.19.8, whose docker-java speaks Docker API 1.32.
+		     Docker 29 (the GitHub runners since early November 2026) refuses anything under
+		     1.40, so every container-backed test failed to start. 1.21.4 negotiates. -->
+		<testcontainers.version>1.21.4</testcontainers.version>
 	</properties>
 
 	<parent>
@@ -148,13 +152,13 @@
 		<dependency>
 			<groupId>org.testcontainers</groupId>
 			<artifactId>junit-jupiter</artifactId>
-			<version>1.20.1</version>
+			<version>${testcontainers.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.testcontainers</groupId>
 			<artifactId>elasticsearch</artifactId>
-			<version>1.20.1</version>
+			<version>${testcontainers.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
