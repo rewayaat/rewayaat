@@ -91,4 +91,44 @@ public class CrawlerDirectivesConfig {
         registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
         return registration;
     }
+
+    /*
+     * The crawlers robots.txt asks to wait ten seconds between requests, held to it here as
+     * well, since asking is all robots.txt does. In the hour measured on 2026-11-06 they made
+     * 3,135 (Epochal), 951 (Reflection), 759 (ElevenLabs) and 722 (Semrush) requests, together
+     * over a fifth of everything the service answered. Six a minute a pod is twelve a minute in
+     * all: the corpus still in a few days, at a pace that costs nothing.
+     */
+
+    @Bean
+    public FilterRegistrationBean<Filter> epochalCrawlerRateLimitFilter(
+            @Value("${rewayaat.crawlers.epochal-search.per-minute:6}") int perMinute) {
+        return limited("epochal-search", perMinute);
+    }
+
+    @Bean
+    public FilterRegistrationBean<Filter> reflectionCrawlerRateLimitFilter(
+            @Value("${rewayaat.crawlers.reflectionbot.per-minute:6}") int perMinute) {
+        return limited("reflectionbot", perMinute);
+    }
+
+    @Bean
+    public FilterRegistrationBean<Filter> elevenlabsCrawlerRateLimitFilter(
+            @Value("${rewayaat.crawlers.elevenlabscrawler.per-minute:6}") int perMinute) {
+        return limited("elevenlabscrawler", perMinute);
+    }
+
+    @Bean
+    public FilterRegistrationBean<Filter> semrushCrawlerRateLimitFilter(
+            @Value("${rewayaat.crawlers.semrushbot.per-minute:6}") int perMinute) {
+        return limited("semrushbot", perMinute);
+    }
+
+    private static FilterRegistrationBean<Filter> limited(String userAgentToken, int perMinute) {
+        FilterRegistrationBean<Filter> registration = new FilterRegistrationBean<>(
+                new CrawlerRateLimitFilter(userAgentToken, perMinute));
+        registration.addUrlPatterns("/*");
+        registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        return registration;
+    }
 }
