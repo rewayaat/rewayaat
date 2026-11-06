@@ -794,7 +794,7 @@ function localeHref(path) {
                 if (!url) { return; }
                 var a = document.createElement('a');
                 a.className = 'hadith-inline-context__meta-inline-link';
-                a.setAttribute('href', url);
+                a.setAttribute('href', localeHref(url));
                 a.textContent = span.textContent;
                 span.replaceWith(a);
             });

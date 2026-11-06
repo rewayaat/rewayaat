@@ -184,6 +184,7 @@ public class SitemapController {
         // and only the bare path is listed.
         appendLocalisedUrl(xml, "/narrators", "0.8", "weekly");
         appendLocalisedUrl(xml, "/updates.html", "0.6", "weekly");
+        appendLocalisedUrl(xml, "/about", "0.6", "monthly");
         // A static file rather than a template, so it exists in English only:
         // PageLocale.hasArabicVersion says so and this emits the single entry.
         appendLocalisedUrl(xml, "/search_tips.html", "0.5", "monthly");

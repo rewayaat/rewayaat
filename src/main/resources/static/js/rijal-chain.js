@@ -1,10 +1,12 @@
 /*
- * The rijāl tab: what the books say of each man in the isnād.
+ * The rijāl tab: who each man in the isnād is.
  *
  * The chain itself is drawn by the server and is complete without this file: every link in
  * order, the words as the isnād writes them, and a link to the man's page. All this adds is
- * what a reader opens the tab to learn — the grade word each book gives him, whose word it
- * is, when and where he lived — and the one flourish when the chain assembles.
+ * who each man is, when and where he lived, and the one flourish when the chain assembles.
+ * No grades: what each book says of him is read on his page, in Tarājim, in the book's own
+ * words and with its page; a word lifted out of that, beside a chain, is a verdict the
+ * researcher has not been shown the reasons for.
  *
  * The briefs for a whole chain come in one request, and go into the same map the preview
  * card keeps (window.narratorBriefs), so a man looked up here costs nothing when the reader
@@ -61,28 +63,6 @@
         node.hidden = !text;
     }
 
-    /* The Arabic term first, as the preview card does: a rijāl reader looks for «ثقة» and
-       the English half of «thiqa — trustworthy» is the gloss, not the term. On the Arabic
-       site only the Arabic is used, and a row with no Arabic word is skipped rather than
-       shown in Latin. */
-    function gradeRows(brief) {
-        var rows = (brief.said_by || []).slice(0, 2);
-        return rows.map(function (row) {
-            var books = (arabic() ? row.books_ar : row.books) || [];
-            var shown = books.slice(0, 2).join(" · ");
-            var rest = books.length - 2;
-            if (rest > 0) {
-                shown += " " + t("narrators.andMore", "+{0}").replace("{0}", digits(rest));
-            }
-            var word = row.said_ar || "";
-            if (!arabic() && row.said) {
-                word = (word ? word + " — " : "")
-                    + String(row.said).split(" — ").pop();
-            }
-            return {leaning: row.leaning || "", word: word, books: shown};
-        }).filter(function (row) { return row.word; });
-    }
-
     function lifeLine(life) {
         if (!life) {
             return "";
@@ -113,7 +93,6 @@
     function fill(link, brief) {
         var imam = link.classList.contains("rijal-link--imam");
         var who = link.querySelector("[data-rijal-who]");
-        var said = link.querySelector("[data-rijal-said]");
         var life = link.querySelector("[data-rijal-life]");
         if (imam) {
             // «Imam The Prophet Muḥammad (a.s.)» — the index files all fourteen as «imam»,
@@ -141,29 +120,6 @@
         // On the English site the display name is the Latin reading beneath the Arabic
         // words; on the Arabic site it is the Arabic display name, and nothing Latin.
         show(who, name(brief));
-        var rows = gradeRows(brief);
-        // No grade is not a finding worth a line in a box this size: the absence of
-        // any word under his name says it, and a sentence saying it only costs room.
-        if (said && rows.length) {
-            said.textContent = "";
-            said.className = "rijal-link__said";
-            rows.forEach(function (row) {
-                var line = document.createElement("span");
-                line.className = "rijal-link__grade rijal-link__grade--" + row.leaning;
-                var word = document.createElement("span");
-                word.className = "rijal-link__word";
-                word.textContent = row.word;
-                line.appendChild(word);
-                if (row.books) {
-                    var books = document.createElement("span");
-                    books.className = "rijal-link__books";
-                    books.textContent = row.books;
-                    line.appendChild(books);
-                }
-                said.appendChild(line);
-            });
-            said.hidden = false;
-        }
         show(life, lifeLine(brief.life));
     }
 

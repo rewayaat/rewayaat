@@ -83,7 +83,7 @@
                      standing in for. -->
                 <a href="#browse" class="home-nav-link"><i class="fa fa-layer-group" aria-hidden="true"></i><span th:text="#{nav.browse}">Browse</span></a>
                 <a href="/narrators" th:href="@{${arPrefix} ?: '' } + '/narrators'" class="home-nav-link"><i class="fa fa-users" aria-hidden="true"></i><span th:text="#{nav.rijal}">Rijāl</span></a>
-                <a href="/updates.html" th:href="@{${arPrefix} ?: '' } + '/updates.html'" class="home-nav-link"><i class="fa fa-bolt" aria-hidden="true"></i><span th:text="#{nav.updates}">Updates</span></a>
+                <a href="/about" th:href="@{${arPrefix} ?: '' } + '/about'" class="home-nav-link"><i class="fa fa-circle-info" aria-hidden="true"></i><span th:text="#{nav.about}">About</span></a>
             </div>
 	        <div id="queryBar" class="navbar-search">
 	            <div class="navbar-search__input">
@@ -96,6 +96,7 @@
 	                        <button type="button" class="btn btn-primary search-btn-with-border" id="searchBtn1">
 	                            <i class="fa fa-search search-btn__icon-mobile" aria-hidden="true"></i>
 	                            <span class="search-btn__text" th:text="#{search.button}">Search</span>
+	                            <i class="fa fa-arrow-turn-down search-btn__enter" aria-hidden="true"></i>
 	                            <i class="fa fa-chevron-down search-btn-caret" aria-hidden="true"></i>
 	                        </button>
 	                        <div class="search-mode-menu" id="searchModeDropdown" role="menu" aria-label="Search mode" th:aria-label="#{search.mode.aria}">
@@ -179,13 +180,6 @@
                     <!-- The Arabic site stays Arabic: the Latin reading is for the English one. -->
                     <div class="narrator-strip__name-en" v-if="narrator.display_en && !arabicSite">{{ narrator.display_en }}</div>
                     <div class="narrator-strip__meta">
-                        <!-- The book's own word, as everywhere else: «ثقة», not a
-                             standing this site worked out and wrote in its own voice. -->
-                        <span class="narrator-strip__standing"
-                              :class="'narrator-strip__standing--' + saidOf(narrator).leaning"
-                              v-if="saidOf(narrator).word">
-                            {{ saidOf(narrator).word }}
-                        </span>
                         <span>{{ narratorCount(narrator.entry_count, 'narrators.entries') }}</span>
                         <span v-if="imamLine(narrator)">{{ imamLine(narrator) }}</span>
                     </div>
@@ -519,7 +513,6 @@
                                                     <span v-else class="rijal-link__words arabic-text"
                                                           dir="rtl" lang="ar">{{ link.words }}</span>
                                                     <p class="rijal-link__who" data-rijal-who hidden></p>
-                                                    <p class="rijal-link__said" data-rijal-said hidden></p>
                                                     <p class="rijal-link__life" data-rijal-life hidden></p>
                                                     <!-- Men the resolver found and would not
                                                          choose between. Each is a link to his
@@ -1096,6 +1089,8 @@
 <script src="/js/site-announcement.js" th:src="@{/js/site-announcement.js}"></script>
 <script src="/js/locale-preference.js" th:src="@{/js/locale-preference.js}"></script>
     <script src="/js/nav-menu.js" th:src="@{/js/nav-menu.js}" defer></script>
+    <script src="/js/support-nudge.js" th:src="@{/js/support-nudge.js}" defer></script>
+    <script src="/js/home-sky.js" th:src="@{/js/home-sky.js}" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" th:async="async"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.6/marked.min.js" th:defer="defer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js" th:defer="defer"></script>

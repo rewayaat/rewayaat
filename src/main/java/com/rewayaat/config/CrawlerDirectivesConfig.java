@@ -39,8 +39,13 @@ public class CrawlerDirectivesConfig {
     // on the Arabic site, and PageLocale is also what the sitemap reads — so without
     // this they would be advertised for crawling, which is the last thing a tokenised
     // URL should be. SitemapIntegrationTest caught exactly that.
+    // /about/thanks is where Stripe returns a supporter, with their checkout session in the
+    // query: a page for the person who just gave, never one to be found. The Arabic half is
+    // listed too, since the prefix filter forwards it and a REQUEST-only pattern on the
+    // English path never sees /ar/about/thanks.
     private static final List<String> NOINDEX_PATHS = List.of(
-            "/error/*", "/edit", "/signin.html", "/auth/verify", "/auth/reset");
+            "/error/*", "/edit", "/signin.html", "/auth/verify", "/auth/reset",
+            "/about/thanks", "/ar/about/thanks");
 
     /** While the Arabic site is being released, its whole tree joins that list. */
     private static final List<String> ARABIC_PATHS = List.of("/ar", "/ar/*");

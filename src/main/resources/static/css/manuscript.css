@@ -10238,7 +10238,7 @@ body.is-search-mode .site-nav .search-entry-shell {
     font-weight: 600;
 }
 
-/* "Primary Collections" — the one coloured word in the lede, so it reads as the way in. */
+/* "classical and modern collections" — the one coloured phrase in the lede, so it reads as the way in. */
 .home-hero__lede-link,
 .home-hero__lede a {
     color: var(--gold-light);
@@ -16818,4 +16818,548 @@ a.chains__note--to:focus-visible {
     letter-spacing: normal;
     text-transform: none;
     font-size: 0.7rem;
+}
+
+/* ── Search fields: nearly square, taller, edged in gold while in use ────────────────────────
+   One shape for every search field on the site - the home page's, the navbar's on
+   every page and in search mode, and the list filters: square corners, a taller bar
+   with room for the terms, and a gold edge that lights while the field has focus.
+   Appended last on purpose: the rules above set radius and height in several
+   layers, and this is the one place that decides. */
+:root {
+    --search-shell-height: 46px;
+    --search-action-height: 36px;
+}
+@media (max-width: 768px) {
+    :root {
+        --search-shell-height: 44px;
+        --search-action-height: 34px;
+    }
+}
+.home-hero__search {
+    --search-shell-height: 58px;
+    --search-action-height: 44px;
+}
+.site-nav {
+    padding-top: 9px;
+    padding-bottom: 9px;
+}
+.search-entry-shell,
+.search-entry-shell .ts-wrapper,
+.search-entry-shell .ts-wrapper.form-control,
+.search-entry-shell .ts-control,
+.home-search .search-entry-shell,
+.home-search .ts-control,
+body.is-search-mode .site-nav .search-entry-shell,
+.search-bar-glow,
+.search-bar-glow .navbar-search__input,
+.search-bar-glow .ts-control,
+.search-btn-with-border,
+.nav-search__btn,
+.search-inline-btn,
+.hub-filter__input {
+    border-radius: 6px !important;
+}
+.search-entry-shell {
+    height: var(--search-shell-height) !important;
+    min-height: var(--search-shell-height) !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.search-btn-with-border,
+.nav-search__btn {
+    height: var(--search-action-height) !important;
+    min-height: var(--search-action-height);
+    margin-inline-end: 5px;
+}
+.search-entry-shell .ts-control .item {
+    border-radius: 6px !important;
+    font-size: 0.97rem;
+}
+.search-entry-shell:focus-within,
+.home-search .search-entry-shell:focus-within,
+body.is-search-mode .site-nav .search-entry-shell:focus-within {
+    border-color: rgba(233, 196, 106, 0.9) !important;
+    box-shadow: 0 0 0 1px rgba(233, 196, 106, 0.55) !important;
+}
+.hub-filter__input:focus {
+    border-color: #c8a23d !important;
+    box-shadow: 0 0 0 1px rgba(200, 162, 61, 0.5) !important;
+    outline: none;
+}
+#queryBar .ts-control .item,
+.navbar-search .ts-control .item,
+.site-nav .search-entry-shell .ts-control .item {
+    border-radius: 6px !important;
+}
+/* Taller chips. The base rule pins chips at 24px with !important, so this does too. */
+.search-entry-shell .ts-control .item,
+.search-entry-shell .ts-wrapper.multi .ts-control > div {
+    height: 30px !important;
+}
+.search-entry-shell .ts-control .item .remove {
+    height: 22px !important;
+}
+/* Inside the field, the inner layers sit just within its corners; the button is a touch tighter. */
+.search-entry-shell .ts-wrapper,
+.search-entry-shell .ts-wrapper.form-control,
+.search-entry-shell .ts-control {
+    border-radius: 5px !important;
+}
+.search-btn-with-border,
+.nav-search__btn {
+    border-radius: 4px !important;
+}
+.search-entry-shell .search-magnifier,
+.site-nav .nav-search .search-magnifier {
+    font-size: 1.12rem !important;
+}
+.home-hero__search .search-entry-shell .search-magnifier {
+    font-size: 1.28rem !important;
+}
+
+/* Search chips read in bold, in every search bar and in both languages. The base rules
+   set 500 with !important and an older Arabic pass set 700, so this settles both. */
+.search-entry-shell .ts-control .item,
+.search-entry-shell .ts-wrapper.multi .ts-control > div,
+.home-search .ts-control .item,
+.navbar-search .ts-control .item,
+#queryBar .ts-control .item,
+[dir="rtl"] .search-entry-shell .ts-control .item,
+[dir="rtl"] .search-entry-shell .ts-wrapper.multi .ts-control > div,
+[dir="rtl"] .home-search .ts-control .item,
+[dir="rtl"] .navbar-search .ts-control .item {
+    font-weight: 700 !important;
+}
+
+/* The Enter key beside the word: pressing Enter in the field does the same thing.
+   Drawn as ↵ in both languages, because the key wears that shape on Arabic keyboards
+   too. It goes wherever the word goes; where the button shrinks to a square, the
+   magnifier is its only label. */
+.search-btn-with-border .search-btn__enter {
+    display: inline-block;
+    margin-inline-start: 0.5em;
+    font-size: 0.78em;
+    opacity: 0.85;
+    transform: rotate(90deg);
+}
+@media (max-width: 991.98px) {
+    .site-nav .search-btn-with-border .search-btn__enter { display: none; }
+}
+@media (max-width: 768px) {
+    .search-btn-with-border .search-btn__enter { display: none !important; }
+}
+
+/* Room between the magnifier and where typing starts. The glass is pinned over the
+   field, so the field itself steps in; chips, caret and placeholder all move with it.
+   Phones hide the glass, so they keep the full width. */
+@media (min-width: 769px) {
+    .search-entry-shell .ts-wrapper,
+    .search-entry-shell > .nav-search__input {
+        margin-inline-start: 10px;
+    }
+    /* The rotating example is laid over the field rather than in it, and sat flush
+       against the glass; this lines it up with the caret. */
+    .search-entry-shell .search-ghost-text {
+        margin-inline-start: 21px;
+    }
+}
+
+/* ── Support reminders (support-nudge.js, rewayaat.info only) ───────────────── */
+
+/* The footer's own link under Contact, bold and nothing else. */
+/* In the About page's ice blue, the colour of its vowel marks. */
+.site-footer__links .support-footer__link,
+.site-footer__links .support-footer__link:visited { font-weight: 700; color: #7fe3ff !important; }
+.site-footer__links .support-footer__link:hover,
+.site-footer__links .support-footer__link:focus-visible { color: #c4f3ff !important; }
+
+/* A note at the end of a chapter, set like a colophon. */
+.support-slot:empty { display: none; }
+.support-note {
+    margin: 2.2rem auto 1.6rem;
+    max-width: 34rem;
+    padding: 1.1rem 1.4rem 1.2rem;
+    text-align: center;
+    border-top: 1px solid rgba(200, 162, 61, 0.45);
+    border-bottom: 1px solid rgba(200, 162, 61, 0.45);
+    letter-spacing: normal;
+}
+.support-note__mark { display: block; color: #c8a23d; font-size: 1.1rem; line-height: 1; margin-bottom: 0.5rem; }
+.support-note__text { margin: 0 0 0.55rem; color: var(--text-muted, #5b6472); font-size: 1rem; line-height: 1.6; }
+.support-note__link,
+.support-note__link:visited {
+    color: #0a1830;
+    font-weight: 700;
+    text-decoration: none;
+    border-bottom: 1px solid #c8a23d;
+}
+.support-note__link:hover,
+.support-note__link:focus-visible { color: #8a6a17; }
+
+/* A note after copying. Bottom corner, opposite the site's own toasts' edge. */
+.support-toast {
+    position: fixed;
+    inset-inline-start: 20px;
+    bottom: 20px;
+    z-index: 2000;
+    width: min(340px, calc(100vw - 32px));
+    padding: 1rem 1.15rem 1rem;
+    background: #0a1830;
+    color: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(233, 196, 106, 0.55);
+    border-radius: 6px;
+    box-shadow: 0 12px 32px rgba(4, 10, 24, 0.35);
+    letter-spacing: normal;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.support-toast.is-in { opacity: 1; transform: none; }
+.support-toast__close {
+    position: absolute;
+    top: 4px;
+    inset-inline-end: 6px;
+    width: 28px;
+    height: 28px;
+    border: 0;
+    background: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+}
+.support-toast__close:hover { color: #fff; }
+.support-toast__quote,
+.support-toast__quote:visited {
+    display: block;
+    margin: 0 0 0.35rem;
+    color: #ffe2a0;
+    font-family: 'Noto Naskh Arabic', 'Amiri', serif;
+    font-size: 1.35rem;
+    line-height: 1.6;
+    text-decoration: none;
+    text-align: center;
+}
+.support-toast__text { margin: 0 0 0.6rem; font-size: 0.88rem; line-height: 1.55; text-align: center; }
+.support-toast__link,
+.support-toast__link:visited {
+    display: block;
+    text-align: center;
+    color: #e9c46a;
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+.support-toast__link:hover,
+.support-toast__link:focus-visible { color: #ffe2a0; text-decoration: underline; }
+@media (max-width: 640px) {
+    .support-toast { inset-inline-start: 16px; bottom: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .support-toast { transition: none; transform: none; }
+}
+
+/* ── The home page under a night sky ──────────────────────────────────────────
+   The About page's sky, carried to the home page: the whole page sits on it, edge to
+   edge, with stars (home-sky.js) the content scrolls over. Only while the home content
+   is on screen: index.html also shows search results, which empty #welcome and keep the
+   light reading background, so every rule here hangs on the same :has() test.
+
+   The sky is painted on the root, not the body: the stars' canvas sits at z-index -1,
+   above the root's background and under everything else, which only works while the
+   body itself is transparent. */
+.home-stars { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; display: none; }
+:root:has(#welcome .home-hero) {
+    background: radial-gradient(120% 75% at 50% -8%, #12305a 0, #0a1a36 34%, #061024 68%, #040a16 100%) fixed, #040a16;
+}
+:root:has(#welcome .home-hero) body {
+    background: transparent !important;
+    color: #e6ecf6;
+}
+:root:has(#welcome .home-hero) body::before,
+:root:has(#welcome .home-hero) body::after { display: none !important; }
+:root:has(#welcome .home-hero) .home-stars { display: block; }
+
+/* The hero is no longer a card: the logo, the line and the search stand in the sky,
+   under a warm lamp glow. */
+:root:has(#welcome .home-hero) .home-hero { position: relative; isolation: isolate; padding: 2.5rem 0 1.25rem; margin-bottom: 0; }
+/* A white fade under the menu, made for the light page, reads as a grey band on the sky. */
+:root:has(#welcome .home-hero) main::before { display: none !important; }
+:root:has(#welcome .home-hero) .home-hero::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    left: 50%;
+    top: -60px;
+    width: min(1000px, 100vw);
+    height: 640px;
+    transform: translateX(-50%);
+    background: radial-gradient(closest-side, rgba(233, 196, 106, 0.16), rgba(233, 196, 106, 0.05) 55%, rgba(233, 196, 106, 0));
+    pointer-events: none;
+}
+:root:has(#welcome .home-hero) .home-hero__card {
+    background: none !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+:root:has(#welcome .home-hero) .home-hero__card::before,
+:root:has(#welcome .home-hero) .home-hero__card::after { display: none !important; }
+:root:has(#welcome .home-hero) .home-hero__lede { color: rgba(236, 241, 250, 0.9); }
+:root:has(#welcome .home-hero) .home-hero__search-note { color: rgba(226, 232, 244, 0.72); }
+
+/* A gold rule and a medallion where the sky's opening ends and the library begins, the
+   same mark that separates the About page's sections. */
+:root:has(#welcome .home-hero) .home-browse { position: relative; padding-top: 3.6rem; }
+:root:has(#welcome .home-hero) .home-browse::before {
+    content: "" !important;
+    position: absolute;
+    top: 1.1rem;
+    left: 8%;
+    right: 8%;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(233, 196, 106, 0), rgba(233, 196, 106, 0.55) 30%, rgba(255, 226, 160, 0.8) 50%, rgba(233, 196, 106, 0.55) 70%, rgba(233, 196, 106, 0));
+}
+:root:has(#welcome .home-hero) .home-browse::after {
+    content: "۞" !important;
+    position: absolute;
+    top: 1.1rem !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translate(-50%, -50%) !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 40px !important;
+    height: 40px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    border: 1px solid rgba(233, 196, 106, 0.55) !important;
+    background: #071226 !important;
+    box-shadow: 0 0 18px rgba(233, 196, 106, 0.22) !important;
+    color: #e9c46a !important;
+    font-size: 1.05rem !important;
+    line-height: 1 !important;
+    opacity: 1 !important;
+    text-shadow: 0 0 10px rgba(233, 196, 106, 0.5);
+}
+
+/* Headings and their lines, light on the sky. */
+/* Two of these are pinned dark with !important by an older pass, so these are too. */
+:root:has(#welcome .home-hero) .home-section-title { color: #f6ead0 !important; }
+:root:has(#welcome .home-hero) .home-section-subtitle { color: rgba(226, 232, 244, 0.8) !important; }
+:root:has(#welcome .home-hero) .home-section-subtitle a,
+:root:has(#welcome .home-hero) .recent-updates-more { color: #e9c46a; }
+:root:has(#welcome .home-hero) .home-section-subtitle a:hover,
+:root:has(#welcome .home-hero) .recent-updates-more:hover { color: #ffe2a0; }
+
+/* The bookcase stands in the sky with a little light on it. */
+/* A box shadow, not a drop-shadow filter: a filter on something this tall is redrawn
+   whenever anything on the page moves, which took the page to a few frames a second. */
+:root:has(#welcome .home-hero) .home-browse .bookcase { box-shadow: 0 28px 60px rgba(0, 0, 0, 0.5), 0 0 80px rgba(233, 196, 106, 0.07); }
+
+/* The footer was already night blue; its own top margin is now the sky. */
+:root:has(#welcome .home-hero) .site-footer { margin-top: 3rem; background: rgba(4, 10, 22, 0.72); }
+
+/* On phones the section headings ran to the screen's edge; on the sky that shows. */
+@media (max-width: 640px) {
+    #welcome .home-section-header { padding-inline: 16px; }
+}
+
+/* The bookcase at night: a lamplit alcove. The papered wall was a bright cream panel in
+   a dark page; here it is dark walnut, the lattice only catches the light, and each book
+   stands in its own warm pool, so the books are what is lit. The labels under the ledges
+   turn light to read on it. Home page only: /books keeps the papered wall. */
+:root:has(#welcome .home-hero) .home-browse .bookcase {
+    --wall-hi: #2e2016;
+    --wall: #21170f;
+    --wall-lo: #170f09;
+    --cast: 0, 0, 0;
+    --ink: #f1e4c8;
+    --ink-soft: rgba(233, 214, 178, 0.66);
+    --accent: #f0cf7f;
+    background:
+        radial-gradient(ellipse 70% 40% at 50% 0%, rgba(255, 196, 120, 0.14), transparent 72%),
+        radial-gradient(ellipse 120% 95% at 50% 40%, transparent 50%, rgba(0, 0, 0, 0.45)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cg fill='none' stroke='rgba(233,196,106,0.075)' stroke-width='1'%3E%3Cpath transform='translate(32 32)' d='M-10-10h20v20h-20zM0-14.1L14.1 0 0 14.1-14.1 0z'/%3E%3Cpath d='M-10-10h20v20h-20zM0-14.1L14.1 0 0 14.1-14.1 0z'/%3E%3Cpath transform='translate(64 0)' d='M-10-10h20v20h-20zM0-14.1L14.1 0 0 14.1-14.1 0z'/%3E%3Cpath transform='translate(0 64)' d='M-10-10h20v20h-20zM0-14.1L14.1 0 0 14.1-14.1 0z'/%3E%3Cpath transform='translate(64 64)' d='M-10-10h20v20h-20zM0-14.1L14.1 0 0 14.1-14.1 0z'/%3E%3Cpath d='M10 10L22 22M42 22L54 10M22 42L10 54M42 42L54 54'/%3E%3Ccircle cx='32' cy='32' r='3'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 64px 64px,
+        linear-gradient(var(--wall-hi), var(--wall) 55%, var(--wall-lo));
+    box-shadow:
+        inset 0 14px 22px -10px rgba(0, 0, 0, 0.7),
+        inset 0 0 0 1px rgba(0, 0, 0, 0.5),
+        inset 0 0 50px rgba(0, 0, 0, 0.45),
+        0 28px 60px rgba(0, 0, 0, 0.5),
+        0 0 80px rgba(233, 196, 106, 0.07);
+}
+/* A pool of lamplight on the wall behind each book. Each book carries its own, so a row
+   reads as one run of light whatever the column count. */
+:root:has(#welcome .home-hero) .home-browse .shelf-book__stand {
+    background: radial-gradient(ellipse 72% 62% at 50% 52%, rgba(255, 186, 104, 0.2), rgba(255, 186, 104, 0.06) 55%, transparent 75%);
+}
+
+/* Recent Updates and the disclaimer: the white cards were the brightest thing on the
+   page. Night blue glass, the same as the narrator cards above them. */
+:root:has(#welcome .home-hero) .recent-update-card {
+    background: linear-gradient(145deg, rgba(15, 36, 64, 0.94), rgba(22, 48, 79, 0.92) 45%, rgba(30, 58, 95, 0.9)) !important;
+    border: 1px solid rgba(243, 229, 184, 0.16) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18), 0 18px 40px -18px rgba(0, 0, 0, 0.6) !important;
+}
+:root:has(#welcome .home-hero) .recent-update-card:hover,
+:root:has(#welcome .home-hero) .recent-update-card:focus-within { border-color: rgba(233, 196, 106, 0.45) !important; }
+:root:has(#welcome .home-hero) .recent-update-date { color: #e9c46a !important; }
+:root:has(#welcome .home-hero) .recent-update-title { color: #f6ead0 !important; }
+:root:has(#welcome .home-hero) .recent-update-summary { color: rgba(226, 232, 244, 0.84) !important; }
+:root:has(#welcome .home-hero) .recent-update-list { color: rgba(226, 232, 244, 0.76) !important; }
+:root:has(#welcome .home-hero) .recent-update-list li::marker { color: #e9c46a; }
+:root:has(#welcome .home-hero) .recent-update-list__more { color: #e9c46a !important; }
+:root:has(#welcome .home-hero) .recent-update-video { border-color: rgba(243, 229, 184, 0.16) !important; }
+:root:has(#welcome .home-hero) .home-notice .card {
+    background: rgba(10, 24, 46, 0.62) !important;
+    border: 1px solid rgba(243, 229, 184, 0.12) !important;
+    box-shadow: none !important;
+}
+:root:has(#welcome .home-hero) .home-notice h2 { color: #f6ead0 !important; }
+:root:has(#welcome .home-hero) .home-notice .text-muted { color: rgba(226, 232, 244, 0.7) !important; }
+
+/* Arabic set at the English sizes reads a size smaller: its letters sit low in the em
+   and its vowel marks need the room. The home page's running text goes up a step. */
+[dir="rtl"] #welcome .home-hero__lede { font-size: 1.2rem; line-height: 1.85; }
+[dir="rtl"] #welcome .home-hero__search-note { font-size: 1rem; }
+[dir="rtl"] #welcome .home-hero__refine-toggle { font-size: 0.85rem; }
+[dir="rtl"] #welcome .home-section-subtitle { font-size: 1.125rem; line-height: 1.75; }
+[dir="rtl"] #welcome .recent-update-title { font-size: 1.2rem; }
+[dir="rtl"] #welcome .recent-update-summary,
+[dir="rtl"] #welcome .recent-update-list { font-size: 1.03rem; line-height: 1.8; }
+[dir="rtl"] #welcome .home-notice .text-muted { font-size: 1.03rem; line-height: 1.85; }
+[dir="rtl"] #welcome .shelf-book__count { font-size: 13.5px; }
+
+/* Larger words in the search bars: the chips were 13px, and what the reader types on the
+   home page was barely larger than the line above it. Arabic a step up again, for the
+   same reason as the home page's running text. The placeholder and the ghost suggestion
+   follow the typed size so the words do not jump when the reader starts typing. */
+.search-entry-shell .ts-control .item,
+.search-entry-shell .ts-wrapper.multi .ts-control > div,
+.home-search .ts-control .item,
+.navbar-search .ts-control .item,
+#queryBar .ts-control .item { font-size: 15px !important; }
+[dir="rtl"] .search-entry-shell .ts-control .item,
+[dir="rtl"] .search-entry-shell .ts-wrapper.multi .ts-control > div,
+[dir="rtl"] .home-search .ts-control .item,
+[dir="rtl"] .navbar-search .ts-control .item,
+[dir="rtl"] #queryBar .ts-control .item { font-size: 16px !important; }
+
+.home-hero__search .search-entry-shell .ts-control > input,
+.home-hero__search .search-entry-shell .ts-control > input::placeholder,
+.home-hero__search .search-entry-shell > .nav-search__input,
+.home-hero__search .search-entry-shell .search-ghost-text { font-size: 19px !important; }
+[dir="rtl"] .home-hero__search .search-entry-shell .ts-control > input,
+[dir="rtl"] .home-hero__search .search-entry-shell .ts-control > input::placeholder,
+[dir="rtl"] .home-hero__search .search-entry-shell > .nav-search__input,
+[dir="rtl"] .home-hero__search .search-entry-shell .search-ghost-text { font-size: 20px !important; }
+
+/* On the home page, a gold line runs once round the edge of a narrator or update card
+   the reader points at, from the top, and stays lit while they are on it. Drawn as a
+   ring (a conic sweep masked to the border) over the card's own border, so nothing in
+   the card moves; --trace is registered so the sweep itself can be transitioned. */
+@property --trace {
+    syntax: "<angle>";
+    inherits: false;
+    initial-value: 0deg;
+}
+:root:has(#welcome .home-hero) .ncard,
+:root:has(#welcome .home-hero) .recent-update-card { position: relative; }
+:root:has(#welcome .home-hero) .ncard::before,
+:root:has(#welcome .home-hero) .recent-update-card::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    z-index: 2;
+    padding: 1.5px;
+    border-radius: inherit;
+    pointer-events: none;
+    background: conic-gradient(from 0deg,
+        rgba(233, 196, 106, 0.9) 0deg,
+        #ffe2a0 calc(var(--trace) - 6deg),
+        #fff6d8 var(--trace),
+        transparent var(--trace));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+    filter: drop-shadow(0 0 3px rgba(233, 196, 106, 0.55));
+    opacity: 0;
+    --trace: 0deg;
+    transition: --trace 0s linear 0.25s, opacity 0.25s ease;
+}
+:root:has(#welcome .home-hero) .ncard:hover::before,
+:root:has(#welcome .home-hero) .ncard:focus-visible::before,
+:root:has(#welcome .home-hero) .recent-update-card:hover::before,
+:root:has(#welcome .home-hero) .recent-update-card:focus-within::before {
+    opacity: 1;
+    --trace: 361deg;
+    transition: --trace 0.9s cubic-bezier(0.45, 0.05, 0.3, 1), opacity 0.15s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+    :root:has(#welcome .home-hero) .ncard::before,
+    :root:has(#welcome .home-hero) .recent-update-card::before { transition: opacity 0.2s ease; }
+}
+
+/* Home page: a gold hairline under the menu bar. The bar's gradient ends in a navy close to
+   the night sky's, and its dark shadow vanishes on a dark page, so nothing showed where the
+   bar stopped. One pixel, brightest in the middle and fading out at both ends; the cream
+   pages keep the shadow alone, which reads well enough on a light wall. */
+:root:has(#welcome .home-hero) .site-nav {
+    box-shadow: 0 10px 28px rgba(0, 0, 0, .55) !important;
+}
+:root:has(#welcome .home-hero) .site-nav::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    z-index: 2;
+    pointer-events: none;
+    background: linear-gradient(90deg, rgba(232, 196, 104, 0), rgba(232, 196, 104, .9) 15%,
+            rgba(240, 212, 130, .9) 50%, rgba(232, 196, 104, .9) 85%, rgba(232, 196, 104, 0));
+}
+
+/* The search bars take the same gold trace on focus: the line runs once round the field from
+   the top and stays lit while the reader is typing. The focus rule above lights the border
+   gold at once, which would hide the sweep, so on focus the border keeps its resting colour
+   and the ring draws the gold. The home page focuses its search on load, so there it runs
+   as the page opens. */
+.search-entry-shell::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    z-index: 3;
+    padding: 1.5px;
+    border-radius: inherit;
+    pointer-events: none;
+    background: conic-gradient(from 0deg,
+        rgba(233, 196, 106, 0.9) 0deg,
+        #ffe2a0 calc(var(--trace) - 6deg),
+        #fff6d8 var(--trace),
+        transparent var(--trace));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+    filter: drop-shadow(0 0 3px rgba(233, 196, 106, 0.55));
+    opacity: 0;
+    --trace: 0deg;
+    transition: --trace 0s linear 0.25s, opacity 0.25s ease;
+}
+.search-entry-shell:focus-within::before {
+    opacity: 1;
+    --trace: 361deg;
+    transition: --trace 0.9s cubic-bezier(0.45, 0.05, 0.3, 1), opacity 0.15s ease;
+}
+.search-entry-shell:focus-within,
+.home-search .search-entry-shell:focus-within,
+body.is-search-mode .site-nav .search-entry-shell:focus-within {
+    border-color: rgba(226, 232, 240, 0.34) !important;
+    box-shadow: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+    .search-entry-shell::before { transition: opacity 0.2s ease; }
 }

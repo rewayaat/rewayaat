@@ -236,7 +236,8 @@ function resolveScopedBrowsePage(query, onFallback) {
             if (url) {
                 // replace, not assign: the scoped URL is a staging post, and leaving it in
                 // history means Back returns here and redirects forward again.
-                window.location.replace(url);
+                // The API names the English page; the reader stays in the language they are reading.
+                window.location.replace(localeHref(url));
                 return;
             }
             onFallback();
@@ -2823,6 +2824,16 @@ function hasScopeSelections(filters) {
     return !!(filters && (filters.book || filters.volume || filters.part || filters.section || filters.chapter || filters.source));
 }
 
+/* A term with a space in it, quoted, unless it is already a phrase or a field:value
+   filter, which carry their own syntax. */
+function asOneTerm(term) {
+    var text = String(term || '').trim();
+    if (!/\s/.test(text) || /^".*"$/.test(text) || /^[A-Za-z_]+:/.test(text)) {
+        return text;
+    }
+    return '"' + text.replace(/"/g, '') + '"';
+}
+
 function buildSearchSubmissionState(scopeOverride, options) {
     var ignoreSearchTerms = !!(options && options.ignoreSearchTerms);
     var selectedTerms = ignoreSearchTerms ? [] : getSelectedSearchTerms();
@@ -2833,7 +2844,11 @@ function buildSearchSubmissionState(scopeOverride, options) {
     var mergedTerms = ignoreSearchTerms
         ? []
         : mergeSearchTerms(selectedTerms, pendingTerms.length ? pendingTerms : getSelectedSearchTerms());
-    var termQueryState = extractQueryState(mergedTerms.join(' '));
+    // A chip is one term even when it holds spaces: a narrator picked from the
+    // suggestions is «Sahl ibn Ziyad», and joined bare it came back on the results page
+    // as three chips, searched as three loose words. Quoted, the query carries it as the
+    // phrase it is, and splitQuery hands it back as one chip.
+    var termQueryState = extractQueryState(mergedTerms.map(asOneTerm).join(' '));
     var terms = termQueryState.keywordTerms;
     var queryState = extractQueryState(getQueryStringValue('q') || '');
     var scopeFilters = cloneFacetSelections(termQueryState.scopeFilters);
@@ -4604,7 +4619,7 @@ function startBrowseFlow(scopedSelections) {
         .then(function(resp) { return resp.json(); })
         .then(function(data) {
             if (data && data.ok && data.url) {
-                window.location.href = data.url;
+                window.location.href = localeHref(data.url);
                 return;
             }
             // No page of its own: fall back to the search the panel used to run.
@@ -5076,20 +5091,6 @@ function setupVue(query, page, sortFields) {
                 return this.chainOf(narration).filter(function(link) {
                     return link.kind === kind;
                 }).length;
-            },
-            // What the first book to grade him calls him, in that book's own word.
-            // Nothing here is this site's judgement, so nothing here is phrased as one.
-            saidOf: function(narrator) {
-                var rows = (narrator && narrator.said_by) || [];
-                if (!rows.length) {
-                    return {word: '', leaning: ''};
-                }
-                var first = rows[0];
-                var arabic = window.I18N_LOCALE === 'ar';
-                return {
-                    word: (arabic && first.said_ar) ? first.said_ar : first.said,
-                    leaning: first.leaning || ''
-                };
             },
             /* The Imam a chain ends on without naming him, in the language of the page.
                Both forms come from the server, which decided which Imam it is; this only

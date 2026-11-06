@@ -711,3 +711,7 @@ html[dir="rtl"] .pv__ar { text-align: right; padding-right: 0; padding-left: 1.4
    child of .ts-control in every version, and the first selector missed it. */
 .nav-search__shell.has-hint input::placeholder { color: transparent !important; }
 .nav-search__shell.has-hint input::-webkit-input-placeholder { color: transparent !important; }
+
+/* With no grade row, the foot still sits at the bottom of the card, in the row that
+   takes the slack, so the cards in a row end on one line. */
+.ncard__foot { grid-row: 4; }

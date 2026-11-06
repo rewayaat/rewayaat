@@ -124,6 +124,22 @@ jobs:
             --namespace=rewayaat-v2 \
             --dry-run=client -o yaml | kubectl apply -f -
 
+      # The About page's giving form. A restricted live key on the Rewayaat Stripe
+      # account (Checkout Sessions: write), never the Striff account's. Until the
+      # GitHub secret exists this does nothing, and the form says giving opens soon.
+      - name: Sync the Stripe key
+        env:
+          REWAYAAT_STRIPE_SECRET_KEY: ${{ secrets.REWAYAAT_STRIPE_SECRET_KEY }}
+        run: |
+          if [ -z "$REWAYAAT_STRIPE_SECRET_KEY" ]; then
+            echo "No REWAYAAT_STRIPE_SECRET_KEY secret; giving stays closed."
+            exit 0
+          fi
+          kubectl create secret generic rewayaat-v2-stripe \
+            --from-literal=REWAYAAT_STRIPE_SECRET_KEY="$REWAYAAT_STRIPE_SECRET_KEY" \
+            --namespace=rewayaat-v2 \
+            --dry-run=client -o yaml | kubectl apply -f -
+
       - name: Update kustomization image tag
         run: |
           sed -i "s|newTag: .*|newTag: \"${GITHUB_RUN_ID}\"|" k8s/kustomization.yaml

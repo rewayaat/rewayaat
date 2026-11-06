@@ -124,6 +124,14 @@ spec:
                 secretKeyRef:
                   name: rewayaat-v2-sentry
                   key: SENTRY_DSN
+            # The Rewayaat Stripe account's key, for the About page's giving form. Optional:
+            # until the secret exists the form says giving opens soon and calls nothing.
+            - name: REWAYAAT_STRIPE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: rewayaat-v2-stripe
+                  key: REWAYAAT_STRIPE_SECRET_KEY
+                  optional: true
           # Stop taking new work before shutting down, so nothing is cut mid-request.
           #
           # Removing a pod from its Service and telling the container to stop are not

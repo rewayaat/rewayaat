@@ -47,6 +47,15 @@ class AcademyBrandingIsHostScopedTest {
 
     private static final String GUARD = "${academyHost}";
 
+    /**
+     * The one place the Academy is named on every host, on purpose: the About page's "About
+     * us" says the database was built in collaboration with the Academy for Learning Islam,
+     * with a link. That is a credit to a partner, not the Academy's branding, and rewayaat.info
+     * is where it belongs. Matched by the element's message key, so the exception covers that
+     * paragraph and nothing else in the template.
+     */
+    private static final String CREDIT = "th:utext=\"#{about.us.body}\"";
+
     /** An opening tag, which may run over several lines, with its attributes. */
     private static final Pattern OPENING_TAG = Pattern.compile("<[a-zA-Z][a-zA-Z0-9]*\\s[^<>]*?/?>", Pattern.DOTALL);
 
@@ -128,7 +137,8 @@ class AcademyBrandingIsHostScopedTest {
                 int at = html.indexOf(marker);
                 while (at >= 0) {
                     int here = at;
-                    boolean inside = guarded.stream().anyMatch(r -> here >= r[0] && here < r[1]);
+                    boolean inside = guarded.stream().anyMatch(r -> here >= r[0] && here < r[1])
+                            || isTheCredit(html, here);
                     if (!inside) {
                         int from = Math.max(0, here - 40);
                         unguarded.add(TEMPLATES.relativize(template) + " [" + marker + "]: ..."
@@ -142,6 +152,16 @@ class AcademyBrandingIsHostScopedTest {
         assertTrue(unguarded.isEmpty(),
                 "These render the Academy's branding on every host. Each needs an enclosing th:if=\""
                         + GUARD + "\":\n" + String.join("\n", unguarded));
+    }
+
+    /** Whether the marker sits inside the span that carries the About page's credit. */
+    private static boolean isTheCredit(String html, int at) {
+        int credit = html.lastIndexOf(CREDIT, at);
+        if (credit < 0) {
+            return false;
+        }
+        int close = html.indexOf("</span>", credit);
+        return close > at;
     }
 
     /**
