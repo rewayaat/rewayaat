@@ -77,6 +77,14 @@ function localeHref(path) {
 
     function el(id) { return document.getElementById(id); }
 
+    /* First name only, at most ten characters counted in code points: nine and an ellipsis
+       past ten. The same rule as shortFirstName in rewayaat.js, which the search pages load. */
+    function shortFirstName(name) {
+        var first = String(name || '').trim().split(/\s+/)[0] || '';
+        var letters = Array.from(first);
+        return letters.length > 10 ? letters.slice(0, 9).join('') + '\u2026' : first;
+    }
+
     /* ── Nav ────────────────────────────────────────────────────────────────── */
 
     function applyAuthState() {
@@ -97,7 +105,12 @@ function localeHref(path) {
             // search app reads. Reading `name` here left every editor labelled by email.
             var label = authState.user.displayName || authState.user.email
                 || t('nav.account', 'Account');
-            if (name) { name.textContent = label; }
+            // The chip shows the first name only, at most ten characters, as rewayaat.js
+            // does on the search pages; the whole name is on hover.
+            if (name) {
+                name.textContent = shortFirstName(label);
+                name.setAttribute('title', label);
+            }
             if (initial) { initial.textContent = label.charAt(0).toUpperCase(); }
         }
         document.querySelectorAll('[data-requires-auth]').forEach(function (node) {

@@ -81,7 +81,7 @@
                 <!-- No Search link. On this page the field is the page; everywhere else
                      the navbar carries the field itself, which is what the link was
                      standing in for. -->
-                <a href="#browse" class="home-nav-link"><i class="fa fa-layer-group" aria-hidden="true"></i><span th:text="#{nav.browse}">Browse</span></a>
+                <a href="#browse" class="home-nav-link"><i class="fa fa-book-open" aria-hidden="true"></i><span th:text="#{nav.books}">Books</span></a>
                 <a href="/narrators" th:href="@{${arPrefix} ?: '' } + '/narrators'" class="home-nav-link"><i class="fa fa-users" aria-hidden="true"></i><span th:text="#{nav.rijal}">Rijāl</span></a>
                 <a href="/about" th:href="@{${arPrefix} ?: '' } + '/about'" class="home-nav-link"><i class="fa fa-circle-info" aria-hidden="true"></i><span th:text="#{nav.about}">About</span></a>
             </div>
