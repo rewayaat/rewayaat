@@ -78,8 +78,11 @@ class MessageCatalogueTest {
         List<String> copied = new ArrayList<>();
         for (String key : arabic.stringPropertyNames()) {
             String value = arabic.getProperty(key).trim();
-            if (value.isEmpty()) {
+            if (value.isEmpty() && !DELIBERATELY_BLANK.contains(key)) {
                 blank.add(key);
+                continue;
+            }
+            if (value.isEmpty()) {
                 continue;
             }
             // A value identical to the English one is usually a placeholder somebody
@@ -99,6 +102,11 @@ class MessageCatalogueTest {
     }
 
     /** Strings that read the same in both languages on purpose. */
+    // The English line under an Arabic quotation on the About page. On the Arabic page the
+    // quotation stands alone: a gloss in Arabic would say the quotation over again.
+    private static final Set<String> DELIBERATELY_BLANK = Set.of(
+            "about.quote.en", "about.give.quote");
+
     private static final Set<String> DELIBERATELY_SHARED = Set.of(
             // The two toggle labels. Each names the language it switches to, written in
             // that language, so a reader who cannot read the current one can still find

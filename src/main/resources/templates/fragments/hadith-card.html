@@ -35,8 +35,8 @@
                     <span class="hadith-sidecar__rail-label" th:text="#{sidecar.details}">DETAILS</span>
                     <span class="hadith-sidecar__rail-icon"><i class="fa fa-info-circle" aria-hidden="true"></i></span>
                 </button>
-                <!-- The chain as a chain: every link of the isnād in order, whose it is, and
-                     what the books say of him. Second in the rail because a reader judging
+                <!-- The chain as a chain: every link of the isnād in order, and whose it
+                     is. What the books say of him is on his page, in Tarājim. Second in the rail because a reader judging
                      a narration reaches for its men straight after its details. Omitted for
                      a narration the resolver has not read an isnād out of. -->
                 <button type="button" class="hadith-sidecar__rail-btn" data-hub-panel="rijal"
@@ -146,7 +146,6 @@
                                 <span class="rijal-link__words arabic-text" dir="rtl" lang="ar"
                                       th:if="${link['href'] == null}" th:text="${link.words}">words</span>
                                 <p class="rijal-link__who" data-rijal-who hidden></p>
-                                <p class="rijal-link__said" data-rijal-said hidden></p>
                                 <p class="rijal-link__life" data-rijal-life hidden></p>
                                 <!-- Men the resolver found and would not choose between. Each is
                                      a link to his own page, so the reader can settle it. -->

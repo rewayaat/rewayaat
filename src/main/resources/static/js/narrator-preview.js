@@ -3,12 +3,14 @@
  *
  * A chain names eight men and a reader knows three of them. Until now the only way to ask
  * about the fourth was to leave the hadith, read his page and come back, which nobody does
- * mid-sentence. This answers in place: what the books call him, when and where he lived, how
- * much is written about him, and a way through to the whole page if he turns out to matter.
+ * mid-sentence. This answers in place: who he is, when and where he lived, how much runs
+ * through him, and a way through to the whole page if he turns out to matter.
  *
- * It shows what a book says and names the book; it never grades a man itself, and it never
- * colours a name in the isnād by his standing. A reader must be able to read the chain as the
- * compiler wrote it, not as this site scores it.
+ * It carries no grades. What each rijāl book says of him is read on his page, in Tarājim,
+ * with the book's own words and the page they stand on; a card this size could only
+ * shorten that to a word, without the reasoning a researcher reads it for. Nor does it
+ * colour a name in the isnād by his standing: a reader must be able to read the chain as
+ * the compiler wrote it.
  *
  * One delegated listener, so it works identically on a hadith page, a narrator's narrations
  * and the search results the client renders itself. A modified click is left alone — ctrl,
@@ -191,72 +193,12 @@
         return pattern.replace("{0}", digits(howMany));
     }
 
-    /* The books' own word first. A rijāl reader looks for «ثقة» or «كذاب», not for an
-       English gloss, so the Arabic term leads even on the English site and the gloss
-       follows it. Some entries carry «thiqa — trustworthy» in one string and some only
-       «a liar», so where the Arabic term already stands beside it the transliterated
-       half is dropped and only the plain-language half kept. */
-    function gloss(said) {
-        if (!said) {
-            return "";
-        }
-        var halves = String(said).split(" \u2014 ");
-        return halves[halves.length - 1];
-    }
-
-    /* No rijālī assesses the man he is assessing narrators for, so no book grades an
-       Imam and «muhmal» is the wrong reading of that silence: it says the books looked at
-       him and withheld a word, when they never undertook to look. His own page has said so
-       since it was written; this card was the one place that still filed al-Ṣādiq as an
-       ungraded narrator. */
-    function imamOf(man) {
-        return man && man.kind === "imam";
-    }
-
-    /** One row per word: the books' own term, and the books that use it. Never averaged. */
-    function saidRows(man) {
-        var said = man.said_by || [];
-        if (!said.length) {
-            // Muhmal: the books hold him and state no word. Said, not left blank.
-            return '<div class="pv__row"><span class="pv__w pv__w--none" lang="ar">\u0645\u0647\u0645\u0644</span>'
-                + '<span class="pv__b">' + escaped(
-                    t("narrator.standing.unstated", "mentioned, no judgement passed")
-                        .split(/\s[\u2014\u2013-]\s/).pop()) + "</span></div>";
-        }
-        return said.map(function (row) {
-            var books = (arabic() && row.books_ar && row.books_ar.length)
-                ? row.books_ar : (row.books || []);
-            var word = row.said_ar || row.said || "";
-            return '<div class="pv__row"><span class="pv__w pv__w--' + escaped(row.leaning)
-                + '" lang="ar">' + escaped(word) + "</span>"
-                + '<span class="pv__b">' + escaped(books.join(" \u00b7 ")) + "</span></div>";
-        }).join("");
-    }
-
     function body(man) {
         var href = prefix() + "/narrator/" + man.person_id
             + (man.slug ? "/" + man.slug : "");
-        var rests = man.standing_rests_on;
-        var caveat = (rests && rests !== "early")
-            ? '<p class="pv__rests">'
-                + escaped(t("narrator.standing.restsOn." + rests, "")) + "</p>"
-            : "";
         var index = era(man);
         var tint = index == null ? "transparent"
             : "hsl(" + PIGMENT[index][0] + " " + PIGMENT[index][1] + "% " + PIGMENT[index][2] + "% / 0.10)";
-        var divided = (man.said_by || []).length > 1;
-        var heading = divided
-            ? t("narrators.preview.divide", arabic() ? "الكتب مختلفة فيه" : "The books divide")
-            : t("narrators.preview.says", arabic() ? "ما تقوله الكتب" : "What the books say");
-        // An Imam gets the same block with the reason there is no word in it, in the same
-        // sentence the rijāl panel uses beside a chain.
-        // Prophet, Imam or Fāṭima: three different sentences, because only twelve of the
-        // fourteen are Imams and the card should not tell a reader otherwise.
-        var house = man.house || "imam";
-        var says = imamOf(man)
-            ? '<p class="pv__imam">' + escaped(t("rijal.house.note." + house,
-                arabic() ? "الكتب لا تحكم على أهل البيت" : "The books do not grade the Ahl al-Bayt")) + "</p>"
-            : '<div class="pv__rows">' + saidRows(man) + "</div>" + caveat;
         var chains = man.chains
             ? '<b>' + escaped(digits(Number(man.chains).toLocaleString(arabic() ? "ar" : "en"))) + "</b> "
                 + escaped(t("narrators.preview.chains", arabic() ? "سند" : "chains"))
@@ -272,8 +214,6 @@
             + '<p class="pv__life">' + lifeLine(man.life) + "</p>"
             + strip(man)
             + "</div></div>"
-            + '<div class="pv__says"><h3>' + escaped(heading) + "</h3>"
-            + says + "</div>"
             + '<div class="pv__foot"><span>' + chains + "</span>"
             + '<a class="np__go" href="' + escaped(href) + '">'
             + escaped(t("js.preview.open", "Open his page")) + "</a></div>";
