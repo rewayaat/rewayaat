@@ -55,8 +55,13 @@ public class NarratorService {
     @Value("${narrator.enabled:true}")
     private boolean enabled;
 
+    // Whole narrator records, about 63 KB each once held as maps (measured 2026-11-06).
+    // Sized to the 1 GiB heap, not to the index: at 5,000 this cache and the similar-hadith
+    // one together outgrew the heap once crawlers walked both the English and the Arabic
+    // site, and the pods spent their CPU in a garbage collector that could free nothing. A
+    // miss is one Elasticsearch get, and a crawler sweeping every man rarely hits anyway.
     private final Cache<String, Map<String, Object>> cache = Caffeine.newBuilder()
-            .maximumSize(5000)
+            .maximumSize(2000)
             .expireAfterWrite(Duration.ofHours(6))
             .build();
 

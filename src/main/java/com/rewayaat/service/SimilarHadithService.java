@@ -32,8 +32,12 @@ public class SimilarHadithService {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
+    // Each entry holds the similar narrations whole, text and chains, keyed per page and per
+    // site, English or Arabic: about 50 KB a hadith page (measured 2026-11-06). 10,000 of them
+    // was half a gigabyte, and with the narrator cache it filled the 1 GiB heap. 3,000 keeps
+    // what readers return to; a miss is one bulk get from Elasticsearch.
     private final Cache<String, CachedResult> cache = Caffeine.newBuilder()
-            .maximumSize(10000)
+            .maximumSize(3000)
             .expireAfterWrite(Duration.ofHours(6))
             .build();
 
