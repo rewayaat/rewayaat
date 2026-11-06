@@ -2824,6 +2824,16 @@ function hasScopeSelections(filters) {
     return !!(filters && (filters.book || filters.volume || filters.part || filters.section || filters.chapter || filters.source));
 }
 
+/* A term with a space in it, quoted, unless it is already a phrase or a field:value
+   filter, which carry their own syntax. */
+function asOneTerm(term) {
+    var text = String(term || '').trim();
+    if (!/\s/.test(text) || /^".*"$/.test(text) || /^[A-Za-z_]+:/.test(text)) {
+        return text;
+    }
+    return '"' + text.replace(/"/g, '') + '"';
+}
+
 function buildSearchSubmissionState(scopeOverride, options) {
     var ignoreSearchTerms = !!(options && options.ignoreSearchTerms);
     var selectedTerms = ignoreSearchTerms ? [] : getSelectedSearchTerms();
@@ -2834,7 +2844,11 @@ function buildSearchSubmissionState(scopeOverride, options) {
     var mergedTerms = ignoreSearchTerms
         ? []
         : mergeSearchTerms(selectedTerms, pendingTerms.length ? pendingTerms : getSelectedSearchTerms());
-    var termQueryState = extractQueryState(mergedTerms.join(' '));
+    // A chip is one term even when it holds spaces: a narrator picked from the
+    // suggestions is «Sahl ibn Ziyad», and joined bare it came back on the results page
+    // as three chips, searched as three loose words. Quoted, the query carries it as the
+    // phrase it is, and splitQuery hands it back as one chip.
+    var termQueryState = extractQueryState(mergedTerms.map(asOneTerm).join(' '));
     var terms = termQueryState.keywordTerms;
     var queryState = extractQueryState(getQueryStringValue('q') || '');
     var scopeFilters = cloneFacetSelections(termQueryState.scopeFilters);
