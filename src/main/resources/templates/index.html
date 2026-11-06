@@ -180,13 +180,6 @@
                     <!-- The Arabic site stays Arabic: the Latin reading is for the English one. -->
                     <div class="narrator-strip__name-en" v-if="narrator.display_en && !arabicSite">{{ narrator.display_en }}</div>
                     <div class="narrator-strip__meta">
-                        <!-- The book's own word, as everywhere else: «ثقة», not a
-                             standing this site worked out and wrote in its own voice. -->
-                        <span class="narrator-strip__standing"
-                              :class="'narrator-strip__standing--' + saidOf(narrator).leaning"
-                              v-if="saidOf(narrator).word">
-                            {{ saidOf(narrator).word }}
-                        </span>
                         <span>{{ narratorCount(narrator.entry_count, 'narrators.entries') }}</span>
                         <span v-if="imamLine(narrator)">{{ imamLine(narrator) }}</span>
                     </div>

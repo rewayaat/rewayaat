@@ -5092,20 +5092,6 @@ function setupVue(query, page, sortFields) {
                     return link.kind === kind;
                 }).length;
             },
-            // What the first book to grade him calls him, in that book's own word.
-            // Nothing here is this site's judgement, so nothing here is phrased as one.
-            saidOf: function(narrator) {
-                var rows = (narrator && narrator.said_by) || [];
-                if (!rows.length) {
-                    return {word: '', leaning: ''};
-                }
-                var first = rows[0];
-                var arabic = window.I18N_LOCALE === 'ar';
-                return {
-                    word: (arabic && first.said_ar) ? first.said_ar : first.said,
-                    leaning: first.leaning || ''
-                };
-            },
             /* The Imam a chain ends on without naming him, in the language of the page.
                Both forms come from the server, which decided which Imam it is; this only
                picks the one the reader is reading. */
