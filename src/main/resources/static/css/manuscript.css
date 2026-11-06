@@ -17302,3 +17302,23 @@ body.is-search-mode .site-nav .search-entry-shell:focus-within {
     :root:has(#welcome .home-hero) .ncard::before,
     :root:has(#welcome .home-hero) .recent-update-card::before { transition: opacity 0.2s ease; }
 }
+
+/* Home page: a gold hairline under the menu bar. The bar's gradient ends in a navy close to
+   the night sky's, and its dark shadow vanishes on a dark page, so nothing showed where the
+   bar stopped. One pixel, brightest in the middle and fading out at both ends; the cream
+   pages keep the shadow alone, which reads well enough on a light wall. */
+:root:has(#welcome .home-hero) .site-nav {
+    box-shadow: 0 10px 28px rgba(0, 0, 0, .55) !important;
+}
+:root:has(#welcome .home-hero) .site-nav::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    z-index: 2;
+    pointer-events: none;
+    background: linear-gradient(90deg, rgba(232, 196, 104, 0), rgba(232, 196, 104, .9) 15%,
+            rgba(240, 212, 130, .9) 50%, rgba(232, 196, 104, .9) 85%, rgba(232, 196, 104, 0));
+}
