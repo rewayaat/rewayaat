@@ -17322,3 +17322,44 @@ body.is-search-mode .site-nav .search-entry-shell:focus-within {
     background: linear-gradient(90deg, rgba(232, 196, 104, 0), rgba(232, 196, 104, .9) 15%,
             rgba(240, 212, 130, .9) 50%, rgba(232, 196, 104, .9) 85%, rgba(232, 196, 104, 0));
 }
+
+/* The search bars take the same gold trace on focus: the line runs once round the field from
+   the top and stays lit while the reader is typing. The focus rule above lights the border
+   gold at once, which would hide the sweep, so on focus the border keeps its resting colour
+   and the ring draws the gold. The home page focuses its search on load, so there it runs
+   as the page opens. */
+.search-entry-shell::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    z-index: 3;
+    padding: 1.5px;
+    border-radius: inherit;
+    pointer-events: none;
+    background: conic-gradient(from 0deg,
+        rgba(233, 196, 106, 0.9) 0deg,
+        #ffe2a0 calc(var(--trace) - 6deg),
+        #fff6d8 var(--trace),
+        transparent var(--trace));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+    filter: drop-shadow(0 0 3px rgba(233, 196, 106, 0.55));
+    opacity: 0;
+    --trace: 0deg;
+    transition: --trace 0s linear 0.25s, opacity 0.25s ease;
+}
+.search-entry-shell:focus-within::before {
+    opacity: 1;
+    --trace: 361deg;
+    transition: --trace 0.9s cubic-bezier(0.45, 0.05, 0.3, 1), opacity 0.15s ease;
+}
+.search-entry-shell:focus-within,
+.home-search .search-entry-shell:focus-within,
+body.is-search-mode .site-nav .search-entry-shell:focus-within {
+    border-color: rgba(226, 232, 240, 0.34) !important;
+    box-shadow: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+    .search-entry-shell::before { transition: opacity 0.2s ease; }
+}
