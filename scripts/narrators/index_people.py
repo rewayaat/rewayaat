@@ -1756,6 +1756,9 @@ def document(person, source, headless):
                       if not_a_personal_name(n, [], english=True)]
 
     display_ar = anchor.get("primary_arabic_name") or person.get("primary_arabic_name")
+    # What relations_join keys on, as it stood before run-on headings were cut: see _join_ar.
+    raw_display_ar = display_ar
+    raw_names_ar = [n for n in all_names_ar if not group_kind[n]]
     def split_by_evidence(raw):
         """What the entry's words hold, and what only a record says."""
         held, said = [], []
@@ -1909,7 +1912,16 @@ def document(person, source, headless):
             entry["same_work_other_headings"] = [name_only(h) for h in
                                                  entry["same_work_other_headings"]]
 
+    # A man renamed only because the wider prose list cut his heading is joined under the
+    # names he had before: his cut name can be the name of a second record of the same man
+    # (al-Mufīd, Ibn al-Walīd), and a name two records hold joins nobody. Everyone else is
+    # joined exactly as before.
+    newly_cut = cut_prose and not cut_by_earlier_list(raw_display_ar)
+    join_ar = list(raw_headings_ar) + raw_names_ar + [raw_display_ar if newly_cut else display_ar]
+    join_en = list(names_en) + ([] if newly_cut or runs_on else [display_en])
     return {
+        "_join_ar": join_ar,
+        "_join_en": join_en,
         "person_id": person["person_id"],
         # the anchor entry's own heading, not the longest name the merge found: that gave Ibn Abi
         # 'Umayr the garbled «أبو أحمد بن محمد بن زياد الأزدي»
@@ -2217,7 +2229,8 @@ def main():
 
     if documents and args.dump:
         with open(args.dump + ".part", "w") as handle:
-            json.dump(documents, handle, ensure_ascii=False)
+            json.dump([{k: v for k, v in doc.items() if not k.startswith("_join")}
+                       for doc in documents], handle, ensure_ascii=False)
         os.replace(args.dump + ".part", args.dump)
         print(f"dumped {len(documents):,} people -> {args.dump}")
     if documents:
@@ -2275,6 +2288,11 @@ def main():
         print(f"  {n:7d}  {label}")
     for label, n in IMAM_STATS.most_common():
         print(f"  {n:7d}  {label}")
+
+    # The join is done; its private keys are not part of a document.
+    for doc in documents:
+        doc.pop("_join_ar", None)
+        doc.pop("_join_en", None)
 
     if args.show:
         wanted = [d for d in documents if d["person_id"] == args.show]
