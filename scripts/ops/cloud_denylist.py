@@ -37,6 +37,10 @@ NETWORKS = {
 }
 # Blocked by hand before the script; kept whether or not an ASN still announces them.
 ALWAYS = ["43.172.0.0/15", "47.79.0.0/16"]
+# Cut back out of the list. PetalBot, the crawler of Huawei's Petal Search (the default
+# search on Huawei phones), crawls from this range of AS136907: 6,034 requests in the week to
+# 2026-11-06, from 16 addresses. Everything else from the range in that week came to 318.
+EXEMPT = ["114.119.128.0/18"]
 
 INGRESS = pathlib.Path(__file__).resolve().parents[2] / "k8s" / "ingress.yaml"
 ANNOTATION = "nginx.ingress.kubernetes.io/denylist-source-range"
@@ -62,6 +66,11 @@ def main():
         print(f"AS{asn:<7} {name:32} {len(found):5} prefixes", file=sys.stderr)
         nets += found
     collapsed = list(ipaddress.collapse_addresses(nets))
+    for hole in map(ipaddress.ip_network, EXEMPT):
+        collapsed = [part for net in collapsed
+                     for part in (net.address_exclude(hole) if hole.subnet_of(net)
+                                  else [] if net.subnet_of(hole) else [net])]
+    collapsed = list(ipaddress.collapse_addresses(collapsed))
     value = ",".join(str(n) for n in collapsed)
     print(f"{len(collapsed)} ranges, {sum(n.num_addresses for n in collapsed):,} addresses",
           file=sys.stderr)
