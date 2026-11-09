@@ -2635,7 +2635,7 @@ function initSelect2(select2_id) {
                 .then(function(payload) {
                     // A name three thousand men share names nobody — the same floor the
                     // narrator strip uses, for the same reason.
-                    if (!payload || !payload.narrators || payload.total > 150) {
+                    if (!payload || !payload.narrators || !namesSomebody(payload)) {
                         return [];
                     }
                     return payload.narrators.filter(function(man) {
@@ -2726,6 +2726,20 @@ function isArabic(text) {
     var pattern = /[\u0600-\u06FF\u0750-\u077F]/;
     result = pattern.test(text);
     return result;
+}
+
+/**
+ * Whether the query names somebody rather than being a common word. The server says so
+ * (`named`); an older server only gave the total, and past 150 men a query is a word.
+ */
+function namesSomebody(payload) {
+    if (!payload) {
+        return false;
+    }
+    if (typeof payload.named === 'boolean') {
+        return payload.named;
+    }
+    return !(payload.total > 150);
 }
 
 function strip(html) {
@@ -6081,7 +6095,7 @@ function setupVue(query, page, sortFields) {
                         // reader had asked for them; «zurara» matches 25 and «bazanti» 3.
                         // Past this many the query is a word, not a man, and the strip is
                         // worse than nothing above the narrations.
-                        if ((payload && payload.total) > 150) {
+                        if (payload && !namesSomebody(payload)) {
                             self.narratorMatches = [];
                             return;
                         }

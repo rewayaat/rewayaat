@@ -304,10 +304,47 @@ public class NarratorService {
             result.put("page", Math.max(page, 1));
             result.put("page_size", size);
             result.put("narrators", narrators);
+            long total = response.hits().total() == null ? narrators.size()
+                    : response.hits().total().value();
+            result.put("named", names(provider, text, total));
             return result;
         } catch (Exception e) {
             LOGGER.warn("Narrator search failed for «{}»: {}", text, e.getMessage());
             return empty;
+        }
+    }
+
+    /** More men than this answering a name exactly and it is a word, not a name. */
+    private static final int NAMES_AT_MOST = 150;
+
+    /**
+     * Whether the query names somebody in particular, as opposed to being a common word.
+     *
+     * <p>The page used to decide from the total — past 150 men, «muhammad» is a word — but the
+     * loose readings that let «Ibn Abi Omair» find Ibn Abī ʿUmayr also let it reach every
+     * «Abu ʿUmar», and at 199 the strip offering the man vanished for the plainest English
+     * query there is. A query of two words or more is a name. One word names somebody when
+     * few men hold it as written, every word present and no edit allowed; a word nobody holds
+     * as written («Omair») falls back to the total.
+     */
+    private boolean names(ESClientProvider provider, String text, long total) {
+        if (text.trim().split("\\s+").length >= 2) {
+            return true;
+        }
+        try {
+            long exact = provider.client().count(c -> c
+                    .index(indexName)
+                    .query(q -> q.bool(b -> b
+                            .mustNot(n -> n.exists(e -> e.field("moved_to")))
+                            .mustNot(n -> n.term(t -> t.field("kind").value("scholar")))
+                            .must(m -> m.multiMatch(mm -> mm
+                                    .query(text)
+                                    .operator(Operator.And)
+                                    .fields(NAME_FIELDS)))))).count();
+            return exact > 0 ? exact <= NAMES_AT_MOST : total <= NAMES_AT_MOST;
+        } catch (Exception e) {
+            LOGGER.debug("Could not count exact holders of «{}»: {}", text, e.getMessage());
+            return false;
         }
     }
 

@@ -1105,7 +1105,8 @@ LATER_LISTS = re.compile(
 # who he narrated from or to, or a teacher of the early compilers.
 CHAIN_AGE = re.compile(
     r'الكافي|التهذيب|الفقيه|الاستبصار|روى عن|روى عنه|من أصحاب|مشائخ|مشايخ|ابن شهرآشوب|'
-    r'المعالم|الطوسي|النجاشي|الصدوق|المفيد|الكشي')
+    r'المعالم|الطوسي|النجاشي|الصدوق|المفيد|الكشي|الغضائري|الكليني|قولويه|ابن الوليد|عقدة|'
+    r'العياشي|البرقي|الصفار|ابن بابويه')
 EARLY_BOOKS = {"najashi", "tusi", "fihrist", "kashshi", "duafa"}
 
 
@@ -1140,6 +1141,56 @@ def merged_away(documents, since=PAGES_PUBLIC_SINCE):
                     "slug": man.get("slug"), "holds_entry": False, "entry_count": 0,
                     "chain_count": 0})
         held[old] = out[-1]
+    return out
+
+
+def vanishing(host, previous_index, documents):
+    """A redirect for each page the served index has and this build would drop.
+
+    A page goes when its man is merged, but also when his only entry moves to another man and
+    he is left holding none (al-Khoei's «عمرو بن عثمان الأزدي», whose one line says he is the
+    entry after it). Either way the old address must reach the man who now holds what it
+    showed: the one holding most of its entries.
+    """
+    import urllib.request
+    held = {d["person_id"] for d in documents if d.get("person_id")}
+    holder = {}
+    for doc in documents:
+        if doc.get("moved_to"):
+            continue
+        for entry in doc.get("entries") or []:
+            holder[entry.get("source_key")] = doc
+
+    def post(path, body):
+        request = urllib.request.Request(f"{host.rstrip('/')}{path}", data=json.dumps(body).encode(),
+                                         headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(request, timeout=120) as response:
+            return json.load(response)
+
+    out = []
+    page = post(f"/{previous_index}/_search?scroll=3m",
+                {"size": 2000, "_source": ["person_id", "entries.source_key", "moved_to"],
+                 "query": {"match_all": {}}})
+    scroll = page.get("_scroll_id")
+    while page["hits"]["hits"]:
+        for hit in page["hits"]["hits"]:
+            old = hit["_id"]
+            if old in held:
+                continue
+            votes = Counter(holder[e["source_key"]]["person_id"]
+                            for e in hit["_source"].get("entries") or []
+                            if e.get("source_key") in holder)
+            target = hit["_source"].get("moved_to") if hit["_source"].get("moved_to") in held \
+                else (votes.most_common(1)[0][0] if votes else None)
+            if not target:
+                continue
+            man = next(d for d in documents if d.get("person_id") == target)
+            out.append({"person_id": old, "moved_to": target, "kind": "narrator",
+                        "display_ar": man.get("display_ar"), "display_en": man.get("display_en"),
+                        "slug": man.get("slug"), "holds_entry": False, "entry_count": 0,
+                        "chain_count": 0})
+            held.add(old)
+        page = post("/_search/scroll", {"scroll": "3m", "scroll_id": scroll})
     return out
 
 
@@ -2367,6 +2418,10 @@ def main():
                              "shape (an object) for every document")
     parser.add_argument("--es-host", default="http://localhost:9200")
     parser.add_argument("--index", default=INDEX)
+    parser.add_argument("--previous-index", default=None,
+                        help="the index being replaced (the served one, e.g. rewayaat_narrators): "
+                             "any page it has that this build drops gets a redirect to the man "
+                             "who now holds its entries, instead of a 404")
     args = parser.parse_args()
 
     global YEARS, HOLDERS, ENGLISH_HOLDERS, PREFIXES, ENGLISH_PREFIXES, TRANSLITERATION
@@ -2496,6 +2551,21 @@ def main():
     documents += redirects
     counts["ids merged into another man since the pages went public, now redirecting"] = \
         len(redirects)
+    if args.previous_index:
+        try:
+            dropped = vanishing(args.es_host, args.previous_index, documents)
+        except Exception as unreachable:  # noqa: BLE001
+            dropped = []
+            print(f"  could not read {args.previous_index} ({unreachable}); a page this build "
+                  f"drops will 404", file=sys.stderr)
+        for doc in dropped:
+            man = by_id.get(doc["moved_to"])
+            if man is not None:
+                man["chain_count"] = (man.get("chain_count") or 0) + \
+                    chain_counts.get(doc["person_id"], 0)
+        documents += dropped
+        counts[f"pages {args.previous_index} serves that this build drops, now redirecting"] = \
+            len(dropped)
 
     if documents:
         roster = roster_documents(documents[0])

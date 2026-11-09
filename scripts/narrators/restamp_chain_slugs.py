@@ -46,7 +46,7 @@ def bulk(host, lines):
         sys.exit("bulk failed: " + json.dumps(first, ensure_ascii=False)[:400])
 
 
-def slugs(host, moved=None):
+def slugs(host, moved=None, index=NARRATORS):
     """id → slug, straight from the index the pages are served from; «moved», when given,
     is filled with id → the narrator id it moved to."""
     out, after = {}, None
@@ -56,7 +56,7 @@ def slugs(host, moved=None):
         if after:
             body["search_after"] = after
         page = post(host, "/%s/_search?filter_path=hits.hits._source,hits.hits.sort"
-                    % NARRATORS, body)
+                    % index, body)
         hits = page.get("hits", {}).get("hits", [])
         if not hits:
             return out
@@ -97,13 +97,15 @@ def restamp(value, slug_of, counter, moved=None):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--es-host", default="http://localhost:9200")
+    parser.add_argument("--narrators-index", default=NARRATORS,
+                        help="the narrator index to read slugs and moves from")
     parser.add_argument("--apply", action="store_true",
                         help="write the corrected links back; otherwise only count them")
     args = parser.parse_args()
     host = args.es_host.rstrip("/")
 
     moved = {}
-    slug_of = slugs(host, moved)
+    slug_of = slugs(host, moved, args.narrators_index)
     print("%d narrators, %d moved to another narrator" % (len(slug_of), len(moved)))
 
     body = {"size": 200, "sort": ["_doc"], "_source": list(LINK_FIELDS),

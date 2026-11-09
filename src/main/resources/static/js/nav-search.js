@@ -16,6 +16,20 @@
 
     var SUGGEST_URL = '/v1/terms/top?term=';
 
+    /**
+     * Whether the query names somebody rather than being a common word. The server says so
+     * (`named`); an older server only gave the total, and past 150 men a query is a word.
+     */
+    function namesSomebody(payload) {
+        if (!payload) {
+            return false;
+        }
+        if (typeof payload.named === 'boolean') {
+            return payload.named;
+        }
+        return !(payload.total > 150);
+    }
+
     function t(key, fallback) {
         var table = window.I18N || {};
         var value = table[key];
@@ -158,7 +172,7 @@
                     .then(function (payload) {
                         // A name three thousand men share names nobody — the same floor
                         // the strip over the results uses, for the same reason.
-                        if (!payload || !payload.narrators || payload.total > 150) {
+                        if (!payload || !payload.narrators || !namesSomebody(payload)) {
                             return [];
                         }
                         return payload.narrators.filter(function (man) {

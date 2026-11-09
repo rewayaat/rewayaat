@@ -174,8 +174,13 @@ def foreign_en(name, own_names):
 
 # --- Correcting an English display name against its Arabic ---
 
-_STRUCTURE_AR = {"بن", "ابن", "أبو", "أبي", "أبا", "ابو", "ابي", "ابا", "بنت", "أم", "ام"}
-_STRUCTURE_EN = {"ibn", "bin", "b.", "b", "abu", "abi", "aba", "bint", "umm"}
+# The connective words, by kind: «بن» is «ibn», «أبو» is «Abu». A name whose two scripts put
+# different kinds in one place is aligned wrong, and is left alone.
+_KIND_AR = {"بن": "son", "ابن": "son", "بنت": "daughter", "أبو": "father", "أبي": "father",
+            "أبا": "father", "ابو": "father", "ابي": "father", "ابا": "father", "أم": "mother",
+            "ام": "mother"}
+_KIND_EN = {"ibn": "son", "bin": "son", "b.": "son", "b": "son", "bint": "daughter",
+            "abu": "father", "abi": "father", "aba": "father", "umm": "mother"}
 _FUSED_ABD = re.compile(r"^['ʿ‘’]?abd(?:u|ul|al|ullah|allah|ullāh)", re.IGNORECASE)
 
 
@@ -184,38 +189,51 @@ def _fold_en(word):
 
 
 def _word_consonants(word):
-    return "".join(_consonants(w) for w in _en_words(word))
+    """The consonants alone: no vowels at all and no final h, which a transliteration adds
+    for a tāʾ marbūṭa (Zurarah) and drops after a vowel (Ruh for Rawh) as it pleases."""
+    letters = "".join(_consonants(w) for w in _en_words(word)).replace("v", "")
+    return letters[:-1] if len(letters) > 1 and letters.endswith("h") else letters
 
 
 def corrected_english(display_ar, display_en, learned, fixes):
     """The display name with each word the Arabic contradicts put right, and what changed.
 
-    Words are aligned one to one, so a name whose two scripts differ in length is left alone.
-    A word is replaced when the hand-checked list («fixes») spells its Arabic otherwise —
-    Bakir for «بكير» is Bukayr — or when its consonants cannot be that Arabic word at all
-    (Dirar for «دراج», Ishaq for «إبراهيم») and the learned map has the word. A name where
-    two or more words disagree that way is misaligned, not misspelt, and is left alone too;
-    so is one where a connective or kunya word stands against a name.
+    Words are aligned one to one, so a name whose two scripts differ in length is left alone,
+    and so is one whose connectives differ in kind («Abu» where the Arabic has «بن») or that
+    carries a variant reading in brackets. A word is respelt when the hand-checked list
+    («fixes») spells its Arabic otherwise but its consonants agree (Bakir → Bukayr). It is
+    replaced when its consonants cannot be its Arabic at all (Dirar for «دراج», Ishaq for
+    «إبراهيم»), but only where that is the one such word and at least two others line up — a
+    name where words disagree in two places is misaligned, not misspelt.
     """
     arabic = _DIACRITICS.sub("", display_ar or "").split()
     english = (display_en or "").split()
     if not arabic or len(arabic) != len(english):
         return display_en, []
     for a, e in zip(arabic, english):
-        if (a in _STRUCTURE_AR) != (e.lower() in _STRUCTURE_EN) or _FUSED_ABD.match(e):
+        if _KIND_AR.get(a) != _KIND_EN.get(e.lower()) or _FUSED_ABD.match(e) or e.startswith("("):
             return display_en, []
-    out, changed, wrong_words = [], [], 0
-    for a, e in zip(arabic, english):
-        new = e
-        fix, known = fixes.get(a), learned.get(a)
-        if fix and _fold_en(fix) != _fold_en(e):
-            new = fix
-        elif known and _word_consonants(e) and _word_consonants(known) != _word_consonants(e):
-            new = known
-            wrong_words += 1
-        out.append(new)
-    if wrong_words > 1:
-        return display_en, []
+    out, wrong, anchored = [], [], 0
+    for i, (a, e) in enumerate(zip(arabic, english)):
+        if a in _KIND_AR:
+            anchored += 1
+            out.append(e)
+            continue
+        right = fixes.get(a) or learned.get(a)
+        if not right:
+            out.append(e)
+            continue
+        if _word_consonants(right) == _word_consonants(e):
+            anchored += 1
+            out.append(right if a in fixes and _fold_en(right) != _fold_en(e) else e)
+        else:
+            wrong.append(i)
+            out.append(right)
+    if wrong and (len(wrong) > 1 or anchored < 2):
+        # Misaligned: undo the replacements, keep only the respellings that agreed.
+        for i in wrong:
+            out[i] = english[i]
+    changed = []
     for i, (old, new) in enumerate(zip(english, out)):
         if new != old:
             if i == 0 and new[:1].isalpha():
