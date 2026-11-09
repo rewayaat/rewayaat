@@ -1,0 +1,34 @@
+[
+ {
+  "group": "g021",
+  "primary": "n036590",
+  "other": "n000063",
+  "reason": "Al-Najashi's entry for Isma'il b. Abi Ziyad calls him al-Sakuni al-Shu'ayri, the same as the primary; al-Tusi equates Isma'il b. Muslim with b. Abi Ziyad al-Sakuni al-Kufi, companion of al-Sadiq; Khoei equates them.",
+  "quote": "إسماعيل بن أبي زياد يعرف بالسكوني الشعيري",
+  "held_because": "najashi:64 is a spliced record: al-Sakuni's heading on al-Sulami's text and thiqa (split_partition note). Merged, it pulls al-Sulami's keys in through an older pairing and puts a thiqa on al-Sakuni."
+ },
+ {
+  "group": "g038",
+  "primary": "n000585",
+  "other": "n067727",
+  "reason": "Al-Khoei's entry for the mawla of Banu Nawfal says outright it is the same man as the preceding entry; the primary's Tusi entry 5440 is the same mawla of Banu Nawfal, khazzaz, Kufan.",
+  "quote": "قد عرفت اتحاده مع سابقه",
+  "held_because": "An audit agent judged khoei:29109 to be the Khazzaz mawla of Banu Nawfal, not the Bajali of the Ashab al-Ijma'; whose «سابقه» al-Khoei means is not settled by the quote alone."
+ },
+ {
+  "group": "g075",
+  "primary": "n000620",
+  "other": "n067161",
+  "reason": "Al-Najashi's 'al-Hajjal al-Muzakhraf' and al-Tusi/al-Fihrist's 'al-Muzakhraf al-Hajjal' are joined in one al-Khoei entry for the same man.",
+  "quote": "عبد الله بن محمد الأسدي مولاهم، كوفي، الحجال المزخرف، أبو محمد",
+  "held_because": "n000620 is anchored on Abu Basir Yahya b. Abi al-Qasim with al-Hajjal's Najashi text fused in (crossform note); merging al-Hajjal into it deepens the fusion. Needs a split first."
+ },
+ {
+  "group": "g179",
+  "primary": "n066480",
+  "other": "n000811",
+  "reason": "Al-Khoei concludes there is one Imran b. Musa, Qummi, Ashʿari, Zaytuni, and the primary already holds the Ashʿari entry.",
+  "quote": "والظاهر اتحاده مع عمران بن موسى الزيتوني الآتي",
+  "held_because": "al-Khoei hedges («الظاهر اتحاده») and an earlier agent found different teachers for al-Khashshab and al-Zaytuni."
+ }
+]

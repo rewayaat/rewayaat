@@ -25,6 +25,10 @@ from collections import Counter, defaultdict
 import json
 import os
 import re
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import lineage  # noqa: E402
 
 W = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 MAP = f'{W}/scripts/data/narrators/transliteration.json'
@@ -166,6 +170,16 @@ def english_for(arabic, learned):
 RESPELLED = {
     'شمر': 'Shimr',
 }
+# More of the same, checked by hand on 2026-11-09: the learned map had «بكير» as Bakir (Bukayr),
+# «حريث» as Harith (Hurayth), «الحميري» as al-Hamiri (al-Himyari), «جامع» as Jamil, «السبيعي»
+# as al-Sulaybi; the books' own English had «دراج» as Dirar. A scholar reads «Jamil ibn Dirar»
+# as a different man.
+CORRECTIONS = os.path.join(W, 'scripts', 'data', 'narrators', 'transliteration_corrections.json')
+try:
+    with open(CORRECTIONS) as _handle:
+        RESPELLED.update(json.load(_handle)["words"])
+except (FileNotFoundError, KeyError):
+    pass
 
 
 def respell(arabic, english):
@@ -176,10 +190,15 @@ def respell(arabic, english):
     """
     if not arabic or not english:
         return english
-    ours, theirs = arabic.split(), english.split()
-    if len(ours) != len(theirs):
-        return english
-    return ' '.join(RESPELLED.get(strip(one), other) for one, other in zip(ours, theirs))
+    if not _LEARNED:
+        _LEARNED.update(load())
+    # A word whose consonants cannot be its Arabic (Ishaq for «إبراهيم») is put right from the
+    # learned map too, as long as it is the only such word: two means the names do not align.
+    corrected, _ = lineage.corrected_english(arabic, english, _LEARNED, RESPELLED)
+    return corrected
+
+
+_LEARNED = {}
 
 
 def load(path=MAP):

@@ -158,6 +158,85 @@ class NarratorNameLookupIntegrationTest extends ElasticsearchTestSupport {
                 "Sahl b. Ziyad is cited by this kunya as often as by his name");
     }
 
+    private void indexDoc(Map<String, Object> doc) throws Exception {
+        doc.putIfAbsent("holds_entry", true);
+        doc.putIfAbsent("kind", "narrator");
+        client.index(IndexRequest.of(b -> b
+                .index(NARRATORS)
+                .id(String.valueOf(doc.get("person_id")))
+                .document(doc)
+                .refresh(Refresh.True)));
+    }
+
+    private static Map<String, Object> man(String id, String ar, String en, int entries,
+                                           int chains, List<String> namesAr,
+                                           List<String> namesEn) {
+        Map<String, Object> doc = new LinkedHashMap<>();
+        doc.put("person_id", id);
+        doc.put("display_ar", ar);
+        doc.put("display_en", en);
+        doc.put("names_ar", new ArrayList<>(namesAr));
+        doc.put("names_en", new ArrayList<>(namesEn));
+        doc.put("entry_count", entries);
+        doc.put("chain_count", chains);
+        return doc;
+    }
+
+    @Test
+    @DisplayName("«عبدالله» joined and a name without its «ال» still find the man")
+    void readersSpellingsOfArabicFindHim() throws Exception {
+        indexDoc(man("n000492", "سعد بن عبد الله بن أبي خلف", "Sa'd ibn 'Abd Allah", 6, 1463,
+                List.of("سعد بن عبد الله"), List.of()));
+        indexDoc(man("n067140", "الحسين بن سعيد", "al-Husayn ibn Sa'id", 8, 815,
+                List.of("الحسين بن سعيد الأهوازي"), List.of()));
+        assertEquals("n000492", first(found("سعد بن عبدالله")));
+        assertEquals("n067140", first(found("حسين بن سعيد")));
+    }
+
+    @Test
+    @DisplayName("English spelt by its consonants: Himyari for Hamiri, b. for ibn, Saeed for Sa'id")
+    void transliterationsThatDifferInVowelsFindHim() throws Exception {
+        indexDoc(man("n000597", "عبد الله بن جعفر الحميري", "'Abd Allah ibn Ja'far al-Hamiri", 13,
+                432, List.of(), List.of("Abdullah ibn Ja'far al-Hamiri")));
+        indexDoc(man("n000907", "محمد بن مسلم بن رباح", "Muhammad ibn Muslim ibn Rabah", 9, 1014,
+                List.of(), List.of("Muhammad ibn Muslim")));
+        assertEquals("n000597", first(found("al-Himyari")));
+        assertEquals("n000907", first(found("Muhammad b. Muslim")));
+    }
+
+    @Test
+    @DisplayName("a man whose own name starts with the query outranks a son who carries it")
+    void theManHimselfOutranksHisSons() throws Exception {
+        indexDoc(man("n000488", "زرارة بن أعين", "Zurarah ibn A'yan", 8, 1000,
+                List.of("زرارة"), List.of("Zurara")));
+        indexDoc(man("n002413", "الحسين بن زرارة", "Al-Husayn ibn Zurara", 5, 4,
+                List.of(), List.of()));
+        indexDoc(man("n011175", "عمير بن زرارة", "Umayr b. Zurara", 1, 0, List.of(), List.of()));
+        assertEquals("n000488", first(found("Zurara")));
+        assertEquals("n000488", first(found("زرارة")));
+    }
+
+    @Test
+    @DisplayName("among men of one name, the one the chains name most comes first")
+    void chainsDecideBetweenNamesakes() throws Exception {
+        indexDoc(man("n034836", "محمد بن يحيى أبو جعفر العطار القمي", "Muhammad ibn Yahya al-Attar",
+                6, 4204, List.of("محمد بن يحيى"), List.of()));
+        indexDoc(man("n000989", "محمد بن يحيى بن سلمان الخثعمي", "Muhammad ibn Yahya al-Khath'ami",
+                6, 22, List.of("محمد بن يحيى"), List.of()));
+        assertEquals("n034836", first(found("محمد بن يحيى")));
+    }
+
+    @Test
+    @DisplayName("a later scholar keeps his page but is not offered as a narrator")
+    void aLaterScholarIsNotANarrator() throws Exception {
+        Map<String, Object> scholar = man("n037778", "عبد الجبار بن الحسين", "Abd al-Jabbar ibn al-Husayn",
+                1, 0, List.of(), List.of());
+        scholar.put("kind", "scholar");
+        indexDoc(scholar);
+        assertTrue(found("عبد الجبار بن الحسين").isEmpty(),
+                "a scholar of the late lists stands in no chain and is not a narrator");
+    }
+
     private String first(List<String> ids) {
         assertFalse(ids.isEmpty(), "the search found nobody");
         return ids.get(0);

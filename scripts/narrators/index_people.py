@@ -44,6 +44,7 @@ from narrator_schema import (imam_generations, is_reasoned, normalize_arabic,  #
 import transliterate  # noqa: E402
 import field_check  # noqa: E402
 import arabic_years  # noqa: E402
+import lineage  # noqa: E402
 
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 TMP = os.path.join(REPO, "tmp")
@@ -336,6 +337,27 @@ NOT_A_MAN = re.compile(r'^(?:في\s|باب\s|ذكر\s|[اأإ]خوة\s|بنو\s|
 # the man himself carries where one extends it, and otherwise dropped, because half a kunya
 # claims a man is called something nobody calls him.
 HANGING = ("عبد", "ابو", "أبو", "ابي", "أبي", "ابا", "أبا", "ام", "أم", "ابن")
+
+
+KUNYA_WORD = re.compile(r"^(?:أبو|أبا|أبي|ابو|ابا|ابي|أم|ام)$")
+KUNYA_COMPOUND = {"عبد", "عبيد"}
+
+
+def kunyas_only(kunya):
+    """The kunyas in a recorded kunya, without the words that ran on after it.
+
+    242 kunyas and names had run on into the entry: Ismāʿīl b. Mihrān's read «أبا يعقوب ثقة
+    معتمد علي», Ibn Faḍḍāl's «أبا محمد قريب الامر (صه». A kunya is «أبو» and one name, two
+    when the name is «عبد» or «عبيد» and its complement; «أبا محمد وأبا الحكم» is two.
+    """
+    out = []
+    for part in re.split(r"\s+و(?=أب|اب|أم)", (kunya or "").strip()):
+        words = re.sub(r"[^ء-يً-ْ\s]", " ", part).split()
+        if len(words) < 2 or not KUNYA_WORD.match(normalize_arabic(words[0])):
+            continue
+        size = 3 if normalize_arabic(words[1]) in KUNYA_COMPOUND and len(words) > 2 else 2
+        out.append(" ".join(words[:size]))
+    return out
 
 
 def whole_kunya(kunya, names):
@@ -986,12 +1008,29 @@ def clean_text(text):
 
 
 def text_of(profile, arabic=True):
-    """The source's own words: the printed entry where there is one, else what was read."""
-    said = profile.get("source_assessments") or []
-    field = "assessment_ar" if arabic else "assessment_en"
+    """The source's own words: the printed entry where there is one, else what was read.
+
+    Never a passage that opens with another man's heading. Four of al-Najāshī's entries on
+    men named al-Ḥusayn — b. Saʿīd, b. Fahm, b. Abī Ghundar, b. Ḥamdān al-Khaṣībī — were
+    shown with «الحسين (الحسن) بن زيدان الصرمي له نوادر…», the entry on al-Ḥusayn b. Zaydān,
+    which extraction had attached to each of them as its last passage, and the last passage
+    is the one a printed entry shows. al-Ardabīlī's Abān b. ʿUthmān opened with «ظريف بن
+    ناصح». Each had its own passage beside the stray one, which is what is shown now; where a
+    stray passage is all there is, it is still shown, since dropping it would drop the entry.
+    The English is taken from the same passage as the Arabic.
+    """
+    said = [a or {} for a in (profile.get("source_assessments") or [])]
     printed = "printed_entry" in (profile.get("flags") or ())
-    for assessment in (reversed(said) if printed else said):
-        if (assessment or {}).get(field):
+    ordered = list(reversed(said)) if printed else said
+    with_text = [a for a in ordered if a.get("assessment_ar") or a.get("assessment_en")]
+    own = [profile.get("primary_arabic_name") or ""] + [
+        a.get("value") if isinstance(a, dict) else a for a in profile.get("arabic_aliases") or []]
+    own = [name for name in own if name]
+    his = [a for a in with_text
+           if not lineage.foreign(lineage.opening_name(a.get("assessment_ar") or ""), own)]
+    field = "assessment_ar" if arabic else "assessment_en"
+    for assessment in (his or with_text):
+        if assessment.get(field):
             return clean_text(assessment[field])
     return None
 
@@ -1047,6 +1086,166 @@ def entry_key_for(person, book, pages, entry_keys):
 # A heading al-Khoei files only to send the reader on: «أحمد بن عبدون أبو عبد الله: = أحمد بن
 # عبد الواحد.» The «=» is his own mark for the other names of one man.
 POINTS_ELSEWHERE = re.compile(r'^[^:]{2,70}:\s*=\s*([^.،؛]{3,70})')
+
+# al-Khoei's other way of saying the same thing: the man is treated under another heading,
+# earlier («تقدم في X») or later («يأتي بعنوان X»). Not «تقدم في ترجمة أبيه», which sends the
+# reader to a different man's entry where this one is only mentioned.
+POINTS_ACROSS = re.compile(
+    r'^[^:]{2,70}:\s*(?:[^:]{1,30}:\s*)?(?:تقدم|تقدّم|يأتي|يأتى)\s+(?:في|بعنوان)\s+'
+    r'(?!ترجمة)([^.،؛(]{3,70})')
+
+# The books a later scholar is listed from, and nothing earlier: Muntajab al-Dīn's Fihrist
+# (sixth century), al-Ḥurr's Amal al-Āmil and Tadhkirat al-Mutabaḥḥirīn, Riyāḍ al-ʿUlamāʾ,
+# Luʾluʾat al-Baḥrayn, Rawḍāt al-Jannāt. al-Khoei carries them all, and they are not
+# narrators: a man from them stands in no chain of this corpus.
+LATER_LISTS = re.compile(
+    r'منتجب الدين|أمل الآمل|امل الآمل|أمل الامل|تذكرة المتبحرين|الشيخ الحر|الحر العاملي|'
+    r'رياض العلماء|لؤلؤة البحرين|روضات الجنات|من المعاصرين')
+# Anything that puts a man in the age of the chains: the Four Books, an Imam's companions,
+# who he narrated from or to, or a teacher of the early compilers.
+CHAIN_AGE = re.compile(
+    r'الكافي|التهذيب|الفقيه|الاستبصار|روى عن|روى عنه|من أصحاب|مشائخ|مشايخ|ابن شهرآشوب|'
+    r'المعالم|الطوسي|النجاشي|الصدوق|المفيد|الكشي')
+EARLY_BOOKS = {"najashi", "tusi", "fihrist", "kashshi", "duafa"}
+
+
+# The narrator pages went public on rewayaat.info around 2026-10-24; an id merged away since
+# then may sit in a link somebody kept, a search engine's index, or a chain not yet restamped.
+PAGES_PUBLIC_SINCE = "2026-10-24"
+
+
+def merged_away(documents, since=PAGES_PUBLIC_SINCE):
+    """A small document for each id merged into a man since the pages went public.
+
+    The registry redirects a merged id to the man it joined, but the index held nothing under
+    the old id, so its page answered 404 and a chain still naming it linked nowhere. Each now
+    carries «moved_to», which the page follows with a redirect and the search, the sitemap
+    and the narrator count all leave out.
+    """
+    from identity import load_registry, registry_state, resolve
+    events = load_registry(os.path.join(IDENTITY, "person_ids.jsonl"))
+    state = registry_state(events)
+    held = {d["person_id"]: d for d in documents if d.get("person_id")}
+    out = []
+    for event in events:
+        if event.get("event") != "redirect" or (event.get("date") or "") < since:
+            continue
+        old = event["id"]
+        target = resolve(state, old)
+        if old in held or target not in held or target == old:
+            continue
+        man = held[target]
+        out.append({"person_id": old, "moved_to": target, "kind": "narrator",
+                    "display_ar": man.get("display_ar"), "display_en": man.get("display_en"),
+                    "slug": man.get("slug"), "holds_entry": False, "entry_count": 0,
+                    "chain_count": 0})
+        held[old] = out[-1]
+    return out
+
+
+def served_chain_counts(host, index="rewayaat_hadith"):
+    """person id → how many served narrations name him in their chain."""
+    import urllib.request
+    body = {"size": 0, "aggs": {"men": {"terms": {"field": "chain_links.p.keyword",
+                                                  "size": 65000}}}}
+    request = urllib.request.Request(f"{host.rstrip('/')}/{index}/_search",
+                                     data=json.dumps(body).encode(),
+                                     headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(request, timeout=120) as response:
+        buckets = json.load(response)["aggregations"]["men"]["buckets"]
+    return {b["key"]: b["doc_count"] for b in buckets}
+
+
+def served_english_forms(host, index="rewayaat_hadith"):
+    """person id → {the English the translations print for him in a chain: times}.
+
+    A translator writes the names in the chains he translates, «Jamil ibn Darraj», «Ibn Abi
+    ʿUmayr», «Zurara», and the English chains are aligned to the men (chain_links_en). Those are
+    the spellings a reader of the translations knows him by, and until now a search for one
+    found him only if the Rijāl books happened to print the same.
+    """
+    import urllib.request
+
+    def post(path, body):
+        request = urllib.request.Request(f"{host.rstrip('/')}{path}", data=json.dumps(body).encode(),
+                                         headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(request, timeout=120) as response:
+            return json.load(response)
+
+    forms = defaultdict(Counter)
+    page = post(f"/{index}/_search?scroll=3m", {"size": 2000, "_source": ["chain_links_en"],
+                                                "query": {"exists": {"field": "chain_links_en.p"}}})
+    scroll = page.get("_scroll_id")
+    while page["hits"]["hits"]:
+        for hit in page["hits"]["hits"]:
+            for span in hit["_source"].get("chain_links_en") or []:
+                if span.get("p") and span.get("t"):
+                    forms[span["p"]][" ".join(span["t"].split())] += 1
+        page = post("/_search/scroll", {"scroll": "3m", "scroll_id": scroll})
+    return forms
+
+
+def add_translators_names(doc, forms):
+    """His names as the translations print them, where they are his: at least twice, two words
+    or more, and passing the lineage test against his own English names, which drops a span the
+    alignment gave the wrong man («Saʿd ibn Saʿd» on Saʿd b. al-Aḥwaṣ)."""
+    own = [doc.get("display_en") or ""] + list(doc.get("names_en") or [])
+    added = [form for form, times in forms.items()
+             if times >= 2 and len(form.split()) >= 2 and not lineage.foreign_en(form, own)]
+    if added:
+        doc["names_en"] = sorted(set(doc.get("names_en") or []) | set(added))
+        doc["normalized_en"] = sorted(set(doc.get("normalized_en") or [])
+                                      | {form.lower() for form in added})
+    return len(added)
+
+
+def is_later_scholar(doc):
+    """A man only the late lists know, who stands in no chain here."""
+    entries = doc.get("entries") or []
+    if not entries or doc.get("chain_count") or doc.get("kind") != "narrator":
+        return False
+    if {e.get("book") for e in entries} & EARLY_BOOKS:
+        return False
+    texts = [e.get("text_ar") or "" for e in entries]
+    return (all(LATER_LISTS.search(t) for t in texts)
+            and not any(CHAIN_AGE.search(t) for t in texts))
+
+
+def fold_pointers(documents):
+    """A page whose only entry sends the reader to another man is folded into that man.
+
+    al-Khoei heads a man under each form his name takes and, under a variant, writes only
+    «= X» or «تقدم في X»: the book saying the two are one. Until now the variant kept a page
+    of its own that read as a narrator about whom nothing is known — 411 of them — and
+    counted as a narrator of its own. Folded, the page redirects to the man (moved_to), its
+    heading becomes one of his searchable names, and it leaves the narrator count. Only where
+    the name pointed at belongs to exactly one man; an ambiguous pointer is left standing.
+    """
+    stubs = {}
+    for doc in documents:
+        entries = doc.get("entries") or []
+        if len(entries) != 1 or doc.get("moved_to") or doc.get("kind") != "narrator":
+            continue
+        text = (entries[0].get("text_ar") or "").strip()
+        found = POINTS_ELSEWHERE.match(text) or POINTS_ACROSS.match(text)
+        if found:
+            stubs[doc["person_id"]] = found.group(1).strip()
+    others = [d for d in documents if d.get("person_id") not in stubs]
+    by_arabic, _ = relations_join.lookup(others)
+    everyone = {d["person_id"]: d for d in documents if d.get("person_id")}
+    folded = 0
+    for pid, pointed in stubs.items():
+        target = by_arabic.get(relations_join.arabic_key(pointed))
+        if not target or target == pid or everyone[target].get("moved_to"):
+            continue
+        stub, man = everyone[pid], everyone[target]
+        stub["moved_to"] = target
+        for field in ("names_ar", "search_ar"):
+            man[field] = sorted(set(man.get(field) or []) | {stub.get("display_ar")} - {None})
+        man["names_en"] = sorted(set(man.get("names_en") or []) | {stub.get("display_en")} - {None})
+        man["chain_count"] = (man.get("chain_count") or 0) + (stub.get("chain_count") or 0)
+        folded += 1
+    return folded, len(stubs)
 
 
 def points_elsewhere(documents):
@@ -1730,8 +1929,22 @@ def document(person, source, headless):
     narrated_from, chain_from, imams_from, unsaid_from = split(all_from)
     narrated_to, chain_to, imams_to, unsaid_to = split(all_to)
 
-    all_names_ar = [n["value"] for n in values(person, "primary_names") + values(person, "arabic_aliases")
-                    if n.get("value") and not another_mans_name(person, n["value"])]
+    # His own headings, which the aliases are tested against: an alias whose ism or lineage
+    # is not his is another man's (lineage.py). The headings themselves are not tested.
+    own_lineage = [n["value"] for n in values(person, "primary_names") if n.get("value")]
+    own_lineage += [e["heading_ar"] for e in entries if e.get("heading_ar")]
+    own_lineage += [person["primary_arabic_name"]] if person.get("primary_arabic_name") else []
+    own_lineage_en = [person["primary_english_name"]] if person.get("primary_english_name") else []
+    own_lineage_en += [e["heading_en"] for e in entries if e.get("heading_en")]
+
+    def his_alias(value):
+        return not lineage.foreign(value, own_lineage)
+
+    all_names_ar = [n["value"] for n in values(person, "primary_names") if n.get("value")]
+    all_names_ar += [n["value"] for n in values(person, "arabic_aliases")
+                     if n.get("value") and not another_mans_name(person, n["value"])
+                     and his_alias(n["value"])]
+    all_names_ar = list(dict.fromkeys(all_names_ar))
     own_headings = [normalize_arabic(n["value"]) for n in values(person, "primary_names")
                     if n.get("value")]
     own_headings += [normalize_arabic(e["heading_ar"]) for e in entries if e.get("heading_ar")]
@@ -1761,9 +1974,10 @@ def document(person, source, headless):
     headings_ar = {name_only(h) for h in headings_ar} - {""}
     search_ar = searchable(sorted(headings_ar),
                            sorted({n["value"] for n in values(person, "arabic_aliases")
-                                   if n.get("value")}), HOLDERS)
+                                   if n.get("value") and his_alias(n["value"])}), HOLDERS)
     all_names_en = [n["value"] for n in values(person, "english_aliases")
-                    if n.get("value") and not another_mans_english(person, n["value"])]
+                    if n.get("value") and not another_mans_english(person, n["value"])
+                    and not lineage.foreign_en(n["value"], own_lineage_en)]
     names_en = [n for n in all_names_en if not not_a_personal_name(n, [], english=True)]
     names_group_en = [{"value": n, "kind": "family"} for n in sorted(set(all_names_en))
                       if not_a_personal_name(n, [], english=True)]
@@ -1781,9 +1995,9 @@ def document(person, source, headless):
         return held, said
 
     kunyahs, kunyahs_said = split_by_evidence(
-        {whole for whole in (whole_kunya(k["value"], set(names_ar) | headings_ar)
-                             for k in values(person, "kunyahs_arabic") if k.get("value"))
-         if whole})
+        {only for whole in (whole_kunya(k["value"], set(names_ar) | headings_ar)
+                            for k in values(person, "kunyahs_arabic") if k.get("value"))
+         if whole for only in kunyas_only(whole)})
     titles, titles_said = split_by_evidence(
         {t["value"] for t in values(person, "titles") if t.get("value")})
 
@@ -2246,6 +2460,43 @@ def main():
                        for doc in documents], handle, ensure_ascii=False)
         os.replace(args.dump + ".part", args.dump)
         print(f"dumped {len(documents):,} people -> {args.dump}")
+    # Everything below is the index's alone, after the dump the chain resolver reads, so none
+    # of it can move a link: how often the served chains name each man, who is a later
+    # scholar rather than a narrator, and which pages fold into the man they point at.
+    try:
+        chain_counts = served_chain_counts(args.es_host)
+    except Exception as unreachable:  # noqa: BLE001 - the index is still worth building
+        chain_counts = {}
+        print(f"  could not count the served chains ({unreachable}); chain_count is 0",
+              file=sys.stderr)
+    for doc in documents:
+        doc["chain_count"] = chain_counts.get(doc.get("person_id"), 0)
+    try:
+        english_forms = served_english_forms(args.es_host)
+    except Exception as unreachable:  # noqa: BLE001
+        english_forms = {}
+        print(f"  could not read the English chains ({unreachable})", file=sys.stderr)
+    counts["names the translations print, added to the men they name"] = sum(
+        add_translators_names(doc, english_forms.get(doc.get("person_id")) or {})
+        for doc in documents)
+    for doc in documents:
+        if is_later_scholar(doc):
+            doc["kind"] = "scholar"
+            counts["later scholars, kept as pages but not as narrators"] += 1
+    folded, pointing = fold_pointers(documents)
+    counts[f"of {pointing} pages that only point at another man, folded into him"] = folded
+    redirects = merged_away(documents)
+    by_id = {d["person_id"]: d for d in documents if d.get("person_id")}
+    for doc in redirects:
+        # His chains are restamped onto the man he joined (restamp_chain_slugs); count them
+        # there already, so the ranking does not wait on the restamp.
+        man = by_id.get(doc["moved_to"])
+        if man is not None:
+            man["chain_count"] = (man.get("chain_count") or 0) + chain_counts.get(doc["person_id"], 0)
+    documents += redirects
+    counts["ids merged into another man since the pages went public, now redirecting"] = \
+        len(redirects)
+
     if documents:
         roster = roster_documents(documents[0])
         for doc in roster:

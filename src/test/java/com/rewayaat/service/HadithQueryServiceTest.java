@@ -181,4 +181,29 @@ class HadithQueryServiceTest {
                 service.enhanceQuery("قال (الكافي) الصلاة", QueryMode.SEARCH, true)
         );
     }
+
+    @Test
+    void aJoinedAbdIsSplitAsTheBooksPrintIt() {
+        assertEquals("عبد AND الله AND بن AND سنان",
+                service.enhanceQuery("عبدالله بن سنان", QueryMode.SEARCH, true));
+        assertEquals("عبيد الله الحلبي", HadithQueryService.splitJoinedAbd("عبيدالله الحلبي"));
+        // «العبدالي» is not the compound: only a word starting «عبد»/«عبيد» is split
+        assertEquals("العبدالي", HadithQueryService.splitJoinedAbd("العبدالي"));
+    }
+
+    @Test
+    void aPlainNameIsAlsoReadAsAPhrase() {
+        assertEquals("Muhammad ibn Muslim", service.phraseOf("Muhammad ibn Muslim"));
+        assertEquals("عبد الله بن سنان", service.phraseOf("عبدالله بن سنان"));
+        assertEquals("محمد بن مسلم", service.phraseOf("مُحَمَّد بن مُسْلِم"));
+    }
+
+    @Test
+    void anythingButPlainWordsHasNoPhrase() {
+        assertEquals(null, service.phraseOf("Zurara"));
+        assertEquals(null, service.phraseOf("\"Muhammad ibn Muslim\""));
+        assertEquals(null, service.phraseOf("book:\"al-Kafi\" prayer"));
+        assertEquals(null, service.phraseOf("prayer AND fasting"));
+        assertEquals(null, service.phraseOf("pray*"));
+    }
 }
