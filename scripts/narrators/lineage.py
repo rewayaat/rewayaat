@@ -167,8 +167,10 @@ def foreign_en(name, own_names):
     mine = [found for found in (_lineage_en(n) for n in own_names) if found]
     if not mine:
         return False
-    ism_ok = theirs[0] in {m[0] for m in mine}
-    father_ok = bool(set(theirs[1]) & {a for m in mine for a in m[1]})
+    # One consonant either way, as the Arabic allows one letter: «Kharrabudh» and «Kharbud»
+    # are one name to a translator who writes dh for ذ and one who writes d.
+    ism_ok = any(_one_edit(theirs[0], m[0]) for m in mine)
+    father_ok = any(_one_edit(x, a) for x in theirs[1] for m in mine for a in m[1])
     return not (ism_ok and father_ok)
 
 

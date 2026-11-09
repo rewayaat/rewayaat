@@ -56,3 +56,4 @@ def test_english_another_mans_name_is_foreign():
     assert foreign_en("Muhammad ibn Ali", attar)
     assert not foreign_en("Muhammad b. Yahya al-Attar", attar)
     assert not foreign_en("Abdullah ibn Jafar al-Himyari", ["'Abd Allah ibn Ja'far al-Hamiri"])
+    assert not foreign_en("Ma'ruf ibn Kharrabudh", ["Ma'ruf bin Kharbud"])
