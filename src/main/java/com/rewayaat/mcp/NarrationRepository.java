@@ -185,7 +185,8 @@ public class NarrationRepository {
                 0,
                 topicTags == null ? List.of() : topicTags,
                 List.of())
-                .queryFields(SEARCH_FIELDS);
+                .queryFields(SEARCH_FIELDS)
+                .withPhrase(queryService.phraseOf(query));
 
         QueryStringQueryResult.RawResult raw = search.rawResult(fields(withChain));
         List<Narration> narrations = new ArrayList<>();

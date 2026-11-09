@@ -168,6 +168,7 @@ public class HadithController {
                 topicTagsAny)
                 // so an isnād link on the Arabic site stays on the Arabic site
                 .withLinkPrefix(request == null ? "" : PageLocale.of(request).prefix())
+                .withPhrase(queryMode == QueryMode.SEARCH ? hadithQueryService.phraseOf(query) : null)
                 .result();
         // Recorded after the answer exists, so the result count is part of the row and a
         // search that found nothing is as visible as a popular one. Never before: a reader
@@ -340,11 +341,17 @@ public class HadithController {
         QueryMode queryMode = sortFields == null || sortFields.isEmpty() ? QueryMode.SEARCH : QueryMode.LOOKUP;
         boolean strictMatchMode = hadithQueryService.isPreciseMatchMode(matchMode);
         String enhancedQuery = hadithQueryService.enhanceQuery(safeQuery, queryMode, strictMatchMode);
+        // Ranked as the search ranks, or the page found here is not the page the reader sees.
+        String phrase = queryMode == QueryMode.SEARCH ? hadithQueryService.phraseOf(safeQuery) : null;
 
         SearchRequest.Builder searchBuilder = new SearchRequest.Builder()
                 .index(ESClientProvider.INDEX)
                 .searchType(SearchType.DfsQueryThenFetch)
-                .query(q -> q.bool(b -> b.should(s -> s.queryString(qs -> qs.query(enhancedQuery)))))
+                .query(q -> q.bool(b -> {
+                    b.should(s -> s.queryString(qs -> qs.query(enhancedQuery)));
+                    QueryStringQueryResult.applyPhraseBoost(b, phrase);
+                    return b;
+                }))
                 .size(maxScanned)
                 .source(sc -> sc.fetch(false));
         for (SortOptions sortOption : sortBuilders) {

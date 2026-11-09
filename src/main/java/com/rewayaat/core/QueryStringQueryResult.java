@@ -68,6 +68,45 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
         return this;
     }
 
+    /** The reader's words as one phrase, from HadithQueryService.phraseOf; null for none. */
+    private String phrase;
+
+    /**
+     * Ranks narrations holding the reader's words in order above those holding them apart.
+     * A boost, not a filter: the set of narrations found is the same with or without it.
+     */
+    public QueryStringQueryResult withPhrase(String phrase) {
+        this.phrase = phrase == null || phrase.isBlank() ? null : phrase;
+        return this;
+    }
+
+    /** The boost a phrase match adds; see {@link #applyPhraseBoost}. */
+    static final float PHRASE_BOOST = 12.0f;
+
+    /** One word may stand between, for a kunya a reader left out: «علي بن حمزة» still meets
+     * «علي بن أبي حمزة». More would let two names in one chain pass for one man. */
+    private static final int NAME_PHRASE_SLOP = 1;
+
+    /**
+     * The phrase as a should clause over the matn and its translation.
+     *
+     * <p>Shared with the page lookup in HadithController, which has to rank exactly as the
+     * search does or it sends a reader to the wrong page.
+     */
+    public static void applyPhraseBoost(
+            co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery.Builder boolBuilder,
+            String phrase) {
+        if (phrase == null || phrase.isBlank()) {
+            return;
+        }
+        boolBuilder.should(s -> s.multiMatch(m -> m
+                .query(phrase)
+                .type(co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType.Phrase)
+                .slop(NAME_PHRASE_SLOP)
+                .fields("arabic", "english")
+                .boost(PHRASE_BOOST)));
+    }
+
     private static String text(Object value) {
         return value == null ? "" : String.valueOf(value);
     }
@@ -249,6 +288,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
                             return qs;
                         }));
                         applyMetadataRankingBoost(b, residualQuery);
+                        applyPhraseBoost(b, phrase);
                     } else if (fieldScopes.isEmpty()) {
                         b.must(s -> s.queryString(qs -> qs.query("*")));
                     }
@@ -556,6 +596,11 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
      * already on one scale; the old wildcard scored a flat 1.0 and needed three orders of
      * magnitude to be seen at all. A short metadata value also scores high on its own
      * through BM25 field-length normalisation, which does much of the work unaided.
+     *
+     * <p>Every word of the query must be in the metadata for it to count. Any one word was
+     * enough before, and a name is mostly connectives: «Ibn Abi Umayr» earned the full boost
+     * from a Mīzān al-Ḥikma narration cited from «Ibn Abi al-Ḥadīd», and nine of the first
+     * ten results did not name Ibn Abi Umayr at all. A one-word query is unaffected.
      */
     private void applyMetadataRankingBoost(
             co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery.Builder boolBuilder,
@@ -567,6 +612,7 @@ public class QueryStringQueryResult implements RewayaatQueryResult {
         boolBuilder.should(s -> s.multiMatch(m -> m
                 .query(normalized)
                 .fields(METADATA_TEXT_FIELDS)
+                .operator(Operator.And)
                 .boost(METADATA_RANKING_BOOST)));
     }
 
