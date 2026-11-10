@@ -203,9 +203,16 @@ def main():
     parser.add_argument("--only", default="", help="run one check by name")
     parser.add_argument("--sensitivity", action="store_true",
                         help="print how the two direction checks move with their settings")
+    parser.add_argument("--flagged-out", default=None,
+                        help="write each reversed or too-early pair to this JSON file")
+    parser.add_argument("--people", default=None,
+                        help="the people index the resolution was made against")
     parser.add_argument("--resolved", default=RESOLVED,
                         help="check a candidate run before it replaces the live file")
     args = parser.parse_args()
+    if args.people:
+        global PEOPLE
+        PEOPLE = args.people
 
     names, teachers, students, display, tabaqa, died = people()
     printed = chains()
@@ -221,8 +228,13 @@ def main():
     # judged at the end, because a disagreement is only visible across the whole corpus.
     resolves_to = defaultdict(Counter)
 
-    def flag(check, chain_id, detail):
+    pairs_flagged = []
+
+    def flag(check, chain_id, detail, pair=None):
         found[check] += 1
+        if pair:
+            pairs_flagged.append({"check": check, "id": chain_id, "student": pair[0],
+                                  "teacher": pair[1]})
         if len(examples[check]) < args.show:
             examples[check].append(f"{chain_id}  {detail}")
 
@@ -351,7 +363,8 @@ def main():
                         flag("too-early-for-his-shaykh", chain_id,
                              f"{display.get(previous, previous)} (Imams {student[0]}–{student[1]},"
                              f" last d.{late}) ← {display.get(person, person)}"
-                             f" (Imams {teacher[0]}–{teacher[1]}, first d.{early})")
+                             f" (Imams {teacher[0]}–{teacher[1]}, first d.{early})",
+                             pair=(previous, person))
                     if args.sensitivity and late is not None and early is not None \
                             and early - late > 0:
                         confirmed = bool(discriminating(names.get(previous, set()), holders)
@@ -373,7 +386,8 @@ def main():
                     elif as_teacher and not as_student:
                         flag("reversed", chain_id,
                              f"{display.get(previous, previous)} ← {display.get(person, person)},"
-                             f" but the books have that pair the other way")
+                             f" but the books have that pair the other way",
+                             pair=(previous, person))
                 # Every step moves the cursor, named or not. Skipping an unidentified man
                 # would pair the two names on either side of him, who never met: three of
                 # the four pairs this check flagged were invented that way.
@@ -392,6 +406,9 @@ def main():
                 shown = ", ".join(f"{display.get(p, p)} ×{n}" for p, n in who.most_common(3))
                 examples["same-words-different-men"].append(f"«{folded}» → {shown}")
 
+    if args.flagged_out:
+        with open(args.flagged_out, "w") as handle:
+            json.dump(pairs_flagged, handle, ensure_ascii=False)
     order = ["direction-confirmed", "side-by-side", "second-tariq",
              "span", "overlap", "name-not-his", "imam-kept-a-narrator",
              "reversed", "too-early-for-his-shaykh", "outlived-the-compiler", "self",
