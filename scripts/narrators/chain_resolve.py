@@ -498,8 +498,11 @@ def load_people(path, books):
             continue
         pid = person["person_id"]
         by_id[pid] = person
-        own = set(person.get("headings_ar") or [])
-        if person.get("display_ar"):
+        # The headings as printed, where the dump carries them: a run-on heading cut back to
+        # its name («أبو على الأشعري اسمه أحمد بن إدريس…» → «أبو على الأشعري») would otherwise
+        # hold the name it cites as a heading of its own.
+        own = set(person.get("resolver_headings_ar") or person.get("headings_ar") or [])
+        if person.get("display_ar") and not person.get("resolver_headings_ar"):
             own.add(person["display_ar"])
         for name in own:
             folded = key(name)
@@ -620,12 +623,27 @@ def held_by(folded, data):
     return sorted(data["aliases"].get(folded, ()))
 
 
-def generic_alias(folded, data):
-    """A bare kunya («أبي إسحاق») or a bare «ابن X» that no heading carries, only aliases."""
-    if not folded or data["headings"].get(folded):
-        return False
-    words = folded.split()
-    return bare_kunya(words) or (len(words) == 2 and words[0] in LINK)
+SHARED_NAMES = f'{W}/scripts/data/narrators/chain_shared_names.json'
+
+
+def _shared_names():
+    try:
+        with open(SHARED_NAMES) as handle:
+            return {key(entry["name"]) for entry in json.load(handle)["names"]}
+    except (FileNotFoundError, KeyError):
+        return set()
+
+
+# Names the rijāl literature itself calls shared (مشترك) between men who all stand in the
+# chains, so that whichever one of them a filing happens to carry the name for must still be
+# vouched for by the chain: «ابن سنان» is ʿAbd Allāh b. Sinān as often as Muḥammad, and «أبي
+# إسحاق» after «شريك» is al-Sabīʿī, not the bayyāʿ al-luʾluʾ whose aliases carry it.
+SHARED = _shared_names()
+
+
+def generic_alias(folded, candidates, data):
+    """Whether the name is one the books call shared, which the chain must decide."""
+    return folded in SHARED
 
 
 def by_heading(folded, data):
@@ -1014,7 +1032,7 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
         before = keys[position - 1] if position else ""
         after = keys[position + 1] if position + 1 < len(keys) else ""
         widened = ""
-        if candidates and generic_alias(keys[position], data):
+        if candidates and generic_alias(keys[position], candidates, data):
             # «أبي إسحاق» after «شريك» is al-Sabīʿī, and «ابن سنان» in al-Kāfī is ʿAbd Allāh as
             # often as Muḥammad; each was a link to whichever one man happened to carry the
             # kunya or the «ابن X» among his aliases. No rijālī files anybody under it, so it
@@ -1044,6 +1062,9 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
         # weighed. Where he was the only candidate the name goes unanswered, which is the
         # right answer — somebody holds that name and it is not a man this book could reach.
         candidates = [pid for pid in candidates if not outlived(pid, compiler, data)]
+        if widened and generic_alias(keys[position], candidates, data):
+            candidates = [pid for pid in candidates if support(
+                pid, before, after, data["teachers"], data["students"])]
         if keys[position] in SHARED_KUNYA:
             candidates = sorted(set(candidates) | {
                 pid for pid in SHARED_KUNYA[keys[position]]

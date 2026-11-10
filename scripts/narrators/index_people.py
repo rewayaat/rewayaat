@@ -2497,6 +2497,11 @@ def document(person, source, headless):
     join_en = list(names_en) + ([] if newly_cut or runs_on else [display_en])
     return {
         "_join_ar": join_ar,
+        # The headings as the books print them, before a run-on was cut back to the name, for
+        # the chain resolver alone (kept in the dump, dropped before the load). Cut, al-
+        # Ardabīlī's «أبو على الأشعري اسمه أحمد بن إدريس ويجئ لغيره» became a second
+        # «أبو على الأشعري», and al-Kulaynī's shaykh lost 22 links to a tie with it.
+        "_resolver_headings_ar": sorted(set(raw_headings_ar) | {raw_display_ar} - {None}),
         "_join_en": join_en,
         "person_id": person["person_id"],
         # the anchor entry's own heading, not the longest name the merge found: that gave Ibn Abi
@@ -2845,7 +2850,8 @@ def main():
 
     if documents and args.dump:
         with open(args.dump + ".part", "w") as handle:
-            json.dump([{k: v for k, v in doc.items() if not k.startswith("_join")}
+            json.dump([{(k[1:] if k == "_resolver_headings_ar" else k): v
+                        for k, v in doc.items() if not k.startswith("_join")}
                        for doc in documents], handle, ensure_ascii=False)
         os.replace(args.dump + ".part", args.dump)
         print(f"dumped {len(documents):,} people -> {args.dump}")
@@ -2920,6 +2926,7 @@ def main():
         for doc in roster:
             # Built from documents[0] as a template, they would join under that man's names.
             doc.pop("_join_ar", None)
+            doc.pop("_resolver_headings_ar", None)
             doc.pop("_join_en", None)
         documents += roster
         counts["the fourteen, who hold no entry anywhere"] = len(roster)
@@ -2981,6 +2988,7 @@ def main():
     for doc in documents:
         doc.pop("_join_ar", None)
         doc.pop("_join_en", None)
+        doc.pop("_resolver_headings_ar", None)
 
     if args.show:
         wanted = [d for d in documents if d["person_id"] == args.show]

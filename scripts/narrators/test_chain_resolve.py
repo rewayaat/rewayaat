@@ -281,9 +281,11 @@ def test_what_a_trim_takes_off_that_names_nobody_is_not_asked_of_him():
     assert read(data, "عبد الواحد بن محمد بن عبدوس العطار بنيسابور")[0] == [("one", "n1")]
 
 
-def test_a_kunya_only_an_alias_carries_needs_the_chain():
+def test_a_name_the_books_call_shared_needs_the_chain():
     """«أبي إسحاق» after «شريك» is al-Sabīʿī; a bayyāʿ al-luʾluʾ who carries the kunya among
-    his aliases does not get it for the asking."""
+    his aliases does not get it for the asking (chain_shared_names.json)."""
+    import chain_resolve
+    assert chain_resolve.key("أبي إسحاق") in chain_resolve.SHARED
     data = index(filed("n1", "إسحاق بياع اللؤلؤ", "أبي إسحاق"))
     outcomes, _ = read(data, "شريك", "أبي إسحاق")
     assert outcomes[1][0] == "none", outcomes
