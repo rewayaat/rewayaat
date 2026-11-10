@@ -273,6 +273,23 @@ class NarratorNameLookupIntegrationTest extends ElasticsearchTestSupport {
     }
 
     @Test
+    @DisplayName("the author the books cite by a nisba comes before a narrator of the same nisba")
+    void aCitedAuthorOutranksANarratorOfHisNisba() throws Exception {
+        Map<String, Object> author = man("n001044", "محمد بن عمر بن عبد العزيز الكشي",
+                "Muhammad ibn 'Umar al-Kashshi", 6, 0, List.of("أبو عمرو الكشي"), List.of());
+        author.put("nisbas_ar", List.of("الكشي"));
+        author.put("cited_count", 1128);
+        indexDoc(author);
+        Map<String, Object> narrator = man("n006907", "حمدويه بن نصير بن شاهي", "Hamduyah ibn Nusayr",
+                6, 88, List.of("حمدويه بن نصير الكشي"), List.of());
+        narrator.put("nisbas_ar", List.of("الكشي"));
+        indexDoc(narrator);
+        assertEquals("n001044", first(found("الكشي")));
+        // and the citations do not lift him for a name merely inside his own
+        assertEquals("n006907", first(found("حمدويه بن نصير")));
+    }
+
+    @Test
     @DisplayName("a bare ism held whole by a stub does not push the famous man down")
     void aStubHoldingABareIsmDoesNotWin() throws Exception {
         indexDoc(man("n001232", "يونس بن عبد الرحمن", "Yunus ibn Abd al-Rahman", 8, 318,

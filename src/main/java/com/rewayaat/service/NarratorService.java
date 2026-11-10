@@ -99,9 +99,14 @@ public class NarratorService {
     private static final List<String> WHOLE_HEADING_FIELDS = List.of(
             "display_ar.whole", "headings_ar.whole", "display_en.whole");
     private static final List<String> WHOLE_NAME_FIELDS = List.of(
-            "names_ar.whole", "titles.whole", "names_en.whole", "normalized_en.whole");
-    private static final float WHOLE_HEADING_BOOST = 150.0f;
-    private static final float WHOLE_NAME_BOOST = 100.0f;
+            "names_ar.whole", "titles.whole", "names_en.whole", "normalized_en.whole",
+            "nisbas_ar.whole", "nisbas_en.whole");
+    // Large beside the match scores, which run to a few hundred, so that among the men who
+    // answer a name exactly it is how much the books and chains say of each that decides, and
+    // a heading wins only when the two are close. A man headed by the name is not counted
+    // again as also holding it as an alias.
+    private static final float WHOLE_HEADING_BOOST = 1000.0f;
+    private static final float WHOLE_NAME_BOOST = 800.0f;
 
     /**
      * Whether a whole-name match means anything for this query.
@@ -317,8 +322,9 @@ public class NarratorService {
                                     .fields(LEAD_FIELDS)
                                     .boost(8.0f)))
                             .should(whole ? List.of(
-                                    wholeName(text, WHOLE_HEADING_FIELDS, WHOLE_HEADING_BOOST),
-                                    wholeName(text, WHOLE_NAME_FIELDS, WHOLE_NAME_BOOST))
+                                    wholeName(text, WHOLE_HEADING_FIELDS, List.of(), WHOLE_HEADING_BOOST),
+                                    wholeName(text, WHOLE_NAME_FIELDS, WHOLE_HEADING_FIELDS,
+                                            WHOLE_NAME_BOOST))
                                     : List.of())))
                             // Entries say how much the books wrote about a man; chains say how
                             // often this corpus names him. «محمد بن يحيى» is a dozen men with
@@ -334,6 +340,19 @@ public class NarratorService {
                                     .modifier(FieldValueFactorModifier.Log1p)
                                     .missing(0.0))
                                     .weight(0.5))
+                            // The authors of the rijāl books stand in few chains, but the
+                            // books cite them by the one name a reader types: «قال النجاشي»
+                            // 1,996 times, «ذكره الكشي» 1,128. Counted only for a man who
+                            // answers the query whole, so al-Ṣadūq's citations do not lift
+                            // him for «علي بن الحسين», which is merely inside his name.
+                            .functions(whole ? List.of(co.elastic.clients.elasticsearch._types.query_dsl
+                                    .FunctionScore.of(f -> f
+                                    .filter(fl -> fl.multiMatch(m -> m.query(text)
+                                            .type(TextQueryType.Phrase).fields(ALL_WHOLE_FIELDS)))
+                                    .fieldValueFactor(v -> v.field("cited_count")
+                                            .modifier(FieldValueFactorModifier.Log1p).missing(0.0))
+                                    .weight(0.5)))
+                                    : List.of())
                             .scoreMode(FunctionScoreMode.Sum)
                             .boostMode(FunctionBoostMode.Multiply)))))
                     // a result row needs the names and the counts, not every entry's full text
@@ -365,10 +384,22 @@ public class NarratorService {
         }
     }
 
+    private static final List<String> ALL_WHOLE_FIELDS = java.util.stream.Stream
+            .concat(WHOLE_HEADING_FIELDS.stream(), WHOLE_NAME_FIELDS.stream()).toList();
+
+    /** A constant for answering the query whole in «fields» and not in «unless». */
     private static co.elastic.clients.elasticsearch._types.query_dsl.Query wholeName(
-            String text, List<String> fields, float boost) {
+            String text, List<String> fields, List<String> unless, float boost) {
         return co.elastic.clients.elasticsearch._types.query_dsl.Query.of(q -> q.constantScore(c -> c
-                .filter(f -> f.multiMatch(m -> m.query(text).type(TextQueryType.Phrase).fields(fields)))
+                .filter(f -> f.bool(b -> {
+                    b.must(m -> m.multiMatch(mm -> mm.query(text).type(TextQueryType.Phrase)
+                            .fields(fields)));
+                    if (!unless.isEmpty()) {
+                        b.mustNot(m -> m.multiMatch(mm -> mm.query(text).type(TextQueryType.Phrase)
+                                .fields(unless)));
+                    }
+                    return b;
+                }))
                 .boost(boost)));
     }
 

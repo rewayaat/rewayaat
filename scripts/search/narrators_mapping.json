@@ -581,6 +581,36 @@
       },
       "chain_count": {
         "type": "integer"
+      },
+      "nisbas_ar": {
+        "type": "text",
+        "analyzer": "arabic_names",
+        "fields": {
+          "loose": {
+            "type": "text",
+            "analyzer": "arabic_loose"
+          },
+          "whole": {
+            "type": "text",
+            "analyzer": "arabic_whole"
+          }
+        }
+      },
+      "nisbas_en": {
+        "type": "text",
+        "fields": {
+          "skel": {
+            "type": "text",
+            "analyzer": "english_skeleton"
+          },
+          "whole": {
+            "type": "text",
+            "analyzer": "english_whole"
+          }
+        }
+      },
+      "cited_count": {
+        "type": "integer"
       }
     }
   }
