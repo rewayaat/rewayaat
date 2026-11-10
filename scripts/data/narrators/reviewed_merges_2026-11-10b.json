@@ -1,0 +1,646 @@
+[
+ {
+  "group": "dup2:p003",
+  "primary": "n000536",
+  "other": "n001528",
+  "reason": "Najashi says the man is also called the client of Muhammad ibn Muslim.",
+  "quote": "ويقال: سويد مولى محمد بن مسلم"
+ },
+ {
+  "group": "dup2:p004",
+  "primary": "n000867",
+  "other": "n001654",
+  "reason": "Ardabili states al-Fudayl al-A'war is Ibn 'Uthman, and the Fihrist suspects the same.",
+  "quote": "الفضيل الأعور له كتاب عنه على بن عبد العزيز (ست) هو ابن عثمان"
+ },
+ {
+  "group": "dup2:p005",
+  "primary": "n067141",
+  "other": "n000514",
+  "reason": "Khoei equates Salim al-Farra' with Sulayman mawla Tirbal.",
+  "quote": "سليم الفراء: = سليمان مولى طربال"
+ },
+ {
+  "group": "dup2:p006",
+  "primary": "n067156",
+  "other": "n000530",
+  "reason": "Khoei says Sayf al-Tammar is identical with Sayf ibn Sulayman al-Tammar.",
+  "quote": "وهو متحد مع سيف بن سليمان التمار المتقدم"
+ },
+ {
+  "group": "dup2:p007",
+  "primary": "n070011",
+  "other": "n000539",
+  "reason": "Same name and lineage, Abu al-Hasan al-Arzani, whom Najashi gives the fuller lineage for.",
+  "quote": "سلامة بن محمد بن إسماعيل الأرزني، نزيل بغداد"
+ },
+ {
+  "group": "dup2:p009",
+  "primary": "n001585",
+  "other": "n000640",
+  "reason": "Ardabili treats 'Abd Allah and 'Ubayd Allah ibn Ahmad ibn Nuhayk as one man, and Najashi's Abu al-Abbas al-Nakha'i matches.",
+  "quote": "وقد تقدم عبد الله مكبرا"
+ },
+ {
+  "group": "dup2:p010",
+  "primary": "n001583",
+  "other": "n000642",
+  "reason": "Ardabili says Ibn Ahmad ibn Ya'qub is Ibn Abi Zayd; both are Abu Talib al-Anbari.",
+  "quote": "عبد الله بن أحمد بن يعقوب (د) هو ابن أبي زيد"
+ },
+ {
+  "group": "dup2:p013",
+  "primary": "n002171",
+  "other": "n002006",
+  "reason": "Khoei says Ishaq ibn 'Abd al-Aziz is Abu al-Safatij, and Ardabili says he is al-Bazzaz Abu Ya'qub.",
+  "quote": "إسحاق بن عبد العزيز: = إسحاق بن عبد العزيز أبو السفاتج"
+ },
+ {
+  "group": "dup2:p014",
+  "primary": "n008423",
+  "other": "n002046",
+  "reason": "Khoei reports Ibn al-Ghada'iri's 'very weak' on Sulayman ibn al-Mu'alla ibn Khunays, and the Du'afa entry carries the same ruling.",
+  "quote": "سليمان بن المعلى: ابن خنيس: قال ابن الغضائري انه ضعيف جدا"
+ },
+ {
+  "group": "dup2:p015",
+  "primary": "n000205",
+  "other": "n002141",
+  "reason": "Tusi lists Ahmad ibn Abi 'Abd Allah al-Barqi, the usual name of Ahmad ibn Muhammad ibn Khalid al-Barqi.",
+  "quote": "أحمد بن أبي عبد الله البرقي"
+ },
+ {
+  "group": "dup2:p020",
+  "primary": "n067246",
+  "other": "n002602",
+  "reason": "Khoei says 'A'idh ibn Habib is covered under 'A'idh al-Ahmasi.",
+  "quote": "عائذ بن حبيب: أبو أحمد العبسي: تقدم في عائذ الأحمسي"
+ },
+ {
+  "group": "dup2:p021",
+  "primary": "n000685",
+  "other": "n002792",
+  "reason": "Khoei says the entry on Ibn 'Ali ibn Rabat was covered under 'Ali ibn al-Hasan ibn Rabat.",
+  "quote": "أقول: تقدم في علي بن الحسن بن رباط"
+ },
+ {
+  "group": "dup2:p022",
+  "primary": "n000695",
+  "other": "n002855",
+  "reason": "Khoei says Ali ibn Shira is Ali ibn Muhammad ibn Shira.",
+  "quote": "علي بن شيرة: = علي بن محمد بن شيرة"
+ },
+ {
+  "group": "dup2:p024",
+  "primary": "n001469",
+  "other": "n000374",
+  "reason": "Khoei equates al-Hakam al-A'ma with al-Hakam ibn Miskin.",
+  "quote": "الحكم بن مسكين: = الحكم الأعمى"
+ },
+ {
+  "group": "dup2:p039",
+  "primary": "n066251",
+  "other": "n007729",
+  "reason": "Al-Khoei explicitly equates the short heading with the primary.",
+  "quote": "عمران الزعفراني: = عمران بن إسحاق الزعفراني."
+ },
+ {
+  "group": "dup2:p040",
+  "primary": "n032891",
+  "other": "n007935",
+  "reason": "Both are the same Muntajab al-Din entry (same lineage, teacher al-Tusi, same books), differing only in spelling.",
+  "quote": "السيد أبو محمد زيد بن علي بن الحسين الحسني: صالح، عالم، فقيه، قرأ على الشيخ أبي جعفر الطوسي"
+ },
+ {
+  "group": "dup2:p042",
+  "primary": "n000878",
+  "other": "n011339",
+  "reason": "Same name and nisba; the other's Ardabili entry itself carries al-Najashi's 'Abu Abd Allah al-Jurjani, sahib al-masail' and the transmission through Ahmad ibn Abi Abd Allah and al-Mukhtar ibn Bilal, matching the primary's entries.",
+  "quote": "أبو عبد الله الجرجاني صاحب المسائل عنه أحمد بن أبي عبد الله"
+ },
+ {
+  "group": "dup2:p050",
+  "primary": "n041119",
+  "other": "n005542",
+  "reason": "Same name (Sabah/Sabbah is a spelling variant) and the same description: the sources call Nasr ibn al-Sabbah a ghali.",
+  "quote": "نصر بن الصباح غال"
+ },
+ {
+  "group": "dup2:p056",
+  "primary": "n003441",
+  "other": "n006389",
+  "reason": "Al-Khoei explicitly equates them, and al-Tusi says Haytham al-Nahdi is Ibn Abi Masruq.",
+  "quote": "الهيثم النهدي: = هيثم بن أبي مسروق."
+ },
+ {
+  "group": "dup2:p065",
+  "primary": "n001106",
+  "other": "n013975",
+  "reason": "Khoei says the manuscript reads Musa ibn Bakr instead of Musa ibn Bukayr and that this is correct.",
+  "quote": "ولكن في النسخة المخطوطة: موسى بن بكر، بدل موسى بن بكير، وهو الصحيح"
+ },
+ {
+  "group": "dup2:p070",
+  "primary": "n027490",
+  "other": "n014622",
+  "reason": "Khoei states the heading is Yazid Abu Khalid al-Kunasi already mentioned.",
+  "quote": "أقول: هذا هو يزيد أبو خالد الكناسي المتقدم"
+ },
+ {
+  "group": "dup2:p081",
+  "primary": "n000048",
+  "other": "n015749",
+  "reason": "Khoei says Ibn Abi al-Balad's biography was given under Ibrahim ibn Abi al-Balad.",
+  "quote": "وتقدمت ترجمته بعنوان إبراهيم بن أبي البلاد"
+ },
+ {
+  "group": "dup2:p083",
+  "primary": "n029741",
+  "other": "n015843",
+  "reason": "Khoei states the Ibn al-Zubayr heading was given under Ali ibn Muhammad ibn al-Zubayr.",
+  "quote": "تقدم بعنوان علي بن محمد بن الزبير"
+ },
+ {
+  "group": "dup2:p087",
+  "primary": "n040031",
+  "other": "n016098",
+  "reason": "Khoei states al-Kunasi in this narration is Dharis ibn Abd al-Malik.",
+  "quote": "هو ضريس بن عبد الملك، فإنه المعروف والمشهور بين الرواة"
+ },
+ {
+  "group": "dup2:p092",
+  "primary": "n004763",
+  "other": "n022343",
+  "reason": "Ardabili's entry for the other gives the same kunya, residence and name (al-Dahhak) as the primary's Tusi/Khoei entries.",
+  "quote": "أحنف بن قيس [ن] التميمي (النهمي خ) أبو بحر سكن بصرة اسمه ضحاك"
+ },
+ {
+  "group": "dup2:p095",
+  "primary": "n001704",
+  "other": "n025166",
+  "reason": "Same full name and lineage, same book, same students Ibn Abi Umayr and Ibn Abi Najran.",
+  "quote": "محمد بن حمران بن أعين مولى بنى شيبان (ق) له كتاب عنه ابن أبي عمير وابن أبي نجران (ست)"
+ },
+ {
+  "group": "dup2:p102",
+  "primary": "n000699",
+  "other": "n026220",
+  "reason": "al-Khoei says the other (same heading as in the primary) is Ali b. Muhammad b. Ali b. Sa'd.",
+  "quote": "علي بن محمد بن سعد: = علي بن محمد بن علي بن سعد"
+ },
+ {
+  "group": "dup2:p105",
+  "primary": "n003103",
+  "other": "n026586",
+  "reason": "al-Khoei states Muhammad al-Tayyar is Muhammad b. Abdullah al-Tayyar, and Ardabili equates the two.",
+  "quote": "محمد الطيار هذا، هو محمد بن عبد الله الطيار المتقدم"
+ },
+ {
+  "group": "dup2:p116",
+  "primary": "n066740",
+  "other": "n028004",
+  "reason": "Tusi's entry for the other gives the identical name and kunya, Abu Muhammad al-Muzani al-Kufi.",
+  "quote": "الصباح بن يحيى، أبو محمد المزني الكوفي، أسند عنه"
+ },
+ {
+  "group": "dup2:p121",
+  "primary": "n067127",
+  "other": "n028836",
+  "reason": "Same lineage, Azdi, Kufan, Sayrafi; Ardabili says the other is the Azdi mentioned before.",
+  "quote": "محمد بن فضيل بن كثير الأزدي، كوفي صيرفي."
+ },
+ {
+  "group": "dup2:p122",
+  "primary": "n001140",
+  "other": "n028970",
+  "reason": "Same name, kunya Abu Uthman al-Ahwal and Kufan as in the primary's entries.",
+  "quote": "المعلى بن عثمان، أبو عثمان الأحول، الكوفي."
+ },
+ {
+  "group": "dup2:p123",
+  "primary": "n013985",
+  "other": "n029008",
+  "reason": "Identical full name with mawla of the Ash'aris, Kufan, as in the primary's Khoei entry.",
+  "quote": "مفضل بن قيس بن رمانة، مولى الأشعريين، كوفي، أسند عنه."
+ },
+ {
+  "group": "dup2:p129",
+  "primary": "n001214",
+  "other": "n029835",
+  "reason": "Same name and the book on genealogy of the Abu Talib family, with Ibn Akhi Tahir narrating from him as in Fihrist.",
+  "quote": "يحيى بن حسن العلوي، له كتاب نسب آل أبي طالب، روى ابن أخ طاهر عنه."
+ },
+ {
+  "group": "dup2:p130",
+  "primary": "n000040",
+  "other": "n030132",
+  "reason": "Fihrist says Abu Sabah al-Kinani's name is Ibrahim ibn Nu'aym, and the chain matches the primary's Ardabili text.",
+  "quote": "أبو صباح الكناني، قال ابن عقدة: اسمه إبراهيم بن نعيم"
+ },
+ {
+  "group": "dup2:p131",
+  "primary": "n002444",
+  "other": "n030809",
+  "reason": "Khoei equates Hamza ibn Muhammad with Hamza al-Tayyar, also listed among Baqir's companions.",
+  "quote": "حمزة بن محمد: = حمزة بن الطيار. = حمزة الطيار."
+ },
+ {
+  "group": "dup2:p134",
+  "primary": "n004168",
+  "other": "n031635",
+  "reason": "Khoei equates Ahmad ibn Zayd ibn Ja'far with Ahmad ibn Zayd al-Khuza'i, both narrated from by Humayd.",
+  "quote": "أحمد بن زيد الخزاعي: = أحمد بن زيد بن جعفر."
+ },
+ {
+  "group": "dup2:p136",
+  "primary": "n000110",
+  "other": "n032341",
+  "reason": "Ardabili states al-Hasan al-Attar is al-Hasan ibn Ziyad mentioned earlier.",
+  "quote": "الحسن العطار وهو الحسن بن زياد - المتقدم"
+ },
+ {
+  "group": "dup2:p137",
+  "primary": "n007093",
+  "other": "n032571",
+  "reason": "Identical full lineage and nisba, Qurashi Madani.",
+  "quote": "الحكيم بن جبير بن مطعم بن عدي بن عبد مناف القرشي المدني"
+ },
+ {
+  "group": "dup2:p140",
+  "primary": "n008143",
+  "other": "n032986",
+  "reason": "Khoei writes Sa'id (Sa'd) al-Naqqash and refers Sa'd al-Naqqash to Sa'id al-Naqqash.",
+  "quote": "سعد النقاش: يأتي في سعيد النقاش."
+ },
+ {
+  "group": "dup2:p142",
+  "primary": "n037767",
+  "other": "n033298",
+  "reason": "Other is the same Tusi heading in Sadiq's companions as the primary's Tusi and Khoei entries.",
+  "quote": "العباس بن عمير: من أصحاب الصادق (عليه السلام)، رجال الشيخ (368)."
+ },
+ {
+  "group": "dup2:p146",
+  "primary": "n013246",
+  "other": "n034778",
+  "reason": "Same name, Azdi, Kufan, companion of al-Sadiq.",
+  "quote": "محمد بن المثنى الأزدي: الكوفي، من أصحاب الصادق عليه السلام، رجال الشيخ (327)."
+ },
+ {
+  "group": "dup2:p147",
+  "primary": "n043169",
+  "other": "n034873",
+  "reason": "Khoei equates Mudrik al-Hazhaz with Mudrik ibn al-Hazhaz.",
+  "quote": "مدرك بن الهزهاز الطائي: = مدرك الهزهاز."
+ },
+ {
+  "group": "dup2:p148",
+  "primary": "n014858",
+  "other": "n035313",
+  "reason": "Same name; Aban narrates from him from al-Sadiq in both Khoei and Ardabili.",
+  "quote": "يعقوب بن عثيم أبو يوسف: روى عن أبي عبد الله عليه السلام، وروى عنه أبان."
+ },
+ {
+  "group": "dup2:p150",
+  "primary": "n000739",
+  "other": "n035384",
+  "reason": "Ardabili states Abu al-Akrad's name is Ali ibn Maymun, and al-Tusi gives Ali ibn Maymun the same kunya with al-Sa'igh.",
+  "quote": "أبو الأكراد اسمه على بن ميمون"
+ },
+ {
+  "group": "dup2:p151",
+  "primary": "n014415",
+  "other": "n035426",
+  "reason": "Abu Jahifa is identified as Wahb ibn Abd Allah al-Suwa'i, which is the primary's own identification.",
+  "quote": "أبو جحيفة بضم الجيم وهب بن عبد الله السوالي من أصحاب علي عليه السلام"
+ },
+ {
+  "group": "dup2:p152",
+  "primary": "n001107",
+  "other": "n035493",
+  "reason": "Ardabili says Abu Humran's name is Musa ibn Ibrahim, and al-Najashi gives Musa ibn Ibrahim al-Marwazi the kunya Abu Humran.",
+  "quote": "موسى بن إبراهيم المروزي أبو حمران"
+ },
+ {
+  "group": "dup2:p153",
+  "primary": "n007818",
+  "other": "n035517",
+  "reason": "Abu Khaythama is named Zuhayr ibn Mu'awiya, and al-Tusi and al-Khoei give Zuhayr ibn Mu'awiya the kunya Abu Khaythama.",
+  "quote": "أبو خيثمة اسمه زهير بن معوية"
+ },
+ {
+  "group": "dup2:p154",
+  "primary": "n000306",
+  "other": "n035586",
+  "reason": "Ardabili says Abu Sadqa's name is Bishr ibn Maslama, and al-Tusi gives Bishr ibn Maslama the kunya Abu Sadqa.",
+  "quote": "بشر بن مسلمة، ثقة، يكني أبا صدقة"
+ },
+ {
+  "group": "dup2:p155",
+  "primary": "n001076",
+  "other": "n035647",
+  "reason": "Abu Abd Allah al-Safwani is named Muhammad ibn Ahmad, and the primary's books call Muhammad ibn Ahmad ibn Qudaa 'al-Safwani' with kunya Abu Abd Allah.",
+  "quote": "أبو عبد الله الصفواني اسمه محمد بن أحمد"
+ },
+ {
+  "group": "dup2:p156",
+  "primary": "n000901",
+  "other": "n035777",
+  "reason": "Abu Mikhnaf is named Lut ibn Yahya, and the primary's entries give Lut ibn Yahya the kunya Abu Mikhnaf.",
+  "quote": "أبو مخنف اسمه لوط بن يحيى"
+ },
+ {
+  "group": "dup2:p158",
+  "primary": "n000971",
+  "other": "n035811",
+  "reason": "Abu al-Nadr is named Muhammad ibn Mas'ud al-Ayyashi, and al-Khoei says the same.",
+  "quote": "أبو النضر: هو محمد بن مسعود العياشي"
+ },
+ {
+  "group": "dup2:p160",
+  "primary": "n002446",
+  "other": "n036055",
+  "reason": "The other is al-Tusi's companion-of-al-Sadiq entry for the same man; the primary holds the same al-Tusi entry with the identical heading.",
+  "quote": "حمزة بن عبد الله الغنوي: الكوفي: من أصحاب الصادق عليه السلام، رجال الشيخ (215)."
+ },
+ {
+  "group": "dup2:p172",
+  "primary": "n000536",
+  "other": "n037602",
+  "reason": "Al-Khoei writes that Suwayd al-Qalansi equals Suwayd al-Qalla and says the Qalla reading is the correct one.",
+  "quote": "سويد القلانسي: = سويد القلا."
+ },
+ {
+  "group": "dup2:p173",
+  "primary": "n000519",
+  "other": "n037603",
+  "reason": "Al-Khoei states that Sahl al-Ash'ari in those chains is Sahl ibn al-Yasa', and the son Muhammad narrates from him as in al-Najashi.",
+  "quote": "سهل الأشعري في إسناد هذه الروايات هو سهل بن اليسع الآتي."
+ },
+ {
+  "group": "dup2:p175",
+  "primary": "n040031",
+  "other": "n037729",
+  "reason": "Al-Khoei writes that Duris ibn A'yan equals Duris ibn Abd al-Malik.",
+  "quote": "ضريس بن أعين: = ضريس بن عبد الملك."
+ },
+ {
+  "group": "dup2:p180",
+  "primary": "n009775",
+  "other": "n038079",
+  "reason": "Khoei's entry gives the same name, nisba and Sadiq-companion status as the Tusi entry the primary holds (Rijal al-Shaykh).",
+  "quote": "عبد الله بن يزيد: الفزاري الكوفي: من أصحاب الصادق (عليه السلام)، رجال الشيخ (61)."
+ },
+ {
+  "group": "dup2:p195",
+  "primary": "n001081",
+  "other": "n038803",
+  "reason": "Khoei refers the Baghdadi Hafiz entry back to Muhammad ibn Umar ibn Muhammad, the Ja'abi.",
+  "quote": "محمد بن عمر الحافظ: البغدادي: تقدم في محمد بن عمر بن محمد."
+ },
+ {
+  "group": "dup2:p197",
+  "primary": "n000922",
+  "other": "n038810",
+  "reason": "Khoei states that this al-Yaqtini occurrence entry is Muhammad ibn Isa ibn Ubayd.",
+  "quote": "أقول: هذا هو محمد بن عيسى بن عبيد المتقدم."
+ },
+ {
+  "group": "dup2:p199",
+  "primary": "n001149",
+  "other": "n038933",
+  "reason": "Najashi and Tusi give Kardin as the epithet of Masma' ibn Abd al-Malik.",
+  "quote": "مسمع بن عبد الملك، كردين."
+ },
+ {
+  "group": "dup2:p203",
+  "primary": "n000699",
+  "other": "n039283",
+  "reason": "Najashi says he is known as Ibn Matawayh and Khoei refers Ibn Matawayh to his entry.",
+  "quote": "ابن متوية: تقدم بعنوان علي بن محمد بن علي بن سعد."
+ },
+ {
+  "group": "dup2:p212",
+  "primary": "n041583",
+  "other": "n039735",
+  "reason": "The other is the entry for ابن هارون الكندي الكوفي who narrated from Ibn Uqda and was narrated from by Ibn Nuh, which is the very Ardabili/Tusi entry already held by the primary.",
+  "quote": "ابن هارون الكندي الكوفي: روى عن ابن عقدة، وروى عنه ابن نوح"
+ },
+ {
+  "group": "dup2:p214",
+  "primary": "n068086",
+  "other": "n039746",
+  "reason": "Al-Khoei states the other is the earlier Muhammad ibn al-Hasan al-Ashari.",
+  "quote": "هذا هو محمد بن الحسن الأشعري المتقدم"
+ },
+ {
+  "group": "dup2:p219",
+  "primary": "n067351",
+  "other": "n039798",
+  "reason": "Al-Khoei states the other is Hisham ibn Ibrahim al-Abbasi.",
+  "quote": "هو هشام بن إبراهيم العباسي الآتي"
+ },
+ {
+  "group": "dup2:p220",
+  "primary": "n000911",
+  "other": "n039807",
+  "reason": "Al-Khoei equates Abu Jafar al-Ahwal with al-Taqi and refers to the biography of Muhammad ibn Ali ibn al-Numan.",
+  "quote": "وتقدمت ترجمته في محمد بن علي بن النعمان"
+ },
+ {
+  "group": "dup2:p225",
+  "primary": "n000786",
+  "other": "n045237",
+  "reason": "Al-Khoei says Amr ibn Aban is a scribal error and Umar ibn Aban is correct.",
+  "quote": "عمر بن أبان، وهو الصحيح"
+ },
+ {
+  "group": "dup2:p229",
+  "primary": "n009876",
+  "other": "n047453",
+  "reason": "Al-Khoei says Ibn Jurayj's biography came earlier under Abd al-Malik ibn Jurayj.",
+  "quote": "وتقدمت ترجمته بعنوان عبد الملك بن جريح"
+ },
+ {
+  "group": "dup2:p239",
+  "primary": "n000907",
+  "other": "n059844",
+  "reason": "Al-Khoei says this al-Thaqafi is Muhammad ibn Muslim ibn Riyah.",
+  "quote": "محمد بن مسلم الثقفي هذا، محمد بن مسلم بن رياح المتقدم"
+ },
+ {
+  "group": "dup2:p242",
+  "primary": "n002176",
+  "other": "n066146",
+  "reason": "Al-Khoei equates al-Ibrahim al-Karkhi with Ibrahim ibn Ziyad al-Karkhi, who is itself equated with the primary.",
+  "quote": "إبراهيم الكرخي: = إبراهيم بن زياد الكرخي"
+ },
+ {
+  "group": "dup2:p243",
+  "primary": "n024927",
+  "other": "n066306",
+  "reason": "The other's Tusi entry is word for word the text al-Khoei gives for the primary, differing only in 'al-Abbas' versus 'Abbas'.",
+  "quote": "يروي عن سعد بن عبد الله وغيره من القميين، وعن علي بن الحسن بن فضال، وكان رجلا صالحا"
+ },
+ {
+  "group": "dup2:p244",
+  "primary": "n001446",
+  "other": "n066323",
+  "reason": "Same name and same book on mut'a, transmitted by Ali ibn Hatim, matching the Fihrist entry of the primary.",
+  "quote": "الحسين بن عبد الله بن سهل، روى عنه ابن حاتم"
+ },
+ {
+  "group": "dup2:p254",
+  "primary": "n003817",
+  "other": "n066543",
+  "reason": "Al-Khoei says Isma'il ibn Dirar is a corruption and the correct reading is Isma'il ibn Mirar.",
+  "quote": "إن هذه النسخة محرفة جزما، والصحيح: إسماعيل بن مرار"
+ },
+ {
+  "group": "dup2:p256",
+  "primary": "n004326",
+  "other": "n066552",
+  "reason": "Al-Khoei says the other is the same as the preceding entry, Ja'far ibn Isa ibn Ubayd.",
+  "quote": "أقول: هو متحد مع سابقه."
+ },
+ {
+  "group": "dup2:p257",
+  "primary": "n000450",
+  "other": "n066562",
+  "reason": "Al-Khoei says Dawud ibn Razin is a misreading and the correct form is Dawud ibn Zarbi.",
+  "quote": "داود ابن زربي بدل داود بن رزين، وهو الصحيح"
+ },
+ {
+  "group": "dup2:p258",
+  "primary": "n003515",
+  "other": "n066565",
+  "reason": "Al-Khoei states the other is Malik ibn A'yan al-Juhani.",
+  "quote": "أقول: هذا هو مالك بن أعين الجهني المتقدم."
+ },
+ {
+  "group": "dup2:p260",
+  "primary": "n000939",
+  "other": "n066573",
+  "reason": "Ardabili states Muhammad ibn Ahmad al-Nahdi is Ibn Ahmad ibn Khaqan, the primary.",
+  "quote": "محمد بن أحمد النهدي هو ابن أحمد بن خاقان"
+ },
+ {
+  "group": "dup2:p261",
+  "primary": "n027389",
+  "other": "n066587",
+  "reason": "Al-Najashi gives Abu Ubayda al-Hadhdha' as the kunya of Ziyad, the primary.",
+  "quote": "أبو عبيدة الحذاء واسمه زياد"
+ },
+ {
+  "group": "dup2:p262",
+  "primary": "n001101",
+  "other": "n066589",
+  "reason": "Al-Khoei states the other is Musa ibn Ja'far al-Baghdadi.",
+  "quote": "أقول: هذا هو موسى بن جعفر البغدادي المتقدم."
+ },
+ {
+  "group": "dup2:p263",
+  "primary": "n000546",
+  "other": "n066608",
+  "reason": "Al-Khoei states the other is Shu'ayb ibn A'yan al-Haddad.",
+  "quote": "وهو شعيب بن أعين الحداد المتقدم"
+ },
+ {
+  "group": "dup2:p266",
+  "primary": "n001058",
+  "other": "n066656",
+  "reason": "Al-Khoei states Muhammad ibn Hammam here is Muhammad ibn Abi Bakr Hammam ibn Suhayl.",
+  "quote": "محمد بن همام هذا، هو محمد بن أبي بكر همام بن سهيل المتقدم."
+ },
+ {
+  "group": "dup2:p272",
+  "primary": "n067146",
+  "other": "n066915",
+  "reason": "Khoei says Ras al-Madhri's biography appeared under Jafar ibn Abd Allah Ras al-Madhri.",
+  "quote": "تقدمت ترجمته بعنوان جعفر بن عبد الله رأس المذري"
+ },
+ {
+  "group": "dup2:p273",
+  "primary": "n002661",
+  "other": "n066934",
+  "reason": "Al-Ardabili states Abu Ismail al-Sarraj's name is Abd Allah ibn Uthman ibn Amr al-Fazari, matching the other record.",
+  "quote": "أبو إسماعيل السراج اسمه عبد الله بن عثمان بن عمرو الفزاري"
+ },
+ {
+  "group": "dup2:p274",
+  "primary": "n004274",
+  "other": "n067072",
+  "reason": "Khoei states Muhammad ibn Ali Majilawayh is identical with the following entry, Majilawayh al-Qummi.",
+  "quote": "هذا متحد مع من بعده"
+ },
+ {
+  "group": "dup2:p282",
+  "primary": "n003807",
+  "other": "n067270",
+  "reason": "Khoei says Ibrahim ibn Maymun Bayyi al-Harawi equals Ibrahim ibn Maymun al-Kufi; the other is al-Tusi's entry Bayyi al-Harawi.",
+  "quote": "إبراهيم بن ميمون بياع الهروي: = إبراهيم بن ميمون الكوفي"
+ },
+ {
+  "group": "dup2:p286",
+  "primary": "n000478",
+  "other": "n067322",
+  "reason": "Khoei: Zakariyya al-Mu'min equals Zakariyya ibn Muhammad Abu Abd Allah.",
+  "quote": "زكريا المؤمن: = زكريا بن محمد أبو عبد الله"
+ },
+ {
+  "group": "dup2:p289",
+  "primary": "n000676",
+  "other": "n067349",
+  "reason": "Khoei: Abd al-Ghaffar al-Jazi equals Abd al-Ghaffar ibn Habib.",
+  "quote": "عبد الغفار الجازي: = عبد الغفار بن حبيب"
+ },
+ {
+  "group": "dup2:p290",
+  "primary": "n000967",
+  "other": "n067358",
+  "reason": "The other's al-Ardabili entry repeats the Najashi text on Muhammad ibn Ali ibn Mahbub, the same entry read twice.",
+  "quote": "محمد بن علي بن محبوب الأشعري القمي أبو جعفر شيخ القميين في زمانه ثقة عين فقيه صحيح المذهب"
+ },
+ {
+  "group": "dup2:p295",
+  "primary": "n000527",
+  "other": "n067406",
+  "reason": "Khoei: Sallam ibn Amr equals Sallam ibn Abi Amra.",
+  "quote": "سلام بن عمرو: = سلام بن أبي عمرة"
+ },
+ {
+  "group": "dup2:p297",
+  "primary": "n001134",
+  "other": "n067437",
+  "reason": "Khoei states Masada ibn Ziyad is identical with the following entry, Masada ibn Ziyad al-Rabii.",
+  "quote": "هذا متحد مع من بعده"
+ },
+ {
+  "group": "dup2:p304",
+  "primary": "n000101",
+  "other": "n067963",
+  "reason": "Al-Najashi's entry held by the primary itself quotes al-Kashshi describing al-Husayn ibn Ishkib al-Marwazi, resident of Samarqand and Kish, a scholar and author of books.",
+  "quote": "الحسين بن اشكيب المروزي المقيم بسمرقند وكش عالم متكلم مؤلف للكتب"
+ },
+ {
+  "group": "dup2:p308",
+  "primary": "n034480",
+  "other": "n068094",
+  "reason": "Khoei states that Abu al-Husayn al-Asadi is Muhammad ibn Ja'far al-Asadi.",
+  "quote": "هو أبو الحسين محمد بن جعفر الأسدي المتقدم"
+ },
+ {
+  "group": "dup2:p311",
+  "primary": "n000693",
+  "other": "n068980",
+  "reason": "Khoei equates the Tatari with the Ali ibn al-Hasan ibn Muhammad al-Ta'i, and the primary's own entries describe the same Waqifi Tatari.",
+  "quote": "علي بن الحسن الطاطري: = علي بن الحسن بن محمد الطائي."
+ },
+ {
+  "group": "dup2:p312",
+  "primary": "n000666",
+  "other": "n074065",
+  "reason": "Al-Tusi's Fihrist gives the same full lineage and nisba (ibn Yahya ibn Ahmad ibn Isa al-Jaludi, Abu Ahmad, from Basra), and Khoei quotes al-Najashi's entry on the primary under the shorter heading.",
+  "quote": "عبد العزيز بن يحيى بن أحمد بن عيسى الجلودي، يكنى أبا احمد، من أهل البصرة"
+ }
+]

@@ -704,6 +704,22 @@ def past_the_stub(folded, lone, before, after, data):
     return backed[0] if len(backed) == 1 else ("", "")
 
 
+def bare_ism_stub(folded, lone, data, compiler):
+    """The other men a bare one-word ism answers to, where its one holder is a stub.
+
+    Empty unless the name is a single word that is neither a nisba nor a laqab («الكشي»
+    names one man), the one man filed under it has no relation recorded against him, and
+    others whom the compiler could have reached answer to the name.
+    """
+    words = folded.split()
+    if len(words) != 1 or words[0].startswith("ال"):
+        return []
+    if data["teachers"].get(lone) or data["students"].get(lone):
+        return []
+    return sorted(pid for pid in data.get("answers_to", {}).get(folded, ())
+                  if pid != lone and pid in data["by_id"] and not outlived(pid, compiler, data))
+
+
 def spells_out(fullest, person):
     """Whether this record's name carries the stub's fullest name word for word, and goes on."""
     want = fullest.split()
@@ -1052,6 +1068,18 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
                     row["outcome"] = "several"
                     row["candidates"] = [candidates[0]] + [pid for pid, _ in backed]
                     row["because"] = f"{stub}; more than one other man answers to the name"
+                elif bare_ism_stub(keys[position], candidates[0], data, compiler):
+                    # A bare ism, «يونس», given to the one notice filed under that word alone
+                    # — al-Ṭūsī's «يونس، ابن خال أبي المستهل», with no teacher and no student —
+                    # while fuller men answer to it too: Yūnus b. ʿAbd al-Raḥmān among them, in
+                    # al-Kāfī's chains after al-Yaqṭīnī. Where the chain attests none of them
+                    # there is no telling which man it means, and the stub is the least likely.
+                    row.pop("person_id", None)
+                    row["outcome"] = "several"
+                    row["candidates"] = [candidates[0]] + bare_ism_stub(
+                        keys[position], candidates[0], data, compiler)
+                    row["because"] = (f"{stub}; the name is a bare ism that fuller men "
+                                      f"answer to as well")
         else:
             backed = [(pid, support(pid, before, after, data["teachers"], data["students"]))
                       for pid in candidates]

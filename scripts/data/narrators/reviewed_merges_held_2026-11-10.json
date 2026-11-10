@@ -1,0 +1,42 @@
+[
+ {
+  "group": "dup2:p018",
+  "primary": "n000124",
+  "other": "n002412",
+  "reason": "Ardabili says the Hasan/Husayn al-Zubarqan variant is the same Abu al-Khazraj, and the Fihrist chain runs through Ahmad ibn Abi 'Abd Allah.",
+  "quote": "الحسن بن الزبرقان أبو الخزرج قمي له كتاب عنه أحمد بن محمد بن خالد [جش] وفي [لم] و [ست] الحسين",
+  "held_because": "al-Hasan / al-Husayn b. al-Zibriqan: the quote does not state the identity"
+ },
+ {
+  "group": "dup2:p143",
+  "primary": "n038050",
+  "other": "n033568",
+  "reason": "Khoei refers Abd Allah ibn al-Qusayr to Abd Allah ibn al-Fudayl and Ardabili notes the Qusayr variant in the same entry.",
+  "quote": "عبد الله بن القصير: تقدم في عبد الله بن الفضيل.",
+  "held_because": "«تقدم في» may only mean he is mentioned in that entry"
+ },
+ {
+  "group": "dup2:p157",
+  "primary": "n000871",
+  "other": "n035785",
+  "reason": "Abu Masur is named Fudayl ibn Yasar, and al-Najashi reports Ibn Nuh gave al-Fudayl ibn Yasar the kunya Abu Masur.",
+  "quote": "أبو مسور اسمه فضيل بن يسار",
+  "held_because": "«أبو مسور اسمه فضيل بن يسار» may name an earlier man of that name in Ali's companions"
+ },
+ {
+  "group": "dup2:p221",
+  "primary": "n000940",
+  "other": "n041203",
+  "reason": "Al-Khoei says he established that Muhammad ibn Ismail al-Razi in these reports is al-Barmaki.",
+  "quote": "وذكرنا هناك أنه محمد بن إسماعيل البرمكي",
+  "held_because": "whether al-Razi is al-Barmaki is a debated identity, not settled by the quote"
+ },
+ {
+  "group": "dup2:p234",
+  "primary": "n000713",
+  "other": "n047996",
+  "reason": "The primary holds the Ardabili entry on Ali ibn Ibrahim al-Hashimi with the identical Muhammad ibn Sulayman al-Daylami narration from Abu al-Hasan Musa, and al-Khoei writes «= علي بن إبراهيم الهاشمي».",
+  "quote": "علي بن إبراهيم: = علي بن إبراهيم الهاشمي",
+  "held_because": "a bare «علي بن إبراهيم» record; the equation may be one heading's, not this record's"
+ }
+]
