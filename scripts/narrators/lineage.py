@@ -245,3 +245,117 @@ def corrected_english(display_ar, display_en, learned, fixes):
             out[i] = new
             changed.append((old, new))
     return (" ".join(out), changed) if changed else (display_en, [])
+
+
+# --- «ابن X» standing alone among a man's names ---
+#
+# A khoei entry says «روى عنه ابن عقدة» or «وهو ابن أخي فلان», and phase 1 kept «ابن عقدة» and
+# «ابن أخي» as names of the man the entry is about. Two words are too few for foreign() to
+# judge by, so these are judged by what X is. A relative («ابن أخي», «ابن عمك») is never a
+# name. Another man's own heading («ابن عقدة» is how al-Khoei heads Aḥmad b. Muḥammad b. Saʿīd)
+# is his, not this man's. And a bare ism — «ابن سعيد» on Abān b. Taghlib, «ابن جبلة» on ʿAlī b.
+# Abī Ḥamza — is only a son of somebody, unless that somebody stands in his lineage. A laqab of
+# his family («ابن السراج», «ابن فضال», «ابن الأدبر») is none of these, and stays.
+
+_RELATIVES = {"اخي", "اخيه", "اخ", "اخت", "اخته", "اختي", "عم", "عمه", "عمي", "عمك", "خال",
+              "خاله", "خالي", "خالك", "عمته", "خالته", "ابنه", "بنته", "بنت"}
+
+
+def son_of_whom(name):
+    """X of a name that is only «ابن X», or None."""
+    words = normalize(name).split()
+    if len(words) != 2 or words[0] != "بن":
+        return None
+    return words[1]
+
+
+def foreign_ibn(name, own_names, own_headings, headed_by_others, common_isms):
+    """True when «ابن X» is not a name of the man whose names are «own_names».
+
+    «headed_by_others» says whether a normalized name is some other man's heading;
+    «common_isms» holds the normalized isms many men in the corpus are named by.
+    """
+    x = son_of_whom(name)
+    if x is None:
+        return False
+    form = normalize(name)
+    if form in {normalize(h) for h in own_headings}:
+        return False
+    if x in _RELATIVES:
+        return True
+    for own in own_names:
+        found = lineage(own)
+        words = ([found[0]] + found[1]) if found else []
+        words += [w for w in normalize(own).split() if w not in ("بن",) and w not in _KUNYA]
+        if any(same_word(x, w) for w in words):
+            return False
+    if headed_by_others(form):
+        return True
+    return x in common_isms
+
+
+_CHAIN_WORDS = re.compile(
+    r"^(?:حدثني|حدثنا|أخبرنا|أخبرني|اخبرنا|اخبرني|أنبأنا|انبأنا|ثنا|نا|عن|وعن|روى|وروى|رواه|قال|سمعت)\s+")
+
+
+def without_chain_words(name):
+    """«حدثني محمد بن قولويه» is «محمد بن قولويه»; «عن سمرة، عن أبي سعيد» is two men, so none."""
+    if not name or not _CHAIN_WORDS.match(name):
+        return name
+    rest = _CHAIN_WORDS.sub("", name, count=1)
+    if re.search(r"(?:^|[\s،,])(?:عن|وعن)\s", rest):
+        return None
+    return rest.strip(" ،,")
+
+
+# --- The nisbas a man's names end in ---
+
+_NOT_NISBA = {"الله", "الرحمن", "الرحمان", "الملك", "الحسن", "الحسين", "العباس", "القاسم",
+              "الفضل", "الحكم", "المغيرة", "الحارث", "الربيع", "العلاء", "النعمان", "الصلت",
+              "المفضل", "الفضيل", "الهيثم", "المنذر", "الوليد", "السري", "الاصبغ", "الأصبغ"}
+
+
+def nisbas(name):
+    """The «ال…» words that close a name after its lineage: «الطوسي» of «محمد بن الحسن بن علي
+    الطوسي», «العطار القمي» of «محمد بن يحيى أبو جعفر العطار القمي». Read from the front: the
+    ism, each «بن X» (and «بن أبي X»), a kunya, then the run of nisbas — and nothing after the
+    first word that is not one, so a heading that ran on into prose («النيشابوري عليه اعتمد أبو
+    عمرو الكشي») gives «النيشابوري» and not the «الكشي» of the man it goes on to name."""
+    words = [w.strip("،,.:()") for w in _DIACRITICS.sub("", name or "").split()]
+    kunya = ("أبو", "ابو", "أبي", "ابي", "أبا", "ابا", "أم", "ام")
+    i = 1
+    if words and words[0] in kunya:
+        i = 2
+    while i < len(words):
+        if words[i] in ("بن", "ابن", "بنت") and i + 1 < len(words):
+            i += 3 if words[i + 1] in kunya and i + 2 < len(words) else 2
+        elif words[i] in kunya and i + 1 < len(words):
+            i += 2
+        else:
+            break
+    out = []
+    for bare in words[i:]:
+        # a nisba ends in its yāʾ, «الطوسي», «الساباطي»; a trade is in its faʿʿāl shape,
+        # «العطار», «الخزاز»
+        trade = len(bare) == 6 and bare[4] == "ا"
+        if not (bare.startswith("ال") and len(bare) > 4 and (bare.endswith("ي") or trade)
+                and bare not in _NOT_NISBA):
+            break
+        out.append(bare)
+    return out
+
+
+def nisbas_en(name):
+    """The same, of a transliterated name: «al-Tusi» of «Muhammad ibn al-Hasan al-Tusi»."""
+    words = (name or "").replace(",", " ").split()
+    start = 1
+    for i, word in enumerate(words):
+        low = word.lower()
+        if low in ("ibn", "bin", "b.", "bint") and i + 1 < len(words):
+            j = i + 1
+            if words[j].lower() in ("abi", "abu", "aba") and j + 1 < len(words):
+                j += 1
+            start = max(start, j + 1)
+        if low in ("abu", "abi", "aba", "umm") and i + 1 < len(words):
+            start = max(start, i + 2)
+    return [w for w in words[start:] if re.match(r"(?i)^(al|el)-[a-zʿ'’]{2,}i$", w)]

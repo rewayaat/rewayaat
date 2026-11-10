@@ -57,3 +57,38 @@ def test_english_another_mans_name_is_foreign():
     assert not foreign_en("Muhammad b. Yahya al-Attar", attar)
     assert not foreign_en("Abdullah ibn Jafar al-Himyari", ["'Abd Allah ibn Ja'far al-Hamiri"])
     assert not foreign_en("Ma'ruf ibn Kharrabudh", ["Ma'ruf bin Kharbud"])
+
+
+def test_a_son_of_somebody_else_is_not_his_name():
+    from lineage import foreign_ibn
+    isms = {"سعيد", "جبله", "زياد", "علي"}
+    others = {"بن عقده"}.__contains__
+    assert foreign_ibn("ابن عقدة", ["إبراهيم بن عمر اليماني"], [], others, isms)
+    assert foreign_ibn("ابن سعيد", ["أبان بن تغلب بن رباح"], [], others, isms)
+    assert foreign_ibn("ابن أخي", ["علي بن إسماعيل بن جعفر"], [], others, isms)
+    # his own heading, his own lineage, a laqab of his family
+    assert not foreign_ibn("ابن عقدة", ["أحمد بن محمد بن سعيد"], ["ابن عقدة"], others, isms)
+    assert not foreign_ibn("ابن زياد", ["سهل بن زياد"], [], others, isms)
+    assert not foreign_ibn("ابن السراج", ["أحمد بن إبراهيم بن المعلى"], [], others, isms)
+
+
+def test_chain_words_are_not_part_of_a_name():
+    from lineage import without_chain_words
+    assert without_chain_words("حدثني محمد بن قولويه") == "محمد بن قولويه"
+    assert without_chain_words("عن هشام بن سالم") == "هشام بن سالم"
+    assert without_chain_words("عن سمرة، عن أبي سعيد") is None
+    assert without_chain_words("عنبسة بن مصعب") == "عنبسة بن مصعب"
+
+
+def test_the_nisbas_a_name_ends_in():
+    from lineage import nisbas, nisbas_en
+    assert nisbas("محمد بن الحسن بن علي الطوسي") == ["الطوسي"]
+    assert nisbas("عمار بن موسى الساباطي") == ["الساباطي"]
+    assert nisbas("الحسين بن سعيد بن حماد بن سعيد الأهوازي") == ["الأهوازي"]
+    assert nisbas("علي بن الحسن") == []
+    assert nisbas("محمد بن يحيى أبو جعفر العطار القمي") == ["العطار", "القمي"]
+    assert nisbas("عبد الله بن عبد الرحمن") == []
+    assert nisbas("على بن محمد بن قتيبة النيشابوري عليه اعتمد أبو عمرو الكشي") == ["النيشابوري"]
+    assert nisbas("أبو عمرو الكشي") == ["الكشي"]
+    assert nisbas_en("Muhammad ibn al-Hasan ibn Ali al-Tusi") == ["al-Tusi"]
+    assert nisbas_en("Ali ibn al-Hasan") == []

@@ -960,9 +960,14 @@ DEATH_YEARS = {}
 UNNAMED = set()  # al-Ṭūsī's «باب من لم يسم» keys, filled in main()
 HOLDERS = {}
 ENGLISH_HOLDERS = {}
+# The isms of the corpus that at least COMMON_ISM_AT men are headed by, normalized as
+# lineage.normalize does: «ابن سعيد» alone is a son of one of them, not a name.
+COMMON_ISMS = set()
+COMMON_ISM_AT = 5
 PREFIXES = {}
 ENGLISH_PREFIXES = {}
 BOOKS_WITH_TEXT = set()
+ENGLISH_FIXES = Counter()
 
 
 def profiles():
@@ -970,8 +975,9 @@ def profiles():
     for slug, *_rest in BOOKS:
         path = os.path.join(NORMALIZED, f"{slug}.json")
         if os.path.exists(path):
+            from mend_narrator_text import mend_value
             for profile in load(path):
-                found[f"{slug}:{profile['source_index']}"] = profile
+                found[f"{slug}:{profile['source_index']}"] = mend_value(profile)[0]
     return found
 
 
@@ -1205,6 +1211,32 @@ def served_chain_counts(host, index="rewayaat_hadith"):
     with urllib.request.urlopen(request, timeout=120) as response:
         buckets = json.load(response)["aggregations"]["men"]["buckets"]
     return {b["key"]: b["doc_count"] for b in buckets}
+
+
+CITING = r"(?:قال|وقال|ذكره|وذكره|ذكر|عده|وعده|وثقه|ضعفه|رواه|نقل|نقله|قاله|عن)"
+
+
+def cited_counts(documents):
+    """person id → how often the entries cite him by the name in cited_authorities.json."""
+    path = os.path.join(REPO, "scripts/data/narrators/cited_authorities.json")
+    try:
+        with open(path) as handle:
+            authorities = json.load(handle)["authorities"]
+    except (FileNotFoundError, KeyError):
+        return {}
+    texts, seen = [], set()
+    for doc in documents:
+        for entry in doc.get("entries") or []:
+            if entry.get("source_key") not in seen:
+                seen.add(entry.get("source_key"))
+                texts.append(entry.get("text_ar") or "")
+    corpus = "\n".join(texts)
+    out = {}
+    for authority in authorities:
+        names = "|".join(re.escape(n) for n in authority["cited_as"])
+        out[authority["id"]] = len(re.findall(CITING + r"\s+(?:" + names + r")(?=[\s،,.:؛\"»)]|$)",
+                                              corpus))
+    return out
 
 
 def served_english_forms(host, index="rewayaat_hadith"):
@@ -1988,13 +2020,19 @@ def document(person, source, headless):
     own_lineage_en = [person["primary_english_name"]] if person.get("primary_english_name") else []
     own_lineage_en += [e["heading_en"] for e in entries if e.get("heading_en")]
 
+    own_heading_forms = [n["value"] for n in values(person, "primary_names") if n.get("value")]
+    own_heading_forms += [e["heading_ar"] for e in entries if e.get("heading_ar")]
+
     def his_alias(value):
-        return not lineage.foreign(value, own_lineage)
+        return not lineage.foreign(value, own_lineage) and not lineage.foreign_ibn(
+            value, own_lineage, own_heading_forms,
+            lambda _form: HOLDERS.get(normalize_arabic(value), 0) > 0, COMMON_ISMS)
 
     all_names_ar = [n["value"] for n in values(person, "primary_names") if n.get("value")]
-    all_names_ar += [n["value"] for n in values(person, "arabic_aliases")
+    all_names_ar += [lineage.without_chain_words(n["value"]) for n in values(person, "arabic_aliases")
                      if n.get("value") and not another_mans_name(person, n["value"])
                      and his_alias(n["value"])]
+    all_names_ar = [n for n in all_names_ar if n]
     all_names_ar = list(dict.fromkeys(all_names_ar))
     own_headings = [normalize_arabic(n["value"]) for n in values(person, "primary_names")
                     if n.get("value")]
@@ -2124,6 +2162,14 @@ def document(person, source, headless):
     if not display_en and display_ar:
         display_en = transliterate.english_for(display_ar, TRANSLITERATION)
         made = bool(display_en)
+    # The English must name the man the Arabic beside it names: «Sa'd ibn Allah» for «سعد بن
+    # عبد الله», «Ahmad ibn Qarun» for «أحمد بن هارون», another book's heading for him («Sulayman
+    # al-A'mash» for «سليمان بن مهران»), or a different man entirely, are rendered again.
+    display_en, english_fix = transliterate.checked_english(
+        display_ar, display_en, names_en, TRANSLITERATION)
+    if english_fix == "rebuilt":
+        made = True
+    ENGLISH_FIXES[english_fix] += 1
     if display_ar == nasab_ar:
         nasab_ar = None
 
@@ -2225,6 +2271,17 @@ def document(person, source, headless):
         "normalized_en": sorted({n.lower() for n in all_names_en}),
         "kunyahs_ar": kunyahs,
         "titles": titles,
+        # The nisbas his own names close on, so a reader searching «الطوسي» or «al-Ahwazi» is
+        # answered by every man the books so name, the best known first — not only by the one
+        # whose record happened to list the nisba among his titles.
+        # His headings only: an alias is where another man's name strays in.
+        "nisbas_ar": sorted({w for n in [display_ar, *headings_ar] for w in lineage.nisbas(n)}),
+        # In English, his English heading's, and his Arabic ones spelt as the corpus spells
+        # them: al-Ḥusayn b. Saʿīd's English heading stops short of al-Ahwazi.
+        "nisbas_en": sorted({w for n in [display_en or ""] for w in lineage.nisbas_en(n)}
+                            | {transliterate.english_for(w, TRANSLITERATION)
+                               for n in [display_ar, *headings_ar] for w in lineage.nisbas(n)}
+                            - {""}),
         # Said by a record whose entry does not hold the words: kept, because a book did say
         # it, but out of the fields a search matches on. A title nobody's entry bears out
         # makes a man findable under a name that is not his.
@@ -2424,7 +2481,7 @@ def main():
                              "who now holds its entries, instead of a 404")
     args = parser.parse_args()
 
-    global YEARS, HOLDERS, ENGLISH_HOLDERS, PREFIXES, ENGLISH_PREFIXES, TRANSLITERATION
+    global YEARS, HOLDERS, ENGLISH_HOLDERS, PREFIXES, ENGLISH_PREFIXES, TRANSLITERATION, COMMON_ISMS
     YEARS = imam_years()
     TRANSLITERATION = transliterate.load()
     try:
@@ -2436,6 +2493,17 @@ def main():
     print(f"{len(TRANSLITERATION):,} Arabic words the corpus prints in English, for the men "
           f"no book names in English")
     people = load(os.path.join(IDENTITY, "people.json"))
+    # The identity store is rebuilt from extractions made before the severed «س» was mended at
+    # the source, and each rebuild put «سليم بن قيأآلهتنا» back on the site; the mend is
+    # applied here as well, so no build can serve it again whatever the files hold.
+    from mend_narrator_text import mend_value
+    mended = 0
+    for position, person in enumerate(people):
+        fixed, n = mend_value(person)
+        if n:
+            people[position] = fixed
+            mended += n
+    print(f"{mended:,} pieces of OpenITI damage mended in the identity store as it was read")
     HOLDERS, ENGLISH_HOLDERS = Counter(), Counter()
     PREFIXES, ENGLISH_PREFIXES = Counter(), Counter()
     for person in people:
@@ -2455,6 +2523,14 @@ def main():
             ENGLISH_HOLDERS[english] += 1
             if len(english.split()) >= 3:
                 ENGLISH_PREFIXES[" ".join(english.split()[:3])] += 1
+    isms = Counter()
+    for person in people:
+        if person.get("holds_entry") is False:
+            continue
+        found = lineage.lineage(person.get("primary_arabic_name") or "")
+        if found:
+            isms[found[0]] += 1
+    COMMON_ISMS = {ism for ism, count in isms.items() if count >= COMMON_ISM_AT}
     source, headless = profiles(), not_entries(TMP)
     UNNAMED.update(unnamed_subjects(TMP))
     # Which books the corpus holds printed entries of, so a grade attributed to a book never
@@ -2526,6 +2602,11 @@ def main():
               file=sys.stderr)
     for doc in documents:
         doc["chain_count"] = chain_counts.get(doc.get("person_id"), 0)
+    cited = cited_counts(documents)
+    for doc in documents:
+        if doc.get("person_id") in cited:
+            doc["cited_count"] = cited[doc["person_id"]]
+    counts["authorities the books cite by one name, counted"] = len(cited)
     try:
         english_forms = served_english_forms(args.es_host)
     except Exception as unreachable:  # noqa: BLE001
@@ -2626,6 +2707,8 @@ def main():
         print(f"  {n:7d}  {label}")
     for label, n in IMAM_STATS.most_common():
         print(f"  {n:7d}  {label}")
+    for label, n in ENGLISH_FIXES.most_common():
+        print(f"  {n:7d}  English names {label} against their Arabic")
 
     # The join is done; its private keys are not part of a document.
     for doc in documents:

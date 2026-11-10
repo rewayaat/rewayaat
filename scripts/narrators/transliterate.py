@@ -201,6 +201,285 @@ def respell(arabic, english):
 _LEARNED = {}
 
 
+# --- Does the English name the man the Arabic does? ---
+#
+# The page shows the two side by side, and a reader takes the English for the Arabic's
+# rendering. 2,264 of them did not render it: «سعد بن عبد الله» shown as Sa'd ibn Allah (1,463
+# chains), «معاذ بن مسلم الهراء» as Mi'adh ibn Kathir al-Kisa'i, «أحمد بن هارون» as Ahmad ibn
+# Qarun, «ضريس» as Dris, «مصدق» as Madaq — another book's heading for the man, or a misread
+# one, carried onto a page whose Arabic says something else. A name a word or two shorter than
+# its Arabic is a translator's abridgement and is left alone; a name with a word the Arabic does
+# not hold is not his rendering at all.
+
+_AR_LATIN = {
+    'ب': 'b', 'ت': 't', 'ث': 'th', 'ج': 'j', 'ح': 'h', 'خ': 'kh', 'د': 'd', 'ذ': 'dh', 'ر': 'r',
+    'ز': 'z', 'س': 's', 'ش': 'sh', 'ص': 's', 'ض': 'd', 'ط': 't', 'ظ': 'z', 'غ': 'gh', 'ف': 'f',
+    'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n', 'ه': 'h',
+}
+
+
+def _latin_consonants(text):
+    """Digraphs folded the same way on both sides, so «إسحاق» (s, h) and Ishaq agree."""
+    text = text.replace('dh', 'z').replace('th', 's').replace('sh', 'x').replace('kh', 'k')
+    return text.replace('gh', 'g').replace('q', 'k')
+
+
+def _arabic_skeleton(word):
+    """The consonants of an Arabic name word (or of «عبد X»), read the way _english_skeleton
+    reads its English: no article, no long vowels, no ʿayn or hamza (the English marks them, if
+    at all, with an apostrophe it drops), and a wāw or yāʾ only where the word opens on it —
+    «وهب» Wahb, «يحيى» Yahya, but «أعين» A'yan and «عيسى» Isa open on a vowel."""
+    parts = []
+    for bare in (strip(w) for w in word.split()):
+        if bare == 'الله':
+            bare = 'له'
+        elif bare.startswith('ال') and len(bare) > 3:
+            bare = bare[2:]
+        parts.append(bare)
+    bare = ''.join(parts)
+    head = ''
+    if bare[:1] in 'وي':
+        head, bare = ('w' if bare[0] == 'و' else 'y'), bare[1:]
+    latin = head + ''.join(_AR_LATIN.get(letter, '') for letter in bare)
+    # Two readings: letter by letter («سهل» s-h-l, as Sahl spells it), and with the digraphs
+    # an English spelling cannot tell from two letters folded («إسحاق» s-h, which Ishaq writes
+    # sh). Either agreeing is agreement.
+    whole = ''.join(_latin_consonants(_AR_LATIN.get(letter, '')) for letter in bare)
+    return {re.sub(r'(.)\1+', r'\1', _latin_consonants(head) + whole),
+            re.sub(r'(.)\1+', r'\1', _latin_consonants(latin))}
+
+
+def _english_skeleton(word):
+    out = []
+    for w in lineage._en_words(word):
+        w = _latin_consonants(re.sub(r'(?<=[aeiou])h$', '', w))
+        if w[:1] in ('y', 'w'):
+            head, w = w[0], w[1:]
+        else:
+            head = ''
+        out.append(head + re.sub(r'[aeiouyw]', '', w))
+    return re.sub(r'(.)\1+', r'\1', ''.join(out))
+
+
+def _skeletons_agree(a, b):
+    if isinstance(a, set):
+        return any(_skeletons_agree(one, b) for one in a)
+    if a == b:
+        return True
+    if a.rstrip('h') == b.rstrip('h'):
+        return True
+    # One consonant either way only in a word long enough to survive it: «Kharrabudh» and
+    # «Kharbud» are one name, but «Qarun» is not «هارون» and «Madaq» is not «مصدق».
+    return min(len(a), len(b)) >= 4 and lineage._one_edit(a, b)
+
+
+def _arabic_units(arabic):
+    """Words, with «عبد» and «عبيد» kept to the name they open, as the English writes them."""
+    words = [w for w in (strip(x) for x in DIACRITIC.sub('', arabic or '').split()) if w]
+    units, i = [], 0
+    while i < len(words):
+        if words[i] in ('عبد', 'عبيد') and i + 1 < len(words):
+            units.append(words[i] + ' ' + words[i + 1])
+            i += 2
+        else:
+            units.append(words[i])
+            i += 1
+    return units
+
+
+_EN_ABD = re.compile(r"^['ʿ‘’`]?(abd|ubayd|'ubayd)$", re.IGNORECASE)
+
+
+def _english_units(english):
+    words = [w.strip(',;') for w in (english or '').replace(',', ' ').split() if w.strip(',;')]
+    units, i = [], 0
+    while i < len(words):
+        if _EN_ABD.match(words[i]) and i + 1 < len(words):
+            units.append(words[i] + ' ' + words[i + 1])
+            i += 2
+        else:
+            units.append(words[i])
+            i += 1
+    return units
+
+
+def _kind_ar(unit):
+    return lineage._KIND_AR.get(unit) or lineage._KIND_AR.get(unit.replace('ى', 'ي'))
+
+
+def _kind_en(unit):
+    return lineage._KIND_EN.get(unit.lower())
+
+
+def _unit_agrees(arabic, english):
+    if _kind_ar(arabic) or _kind_en(english):
+        return _kind_ar(arabic) == _kind_en(english)
+    return _skeletons_agree(_arabic_skeleton(arabic), _english_skeleton(english))
+
+
+def _align(short, long_, agree, joined):
+    """Each unit of «short» matched, in order, to one unit of «long_» or to two adjacent ones
+    («joined» says whether two may stand for one); units of «long_» may go unmatched. The
+    matched spans, or None."""
+    from functools import lru_cache
+
+    @lru_cache(maxsize=None)
+    def go(i, j):
+        if j == len(short):
+            return ()
+        for k in range(i, len(long_)):
+            if agree(long_[k], short[j]):
+                rest = go(k + 1, j + 1)
+                if rest is not None:
+                    return ((k, k + 1),) + rest
+            if k + 1 < len(long_) and joined(long_[k], long_[k + 1], short[j]):
+                rest = go(k + 2, j + 1)
+                if rest is not None:
+                    return ((k, k + 2),) + rest
+        return None
+
+    return go(0, 0)
+
+
+def _joined_arabic(first, second, english):
+    """«الجو اليقي» printed apart for al-Jawaliqi."""
+    if _kind_ar(first) or _kind_ar(second) or _kind_en(english):
+        return False
+    return _skeletons_agree(_arabic_skeleton(first + second), _english_skeleton(english))
+
+
+def english_alignment(arabic, english):
+    """For each English word, the Arabic word(s) it renders, in order; None when some English
+    word renders nothing in the Arabic. An English word may render two Arabic ones a printer
+    split, and Arabic words may go unrendered: the English is then an abridgement."""
+    a, e = tuple(_arabic_units(arabic)), tuple(_english_units(english))
+    if not a or not e:
+        return None
+    found = _align(e, a, _unit_agrees, _joined_arabic)
+    return None if found is None else list(zip(found, e))
+
+
+def english_renders(arabic, english):
+    """Whether «english» renders «arabic»: abridged («Muhammad ibn Yahya al-'Attar» for the
+    whole «محمد بن يحيى أبو جعفر العطار القمي»), or fuller, where every Arabic word is rendered
+    and the English adds what the heading leaves out («Yunus, maternal uncle of Abi
+    al-Mustahil» for «يونس»). Not when it says a word the Arabic contradicts."""
+    if english_alignment(arabic, english) is not None:
+        return True
+    a, e = tuple(_arabic_units(arabic)), tuple(_english_units(english))
+    if not a or not e:
+        return False
+    return _align(a, e, lambda en, ar: _unit_agrees(ar, en), lambda *_: False) is not None
+
+
+def respelled_where_aligned(arabic, english):
+    """«english» with each word the hand-checked list spells otherwise put right, wherever the
+    word renders one Arabic word — in an abridged name too, which respell() cannot align."""
+    found = english_alignment(arabic, english)
+    if not found:
+        return english
+    units = _arabic_units(arabic)
+    out = []
+    for (start, end), word in found:
+        right = RESPELLED.get(units[start]) if end == start + 1 else None
+        if right and not _kind_en(word) and _fold(right) != _fold(word):
+            if not out and right[:1].islower():
+                right = right[0].upper() + right[1:]
+            word = right
+        out.append(word)
+    return ' '.join(out)
+
+
+def _fold(word):
+    import unicodedata
+    text = unicodedata.normalize('NFKD', word)
+    text = ''.join(c for c in text if not unicodedata.combining(c))
+    return re.sub(r"[ʿʾ'‘’`\-]", '', text).lower()
+
+
+# A heading that says what the man was rather than who («أخو مرازم», «خادم إبراهيم بن عبدة»,
+# «شيخ من ولد عدي بن حاتم») is translated by the books, not transliterated: "Brother of Marazim"
+# is right and "Akhu Murazim" is not English. Those are left as the book has them.
+_DESCRIBES = {"أخو", "أخي", "أخا", "اخو", "اخي", "أخت", "اخت", "عم", "عمة", "خال", "خالة", "جد",
+              "جدة", "خادم", "غلام", "شيخ", "من", "ولد", "يلقب", "وليس", "صاحب", "زوج", "زوجة",
+              "امرأة", "رجل", "بعض", "أولاد", "بنو", "بني", "آل", "صلى", "وآله", "مولاه"}
+# Honorifics the Arabic heading carries and no English rendering of a name should.
+_HONORIFIC = re.compile(r"\s*(?:عليهم?\s*السلام|عليهما\s*السلام|صلى\s*الله\s*عليه(?:\s*وآله)?(?:\s*وسلم)?|"
+                        r"رضي\s*الله\s*عنه|رحمه\s*الله|قدس\s*سره)")
+
+
+def checked_english(arabic, english, aliases, table):
+    """The English to show beside «arabic», and what was done to it: «kept», «respelled» (a
+    word the hand-checked list spells otherwise) or «rebuilt» (the English rendered something
+    the Arabic does not say, and was rendered again from the Arabic)."""
+    if not arabic or not english:
+        return english, "kept"
+    plain = _HONORIFIC.sub("", arabic).strip()
+    if english_renders(plain, english):
+        fixed = respelled_where_aligned(plain, english)
+        return fixed, ("respelled" if fixed != english else "kept")
+    units = _arabic_units(plain)
+    if any(w in _DESCRIBES for unit in units for w in unit.split()) or '(' in english:
+        return english, "kept"
+    # Every word must have a spelling someone checked, the corpus prints, or a book of his
+    # gives: a word only the letters can spell («وقاص» as Wqas) leaves the book's English,
+    # wrong as it may be, the better of two bad names.
+    spelt_by = [english] + list(aliases or [])
+    for unit in units:
+        if _kind_ar(unit):
+            continue
+        parts = unit.split()
+        if all(RESPELLED.get(p) or table.get(p) for p in parts) or RESPELLED.get(unit.replace(' ', '')):
+            continue
+        if any(_unit_agrees(unit, w) for src in spelt_by for w in _english_units(src)):
+            continue
+        return english, "kept"
+    return rebuilt_english(plain, english, aliases, table), "rebuilt"
+
+
+def rebuilt_english(arabic, english, aliases, table):
+    """The Arabic rendered word by word, each word spelt the way a book spells it where one
+    does: from the English shown, as far as it does render the Arabic, then from the man's
+    other English names, then the table, then the letters."""
+    units = _arabic_units(arabic)
+    if not units:
+        return english
+    spelt = {}
+    for source in [english] + list(aliases or []):
+        words = _english_units(source)
+        for unit in units:
+            if unit in spelt or _kind_ar(unit):
+                continue
+            for word in words:
+                if not _kind_en(word) and _unit_agrees(unit, word) and not word.startswith('('):
+                    spelt[unit] = word
+                    break
+    out = []
+    for position, unit in enumerate(units):
+        if _kind_ar(unit):
+            out.append(table.get(unit) or {'son': 'ibn', 'father': 'Abu', 'mother': 'Umm',
+                                           'daughter': 'bint'}[_kind_ar(unit)])
+            continue
+        # The hand-checked spelling, then the corpus's usual one, then a book's for a word the
+        # corpus has no usual spelling of, then the letters: a name rebuilt because the English
+        # shown was another book's misreading should not keep that book's vowels.
+        word = RESPELLED.get(unit.replace(' ', '')) or RESPELLED.get(unit)
+        if not word and ' ' not in unit:
+            word = table.get(unit)
+        if not word:
+            word = spelt.get(unit)
+        if not word:
+            word = english_for(unit, table) if ' ' not in unit else ' '.join(
+                table.get(part) or by_letter(part) for part in unit.split())
+        out.append(word)
+    text = ' '.join(w for w in out if w)
+    if text[:1].islower():
+        text = text[0].upper() + text[1:]
+    elif text[:1] in "'ʿ" and len(text) > 1:
+        text = text[0] + text[1].upper() + text[2:]
+    return text
+
+
 def load(path=MAP):
     try:
         with open(path) as handle:
