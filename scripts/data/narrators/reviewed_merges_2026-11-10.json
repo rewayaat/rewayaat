@@ -1,0 +1,11 @@
+[
+ {"group": "held:g075", "primary": "n000620", "other": "n067161",
+  "reason": "Al-Najashi's «الحجال المزخرف أبو محمد» and al-Fihrist's «المزخرف الحجال» are one man; al-Khoei quotes the Najashi entry under him (khoei:29029) and heads «عبد الله الحجال: = عبد الله بن محمد الحجال». Held on 2026-11-09 because n000620 was thought to carry Abu Basir's entries; on 2026-11-10 its keys are najashi:627, fihrist:1585 «أبو محمد الحجال», ardabili:5410 and two Mamaqani «أبو محمد الحجال», and its 40 chain links read «الحجال».",
+  "quote": "عبد الله بن محمد الأسدي مولاهم، كوفي، الحجال المزخرف، أبو محمد"},
+ {"group": "held:g021", "primary": "n036590", "other": "n000063",
+  "reason": "Al-Najashi 64, as re-extracted (najashi:1356 was repaired into it), is al-Sakuni's own entry: «يعرف بالسكوني الشعيري», his book through al-Nawfali; al-Khoei reproduces it word for word under al-Sakuni (khoei:23223), and al-Tusi 1910 says «وهو ابن أبي زياد السكوني الكوفي». The splice with al-Sulami that held this back was in the phase-1 reading of the entry; the Sulami's own Khoei entry (khoei:2445) is kept apart by a reviewer distinct recorded with this, and the Najashi «thiqa» that came from the splice is struck in grade_corrections.json.",
+  "quote": "إسماعيل بن أبي زياد يعرف بالسكوني الشعيري"},
+ {"group": "held:g038", "primary": "n000585", "other": "n067727",
+  "reason": "Al-Khoei's stub for the mawla of Banu Nawfal says he is the same man as the entry before it, which is al-Bajali (khoei:29108); n000585 already holds the Nawfal mawla's own entries (tusi:5440, ardabili:710, ardabili:5453), so the stub joins the record its own words point to.",
+  "quote": "عبد الله بن المغيرة: مولى بني نوفل: قد عرفت اتحاده مع سابقه"}
+]

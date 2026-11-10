@@ -1,0 +1,7 @@
+{
+ "note": "Grades an entry carries that the book did not give the man of that entry, struck by hand. Each names the entry, the grade, and why. index_people.py drops the verdict and the entry's grade chip.",
+ "struck": [
+  {"source_key": "najashi:64", "grade": "thiqa",
+   "why": "Phase 1 read al-Najashi's entry on al-Sakuni (printed 47) spliced with the next one, Isma'il b. Abi Ziyad al-Sulami, whose «ثقة، كوفي» it carried. Al-Najashi grades al-Sakuni nowhere; the re-extracted text has no verdict, and al-Khoei calls him «عامي»."}
+ ]
+}
