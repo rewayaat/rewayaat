@@ -620,6 +620,14 @@ def held_by(folded, data):
     return sorted(data["aliases"].get(folded, ()))
 
 
+def generic_alias(folded, data):
+    """A bare kunya («أبي إسحاق») or a bare «ابن X» that no heading carries, only aliases."""
+    if not folded or data["headings"].get(folded):
+        return False
+    words = folded.split()
+    return bare_kunya(words) or (len(words) == 2 and words[0] in LINK)
+
+
 def by_heading(folded, data):
     """Whether a rijālī filed anybody under this name, or it is only quoted inside entries."""
     return bool(folded and data["headings"].get(folded))
@@ -1006,6 +1014,17 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
         before = keys[position - 1] if position else ""
         after = keys[position + 1] if position + 1 < len(keys) else ""
         widened = ""
+        if candidates and generic_alias(keys[position], data):
+            # «أبي إسحاق» after «شريك» is al-Sabīʿī, and «ابن سنان» in al-Kāfī is ʿAbd Allāh as
+            # often as Muḥammad; each was a link to whichever one man happened to carry the
+            # kunya or the «ابن X» among his aliases. No rijālī files anybody under it, so it
+            # is held to the word the `chosen` rests on: a book beside the neighbour.
+            candidates = [pid for pid in candidates if support(
+                pid, before, after, data["teachers"], data["students"])]
+            if not candidates:
+                row["outcome"] = "none"
+                row["because"] = "a bare kunya or «ابن X» only an alias carries"
+                continue
         if not candidates and keys[position] not in names:
             # Only a name nobody holds. One whose holders all outlived the compiler is a name
             # somebody *does* hold, and widening it would find those same men under a looser

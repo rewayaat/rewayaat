@@ -1192,6 +1192,53 @@ def merged_away(documents, since=PAGES_PUBLIC_SINCE):
     return out
 
 
+def carry_old_headings(host, previous_index, documents):
+    """The heading a page was served under, kept as a name of the man it now redirects to.
+
+    «الحكم الأعمى», «Al-Hakam al-A'ma», was a page of its own until it was merged into
+    al-Ḥakam b. Miskīn; the man's own record does not print that English, and a reader who
+    knew him by it searched and found al-Ḥakam al-Aʿshā instead. Not a bare «X بن Y», which
+    names whoever a reader means by it.
+    """
+    import urllib.request
+
+    def post(path, body):
+        request = urllib.request.Request(f"{host.rstrip('/')}{path}", data=json.dumps(body).encode(),
+                                         headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(request, timeout=120) as response:
+            return json.load(response)
+
+    by_id = {d.get("person_id"): d for d in documents if d.get("person_id")}
+    moved = {pid: d["moved_to"] for pid, d in by_id.items() if d.get("moved_to")}
+    if not moved:
+        return 0
+    carried = 0
+    ids = sorted(moved)
+    for start in range(0, len(ids), 1000):
+        got = post(f"/{previous_index}/_mget?_source=display_ar,display_en,moved_to",
+                   {"ids": ids[start:start + 1000]})
+        for doc in got.get("docs") or []:
+            old = doc.get("_source") or {}
+            if not doc.get("found") or old.get("moved_to"):
+                continue
+            target = moved.get(doc["_id"])
+            for _ in range(5):
+                if target in moved:
+                    target = moved[target]
+            man = by_id.get(target)
+            if not man or man.get("moved_to"):
+                continue
+            words = normalize_arabic(old.get("display_ar") or "").split()
+            if len(words) == 3 and words[1] in ("بن", "ابن"):
+                continue
+            for field, value in (("names_ar", old.get("display_ar")), ("names_en", old.get("display_en"))):
+                if value and value not in (man.get(field) or []) and value != man.get(
+                        "display_ar" if field == "names_ar" else "display_en"):
+                    man[field] = sorted(set(man.get(field) or []) | {value})
+                    carried += 1
+    return carried
+
+
 def vanishing(host, previous_index, documents):
     """A redirect for each page the served index has and this build would drop.
 
@@ -2861,6 +2908,12 @@ def main():
         documents += dropped
         counts[f"pages {args.previous_index} serves that this build drops, now redirecting"] = \
             len(dropped)
+        try:
+            carried = carry_old_headings(args.es_host, args.previous_index, documents)
+        except Exception as unreachable:  # noqa: BLE001
+            carried = 0
+            print(f"  could not read {args.previous_index} ({unreachable})", file=sys.stderr)
+        counts["headings of a page now redirecting, kept as names of the man it joined"] = carried
 
     if documents:
         roster = roster_documents(documents[0])

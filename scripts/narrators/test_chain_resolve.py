@@ -279,3 +279,14 @@ def test_what_a_trim_takes_off_that_names_nobody_is_not_asked_of_him():
     assert cr.naming_words(["ولقبه", "شباب", "الصيرفي"]) == ["شباب", "الصيرفي"]
     data = index(man("n1", "عبد الواحد بن محمد بن عبدوس العطار"))
     assert read(data, "عبد الواحد بن محمد بن عبدوس العطار بنيسابور")[0] == [("one", "n1")]
+
+
+def test_a_kunya_only_an_alias_carries_needs_the_chain():
+    """«أبي إسحاق» after «شريك» is al-Sabīʿī; a bayyāʿ al-luʾluʾ who carries the kunya among
+    his aliases does not get it for the asking."""
+    data = index(filed("n1", "إسحاق بياع اللؤلؤ", "أبي إسحاق"))
+    outcomes, _ = read(data, "شريك", "أبي إسحاق")
+    assert outcomes[1][0] == "none", outcomes
+    data = index(filed("n1", "إسحاق بياع اللؤلؤ", "أبي إسحاق", students=["شريك"]))
+    outcomes, _ = read(data, "شريك", "أبي إسحاق")
+    assert outcomes[1][1] == "n1", outcomes
