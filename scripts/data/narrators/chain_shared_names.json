@@ -1,0 +1,8 @@
+{
+ "note": "Names the rijal literature calls shared (مشترك) between men who all stand in the chains. chain_resolve.py links one only where a book places the man beside the chain's neighbour; otherwise the name is left unlinked rather than given to whichever man a filing happens to carry it for. Hand-checked 2026-11-10.",
+ "names": [
+  {"name": "ابن سنان", "between": ["n000582 عبد الله بن سنان", "n000914 محمد بن سنان"], "why": "al-Khoei: «ابن سنان» in the chains is either; the neighbour decides (Ibn Muskan and the Sadiq for Abd Allah, al-Husayn b. Sa'id and Ahmad b. Muhammad for Muhammad)."},
+  {"name": "أبي إسحاق", "between": ["Abu Ishaq al-Sabi'i", "Ibrahim b. Hashim", "Ishaq bayya' al-lu'lu'"], "why": "«عن أبي إسحاق» after Sharik, Shu'ba or Isra'il is al-Sabi'i, whom the narrator index has no filing for under the kunya."},
+  {"name": "أبو إسحاق", "between": ["as above"], "why": "as above"}
+ ]
+}

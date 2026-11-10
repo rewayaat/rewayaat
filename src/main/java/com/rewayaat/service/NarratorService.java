@@ -77,6 +77,57 @@ public class NarratorService {
             "display_ar.lead", "names_ar.lead", "headings_ar.lead", "search_ar.lead",
             "display_en.lead", "names_en.lead", "normalized_en.lead");
 
+    /**
+     * Names read whole, from the first word to the last, so a query can be asked to be one.
+     *
+     * Asked only to begin a name, «محمد بن مسعود العياشي» found al-ʿAyyāshī's son first:
+     * «جعفر بن محمد بن مسعود العياشي» is the son's heading, and a heading weighs more than the
+     * alias under which the father holds the very words searched for. Nor did beginning the
+     * name settle «عثمان بن سعيد», which his son's heading holds too, or «النجاشي», a word in
+     * twenty names and the whole of one, al-Khoei's heading for the author of the Rijāl. A man
+     * who answers to the query exactly, every word and nothing more, is the man meant far more
+     * often than one whose name merely contains it.
+     *
+     * Two tiers, as in the books: a heading is a book saying «this entry is this man», an alias
+     * only a name he is also called by, so a heading wins the tie — «ابن قولويه» is the heading
+     * al-Khoei files Jaʿfar b. Muḥammad under, and his father is merely the son of a Qūlawayh.
+     * The score is a constant, not a match score, so that among the men who answer exactly it
+     * is still how much the books and chains say of each that decides; without that, al-Khazzāz
+     * came before al-ʿAṭṭār for «محمد بن يحيى» because al-Khoei heads one entry with the bare
+     * name.
+     */
+    private static final List<String> WHOLE_HEADING_FIELDS = List.of(
+            "display_ar.whole", "headings_ar.whole", "display_en.whole");
+    private static final List<String> WHOLE_NAME_FIELDS = List.of(
+            "names_ar.whole", "titles.whole", "names_en.whole", "normalized_en.whole",
+            "nisbas_ar.whole", "nisbas_en.whole");
+    // Large beside the match scores, which run to a few hundred, so that among the men who
+    // answer a name exactly it is how much the books and chains say of each that decides, and
+    // a heading wins only when the two are close. A man headed by the name is not counted
+    // again as also holding it as an alias.
+    private static final float WHOLE_HEADING_BOOST = 1000.0f;
+    private static final float WHOLE_NAME_BOOST = 800.0f;
+
+    /**
+     * Whether a whole-name match means anything for this query.
+     *
+     * One word by itself is usually an ism, and an ism held whole is a stub: al-Khoei heads
+     * an entry «يونس» for a man he cannot identify, and the reader typing «يونس» means
+     * Yūnus b. ʿAbd al-Raḥmān. A nisba or a laqab is different — «النجاشي», «al-Tatari»,
+     * «Ayyashi» — and so is any name of two words or more.
+     */
+    static boolean wholeNameMatters(String text) {
+        String trimmed = text.trim();
+        if (trimmed.split("\\s+").length >= 2) {
+            return true;
+        }
+        if (trimmed.startsWith("ال") || trimmed.toLowerCase(java.util.Locale.ROOT).matches("^(al|el)-.+")) {
+            return true;
+        }
+        // a transliterated nisba: Najashi, Ayyashi, Tatari — not Ali or Abi
+        return trimmed.matches("[A-Za-z'’ʿ]{5,}") && trimmed.toLowerCase(java.util.Locale.ROOT).endsWith("i");
+    }
+
     @Value("${narrator.index:rewayaat_narrators}")
     private String indexName;
 
@@ -192,6 +243,7 @@ public class NarratorService {
         String text = query.trim();
         int size = Math.min(Math.max(pageSize, 1), MAX_PAGE_SIZE);
         int from = Math.max(page - 1, 0) * size;
+        boolean whole = wholeNameMatters(text);
         try (ESClientProvider provider = new ESClientProvider()) {
             SearchResponse<Map> response = provider.client().search(s -> s
                     .index(indexName)
@@ -268,7 +320,12 @@ public class NarratorService {
                                     .query(text)
                                     .type(TextQueryType.Phrase)
                                     .fields(LEAD_FIELDS)
-                                    .boost(8.0f)))))
+                                    .boost(8.0f)))
+                            .should(whole ? List.of(
+                                    wholeName(text, WHOLE_HEADING_FIELDS, List.of(), WHOLE_HEADING_BOOST),
+                                    wholeName(text, WHOLE_NAME_FIELDS, WHOLE_HEADING_FIELDS,
+                                            WHOLE_NAME_BOOST))
+                                    : List.of())))
                             // Entries say how much the books wrote about a man; chains say how
                             // often this corpus names him. «محمد بن يحيى» is a dozen men with
                             // six entries apiece, and the one a reader of al-Kāfī means stands in
@@ -283,6 +340,19 @@ public class NarratorService {
                                     .modifier(FieldValueFactorModifier.Log1p)
                                     .missing(0.0))
                                     .weight(0.5))
+                            // The authors of the rijāl books stand in few chains, but the
+                            // books cite them by the one name a reader types: «قال النجاشي»
+                            // 1,996 times, «ذكره الكشي» 1,128. Counted only for a man who
+                            // answers the query whole, so al-Ṣadūq's citations do not lift
+                            // him for «علي بن الحسين», which is merely inside his name.
+                            .functions(whole ? List.of(co.elastic.clients.elasticsearch._types.query_dsl
+                                    .FunctionScore.of(f -> f
+                                    .filter(fl -> fl.multiMatch(m -> m.query(text)
+                                            .type(TextQueryType.Phrase).fields(ALL_WHOLE_FIELDS)))
+                                    .fieldValueFactor(v -> v.field("cited_count")
+                                            .modifier(FieldValueFactorModifier.Log1p).missing(0.0))
+                                    .weight(0.5)))
+                                    : List.of())
                             .scoreMode(FunctionScoreMode.Sum)
                             .boostMode(FunctionBoostMode.Multiply)))))
                     // a result row needs the names and the counts, not every entry's full text
@@ -312,6 +382,25 @@ public class NarratorService {
             LOGGER.warn("Narrator search failed for «{}»: {}", text, e.getMessage());
             return empty;
         }
+    }
+
+    private static final List<String> ALL_WHOLE_FIELDS = java.util.stream.Stream
+            .concat(WHOLE_HEADING_FIELDS.stream(), WHOLE_NAME_FIELDS.stream()).toList();
+
+    /** A constant for answering the query whole in «fields» and not in «unless». */
+    private static co.elastic.clients.elasticsearch._types.query_dsl.Query wholeName(
+            String text, List<String> fields, List<String> unless, float boost) {
+        return co.elastic.clients.elasticsearch._types.query_dsl.Query.of(q -> q.constantScore(c -> c
+                .filter(f -> f.bool(b -> {
+                    b.must(m -> m.multiMatch(mm -> mm.query(text).type(TextQueryType.Phrase)
+                            .fields(fields)));
+                    if (!unless.isEmpty()) {
+                        b.mustNot(m -> m.multiMatch(mm -> mm.query(text).type(TextQueryType.Phrase)
+                                .fields(unless)));
+                    }
+                    return b;
+                }))
+                .boost(boost)));
     }
 
     /** More men than this answering a name exactly and it is a word, not a name. */

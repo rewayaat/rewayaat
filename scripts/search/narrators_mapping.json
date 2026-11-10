@@ -38,6 +38,11 @@
           "type": "pattern_replace",
           "pattern": "-",
           "replacement": " "
+        },
+        "whole_mark": {
+          "type": "pattern_replace",
+          "pattern": "^(.*)$",
+          "replacement": "000 $1 777"
         }
       },
       "filter": {
@@ -230,6 +235,49 @@
             "en_double",
             "nonempty"
           ]
+        },
+        "arabic_whole": {
+          "char_filter": [
+            "ar_abd_join",
+            "whole_mark"
+          ],
+          "tokenizer": "standard",
+          "filter": [
+            "lowercase",
+            "decimal_digit",
+            "arabic_normalization",
+            "ar_ibn",
+            "ar_kunya",
+            "ar_strip_al"
+          ]
+        },
+        "english_whole": {
+          "char_filter": [
+            "en_marks",
+            "en_abd",
+            "en_ubayd",
+            "en_articles",
+            "en_hyphen",
+            "whole_mark"
+          ],
+          "tokenizer": "standard",
+          "filter": [
+            "lowercase",
+            "asciifolding",
+            "en_stop",
+            "en_kunya",
+            "en_trail_h",
+            "en_dh",
+            "en_th",
+            "en_sh",
+            "en_kh",
+            "en_gh",
+            "en_q",
+            "en_lead_vowels",
+            "en_vowels",
+            "en_double",
+            "nonempty"
+          ]
         }
       }
     }
@@ -254,6 +302,10 @@
           "lead": {
             "type": "text",
             "analyzer": "arabic_lead"
+          },
+          "whole": {
+            "type": "text",
+            "analyzer": "arabic_whole"
           }
         }
       },
@@ -271,6 +323,10 @@
           "lead": {
             "type": "text",
             "analyzer": "english_lead"
+          },
+          "whole": {
+            "type": "text",
+            "analyzer": "english_whole"
           }
         }
       },
@@ -289,6 +345,10 @@
           "lead": {
             "type": "text",
             "analyzer": "arabic_lead"
+          },
+          "whole": {
+            "type": "text",
+            "analyzer": "arabic_whole"
           }
         }
       },
@@ -303,6 +363,10 @@
           "lead": {
             "type": "text",
             "analyzer": "arabic_lead"
+          },
+          "whole": {
+            "type": "text",
+            "analyzer": "arabic_whole"
           }
         }
       },
@@ -330,6 +394,10 @@
           "lead": {
             "type": "text",
             "analyzer": "english_lead"
+          },
+          "whole": {
+            "type": "text",
+            "analyzer": "english_whole"
           }
         }
       },
@@ -357,6 +425,10 @@
           "lead": {
             "type": "text",
             "analyzer": "english_lead"
+          },
+          "whole": {
+            "type": "text",
+            "analyzer": "english_whole"
           }
         }
       },
@@ -377,6 +449,10 @@
           "loose": {
             "type": "text",
             "analyzer": "arabic_loose"
+          },
+          "whole": {
+            "type": "text",
+            "analyzer": "arabic_whole"
           }
         }
       },
@@ -504,6 +580,36 @@
         "type": "keyword"
       },
       "chain_count": {
+        "type": "integer"
+      },
+      "nisbas_ar": {
+        "type": "text",
+        "analyzer": "arabic_names",
+        "fields": {
+          "loose": {
+            "type": "text",
+            "analyzer": "arabic_loose"
+          },
+          "whole": {
+            "type": "text",
+            "analyzer": "arabic_whole"
+          }
+        }
+      },
+      "nisbas_en": {
+        "type": "text",
+        "fields": {
+          "skel": {
+            "type": "text",
+            "analyzer": "english_skeleton"
+          },
+          "whole": {
+            "type": "text",
+            "analyzer": "english_whole"
+          }
+        }
+      },
+      "cited_count": {
         "type": "integer"
       }
     }

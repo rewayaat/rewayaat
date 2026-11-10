@@ -1,0 +1,165 @@
+{
+ "note": "The authorities the rijal books cite by a one-word name («قال النجاشي», «ذكره الكشي», «قال الشيخ»), and the men they are. They stand in few chains or none, so how often the chains name a man cannot tell a reader who types «النجاشي» or «الكشي» that he means the author of the Rijal and not his ancestor or another man of the same nisba; how often the books cite him can. index_people.py counts the citations in the entries it serves (cited_count); the names are set by hand, checked 2026-11-10. «known_as» are the names a scholar knows the man by that the books do not head him with (al-ʿUrayḍī, al-Shaykh al-Ṣadūq, Thiqat al-Islām): added to his titles and English names. And an authority's cited name found among another man's titles — «الصدوق» on Ibn Qūlawayh, from «روى عنه الصدوق» — is taken off him.",
+ "authorities": [
+  {
+   "id": "n066789",
+   "cited_as": [
+    "النجاشي"
+   ],
+   "who": "Ahmad b. Ali al-Najashi, author of the Rijal",
+   "known_as": [
+    "النجاشي",
+    "Al-Najashi"
+   ]
+  },
+  {
+   "id": "n001044",
+   "cited_as": [
+    "الكشي"
+   ],
+   "who": "Muhammad b. Umar al-Kashshi, author of the Rijal",
+   "known_as": [
+    "الكشي",
+    "al-Kashshi"
+   ]
+  },
+  {
+   "id": "n001093",
+   "cited_as": [
+    "الشيخ",
+    "الطوسي"
+   ],
+   "who": "Shaykh al-Tusi, author of the Rijal and the Fihrist",
+   "known_as": [
+    "الشيخ الطوسي",
+    "شيخ الطائفة",
+    "Shaykh al-Tusi",
+    "al-Shaykh al-Tusi"
+   ]
+  },
+  {
+   "id": "n031617",
+   "cited_as": [
+    "ابن الغضائري"
+   ],
+   "who": "Ahmad b. al-Husayn b. al-Ghada'iri, author of the Rijal",
+   "known_as": [
+    "ابن الغضائري",
+    "Ibn al-Ghada'iri"
+   ]
+  },
+  {
+   "id": "n000205",
+   "cited_as": [
+    "البرقي"
+   ],
+   "who": "Ahmad b. Muhammad b. Khalid al-Barqi, author of the Rijal"
+  },
+  {
+   "id": "n001075",
+   "cited_as": [
+    "الصدوق"
+   ],
+   "who": "al-Saduq",
+   "known_as": [
+    "الصدوق",
+    "الشيخ الصدوق",
+    "Shaykh al-Saduq",
+    "al-Saduq"
+   ]
+  },
+  {
+   "id": "n001052",
+   "cited_as": [
+    "الكليني"
+   ],
+   "who": "al-Kulayni",
+   "known_as": [
+    "الكليني",
+    "ثقة الإسلام",
+    "al-Kulayni",
+    "Thiqat al-Islam al-Kulayni"
+   ]
+  },
+  {
+   "id": "n001092",
+   "cited_as": [
+    "المفيد"
+   ],
+   "who": "al-Shaykh al-Mufid",
+   "known_as": [
+    "المفيد",
+    "الشيخ المفيد",
+    "ابن المعلم",
+    "al-Mufid",
+    "Shaykh al-Mufid",
+    "Ibn al-Mu'allim"
+   ]
+  },
+  {
+   "id": "n000010",
+   "cited_as": [
+    "ابن عقدة"
+   ],
+   "who": "Ibn Uqda",
+   "known_as": [
+    "ابن عقدة",
+    "Ibn 'Uqda"
+   ]
+  },
+  {
+   "id": "n000231",
+   "cited_as": [
+    "ابن نوح"
+   ],
+   "who": "Ahmad b. Nuh al-Sirafi"
+  },
+  {
+   "id": "n001068",
+   "cited_as": [
+    "ابن الوليد"
+   ],
+   "who": "Muhammad b. al-Hasan b. al-Walid"
+  },
+  {
+   "id": "n000339",
+   "cited_as": [
+    "ابن قولويه"
+   ],
+   "who": "Ja'far b. Muhammad b. Qulawayh",
+   "known_as": [
+    "ابن قولويه",
+    "Ibn Qulawayh"
+   ]
+  },
+  {
+   "id": "n000971",
+   "cited_as": [
+    "العياشي"
+   ],
+   "who": "Muhammad b. Mas'ud al-Ayyashi",
+   "known_as": [
+    "العياشي",
+    "al-'Ayyashi"
+   ]
+  },
+  {
+   "id": "n001045",
+   "cited_as": [
+    "ابن بطة"
+   ],
+   "who": "Muhammad b. Ja'far b. Batta"
+  },
+  {
+   "id": "n000688",
+   "cited_as": [],
+   "known_as": [
+    "العريضي",
+    "علي بن جعفر العريضي",
+    "al-'Uraydi",
+    "Ali ibn Ja'far al-'Uraydi"
+   ],
+   "who": "Ali b. Ja'far al-Sadiq, al-Uraydi"
+  }
+ ]
+}

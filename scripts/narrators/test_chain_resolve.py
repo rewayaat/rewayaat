@@ -214,10 +214,27 @@ def test_two_attested_namesakes_leave_the_name_unanswered():
 
 def test_an_unattested_namesake_does_not_displace_the_stub():
     """The rule rests on the chain's word. A fuller man who answers to the name but whom no
-    book places beside this neighbour changes nothing."""
+    book places beside this neighbour does not take the link — and nor, since 2026-11-10,
+    does the stub: a bare ism given to a notice nobody can identify, when fuller men answer
+    to it too, is a guess, and the name is left with its candidates (47 al-Kāfī chains had
+    their «يونس» linked to «يونس، ابن خال أبي المستهل»)."""
     data = index(filed("n1", "يونس"),
                  filed("n2", "يونس بن عبد الرحمن", "يونس", students=["هشام بن الحكم"]))
+    outcomes, rows = read(data, "محمد بن عيسى", "يونس")
+    assert outcomes[1][0] == "several", outcomes
+    assert set(rows[1]["candidates"]) == {"n1", "n2"}
+
+
+def test_a_bare_ism_nobody_else_answers_to_stays_the_stubs():
+    data = index(filed("n1", "يونس"), filed("n2", "زرارة بن أعين"))
     outcomes, _ = read(data, "محمد بن عيسى", "يونس")
+    assert outcomes[1] == ("one", "n1"), outcomes
+
+
+def test_a_stub_the_books_connect_keeps_a_bare_ism():
+    data = index(filed("n1", "حمران", teachers=["أبي جعفر"]),
+                 filed("n2", "حمران بن أعين الشيباني", "حمران"))
+    outcomes, _ = read(data, "محمد بن عيسى", "حمران")
     assert outcomes[1] == ("one", "n1"), outcomes
 
 
@@ -262,3 +279,16 @@ def test_what_a_trim_takes_off_that_names_nobody_is_not_asked_of_him():
     assert cr.naming_words(["ولقبه", "شباب", "الصيرفي"]) == ["شباب", "الصيرفي"]
     data = index(man("n1", "عبد الواحد بن محمد بن عبدوس العطار"))
     assert read(data, "عبد الواحد بن محمد بن عبدوس العطار بنيسابور")[0] == [("one", "n1")]
+
+
+def test_a_name_the_books_call_shared_needs_the_chain():
+    """«أبي إسحاق» after «شريك» is al-Sabīʿī; a bayyāʿ al-luʾluʾ who carries the kunya among
+    his aliases does not get it for the asking (chain_shared_names.json)."""
+    import chain_resolve
+    assert chain_resolve.key("أبي إسحاق") in chain_resolve.SHARED
+    data = index(filed("n1", "إسحاق بياع اللؤلؤ", "أبي إسحاق"))
+    outcomes, _ = read(data, "شريك", "أبي إسحاق")
+    assert outcomes[1][0] == "none", outcomes
+    data = index(filed("n1", "إسحاق بياع اللؤلؤ", "أبي إسحاق", students=["شريك"]))
+    outcomes, _ = read(data, "شريك", "أبي إسحاق")
+    assert outcomes[1][1] == "n1", outcomes

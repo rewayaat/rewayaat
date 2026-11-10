@@ -498,8 +498,11 @@ def load_people(path, books):
             continue
         pid = person["person_id"]
         by_id[pid] = person
-        own = set(person.get("headings_ar") or [])
-        if person.get("display_ar"):
+        # The headings as printed, where the dump carries them: a run-on heading cut back to
+        # its name («أبو على الأشعري اسمه أحمد بن إدريس…» → «أبو على الأشعري») would otherwise
+        # hold the name it cites as a heading of its own.
+        own = set(person.get("resolver_headings_ar") or person.get("headings_ar") or [])
+        if person.get("display_ar") and not person.get("resolver_headings_ar"):
             own.add(person["display_ar"])
         for name in own:
             folded = key(name)
@@ -620,6 +623,29 @@ def held_by(folded, data):
     return sorted(data["aliases"].get(folded, ()))
 
 
+SHARED_NAMES = f'{W}/scripts/data/narrators/chain_shared_names.json'
+
+
+def _shared_names():
+    try:
+        with open(SHARED_NAMES) as handle:
+            return {key(entry["name"]) for entry in json.load(handle)["names"]}
+    except (FileNotFoundError, KeyError):
+        return set()
+
+
+# Names the rijāl literature itself calls shared (مشترك) between men who all stand in the
+# chains, so that whichever one of them a filing happens to carry the name for must still be
+# vouched for by the chain: «ابن سنان» is ʿAbd Allāh b. Sinān as often as Muḥammad, and «أبي
+# إسحاق» after «شريك» is al-Sabīʿī, not the bayyāʿ al-luʾluʾ whose aliases carry it.
+SHARED = _shared_names()
+
+
+def generic_alias(folded, candidates, data):
+    """Whether the name is one the books call shared, which the chain must decide."""
+    return folded in SHARED
+
+
 def by_heading(folded, data):
     """Whether a rijālī filed anybody under this name, or it is only quoted inside entries."""
     return bool(folded and data["headings"].get(folded))
@@ -702,6 +728,22 @@ def past_the_stub(folded, lone, before, after, data):
         if why:
             backed.append((pid, why))
     return backed[0] if len(backed) == 1 else ("", "")
+
+
+def bare_ism_stub(folded, lone, data, compiler):
+    """The other men a bare one-word ism answers to, where its one holder is a stub.
+
+    Empty unless the name is a single word that is neither a nisba nor a laqab («الكشي»
+    names one man), the one man filed under it has no relation recorded against him, and
+    others whom the compiler could have reached answer to the name.
+    """
+    words = folded.split()
+    if len(words) != 1 or words[0].startswith("ال"):
+        return []
+    if data["teachers"].get(lone) or data["students"].get(lone):
+        return []
+    return sorted(pid for pid in data.get("answers_to", {}).get(folded, ())
+                  if pid != lone and pid in data["by_id"] and not outlived(pid, compiler, data))
 
 
 def spells_out(fullest, person):
@@ -990,6 +1032,17 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
         before = keys[position - 1] if position else ""
         after = keys[position + 1] if position + 1 < len(keys) else ""
         widened = ""
+        if candidates and generic_alias(keys[position], candidates, data):
+            # «أبي إسحاق» after «شريك» is al-Sabīʿī, and «ابن سنان» in al-Kāfī is ʿAbd Allāh as
+            # often as Muḥammad; each was a link to whichever one man happened to carry the
+            # kunya or the «ابن X» among his aliases. No rijālī files anybody under it, so it
+            # is held to the word the `chosen` rests on: a book beside the neighbour.
+            candidates = [pid for pid in candidates if support(
+                pid, before, after, data["teachers"], data["students"])]
+            if not candidates:
+                row["outcome"] = "none"
+                row["because"] = "a bare kunya or «ابن X» only an alias carries"
+                continue
         if not candidates and keys[position] not in names:
             # Only a name nobody holds. One whose holders all outlived the compiler is a name
             # somebody *does* hold, and widening it would find those same men under a looser
@@ -1009,6 +1062,9 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
         # weighed. Where he was the only candidate the name goes unanswered, which is the
         # right answer — somebody holds that name and it is not a man this book could reach.
         candidates = [pid for pid in candidates if not outlived(pid, compiler, data)]
+        if widened and generic_alias(keys[position], candidates, data):
+            candidates = [pid for pid in candidates if support(
+                pid, before, after, data["teachers"], data["students"])]
         if keys[position] in SHARED_KUNYA:
             candidates = sorted(set(candidates) | {
                 pid for pid in SHARED_KUNYA[keys[position]]
@@ -1052,6 +1108,18 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
                     row["outcome"] = "several"
                     row["candidates"] = [candidates[0]] + [pid for pid, _ in backed]
                     row["because"] = f"{stub}; more than one other man answers to the name"
+                elif bare_ism_stub(keys[position], candidates[0], data, compiler):
+                    # A bare ism, «يونس», given to the one notice filed under that word alone
+                    # — al-Ṭūsī's «يونس، ابن خال أبي المستهل», with no teacher and no student —
+                    # while fuller men answer to it too: Yūnus b. ʿAbd al-Raḥmān among them, in
+                    # al-Kāfī's chains after al-Yaqṭīnī. Where the chain attests none of them
+                    # there is no telling which man it means, and the stub is the least likely.
+                    row.pop("person_id", None)
+                    row["outcome"] = "several"
+                    row["candidates"] = [candidates[0]] + bare_ism_stub(
+                        keys[position], candidates[0], data, compiler)
+                    row["because"] = (f"{stub}; the name is a bare ism that fuller men "
+                                      f"answer to as well")
         else:
             backed = [(pid, support(pid, before, after, data["teachers"], data["students"]))
                       for pid in candidates]

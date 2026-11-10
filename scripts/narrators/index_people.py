@@ -960,9 +960,30 @@ DEATH_YEARS = {}
 UNNAMED = set()  # al-Ṭūsī's «باب من لم يسم» keys, filled in main()
 HOLDERS = {}
 ENGLISH_HOLDERS = {}
+# The isms of the corpus that at least COMMON_ISM_AT men are headed by, normalized as
+# lineage.normalize does: «ابن سعيد» alone is a son of one of them, not a name.
+COMMON_ISMS = set()
+COMMON_ISM_AT = 5
+# normalized first word of every heading → how many men are headed so
+HEADING_FIRST_WORDS = Counter()
+ENGLISH_FIRST_WORDS = Counter()
 PREFIXES = {}
 ENGLISH_PREFIXES = {}
 BOOKS_WITH_TEXT = set()
+ENGLISH_FIXES = Counter()
+
+
+def _struck_grades():
+    path = os.path.join(REPO, "scripts/data/narrators/grade_corrections.json")
+    try:
+        with open(path) as handle:
+            return {(s["source_key"], s["grade"]) for s in json.load(handle)["struck"]}
+    except (FileNotFoundError, KeyError):
+        return set()
+
+
+# Grades an entry carries that its book did not give that man (grade_corrections.json).
+STRUCK_GRADES = _struck_grades()
 
 
 def profiles():
@@ -970,8 +991,9 @@ def profiles():
     for slug, *_rest in BOOKS:
         path = os.path.join(NORMALIZED, f"{slug}.json")
         if os.path.exists(path):
+            from mend_narrator_text import mend_value
             for profile in load(path):
-                found[f"{slug}:{profile['source_index']}"] = profile
+                found[f"{slug}:{profile['source_index']}"] = mend_value(profile)[0]
     return found
 
 
@@ -1091,8 +1113,34 @@ POINTS_ELSEWHERE = re.compile(r'^[^:]{2,70}:\s*=\s*([^.،؛]{3,70})')
 # earlier («تقدم في X») or later («يأتي بعنوان X»). Not «تقدم في ترجمة أبيه», which sends the
 # reader to a different man's entry where this one is only mentioned.
 POINTS_ACROSS = re.compile(
-    r'^[^:]{2,70}:\s*(?:[^:]{1,30}:\s*)?(?:تقدم|تقدّم|يأتي|يأتى)\s+(?:في|بعنوان)\s+'
-    r'(?!ترجمة)([^.،؛(]{3,70})')
+    r'^[^:]{2,70}:\s*(?:[^:]{1,30}:\s*)?(?:تقدم|تقدّم|تقدمت|يأتي|يأتى|تأتي)(?:\s+ترجمته)?\s+'
+    r'(?:في|بعنوان)\s+(?!ترجمة)([^.،؛(:]{3,70})')
+
+# And a third: «جعفر بن قولويه: هو جعفر بن محمد بن قولويه الآتي», «المفيد: هو محمد بن محمد بن
+# النعمان، المتقدم ذكره». Only where «هو» opens the entry and what follows is a name some one
+# man is filed under — «هو من الزيدية» names nobody, and is left alone by the lookup.
+def hedged(text, end):
+    """Whether what follows a pointer takes it back: «هو محمد بن أبي القاسم، أو محمد بن القاسم»
+    names two men, «بناء على أن …» makes it conditional, «تقدم في عبد الرحمان بن بديل: أنه …»
+    says only that this man is mentioned in that one's entry, and «أقول: تقدم أن هذا غير …»
+    that he is somebody else."""
+    after = text[end:end + 160]
+    if re.match(r'[\s،,]*أو\s', after):
+        return True
+    # «=» is al-Khoei's own sign that two headings are one man: nothing after it takes it back
+    if re.match(r'^[^:]{2,70}:\s*=', text):
+        return False
+    sentence = re.split(r'[.؛]', after, maxsplit=1)[0]
+    if re.search(r'(?:هذا|أنه|انه)\s+غير\s', text):
+        return True
+    return bool(re.match(r'\s*:', after)
+                or re.search(r'بناء على|غير\s|ليس\s|لا\s+يبعد\s+أن\s+يكون|يحتمل', sentence))
+
+
+POINTER_TAIL = {"الشيخ", "المفيد", "الصدوق", "قدس", "سره", "رحمه", "الله", "رضي", "عنه", "-",
+                "المتقدم", "الآتي", "الاتي", "ذكره", "رحمهم"}
+POINTS_HE_IS = re.compile(
+    r'^[^:]{2,70}:\s*هو\s+([^.،؛(:]{3,70}?)(?:\s+(?:الآتي|الاتي|المتقدم|المتقدّم|الآتى)\b|\s*[.،؛(:]|$)')
 
 # The books a later scholar is listed from, and nothing earlier: Muntajab al-Dīn's Fihrist
 # (sixth century), al-Ḥurr's Amal al-Āmil and Tadhkirat al-Mutabaḥḥirīn, Riyāḍ al-ʿUlamāʾ,
@@ -1142,6 +1190,53 @@ def merged_away(documents, since=PAGES_PUBLIC_SINCE):
                     "chain_count": 0})
         held[old] = out[-1]
     return out
+
+
+def carry_old_headings(host, previous_index, documents):
+    """The heading a page was served under, kept as a name of the man it now redirects to.
+
+    «الحكم الأعمى», «Al-Hakam al-A'ma», was a page of its own until it was merged into
+    al-Ḥakam b. Miskīn; the man's own record does not print that English, and a reader who
+    knew him by it searched and found al-Ḥakam al-Aʿshā instead. Not a bare «X بن Y», which
+    names whoever a reader means by it.
+    """
+    import urllib.request
+
+    def post(path, body):
+        request = urllib.request.Request(f"{host.rstrip('/')}{path}", data=json.dumps(body).encode(),
+                                         headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(request, timeout=120) as response:
+            return json.load(response)
+
+    by_id = {d.get("person_id"): d for d in documents if d.get("person_id")}
+    moved = {pid: d["moved_to"] for pid, d in by_id.items() if d.get("moved_to")}
+    if not moved:
+        return 0
+    carried = 0
+    ids = sorted(moved)
+    for start in range(0, len(ids), 1000):
+        got = post(f"/{previous_index}/_mget?_source=display_ar,display_en,moved_to",
+                   {"ids": ids[start:start + 1000]})
+        for doc in got.get("docs") or []:
+            old = doc.get("_source") or {}
+            if not doc.get("found") or old.get("moved_to"):
+                continue
+            target = moved.get(doc["_id"])
+            for _ in range(5):
+                if target in moved:
+                    target = moved[target]
+            man = by_id.get(target)
+            if not man or man.get("moved_to"):
+                continue
+            words = normalize_arabic(old.get("display_ar") or "").split()
+            if len(words) == 3 and words[1] in ("بن", "ابن"):
+                continue
+            for field, value in (("names_ar", old.get("display_ar")), ("names_en", old.get("display_en"))):
+                if value and value not in (man.get(field) or []) and value != man.get(
+                        "display_ar" if field == "names_ar" else "display_en"):
+                    man[field] = sorted(set(man.get(field) or []) | {value})
+                    carried += 1
+    return carried
 
 
 def vanishing(host, previous_index, documents):
@@ -1207,6 +1302,74 @@ def served_chain_counts(host, index="rewayaat_hadith"):
     return {b["key"]: b["doc_count"] for b in buckets}
 
 
+CITING = r"(?:قال|وقال|ذكره|وذكره|ذكر|عده|وعده|وثقه|ضعفه|رواه|نقل|نقله|قاله|عن)"
+
+
+def cited_counts(documents):
+    """person id → how often the entries cite him by the name in cited_authorities.json."""
+    path = os.path.join(REPO, "scripts/data/narrators/cited_authorities.json")
+    try:
+        with open(path) as handle:
+            authorities = json.load(handle)["authorities"]
+    except (FileNotFoundError, KeyError):
+        return {}
+    texts, seen = [], set()
+    for doc in documents:
+        for entry in doc.get("entries") or []:
+            if entry.get("source_key") not in seen:
+                seen.add(entry.get("source_key"))
+                texts.append(entry.get("text_ar") or "")
+    corpus = "\n".join(texts)
+    out = {}
+    for authority in authorities:
+        names = "|".join(re.escape(n) for n in authority["cited_as"])
+        out[authority["id"]] = len(re.findall(CITING + r"\s+(?:" + names + r")(?=[\s،,.:؛\"»)]|$)",
+                                              corpus))
+    return out
+
+
+def known_as(documents):
+    """Give each authority the names cited_authorities.json says he is known by, and take his
+    cited name off any other man who holds it only as a title — «روى عنه الصدوق» left «الصدوق»
+    among Ibn Qūlawayh's titles, and a search for «الشيخ الصدوق» found him before al-Ṣadūq."""
+    path = os.path.join(REPO, "scripts/data/narrators/cited_authorities.json")
+    try:
+        with open(path) as handle:
+            authorities = json.load(handle)["authorities"]
+    except (FileNotFoundError, KeyError):
+        return 0, 0
+    by_id = {doc.get("person_id"): doc for doc in documents}
+    added = 0
+    theirs = {}
+    for authority in authorities:
+        doc = by_id.get(authority["id"])
+        if not doc:
+            continue
+        for name in authority.get("known_as") or []:
+            arabic = bool(re.search(r"[\u0600-\u06FF]", name))
+            field = "titles" if arabic else "names_en"
+            if name not in (doc.get(field) or []):
+                doc[field] = sorted(set(doc.get(field) or []) | {name})
+                added += 1
+        for name in (authority.get("cited_as") or []) + [n for n in authority.get("known_as") or []
+                                                          if re.search(r"[\u0600-\u06FF]", n)]:
+            theirs[normalize_arabic(name)] = authority["id"]
+    stripped = 0
+    for doc in documents:
+        own = {normalize_arabic(h) for h in (doc.get("headings_ar") or [])}
+        own |= {normalize_arabic(w) for h in doc.get("headings_ar") or [] for w in h.split()}
+        keep = []
+        for title in doc.get("titles") or []:
+            owner = theirs.get(normalize_arabic(title))
+            if owner and owner != doc.get("person_id") and normalize_arabic(title) not in own:
+                stripped += 1
+                continue
+            keep.append(title)
+        if len(keep) != len(doc.get("titles") or []):
+            doc["titles"] = keep
+    return added, stripped
+
+
 def served_english_forms(host, index="rewayaat_hadith"):
     """person id → {the English the translations print for him in a chain: times}.
 
@@ -1263,7 +1426,7 @@ def is_later_scholar(doc):
 
 
 def fold_pointers(documents):
-    """A page whose only entry sends the reader to another man is folded into that man.
+    """A page whose entries only send the reader to another man is folded into that man.
 
     al-Khoei heads a man under each form his name takes and, under a variant, writes only
     «= X» or «تقدم في X»: the book saying the two are one. Until now the variant kept a page
@@ -1271,7 +1434,35 @@ def fold_pointers(documents):
     counted as a narrator of its own. Folded, the page redirects to the man (moved_to), its
     heading becomes one of his searchable names, and it leaves the narrator count. Only where
     the name pointed at belongs to exactly one man; an ambiguous pointer is left standing.
+
+    Two passes. The first is the one served since 2026-11-09: a page of one entry that opens
+    «= X» or «تقدم في X». The second, since 2026-11-10, takes what the first leaves: «تقدمت
+    ترجمته بعنوان X» (al-Kashshī's «الكشي»), «هو X الآتي» («جعفر بن قولويه»), a stub of two or
+    three entries that all point one way («ابن المعلم» and «المفيد» are al-Mufīd's), and a
+    pointer at a pointer. Neither pass folds a page into one of the fourteen, nor one where
+    al-Khoei hedges (see hedged()).
     """
+    everyone = {d["person_id"]: d for d in documents if d.get("person_id")}
+    folded = 0
+
+    def fold(pid, target):
+        stub, man = everyone[pid], everyone[target]
+        stub["moved_to"] = target
+        # Not a bare «X بن Y»: al-Khoei heads «أحمد بن محمد: = …» where the chains of one book
+        # mean one man by it, and given to him as a name it made him every «أحمد بن محمد» a
+        # reader searches for, and drew every narration of that name onto his page.
+        words = normalize_arabic(stub.get("display_ar") or "").split()
+        if not (len(words) == 3 and words[1] in ("بن", "ابن")):
+            for field in ("names_ar", "search_ar"):
+                man[field] = sorted(set(man.get(field) or []) | {stub.get("display_ar")} - {None})
+        man["names_en"] = sorted(set(man.get("names_en") or []) | {stub.get("display_en")} - {None})
+        man["chain_count"] = (man.get("chain_count") or 0) + (stub.get("chain_count") or 0)
+
+    def usable(pid, target):
+        return (target and target != pid and not everyone[target].get("moved_to")
+                and everyone[target].get("kind") != "imam")
+
+    # --- first pass: one entry, «= X» or «تقدم في X» ---
     stubs = {}
     for doc in documents:
         entries = doc.get("entries") or []
@@ -1279,24 +1470,89 @@ def fold_pointers(documents):
             continue
         text = (entries[0].get("text_ar") or "").strip()
         found = POINTS_ELSEWHERE.match(text) or POINTS_ACROSS.match(text)
-        if found:
+        if found and not hedged(text, found.end(1)):
             stubs[doc["person_id"]] = found.group(1).strip()
     others = [d for d in documents if d.get("person_id") not in stubs]
     by_arabic, _ = relations_join.lookup(others)
-    everyone = {d["person_id"]: d for d in documents if d.get("person_id")}
-    folded = 0
     for pid, pointed in stubs.items():
         target = by_arabic.get(relations_join.arabic_key(pointed))
-        if not target or target == pid or everyone[target].get("moved_to"):
+        if usable(pid, target):
+            fold(pid, target)
+            folded += 1
+    first = len(stubs)
+
+    # --- second pass: what the first left ---
+    stubs = {}
+    for doc in documents:
+        entries = doc.get("entries") or []
+        if not entries or len(entries) > 3 or doc.get("moved_to") or doc.get("kind") != "narrator":
             continue
-        stub, man = everyone[pid], everyone[target]
-        stub["moved_to"] = target
-        for field in ("names_ar", "search_ar"):
-            man[field] = sorted(set(man.get(field) or []) | {stub.get("display_ar")} - {None})
-        man["names_en"] = sorted(set(man.get("names_en") or []) | {stub.get("display_en")} - {None})
-        man["chain_count"] = (man.get("chain_count") or 0) + (stub.get("chain_count") or 0)
-        folded += 1
-    return folded, len(stubs)
+        pointed = set()
+        for entry in entries:
+            text = (entry.get("text_ar") or "").strip()
+            found = (POINTS_ELSEWHERE.match(text) or POINTS_ACROSS.match(text)
+                     or POINTS_HE_IS.match(text))
+            if not found or entry.get("book") != "khoei" or hedged(text, found.end(1)):
+                pointed = None
+                break
+            pointed.add(found.group(1).strip())
+        if pointed:
+            stubs[doc["person_id"]] = pointed
+    # Who holds each name. A stub carries the name it points at among its own, and a real man
+    # whose entry opens «X: هو …» reads like a stub, so a name is looked up first among the men
+    # who are not stubs and then among all records but the stubs that point at it as well.
+    holders, real_holders = defaultdict(set), defaultdict(set)
+    for doc in documents:
+        if doc.get("moved_to"):
+            continue
+        joined = doc.get("_join_ar")
+        if joined is None:
+            joined = list(doc.get("headings_ar") or []) + list(doc.get("names_ar") or []) \
+                + [doc.get("display_ar")]
+        for name in joined:
+            key = relations_join.arabic_key(name)
+            if key and len(key.split()) >= 2:
+                holders[key].add(doc.get("person_id"))
+                if doc.get("person_id") not in stubs:
+                    real_holders[key].add(doc.get("person_id"))
+    pointer_keys = {pid: {relations_join.arabic_key(p) for p in pointed}
+                    for pid, pointed in stubs.items()}
+
+    def resolve(pointed, pid):
+        """The one man a pointer names, once a title or blessing after the name is cut:
+        «محمد بن محمد بن النعمان الشيخ المفيد - قدس سره -» is al-Mufīd's heading and a title.
+        Nothing else is cut: trimming a name until it named somebody reached «عبيد الله» and
+        «الحسين بن», which name whoever happens to hold them."""
+        words = pointed.split(" - ")[0].split()
+        while words and words[-1] in POINTER_TAIL:
+            words = words[:-1]
+        if len(words) < 2:
+            return None
+        key = relations_join.arabic_key(" ".join(words))
+        anyone = {h for h in holders.get(key, set()) - {pid} if key not in pointer_keys.get(h, ())}
+        for who in (real_holders.get(key, set()) - {pid}, anyone):
+            if len(who) == 1:
+                return next(iter(who))
+            if who:
+                return None
+        return None
+
+    def final(pid, seen):
+        """Where a chain of pointers ends; a «stub» whose own pointer names nobody is the man."""
+        if pid not in stubs or pid in seen or len(seen) > 3:
+            return pid
+        targets = {resolve(p, pid) for p in stubs[pid]}
+        if len(targets) != 1 or None in targets:
+            return pid
+        return final(next(iter(targets)), seen + (pid,))
+
+    for pid, pointers in stubs.items():
+        targets = {final(t, (pid,)) if t else None for t in (resolve(p, pid) for p in pointers)}
+        target = next(iter(targets)) if len(targets) == 1 else None
+        if usable(pid, target):
+            fold(pid, target)
+            folded += 1
+    return folded, first + len(stubs)
 
 
 def points_elsewhere(documents):
@@ -1519,6 +1775,8 @@ def document(person, source, headless):
     for key in entry_keys:
         book, profile = key.split(":")[0], source[key]
         pages = profile.get("source_pages") or []
+        grade_here = (None if (key, profile.get("reliability_grade")) in STRUCK_GRADES
+                      else profile.get("reliability_grade"))
         entries.append({
             "source_key": key,
             "book": book,
@@ -1533,17 +1791,17 @@ def document(person, source, headless):
             "page_first": pages[0] if pages else None,
             "text_ar": text_of(profile),
             "text_en": text_of(profile, arabic=False),
-            "grade": profile.get("reliability_grade"),
+            "grade": grade_here,
             # the grade in words, as the verdicts use: a badge reading «VERY_WEAK» is our
             # vocabulary showing through, not the book's
-            "grade_said": GRADE_WORDS.get(profile.get("reliability_grade"), (None, None))[0],
-            "grade_said_ar": GRADE_WORDS_AR.get(profile.get("reliability_grade")),
+            "grade_said": GRADE_WORDS.get(grade_here, (None, None))[0],
+            "grade_said_ar": GRADE_WORDS_AR.get(grade_here),
             # The entry's own leaning («for», «against», «mixed»), from the same table said_by
             # uses, so a chip can be tinted from the entry itself. said_by is built only from
             # verdicts traced to a passage that holds the grade's word, so an entry can carry a
             # grade (Sahl b. Ziyād's «كذاب») that has no said_by row at all, and a chip that
             # looked its colour up there rendered grey beside green thiqa and red daif.
-            "grade_leaning": GRADE_WORDS.get(profile.get("reliability_grade"), (None, None))[1],
+            "grade_leaning": GRADE_WORDS.get(grade_here, (None, None))[1],
             # Which Imam this entry places him under, in short. The raw statement is the book's
             # chapter heading — «أصحاب أبي جعفر محمد بن علي الثاني عليهما السلام» — and printed
             # under all three of al-Tusi's listings it said the same thing three times in the
@@ -1619,6 +1877,8 @@ def document(person, source, headless):
             continue
         book, pages = grade.get("source_book"), grade.get("source_pages") or []
         entry_key = entry_key_for(person, book, pages, entry_keys)
+        if (entry_key, grade.get("grade")) in STRUCK_GRADES:
+            continue
         verdicts.append({"grade": grade.get("grade"), "said": grade.get("raw"),
                          "stated": True,
                          "book": book, "book_title": BOOK_TITLE.get(book, book),
@@ -1988,13 +2248,31 @@ def document(person, source, headless):
     own_lineage_en = [person["primary_english_name"]] if person.get("primary_english_name") else []
     own_lineage_en += [e["heading_en"] for e in entries if e.get("heading_en")]
 
+    own_heading_forms = [n["value"] for n in values(person, "primary_names") if n.get("value")]
+    own_heading_forms += [e["heading_ar"] for e in entries if e.get("heading_ar")]
+
+    own_words = {w for h in own_heading_forms + own_lineage for w in normalize_arabic(h).split()}
+
+    def another_mans_laqab(value):
+        """«العمركي» alone among ʿAlī b. Jaʿfar's names is his student al-ʿAmrakī b. ʿAlī, whom
+        the books head by it; «العبيدي» on Ḥammād b. ʿĪsā is Muḥammad b. ʿĪsā al-ʿUbaydī. A
+        one-word nisba or laqab no heading of his carries, that opens another man's heading,
+        is that man's."""
+        words = normalize_arabic(value).split()
+        return (len(words) == 1 and words[0].startswith("ال") and words[0] not in own_words
+                and HEADING_FIRST_WORDS.get(words[0], 0) > 0)
+
     def his_alias(value):
-        return not lineage.foreign(value, own_lineage)
+        return not lineage.foreign(value, own_lineage) and not lineage.foreign_ibn(
+            value, own_lineage, own_heading_forms,
+            lambda _form: HOLDERS.get(normalize_arabic(value), 0) > 0, COMMON_ISMS) \
+            and not another_mans_laqab(value)
 
     all_names_ar = [n["value"] for n in values(person, "primary_names") if n.get("value")]
-    all_names_ar += [n["value"] for n in values(person, "arabic_aliases")
+    all_names_ar += [lineage.without_chain_words(n["value"]) for n in values(person, "arabic_aliases")
                      if n.get("value") and not another_mans_name(person, n["value"])
                      and his_alias(n["value"])]
+    all_names_ar = [n for n in all_names_ar if n]
     all_names_ar = list(dict.fromkeys(all_names_ar))
     own_headings = [normalize_arabic(n["value"]) for n in values(person, "primary_names")
                     if n.get("value")]
@@ -2026,9 +2304,21 @@ def document(person, source, headless):
     search_ar = searchable(sorted(headings_ar),
                            sorted({n["value"] for n in values(person, "arabic_aliases")
                                    if n.get("value") and his_alias(n["value"])}), HOLDERS)
+    own_words_en = {transliterate._english_skeleton(w) for h in own_lineage_en for w in h.split()}
+
+    def another_mans_laqab_en(value):
+        """The English of another_mans_laqab, by consonants, since the spellings differ:
+        «al-'Amriki» alone on ʿAlī b. Jaʿfar is «al-'Amraki ibn Ali»."""
+        words = value.split()
+        if len(words) != 1 or not value.lower().startswith(("al-", "el-")):
+            return False
+        key = transliterate._english_skeleton(value)
+        return bool(key) and key not in own_words_en and ENGLISH_FIRST_WORDS.get(key, 0) > 0
+
     all_names_en = [n["value"] for n in values(person, "english_aliases")
                     if n.get("value") and not another_mans_english(person, n["value"])
-                    and not lineage.foreign_en(n["value"], own_lineage_en)]
+                    and not lineage.foreign_en(n["value"], own_lineage_en)
+                    and not another_mans_laqab_en(n["value"])]
     names_en = [n for n in all_names_en if not not_a_personal_name(n, [], english=True)]
     names_group_en = [{"value": n, "kind": "family"} for n in sorted(set(all_names_en))
                       if not_a_personal_name(n, [], english=True)]
@@ -2124,6 +2414,14 @@ def document(person, source, headless):
     if not display_en and display_ar:
         display_en = transliterate.english_for(display_ar, TRANSLITERATION)
         made = bool(display_en)
+    # The English must name the man the Arabic beside it names: «Sa'd ibn Allah» for «سعد بن
+    # عبد الله», «Ahmad ibn Qarun» for «أحمد بن هارون», another book's heading for him («Sulayman
+    # al-A'mash» for «سليمان بن مهران»), or a different man entirely, are rendered again.
+    display_en, english_fix = transliterate.checked_english(
+        display_ar, display_en, names_en, TRANSLITERATION)
+    if english_fix == "rebuilt":
+        made = True
+    ENGLISH_FIXES[english_fix] += 1
     if display_ar == nasab_ar:
         nasab_ar = None
 
@@ -2199,6 +2497,11 @@ def document(person, source, headless):
     join_en = list(names_en) + ([] if newly_cut or runs_on else [display_en])
     return {
         "_join_ar": join_ar,
+        # The headings as the books print them, before a run-on was cut back to the name, for
+        # the chain resolver alone (kept in the dump, dropped before the load). Cut, al-
+        # Ardabīlī's «أبو على الأشعري اسمه أحمد بن إدريس ويجئ لغيره» became a second
+        # «أبو على الأشعري», and al-Kulaynī's shaykh lost 22 links to a tie with it.
+        "_resolver_headings_ar": sorted(set(raw_headings_ar) | {raw_display_ar} - {None}),
         "_join_en": join_en,
         "person_id": person["person_id"],
         # the anchor entry's own heading, not the longest name the merge found: that gave Ibn Abi
@@ -2225,6 +2528,17 @@ def document(person, source, headless):
         "normalized_en": sorted({n.lower() for n in all_names_en}),
         "kunyahs_ar": kunyahs,
         "titles": titles,
+        # The nisbas his own names close on, so a reader searching «الطوسي» or «al-Ahwazi» is
+        # answered by every man the books so name, the best known first — not only by the one
+        # whose record happened to list the nisba among his titles.
+        # His headings only: an alias is where another man's name strays in.
+        "nisbas_ar": sorted({w for n in [display_ar, *headings_ar] for w in lineage.nisbas(n)}),
+        # In English, his English heading's, and his Arabic ones spelt as the corpus spells
+        # them: al-Ḥusayn b. Saʿīd's English heading stops short of al-Ahwazi.
+        "nisbas_en": sorted({w for n in [display_en or ""] for w in lineage.nisbas_en(n)}
+                            | {transliterate.english_for(w, TRANSLITERATION)
+                               for n in [display_ar, *headings_ar] for w in lineage.nisbas(n)}
+                            - {""}),
         # Said by a record whose entry does not hold the words: kept, because a book did say
         # it, but out of the fields a search matches on. A title nobody's entry bears out
         # makes a man findable under a name that is not his.
@@ -2424,7 +2738,8 @@ def main():
                              "who now holds its entries, instead of a 404")
     args = parser.parse_args()
 
-    global YEARS, HOLDERS, ENGLISH_HOLDERS, PREFIXES, ENGLISH_PREFIXES, TRANSLITERATION
+    global YEARS, HOLDERS, ENGLISH_HOLDERS, PREFIXES, ENGLISH_PREFIXES, TRANSLITERATION, COMMON_ISMS
+    global HEADING_FIRST_WORDS, ENGLISH_FIRST_WORDS
     YEARS = imam_years()
     TRANSLITERATION = transliterate.load()
     try:
@@ -2436,6 +2751,17 @@ def main():
     print(f"{len(TRANSLITERATION):,} Arabic words the corpus prints in English, for the men "
           f"no book names in English")
     people = load(os.path.join(IDENTITY, "people.json"))
+    # The identity store is rebuilt from extractions made before the severed «س» was mended at
+    # the source, and each rebuild put «سليم بن قيأآلهتنا» back on the site; the mend is
+    # applied here as well, so no build can serve it again whatever the files hold.
+    from mend_narrator_text import mend_value
+    mended = 0
+    for position, person in enumerate(people):
+        fixed, n = mend_value(person)
+        if n:
+            people[position] = fixed
+            mended += n
+    print(f"{mended:,} pieces of OpenITI damage mended in the identity store as it was read")
     HOLDERS, ENGLISH_HOLDERS = Counter(), Counter()
     PREFIXES, ENGLISH_PREFIXES = Counter(), Counter()
     for person in people:
@@ -2447,14 +2773,27 @@ def main():
             forms.add(normalize_arabic(person["primary_arabic_name"]))
         for form in forms:
             HOLDERS[form] += 1
+            if form.split():
+                HEADING_FIRST_WORDS[form.split()[0]] += 1
             words = form.split()
             if len(words) >= 3:
                 PREFIXES[" ".join(words[:3])] += 1
         if person.get("primary_english_name"):
             english = fold_english(person["primary_english_name"])
             ENGLISH_HOLDERS[english] += 1
+            first = person["primary_english_name"].split()[0]
+            if first.lower().startswith(("al-", "el-")):
+                ENGLISH_FIRST_WORDS[transliterate._english_skeleton(first)] += 1
             if len(english.split()) >= 3:
                 ENGLISH_PREFIXES[" ".join(english.split()[:3])] += 1
+    isms = Counter()
+    for person in people:
+        if person.get("holds_entry") is False:
+            continue
+        found = lineage.lineage(person.get("primary_arabic_name") or "")
+        if found:
+            isms[found[0]] += 1
+    COMMON_ISMS = {ism for ism, count in isms.items() if count >= COMMON_ISM_AT}
     source, headless = profiles(), not_entries(TMP)
     UNNAMED.update(unnamed_subjects(TMP))
     # Which books the corpus holds printed entries of, so a grade attributed to a book never
@@ -2511,7 +2850,8 @@ def main():
 
     if documents and args.dump:
         with open(args.dump + ".part", "w") as handle:
-            json.dump([{k: v for k, v in doc.items() if not k.startswith("_join")}
+            json.dump([{(k[1:] if k == "_resolver_headings_ar" else k): v
+                        for k, v in doc.items() if not k.startswith("_join")}
                        for doc in documents], handle, ensure_ascii=False)
         os.replace(args.dump + ".part", args.dump)
         print(f"dumped {len(documents):,} people -> {args.dump}")
@@ -2526,6 +2866,14 @@ def main():
               file=sys.stderr)
     for doc in documents:
         doc["chain_count"] = chain_counts.get(doc.get("person_id"), 0)
+    cited = cited_counts(documents)
+    for doc in documents:
+        if doc.get("person_id") in cited:
+            doc["cited_count"] = cited[doc["person_id"]]
+    counts["authorities the books cite by one name, counted"] = len(cited)
+    added, stripped = known_as(documents)
+    counts["names a scholar knows an authority by, added to him"] = added
+    counts["an authority's name taken off another man's titles"] = stripped
     try:
         english_forms = served_english_forms(args.es_host)
     except Exception as unreachable:  # noqa: BLE001
@@ -2566,12 +2914,19 @@ def main():
         documents += dropped
         counts[f"pages {args.previous_index} serves that this build drops, now redirecting"] = \
             len(dropped)
+        try:
+            carried = carry_old_headings(args.es_host, args.previous_index, documents)
+        except Exception as unreachable:  # noqa: BLE001
+            carried = 0
+            print(f"  could not read {args.previous_index} ({unreachable})", file=sys.stderr)
+        counts["headings of a page now redirecting, kept as names of the man it joined"] = carried
 
     if documents:
         roster = roster_documents(documents[0])
         for doc in roster:
             # Built from documents[0] as a template, they would join under that man's names.
             doc.pop("_join_ar", None)
+            doc.pop("_resolver_headings_ar", None)
             doc.pop("_join_en", None)
         documents += roster
         counts["the fourteen, who hold no entry anywhere"] = len(roster)
@@ -2626,11 +2981,14 @@ def main():
         print(f"  {n:7d}  {label}")
     for label, n in IMAM_STATS.most_common():
         print(f"  {n:7d}  {label}")
+    for label, n in ENGLISH_FIXES.most_common():
+        print(f"  {n:7d}  English names {label} against their Arabic")
 
     # The join is done; its private keys are not part of a document.
     for doc in documents:
         doc.pop("_join_ar", None)
         doc.pop("_join_en", None)
+        doc.pop("_resolver_headings_ar", None)
 
     if args.show:
         wanted = [d for d in documents if d["person_id"] == args.show]

@@ -72,6 +72,12 @@ FILES = [
     f'{TMP}/narrators_book_tusi.json',
     f'{TMP}/narrators_book_tusi_openiti.json',
     f'{TMP}/narrators_sources/narrators_book_fihrist.before_moveflags.json',
+    # What build_people reads, and what it writes: left out when this was first run, so each
+    # rebuild of the identity store since put 152 severed names back on the site — 29 of
+    # them a page's own heading, «سليم بن قيأآلهتنا الهلالي» among them.
+    f'{TMP}/narrators_normalized/fihrist.json',
+    f'{TMP}/narrators_normalized/tusi.json',
+    f'{TMP}/narrators_identity/people.json',
 ]
 
 
