@@ -237,6 +237,50 @@ class NarratorNameLookupIntegrationTest extends ElasticsearchTestSupport {
                 "a scholar of the late lists stands in no chain and is not a narrator");
     }
 
+    @Test
+    @DisplayName("the man whose name is the query comes before a son whose heading holds it")
+    void aWholeNameOutranksASonsHeading() throws Exception {
+        indexDoc(man("n000971", "محمد بن مسعود بن محمد بن عياش", "Muhammad ibn Mas'ud ibn Muhammad ibn 'Ayyash",
+                7, 31, List.of("محمد بن مسعود العياشي", "العياشي"), List.of("Muhammad ibn Mas'ud al-'Ayyashi")));
+        indexDoc(man("n002316", "جعفر بن محمد بن مسعود العياشي", "Ja'far ibn Muhammad ibn Mas'ud al-'Ayyashi",
+                3, 29, List.of(), List.of()));
+        indexDoc(man("n002722", "عثمان بن سعيد العمري", "Uthman ibn Sa'id al-Umari",
+                5, 2, List.of("عثمان بن سعيد"), List.of()));
+        indexDoc(man("n003120", "محمد بن عثمان بن سعيد العمري", "Muhammad b. Uthman b. Sa'id al-Umari",
+                5, 22, List.of("محمد بن عثمان بن سعيد"), List.of()));
+        assertEquals("n000971", first(found("محمد بن مسعود العياشي")));
+        assertEquals("n000971", first(found("العياشي")));
+        assertEquals("n002722", first(found("عثمان بن سعيد")));
+    }
+
+    @Test
+    @DisplayName("a book's heading wins a name that another man only holds as an alias")
+    void aHeadingOutranksAnAlias() throws Exception {
+        Map<String, Object> author = man("n066789", "أحمد بن علي بن أحمد بن العباس", "Ahmad ibn Ali ibn Ahmad ibn al-Abbas",
+                6, 0, List.of("أحمد بن علي النجاشي"), List.of());
+        author.put("headings_ar", List.of("النجاشي", "أحمد بن العباس النجاشي"));
+        indexDoc(author);
+        Map<String, Object> ancestor = man("n000579", "عبد الله بن النجاشي", "Abd Allah ibn al-Najashi",
+                5, 1, List.of("عبد الله النجاشي"), List.of());
+        ancestor.put("titles", List.of("النجاشي"));
+        indexDoc(ancestor);
+        // the others the word names, as in the real index, so it is not the rarest word there is
+        indexDoc(man("n014276", "النجاشي الشاعر", "Al-Najashi the Poet", 3, 0, List.of(), List.of()));
+        indexDoc(man("n004191", "أحمد بن العباس النجاشي الصيرفي", "Ahmad ibn al-Abbas al-Najashi al-Sayrafi",
+                3, 0, List.of(), List.of()));
+        indexDoc(man("n009038", "عباس النجاشي كوفي", "Al-Abbas al-Najashi", 2, 0, List.of(), List.of()));
+        assertEquals("n066789", first(found("النجاشي")));
+    }
+
+    @Test
+    @DisplayName("a bare ism held whole by a stub does not push the famous man down")
+    void aStubHoldingABareIsmDoesNotWin() throws Exception {
+        indexDoc(man("n001232", "يونس بن عبد الرحمن", "Yunus ibn Abd al-Rahman", 8, 318,
+                List.of(), List.of()));
+        indexDoc(man("n014921", "يونس", "Yunus", 3, 47, List.of("يونس"), List.of()));
+        assertEquals("n001232", first(found("يونس")));
+    }
+
     private String first(List<String> ids) {
         assertFalse(ids.isEmpty(), "the search found nobody");
         return ids.get(0);
