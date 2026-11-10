@@ -204,9 +204,11 @@ public class NarratorPageController {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
             return null;
         }
-        // One of the fourteen, filed under a narrator's identifier because a rijālī catalogued
-        // him among the companions he was assessing. The page he deserves is the roster's, and
-        // the link that brought the reader here goes on working.
+        // A page that is somebody else's: one of the fourteen, filed under a narrator's
+        // identifier because a rijālī catalogued him among the companions he was assessing; an
+        // al-Khoei variant whose entry only says «= X»; or a second record of a man, merged
+        // into the first. The reader goes to the man, and the link that brought him goes on
+        // working.
         String movedTo = text(narrator.get("moved_to"));
         if (!movedTo.isEmpty() && !movedTo.equals(id)) {
             Map<String, Object> roster = narratorService.getNarrator(movedTo);

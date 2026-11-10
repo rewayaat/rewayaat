@@ -4,6 +4,7 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.aggregations.StringTermsBucket;
 import co.elastic.clients.elasticsearch._types.query_dsl.FieldValueFactorModifier;
 import co.elastic.clients.elasticsearch._types.query_dsl.FunctionBoostMode;
+import co.elastic.clients.elasticsearch._types.query_dsl.FunctionScoreMode;
 import co.elastic.clients.elasticsearch._types.query_dsl.Operator;
 import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType;
 import co.elastic.clients.elasticsearch.core.GetResponse;
@@ -48,6 +49,33 @@ public class NarratorService {
     private static final List<String> NAME_FIELDS = List.of(
             "display_ar^4", "display_en^4", "names_ar^2", "names_en^2",
             "normalized_ar", "normalized_en", "kunyahs_ar", "titles");
+
+    /**
+     * The same names read loosely, the way a reader actually types them.
+     *
+     * In Arabic «عبدالله» joined and «عبد الله» apart are one name, and so are «حسين» and
+     * «الحسين», «أبي» and «أبو»: a scholar typing «سعد بن عبدالله» or «فضل بن شاذان» was
+     * told nobody by that name is in the books. In English the vowels are the translator's
+     * guess at an unvowelled script — Hamiri for Ḥimyarī, 'Aqda for ʿUqda, Harith for
+     * Ḥurayth — and «b.», «bin» and «ibn» are one word, so each name is also kept as its
+     * consonants (scripts/search/narrators_mapping.json, english_skeleton). These are
+     * matched whole, with no edit allowed: the reading itself is the tolerance.
+     */
+    private static final List<String> LOOSE_FIELDS = List.of(
+            "display_ar.loose^4", "names_ar.loose^2", "headings_ar.loose^2", "search_ar.loose^2",
+            "normalized_ar.loose", "kunyahs_ar.loose", "titles.loose",
+            "display_en.skel^4", "names_en.skel^2", "normalized_en.skel");
+
+    /**
+     * Names read from their first word, so a query can be asked to begin one.
+     *
+     * «Zurara» is the first word of Zurāra b. Aʿyan's name and the last of «ʿUbayd b.
+     * Zurāra»'s. Matched anywhere, the sons came first, being shorter names; asked to begin
+     * the name, the query reaches the man himself.
+     */
+    private static final List<String> LEAD_FIELDS = List.of(
+            "display_ar.lead", "names_ar.lead", "headings_ar.lead", "search_ar.lead",
+            "display_en.lead", "names_en.lead", "normalized_en.lead");
 
     @Value("${narrator.index:rewayaat_narrators}")
     private String indexName;
@@ -183,8 +211,13 @@ public class NarratorService {
                     // under a narrator's identifier. It stays in the index so its links keep
                     // working and the page can send the reader to the roster, but a search
                     // must not answer «zurara» or «ali» with three cards for the same man.
+                    //
+                    // A scholar of the sixth century or later, whom al-Khoei lists from Muntajab
+                    // al-Dīn or Amal al-Āmil, keeps his page but is no narrator: none of them
+                    // stands in a chain of this corpus.
                     .query(q -> q.bool(b -> b
                             .mustNot(n -> n.exists(e -> e.field("moved_to")))
+                            .mustNot(n -> n.term(t -> t.field("kind").value("scholar")))
                             .must(top -> top.functionScore(fs -> fs
                             // Three readings of the same name, the best of them scoring. The
                             // first finds the man, the other two decide which man when several
@@ -225,11 +258,32 @@ public class NarratorService {
                                     .query(text)
                                     .type(TextQueryType.Phrase)
                                     .fields(NAME_FIELDS)
-                                    .boost(4.0f)))))
+                                    .boost(4.0f)))
+                            .should(loose -> loose.multiMatch(m -> m
+                                    .query(text)
+                                    .operator(Operator.And)
+                                    .fields(LOOSE_FIELDS)
+                                    .boost(3.0f)))
+                            .should(lead -> lead.multiMatch(m -> m
+                                    .query(text)
+                                    .type(TextQueryType.Phrase)
+                                    .fields(LEAD_FIELDS)
+                                    .boost(8.0f)))))
+                            // Entries say how much the books wrote about a man; chains say how
+                            // often this corpus names him. «محمد بن يحيى» is a dozen men with
+                            // six entries apiece, and the one a reader of al-Kāfī means stands in
+                            // 4,204 of its chains — he came sixth when entries alone decided.
+                            // Halved, so a famous man still needs to answer to the name.
                             .functions(f -> f.fieldValueFactor(v -> v
                                     .field("entry_count")
                                     .modifier(FieldValueFactorModifier.Log1p)
                                     .missing(1.0)))
+                            .functions(f -> f.fieldValueFactor(v -> v
+                                    .field("chain_count")
+                                    .modifier(FieldValueFactorModifier.Log1p)
+                                    .missing(0.0))
+                                    .weight(0.5))
+                            .scoreMode(FunctionScoreMode.Sum)
                             .boostMode(FunctionBoostMode.Multiply)))))
                     // a result row needs the names and the counts, not every entry's full text
                     .source(src -> src.filter(f -> f.excludes("entries", "narrated_from",
@@ -250,10 +304,47 @@ public class NarratorService {
             result.put("page", Math.max(page, 1));
             result.put("page_size", size);
             result.put("narrators", narrators);
+            long total = response.hits().total() == null ? narrators.size()
+                    : response.hits().total().value();
+            result.put("named", names(provider, text, total));
             return result;
         } catch (Exception e) {
             LOGGER.warn("Narrator search failed for «{}»: {}", text, e.getMessage());
             return empty;
+        }
+    }
+
+    /** More men than this answering a name exactly and it is a word, not a name. */
+    private static final int NAMES_AT_MOST = 150;
+
+    /**
+     * Whether the query names somebody in particular, as opposed to being a common word.
+     *
+     * <p>The page used to decide from the total — past 150 men, «muhammad» is a word — but the
+     * loose readings that let «Ibn Abi Omair» find Ibn Abī ʿUmayr also let it reach every
+     * «Abu ʿUmar», and at 199 the strip offering the man vanished for the plainest English
+     * query there is. A query of two words or more is a name. One word names somebody when
+     * few men hold it as written, every word present and no edit allowed; a word nobody holds
+     * as written («Omair») falls back to the total.
+     */
+    private boolean names(ESClientProvider provider, String text, long total) {
+        if (text.trim().split("\\s+").length >= 2) {
+            return true;
+        }
+        try {
+            long exact = provider.client().count(c -> c
+                    .index(indexName)
+                    .query(q -> q.bool(b -> b
+                            .mustNot(n -> n.exists(e -> e.field("moved_to")))
+                            .mustNot(n -> n.term(t -> t.field("kind").value("scholar")))
+                            .must(m -> m.multiMatch(mm -> mm
+                                    .query(text)
+                                    .operator(Operator.And)
+                                    .fields(NAME_FIELDS)))))).count();
+            return exact > 0 ? exact <= NAMES_AT_MOST : total <= NAMES_AT_MOST;
+        } catch (Exception e) {
+            LOGGER.debug("Could not count exact holders of «{}»: {}", text, e.getMessage());
+            return false;
         }
     }
 

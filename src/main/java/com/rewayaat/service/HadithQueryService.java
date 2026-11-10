@@ -100,12 +100,56 @@ public class HadithQueryService {
         return "asc".equals(order) ? SortOrder.Asc : SortOrder.Desc;
     }
 
+    /**
+     * «عبدالله» written as one word, as readers type it, split as the books print it.
+     *
+     * <p>The corpus writes «عبد الله» apart in 733 narrations naming «عبد الله بن سنان» and
+     * joined in 11, so a scholar who typed the name joined found almost none of him. The
+     * compound is always «عبد» or «عبيد» before «ال»: «عبدالرحمن», «عبيدالله», «عبدالجبار».
+     */
+    private static final java.util.regex.Pattern JOINED_ABD = java.util.regex.Pattern.compile(
+            "(?<![\\u0621-\\u064a])(عبد|عبيد)(ال[\\u0621-\\u064a]{2,})");
+
+    static String splitJoinedAbd(String query) {
+        return query == null ? null : JOINED_ABD.matcher(query).replaceAll("$1 $2");
+    }
+
+    /** Anything that makes a query more than plain words: quotes, fields, operators, wildcards. */
+    private static final java.util.regex.Pattern NOT_PLAIN = java.util.regex.Pattern.compile(
+            "[\"():\\[\\]{}~*?^+\\\\/]|(?<!\\S)-|\\b(?:AND|OR|NOT)\\b");
+
+    /**
+     * The words of a plain query, kept together, so a narration holding them in order can
+     * outrank one holding them scattered.
+     *
+     * <p>A flexible search joins its words with OR, so «Muhammad ibn Muslim» ranked first
+     * a Mīzān al-Ḥikma narration of the Prophet that holds none of the three together: not one
+     * of the first ten carried the name. Quoted, the same three words found 992 narrations,
+     * every one of the first ten his. Readers do not quote, and nothing on the results page
+     * tells them to. This is the reading of their words they meant; it is added as a boost,
+     * not a filter, so it reorders what the search finds and takes nothing away.
+     *
+     * @return the phrase, or null when the query is one word or more than plain words
+     */
+    public String phraseOf(String query) {
+        if (query == null) {
+            return null;
+        }
+        String plain = dropHonorifics(balanceDelimiters(query.trim()));
+        if (plain.isEmpty() || NOT_PLAIN.matcher(plain).find()) {
+            return null;
+        }
+        plain = splitJoinedAbd(stripArabicDiacritics(plain)).replaceAll("\\s+", " ").trim();
+        return plain.split(" ").length >= 2 ? plain : null;
+    }
+
     public String enhanceQuery(String query, QueryMode queryMode, boolean strictMatchMode) {
         if (query == null) {
             query = "";
         }
         query = balanceDelimiters(query);
         query = dropHonorifics(query);
+        query = splitJoinedAbd(query);
         // splits query by all spaces that are not enclosed by double quotes or brackets
         List<String> splitted = new ArrayList<>();
         List<String> allFieldItems = new ArrayList<>();

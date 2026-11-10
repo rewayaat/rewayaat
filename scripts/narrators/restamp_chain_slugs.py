@@ -7,6 +7,12 @@ him, because the controller redirects a non-canonical slug to the canonical one,
 name in every isnād he stands in then costs a redirect, and the two indexes disagree about
 what he is called. Rebuilding the whole chain load to fix a name is an hour's work for a
 field that is one string; this walks the chains and restamps the slugs alone.
+
+It also carries a link over to the man a record has moved to. A page folded into another man —
+al-Khoei's «= X» variants, a second record of the same man merged into the first — keeps its id
+so old links redirect, but a chain still naming it would count its narrations against the old
+record and send every reader through the redirect. Only moves to another narrator are
+followed: the fourteen keep their narrator ids in the chains, as they always have.
 """
 import argparse
 import json
@@ -40,54 +46,67 @@ def bulk(host, lines):
         sys.exit("bulk failed: " + json.dumps(first, ensure_ascii=False)[:400])
 
 
-def slugs(host):
-    """id → slug, straight from the index the pages are served from."""
+def slugs(host, moved=None, index=NARRATORS):
+    """id → slug, straight from the index the pages are served from; «moved», when given,
+    is filled with id → the narrator id it moved to."""
     out, after = {}, None
     while True:
         body = {"size": 2000, "sort": ["person_id"],
-                "_source": ["person_id", "slug"]}
+                "_source": ["person_id", "slug", "moved_to"]}
         if after:
             body["search_after"] = after
         page = post(host, "/%s/_search?filter_path=hits.hits._source,hits.hits.sort"
-                    % NARRATORS, body)
+                    % index, body)
         hits = page.get("hits", {}).get("hits", [])
         if not hits:
             return out
         for hit in hits:
             source = hit["_source"]
             out[source["person_id"]] = source.get("slug") or ""
+            target = source.get("moved_to")
+            if moved is not None and target and str(target).startswith("n"):
+                moved[source["person_id"]] = target
         after = hits[-1]["sort"]
 
 
-def restamp(value, slug_of, counter):
-    """Walk the links in place; anything carrying an id and a slug gets the current one."""
+def restamp(value, slug_of, counter, moved=None):
+    """Walk the links in place; anything carrying an id and a slug gets the current one, and
+    an id that has moved to another narrator becomes his."""
     if isinstance(value, list):
         for item in value:
-            restamp(item, slug_of, counter)
+            restamp(item, slug_of, counter, moved)
         return
     if not isinstance(value, dict):
         return
     person = value.get("p")
-    if person and "g" in value and value["g"]:
+    if person and moved and person in moved:
+        value["p"] = person = moved[person]
+        if "g" in value:
+            value["g"] = slug_of.get(person) or value["g"]
+        counter[0] += 1
+    elif person and "g" in value and value["g"]:
         # An unresolved mention stores an empty slug on purpose; leave it empty.
         current = slug_of.get(person)
         if current is not None and current != value["g"]:
             value["g"] = current
             counter[0] += 1
     for item in value.values():
-        restamp(item, slug_of, counter)
+        restamp(item, slug_of, counter, moved)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--es-host", default="http://localhost:9200")
+    parser.add_argument("--narrators-index", default=NARRATORS,
+                        help="the narrator index to read slugs and moves from")
     parser.add_argument("--apply", action="store_true",
                         help="write the corrected links back; otherwise only count them")
     args = parser.parse_args()
     host = args.es_host.rstrip("/")
 
-    slug_of = slugs(host)
-    print("%d narrators" % len(slug_of))
+    moved = {}
+    slug_of = slugs(host, moved, args.narrators_index)
+    print("%d narrators, %d moved to another narrator" % (len(slug_of), len(moved)))
 
     body = {"size": 200, "sort": ["_doc"], "_source": list(LINK_FIELDS),
             "query": {"bool": {"should": [{"exists": {"field": f}} for f in LINK_FIELDS],
@@ -110,7 +129,7 @@ def main():
                     if not links:
                         continue
                     counter = [0]
-                    restamp(links, slug_of, counter)
+                    restamp(links, slug_of, counter, moved)
                     if counter[0]:
                         changed[field] = links
                         spans += counter[0]

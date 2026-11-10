@@ -1,0 +1,429 @@
+[
+ {
+  "group": "g014",
+  "primary": "n069052",
+  "other": "n000922",
+  "reason": "The Najāshī entry (Ibn ʿUbayd b. Yaqṭīn) is the same man as the primary; Ardabīlī fuses the two under one heading with Yaqṭīnī, and the dispute is over his grading not identity.",
+  "quote": "محمد بن عيسى بن عبيد بن يقطين مولى بنى أسد بن خزيمة أبو جعفر العبيدي اليقطيني"
+ },
+ {
+  "group": "g018",
+  "primary": "n000914",
+  "other": "n067640",
+  "reason": "Al-Khoei entry is al-Najāshī's Abū Jaʿfar al-Zāhirī, the same description (descendant of Zāhir, mawlā ʿAmr b. al-Ḥamiq) as the primary Najāshī entry; same Imams.",
+  "quote": "محمد بن سنان أبو جعفر الزاهري: من ولد زاهر، مولى عمرو بن الحمق الخزاعي"
+ },
+ {
+  "group": "g022",
+  "primary": "n000924",
+  "other": "n030349",
+  "reason": "Kashshi's heading names Abu Abd Allah Muhammad b. Khalid al-Barqi; the primary is al-Barqi whose kunya is Abu Abd Allah (al-Najashi, al-Fihrist), and Kashshi's reference to al-Barqi meeting Safwan fits him.",
+  "quote": "في أبى عبد الله محمد بن خالد البرقي"
+ },
+ {
+  "group": "g023",
+  "primary": "n000866",
+  "other": "n030346",
+  "reason": "Kashshi's chapter on Abu Muhammad al-Fadl b. Shadhan; the primary's kunya is Abu Muhammad (al-Tusi, al-Najashi) and nothing contradicts it.",
+  "quote": "في أبى محمد الفضل بن شاذان رحمه الله"
+ },
+ {
+  "group": "g024",
+  "primary": "n001121",
+  "other": "n038945",
+  "reason": "Khoei equates this Abu al-Qasim entry (narrating from al-Sadiq) with the next entry for Mu'awiya b. Ammar; the primary's kunya is Abu al-Qasim per al-Tusi and he is a companion of al-Sadiq.",
+  "quote": "هذا متحد مع من بعده"
+ },
+ {
+  "group": "g035",
+  "primary": "n001758",
+  "other": "n066545",
+  "reason": "Khoei's entry quotes al-Najashi for al-Nadr b. Suwayd al-Sayrafi, Kufi, thiqa, moved to Baghdad, which is exactly what al-Ardabili gives for the primary, and quotes al-Tusi's Fihrist chain identical to the primary's.",
+  "quote": "كوفي، ثقة، صحيح الحديث، إنتقل إلى بغداد"
+ },
+ {
+  "group": "g042",
+  "primary": "n001754",
+  "other": "n039784",
+  "reason": "Same full name, Abu Jamila, al-Asadi, al-Nakhkhas, as in the primary's Ardabili entry (the Khoei entry only corrects the variant al-Nahhas/al-Nakhkhas).",
+  "quote": "المفضل بن صالح أبو جميلة الأسدي النخاس مولاهم"
+ },
+ {
+  "group": "g046",
+  "primary": "n000902",
+  "other": "n030207",
+  "reason": "The Kashshi heading carries the identical full name and kunya Abu Basir Layth b. al-Bakhtari al-Muradi, the kunya the primary has in al-Tusi.",
+  "quote": "في أبي بصير ليث بن البختري المرادي"
+ },
+ {
+  "group": "g046",
+  "primary": "n000902",
+  "other": "n066487",
+  "reason": "Al-Ardabili's cross-reference entry gives the same full name, narrates from al-Baqir and al-Sadiq, and says 'as mentioned before'.",
+  "quote": "أبو بصير ليث بن البختري المرادي روى عن الباقر والصادق والكاظم عليهم السلام كما تقدم"
+ },
+ {
+  "group": "g051",
+  "primary": "n000473",
+  "other": "n030225",
+  "reason": "The Kashshi heading is Abu al-Jarud Ziyad b. al-Mundhir, the blind (al-A'ma), matching the primary's Abu al-Jarud, blind, Ziyad b. al-Mundhir.",
+  "quote": "في أبى الجارود زياد بن المنذر الأعمى السرحوب"
+ },
+ {
+  "group": "g054",
+  "primary": "n000770",
+  "other": "n033303",
+  "reason": "Al-Ardabili's entry gives Abbas b. Ma'ruf Qummi and cites al-Najashi (jash) and al-Allama, i.e. the primary's own Najashi entry.",
+  "quote": "عباس بن معروف قمي (دى. صه. جش."
+ },
+ {
+  "group": "g055",
+  "primary": "n001189",
+  "other": "n030244",
+  "reason": "The Kashshi heading Abu Muhammad Hisham b. al-Hakam matches the primary's kunya Abu Muhammad, and the entry says he was a mawla of Kinda like the primary.",
+  "quote": "في أبى محمد هشام بن الحكم"
+ },
+ {
+  "group": "g058",
+  "primary": "n066050",
+  "other": "n002660",
+  "reason": "Al-Khoei says al-Tusi listed this Abdullah b. al-Abbas b. Abd al-Muttalib among the Prophet's companions as well as Ali's; the primary is al-Tusi's bare entry in the Prophet's companions, so both records are the one man.",
+  "quote": "عده الشيخ (تارة) في أصحاب رسول الله صلى الله عليه وآله"
+ },
+ {
+  "group": "g071",
+  "primary": "n000859",
+  "other": "n048031",
+  "reason": "Al-Khoei states there is no doubt he is Ghayath b. Ibrahim, since the narrator and the one narrated from are the same; al-Darimi fits the Tamimi tribe.",
+  "quote": "فلا شك في أنه غياث بن إبراهيم المتقدم"
+ },
+ {
+  "group": "g073",
+  "primary": "n000793",
+  "other": "n067602",
+  "reason": "Al-Khoei says this al-Azdi is the same as the entry that follows, which is al-Thaqafi al-Khazzaz; al-Najashi also says of the primary 'وقيل: الازدي'.",
+  "quote": "هذا متحد مع ما بعده"
+ },
+ {
+  "group": "g077",
+  "primary": "n000508",
+  "other": "n037567",
+  "reason": "Khoei states this is the earlier Sulayman b. Ja'far al-Ja'fari.",
+  "quote": "أقول: هو أيضا سليمان بن جعفر الجعفري المتقدم"
+ },
+ {
+  "group": "g081",
+  "primary": "n000574",
+  "other": "n037736",
+  "reason": "Khoei says the reading Abu al-Jarrah is wrong and the correct one is Talha b. Zayd Abu al-Khazraj, which is the kunya of the primary.",
+  "quote": "طلحة بن زيد أبو الخزرج، وهو الصحيح"
+ },
+ {
+  "group": "g082",
+  "primary": "n037211",
+  "other": "n006907",
+  "reason": "Khoei chain of identification ends at the primary: Humwayh b. Nasir is identical with the next entry.",
+  "quote": "أقول: هو متحد مع من بعده"
+ },
+ {
+  "group": "g088",
+  "primary": "n000550",
+  "other": "n070672",
+  "reason": "Khoei equates Safwan b. Mihran with al-Jammal; Ardabili's entry for him carries the same full lineage and kunya as the primary.",
+  "quote": "صفوان بن مهران: = صفوان الجمال"
+ },
+ {
+  "group": "g089",
+  "primary": "n001240",
+  "other": "n048107",
+  "reason": "Khoei states al-Maythami is identical with Ibn Maytham b. Yahya al-Tammar.",
+  "quote": "أقول: هذا متحد مع ابن ميثم بن يحيى التمار المتقدم"
+ },
+ {
+  "group": "g093",
+  "primary": "n001125",
+  "other": "n067187",
+  "reason": "Tusi's entry gives the same kunya Abu Yahya and laqab Bazraj, with al-Qurashi, as the primary's Ardabili entry; Kashshi's entry is headed Bazraj; Imams overlap (al-Kazim) and nothing contradicts.",
+  "quote": "منصور بن يونس القرشي، مولاهم، يكنى أبا يحيى، يقال له: بزرج"
+ },
+ {
+  "group": "g094",
+  "primary": "n000594",
+  "other": "n038009",
+  "reason": "Khoei equates the bare Abd Allah b. Amir with Abd Allah b. Amir b. Imran, the primary.",
+  "quote": "عبد الله بن عامر: = عبد الله بن عامر بن عمران"
+ },
+ {
+  "group": "g097",
+  "primary": "n000771",
+  "other": "n033286",
+  "reason": "Ardabili entry reproduces al-Najashi's full description of the primary (Abu al-Fadl al-Thaqafi, trustworthy, many hadith, narrated by Sa'd b. Abdullah).",
+  "quote": "الثقفي القصابي الشيخ الصدوق الثقة"
+ },
+ {
+  "group": "g099",
+  "primary": "n000551",
+  "other": "n066965",
+  "reason": "Primary's Najashi and Tusi entries give the kunya Abu al-Khayr and the same name; Kashshi's entry is Abu al-Khayr Salih b. Abi Hammad al-Razi.",
+  "quote": "صالح بن أبي حماد أبو الخير الرازي"
+ },
+ {
+  "group": "g104",
+  "primary": "n000592",
+  "other": "n067162",
+  "reason": "Fihrist's entry carries the same text and chain as the Shaykh's entry for the primary (al-Ansari), and Ardabili identifies him with Ibn Hammad al-Ansari.",
+  "quote": "بن حماد الأنصاري له كتاب"
+ },
+ {
+  "group": "g107",
+  "primary": "n001163",
+  "other": "n038911",
+  "reason": "Khoei's entry for the primary's heading says it is identical with the next entry, which is this one; Ali b. Hadid narrates from both.",
+  "quote": "هذا متحد مع من بعده"
+ },
+ {
+  "group": "g110",
+  "primary": "n000436",
+  "other": "n067355",
+  "reason": "Ardabili entry reproduces al-Najashi's details of the primary: father Kathir (Abu Khalid), he is Abu Sulayman, narrated from Musa and al-Rida.",
+  "quote": "أبوه كثير يكنى أبا خالد وهو يكنى أبا سليمان"
+ },
+ {
+  "group": "g113",
+  "primary": "n002709",
+  "other": "n000639",
+  "reason": "Najashi's entry under this record is the same man: al-Dihqan al-Wasiti, weak, book narrated by Muhammad b. Isa b. Ubayd, who is the primary's student.",
+  "quote": "عبيدالله بن عبد الله الدهقان الواسطي ضعيف"
+ },
+ {
+  "group": "g120",
+  "primary": "n001131",
+  "other": "n066482",
+  "reason": "Ardabili entry cites both al-Najashi and al-Tusi with identical details: mawla, Kufi, from al-Sadiq, a book narrated by al-Hasan b. Ali b. Yusuf b. Buqqah and al-Hasan b. Ali al-Khazzaz.",
+  "quote": "المثنى بن الوليد الحناط (جش) (ست) مولى كوفي روى عن أبي عبد الله عليه السلام"
+ },
+ {
+  "group": "g121",
+  "primary": "n003441",
+  "other": "n066818",
+  "reason": "This is al-Najashi's own entry for the same man whom al-Khoei quotes under the primary (Haytham b. Abi Masruq al-Nahdi, Kufi, qarib al-amr, Kitab Nawadir).",
+  "quote": "هيثم بن أبي مسروق أبو محمد - واسم أبي مسروق عبد الله النهدي - كوفي، قريب الامر"
+ },
+ {
+  "group": "g124",
+  "primary": "n000042",
+  "other": "n067352",
+  "reason": "Ardabili entry reproduces al-Najashi's entry: Ibrahim b. Umar al-Yamani al-San'ani, thiqa, from al-Baqir and al-Sadiq.",
+  "quote": "إبراهيم بن عمر اليماني الصنعاني"
+ },
+ {
+  "group": "g125",
+  "primary": "n034233",
+  "other": "n034226",
+  "reason": "Ardabili says al-Isbahani known as Kasam/Kasola is Ibn Muhammad al-Qummi; al-Najashi calls the Qummi Kasola, al-Fihrist calls the Isfahani Kasola.",
+  "quote": "ويأتي انه ابن محمد القمي"
+ },
+ {
+  "group": "g126",
+  "primary": "n000983",
+  "other": "n067359",
+  "reason": "Ardabili entry reproduces al-Najashi for Muhammad b. Hakim al-Khath'ami, kunya Abu Jafar, from al-Sadiq and al-Kazim, book narrated by son Jafar.",
+  "quote": "محمد بن حكيم الخثعمي روى عن أبي عبد الله وأبى الحسن عليهما السلام يكنى أبا جعفر"
+ },
+ {
+  "group": "g131",
+  "primary": "n030889",
+  "other": "n012605",
+  "reason": "al-Khoei's Muhammad b. Salim Abu Sahl al-Kufi, companion of al-Sadiq, cites Rijal al-Tusi 138, the same Tusi entry on the primary: Muhammad b. Salim Abu Sahl al-Kufi.",
+  "quote": "محمد بن سالم أبو سهل: الكوفي: من أصحاب الصادق عليه السلام"
+ },
+ {
+  "group": "g136",
+  "primary": "n038120",
+  "other": "n002710",
+  "reason": "Khoei states directly that Ubayd Allah b. Ali b. Abi Shu'ba is Ubayd Allah b. Ali al-Halabi.",
+  "quote": "عبيد الله (عبد الله) بن علي بن أبي شعبة: = عبيد الله بن علي الحلبي"
+ },
+ {
+  "group": "g136",
+  "primary": "n038120",
+  "other": "n000637",
+  "reason": "Najashi's Ubayd Allah b. Ali b. Abi Shu'ba al-Halabi is the one Khoei equates with Ubayd Allah b. Ali al-Halabi.",
+  "quote": "عبيد الله (عبد الله) بن علي بن أبي شعبة: = عبيد الله بن علي الحلبي"
+ },
+ {
+  "group": "g139",
+  "primary": "n067952",
+  "other": "n033569",
+  "reason": "Ardabili's Abd Allah b. Qasim al-Hadrami is the waqifi known as al-Batal, liar and ghali, with Saffar via Muhammad b. al-Husayn, matching the primary's entries exactly.",
+  "quote": "يعرف بالبطل كذاب غال يروى عن - الغلاة لا خير فيه"
+ },
+ {
+  "group": "g140",
+  "primary": "n007308",
+  "other": "n001186",
+  "reason": "Khoei's entry on Walid b. Subayh includes Najashi's text (Abu al-Abbas, Kufi, thiqa, from al-Sadiq, son al-Abbas) and the Tusi entry for al-Walid b. Subayh al-Asadi as the same man.",
+  "quote": "وعده الشيخ في أصحاب الصادق عليه السلام (1)"
+ },
+ {
+  "group": "g144",
+  "primary": "n029606",
+  "other": "n077363",
+  "reason": "The primary already holds Tusi's entry with the identical full name; Najashi and Fihrist describe the same man (al-Dahni, thiqa, companion of al-Rida), and Ardabili merges them.",
+  "quote": "معاوية بن حكيم بن معاوية بن عمار الكوفي"
+ },
+ {
+  "group": "g145",
+  "primary": "n025173",
+  "other": "n001101",
+  "reason": "Khoei states that Musa b. Ja'far al-Baghdadi is Musa b. Ja'far b. Wahb al-Baghdadi.",
+  "quote": "موسى بن جعفر البغدادي: = موسى بن جعفر بن وهب البغدادي"
+ },
+ {
+  "group": "g146",
+  "primary": "n000295",
+  "other": "n036673",
+  "reason": "Khoei's line says al-Azdi is Bakr b. Muhammad b. Abd al-Rahman, the full name in the primary's Najashi entry.",
+  "quote": "الأزدي، هو بكر بن محمد بن عبد الرحمان الآتي"
+ },
+ {
+  "group": "g149",
+  "primary": "n000737",
+  "other": "n048014",
+  "reason": "Khoei explicitly says Bayyaa' al-Aksiya is Ali b. Uqba b. Khalid.",
+  "quote": "أقول: هذا هو علي بن عقبة بن خالد المتقدم"
+ },
+ {
+  "group": "g150",
+  "primary": "n001132",
+  "other": "n028987",
+  "reason": "Khoei's entry on Muthanna b. Abd al-Salam includes the Tusi entry for al-Muthanna b. Abd al-Salam al-Abdi, Kufi, as al-Sadiq's companion; Ardabili merges them.",
+  "quote": "وعده في رجاله من أصحاب الصادق عليه السلام (521)"
+ },
+ {
+  "group": "g151",
+  "primary": "n003648",
+  "other": "n002180",
+  "reason": "Ardabili's entry gives the same name and Abd al-A'la, Kufi, with the same Tusi mark for al-Sadiq's companions, as the primary's Tusi and Khoei entries.",
+  "quote": "إبراهيم بن أبي المثنى عبد الاعلى كوفي [ق]"
+ },
+ {
+  "group": "g156",
+  "primary": "n000869",
+  "other": "n015356",
+  "reason": "Al-Khoei states that Abu al-Abbas al-Fadl b. Abd al-Malik is Abu al-Abbas al-Baqbaq, already treated under al-Fadl b. Abd al-Malik.",
+  "quote": "أقول: هو أبو العباس البقباق المتقدم"
+ },
+ {
+  "group": "g160",
+  "primary": "n000556",
+  "other": "n039683",
+  "reason": "Al-Khoei equates al-Khayyat with Salih b. Uqba b. Qays and judges them apparently identical.",
+  "quote": "صالح بن عقبة الخياط: = صالح بن عقبة بن قيس."
+ },
+ {
+  "group": "g164",
+  "primary": "n000781",
+  "other": "n030309",
+  "reason": "Al-Kashshi's entry is for Abu Hafs Umar b. Abd al-Aziz known as Zuhal, which is the primary's laqab and kunya.",
+  "quote": "عمر بن عبد العزيز بن أبي بشار أبو حفص - المعروف بزحل"
+ },
+ {
+  "group": "g166",
+  "primary": "n067334",
+  "other": "n001098",
+  "reason": "Same full name Musa b. al-Qasim b. Muawiya b. Wahb al-Bajali in both, with al-Tusi listing him under al-Rida and al-Jawad.",
+  "quote": "موسى بن القاسم بن معاوية بن وهب البجلي"
+ },
+ {
+  "group": "g166",
+  "primary": "n067334",
+  "other": "n039790",
+  "reason": "Al-Khoei says al-Ajli is a corruption and the correct reading is Musa b. al-Qasim b. Muawiya al-Bajali.",
+  "quote": "موسى بن القاسم بن معاوية البجلي، بدل ما في هذه الطبعة"
+ },
+ {
+  "group": "g171",
+  "primary": "n033645",
+  "other": "n039695",
+  "reason": "Same grandfather (Abdus), same nisba in variant spelling, and in both Ibn Babawayh narrates from him; nothing contradicts.",
+  "quote": "وروى عنه أبو جعفر محمد بن علي بن الحسين بن بابويه"
+ },
+ {
+  "group": "g172",
+  "primary": "n001223",
+  "other": "n003955",
+  "reason": "Al-Khoei states this Yahya b. Abi al-Ala is identical with Yahya b. Abi al-Ala al-Razi, whom he treats with the primary (al-Bajali al-Razi) and refers him to.",
+  "quote": "أقول: هذا متحد مع يحيى بن أبي العلاء الرازي"
+ },
+ {
+  "group": "g174",
+  "primary": "n000796",
+  "other": "n027445",
+  "reason": "Al-Khoei says al-Tusi lists 'Amr b. Jamiʿ, Batri' among al-Baqir's companions and merges it with the primary's entry.",
+  "quote": "عمرو بن جميع بتري"
+ },
+ {
+  "group": "g174",
+  "primary": "n000796",
+  "other": "n067293",
+  "reason": "Al-Tusi's entry carries al-Najashi's description: Abu Uthman al-Azdi al-Basri, judge of al-Rayy, weak.",
+  "quote": "أبو عثمان الأزدي البصري، قاضي الري"
+ },
+ {
+  "group": "g175",
+  "primary": "n000437",
+  "other": "n030368",
+  "reason": "Same name, kunya Abu Hashim, nisba al-Jaʿfari; al-Kashshi's praise matches his standing with al-Jawad, al-Hadi and al-Askari.",
+  "quote": "داود بن القاسم الجعفري، يكنى أبا هاشم"
+ },
+ {
+  "group": "g176",
+  "primary": "n000478",
+  "other": "n037355",
+  "reason": "Al-Khoei equates this entry with Zakariyya b. Muhammad Abu Abd Allah.",
+  "quote": "زكريا بن محمد: = زكريا بن محمد أبو عبد الله"
+ },
+ {
+  "group": "g178",
+  "primary": "n001468",
+  "other": "n000378",
+  "reason": "Al-Ardabili joins al-Tusi's Ayman al-Khayyat with al-Najashi's description, and the same entry gives the same man's book transmitted by Ibn Abi Umayr.",
+  "quote": "الخياط مولى قريش [جش. ق] كوفي [ق] أبو على جد قفاعة الحميري"
+ },
+ {
+  "group": "g179",
+  "primary": "n066480",
+  "other": "n039729",
+  "reason": "Al-Khoei says 'al-Khashab' in that isnad is a slip for a dropped word and the narrator is simply Imran b. Musa.",
+  "quote": "ولا ينبغي الشك في سقوط كلمة (عن) بين كلمتي موسى والخشاب"
+ },
+ {
+  "group": "g183",
+  "primary": "n067265",
+  "other": "n001759",
+  "reason": "Fihrist's Nasr b. Muzahim al-Munqari with the same books and the same transmitters (Yunus b. Ali al-Attar, Ibn Isa b. Ubayd) as the primary's al-Najashi entry.",
+  "quote": "نصر بن مزاحم المنقري"
+ },
+ {
+  "group": "g184",
+  "primary": "n000416",
+  "other": "n067311",
+  "reason": "Al-Khoei folds al-Tusi's 'Khalid b. Najih, narrated from Abu Abd Allah' among al-Kazim's companions into the primary's entry.",
+  "quote": "وعده من دون توصيفه بالجواز الكوفي، في أصحاب الكاظم عليه السلام (1)"
+ },
+ {
+  "group": "g186",
+  "primary": "n000868",
+  "other": "n067177",
+  "reason": "Al-Tusi's and the Fihrist's Fadl b. Abi Qurra narrated through Hamid from Ibrahim b. Sulayman; the primary's entry cites the same chain.",
+  "quote": "حميد عن إبراهيم بن سليمان عنه (ست. لم)"
+ },
+ {
+  "group": "manual",
+  "primary": "n031617",
+  "other": "n047463",
+  "reason": "al-Khoei's line on «Ibn al-Ghada'iri» names him: Ahmad b. al-Husayn b. Ubayd Allah, the man of the primary record (the author of the Rijal on the weak). Added by hand while checking the scholar classification.",
+  "quote": "ابن الغضائري: أحمد بن الحسين بن عبيد الله"
+ }
+]

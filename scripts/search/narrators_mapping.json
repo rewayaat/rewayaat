@@ -3,12 +3,138 @@
     "number_of_shards": 1,
     "number_of_replicas": 0,
     "analysis": {
+      "char_filter": {
+        "lead_mark": {
+          "type": "pattern_replace",
+          "pattern": "^",
+          "replacement": "000 "
+        },
+        "ar_abd_join": {
+          "type": "pattern_replace",
+          "pattern": "(عبد|عبيد)\\s+(ال|أل|إل|ٱل)",
+          "replacement": "$1$2"
+        },
+        "en_marks": {
+          "type": "pattern_replace",
+          "pattern": "['ʿʾ‘’`´ʼ]",
+          "replacement": ""
+        },
+        "en_abd": {
+          "type": "pattern_replace",
+          "pattern": "(?i)\\b(abd)(?:ul|al|el|ar|ur|ir|ash|as|ad|an|un|u)?[\\s-]*(?:al|el|ar|ash|as|adh|ad|at|az|an|ur|ul)?[\\s-]*(?=\\p{L})",
+          "replacement": "$1"
+        },
+        "en_ubayd": {
+          "type": "pattern_replace",
+          "pattern": "(?i)\\b(ubayd|ubaid|obaid|obayd|ubeyd)(?:u|ul|al|el)?[\\s-]*(?:al|el)?[\\s-]*(?=l?lah)",
+          "replacement": "ubayd"
+        },
+        "en_articles": {
+          "type": "pattern_replace",
+          "pattern": "(?i)\\b(?:al|el|ar|as|ash|ad|adh|at|az|an|ul)-",
+          "replacement": ""
+        },
+        "en_hyphen": {
+          "type": "pattern_replace",
+          "pattern": "-",
+          "replacement": " "
+        }
+      },
       "filter": {
         "ibn_forms": {
           "type": "synonym",
           "synonyms": [
             "ابن => بن"
           ]
+        },
+        "ar_strip_al": {
+          "type": "pattern_replace",
+          "pattern": "^(?:ال|لل)(?=\\S{2,})",
+          "replacement": ""
+        },
+        "en_stop": {
+          "type": "stop",
+          "stopwords": [
+            "ibn",
+            "bin",
+            "b",
+            "bint",
+            "bt",
+            "binti",
+            "al",
+            "el",
+            "ibnu",
+            "ben"
+          ]
+        },
+        "en_kunya": {
+          "type": "pattern_replace",
+          "pattern": "^(?:abu|abi|aba|abou|abo)$",
+          "replacement": "9"
+        },
+        "en_trail_h": {
+          "type": "pattern_replace",
+          "pattern": "(?<=[aeiou])h$",
+          "replacement": ""
+        },
+        "en_dh": {
+          "type": "pattern_replace",
+          "pattern": "dh",
+          "replacement": "z"
+        },
+        "en_th": {
+          "type": "pattern_replace",
+          "pattern": "th",
+          "replacement": "s"
+        },
+        "en_sh": {
+          "type": "pattern_replace",
+          "pattern": "sh",
+          "replacement": "x"
+        },
+        "en_kh": {
+          "type": "pattern_replace",
+          "pattern": "kh",
+          "replacement": "k"
+        },
+        "en_gh": {
+          "type": "pattern_replace",
+          "pattern": "gh",
+          "replacement": "g"
+        },
+        "en_q": {
+          "type": "pattern_replace",
+          "pattern": "q",
+          "replacement": "k"
+        },
+        "en_lead_vowels": {
+          "type": "pattern_replace",
+          "pattern": "^[aeiou]+(?=.)",
+          "replacement": ""
+        },
+        "en_vowels": {
+          "type": "pattern_replace",
+          "pattern": "(?<=.)[aeiouyw]+",
+          "replacement": "v"
+        },
+        "en_double": {
+          "type": "pattern_replace",
+          "pattern": "(.)\\1+",
+          "replacement": "$1"
+        },
+        "nonempty": {
+          "type": "length",
+          "min": 1
+        },
+        "ar_ibn": {
+          "type": "pattern_replace",
+          "pattern": "^ابن$",
+          "replacement": "بن"
+        },
+        "ar_kunya": {
+          "type": "pattern_replace",
+          "pattern": "^(?:ابي|ابا)$",
+          "replacement": "ابو"
         }
       },
       "analyzer": {
@@ -19,6 +145,90 @@
             "decimal_digit",
             "arabic_normalization",
             "ibn_forms"
+          ]
+        },
+        "arabic_loose": {
+          "char_filter": [
+            "ar_abd_join"
+          ],
+          "tokenizer": "standard",
+          "filter": [
+            "lowercase",
+            "decimal_digit",
+            "arabic_normalization",
+            "ar_ibn",
+            "ar_kunya",
+            "ar_strip_al"
+          ]
+        },
+        "arabic_lead": {
+          "char_filter": [
+            "ar_abd_join",
+            "lead_mark"
+          ],
+          "tokenizer": "standard",
+          "filter": [
+            "lowercase",
+            "decimal_digit",
+            "arabic_normalization",
+            "ar_ibn",
+            "ar_kunya",
+            "ar_strip_al"
+          ]
+        },
+        "english_skeleton": {
+          "char_filter": [
+            "en_marks",
+            "en_abd",
+            "en_ubayd",
+            "en_articles",
+            "en_hyphen"
+          ],
+          "tokenizer": "standard",
+          "filter": [
+            "lowercase",
+            "asciifolding",
+            "en_stop",
+            "en_kunya",
+            "en_trail_h",
+            "en_dh",
+            "en_th",
+            "en_sh",
+            "en_kh",
+            "en_gh",
+            "en_q",
+            "en_lead_vowels",
+            "en_vowels",
+            "en_double",
+            "nonempty"
+          ]
+        },
+        "english_lead": {
+          "char_filter": [
+            "en_marks",
+            "en_abd",
+            "en_ubayd",
+            "en_articles",
+            "en_hyphen",
+            "lead_mark"
+          ],
+          "tokenizer": "standard",
+          "filter": [
+            "lowercase",
+            "asciifolding",
+            "en_stop",
+            "en_kunya",
+            "en_trail_h",
+            "en_dh",
+            "en_th",
+            "en_sh",
+            "en_kh",
+            "en_gh",
+            "en_q",
+            "en_lead_vowels",
+            "en_vowels",
+            "en_double",
+            "nonempty"
           ]
         }
       }
@@ -36,6 +246,14 @@
           "keyword": {
             "type": "keyword",
             "ignore_above": 256
+          },
+          "loose": {
+            "type": "text",
+            "analyzer": "arabic_loose"
+          },
+          "lead": {
+            "type": "text",
+            "analyzer": "arabic_lead"
           }
         }
       },
@@ -45,6 +263,14 @@
           "keyword": {
             "type": "keyword",
             "ignore_above": 256
+          },
+          "skel": {
+            "type": "text",
+            "analyzer": "english_skeleton"
+          },
+          "lead": {
+            "type": "text",
+            "analyzer": "english_lead"
           }
         }
       },
@@ -54,18 +280,58 @@
       },
       "names_ar": {
         "type": "text",
-        "analyzer": "arabic_names"
+        "analyzer": "arabic_names",
+        "fields": {
+          "loose": {
+            "type": "text",
+            "analyzer": "arabic_loose"
+          },
+          "lead": {
+            "type": "text",
+            "analyzer": "arabic_lead"
+          }
+        }
       },
       "headings_ar": {
         "type": "text",
-        "analyzer": "arabic_names"
+        "analyzer": "arabic_names",
+        "fields": {
+          "loose": {
+            "type": "text",
+            "analyzer": "arabic_loose"
+          },
+          "lead": {
+            "type": "text",
+            "analyzer": "arabic_lead"
+          }
+        }
       },
       "search_ar": {
         "type": "text",
-        "analyzer": "arabic_names"
+        "analyzer": "arabic_names",
+        "fields": {
+          "loose": {
+            "type": "text",
+            "analyzer": "arabic_loose"
+          },
+          "lead": {
+            "type": "text",
+            "analyzer": "arabic_lead"
+          }
+        }
       },
       "names_en": {
-        "type": "text"
+        "type": "text",
+        "fields": {
+          "skel": {
+            "type": "text",
+            "analyzer": "english_skeleton"
+          },
+          "lead": {
+            "type": "text",
+            "analyzer": "english_lead"
+          }
+        }
       },
       "normalized_ar": {
         "type": "text",
@@ -74,19 +340,45 @@
           "keyword": {
             "type": "keyword",
             "ignore_above": 256
+          },
+          "loose": {
+            "type": "text",
+            "analyzer": "arabic_loose"
           }
         }
       },
       "normalized_en": {
-        "type": "text"
+        "type": "text",
+        "fields": {
+          "skel": {
+            "type": "text",
+            "analyzer": "english_skeleton"
+          },
+          "lead": {
+            "type": "text",
+            "analyzer": "english_lead"
+          }
+        }
       },
       "kunyahs_ar": {
         "type": "text",
-        "analyzer": "arabic_names"
+        "analyzer": "arabic_names",
+        "fields": {
+          "loose": {
+            "type": "text",
+            "analyzer": "arabic_loose"
+          }
+        }
       },
       "titles": {
         "type": "text",
-        "analyzer": "arabic_names"
+        "analyzer": "arabic_names",
+        "fields": {
+          "loose": {
+            "type": "text",
+            "analyzer": "arabic_loose"
+          }
+        }
       },
       "books": {
         "type": "keyword"
@@ -207,6 +499,12 @@
             "type": "keyword"
           }
         }
+      },
+      "kind": {
+        "type": "keyword"
+      },
+      "chain_count": {
+        "type": "integer"
       }
     }
   }

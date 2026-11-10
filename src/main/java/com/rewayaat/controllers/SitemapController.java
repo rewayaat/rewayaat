@@ -372,8 +372,12 @@ public class SitemapController {
                         s.pit(p -> p.id(pitId).keepAlive(t -> t.time(PIT_KEEP_ALIVE)))
                                 .size(PAGE_SIZE)
                                 .trackTotalHits(t -> t.enabled(false))
-                                .query(q -> q.bool(b -> b.mustNot(m -> m
-                                        .exists(e -> e.field("moved_to")))))
+                                // A later scholar keeps his page but is not a narrator, and a
+                                // page that moved is somebody else's: neither is listed.
+                                .query(q -> q.bool(b -> b
+                                        .mustNot(m -> m.exists(e -> e.field("moved_to")))
+                                        .mustNot(m -> m.term(t -> t.field("kind")
+                                                .value("scholar")))))
                                 .source(src -> src.filter(f -> f.includes("person_id", "slug")))
                                 .sort(so -> so.field(f -> f.field("_shard_doc")
                                         .order(SortOrder.Asc)));
