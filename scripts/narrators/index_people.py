@@ -1370,6 +1370,59 @@ def known_as(documents):
     return added, stripped
 
 
+# «شيخ الصدوق» on Ibn al-Walīd is "al-Ṣadūq's teacher", not a name of his; the whole-name
+# match drops the article, so it answered «الشيخ الصدوق» and, with Ibn al-Walīd's citations,
+# came before al-Ṣadūq himself.
+RELATIONAL_TITLE = re.compile(r"^(?:شيخ|تلميذ|أستاذ|استاذ)\s+(.+)$")
+
+
+def names_only_his(documents):
+    """Take off every other man the names cited_authorities.json says are one authority's alone
+    («الشيخ الصدوق», «Shaykh al-Saduq», «ثقة الإسلام»), and the titles that only say whose
+    teacher or student a man was. The Tanqīḥ reading gave «الشيخ الصدوق» to Ibn Qūlawayh."""
+    path = os.path.join(REPO, "scripts/data/narrators/cited_authorities.json")
+    try:
+        with open(path) as handle:
+            authorities = json.load(handle)["authorities"]
+    except (FileNotFoundError, KeyError):
+        return 0, 0
+
+    def key(name):
+        if re.search(r"[؀-ۿ]", name):
+            return normalize_arabic(name)
+        return re.sub(r"[^a-z]", "", name.lower().replace("al-", ""))
+
+    only, cited = {}, {}
+    for authority in authorities:
+        for name in authority.get("only_his") or []:
+            only[key(name)] = authority["id"]
+        for name in (authority.get("cited_as") or []) + (authority.get("known_as") or []):
+            if re.search(r"[؀-ۿ]", name):
+                cited[normalize_arabic(name)] = authority["id"]
+    names_taken = titles_taken = 0
+    for doc in documents:
+        me = doc.get("person_id")
+        own = {normalize_arabic(h) for h in doc.get("headings_ar") or []}
+        for field in ("names_ar", "normalized_ar", "titles", "names_en"):
+            values = doc.get(field) or []
+            keep = [v for v in values
+                    if only.get(key(v), me) == me or normalize_arabic(v) in own]
+            names_taken += len(values) - len(keep)
+            if len(keep) != len(values):
+                doc[field] = keep
+        titles = doc.get("titles") or []
+        keep = []
+        for title in titles:
+            relation = RELATIONAL_TITLE.match(normalize_arabic(title))
+            if relation and cited.get(relation.group(1), me) != me:
+                titles_taken += 1
+                continue
+            keep.append(title)
+        if len(keep) != len(titles):
+            doc["titles"] = keep
+    return names_taken, titles_taken
+
+
 def served_english_forms(host, index="rewayaat_hadith"):
     """person id → {the English the translations print for him in a chain: times}.
 
@@ -2882,6 +2935,9 @@ def main():
     counts["names the translations print, added to the men they name"] = sum(
         add_translators_names(doc, english_forms.get(doc.get("person_id")) or {})
         for doc in documents)
+    taken, relational = names_only_his(documents)
+    counts["one authority's own names taken off other men"] = taken
+    counts["titles saying only whose teacher a man was, dropped"] = relational
     for doc in documents:
         if is_later_scholar(doc):
             doc["kind"] = "scholar"

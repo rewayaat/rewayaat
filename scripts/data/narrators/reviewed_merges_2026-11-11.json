@@ -1,0 +1,11 @@
+[
+ {"group": "p2026-11-11:a", "primary": "n002761", "other": "n060389",
+  "reason": "Al-Khoei's «ابن أبي جيد» names the man outright: one of al-Najashi's and al-Tusi's teachers, ʿAli b. Ahmad b. Muhammad b. Abi Jayd, who narrates from Ibn al-Walid; n002761 is that man and already holds «أبو الحسين بن أبي جيد القمي».",
+  "quote": "ابن أبي جيد: من مشايخ النجاشي والشيخ، وهو علي بن أحمد بن محمد بن أبي جيد"},
+ {"group": "p2026-11-11:b", "primary": "n002761", "other": "n012425",
+  "reason": "Al-Khoei's «أبو الحسين بن أبي جيد» is the same teacher by his kunya: he narrates from Ahmad b. Muhammad b. Yahya and Ibn al-Walid in al-Tusi's Mashyakha, as ʿAli b. Ahmad b. Abi Jayd does, and n002761 is headed «أبو الحسين بن أبي جيد القمي» in al-Ardabili.",
+  "quote": "أبو الحسين بن أبي جيد: روى عن أحمد بن محمد بن يحيى. مشيخة التهذيب"},
+ {"group": "p2026-11-11:c", "primary": "n001052", "other": "n039305",
+  "reason": "Al-Khoei's «الكليني» says only that it is Muhammad b. Yaʿqub, whose entry came before; the fold pass left it standing because «محمد بن يعقوب» names several men.",
+  "quote": "الكليني: هو محمد بن يعقوب، وقد تقدمت ترجمته."}
+]
