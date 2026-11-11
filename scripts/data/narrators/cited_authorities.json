@@ -1,5 +1,5 @@
 {
- "note": "The authorities the rijal books cite by a one-word name («قال النجاشي», «ذكره الكشي», «قال الشيخ»), and the men they are. They stand in few chains or none, so how often the chains name a man cannot tell a reader who types «النجاشي» or «الكشي» that he means the author of the Rijal and not his ancestor or another man of the same nisba; how often the books cite him can. index_people.py counts the citations in the entries it serves (cited_count); the names are set by hand, checked 2026-11-10. «known_as» are the names a scholar knows the man by that the books do not head him with (al-ʿUrayḍī, al-Shaykh al-Ṣadūq, Thiqat al-Islām): added to his titles and English names. And an authority's cited name found among another man's titles — «الصدوق» on Ibn Qūlawayh, from «روى عنه الصدوق» — is taken off him. «only_his» (2026-11-11) are names that belong to that man alone: names_only_his() takes them off any other man's names and titles — the Tanqīḥ reading gave «الشيخ الصدوق» to Ibn Qūlawayh. The two envoys are al-ʿAmrī: the learned map reads «العمري» as al-ʿUmarī, which the ʿAlawī ʿUmarīs are, so their English names are added here rather than the word changed.",
+ "note": "The authorities the rijal books cite by a one-word name («قال النجاشي», «ذكره الكشي», «قال الشيخ»), and the men they are. They stand in few chains or none, so how often the chains name a man cannot tell a reader who types «النجاشي» or «الكشي» that he means the author of the Rijal and not his ancestor or another man of the same nisba; how often the books cite him can. index_people.py counts the citations in the entries it serves (cited_count); the names are set by hand, checked 2026-11-10. «known_as» are the names a scholar knows the man by that the books do not head him with (al-ʿUrayḍī, al-Shaykh al-Ṣadūq, Thiqat al-Islām): added to his titles and English names. And an authority's cited name found among another man's titles — «الصدوق» on Ibn Qūlawayh, from «روى عنه الصدوق» — is taken off him. «only_his» (2026-11-11) are names that belong to that man alone: names_only_his() takes them off any other man's names and titles — the Tanqīḥ reading gave «الشيخ الصدوق» to Ibn Qūlawayh. The two envoys are al-ʿAmrī: the learned map reads «العمري» as al-ʿUmarī, which the ʿAlawī ʿUmarīs are, so their English names are added here rather than the word changed. «display_en» sets a man's English heading where the word map cannot (the envoys' al-ʿAmrī); the old heading stays as a name. An entry with no «cited_as» is not counted.",
  "authorities": [
   {
    "id": "n066789",
@@ -211,7 +211,8 @@
    "known_as": [
     "Uthman ibn Sa'id al-'Amri",
     "Abu 'Amr al-'Amri"
-   ]
+   ],
+   "display_en": "'Uthman ibn Sa'id al-'Amri"
   },
   {
    "id": "n003120",
@@ -223,6 +224,16 @@
     "Muhammad ibn 'Uthman al-'Amri",
     "Muhammad ibn 'Uthman ibn Sa'id al-'Amri",
     "Abu Ja'far al-'Amri"
+   ],
+   "display_en": "Muhammad ibn 'Uthman ibn Sa'id al-'Amri"
+  },
+  {
+   "id": "n000374",
+   "cited_as": [],
+   "who": "al-Hakam b. Miskin, «الحكم الأعمى»: the translations call him so, and the names they print change with every reload of the English chains",
+   "known_as": [
+    "الحكم الأعمى",
+    "Al-Hakam al-A'ma"
    ]
   }
  ]
