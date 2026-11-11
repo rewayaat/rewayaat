@@ -1,5 +1,5 @@
 {
- "note": "The authorities the rijal books cite by a one-word name («قال النجاشي», «ذكره الكشي», «قال الشيخ»), and the men they are. They stand in few chains or none, so how often the chains name a man cannot tell a reader who types «النجاشي» or «الكشي» that he means the author of the Rijal and not his ancestor or another man of the same nisba; how often the books cite him can. index_people.py counts the citations in the entries it serves (cited_count); the names are set by hand, checked 2026-11-10. «known_as» are the names a scholar knows the man by that the books do not head him with (al-ʿUrayḍī, al-Shaykh al-Ṣadūq, Thiqat al-Islām): added to his titles and English names. And an authority's cited name found among another man's titles — «الصدوق» on Ibn Qūlawayh, from «روى عنه الصدوق» — is taken off him.",
+ "note": "The authorities the rijal books cite by a one-word name («قال النجاشي», «ذكره الكشي», «قال الشيخ»), and the men they are. They stand in few chains or none, so how often the chains name a man cannot tell a reader who types «النجاشي» or «الكشي» that he means the author of the Rijal and not his ancestor or another man of the same nisba; how often the books cite him can. index_people.py counts the citations in the entries it serves (cited_count); the names are set by hand, checked 2026-11-10. «known_as» are the names a scholar knows the man by that the books do not head him with (al-ʿUrayḍī, al-Shaykh al-Ṣadūq, Thiqat al-Islām): added to his titles and English names. And an authority's cited name found among another man's titles — «الصدوق» on Ibn Qūlawayh, from «روى عنه الصدوق» — is taken off him. «only_his» (2026-11-11) are names that belong to that man alone: names_only_his() takes them off any other man's names and titles — the Tanqīḥ reading gave «الشيخ الصدوق» to Ibn Qūlawayh. The two envoys are al-ʿAmrī: the learned map reads «العمري» as al-ʿUmarī, which the ʿAlawī ʿUmarīs are, so their English names are added here rather than the word changed.",
  "authorities": [
   {
    "id": "n066789",
@@ -35,6 +35,13 @@
     "شيخ الطائفة",
     "Shaykh al-Tusi",
     "al-Shaykh al-Tusi"
+   ],
+   "only_his": [
+    "شيخ الطائفة",
+    "الشيخ الطوسي",
+    "Shaykh al-Tusi",
+    "al-Shaykh al-Tusi",
+    "Shaykh al-Ta'ifa"
    ]
   },
   {
@@ -66,6 +73,11 @@
     "الشيخ الصدوق",
     "Shaykh al-Saduq",
     "al-Saduq"
+   ],
+   "only_his": [
+    "الشيخ الصدوق",
+    "Shaykh al-Saduq",
+    "al-Shaykh al-Saduq"
    ]
   },
   {
@@ -78,6 +90,11 @@
     "الكليني",
     "ثقة الإسلام",
     "al-Kulayni",
+    "Thiqat al-Islam al-Kulayni"
+   ],
+   "only_his": [
+    "ثقة الإسلام",
+    "Thiqat al-Islam",
     "Thiqat al-Islam al-Kulayni"
    ]
   },
@@ -160,6 +177,53 @@
     "Ali ibn Ja'far al-'Uraydi"
    ],
    "who": "Ali b. Ja'far al-Sadiq, al-Uraydi"
+  },
+  {
+   "id": "n032442",
+   "cited_as": [
+    "الحسين بن عبيد الله"
+   ],
+   "who": "al-Husayn b. 'Ubayd Allah al-Ghada'iri, al-Najashi's and al-Tusi's teacher («أخبرنا الحسين بن عبيد الله»)",
+   "known_as": [
+    "الغضائري",
+    "al-Ghada'iri",
+    "al-Husayn ibn 'Ubayd Allah al-Ghada'iri"
+   ]
+  },
+  {
+   "id": "n002761",
+   "cited_as": [
+    "ابن أبي جيد"
+   ],
+   "who": "'Ali b. Ahmad b. Abi Jayd al-Qummi, al-Najashi's and al-Tusi's teacher",
+   "known_as": [
+    "ابن أبي جيد",
+    "Ibn Abi Jayd",
+    "Ibn Abi Jid"
+   ]
+  },
+  {
+   "id": "n002722",
+   "cited_as": [
+    "عثمان بن سعيد العمري"
+   ],
+   "who": "'Uthman b. Sa'id al-'Amri, the first envoy; al-'Amri, not al-'Umari",
+   "known_as": [
+    "Uthman ibn Sa'id al-'Amri",
+    "Abu 'Amr al-'Amri"
+   ]
+  },
+  {
+   "id": "n003120",
+   "cited_as": [
+    "محمد بن عثمان العمري"
+   ],
+   "who": "Muhammad b. 'Uthman al-'Amri, the second envoy",
+   "known_as": [
+    "Muhammad ibn 'Uthman al-'Amri",
+    "Muhammad ibn 'Uthman ibn Sa'id al-'Amri",
+    "Abu Ja'far al-'Amri"
+   ]
   }
  ]
 }
