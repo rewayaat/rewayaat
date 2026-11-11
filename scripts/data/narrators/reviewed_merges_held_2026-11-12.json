@@ -1,0 +1,2248 @@
+[
+ {
+  "pair": "q002",
+  "primary": "n069047",
+  "other": "n001185",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "al-Khoei says the correct form of the Wahb/Wuhayb b. Ḥafṣ al-Nakhkhās title is Wuhayb b. Ḥafṣ, the primary.",
+  "quote": "والصحيح في جميع ذلك: وهيب بن حفص"
+ },
+ {
+  "pair": "q003",
+  "primary": "n000398",
+  "other": "n001481",
+  "why_held": "same_name_only",
+  "reviewer": "same/medium",
+  "reason": "The other holds the very Fihrist/Tusi entry (book narrated via Ibrāhīm b. Sulaymān) that al-Khoei quotes under the primary, with the same al-Wāsiṭī al-Bāqir companion.",
+  "quote": "الحجاج بن دينار، له كتاب، أخبرنا به عدة من أصحابنا، عن أبي المفضل، عن حميد، عن إبراهيم بن سليمان، عنه"
+ },
+ {
+  "pair": "q006",
+  "primary": "n027679",
+  "other": "n002025",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "The al-Ḍuʿafāʾ entry is the same verdict (very weak) that Ibn al-Ghaḍāʾirī gives on al-Ḥasan b. Ḥudhayfa b. Manṣūr, as quoted by al-Khoei.",
+  "quote": "وقال ابن الغضائري: ضعيف جدا لا ينتفع به"
+ },
+ {
+  "pair": "q007",
+  "primary": "n002630",
+  "other": "n002060",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Ardabili gives for ʿAbd Allāh b. Bakr al-Arjānī the identical verdict quoted in the other entry.",
+  "quote": "عبد الله بن بكر الأرجاني روى عن أبي عبد الله عليه السلام مرتفع القول ضعيف"
+ },
+ {
+  "pair": "q008",
+  "primary": "n000602",
+  "other": "n002067",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Ardabili places the Ibn al-Ghaḍāʾirī remark on ʿAbd Allāh b. Ayyūb al-Qummī inside the primary entry, matching the other entry word for word.",
+  "quote": "قال ابن الغضائري عبد الله بن أيوب القمي ذكره الغلاة و رووا عنه لا نعرفه"
+ },
+ {
+  "pair": "q010",
+  "primary": "n000010",
+  "other": "n002109",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Ibn ʿUqda is the well-known by-name of Aḥmad b. Muḥammad b. Saʿīd, a Zaydī Jārūdī.",
+  "quote": "المعروف بابن عقدة الحافظ"
+ },
+ {
+  "pair": "q011",
+  "primary": "n004844",
+  "other": "n002239",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "The other gives the same full lineage as al-Ṭūsī for Isḥāq b. al-Faḍl b. Yaʿqūb, narrating from al-Bāqir and al-Ṣādiq.",
+  "quote": "إسحاق بن فضل بن يعقوب بن الفضل بن عبد الله بن الحرث بن نوفل بن الحرث بن عبد - المطلب روى عن أبي جعفر وأبى عبد الله عليهما السلام"
+ },
+ {
+  "pair": "q012",
+  "primary": "n067206",
+  "other": "n002273",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "The other is the same Thābit b. Aslam al-Bunānī al-Qurashī entry of al-Ṭūsī that the primary holds (the primary also wrongly absorbs the Badri Abū Fuḍāla).",
+  "quote": "ثابت بن أسلم البناني القرشي، تابعي، سمع انس"
+ },
+ {
+  "pair": "q013",
+  "primary": "n006642",
+  "other": "n002416",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Al-Ṭūsī and Ardabili give the same Kufan Abū ʿAbd Allāh al-Kinānī under the Sulaymān/Salmān spelling variants.",
+  "quote": "الحسين بن سلمان الكناني كوفي أبو عبد الله"
+ },
+ {
+  "pair": "q017",
+  "primary": "n001540",
+  "other": "n002577",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "The Fihrist entry of al-Sayyid b. Muḥammad is the same entry Ardabili repeats, noting that Sayyid b. Muḥammad is Ismāʿīl.",
+  "quote": "تقدم ان سيد بن محمد اسمه إسماعيل"
+ },
+ {
+  "pair": "q023",
+  "primary": "n002911",
+  "other": "n002915",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Ardabili marks al-Faḍl b. al-Rabīʿ with the al-Ṣādiq code of the same Rijāl al-Ṭūsī entry held by the primary.",
+  "quote": "الفضل بن الربيع: من أصحاب الصادق عليه السلام"
+ },
+ {
+  "pair": "q024",
+  "primary": "n067151",
+  "other": "n000183",
+  "why_held": "hedged",
+  "reviewer": "same/high",
+  "reason": "al-Khoei states the equation with Isḥāq b. ʿAmmār al-Sābāṭī.",
+  "quote": "إسحاق بن عمار بن حيان: = إسحاق بن عمار. = إسحاق بن عمار الساباطي"
+ },
+ {
+  "pair": "q031",
+  "primary": "n029401",
+  "other": "n008167",
+  "why_held": "hedged",
+  "reviewer": "same/high",
+  "reason": "Same title and same descriptor (brother of Fāris al-Ghālī) in al-Ṭūsī, Ardabili and al-Khoei.",
+  "quote": "سعيد بن أخت صفوان بن يحيى أخو فارس الغالي"
+ },
+ {
+  "pair": "q032",
+  "primary": "n066226",
+  "other": "n008191",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "al-Khoei says the old edition of the Tahdhīb reads Saʿīd b. ʿUmar al-Juʿfī where the Kāfī has Saʿīd b. ʿAmr al-Juʿfī, a variant of one name.",
+  "quote": "ولكن في الكافي: الجزء 4، كتاب الحج 3، باب ما يهدى إلى الكعبة 25، الحديث 4، سعيد بن عمرو الجعفي"
+ },
+ {
+  "pair": "q036",
+  "primary": "n008414",
+  "other": "n008440",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "al-Khoei says the title Sulaymān al-Ḍabbī is a certain slip for al-Ṭūsī's Sulaymān b. Qarm b. Sulaymān al-Ḍabbī.",
+  "quote": "وهو سهو جزما، فإن عبارة الشيخ - كما تقدم - هكذا: (سليمان بن قرم بن سليمان الضبي)"
+ },
+ {
+  "pair": "q039",
+  "primary": "n067197",
+  "other": "n008644",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Both are the one Rijāl al-Ṭūsī entry for Shurayd b. Suwayd among the Prophet companions (Ardabili code ل).",
+  "quote": "شريد بن سويد [ل]"
+ },
+ {
+  "pair": "q041",
+  "primary": "n016058",
+  "other": "n008863",
+  "why_held": "pointer",
+  "reviewer": "same/medium",
+  "reason": "al-Khoei folds Ḍamra b. Abī Ḍamra into the entry on the grandfather of al-Ḥusayn b. Ḍamra with a back-reference.",
+  "quote": "ضمرة بن أبي ضمرة: تقدم في سابقه"
+ },
+ {
+  "pair": "q044",
+  "primary": "n013912",
+  "other": "n003277",
+  "why_held": "hedged",
+  "reviewer": "same/high",
+  "reason": "al-Khoei sends Muʿallā Abū Shihāb to the entry of Muʿallā b. Abī Shihāb, and Ardabili gives the same narration of ʿUthmān b. ʿĪsā from al-Ḥusayn.",
+  "quote": "معلى أبو شهاب: يأتي في معلى بن أبي شهاب"
+ },
+ {
+  "pair": "q053",
+  "primary": "n049262",
+  "other": "n003781",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Both give a man narrating from Abū Jaʿfar with Ṣāliḥ b. Saʿīd narrating from him.",
+  "quote": "روى عن أبي جعفر عليه السلام، وروى عنه صالح بن سعيد"
+ },
+ {
+  "pair": "q056",
+  "primary": "n066112",
+  "other": "n003868",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "al-Khoei gives al-Jaziri with the variant al-Jarīrī as the same Rijāl al-Ṭūsī entry among al-Bāqir companions.",
+  "quote": "إبراهيم الجزيري: (الجريري): من أصحاب الباقر عليه السلام"
+ },
+ {
+  "pair": "q063",
+  "primary": "n028454",
+  "other": "n011231",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Both are the one Rijāl al-Ṭūsī entry for ʿĪsā Abū Mūsā al-Baṣrī among al-Ṣādiq companions.",
+  "quote": "عيسى أبو موسى: البصري: من أصحاب الصادق عليه السلام"
+ },
+ {
+  "pair": "q064",
+  "primary": "n011230",
+  "other": "n011273",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Both are the one Rijāl al-Ṭūsī entry for ʿĪsā b. al-Faraj al-Sindī among al-Ṣādiq companions.",
+  "quote": "عيسى بن الفرج السندي (ق)"
+ },
+ {
+  "pair": "q065",
+  "primary": "n011530",
+  "other": "n011531",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Both describe al-Qāsim b. al-Ḥusayn al-Bazanṭī as the companion of Ayyūb b. Nūḥ.",
+  "quote": "القاسم بن حسين البزنطي: صاحب أيوب بن نوح"
+ },
+ {
+  "pair": "q067",
+  "primary": "n028966",
+  "other": "n011817",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Both are the one Rijāl al-Ṭūsī entry for Mubārak, client of Ṣabāḥ al-Madāʾinī.",
+  "quote": "مبارك مولى صباح: المدائني: من أصحاب الصادق عليه السلام"
+ },
+ {
+  "pair": "q068",
+  "primary": "n001129",
+  "other": "n011828",
+  "why_held": "hedged",
+  "reviewer": "same/high",
+  "reason": "al-Khoei states Muthannā al-Ḥaḍramī is the earlier Muthannā b. al-Ḥaḍramī, and Ardabili cites the same book narrated by Ibn Abī ʿUmayr.",
+  "quote": "هو المثنى بن الحضرمي المتقدم"
+ },
+ {
+  "pair": "q076",
+  "primary": "n003083",
+  "other": "n012614",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "al-Khoei gives Muḥammad b. Sāyib b. Bishr, Abū al-Naḍr al-Kalbī al-Kūfī, the same man as al-Ṭūsī's Muḥammad b. al-Sāʾib b. Bishr.",
+  "quote": "أبو النضر (أبو النصر)، الكلبي الكوفي"
+ },
+ {
+  "pair": "q082",
+  "primary": "n003104",
+  "other": "n012746",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Same Kafi hadith: both narrate from Abd al-Wahhab ibn Mansur with Ahmad ibn al-Husayn narrating from him.",
+  "quote": "روى عن عبد الوهاب بن منصور، وروى عنه أحمد بن الحسين"
+ },
+ {
+  "pair": "q083",
+  "primary": "n028787",
+  "other": "n012761",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Same name and nisba, companion of al-Sadiq, same Rijal al-Tusi entry read twice.",
+  "quote": "محمد بن عبد الرحمن البزاز: الكوفي: من أصحاب الصادق عليه السلام، رجال الشيخ (212)"
+ },
+ {
+  "pair": "q090",
+  "primary": "n033887",
+  "other": "n010698",
+  "why_held": "same_name_only",
+  "reviewer": "same/medium",
+  "reason": "Same full name; the primary is the one al-Saduq cites and the other is narrated by al-Saduq with his isnad.",
+  "quote": "روى الصدوق باسناده عنه"
+ },
+ {
+  "pair": "q092",
+  "primary": "n028392",
+  "other": "n010979",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Same name and nisbas, companion of al-Sadiq in Rijal al-Tusi.",
+  "quote": "عمر بن عطاف: الجعفي، الكوفي: من أصحاب الصادق عليه السلام، رجال الشيخ (475)"
+ },
+ {
+  "pair": "q095",
+  "primary": "n032160",
+  "other": "n005740",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Same lineage, Daqqaq Dawri hafiz, Baghdadi, Abu Muhammad, heard by al-Tal'ukbari in 328.",
+  "quote": "ابن فروخ، الدقاق الدوري، الحافظ، بغدادي، يكنى أبا محمد، سمع منه التلعكبري سنة 328"
+ },
+ {
+  "pair": "q096",
+  "primary": "n002330",
+  "other": "n006040",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Same name, same Kafi hadith on sawm al-wisal with Sayf ibn Umayra narrating from him from al-Sadiq.",
+  "quote": "روى عن أبي عبد الله (عليه السلام)، وروى عنه سيف بن عميرة"
+ },
+ {
+  "pair": "q097",
+  "primary": "n032480",
+  "other": "n006398",
+  "why_held": "hedged",
+  "reviewer": "same/high",
+  "reason": "Khoei equates the Ibn al-Farazdaq entry with the Fazari figure, and al-Tusi's entry matches al-Najashi's al-Qat'i, Abu Abd Allah.",
+  "quote": "أقول: الظاهر اتحاده مع من بعده"
+ },
+ {
+  "pair": "q098",
+  "primary": "n032369",
+  "other": "n006401",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Same full lineage, nisba and kunya, narrated by al-Tal'ukbari, same Rijal al-Tusi entry.",
+  "quote": "الحسن بن محمد بن أحمد الحذاء: النيسابوري: يكنى أبا محمد، روى عنه التلعكبري"
+ },
+ {
+  "pair": "q099",
+  "primary": "n032374",
+  "other": "n006411",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Same lineage, nisba, kunya and al-Tal'ukbari hearing him in Kufa in 344.",
+  "quote": "الحسن بن محمد بن الحسن السكوني: الكوفي: يكنى أبا القاسم، روى عنه التلعكبري"
+ },
+ {
+  "pair": "q104",
+  "primary": "n066424",
+  "other": "n006767",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Khoei says Zakariya ibn Imran is identical with the one after him, al-Qummi.",
+  "quote": "أقول: هذا متحد مع من بعده"
+ },
+ {
+  "pair": "q109",
+  "primary": "n027793",
+  "other": "n007012",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Same Rijal al-Tusi entry for Hafs Abu Amr al-Kalbi.",
+  "quote": "حفص أبو عمرو: الكلبي: من أصحاب الصادق عليه السلام، رجال الشيخ (336)"
+ },
+ {
+  "pair": "q110",
+  "primary": "n032542",
+  "other": "n007019",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Hafs al-A'war narrates from al-Sadiq like Hafs ibn Qurt al-A'war of Rijal al-Tusi, who is called al-A'war.",
+  "quote": "حفص بن قرط الأعور: كوفي، عربي، جمال، من أصحاب الصادق عليه السلام"
+ },
+ {
+  "pair": "q112",
+  "primary": "n027744",
+  "other": "n007042",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Khoei says Hafs ibn al-Nu'man was treated under Hafs Abu al-Nu'man, and the primary's variant reads ibn al-Nu'man.",
+  "quote": "حفص بن النعمان: تقدم في حفص أبي النعمان"
+ },
+ {
+  "pair": "q118",
+  "primary": "n031709",
+  "other": "n004760",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Same Rijal al-Tusi entry, Abu Nasr, pupil of al-Ayyashi, with a spelling difference only.",
+  "quote": "أحمد بن يعقوب السناني: يكنى أبا نصر، له تصانيف، من غلمان العياشي"
+ },
+ {
+  "pair": "q119",
+  "primary": "n066138",
+  "other": "n004775",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Same Rijal al-Tusi entry for the Hamdani al-Murhabi, companion of al-Sadiq.",
+  "quote": "إدريس بن عبد الله الهمداني: المرهبي، من أصحاب الصادق عليه السلام، رجال الشيخ (158)"
+ },
+ {
+  "pair": "q120",
+  "primary": "n067365",
+  "other": "n004778",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Same name, companion of al-Sadiq, same Faqih hadith on breaking the fast in Ramadan.",
+  "quote": "روى عن أبي عبد الله عليه السلام. الفقيه: الجزء 2، باب ما يجب على من أفطر أو جامع في شهر رمضان"
+ },
+ {
+  "pair": "q122",
+  "primary": "n018625",
+  "other": "n005049",
+  "why_held": "hedged",
+  "reviewer": "same/high",
+  "reason": "Same name, the Waqifi brother of Ibrahim ibn Abi Bakr; Ardabili's entry for the primary matches.",
+  "quote": "إسماعيل بن أبي السمال: هو أخو إبراهيم بن أبي بكر بن أبي السمال، واقفي"
+ },
+ {
+  "pair": "q127",
+  "primary": "n067290",
+  "other": "n000638",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "The primary's Ardabili entry repeats al-Najashi's text on al-Wassafi, Abu Sa'id, from al-Baqir and al-Sadiq, which is the other's entry.",
+  "quote": "عبيدالله بن الوليد الوصافي عربي، ثقة، يكنى أبا سعيد، روى عن أبي جعفر وأبي عبد الله عليهما السلام"
+ },
+ {
+  "pair": "q131",
+  "primary": "n012879",
+  "other": "n012878",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Same name and nisbas, Kufan Hadhdha', Rijal al-Tusi entry for companions of al-Sadiq.",
+  "quote": "محمد بن عبيدة الحذاء: الكوفي: من أصحاب الصادق عليه السلام، رجال الشيخ (236)"
+ },
+ {
+  "pair": "q132",
+  "primary": "n028821",
+  "other": "n012882",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Same Rijal al-Tusi entry with the variant Zughayli and the Banu al-Harith ibn Ka'b remark.",
+  "quote": "محمد بن عتبة الزغيلي: (الكوفي): وقيل الزغيل من بني الحارث بن كعب"
+ },
+ {
+  "pair": "q134",
+  "primary": "n067323",
+  "other": "n013479",
+  "why_held": "hedged",
+  "reviewer": "same/high",
+  "reason": "Same name, companion of al-Rida in Rijal al-Tusi; Ardabili's entry cites it.",
+  "quote": "سليمان بن رشيد: من أصحاب الرضا عليه السلام، رجال الشيخ (5)"
+ },
+ {
+  "pair": "q138",
+  "primary": "n029184",
+  "other": "n014629",
+  "why_held": "hedged",
+  "reviewer": "same/high",
+  "reason": "Same Rijal al-Tusi entry for Yahya, brother of Adam, companion of al-Sadiq.",
+  "quote": "يحيى أخو آدم: من أصحاب الصادق عليه السلام، رجال الشيخ (27)"
+ },
+ {
+  "pair": "q144",
+  "primary": "n002761",
+  "other": "n015136",
+  "why_held": "hedged",
+  "reviewer": "same/medium",
+  "reason": "Khoei says Abu al-Hasan is a corruption of Abu al-Husayn, the kunya of Ali ibn Ahmad ibn Muhammad ibn Abi Jayyid.",
+  "quote": "فإنه كنية لعلي بن أحمد بن محمد بن أبي جيد القمي"
+ },
+ {
+  "pair": "q151",
+  "primary": "n015439",
+  "other": "n015455",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Khoei says Abu Ali al-Mutahhar was treated under Abu Ali ibn Mutahhar.",
+  "quote": "أبو علي المطهر: تقدم في أبي علي بن المطهر"
+ },
+ {
+  "pair": "q155",
+  "primary": "n000050",
+  "other": "n015707",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Ardabili says Abu Harasa's name is known from Ibn Abi Harasa, the nickname of Ibrahim ibn Raja al-Shaybani.",
+  "quote": "أبو هراسة (قر) ويأتي ابن أبي هراسة ومنه يعرف اسمه"
+ },
+ {
+  "pair": "q156",
+  "primary": "n009405",
+  "other": "n015708",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "The primary entry is Abd Allah Abu Hurayra, companion of the Prophet, and the other is Abu Hurayra narrating from the Prophet.",
+  "quote": "عبد الله أبو هريرة: من أصحاب رسول الله صلى الله عليه وآله، رجال الشيخ (23)"
+ },
+ {
+  "pair": "q173",
+  "primary": "n012871",
+  "other": "n025142",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Najashi gives the identical full lineage as the primary's Ardabili/Khoei entries (Abu Tahir al-Zurari).",
+  "quote": "محمد بن عبيدالله بن أحمد بن محمد بن سليمان بن الحسن بن الجهم بن بكير بن أعين أبو طاهر الزراري"
+ },
+ {
+  "pair": "q177",
+  "primary": "n012308",
+  "other": "n025342",
+  "why_held": "hedged",
+  "reviewer": "same/high",
+  "reason": "Same Tusi entry (Abu Bakr, had narrations) read twice; Khoei treats it as the al-Barani of al-Kashshi's narrations.",
+  "quote": "محمد بن الحسن البراني: يكنى أبا بكر، كانت له رواية"
+ },
+ {
+  "pair": "q178",
+  "primary": "n028706",
+  "other": "n025347",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Same full lineage and nisba, governor of Medina, Sadiq companion, in Tusi and Khoei.",
+  "quote": "ولي المدينة، من أصحاب الصادق عليه السلام"
+ },
+ {
+  "pair": "q183",
+  "primary": "n007539",
+  "other": "n026182",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Khoei gives the other as Dinar ibn Amr (Umayr), mawla of Shayban, Kufan, matching Tusi's entry held by the primary.",
+  "quote": "دينار بن عمرو (عمير): مولى شيبان: كوفي"
+ },
+ {
+  "pair": "q186",
+  "primary": "n041586",
+  "other": "n026243",
+  "why_held": "hedged",
+  "reviewer": "same/high",
+  "reason": "Both are Muhammad ibn Hamza al-Alawi who wrote to Abu Ja'far II, reported by Ali ibn Mahziyar.",
+  "quote": "وله مكاتبة مع أبي جعفر الثاني عليه السلام، رواها علي بن مهزيار"
+ },
+ {
+  "pair": "q194",
+  "primary": "n067318",
+  "other": "n026743",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Khoei says Ishaq ibn Muhammad al-Hudayni is the same as Ishaq ibn Ibrahim.",
+  "quote": "وهو متحد مع إسحاق بن إبراهيم المتقدم"
+ },
+ {
+  "pair": "q195",
+  "primary": "n001412",
+  "other": "n026768",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Same name and Kufan nisba al-Hannat, Sadiq companion, in Tusi and Ardabili.",
+  "quote": "الحسن بن موسى الحناط الكوفي"
+ },
+ {
+  "pair": "q198",
+  "primary": "n019259",
+  "other": "n026872",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Same Ghanawi companion of the Prophet, name variant Bashir/Bashr.",
+  "quote": ""
+ },
+ {
+  "pair": "q201",
+  "primary": "n011786",
+  "other": "n026964",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Khoei notes Malik ibn Rabi'a (Rabi') Abu Usayd, matching Tusi's Malik ibn al-Rabi' Abu Usayd.",
+  "quote": "مالك بن ربيعة (ربيع): أبو أسيد"
+ },
+ {
+  "pair": "q202",
+  "primary": "n008221",
+  "other": "n027068",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Tusi's Sufyan ibn al-Layl is a known variant of Sufyan ibn Layla/Abi Layla al-Hamdani, but no entry states the identity.",
+  "quote": ""
+ },
+ {
+  "pair": "q203",
+  "primary": "n011065",
+  "other": "n027122",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Both carry the kunya Abu Wa'il and are Ali's companions; Khoei equates Umar/Amra with Amr ibn Zubayr.",
+  "quote": "يكنى أبا وائل"
+ },
+ {
+  "pair": "q205",
+  "primary": "n015727",
+  "other": "n027171",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Abu al-Yasar/Abu Yasar al-Ansari, Ali's companion in Tusi and Khoei, differing in the article only.",
+  "quote": ""
+ },
+ {
+  "pair": "q206",
+  "primary": "n007103",
+  "other": "n027207",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Khoei says Tusi lists al-Hallas ibn Amr among Husayn's companions with the same name as the Hajari.",
+  "quote": "وذكره في أصحاب الحسين عليه السلام (6) قائلا: الحلاس بن عمرو"
+ },
+ {
+  "pair": "q207",
+  "primary": "n028587",
+  "other": "n027454",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Same name and Kufan nisba, Tusi listing, article differs only.",
+  "quote": ""
+ },
+ {
+  "pair": "q209",
+  "primary": "n003679",
+  "other": "n027530",
+  "why_held": "pointer",
+  "reviewer": "same/medium",
+  "reason": "Khoei says Ibrahim ibn Hayyan al-Wasiti is the same as Ibrahim ibn Hannan, and the other is the Tusi heading with the article.",
+  "quote": "إبراهيم بن حيان الواسطي: = إبراهيم بن حنان"
+ },
+ {
+  "pair": "q210",
+  "primary": "n004888",
+  "other": "n027587",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Khoei's entry for Isra'il ibn Usama gives Kufan, seller of the Zutt, matching Tusi's entry for the other.",
+  "quote": "إسرائيل بن أسامة: الكوفي، بياع الزطي"
+ },
+ {
+  "pair": "q218",
+  "primary": "n000777",
+  "other": "n028321",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Both are Abbas ibn Zayd, mawla of Ja'far ibn Muhammad.",
+  "quote": "مولى جعفر بن محمد"
+ },
+ {
+  "pair": "q219",
+  "primary": "n003183",
+  "other": "n028835",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Muhammad ibn al-Fudayl al-Zuraqi (Ruzqi) in Khoei; only the article differs.",
+  "quote": "محمد بن الفضيل الزرقي: (الرزقي)"
+ },
+ {
+  "pair": "q222",
+  "primary": "n034971",
+  "other": "n028973",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Same kunya, Kufan, mawla, Sadiq companion in both.",
+  "quote": "أبو الفضل الكوفي، مولى"
+ },
+ {
+  "pair": "q226",
+  "primary": "n003296",
+  "other": "n029011",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Same nisba al-Dabbi al-Kufi and residence in Basra in both.",
+  "quote": "نزل البصرة"
+ },
+ {
+  "pair": "q227",
+  "primary": "n001138",
+  "other": "n029012",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Khoei says al-Mufaddal ibn Sadaqa was treated under al-Mufaddal ibn Sa'id, and both have kunya Abu Hammad.",
+  "quote": "المفضل بن صدقة: تقدم في المفضل بن سعيد"
+ },
+ {
+  "pair": "q234",
+  "primary": "n003208",
+  "other": "n029096",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Tusi gives both with the kunya Abu al-Mudarib, Kufan.",
+  "quote": "محمد بن مضارب، كوفي، يكنى أبا المضارب"
+ },
+ {
+  "pair": "q235",
+  "primary": "n014382",
+  "other": "n029137",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Khoei says Tusi lists Wird ibn Zayd al-Asadi also among Sadiq's companions, matching the other's Kufan Asadi entry.",
+  "quote": "و (أخرى) من أصحاب الصادق عليه السلام (22)"
+ },
+ {
+  "pair": "q238",
+  "primary": "n009038",
+  "other": "n029424",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Tusi and Khoei both give Abbas al-Najashi, Kufan companion of al-Rida.",
+  "quote": "العباس النجاشي، كوفي"
+ },
+ {
+  "pair": "q240",
+  "primary": "n000770",
+  "other": "n029585",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Same name and nisba (Qummi); the other is a bare Tusi list entry for the same man.",
+  "quote": "عباس بن معروف القمي"
+ },
+ {
+  "pair": "q242",
+  "primary": "n000893",
+  "other": "n029647",
+  "why_held": "same_name_only",
+  "reviewer": "same/high",
+  "reason": "Both are narrators from Abu Ayyub; Ardabili joins the Tusi entry to al-Lu'lu'i.",
+  "quote": "القاسم بن هشام اللؤلؤي (جش. رى) يروي عن أبي أيوب"
+ },
+ {
+  "pair": "q245",
+  "primary": "n001595",
+  "other": "n030049",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Same Tusi entry: a book narrated via Humayd from Abu Ishaq al-Bazzaz.",
+  "quote": "عن حميد بن زياد، عن أبي إسحاق إبراهيم بن سليمان البزاز"
+ },
+ {
+  "pair": "q246",
+  "primary": "n001281",
+  "other": "n030170",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Khoei cross-refers Ibn Isam to Abu Isam; both give nawadir via Humayd.",
+  "quote": "ابن عصام: تقدم في (أبو عصام)"
+ },
+ {
+  "pair": "q249",
+  "primary": "n008320",
+  "other": "n030815",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Khoei cross-refers Salama al-Ahtham to Salama ibn al-Ahtham.",
+  "quote": "سلمة الأهثم: يأتي في سلمة بن الأهثم"
+ },
+ {
+  "pair": "q255",
+  "primary": "n004265",
+  "other": "n031683",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Khoei equates the two headings.",
+  "quote": "أحمد بن محمد بن علي الكوفي: = أحمد بن علي الكوفي"
+ },
+ {
+  "pair": "q256",
+  "primary": "n004878",
+  "other": "n031771",
+  "why_held": "hedged",
+  "reviewer": "same/high",
+  "reason": "Khoei cross-refers the variant spelling.",
+  "quote": "أسد بن عفر \" عفير \" \" غفير \": تقدم في أسد بن أعفر"
+ },
+ {
+  "pair": "q259",
+  "primary": "n067117",
+  "other": "n031826",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Same Tusi entry in a variant manuscript spelling.",
+  "quote": "إسماعيل بن عبد الرحمن السدى (السندي خ) أبو محمد القرشي المفسر الكوفي"
+ },
+ {
+  "pair": "q260",
+  "primary": "n005512",
+  "other": "n032046",
+  "why_held": "hedged",
+  "reviewer": "same/high",
+  "reason": "Both read before al-Murtada and al-Tusi, Halabi.",
+  "quote": "قرء على الاجل المرتضى علم الهدى"
+ },
+ {
+  "pair": "q261",
+  "primary": "n000343",
+  "other": "n032186",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Khoei equates al-Hudhayl and al-Hudhali; both narrate to Humayd with nawadir.",
+  "quote": "جعفر بن الهذيل: = جعفر بن الهذلي"
+ },
+ {
+  "pair": "q264",
+  "primary": "n036950",
+  "other": "n032322",
+  "why_held": "hedged",
+  "reviewer": "same/high",
+  "reason": "Khoei: al-Hasan ibn al-Shaykh is al-Hasan ibn Muhammad ibn al-Hasan al-Tusi.",
+  "quote": "هو الحسن بن محمد بن الحسن بن علي الطوسي"
+ },
+ {
+  "pair": "q265",
+  "primary": "n036911",
+  "other": "n032356",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Khoei equates the headings.",
+  "quote": "الحسن بن علي بن داود: = الحسن بن داود"
+ },
+ {
+  "pair": "q267",
+  "primary": "n004071",
+  "other": "n032445",
+  "why_held": "hedged",
+  "reviewer": "same/high",
+  "reason": "Khoei equates the headings.",
+  "quote": "الحسين بن عبيد الله الصغير: = الحسين بن عبد الله الصغير"
+ },
+ {
+  "pair": "q268",
+  "primary": "n069764",
+  "other": "n032452",
+  "why_held": "hedged",
+  "reviewer": "same/high",
+  "reason": "Khoei: al-Shaykh Abu Abd Allah is al-Husayn ibn Ali ibn al-Husayn ibn Musa ibn Babawayh.",
+  "quote": "هو الحسين بن علي بن الحسين بن موسى بن بابويه الآتي"
+ },
+ {
+  "pair": "q269",
+  "primary": "n002377",
+  "other": "n032468",
+  "why_held": "pointer",
+  "reviewer": "same/medium",
+  "reason": "Khoei cross-refers al-Husayn ibn al-Qasim to al-Hasan ibn al-Qasim, a Rida companion.",
+  "quote": "الحسين بن القاسم: تقدم في الحسن بن القاسم"
+ },
+ {
+  "pair": "q273",
+  "primary": "n007099",
+  "other": "n032575",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Same Tusi entry, Baqir companion, mawla of Banu Dabba.",
+  "quote": "أبو صهيب الصيرفي أبو شبيب مولى بنى ضبة"
+ },
+ {
+  "pair": "q276",
+  "primary": "n000458",
+  "other": "n032752",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Same Najashi/Tusi entry: Abu Sa'id al-Kufi al-Maslub.",
+  "quote": "الربيع بن أبي مدرك أبو سعيد الكوفي"
+ },
+ {
+  "pair": "q277",
+  "primary": "n001500",
+  "other": "n032755",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Ardabili gives the same book (asl) narrated by al-Hasan ibn Mahbub as Fihrist.",
+  "quote": "الربيع الأصم له أصل عنه الحسن بن محبوب"
+ },
+ {
+  "pair": "q278",
+  "primary": "n000460",
+  "other": "n032758",
+  "why_held": "hedged",
+  "reviewer": "same/high",
+  "reason": "Same Najashi entry (al-Warraq, accused of ghuluww).",
+  "quote": "ربيع بن زكريا الوراق طعن عليه بالغلو"
+ },
+ {
+  "pair": "q284",
+  "primary": "n037705",
+  "other": "n033140",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Ardabili ties Abu Khalid al-Qammat (Najashi) to Ibn Khalid al-Qammat.",
+  "quote": "صالح أبو خالد القماط [جش] له كتاب"
+ },
+ {
+  "pair": "q285",
+  "primary": "n033156",
+  "other": "n033141",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Khoei equates Salih ibn Ali with Salih al-mukanna Aba Muhammad.",
+  "quote": "صالح بن علي: = صالح المكنى أبا محمد"
+ },
+ {
+  "pair": "q289",
+  "primary": "n009006",
+  "other": "n033284",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Same Kashshi report: one of the great cursed ghulat.",
+  "quote": "من الغلاة الكبار الملعونين"
+ },
+ {
+  "pair": "q296",
+  "primary": "n027106",
+  "other": "n033372",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Same name, in Tusi's Ali list and Kashshi; no contradiction.",
+  "quote": "عبد الرحمن بن عبد ربه (ى)"
+ },
+ {
+  "pair": "q297",
+  "primary": "n000603",
+  "other": "n033456",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Khoei: this Abd Allah is Ibn Abd al-Rahman ibn Utayba.",
+  "quote": "عبد الله هذا هو ابن عبد الرحمان بن عتيبة الآتي"
+ },
+ {
+  "pair": "q298",
+  "primary": "n009491",
+  "other": "n033479",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Khoei cross-refers the shorter heading.",
+  "quote": "عبد الله بن جعفر الدوريستي: تقدم في عبد الله بن جعفر بن محمد الدوريستي"
+ },
+ {
+  "pair": "q299",
+  "primary": "n009676",
+  "other": "n033567",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Ardabili: he is Ubayd Allah.",
+  "quote": "ويأتي انه عبيد الله"
+ },
+ {
+  "pair": "q300",
+  "primary": "n009258",
+  "other": "n033595",
+  "why_held": "hedged",
+  "reviewer": "same/high",
+  "reason": "Same man: brother of Ahmad ibn Muhammad, nicknamed Bunan.",
+  "quote": "عبد الله بن محمد بن عيسى أخو أحمد بن محمد تقدم انه يلقب بنان"
+ },
+ {
+  "pair": "q302",
+  "primary": "n009944",
+  "other": "n033651",
+  "why_held": "pointer",
+  "reviewer": "same/medium",
+  "reason": "Ardabili adds he is Abu al-Haytham, matching Ibn al-Tayyihan.",
+  "quote": "عبيد بن تيهان (ى) وهو أبو الهيثم"
+ },
+ {
+  "pair": "q306",
+  "primary": "n010929",
+  "other": "n033954",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Same Tusi entry listed twice.",
+  "quote": "عمر بن أبي مسلم (رى) مرتين"
+ },
+ {
+  "pair": "q308",
+  "primary": "n011219",
+  "other": "n034069",
+  "why_held": "same_name_only",
+  "reviewer": "same/medium",
+  "reason": "Same name; Tusi list of Husayn's Companions.",
+  "quote": "عياض بن أبي مهاجر (سين)"
+ },
+ {
+  "pair": "q310",
+  "primary": "n012084",
+  "other": "n034430",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Khoei cross-refers al-Farisi to the same man.",
+  "quote": "محمد بن أحمد الفارسي: تقدم في محمد بن أحمد بن علي الفتال"
+ },
+ {
+  "pair": "q312",
+  "primary": "n012780",
+  "other": "n034660",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Same text of al-Allama on al-Zuhri, munkar al-hadith.",
+  "quote": "محمد بن عبد العزيز الزهري منكر الحديث"
+ },
+ {
+  "pair": "q313",
+  "primary": "n012814",
+  "other": "n034678",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Same lineage prefix; the Ardabili entry is truncated.",
+  "quote": "محمد بن عبد الله بن عبد الرحمن: ابن أبي عقيل الثقفي الكوفي"
+ },
+ {
+  "pair": "q314",
+  "primary": "n012938",
+  "other": "n034721",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Same Muntajab entry: author of al-Wasila.",
+  "quote": "الوسيلة الواسطة"
+ },
+ {
+  "pair": "q315",
+  "primary": "n012888",
+  "other": "n034733",
+  "why_held": "hedged",
+  "reviewer": "same/high",
+  "reason": "Khoei cross-refers the shorter heading to Muhammad ibn Ali ibn Uthman.",
+  "quote": "محمد بن علي الكراجكي: تقدم في محمد بن علي بن عثمان"
+ },
+ {
+  "pair": "q316",
+  "primary": "n013705",
+  "other": "n034869",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Same Tusi entry; the variant reads Ibn Khalad.",
+  "quote": "وفى بعض النسخ ابن خلاد"
+ },
+ {
+  "pair": "q317",
+  "primary": "n013802",
+  "other": "n034913",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Khoei notes the manuscript variant Mas'ud ibn Muhammad.",
+  "quote": "الشيخ مسعود بن محمد المتكلم، عالم ورع"
+ },
+ {
+  "pair": "q319",
+  "primary": "n013912",
+  "other": "n034970",
+  "why_held": "hedged",
+  "reviewer": "same/high",
+  "reason": "Ardabili ties Mu'alla ibn Shihab to Mu'alla Abu Shihab.",
+  "quote": "وتقدم من (في) معلى أبو شهاب"
+ },
+ {
+  "pair": "q322",
+  "primary": "n014659",
+  "other": "n035277",
+  "why_held": "hedged",
+  "reviewer": "same/high",
+  "reason": "Same name and same Kafi report (al-Nahdi narrating from him about the will of Abu al-Hasan), already in the primary.",
+  "quote": "روى عن أبي الحسن عليه السلام، وروى عنه محمد بن أحمد النهدي"
+ },
+ {
+  "pair": "q324",
+  "primary": "n014844",
+  "other": "n035306",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Same full name and same Kafi birth-of-Musa report with al-Hasan ibn Rashid narrating from him.",
+  "quote": "يعقوب بن جعفر بن إبراهيم"
+ },
+ {
+  "pair": "q325",
+  "primary": "n011119",
+  "other": "n035362",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Ardabili says Abu Ajniha's name is Amr ibn Muhsin; the primary already carries that kunya.",
+  "quote": "أبو أجنحة اسمه عمرو بن محص"
+ },
+ {
+  "pair": "q327",
+  "primary": "n003606",
+  "other": "n035368",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Ardabili gives the name behind the kunya, and al-Khoei equates the kunya with the primary.",
+  "quote": "أبو أرقم اسمه أبان بن أرقم"
+ },
+ {
+  "pair": "q328",
+  "primary": "n005694",
+  "other": "n035383",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Ardabili gives the name behind the kunya as the primary.",
+  "quote": "أبو الأشهب اسمه جعفر بن الحارث"
+ },
+ {
+  "pair": "q329",
+  "primary": "n001253",
+  "other": "n035396",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Same book entry (Najashi) read twice.",
+  "quote": "أبو بدر لم يذكر اسمه كوفي له كتاب يرويه عدة منهم محمد بن سنان"
+ },
+ {
+  "pair": "q332",
+  "primary": "n000289",
+  "other": "n035453",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Ardabili gives the name behind the kunya as the primary.",
+  "quote": "أبو الحر اسمه أديم بن الحر"
+ },
+ {
+  "pair": "q336",
+  "primary": "n001403",
+  "other": "n035527",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Ardabili gives the name behind Abu Dharr as Jundab ibn Junada, though it notes the kunya is sometimes applied to another.",
+  "quote": "أبو ذر اسمه جندب بن جنادة"
+ },
+ {
+  "pair": "q337",
+  "primary": "n000397",
+  "other": "n035533",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Ardabili gives the name behind the kunya as the primary.",
+  "quote": "أبو رفاعة اسمه الحجاج بن رفاعة"
+ },
+ {
+  "pair": "q338",
+  "primary": "n006007",
+  "other": "n035550",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Ardabili gives the name behind the kunya as the primary.",
+  "quote": "أبو سرعة اسمه حذيفة بن أسيد"
+ },
+ {
+  "pair": "q339",
+  "primary": "n009043",
+  "other": "n035570",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Ardabili gives the name behind the kunya as the primary.",
+  "quote": "أبو شاكر اسمه عبد الاعلى بن زيد"
+ },
+ {
+  "pair": "q340",
+  "primary": "n000874",
+  "other": "n035574",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Ardabili gives the name behind the kunya as the primary.",
+  "quote": "أبو شجاع اسمه فارس بن سليمان"
+ },
+ {
+  "pair": "q341",
+  "primary": "n001278",
+  "other": "n035575",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Same Najashi entry read twice, quoted in Ardabili.",
+  "quote": "كتاب أبى الشداخ في الإمامة يكون نحوا من خمسين ورقة وانه أراه لأبيه فلم يعرف الرجل"
+ },
+ {
+  "pair": "q343",
+  "primary": "n005512",
+  "other": "n035590",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Ardabili gives the name behind the kunya as the primary.",
+  "quote": "أبو الصلاح اسمه تقى بن نجم الحلبي"
+ },
+ {
+  "pair": "q344",
+  "primary": "n002904",
+  "other": "n035616",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Ardabili gives the name behind the kunya as the primary.",
+  "quote": "أبو عايذ اسمه عمارة بن السرى"
+ },
+ {
+  "pair": "q346",
+  "primary": "n001281",
+  "other": "n035668",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Same Najashi entry read twice.",
+  "quote": "أبو عصام ذكر حميد بن زياد قال سمعت من أبى جعفر محمد بن الحسين بن حازم نوادر أبى عصام"
+ },
+ {
+  "pair": "q348",
+  "primary": "n004730",
+  "other": "n035726",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Ardabili gives the name behind the kunya as the primary.",
+  "quote": "أبو الفضايل اسمه أحمد بن موسى بن جعفر"
+ },
+ {
+  "pair": "q349",
+  "primary": "n001286",
+  "other": "n035757",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Same Najashi entry (companion of Abu Maryam al-Ansari, via al-Barqi from his father) read twice.",
+  "quote": "أبو محمد الأسود صاحب أبى مريم الأنصاري ابن بطة عن البرقي عن أبيه عنه"
+ },
+ {
+  "pair": "q350",
+  "primary": "n006693",
+  "other": "n035774",
+  "why_held": "hedged",
+  "reviewer": "same/medium",
+  "reason": "Same Tusi heading and kunya; Ardabili's hedge concerns the man's personal name, not whether he is another person.",
+  "quote": "أبو محمد الوابشي كأنه عبد الله بن سعيد ولم نجزم"
+ },
+ {
+  "pair": "q352",
+  "primary": "n000552",
+  "other": "n035798",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Ardabili gives the name behind the kunya as the primary.",
+  "quote": "أبو مقاتل اسمه صالح الديلمي"
+ },
+ {
+  "pair": "q353",
+  "primary": "n000783",
+  "other": "n035939",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Same Fihrist entry (Abu Ahmad al-Basri, book, via Ibrahim ibn Sulayman) read twice.",
+  "quote": "أبو أحمد البصري 6. له كتاب"
+ },
+ {
+  "pair": "q356",
+  "primary": "n001043",
+  "other": "n036225",
+  "why_held": "same_name_only",
+  "reviewer": "same/medium",
+  "reason": "Same full name and lineage; both are the Ibn Ghazwan whose reports run through the same chain pattern.",
+  "quote": "محمد بن سعيد بن غزوان"
+ },
+ {
+  "pair": "q368",
+  "primary": "n000347",
+  "other": "n036733",
+  "why_held": "hedged",
+  "reviewer": "same/medium",
+  "reason": "Same Tusi entry (Ja'far ibn Abd al-Rahman, Humayd narrating from him); al-Khoei only hedges about the next entry.",
+  "quote": "جعفر بن عبد الرحمان: روى عن حميد"
+ },
+ {
+  "pair": "q382",
+  "primary": "n021215",
+  "other": "n037083",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Same Kafi chain in both (from a man of our companions, from Abu Abd Allah al-Nawfali).",
+  "quote": "عن رجل من أصحابنا عن أبي عبد الله النوفلي"
+ },
+ {
+  "pair": "q394",
+  "primary": "n002477",
+  "other": "n037294",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Same Tusi entry (al-Abdi, of the companions of al-Mahdi).",
+  "quote": "داود بن علي: العبدي: كان من أصحاب المهدي"
+ },
+ {
+  "pair": "q406",
+  "primary": "n008129",
+  "other": "n037486",
+  "why_held": "pointer",
+  "reviewer": "same/medium",
+  "reason": "Al-Khoei's entry for the Tahiri spelling refers back to the preceding Sa'id ibn Muhammad al-Tatari, whose variant reading it is.",
+  "quote": "سعيد بن محمد الطاهري: تقدم في سابقه."
+ },
+ {
+  "pair": "q428",
+  "primary": "n040772",
+  "other": "n038139",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Same full name and kunya, Sadiq's companion, Rijal al-Tusi.",
+  "quote": "عجلان أبو صالح: السكوني الأزرق الكوفي: من أصحاب الصادق عليه السلام، رجال الشيخ (662)."
+ },
+ {
+  "pair": "q429",
+  "primary": "n026946",
+  "other": "n038159",
+  "why_held": "hedged",
+  "reviewer": "same/medium",
+  "reason": "The primary already carries ʿAli among its Imams from Tusi's list, which al-Khoei says is the source of the other entry; same name and nisba-less ID.",
+  "quote": "عقبة بن عامر: من أصحاب علي عليه السلام، حكاه الميرزا في رجاليه"
+ },
+ {
+  "pair": "q432",
+  "primary": "n002801",
+  "other": "n038229",
+  "why_held": "hedged",
+  "reviewer": "same/medium",
+  "reason": "Al-Ardabili states that the al-Husayn spelling is apparently the earlier ʿAli ibn al-Hasan al-ʿAbdi, a hedged but internal identification already in the primary's names.",
+  "quote": "الظاهر أنه على بن الحسن العبدي المتقدم من (ق) بقرنية رواية الهيثم بن واقد عنه وروايته عن أبي عبد الله عليه السلام."
+ },
+ {
+  "pair": "q434",
+  "primary": "n002832",
+  "other": "n038236",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Al-Khoei states the other is identical with the preceding entry (the primary).",
+  "quote": "أقول: مر اتحاده مع سابقه."
+ },
+ {
+  "pair": "q435",
+  "primary": "n002836",
+  "other": "n038238",
+  "why_held": "same_name_only",
+  "reviewer": "same/medium",
+  "reason": "Al-Khoei says Kafi manuscripts read al-Raqqi for al-Barqi and the narrator is Sahl ibn Ziyad's source, matching the primary's names and student.",
+  "quote": "علي بن سعيد: البرقي: روى عن سليمان بن جعفر الجعفري، وروى عنه سهل بن زياد."
+ },
+ {
+  "pair": "q441",
+  "primary": "n002909",
+  "other": "n038357",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "The other quotes Tusi's entry for the stepson of the Prophet, son of Umm Salama, matching the primary's Tusi and Ardabili entries.",
+  "quote": "عمر (عمرو) ابن أبي سلمة بن أم سلمة، ربيب رسول الله صلى الله عليه آله"
+ },
+ {
+  "pair": "q453",
+  "primary": "n028585",
+  "other": "n038526",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Same name and nisba, Kufi, Sadiq's companion, Rijal al-Tusi.",
+  "quote": "فضيل بن فضالة: التغلبي: كوفي، من أصحاب الصادق عليه السلام، رجال الشيخ (3)."
+ },
+ {
+  "pair": "q454",
+  "primary": "n003515",
+  "other": "n038565",
+  "why_held": "hedged",
+  "reviewer": "same/medium",
+  "reason": "Al-Khoei's entry discusses the same Malik ibn Aʿyan, brother-not-of Zurara, who is al-Juhani per al-Kashshi.",
+  "quote": "كان لهم غير زرارة وإخوته أخوان ليسا في شئ من هذا الامر، مالك وقعنب"
+ },
+ {
+  "pair": "q455",
+  "primary": "n034336",
+  "other": "n038568",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "The Kafi narrator via Ali ibn Ibrahim from some companion is the one the primary's Ardabili entry cites as al-Sakuni, Tusi no. 460.",
+  "quote": "مالك بن الحصين: السكوني: من أصحاب الصادق عليه السلام، رجال الشيخ (460)."
+ },
+ {
+  "pair": "q470",
+  "primary": "n003224",
+  "other": "n038862",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "The other is Muhammad ibn Nuʿaym al-Samarqandi, the nisba carried by the primary's Khoei entry.",
+  "quote": "محمد بن نعيم، والد حيدر: ابن محمد بن نعيم السمرقندي."
+ },
+ {
+  "pair": "q471",
+  "primary": "n013634",
+  "other": "n038900",
+  "why_held": "pointer",
+  "reviewer": "same/medium",
+  "reason": "Al-Khoei refers the Tahiri spelling back to the preceding entry, the primary Muhammad al-Tatari.",
+  "quote": "محمد الطاهري: تقدم في سابقه."
+ },
+ {
+  "pair": "q472",
+  "primary": "n010233",
+  "other": "n038909",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Al-Khoei states the other is identical with the following entry, the primary.",
+  "quote": "أقول: هذا متحد مع من بعده."
+ },
+ {
+  "pair": "q473",
+  "primary": "n001167",
+  "other": "n038916",
+  "why_held": "same_name_only",
+  "reviewer": "same/medium",
+  "reason": "Same name and lineage-less heading for the same Ahmad ibn Muhammad ibn ʿIsa-narrated Marwak, which al-Najashi gives as ibn Salim.",
+  "quote": "مروك بن عبيد: وقع بهذا العنوان في إسناد عدة من الروايات"
+ },
+ {
+  "pair": "q474",
+  "primary": "n013756",
+  "other": "n038918",
+  "why_held": "hedged",
+  "reviewer": "same/high",
+  "reason": "Same name, client of Khalid al-Qasri, Sadiq's companion, Rijal al-Tusi.",
+  "quote": "مرة مولى خالد بن عبد الله: القسري: من أصحاب الصادق عليه السلام، رجال الشيخ (658)."
+ },
+ {
+  "pair": "q479",
+  "primary": "n001126",
+  "other": "n038974",
+  "why_held": "same_name_only",
+  "reviewer": "same/medium",
+  "reason": "The other is the main narrator entry for the same Mansur ibn Hazim who narrates from al-Baqir and al-Sadiq, matching the primary.",
+  "quote": "منصور بن حازم: وقع بهذا العنوان في إسناد كثير من الروايات"
+ },
+ {
+  "pair": "q488",
+  "primary": "n014923",
+  "other": "n039115",
+  "why_held": "hedged",
+  "reviewer": "same/medium",
+  "reason": "Same Kamil al-Ziyarat narration is given with Rafi in place of al-Rabi, which al-Khoei reads as a corruption.",
+  "quote": "الظاهر أن كلمة رفيع محرفة كلمة ربيع"
+ },
+ {
+  "pair": "q489",
+  "primary": "n035341",
+  "other": "n039121",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Al-Khoei says Yunus al-Kunasi is a misreading and Yusuf al-Kunasi is the correct name in the same chain.",
+  "quote": "يوسف الكناسي، وهو الصحيح الموافق للوافي والوسائل"
+ },
+ {
+  "pair": "q490",
+  "primary": "n000391",
+  "other": "n039143",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Abu Tammam is stated to be the name Habib ibn Aws, mentioned earlier.",
+  "quote": "أبو تمام: اسمه حبيب بن أوس، وتقدم"
+ },
+ {
+  "pair": "q491",
+  "primary": "n007083",
+  "other": "n039176",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Al-Barqi's Abu al-Hakam ibn al-Mukhtar ibn Abi Ubayda is the same son of al-Mukhtar in the same generation, al-Baqir.",
+  "quote": "أبو الحكم بن مختار: ابن أبي عبيدة، عده البرقي من أصحاب الباقر عليه السلام"
+ },
+ {
+  "pair": "q493",
+  "primary": "n014136",
+  "other": "n039280",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Ibn Ashyam narrates from al-Baqir and al-Khoei treats Ibn al-Ashyam of Kashshi as Musa ibn Ashyam, companion of al-Baqir.",
+  "quote": "ابن أشيم: روى عن أبي جعفر عليه السلام"
+ },
+ {
+  "pair": "q496",
+  "primary": "n004890",
+  "other": "n039510",
+  "why_held": "same_name_only",
+  "reviewer": "same/medium",
+  "reason": "Same name, nisba and al-Tusi list; both carry the same Ardabili Qar tag, so these are one man listed twice.",
+  "quote": "إسرائيل بن عباد المكي"
+ },
+ {
+  "pair": "q497",
+  "primary": "n001029",
+  "other": "n039559",
+  "why_held": "same_name_only",
+  "reviewer": "same/medium",
+  "reason": "Al-Khoei notes al-Tusi lists Muhammad ibn Thabit twice among al-Kazim companions, once as majhul; the other is that entry.",
+  "quote": "وعده الشيخ في أصحاب الكاظم عليه السلام مرتين (15) و (40)، وقال - في الموضع الثاني -: \" مجهول \""
+ },
+ {
+  "pair": "q498",
+  "primary": "n031870",
+  "other": "n039560",
+  "why_held": "same_name_only",
+  "reviewer": "same/medium",
+  "reason": "Both are al-Tusi entries for Aflah ibn Yazid among the companions of al-Rida, one marked majhul.",
+  "quote": "أفلح بن يزيد: من أصحاب الرضا عليه السلام، رجال الشيخ (21)"
+ },
+ {
+  "pair": "q499",
+  "primary": "n066533",
+  "other": "n039568",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Al-Khoei and al-Tusi give Muhammad ibn Mansur ibn Nasr al-Khuza'i, called also Ahmad ibn Mansur, among al-Rida companions.",
+  "quote": "محمد بن منصور بن نصر الخزاعي، ويقال: أحمد بن منصور"
+ },
+ {
+  "pair": "q502",
+  "primary": "n066915",
+  "other": "n039634",
+  "why_held": "hedged",
+  "reviewer": "same/high",
+  "reason": "Al-Khoei writes that al-Muhammadi is the same as al-Muhammadi al-Alawi, a name the primary holds.",
+  "quote": "جعفر بن عبد الله المحمدي: = جعفر بن عبد الله المحمدي العلوي"
+ },
+ {
+  "pair": "q507",
+  "primary": "n009629",
+  "other": "n039691",
+  "why_held": "hedged",
+  "reviewer": "same/medium",
+  "reason": "Al-Khoei redirects Abd Allah ibn Ubayd Allah to Abd Allah ibn Abd Allah as the same name in variant manuscripts; primary holds both.",
+  "quote": "عبد الله بن عبيد الله: تقدم في عبد الله بن عبد الله"
+ },
+ {
+  "pair": "q508",
+  "primary": "n009968",
+  "other": "n039696",
+  "why_held": "pointer",
+  "reviewer": "same/medium",
+  "reason": "Al-Khoei says al-Thawri is the same as the following al-Thawri al-Attar, both narrating from Muhammad ibn al-Husayn.",
+  "quote": "هذا أيضا متحد مع من بعده"
+ },
+ {
+  "pair": "q514",
+  "primary": "n003052",
+  "other": "n039751",
+  "why_held": "pointer",
+  "reviewer": "same/medium",
+  "reason": "The other narrates the same hadith from Ali ibn Mahziyar that Ardabili files under the primary, and al-Khoei identifies him with the Ash'ari al-Qummi.",
+  "quote": "هذا هو محمد بن الحسن بن أبي خالد القمي الأشعري المتقدم"
+ },
+ {
+  "pair": "q516",
+  "primary": "n066674",
+  "other": "n039791",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Al-Khoei says al-Halabi is an error for al-Bajali in the same chain.",
+  "quote": "موسى بن القاسم البجلي، بدل ما في هذه الطبعة، وهو الصحيح"
+ },
+ {
+  "pair": "q517",
+  "primary": "n001180",
+  "other": "n039796",
+  "why_held": "pointer",
+  "reviewer": "same/medium",
+  "reason": "Al-Khoei refers the entry back to the preceding Wahb ibn Wahb, the primary.",
+  "quote": "وهب بن وهب القرشي: تقدم في سابقه"
+ },
+ {
+  "pair": "q518",
+  "primary": "n014844",
+  "other": "n039801",
+  "why_held": "pointer",
+  "reviewer": "same/medium",
+  "reason": "Al-Khoei refers al-Ju'fi back to the preceding Ya'qub ibn Ja'far, the primary.",
+  "quote": "يعقوب بن جعفر الجعفي: تقدم في سابقه"
+ },
+ {
+  "pair": "q519",
+  "primary": "n067273",
+  "other": "n040277",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Primary already holds the Ardabili entry for Burd al-Khayyat Kufi, the same al-Tusi entry, same generation.",
+  "quote": "برد الخياط، كوفي"
+ },
+ {
+  "pair": "q521",
+  "primary": "n038050",
+  "other": "n040883",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Al-Khoei says Abd Allah al-Qasir is covered under Abd Allah ibn al-Fudayl (al-Qasir), the Waqifi companion of al-Kazim.",
+  "quote": "عبد الله القصير: تقدم في عبد الله بن الفضيل"
+ },
+ {
+  "pair": "q524",
+  "primary": "n031868",
+  "other": "n042525",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Same al-Tusi entry, al-Muzani also called al-Juhani, in the companions of the Prophet.",
+  "quote": "الأغر المدني: (المزني)، ويقال: الجهني"
+ },
+ {
+  "pair": "q527",
+  "primary": "n041414",
+  "other": "n043525",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Same Kafi report, Ibrahim ibn Mahziyar from Khalilan writing to Abu al-Hasan on drinks; Ardabili reads it as al-Khalil ibn Hashim.",
+  "quote": "إبراهيم بن مهزيار عن خليلان بن هشام قال كتبت إلى أبى الحسن عليه السلام"
+ },
+ {
+  "pair": "q529",
+  "primary": "n041591",
+  "other": "n046270",
+  "why_held": "same_name_only",
+  "reviewer": "same/medium",
+  "reason": "Same Tahdhib chain, Ahmad ibn Muhammad from Muhammad ibn Ghalib from Ali ibn al-Hasan, and al-Khoei says Ibn Abi Ghalib is a misreading.",
+  "quote": "محمد بن غالب: روى عن علي بن الحسن بن فضال. وروى عنه أحمد بن محمد"
+ },
+ {
+  "pair": "q531",
+  "primary": "n040847",
+  "other": "n046973",
+  "why_held": "pointer",
+  "reviewer": "same/medium",
+  "reason": "Al-Khoei says this entry is the same as the next, Yahya ibn Abd Allah ibn al-Hasan, companion of al-Sadiq whom the primary holds.",
+  "quote": "هذا متحد مع من بعده"
+ },
+ {
+  "pair": "q532",
+  "primary": "n000683",
+  "other": "n047458",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Ibn Riab is the heading for Ali ibn Riab, narrating from al-Sadiq and Musa al-Kazim, as the primary does.",
+  "quote": "وقع بهذا العنوان في إسناد كثير من الروايات"
+ },
+ {
+  "pair": "q533",
+  "primary": "n028836",
+  "other": "n047605",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Al-Khoei states that Ibn Fudayl in this chain is Muhammad ibn al-Fudayl, per the Faqih.",
+  "quote": "والمراد به محمد بن الفضيل"
+ },
+ {
+  "pair": "q536",
+  "primary": "n002369",
+  "other": "n047930",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Same Hasan ibn Ali al-Hamdani Abu Muhammad whom al-Tusi calls attacked (matun), in the Tahdhib chapter on bequests to the misguided.",
+  "quote": "قال الشيخ فيه: إنه مطعون عليه"
+ },
+ {
+  "pair": "q538",
+  "primary": "n034827",
+  "other": "n048072",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Kashshi gives Muhammad ibn Nusayr al-Fihri al-Numayri, and Ardabili equates the Fihri with him.",
+  "quote": "محمد بن نصير الفهري النميري"
+ },
+ {
+  "pair": "q539",
+  "primary": "n011011",
+  "other": "n056823",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Same Kafi Jarad narration with Awn ibn Jarir, which Ardabili already files under Umar ibn Harun al-Thaqafi in the primary.",
+  "quote": "عمرو بن هارون: الثقفي: روى عن أبي عبد الله عليه السلام: وروى عنه عون بن جرير"
+ },
+ {
+  "pair": "q543",
+  "primary": "n002530",
+  "other": "n057042",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Al-Khoei quotes al-Tusi's entry for Salim ibn Abi al-Ja'd al-Ashja'i, and Ardabili prefers identity of the two forms.",
+  "quote": "سالم بن أبي الجعد الأشجعي، مولاهم الكوفي يكنى أبا أسماء"
+ },
+ {
+  "pair": "q544",
+  "primary": "n003284",
+  "other": "n057167",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Same name Hafs al-Abyad, companion of al-Sadiq, listed twice by al-Tusi.",
+  "quote": "حفص الأبيض (ابن الأبيض): من أصحاب الصادق عليه السلام"
+ },
+ {
+  "pair": "q545",
+  "primary": "n002377",
+  "other": "n057361",
+  "why_held": "same_name_only",
+  "reviewer": "same/medium",
+  "reason": "Same name and imam: al-Tusi lists Hasan ibn al-Qasim among companions of al-Rida, as Kashshi does.",
+  "quote": "الحسن بن القاسم. 2"
+ },
+ {
+  "pair": "q550",
+  "primary": "n005392",
+  "other": "n060650",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Bashir is the Kafi reading of Bishr ibn Ghalib al-Asadi, who narrates from al-Husayn, as in al-Tusi.",
+  "quote": "بشير بن غالب الأسدي: روى عن الحسين بن علي عليهما السلام"
+ },
+ {
+  "pair": "q556",
+  "primary": "n007350",
+  "other": "n066049",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Al-Khoei states Abu Ayyub al-Ansari is named Khalid ibn Zayd.",
+  "quote": "أبو أيوب الأنصاري: اسمه خالد بن زيد الأنصاري"
+ },
+ {
+  "pair": "q558",
+  "primary": "n007008",
+  "other": "n066089",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Both are al-Tusi's Abu Sasan al-Raqashi, standard-bearer of Ali.",
+  "quote": "حضين بن المنذر، يكنى أبا ساسان الرقاشي، صاحب رايته عليه السلام"
+ },
+ {
+  "pair": "q559",
+  "primary": "n000043",
+  "other": "n066129",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Al-Tusi's Ibrahim ibn Abd al-Hamid al-Asadi, mawla, Kufi, matches Najashi's Asadi mawla Kufi of the primary.",
+  "quote": "إبراهيم بن عبد الحميد الأسدي، مولاهم البزاز الكوفي"
+ },
+ {
+  "pair": "q560",
+  "primary": "n004881",
+  "other": "n066143",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Tusi/Ardabili/Khoei give the same Qaysi companion of al-Sadiq, with ʿAmir/ʿAmmar as a manuscript variant.",
+  "quote": "وفي نسخة بن عمار"
+ },
+ {
+  "pair": "q561",
+  "primary": "n005389",
+  "other": "n066149",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Khoei lists ʿAmmar/ʿUmara/Hammam as variants of one Khathʿami Kufi companion of al-Sadiq.",
+  "quote": "بشر بن عمار (عمارة) (همام): الخثعمي الكوفي المكتب"
+ },
+ {
+  "pair": "q562",
+  "primary": "n008335",
+  "other": "n066238",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Khoei gives ʿAbbas (ʿAyyash) as variants of the same Basri whom al-Tusi lists.",
+  "quote": "سلمة بن عباس (عياش): البصري"
+ },
+ {
+  "pair": "q563",
+  "primary": "n001236",
+  "other": "n066267",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Same full name, Kufi, companion of al-Sadiq; the Tusi entry is a bare heading but the lineage matches.",
+  "quote": ""
+ },
+ {
+  "pair": "q565",
+  "primary": "n000036",
+  "other": "n066310",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Tusi describes Ibn Hayyan as Abu Ishaq al-Khazzaz of Banu Tamim, from whom Humayd narrates, matching the primary.",
+  "quote": "يكنى أبا إسحاق الخزاز الهلالي، من بني تميم، روى عنه حميد بن زياد أصولا كثيرة"
+ },
+ {
+  "pair": "q568",
+  "primary": "n006001",
+  "other": "n066375",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Khoei gives al-Karkhi as a parenthetical alias of Hajjaj al-Kufi.",
+  "quote": "حجاج الكوفي (الكرخي)"
+ },
+ {
+  "pair": "q570",
+  "primary": "n040251",
+  "other": "n066452",
+  "why_held": "hedged",
+  "reviewer": "same/high",
+  "reason": "Khoei refers the Sulayman spelling back to Salman ibn Abi al-Mughira.",
+  "quote": "سليمان بن أبي المغيرة: تقدم في سلمان بن أبي المغيرة"
+ },
+ {
+  "pair": "q571",
+  "primary": "n008380",
+  "other": "n066454",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Khoei refers Sulayman ibn Rabiʿ back to Salman, and Ardabili notes the Salman possibility for the same lineage.",
+  "quote": "سليمان بن ربعي: ابن عبد الله الهمداني: تقدم في سلمان"
+ },
+ {
+  "pair": "q576",
+  "primary": "n004075",
+  "other": "n066635",
+  "why_held": "hedged",
+  "reviewer": "same/medium",
+  "reason": "Same Nishapuri narrating from Abu Salih Shuʿayb ibn ʿIsa; the Hasan form is a variant reading.",
+  "quote": "روى عن أبي صالح شعيب بن عيسى"
+ },
+ {
+  "pair": "q584",
+  "primary": "n008466",
+  "other": "n066739",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Both Khoei entries refer to the same entry, Sinan Abu ʿAbd Allah no. 5575.",
+  "quote": "تقدم في سنان أبي عبد الله بن سنان رقم 5575"
+ },
+ {
+  "pair": "q587",
+  "primary": "n030088",
+  "other": "n066802",
+  "why_held": "hedged",
+  "reviewer": "same/medium",
+  "reason": "Same Kufi author of Nawadir narrated through Humayd; Khoei leans to identity and Ardabili merges the entries.",
+  "quote": "له كتاب نوادر عنه حميد"
+ },
+ {
+  "pair": "q589",
+  "primary": "n066860",
+  "other": "n066898",
+  "why_held": "hedged",
+  "reviewer": "same/medium",
+  "reason": "Both rely on al-Najashi's tawthiq of ʿAli ibn Bashir in the entry of his brother Muhammad.",
+  "quote": "وثقه النجاشي في ترجمة أخيه محمد"
+ },
+ {
+  "pair": "q590",
+  "primary": "n015239",
+  "other": "n066905",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Khoei quotes al-Najashi for Muhammad ibn al-Muzaffar Abu Dulaf al-Azdi, matching the primary.",
+  "quote": "محمد بن المظفر، أبو دلف الأزدي: كان سمع كثيرا ثم اضطرب عقله"
+ },
+ {
+  "pair": "q595",
+  "primary": "n000369",
+  "other": "n067059",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Ardabili states Abu Walad's name is Hafs ibn Salim.",
+  "quote": "أبو ولاد اسمه حفص بن سالم وقيل ابن يونس ثقة"
+ },
+ {
+  "pair": "q597",
+  "primary": "n003353",
+  "other": "n067105",
+  "why_held": "hedged",
+  "reviewer": "same/medium",
+  "reason": "The Saduq chain to Maymun runs through Jaʿfar ibn Muhammad ibn Malik, who also appears in the primary's Ardabili entry.",
+  "quote": "جعفر بن محمد بن مالك"
+ },
+ {
+  "pair": "q599",
+  "primary": "n037176",
+  "other": "n067138",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Tusi gives the same Hamadani, Kufi mawla, Abu al-Sabah, companion of al-Sadiq.",
+  "quote": "الحكم بن عمير الهمداني، مولى كوفي، يكنى أبا الصباح"
+ },
+ {
+  "pair": "q600",
+  "primary": "n000044",
+  "other": "n067148",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Fihrist's book of Ibrahim ibn Nasr runs through Jaʿfar ibn Bashir, who is also the primary's student.",
+  "quote": "عن جعفر بن بشير، عن إبراهيم بن نصر"
+ },
+ {
+  "pair": "q601",
+  "primary": "n000524",
+  "other": "n067157",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Fihrist's Salama ibn Muhammad is transmitted by Muhammad ibn Bakr ibn Janah, as in al-Najashi's entry.",
+  "quote": "عن محمد بن بكر 1 بن جناح، عن سلمة بن محمد"
+ },
+ {
+  "pair": "q602",
+  "primary": "n067179",
+  "other": "n067159",
+  "why_held": "pointer",
+  "reviewer": "same/medium",
+  "reason": "The other is the thiqa Kufi with a book, and Khoei treats the primary headings as one man (Ibn al-Zubayr al-Anbari).",
+  "quote": "هو متحد مع من بعده"
+ },
+ {
+  "pair": "q603",
+  "primary": "n000830",
+  "other": "n067173",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Fihrist lists a book by ʿIsa ibn Aʿyan with the same name; the primary holds the same lineage.",
+  "quote": ""
+ },
+ {
+  "pair": "q604",
+  "primary": "n000842",
+  "other": "n067174",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Fihrist's ʿUqba ibn Muhriz with a book is the same as al-Najashi's ʿUqba ibn Muhriz who has a book.",
+  "quote": "لعقبة كتاب"
+ },
+ {
+  "pair": "q606",
+  "primary": "n000351",
+  "other": "n067178",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Khoei refers Abu al-Hasan al-Laythi back to Jalaba ibn ʿAyyad.",
+  "quote": "أبو الحسن الليثي: تقدم في جلبة بن عياض"
+ },
+ {
+  "pair": "q608",
+  "primary": "n003359",
+  "other": "n067186",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Kashshi's sentence is also quoted under the primary heading, and Tusi has the identical name.",
+  "quote": "نجية بن الحارث شيخ صادق كوفي صديق علي بن يقطين"
+ },
+ {
+  "pair": "q636",
+  "primary": "n013956",
+  "other": "n067232",
+  "why_held": "hedged",
+  "reviewer": "same/high",
+  "reason": "The same Tusi entry among ʿAli's companions, read twice.",
+  "quote": "من أصحاب علي عليه السلام، رجال الشيخ (35)"
+ },
+ {
+  "pair": "q637",
+  "primary": "n014272",
+  "other": "n067233",
+  "why_held": "same_name_only",
+  "reviewer": "same/medium",
+  "reason": "Khoei lists Nafiʿ ibn ʿUtba/ʿUtayba both among the Prophet's and ʿAli's companions as one man.",
+  "quote": "وعد نافع بن عتيبة (عتبة) من أصحاب علي عليه السلام (9)"
+ },
+ {
+  "pair": "q646",
+  "primary": "n007603",
+  "other": "n067245",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Both give the father's name as Farrukh and the epithet Rabi'at al-Ra'y.",
+  "quote": "ربيعة بن أبي عبد الرحمان، واسم أبي عبد الرحمان فروخ"
+ },
+ {
+  "pair": "q648",
+  "primary": "n011260",
+  "other": "n067256",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Khoei refers 'Isa al-Tahhan back to 'Isa ibn al-Tahhan, the same Tusi entry.",
+  "quote": "عيسى الطحان: تقدم في عيسى بن الطحان"
+ },
+ {
+  "pair": "q649",
+  "primary": "n001017",
+  "other": "n067260",
+  "why_held": "hedged",
+  "reviewer": "same/medium",
+  "reason": "Khoei's entry under the other's heading quotes al-Najashi's entry of the primary and lists al-Tusi's mentions together.",
+  "quote": "محمد بن شريح الحضرمي: قال النجاشي"
+ },
+ {
+  "pair": "q651",
+  "primary": "n000062",
+  "other": "n067269",
+  "why_held": "hedged",
+  "reviewer": "same/high",
+  "reason": "Tusi's entry names him as Muhammad ibn Muhajir al-Azdi, matching the primary's lineage.",
+  "quote": "إسماعيل بن أبي خالد، واسمه محمد بن مهاجر الأزدي الكوفي، أسند عنه"
+ },
+ {
+  "pair": "q652",
+  "primary": "n026629",
+  "other": "n067271",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Khoei refers Bishr ibn Muslim back to Bishr ibn Salm; Tusi's entry carries the same kunya-nisba.",
+  "quote": "بشر بن مسلم: تقدم في بشر بن سلم"
+ },
+ {
+  "pair": "q656",
+  "primary": "n000808",
+  "other": "n067294",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Tusi's entry gives Abu al-Yaqzan al-Bakri al-Kufi, matching the primary's names and Ardabili's merge.",
+  "quote": "عمار بن أبي الأحوص، أبو اليقظان البكري الكوفي، أسند عنه"
+ },
+ {
+  "pair": "q657",
+  "primary": "n000608",
+  "other": "n067296",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": ""
+ },
+ {
+  "pair": "q658",
+  "primary": "n003375",
+  "other": "n067305",
+  "why_held": "same_name_only",
+  "reviewer": "same/medium",
+  "reason": "Same name, al-Sadiq's companion in Tusi.",
+  "quote": "النعمان الرازي: من أصحاب الصادق عليه السلام، رجال الشيخ (24)"
+ },
+ {
+  "pair": "q668",
+  "primary": "n036184",
+  "other": "n067345",
+  "why_held": "same_name_only",
+  "reviewer": "same/medium",
+  "reason": "Khoei notes Tusi lists him under al-Hadi and al-'Askari; the other is the al-'Askari listing of the same name.",
+  "quote": "عبدوس العطار: كوفي: رجال الشيخ، في أصحاب الهادي عليه السلام (34)، وبدون كلمة كوفي في أصحاب العسكري عليه السلام (9)"
+ },
+ {
+  "pair": "q669",
+  "primary": "n001331",
+  "other": "n067346",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Khoei states al-'Ajami is al-A'jami.",
+  "quote": "إبراهيم العجمي: = إبراهيم الأعجمي"
+ },
+ {
+  "pair": "q670",
+  "primary": "n000135",
+  "other": "n067354",
+  "why_held": "hedged",
+  "reviewer": "same/medium",
+  "reason": "Primary's own names include the grandson of Abu Hamza al-Thumali and Tusi lists al-Husayn ibn Hamza al-Laythi and Ibn bint Abi Hamza as one man; the other's alias is al-Husayn ibn Hamza al-Layhi.",
+  "quote": "الحسين بن حمزة الليثي الكوفي، ابن بنت أبي حمزة الثمالي ثقة"
+ },
+ {
+  "pair": "q671",
+  "primary": "n003654",
+  "other": "n067362",
+  "why_held": "same_name_only",
+  "reviewer": "same/medium",
+  "reason": "Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "إبراهيم بن إدريس: من أصحاب الهادي عليه السلام، رجال الشيخ (9)، ورجال البرقي"
+ },
+ {
+  "pair": "q681",
+  "primary": "n001969",
+  "other": "n067383",
+  "why_held": "hedged",
+  "reviewer": "same/medium",
+  "reason": "Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "الحسن بن صدقة: المدائني: أخو مصدق بن صدقة، من أصحاب الصادق (عليه السلام)، رجال الشيخ (43)"
+ },
+ {
+  "pair": "q683",
+  "primary": "n005987",
+  "other": "n067390",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Khoei refers Khabbab ibn Yazid back to Hatat ibn Yazid.",
+  "quote": "خباب بن يزيد: تقدم في حتات بن يزيد"
+ },
+ {
+  "pair": "q690",
+  "primary": "n007840",
+  "other": "n067399",
+  "why_held": "hedged",
+  "reviewer": "same/medium",
+  "reason": "Khoei says Ziyad ibn Rabi'a is an error for Zayd ibn Rabi'a in Tusi.",
+  "quote": "والظاهر أنه سهو، فان المذكور فيه زيد بن ربيعة"
+ },
+ {
+  "pair": "q698",
+  "primary": "n009945",
+  "other": "n067418",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "عبيد بن الجعد: من أصحاب علي عليه السلام، رجال الشيخ (21)"
+ },
+ {
+  "pair": "q702",
+  "primary": "n011667",
+  "other": "n067428",
+  "why_held": "pointer",
+  "reviewer": "same/high",
+  "reason": "Khoei lists Qays ibn Qahran as a variant of Qays ibn Fahran.",
+  "quote": "قيس بن قهران: تقدم في قيس بن فهران"
+ },
+ {
+  "pair": "q703",
+  "primary": "n011690",
+  "other": "n067429",
+  "why_held": "same_name_only",
+  "reviewer": "same/medium",
+  "reason": "Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "كامل النجار: من أصحاب الباقر عليه السلام، رجال الشيخ (1)"
+ },
+ {
+  "pair": "q705",
+  "primary": "n013211",
+  "other": "n067433",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "محمد بن القبطي: من أصحاب الصادق عليه السلام، رجال الشيخ (687)"
+ },
+ {
+  "pair": "q708",
+  "primary": "n013958",
+  "other": "n067440",
+  "why_held": "hedged",
+  "reviewer": "same/medium",
+  "reason": "Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "المغيرة بن شعبة: من أصحاب رسول الله صلى الله عليه وآله، رجال الشيخ (7)"
+ },
+ {
+  "pair": "q713",
+  "primary": "n001225",
+  "other": "n067448",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Tusi gives al-Azraq al-Ansari, a Kufan mawla, and the other's Ardabili entry carries the same description.",
+  "quote": "يحيى بن عبد الرحمان الأزرق الأنصاري، مولي كوفي"
+ },
+ {
+  "pair": "q716",
+  "primary": "n001966",
+  "other": "n067523",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Primary already carries the al-Sayrafi entry; Khoei's al-Sayrafi entry is a companion of al-Rida like the primary.",
+  "quote": "الحسين بن خالد الصيرفي: من أصحاب الرضا عليه السلام، رجال الشيخ (22)"
+ },
+ {
+  "pair": "q717",
+  "primary": "n000461",
+  "other": "n067536",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Khoei reproduces al-Najashi's entry on Rabi' ibn Sulayman ibn 'Amr, the primary's.",
+  "quote": "ربيع بن سليمان بن عمرو: كوفي، صحب السكوني وأخذ عنه"
+ },
+ {
+  "pair": "q721",
+  "primary": "n000835",
+  "other": "n067604",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Khoei's entry is a quotation of the same Najashi entry (book, narrated by Muhammad ibn al-Husayn).",
+  "quote": "قال النجاشي: \" عيسى بن هشام، له كتاب، يرويه محمد بن الحسين عنه (به) \""
+ },
+ {
+  "pair": "q723",
+  "primary": "n002951",
+  "other": "n067613",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Khoei's entry is the same Tusi Sadiq-companion entry (al-Khathami al-Kufi).",
+  "quote": "محمد بن أبي سلمة: الخثعمي، الكوفي، من أصحاب الصادق عليه السلام، رجال الشيخ (426)."
+ },
+ {
+  "pair": "q724",
+  "primary": "n067130",
+  "other": "n067920",
+  "why_held": "hedged",
+  "reviewer": "same/medium",
+  "reason": "Tusi's 'Muhammad al-Wasiti, narrated from by Aban' is the same Tusi entry as the primary's tusi:4505; Khoei's entry is that entry.",
+  "quote": "محمد الواسطي: روى عنه أبان، من أصحاب الصادق عليه السلام، رجال الشيخ (407)."
+ },
+ {
+  "pair": "q725",
+  "primary": "n001962",
+  "other": "n067921",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Khoei's entry is the Tusi Sadiq-companion entry al-Sayrafi al-Kufi, already held by the primary.",
+  "quote": "جعفر بن حيان الصيرفي الكوفي: من أصحاب الصادق (عليه السلام)، رجال الشيخ (10)."
+ },
+ {
+  "pair": "q728",
+  "primary": "n012846",
+  "other": "n067930",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Khoei and Tusi give the same Tusi entry (al-Jawad companion who reached Musa ibn Jafar).",
+  "quote": "محمد بن عبد الله المدائني، لحق موسى بن جعفر عليهما السلام."
+ },
+ {
+  "pair": "q738",
+  "primary": "n000595",
+  "other": "n072780",
+  "why_held": "other",
+  "reviewer": "same/high",
+  "reason": "Khoei's entry quotes the Najashi entry for al-Mudhari verbatim.",
+  "quote": "عبد الله بن العلاء: قال النجاشي: \" عبد الله بن العلاء المذاري أبو محمد: ثقة، من وجوه أصحابنا"
+ },
+ {
+  "pair": "q739",
+  "primary": "n000346",
+  "other": "n074642",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Ardabili's 'Jafar ibn Ali al-Bajali narrated from by Humayd' matches the primary's Tusi entry and Jafar ibn Ali ibn Hassan al-Bajali narrated from by Humayd.",
+  "quote": "جعفر بن علي البجلي روى عنه حميد"
+ },
+ {
+  "pair": "q740",
+  "primary": "n000336",
+  "other": "n074754",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Khoei quotes the Najashi entry on al-Awdi verbatim.",
+  "quote": "جعفر بن أحمد بن يوسف: قال النجاشي: \" جعفر بن أحمد بن يوسف الأودي، أبو عبد الله"
+ },
+ {
+  "pair": "q741",
+  "primary": "n000808",
+  "other": "n076277",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Khoei's entry is the Najashi entry (book narrated by Ubays ibn Hisham al-Nashiri).",
+  "quote": "له كتاب يرويه عبيس بن هشام الناشري، ذكره النجاشي."
+ },
+ {
+  "pair": "q742",
+  "primary": "n000481",
+  "other": "n076430",
+  "why_held": "same_name_high_quoted",
+  "reviewer": "same/high",
+  "reason": "Ardabili's entry is the Najashi entry (thiqa, Sadiq, mentioned by Ibn Nuh).",
+  "quote": "زكريا بن يحيى الواسطي ثقة روى عن أبي عبد الله عليه السلام ذكره ابن نوح"
+ },
+ {
+  "pair": "q744",
+  "primary": "n006081",
+  "other": "n077367",
+  "why_held": "other",
+  "reviewer": "same/medium",
+  "reason": "Tusi's Sadiq-companion entry with the same nisba al-Nili; Khoei reports the primary narrated from both Baqir and Sadiq.",
+  "quote": "الحسن بن أبي سارة النيلي."
+ },
+ {
+  "pair": "q486",
+  "primary": "n011553",
+  "other": "n039101",
+  "why_held": "the primary is already a mixed al-Qasim/al-Yasa' record"
+ },
+ {
+  "pair": "q743",
+  "primary": "n076390",
+  "other": "n077364",
+  "why_held": "recorded, then retracted: the join bridged al-Wasiti into Zakkar b. al-Hasan al-Dinawari (n000489)",
+  "reason": "[orphaned entry of a book his entries cite] Fihrist entry reads identically to Tusi's al-Fadail/asl entry via al-Dinawari and Humayd.",
+  "quote": "زكار بن يحيى الواسطي 1. له كتاب الفضائل، وله أصل."
+ }
+]

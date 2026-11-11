@@ -1322,6 +1322,8 @@ def cited_counts(documents):
     corpus = "\n".join(texts)
     out = {}
     for authority in authorities:
+        if not authority.get("cited_as"):
+            continue  # an empty alternation counted every «قال» before a stray space
         names = "|".join(re.escape(n) for n in authority["cited_as"])
         out[authority["id"]] = len(re.findall(CITING + r"\s+(?:" + names + r")(?=[\s،,.:؛\"»)]|$)",
                                               corpus))
@@ -1345,6 +1347,12 @@ def known_as(documents):
         doc = by_id.get(authority["id"])
         if not doc:
             continue
+        # «العمري» is al-ʿAmrī for the two envoys and al-ʿUmarī for the ʿAlawī ʿUmarīs, so the
+        # word map cannot settle it; the man's English heading is set here and the old one kept
+        # as a name a reader may type.
+        if authority.get("display_en") and doc.get("display_en") != authority["display_en"]:
+            doc["names_en"] = sorted(set(doc.get("names_en") or []) | {doc.get("display_en")} - {None})
+            doc["display_en"] = authority["display_en"]
         for name in authority.get("known_as") or []:
             arabic = bool(re.search(r"[\u0600-\u06FF]", name))
             field = "titles" if arabic else "names_en"

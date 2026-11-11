@@ -1,0 +1,1724 @@
+[
+ {
+  "group": "p2026-11-12:q001",
+  "primary": "n067172",
+  "other": "n001103",
+  "reason": "[pointer] al-Khoei writes that Mūsā b. al-Ḥasan b. ʿĀmir is identical with Mūsā b. ʿĀmir, and the primary entry says it was earlier listed under that title.",
+  "quote": "موسى بن الحسن بن عامر: = موسى بن عامر"
+ },
+ {
+  "group": "p2026-11-12:q005",
+  "primary": "n001150",
+  "other": "n001757",
+  "reason": "[orphaned entry of a book his entries cite] Both are Mishmaʿil b. Saʿd al-Nāshirī with a book narrated through Aḥmad b. Maytham.",
+  "quote": "المشمعل بن سعد الناشري. له كتاب، رويناه بهذا الاسناد عن حميد، عن أحمد بن ميثم، عنه"
+ },
+ {
+  "group": "p2026-11-12:q009",
+  "primary": "n001265",
+  "other": "n002108",
+  "reason": "[same text] Same full name with the same nisbas and the same book transmitted by Muḥammad b. Khālid al-Barqī.",
+  "quote": "أبو طالب الازدي البصري الشعراني، له كتاب يرويه محمد بن خالد البرقي"
+ },
+ {
+  "group": "p2026-11-12:q014",
+  "primary": "n067279",
+  "other": "n002431",
+  "reason": "[same name, same Imam] Both are the single Rijāl al-Ṭūsī entry for Ḥammād b. Yabs among al-Ṣādiq companions.",
+  "quote": "حماد بن يبس: من أصحاب الصادق عليه السلام"
+ },
+ {
+  "group": "p2026-11-12:q015",
+  "primary": "n067278",
+  "other": "n002436",
+  "reason": "[same name, same Imam] Both are the single Rijāl al-Ṭūsī entry for Ḥammād b. Yūnus among al-Ṣādiq companions.",
+  "quote": "حماد بن يونس: من أصحاب الصادق عليه السلام"
+ },
+ {
+  "group": "p2026-11-12:q016",
+  "primary": "n067312",
+  "other": "n002543",
+  "reason": "[same name, same Imam] Both are the single Rijāl al-Ṭūsī entry for Sulaymān b. Abī Zayd among al-Kāẓim companions.",
+  "quote": "سليمان بن أبي زيد: من أصحاب الكاظم عليه السلام"
+ },
+ {
+  "group": "p2026-11-12:q018",
+  "primary": "n030770",
+  "other": "n002653",
+  "reason": "[same name, same Imam] Both are the one Rijāl al-Ṭūsī entry for ʿAbd Allāh b. Thābit among ʿAlī companions.",
+  "quote": "عبد الله بن ثابت: من أصحاب علي (عليه السلام)"
+ },
+ {
+  "group": "p2026-11-12:q019",
+  "primary": "n024269",
+  "other": "n002656",
+  "reason": "[same name, same Imam] Both are the one Rijāl al-Ṭūsī entry for the Kufan ʿAbd Allāh b. al-Jārūd.",
+  "quote": "عبد الله بن الجارود، كوفي"
+ },
+ {
+  "group": "p2026-11-12:q020",
+  "primary": "n067199",
+  "other": "n002704",
+  "reason": "[same name, same Imam] Both are the one Rijāl al-Ṭūsī entry for ʿAbd Allāh b. Hishām among the Prophet companions.",
+  "quote": "عبد الله بن هشام: من أصحاب رسول الله (صلى الله عليه وآله)"
+ },
+ {
+  "group": "p2026-11-12:q022",
+  "primary": "n067201",
+  "other": "n002903",
+  "reason": "[same name, same Imam] Both are the one Rijāl al-Ṭūsī entry for ʿUmāra b. Ruwayba among the Prophet companions.",
+  "quote": "عمارة بن رويبة: من أصحاب رسول الله صلى الله عليه وآله"
+ },
+ {
+  "group": "p2026-11-12:q028",
+  "primary": "n027833",
+  "other": "n007586",
+  "reason": "[same name, same Imam] Both are the one Rijāl al-Ṭūsī entry for al-Rabīʿ b. Zayd al-Kindī al-Baṣrī.",
+  "quote": "ربيع بن زيد: الكندي البصري: أسند عنه، من أصحاب الصادق عليه السلام"
+ },
+ {
+  "group": "p2026-11-12:q030",
+  "primary": "n067400",
+  "other": "n008094",
+  "reason": "[same name, same Imam] Both are the one Rijāl al-Ṭūsī entry for Saʿd b. Zayd among the Prophet companions.",
+  "quote": "سعد بن زيد: من أصحاب الرسول صلى الله عليه وآله"
+ },
+ {
+  "group": "p2026-11-12:q034",
+  "primary": "n066229",
+  "other": "n008388",
+  "reason": "[same name, same Imam] Both are the one Rijāl al-Ṭūsī entry for Sulaymān b. Suwayd al-Kilābī al-Jaʿfarī among al-Ṣādiq companions.",
+  "quote": "سليمان بن سويد الكلابي: الجعفري: من أصحاب الصادق عليه السلام"
+ },
+ {
+  "group": "p2026-11-12:q035",
+  "primary": "n066230",
+  "other": "n008399",
+  "reason": "[same name, same Imam] Both are the one Rijāl al-Ṭūsī entry for Sulaymān b. ʿAbd Allāh al-Ṭalḥī al-Kūfī among al-Ṣādiq companions.",
+  "quote": "سليمان بن عبد الله الطلحي: الكوفي: من أصحاب الصادق عليه السلام"
+ },
+ {
+  "group": "p2026-11-12:q038",
+  "primary": "n067196",
+  "other": "n008624",
+  "reason": "[same name, same Imam] Both are the one Rijāl al-Ṭūsī entry for Shaddād b. Aws among the Prophet companions.",
+  "quote": "شداد بن أوس: من أصحاب رسول الله (صلى الله عليه وآله)"
+ },
+ {
+  "group": "p2026-11-12:q045",
+  "primary": "n067248",
+  "other": "n003352",
+  "reason": "[pointer] al-Khoei equates Maymūn b. al-Aswad with Maymūn al-Qaddāḥ and quotes al-Ṭūsī's same entry, client of Banū Makhzūm, Makkī.",
+  "quote": "ميمون بن الأسود: القداح، مولى بني مخزم هو ميمون القداح الآتي"
+ },
+ {
+  "group": "p2026-11-12:q048",
+  "primary": "n076277",
+  "other": "n003618",
+  "reason": "[pointer] al-Khoei states the entry on ʿAmmār b. Abī al-Yaqẓān is covered under ʿAmmār Abū al-Yaqẓān.",
+  "quote": "عمار بن أبي اليقظان: تقدم في عمار أبي اليقظان، فراجع"
+ },
+ {
+  "group": "p2026-11-12:q057",
+  "primary": "n017542",
+  "other": "n003879",
+  "reason": "[same name, same Imam] Both are the one Rijāl al-Ṭūsī entry for Ubayy b. ʿUmāra al-Anṣārī who prayed to both qiblas.",
+  "quote": "أبي بن عمارة: الأنصاري: صلى مع النبي - صلى الله عليه وآله - القبلتين"
+ },
+ {
+  "group": "p2026-11-12:q058",
+  "primary": "n031597",
+  "other": "n003881",
+  "reason": "[same name, same Imam] Ardabili reproduces the same al-Ṭūsī text for Ubayy b. Kaʿb (Abū al-Mundhir) that al-Khoei quotes under the other.",
+  "quote": "يكنى أبا المنذر، شهد العقبة مع السبعين"
+ },
+ {
+  "group": "p2026-11-12:q066",
+  "primary": "n027459",
+  "other": "n011551",
+  "reason": "[same name, same Imam] Both are the one Rijāl al-Ṭūsī entry for al-Qāsim b. ʿAbd al-Malik among al-Bāqir companions.",
+  "quote": "قاسم بن عبد الملك: من أصحاب الباقر عليه السلام"
+ },
+ {
+  "group": "p2026-11-12:q069",
+  "primary": "n028668",
+  "other": "n011894",
+  "reason": "[same name, same Imam] Both are the one Rijāl al-Ṭūsī entry for Muḥammad b. Ibrāhīm b. Muhājir al-Bajalī al-Kūfī.",
+  "quote": "محمد بن إبراهيم بن مهاجر: البجلي، الكوفي: أسند عنه، من أصحاب الصادق عليه السلام"
+ },
+ {
+  "group": "p2026-11-12:q072",
+  "primary": "n028696",
+  "other": "n012285",
+  "reason": "[same name, same Imam] Both are the one Rijāl al-Ṭūsī entry for Muḥammad b. al-Ḥajjāj al-Lakhmī, a Kufan who settled in Baghdad.",
+  "quote": "محمد بن الحجاج: اللخمي: كوفي، نزل بغداد"
+ },
+ {
+  "group": "p2026-11-12:q075",
+  "primary": "n034582",
+  "other": "n012590",
+  "reason": "[same name, same Imam] Both are the one Rijāl al-Ṭūsī entry for Muḥammad b. Ziyād al-Sajjād al-Ghazzāl, Kufan, narrated from by Muḥammad b. Sinān.",
+  "quote": "محمد بن زياد السجاد: الغزال: كوفي، روى عنه محمد بن سنان"
+ },
+ {
+  "group": "p2026-11-12:q077",
+  "primary": "n028735",
+  "other": "n012615",
+  "reason": "[same name, same Imam] Both are the one Rijāl al-Ṭūsī entry for Muḥammad b. al-Sāʾib b. ʿAṭiyya al-Ghāmidī al-Azdī al-Kūfī.",
+  "quote": "محمد بن سايب بن عطية: الغامدي. الأزدي الكوفي: من أصحاب الصادق عليه السلام"
+ },
+ {
+  "group": "p2026-11-12:q078",
+  "primary": "n028737",
+  "other": "n012616",
+  "reason": "[same name, same Imam] Both are the one Rijāl al-Ṭūsī entry for Muḥammad b. al-Sāʾib al-Thaqafī among al-Ṣādiq companions.",
+  "quote": "محمد بن سايب الثقفي: من أصحاب الصادق عليه السلام"
+ },
+ {
+  "group": "p2026-11-12:q079",
+  "primary": "n028744",
+  "other": "n012626",
+  "reason": "[same name, same Imam] Both are the one Rijāl al-Ṭūsī entry for Muḥammad b. Saʿīd b. al-Aswad al-Umawī al-Kūfī.",
+  "quote": "محمد بن سعيد بن الأسود: الأموي، الكوفي: من أصحاب الصادق عليه السلام"
+ },
+ {
+  "group": "p2026-11-12:q085",
+  "primary": "n028090",
+  "other": "n009573",
+  "reason": "[same name, same Imam] Same Rijal al-Tusi entry, same name with al-Wasiti al-Zayyat, companion of al-Sadiq.",
+  "quote": "عبد الله بن السابري: الواسطي الزيات: من أصحاب الصادق (عليه السلام)، رجال الشيخ (84)"
+ },
+ {
+  "group": "p2026-11-12:q086",
+  "primary": "n027093",
+  "other": "n010172",
+  "reason": "[same name, same Imam] Same name, companion of Amir al-Mu'minin from Rijal al-Tusi; only the article differs.",
+  "quote": "عقبة بن الصامت: من أصحاب أمير المؤمنين عليه السلام"
+ },
+ {
+  "group": "p2026-11-12:q088",
+  "primary": "n002795",
+  "other": "n010373",
+  "reason": "[same name, same Imam] Same full name, same Kafi hadith on the birth of Abu Muhammad narrated by Ali ibn Muhammad.",
+  "quote": "روى عن أبي محمد عليه السلام، وروى عنه علي بن محمد"
+ },
+ {
+  "group": "p2026-11-12:q091",
+  "primary": "n001575",
+  "other": "n010824",
+  "reason": "[pointer] Khoei says the other was already treated under Ali ibn al-Khazzaz, the same al-Razi mutakallim.",
+  "quote": "علي الخزاز: الرازي: تقدم في علي بن الخزاز"
+ },
+ {
+  "group": "p2026-11-12:q093",
+  "primary": "n000803",
+  "other": "n011007",
+  "reason": "[pointer] Khoei says Umar ibn Minhal is dealt with under Amr ibn Minhal, and al-Tusi's entry is the same man.",
+  "quote": "عمر بن منهال: يأتي في عمرو بن منهال"
+ },
+ {
+  "group": "p2026-11-12:q100",
+  "primary": "n066386",
+  "other": "n006415",
+  "reason": "[pointer] The primary's Khoei entry says it was treated earlier under al-Hasan ibn Muhammad ibn Hayy, i.e. the other.",
+  "quote": "الحسين بن محمد بن حي: تقدم في الحسن بن محمد بن حي"
+ },
+ {
+  "group": "p2026-11-12:q108",
+  "primary": "n004652",
+  "other": "n006967",
+  "reason": "[pointer] Khoei says the other was treated earlier under al-Hasan ibn Nasr al-Armani, which the primary also holds as a name.",
+  "quote": "الحسين بن نضر الأرمني: تقدم في الحسن بن نضر الأرمني"
+ },
+ {
+  "group": "p2026-11-12:q111",
+  "primary": "n021489",
+  "other": "n007036",
+  "reason": "[same name, same Imam] Same name, Kufi companion of al-Sadiq, and al-Barqi adds al-A'war.",
+  "quote": "حفص بن قاسم: الكوفي: من أصحاب الصادق عليه السلام، رجال الشيخ (193)"
+ },
+ {
+  "group": "p2026-11-12:q113",
+  "primary": "n039623",
+  "other": "n004236",
+  "reason": "[pointer] Khoei equates them explicitly.",
+  "quote": "أحمد بن محمد بن الصلت: = أحمد بن محمد الأهوازي"
+ },
+ {
+  "group": "p2026-11-12:q114",
+  "primary": "n066307",
+  "other": "n004293",
+  "reason": "[same name, same Imam] Same full name and nisbas, thiqa among al-Ayyashi's companions, same Rijal al-Tusi entry.",
+  "quote": "أحمد بن عيسى بن جعفر: العلوي العمري: ثقة، من أصحاب العياشي"
+ },
+ {
+  "group": "p2026-11-12:q123",
+  "primary": "n031849",
+  "other": "n005161",
+  "reason": "[same name, same Imam] Same Rijal al-Tusi entry: Syrian al-Saksaki who fled Mu'awiya to Ali.",
+  "quote": "أسود بن عرفجة: السكسكي: شامي، هرب من معاوية ولجأ إليه"
+ },
+ {
+  "group": "p2026-11-12:q128",
+  "primary": "n011088",
+  "other": "n000795",
+  "reason": "[orphaned entry of a book his entries cite] Same name and nisba al-Azraq, narrator from al-Sadiq cited by al-Najashi.",
+  "quote": "عمرو بن عبيد الله: الأزرق: روى عن أبي عبد الله عليه السلام، ذكره النجاشي"
+ },
+ {
+  "group": "p2026-11-12:q129",
+  "primary": "n028799",
+  "other": "n012868",
+  "reason": "[same name, same Imam] Same Rijal al-Tusi entry for the Kufan Hadhdha', companion of al-Sadiq.",
+  "quote": "محمد بن عبيد الكوفي: الحذاء: من أصحاب الصادق عليه السلام، رجال الشيخ (227)"
+ },
+ {
+  "group": "p2026-11-12:q133",
+  "primary": "n028859",
+  "other": "n013348",
+  "reason": "[same name, same Imam] Same Rijal al-Tusi entry: Kufan Hamdani, narrated from.",
+  "quote": "محمد بن مشمعل الهمداني: كوفي، أسند عنه، من أصحاب الصادق عليه السلام، رجال الشيخ (329)"
+ },
+ {
+  "group": "p2026-11-12:q135",
+  "primary": "n026972",
+  "other": "n013876",
+  "reason": "[same name, same Imam] Same Rijal al-Tusi entry for the companion of the Prophet; only the article differs.",
+  "quote": "المطيع بن الأسود: من أصحاب رسول الله صلى الله عليه وآله، رجال الشيخ (23)"
+ },
+ {
+  "group": "p2026-11-12:q136",
+  "primary": "n026992",
+  "other": "n014352",
+  "reason": "[same name, same Imam] Same Rijal al-Tusi entry for the companion of the Prophet; only the article differs.",
+  "quote": "نواس بن سمعان: من أصحاب رسول الله صلى الله عليه وآله، رجال الشيخ (6)"
+ },
+ {
+  "group": "p2026-11-12:q140",
+  "primary": "n029483",
+  "other": "n014712",
+  "reason": "[same name, same Imam] Same Rijal al-Tusi entry: al-Warraq, companion of al-Rida, majhul.",
+  "quote": "يحيى بن العباس الوراق: مجهول، من أصحاب الرضا عليه السلام، رجال الشيخ (18)"
+ },
+ {
+  "group": "p2026-11-12:q142",
+  "primary": "n027175",
+  "other": "n015083",
+  "reason": "[same name, same Imam] Same Rijal al-Tusi entry for Abu Ja'da al-Ashja'i, companion of Ali; only the article differs.",
+  "quote": "أبو الجعدة الأشجعي: من أصحاب علي عليه السلام، رجال الشيخ (27)"
+ },
+ {
+  "group": "p2026-11-12:q149",
+  "primary": "n000224",
+  "other": "n015448",
+  "reason": "[pointer] Khoei says Abu Ali al-Sawli was treated under Ahmad ibn Muhammad ibn Ja'far.",
+  "quote": "أبو علي الصولي: تقدم بعنوان أحمد بن محمد بن جعفر"
+ },
+ {
+  "group": "p2026-11-12:q162",
+  "primary": "n041519",
+  "other": "n018435",
+  "reason": "[orphaned entry of a book his entries cite] Same name with the definite article differing, same nisba al-Sabati, both Sadiq-era companions.",
+  "quote": ""
+ },
+ {
+  "group": "p2026-11-12:q164",
+  "primary": "n005705",
+  "other": "n019781",
+  "reason": "[orphaned entry of a book his entries cite] Same lineage and nisba, differing only by the article on Hakim; same Baqir-era companion.",
+  "quote": ""
+ },
+ {
+  "group": "p2026-11-12:q165",
+  "primary": "n005996",
+  "other": "n020421",
+  "reason": "[same name, same Imam] Same name and Kufan nisba; only the article differs, both Tusi/Barqi companions.",
+  "quote": ""
+ },
+ {
+  "group": "p2026-11-12:q166",
+  "primary": "n005997",
+  "other": "n020422",
+  "reason": "[same name, same Imam] Same name, Husayn's companion in both Tusi and Ardabili entries.",
+  "quote": ""
+ },
+ {
+  "group": "p2026-11-12:q167",
+  "primary": "n006180",
+  "other": "n020686",
+  "reason": "[same name, same Imam] Same name and Ta'i nisba, Sadiq companion, differing only in the article.",
+  "quote": ""
+ },
+ {
+  "group": "p2026-11-12:q169",
+  "primary": "n007044",
+  "other": "n021500",
+  "reason": "[same name, same Imam] Same name and nisba al-A'war, Sadiq companion; only the article differs.",
+  "quote": ""
+ },
+ {
+  "group": "p2026-11-12:q170",
+  "primary": "n007667",
+  "other": "n022527",
+  "reason": "[same name, same Imam] Same name, Sadiq companion; only the article differs, and the other's names give the full nasab.",
+  "quote": ""
+ },
+ {
+  "group": "p2026-11-12:q175",
+  "primary": "n007485",
+  "other": "n025268",
+  "reason": "[pointer] Khoei writes that Dawud ibn Sa'id is Dawud al-Abzari, and the primary's entry says the Abzari is probably Ibn Sa'id.",
+  "quote": "داود بن سعيد: = داود الابزاري"
+ },
+ {
+  "group": "p2026-11-12:q189",
+  "primary": "n001219",
+  "other": "n026273",
+  "reason": "[pointer] Khoei says Yahya ibn Muhammad ibn Ahmad was already treated under Yahya ibn Ahmad ibn Muhammad ibn Abdullah.",
+  "quote": "تقدم في يحيى بن أحمد بن محمد بن عبد الله"
+ },
+ {
+  "group": "p2026-11-12:q196",
+  "primary": "n002761",
+  "other": "n026809",
+  "reason": "[pointer] Khoei states the identity directly.",
+  "quote": "علي بن أحمد القمي: من مشايخ النجاشي، وهو علي بن أحمد بن محمد بن أبي جيد المتقدم"
+ },
+ {
+  "group": "p2026-11-12:q197",
+  "primary": "n005248",
+  "other": "n026863",
+  "reason": "[same name, same Imam] Same Prophet's companion with the same brotherhood pairing and battles, in Tusi and Khoei.",
+  "quote": "شهد بدرا واحدا والخندق والمشاهد"
+ },
+ {
+  "group": "p2026-11-12:q204",
+  "primary": "n014788",
+  "other": "n027162",
+  "reason": "[orphaned entry of a book his entries cite] Same lineage with only the article differing, Ali's companion.",
+  "quote": ""
+ },
+ {
+  "group": "p2026-11-12:q208",
+  "primary": "n034170",
+  "other": "n027455",
+  "reason": "[orphaned entry of a book his entries cite] Both are Tusi's Fudayl ibn Ghiyath called majhul.",
+  "quote": "فضيل بن غياث، مجهول"
+ },
+ {
+  "group": "p2026-11-12:q211",
+  "primary": "n005640",
+  "other": "n027659",
+  "reason": "[orphaned entry of a book his entries cite] Same name and Madani nisba, Sadiq companion, article differs only.",
+  "quote": ""
+ },
+ {
+  "group": "p2026-11-12:q213",
+  "primary": "n007000",
+  "other": "n027758",
+  "reason": "[orphaned entry of a book his entries cite] Same name and nisba al-Absi al-Kufi, Sadiq companion, article-less variant.",
+  "quote": ""
+ },
+ {
+  "group": "p2026-11-12:q215",
+  "primary": "n008779",
+  "other": "n028010",
+  "reason": "[orphaned entry of a book his entries cite] Same name and nisba al-Mada'ini, Sadiq companion; only the article differs.",
+  "quote": ""
+ },
+ {
+  "group": "p2026-11-12:q216",
+  "primary": "n008893",
+  "other": "n028039",
+  "reason": "[orphaned entry of a book his entries cite] Same full lineage and nisba, Sadiq companion, in Tusi and Ardabili.",
+  "quote": ""
+ },
+ {
+  "group": "p2026-11-12:q217",
+  "primary": "n009877",
+  "other": "n028155",
+  "reason": "[orphaned entry of a book his entries cite] Tusi's other entry carries the same kunya and nisba Abu Malik al-Nakha'i al-Kufi.",
+  "quote": "أبو مالك النخعي الكوفي"
+ },
+ {
+  "group": "p2026-11-12:q221",
+  "primary": "n013917",
+  "other": "n028972",
+  "reason": "[orphaned entry of a book his entries cite] Same full lineage and nisba, Sadiq companion, article differs only.",
+  "quote": ""
+ },
+ {
+  "group": "p2026-11-12:q223",
+  "primary": "n034968",
+  "other": "n028974",
+  "reason": "[orphaned entry of a book his entries cite] Same name and Kufan nisba, Sadiq companion, article differs only.",
+  "quote": ""
+ },
+ {
+  "group": "p2026-11-12:q224",
+  "primary": "n013916",
+  "other": "n028975",
+  "reason": "[orphaned entry of a book his entries cite] Same full lineage and nisba, Sadiq companion, article differs only.",
+  "quote": ""
+ },
+ {
+  "group": "p2026-11-12:q225",
+  "primary": "n003298",
+  "other": "n029010",
+  "reason": "[orphaned entry of a book his entries cite] Same full lineage and nisba, Sadiq companion, article differs only.",
+  "quote": ""
+ },
+ {
+  "group": "p2026-11-12:q228",
+  "primary": "n013970",
+  "other": "n029014",
+  "reason": "[orphaned entry of a book his entries cite] Same full lineage and nisba, Sadiq companion, article differs only.",
+  "quote": ""
+ },
+ {
+  "group": "p2026-11-12:q229",
+  "primary": "n003295",
+  "other": "n029015",
+  "reason": "[orphaned entry of a book his entries cite] Same name and Kufan nisba, Sadiq companion, article differs only.",
+  "quote": ""
+ },
+ {
+  "group": "p2026-11-12:q230",
+  "primary": "n013973",
+  "other": "n029016",
+  "reason": "[orphaned entry of a book his entries cite] Same full lineage and nisba, Sadiq companion, article differs only.",
+  "quote": ""
+ },
+ {
+  "group": "p2026-11-12:q231",
+  "primary": "n013969",
+  "other": "n029018",
+  "reason": "[orphaned entry of a book his entries cite] Same lineage and nisba, with Khoei noting the Sa'd/Sa'id variant.",
+  "quote": "المفضل بن سعد: (سعيد) الفزاري الكوفي"
+ },
+ {
+  "group": "p2026-11-12:q232",
+  "primary": "n013967",
+  "other": "n029021",
+  "reason": "[orphaned entry of a book his entries cite] Same lineage and nisba, Sadiq companion, article differs only.",
+  "quote": ""
+ },
+ {
+  "group": "p2026-11-12:q233",
+  "primary": "n013739",
+  "other": "n029050",
+  "reason": "[orphaned entry of a book his entries cite] Both read 'wa qila Ibn Masruq al-Kindi al-Kufi' in Tusi and Khoei.",
+  "quote": "وقيل: ابن مسروق، الكندي الكوفي"
+ },
+ {
+  "group": "p2026-11-12:q239",
+  "primary": "n003189",
+  "other": "n029468",
+  "reason": "[orphaned entry of a book his entries cite] Both are mawla of Umar ibn al-Khattab, al-Mada'ini, companion of al-Rida.",
+  "quote": "مولي عمر بن الخطاب"
+ },
+ {
+  "group": "p2026-11-12:q243",
+  "primary": "n011767",
+  "other": "n029776",
+  "reason": "[orphaned entry of a book his entries cite] Same Tusi/Ardabili entry read twice: companion of al-Ayyashi.",
+  "quote": "ليث بن نصر من أصحاب العياشي"
+ },
+ {
+  "group": "p2026-11-12:q247",
+  "primary": "n014222",
+  "other": "n030195",
+  "reason": "[same name, same Imam] Same Kashshi report on the freedman of Uthman read twice.",
+  "quote": "مهدي مولى عثمان"
+ },
+ {
+  "group": "p2026-11-12:q252",
+  "primary": "n000017",
+  "other": "n031505",
+  "reason": "[pointer] Khoei equates the two headings.",
+  "quote": "محمد بن عبيد الله بن أبي رافع: = محمد بن عبيد الله بن علي بن أبي رافع"
+ },
+ {
+  "group": "p2026-11-12:q253",
+  "primary": "n003805",
+  "other": "n031586",
+  "reason": "[pointer] Khoei equates the headings; same Azdi Kufi Companion of al-Sadiq.",
+  "quote": "إبراهيم بن مهاجر: = إبراهيم بن مهاجر الأزدي"
+ },
+ {
+  "group": "p2026-11-12:q254",
+  "primary": "n004166",
+  "other": "n031634",
+  "reason": "[pointer] Same Khazzaz, waqifi, Companion of al-Kazim.",
+  "quote": "أحمد بن زياد الخزاز: = أحمد بن زياد"
+ },
+ {
+  "group": "p2026-11-12:q262",
+  "primary": "n005998",
+  "other": "n032268",
+  "reason": "[same name, same Imam] Same name; the other is the Husayn-section entry of Tusi (sin).",
+  "quote": "حجاج بن مرزوق [سين]"
+ },
+ {
+  "group": "p2026-11-12:q263",
+  "primary": "n006041",
+  "other": "n032280",
+  "reason": "[same name, same Imam] Same entry: was with Ali.",
+  "quote": "كان معه عليه السلام"
+ },
+ {
+  "group": "p2026-11-12:q266",
+  "primary": "n006327",
+  "other": "n032366",
+  "reason": "[pointer] Ardabili: he is Ibn Ziyad al-Washsha.",
+  "quote": "هو ابن زياد - الوشاء المتقدم"
+ },
+ {
+  "group": "p2026-11-12:q270",
+  "primary": "n007001",
+  "other": "n032514",
+  "reason": "[same name, same Imam] Same Tusi entry: Ja'fi Kufi, Companion of al-Sadiq.",
+  "quote": "الحصين بن الزبال الجعفي الكوفي [ق]"
+ },
+ {
+  "group": "p2026-11-12:q271",
+  "primary": "n007092",
+  "other": "n032570",
+  "reason": "[same name, same Imam] Same name; Tusi list of Ali's Companions.",
+  "quote": "حكيم بن جبلة [ى]"
+ },
+ {
+  "group": "p2026-11-12:q272",
+  "primary": "n007098",
+  "other": "n032574",
+  "reason": "[same name, same Imam] Same entry: of the Shurtat al-Khamis, kunya Abu Yahya.",
+  "quote": "وكان من شرطة الخميس يكنى أبا تحيى"
+ },
+ {
+  "group": "p2026-11-12:q274",
+  "primary": "n007365",
+  "other": "n032633",
+  "reason": "[same name, same Imam] Same Tusi entry: al-Rawasi al-Kufi.",
+  "quote": "خالد بن الحميد الرواسي الكوفي [ق]"
+ },
+ {
+  "group": "p2026-11-12:q275",
+  "primary": "n007368",
+  "other": "n032636",
+  "reason": "[same name, same Imam] Same Tusi entry: al-Zubaydi al-Kufi.",
+  "quote": "خالد بن الراشد الزبيدي الكوفي [ق]"
+ },
+ {
+  "group": "p2026-11-12:q282",
+  "primary": "n008089",
+  "other": "n032930",
+  "reason": "[same name, same Imam] Same entry: waqifi, Companion of al-Kazim.",
+  "quote": "سعد بن خلف من أصحاب الكاظم عليه السلام واقفي"
+ },
+ {
+  "group": "p2026-11-12:q283",
+  "primary": "n008629",
+  "other": "n033097",
+  "reason": "[same name, same Imam] Same Tusi entry: Ja'fi Kufi.",
+  "quote": "شرحبيل بن المدرك الجعفي الكوفي [ق]"
+ },
+ {
+  "group": "p2026-11-12:q286",
+  "primary": "n001915",
+  "other": "n033221",
+  "reason": "[same name, same Imam] Same Tusi entry: his messenger to Mu'awiya.",
+  "quote": "رسوله عليه السلام إلى معوية"
+ },
+ {
+  "group": "p2026-11-12:q288",
+  "primary": "n009005",
+  "other": "n033283",
+  "reason": "[same name, same Imam] Same name; Tusi list of Ali's Companions.",
+  "quote": "عباس بن شريك (ى)"
+ },
+ {
+  "group": "p2026-11-12:q290",
+  "primary": "n009012",
+  "other": "n033290",
+  "reason": "[same name, same Imam] Same man: the Prophet's uncle.",
+  "quote": "عم رسول الله صلى الله عليه وآله"
+ },
+ {
+  "group": "p2026-11-12:q291",
+  "primary": "n009018",
+  "other": "n033291",
+  "reason": "[same name, same Imam] Same Tusi entry: al-Lahabi al-Kindi.",
+  "quote": "عباس بن عتبة اللهبي الكندي"
+ },
+ {
+  "group": "p2026-11-12:q292",
+  "primary": "n009019",
+  "other": "n033292",
+  "reason": "[same name, same Imam] Same Tusi entry: al-Amiri al-Kufi.",
+  "quote": "عباس بن عطية العامري الكوفي أسند عنه"
+ },
+ {
+  "group": "p2026-11-12:q293",
+  "primary": "n009025",
+  "other": "n033299",
+  "reason": "[same name, same Imam] Same Tusi entry: al-Abdi al-Basri.",
+  "quote": "عباس بن عوف العبدي البصري"
+ },
+ {
+  "group": "p2026-11-12:q294",
+  "primary": "n009034",
+  "other": "n033309",
+  "reason": "[same name, same Imam] Same Tusi entry: al-Ja'fari al-Madani.",
+  "quote": "عباس بن يحيى الجعفري المدني"
+ },
+ {
+  "group": "p2026-11-12:q295",
+  "primary": "n009080",
+  "other": "n033332",
+  "reason": "[pointer] Khoei states the two headings are one man.",
+  "quote": "وهو عبد الحميد خادم إسماعيل بن جعفر الآتي"
+ },
+ {
+  "group": "p2026-11-12:q304",
+  "primary": "n057367",
+  "other": "n033877",
+  "reason": "[same name, same Imam] Same name and nisba (Wasiti), Rida companion.",
+  "quote": "على بن فضل الواسطي (ضا)"
+ },
+ {
+  "group": "p2026-11-12:q307",
+  "primary": "n010933",
+  "other": "n033958",
+  "reason": "[same name, same Imam] Same Tusi entry: al-Bakri al-Kufi, asnada anhu.",
+  "quote": "عمر بن اسود البكري الكوفي أسند عنه"
+ },
+ {
+  "group": "p2026-11-12:q309",
+  "primary": "n011260",
+  "other": "n034098",
+  "reason": "[pointer] Khoei cross-refers the variant to Isa ibn al-Tahhan.",
+  "quote": "عيسى الطحان: تقدم في عيسى بن الطحان"
+ },
+ {
+  "group": "p2026-11-12:q318",
+  "primary": "n057312",
+  "other": "n034926",
+  "reason": "[same name, same Imam] Same Tusi entry: al-Makki al-Zanji.",
+  "quote": "مسلم بن الخالد المكي الزنجي أسند عنه"
+ },
+ {
+  "group": "p2026-11-12:q330",
+  "primary": "n000227",
+  "other": "n035416",
+  "reason": "[pointer] Ardabili names Abu Bakr al-Warraq as Ahmad ibn Abd Allah ibn Ahmad and al-Khoei says he is al-Duri.",
+  "quote": "أبو بكر الوراق: هو أبو بكر الدوري المتقدم"
+ },
+ {
+  "group": "p2026-11-12:q333",
+  "primary": "n002761",
+  "other": "n035476",
+  "reason": "[pointer] Ardabili states the kunya is that of the primary.",
+  "quote": "أبو الحسين بن أبي جيد هو على بن أحمد بن أبي جيد"
+ },
+ {
+  "group": "p2026-11-12:q358",
+  "primary": "n026850",
+  "other": "n036477",
+  "reason": "[same name, same Imam] Al-Khoei's entry is the same Tusi Companion entry, with the spelling variant noted.",
+  "quote": "أحمر \" أحمد \" بن معاوية: من أصحاب رسول الله صلى الله عليه وآله، رجال الشيخ (48)"
+ },
+ {
+  "group": "p2026-11-12:q361",
+  "primary": "n027550",
+  "other": "n036530",
+  "reason": "[same name, same Imam] Al-Khoei's entry is the Tusi entry (Rijal 97) for the Ju'fi Kufi mawla, the same heading read again.",
+  "quote": "الجعفي، الكوفي: مولى لهم (مولاهم) من أصحاب الصادق عليه السلام، رجال الشيخ (97)"
+ },
+ {
+  "group": "p2026-11-12:q363",
+  "primary": "n002259",
+  "other": "n036580",
+  "reason": "[same name, same Imam] Both identify him as a student of al-Ayyashi.",
+  "quote": "تلميذ العياشي"
+ },
+ {
+  "group": "p2026-11-12:q380",
+  "primary": "n006455",
+  "other": "n037012",
+  "reason": "[same name, same Imam] Same Tusi entry (Rijal 42) for the Azdi Kufi, read again in al-Khoei.",
+  "quote": "الأزدي الكوفي: من أصحاب الصادق عليه السلام، أسند عنه، رجال الشيخ (42)"
+ },
+ {
+  "group": "p2026-11-12:q381",
+  "primary": "n040469",
+  "other": "n037072",
+  "reason": "[pointer] Al-Khoei sends the Husayn entry back to Hasan ibn Shihab, and Ardabili lists the two spellings as variants of the same entry.",
+  "quote": "الحسين بن شهاب: الواسطي: تقدم في الحسن بن شهاب"
+ },
+ {
+  "group": "p2026-11-12:q383",
+  "primary": "n025486",
+  "other": "n037175",
+  "reason": "[same name, same Imam] Same Tusi entry for al-Ghifari who settled in Basra.",
+  "quote": "الغفاري سكن البصرة"
+ },
+ {
+  "group": "p2026-11-12:q385",
+  "primary": "n027721",
+  "other": "n037187",
+  "reason": "[same name, same Imam] Same Tusi entry (al-Ju'fi al-Kufi, companion of al-Sadiq).",
+  "quote": "حماد بن صالح: الجعفي الكوفي: من أصحاب الصادق عليه السلام، رجال الشيخ (128)"
+ },
+ {
+  "group": "p2026-11-12:q386",
+  "primary": "n021601",
+  "other": "n037190",
+  "reason": "[same name, same Imam] Same Tusi entry (al-Hilali al-Kufi, companion of al-Sadiq).",
+  "quote": "حماد بن عبد العزيز: الهلالي الكوفي: من أصحاب الصادق عليه السلام، رجال الشيخ (161)"
+ },
+ {
+  "group": "p2026-11-12:q388",
+  "primary": "n002428",
+  "other": "n037194",
+  "reason": "[same name, same Imam] Same Tusi entry (al-Basri al-Saffar, Rijal 519).",
+  "quote": "حماد بن واقد: البصري الصفار: من أصحاب الصادق عليه السلام، رجال الشيخ (519)"
+ },
+ {
+  "group": "p2026-11-12:q390",
+  "primary": "n007131",
+  "other": "n037197",
+  "reason": "[pointer] Al-Khoei sends Hammad ibn Yazid al-Basri back to Hammad ibn Zayd, the primary.",
+  "quote": "حماد بن يزيد: البصري: تقدم في حماد بن زيد"
+ },
+ {
+  "group": "p2026-11-12:q391",
+  "primary": "n007213",
+  "other": "n037219",
+  "reason": "[same name, same Imam] Same Tusi entry (al-Ju'fi, mawla, Kufi, companion of al-Sadiq) listed twice.",
+  "quote": "حمزة بن عمارة: الجعفي: مولاهم، الكوفي، من أصحاب الصادق عليه السلام، رجال الشيخ (230)"
+ },
+ {
+  "group": "p2026-11-12:q392",
+  "primary": "n021899",
+  "other": "n037252",
+  "reason": "[same name, same Imam] Same Tusi entry (al-Tahhan al-Kufi, known as Shadhan).",
+  "quote": "خالد بن سفيان: الطحان، الكوفي: يعرف بشاذان، من أصحاب الصادق عليه السلام، رجال الشيخ (17)"
+ },
+ {
+  "group": "p2026-11-12:q393",
+  "primary": "n002472",
+  "other": "n037287",
+  "reason": "[same name, same Imam] Same Tusi entry (al-Tamimi al-Kufi, Rijal 26).",
+  "quote": "داود بن صالح: التميمي الكوفي: من أصحاب الصادق عليه السلام، رجال الشيخ (26)"
+ },
+ {
+  "group": "p2026-11-12:q396",
+  "primary": "n007777",
+  "other": "n037346",
+  "reason": "[same name, same Imam] Same Tusi entry (al-Azdi al-Kufi, Rijal 70).",
+  "quote": "زكريا بن إبراهيم: الأزدي الكوفي: من أصحاب الصادق عليه السلام، رجال الشيخ (70)"
+ },
+ {
+  "group": "p2026-11-12:q397",
+  "primary": "n007778",
+  "other": "n037347",
+  "reason": "[same name, same Imam] Same Tusi entry (al-Hiri al-Kufi, Rijal 69).",
+  "quote": "زكريا بن إبراهيم: الحيري الكوفي: من أصحاب الصادق عليه السلام، رجال الشيخ (69)"
+ },
+ {
+  "group": "p2026-11-12:q404",
+  "primary": "n026597",
+  "other": "n037421",
+  "reason": "[same name, same Imam] Same name and nisba, Sadiq's companion, Rijal al-Tusi, identical wording to the primary's Tusi entry.",
+  "quote": "السري بن عبد الله: الهمداني الكوفي: من أصحاب الصادق عليه السلام، رجال الشيخ (203)."
+ },
+ {
+  "group": "p2026-11-12:q407",
+  "primary": "n040174",
+  "other": "n037496",
+  "reason": "[pointer] Al-Khoei refers the other entry to Sa'd (the primary's variant name).",
+  "quote": "سعيد بن وهب: الهمداني: تقدم في سعد."
+ },
+ {
+  "group": "p2026-11-12:q411",
+  "primary": "n026607",
+  "other": "n037583",
+  "reason": "[same name, same Imam] Same full name and nisba; Sadiq's companion, Rijal al-Tusi.",
+  "quote": "سليمان بن هارون: الأزدي الكوفي: من أصحاب الصادق عليه السلام، رجال الشيخ (79)."
+ },
+ {
+  "group": "p2026-11-12:q412",
+  "primary": "n027978",
+  "other": "n037597",
+  "reason": "[same name, same Imam] Same name and nisba (spelling variant), Sadiq's companion, Rijal al-Tusi.",
+  "quote": "سورة بن كليب: النهدي الكوفي: من أصحاب الصادق عليه السلام، رجال الشيخ (220)."
+ },
+ {
+  "group": "p2026-11-12:q413",
+  "primary": "n008577",
+  "other": "n037619",
+  "reason": "[pointer] Al-Khoei says shabab al-Sayrafi is the epithet of Muhammad ibn al-Walid al-Sayrafi.",
+  "quote": "شباب الصيرفي: هو لقب محمد بن الوليد الصيرفي"
+ },
+ {
+  "group": "p2026-11-12:q416",
+  "primary": "n028259",
+  "other": "n037749",
+  "reason": "[same name, same Imam] Same name, Ansari mawlahum Kufi, Sadiq's companion, Rijal al-Tusi.",
+  "quote": "عباد بن عمران: الأنصاري: مولاهم، كوفي، من أصحاب الصادق (عليه السلام)، رجال الشيخ (283)."
+ },
+ {
+  "group": "p2026-11-12:q417",
+  "primary": "n026191",
+  "other": "n037751",
+  "reason": "[pointer] Al-Khoei says the other is al-Basri, and that the Kahili of the primary is this ʿAbbad ibn Kathir al-Basri.",
+  "quote": "أقول: إن عبادا هذا هو عباد بن كثير البصري"
+ },
+ {
+  "group": "p2026-11-12:q421",
+  "primary": "n009404",
+  "other": "n037931",
+  "reason": "[pointer] Al-Khoei refers the other to ʿAbd Allah ibn Qays, the primary's name for Abu Musa al-Ashʿari.",
+  "quote": "عبد الله أبو موسى: الأشعري: يأتي في عبد الله بن قيس."
+ },
+ {
+  "group": "p2026-11-12:q426",
+  "primary": "n028250",
+  "other": "n038105",
+  "reason": "[same name, same Imam] Same name, al-Muzani Kufi, Sadiq's companion, Rijal al-Tusi.",
+  "quote": "عبيد بن سليمان: المزني: كوفي، من أصحاب الصادق عليه السلام، رجال الشيخ (274)."
+ },
+ {
+  "group": "p2026-11-12:q430",
+  "primary": "n027125",
+  "other": "n038162",
+  "reason": "[same name, same Imam] Both are the Ansari companion of the Prophet and ʿAli, and his deputy over Kufa.",
+  "quote": "عقبة بن عمرو (عمر): الأنصاري: صاحب رسول الله صلى الله عليه وآله، وخليفته (علي عليه السلام) على الكوفة"
+ },
+ {
+  "group": "p2026-11-12:q436",
+  "primary": "n028269",
+  "other": "n038252",
+  "reason": "[same name, same Imam] Same name and nisba, Sadiq's companion, listed twice in Tusi.",
+  "quote": "علي بن عامر: الخفاف الكوفي: رجال الشيخ في أصحاب الصادق عليه السلام، مرتين (300) و (349)."
+ },
+ {
+  "group": "p2026-11-12:q437",
+  "primary": "n033858",
+  "other": "n038282",
+  "reason": "[pointer] Al-Khoei refers the other to the primary's entry.",
+  "quote": "علي بن عبد الله: القمي: تقدم في (علي بن عبد الله أبو الحسن)."
+ },
+ {
+  "group": "p2026-11-12:q440",
+  "primary": "n028292",
+  "other": "n038337",
+  "reason": "[same name, same Imam] Same name and nisbas, Sadiq's companion, Rijal al-Tusi, the same entry as the primary's Tusi line.",
+  "quote": "علي بن يزيد: الحناط، الكوفي: من أصحاب الصادق عليه السلام، رجال الشيخ (333)."
+ },
+ {
+  "group": "p2026-11-12:q442",
+  "primary": "n000784",
+  "other": "n038365",
+  "reason": "[pointer] Al-Khoei refers the other to the primary's entry.",
+  "quote": "عمر بن حفص: الرماني: تقدم في (عمر أبو حفص الرماني)."
+ },
+ {
+  "group": "p2026-11-12:q443",
+  "primary": "n010951",
+  "other": "n038372",
+  "reason": "[same name, same Imam] Same name and nisba, Sadiq's companion, Rijal al-Tusi.",
+  "quote": "عمر بن خليفة: الخثعمي الكوفي: من أصحاب الصادق عليه السلام، رجال الشيخ (489)."
+ },
+ {
+  "group": "p2026-11-12:q444",
+  "primary": "n010952",
+  "other": "n038373",
+  "reason": "[same name, same Imam] Same name and nisba, Sadiq's companion, Rijal al-Tusi.",
+  "quote": "عمر بن خليفة: النميري الكوفي: من أصحاب الصادق عليه السلام، رجال الشيخ (490)."
+ },
+ {
+  "group": "p2026-11-12:q445",
+  "primary": "n028405",
+  "other": "n038381",
+  "reason": "[same name, same Imam] Same name and nisba, Sadiq's companion, Rijal al-Tusi.",
+  "quote": "عمر بن عاصم: الكوفي: من أصحاب الصادق عليه السلام، رجال الشيخ (496)."
+ },
+ {
+  "group": "p2026-11-12:q456",
+  "primary": "n011846",
+  "other": "n038575",
+  "reason": "[pointer] Al-Khoei states the other is Mahbub ibn ʿAbd Allah.",
+  "quote": "محبوب العطار: هو محبوب بن عبد الله."
+ },
+ {
+  "group": "p2026-11-12:q459",
+  "primary": "n002959",
+  "other": "n038594",
+  "reason": "[same name, same Imam] Same name, Kufi physician, same book of diyat, Rijal al-Tusi.",
+  "quote": "محمد بن أبي عمر: الطبيب: كوفي، روى كتاب الديات عن أبي عبد الله عليه السلام"
+ },
+ {
+  "group": "p2026-11-12:q462",
+  "primary": "n003027",
+  "other": "n038665",
+  "reason": "[pointer] Al-Khoei says the other is Muhammad ibn Jaʿfar ibn Muhammad ibn Jaʿfar, the primary.",
+  "quote": "وهو محمد بن جعفر بن محمد بن جعفر المتقدم."
+ },
+ {
+  "group": "p2026-11-12:q465",
+  "primary": "n028749",
+  "other": "n038734",
+  "reason": "[same name, same Imam] Same full name and nisba, Sadiq's companion, Rijal al-Tusi.",
+  "quote": "محمد بن سويد: الأسدي الكوفي: من أصحاب الصادق عليه السلام، رجال الشيخ (160)."
+ },
+ {
+  "group": "p2026-11-12:q466",
+  "primary": "n028739",
+  "other": "n038740",
+  "reason": "[same name, same Imam] Same full lineage and nisba, Sadiq's companion, Rijal al-Tusi.",
+  "quote": "محمد بن سهل بن اليسع: الكوفي: من أصحاب الصادق عليه السلام، رجال الشيخ (147)."
+ },
+ {
+  "group": "p2026-11-12:q475",
+  "primary": "n013812",
+  "other": "n038925",
+  "reason": "[pointer] Al-Khoei states the other is the earlier Muslim al-Batin.",
+  "quote": "أقول: هو مسلم البطين المتقدم."
+ },
+ {
+  "group": "p2026-11-12:q476",
+  "primary": "n001149",
+  "other": "n038929",
+  "reason": "[pointer] Al-Khoei equates the other with Musamʿ al-Basri, the primary.",
+  "quote": "مسمع أبو سيار: = مسمع البصري"
+ },
+ {
+  "group": "p2026-11-12:q478",
+  "primary": "n003318",
+  "other": "n038970",
+  "reason": "[same name, same Imam] Same name and nisba, Kufi, narrated from by Yunus, Sadiq's companion, Rijal al-Tusi.",
+  "quote": "مندلف: الكوفي: روى عنه يونس، من أصحاب الصادق عليه السلام، رجال الشيخ (640)."
+ },
+ {
+  "group": "p2026-11-12:q492",
+  "primary": "n015349",
+  "other": "n039236",
+  "reason": "[pointer] Al-Khoei says Abu Amr al-Sarraj is covered under Abu Ammar al-Sarraj, the primary heading.",
+  "quote": "أبو عمرو السراج: تقدم في (أبي عمار السراج)"
+ },
+ {
+  "group": "p2026-11-12:q494",
+  "primary": "n000985",
+  "other": "n039286",
+  "reason": "[pointer] Al-Khoei says his biography came earlier under Muhammad ibn Masud al-Ta'i.",
+  "quote": "وتقدمت ترجمته بعنوان محمد بن مسعود الطائي"
+ },
+ {
+  "group": "p2026-11-12:q495",
+  "primary": "n067410",
+  "other": "n039475",
+  "reason": "[orphaned entry of a book his entries cite] Same bare al-Tusi entry for Amir ibn Umayr in the companions of al-Sadiq, which the primary already holds.",
+  "quote": "عامر بن عمير: من أصحاب الصادق (عليه السلام)، رجال الشيخ (518)"
+ },
+ {
+  "group": "p2026-11-12:q509",
+  "primary": "n028104",
+  "other": "n039700",
+  "reason": "[same name, same Imam] Same al-Tusi entry for Ubayd Allah ibn Ziyad al-Thaqafi al-Kufi among the companions of al-Sadiq.",
+  "quote": "عبيد الله بن زياد: الثقفي الكوفي: من أصحاب الصادق عليه السلام"
+ },
+ {
+  "group": "p2026-11-12:q512",
+  "primary": "n011815",
+  "other": "n039733",
+  "reason": "[pointer] Al-Khoei states this is the earlier Mubarak al-Aqarqufi.",
+  "quote": "هذا هو مبارك العقرقوفي المتقدم"
+ },
+ {
+  "group": "p2026-11-12:q525",
+  "primary": "n057121",
+  "other": "n042681",
+  "reason": "[same name, same Imam] Same al-Tusi entry for Jundub ibn Junada al-Kufi among companions of al-Sadiq.",
+  "quote": "جندب بن جنادة الكوفي: من أصحاب الصادق (عليه السلام)، رجال الشيخ (46)"
+ },
+ {
+  "group": "p2026-11-12:q530",
+  "primary": "n034830",
+  "other": "n046347",
+  "reason": "[same name, same Imam] Same al-Tusi entry, Abu Abd al-Malik al-Laythi al-Kufi among companions of al-Sadiq.",
+  "quote": "محمد بن هاني: أبو عبد الملك الليثي، الكوفي، من أصحاب الصادق عليه السلام"
+ },
+ {
+  "group": "p2026-11-12:q535",
+  "primary": "n039638",
+  "other": "n047913",
+  "reason": "[pointer] Same lineage, same teacher Ibn Nahik and same student Ibn Qulawayh; al-Khoei equates the headings.",
+  "quote": "جعفر بن محمد بن إبراهيم: = جعفر بن محمد بن إبراهيم بن عبيد"
+ },
+ {
+  "group": "p2026-11-12:q548",
+  "primary": "n031573",
+  "other": "n060633",
+  "reason": "[same name, same Imam] Same al-Tusi entry, Abu Ishaq whom al-Tal'ukbari narrates from.",
+  "quote": "إبراهيم بن محمد بن بسام: المصري: يكنى أبا إسحاق، روى عنه التلعكبري"
+ },
+ {
+  "group": "p2026-11-12:q557",
+  "primary": "n002286",
+  "other": "n066069",
+  "reason": "[orphaned entry of a book his entries cite] Same Tusi entry, Thabit ibn al-Samit al-Ashhali who settled in Medina.",
+  "quote": "ثابت بن الصامت 2 الأشهلي، سكن المدينة"
+ },
+ {
+  "group": "p2026-11-12:q566",
+  "primary": "n000046",
+  "other": "n066331",
+  "reason": "[pointer] Ardabili states Ibrahim ibn Abi Bakr is Ibrahim ibn Abi Sammal.",
+  "quote": "وهو إبراهيم بن أبي سمال ثقة واقفي"
+ },
+ {
+  "group": "p2026-11-12:q572",
+  "primary": "n011153",
+  "other": "n066479",
+  "reason": "[same name, same Imam] Same name with the article, and both books cite the early returners to Amir al-Mu'minin.",
+  "quote": "من السابقين الذين رجعوا إلى أمير المؤمنين عليه السلام"
+ },
+ {
+  "group": "p2026-11-12:q575",
+  "primary": "n000471",
+  "other": "n066586",
+  "reason": "[pointer] Khoei says Rashd ibn Zayd al-Hanafi is treated under Rushayd ibn Zayd al-Juʿfi.",
+  "quote": "رشد بن زيد: الحنفي، يأتي في رشيد بن زيد الجعفي"
+ },
+ {
+  "group": "p2026-11-12:q577",
+  "primary": "n033909",
+  "other": "n066646",
+  "reason": "[same name, same Imam] Same text in Tusi and Khoei: Qummi, much narration, Abu al-Hasan, resident of Kashsh.",
+  "quote": "كثير الرواية، يكنى أبا الحسن، كان مقيما بكش"
+ },
+ {
+  "group": "p2026-11-12:q581",
+  "primary": "n000228",
+  "other": "n066704",
+  "reason": "[pointer] Khoei states Ibn al-Jundi appeared earlier under Ahmad ibn Muhammad ibn ʿImran.",
+  "quote": "وتقدم بعنوان أحمد بن محمد بن عمران"
+ },
+ {
+  "group": "p2026-11-12:q583",
+  "primary": "n066915",
+  "other": "n066728",
+  "reason": "[pointer] Khoei equates al-ʿAlawi with Jaʿfar ibn ʿAbd Allah al-Muhammadi al-ʿAlawi and says they are one.",
+  "quote": "= جعفر بن عبد الله المحمدي العلوي"
+ },
+ {
+  "group": "p2026-11-12:q592",
+  "primary": "n035997",
+  "other": "n067017",
+  "reason": "[same name, same Imam] Ardabili's entry shares the one-hundred-year lifespan with Tusi and Kashshi's Ibn Tawus.",
+  "quote": "عاش مائة سنة"
+ },
+ {
+  "group": "p2026-11-12:q593",
+  "primary": "n001274",
+  "other": "n067053",
+  "reason": "[same name, same Imam] The same Abu Hayyun with the Book of Malahim, from whom Ahmad ibn Abi ʿAbd Allah narrates.",
+  "quote": "أبو حيون له كتاب الملاحم"
+ },
+ {
+  "group": "p2026-11-12:q605",
+  "primary": "n009335",
+  "other": "n067176",
+  "reason": "[orphaned entry of a book his entries cite] Khoei cites al-Tusi's Fihrist entry for ʿAbd al-ʿAziz ibn Ishaq and the Rijal entry in the same article.",
+  "quote": "عبد العزيز بن إسحاق له كتاب في طبقات الشيعة"
+ },
+ {
+  "group": "p2026-11-12:q607",
+  "primary": "n011648",
+  "other": "n067181",
+  "reason": "[same text] Same Qays ibn Rumana, a companion of al-Baqir and al-Sadiq; Kashshi's narration is from al-Baqir.",
+  "quote": "قيس بن رمانة الأشعري"
+ },
+ {
+  "group": "p2026-11-12:q609",
+  "primary": "n005152",
+  "other": "n067191",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among the Prophet's companions, read twice.",
+  "quote": "أسمر بن مضرس: من أصحاب الرسول صلى الله عليه وآله، رجال الشيخ (75)"
+ },
+ {
+  "group": "p2026-11-12:q610",
+  "primary": "n005871",
+  "other": "n067192",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among the Prophet's companions, read twice.",
+  "quote": "جهم البلوي (السلوي): من أصحاب رسول الله (صلى الله عليه وآله)، رجال الشيخ (41)"
+ },
+ {
+  "group": "p2026-11-12:q611",
+  "primary": "n002683",
+  "other": "n067200",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among the Prophet's companions, read twice.",
+  "quote": "عبد الله بن المسيب: من أصحاب رسول الله (صلى الله عليه وآله)، رجال الشيخ (57)"
+ },
+ {
+  "group": "p2026-11-12:q612",
+  "primary": "n002923",
+  "other": "n067202",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among the Prophet's companions, read twice.",
+  "quote": "الفضل بن العباس: من أصحاب رسول الله صلى الله عليه وآله، رجال الشيخ (1)"
+ },
+ {
+  "group": "p2026-11-12:q613",
+  "primary": "n003276",
+  "other": "n067203",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among the Prophet's companions, read twice.",
+  "quote": "معقل بن يسار: من أصحاب رسول الله صلى الله عليه وآله، رجال الشيخ (9)"
+ },
+ {
+  "group": "p2026-11-12:q614",
+  "primary": "n003880",
+  "other": "n067204",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among ʿAli's companions, read twice.",
+  "quote": "من أصحاب علي عليه السلام، رجال الشيخ (7)"
+ },
+ {
+  "group": "p2026-11-12:q615",
+  "primary": "n005549",
+  "other": "n067205",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among ʿAli's companions, read twice.",
+  "quote": "من أصحاب علي عليه السلام، رجال الشيخ (1)"
+ },
+ {
+  "group": "p2026-11-12:q616",
+  "primary": "n008681",
+  "other": "n067209",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among ʿAli's companions, though the kunya is Abu Wadak in Ardabili and Abu Wa'il in Tusi.",
+  "quote": "من أصحاب أمير المؤمنين (عليه السلام)، رجال الشيخ (4)"
+ },
+ {
+  "group": "p2026-11-12:q617",
+  "primary": "n008786",
+  "other": "n067210",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among ʿAli's companions, read twice.",
+  "quote": "من أصحاب أمير المؤمنين (عليه السلام)، رجال الشيخ (4)"
+ },
+ {
+  "group": "p2026-11-12:q618",
+  "primary": "n008855",
+  "other": "n067211",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among ʿAli's companions, read twice.",
+  "quote": "من أصحاب علي (عليه السلام)، رجال الشيخ (1)"
+ },
+ {
+  "group": "p2026-11-12:q619",
+  "primary": "n010132",
+  "other": "n067213",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among ʿAli's companions, read twice.",
+  "quote": "من أصحاب علي عليه السلام، رجال الشيخ (55)"
+ },
+ {
+  "group": "p2026-11-12:q620",
+  "primary": "n009501",
+  "other": "n067215",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among ʿAli's companions, read twice.",
+  "quote": "من أصحاب علي (عليه السلام)، رجال الشيخ (82)"
+ },
+ {
+  "group": "p2026-11-12:q621",
+  "primary": "n010119",
+  "other": "n067216",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among ʿAli's companions, read twice.",
+  "quote": "من أصحاب علي عليه السلام، رجال الشيخ (85)"
+ },
+ {
+  "group": "p2026-11-12:q622",
+  "primary": "n008970",
+  "other": "n067217",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among ʿAli's companions, read twice.",
+  "quote": "من أصحاب علي (عليه السلام)، رجال الشيخ (102)"
+ },
+ {
+  "group": "p2026-11-12:q623",
+  "primary": "n010161",
+  "other": "n067218",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among ʿAli's companions, read twice.",
+  "quote": "من أصحاب علي عليه السلام، رجال الشيخ (109)"
+ },
+ {
+  "group": "p2026-11-12:q624",
+  "primary": "n008954",
+  "other": "n067219",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among ʿAli's companions, read twice.",
+  "quote": "من أصحاب علي (عليه السلام)، رجال الشيخ (114)"
+ },
+ {
+  "group": "p2026-11-12:q625",
+  "primary": "n011659",
+  "other": "n067221",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among ʿAli's companions, read twice.",
+  "quote": "من أصحاب علي عليه السلام، رجال الشيخ (5)"
+ },
+ {
+  "group": "p2026-11-12:q626",
+  "primary": "n011599",
+  "other": "n067222",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among ʿAli's companions, read twice.",
+  "quote": "من أصحاب علي عليه السلام، رجال الشيخ (10)"
+ },
+ {
+  "group": "p2026-11-12:q627",
+  "primary": "n011647",
+  "other": "n067223",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among ʿAli's companions, read twice.",
+  "quote": "من أصحاب علي عليه السلام، رجال الشيخ (16)"
+ },
+ {
+  "group": "p2026-11-12:q629",
+  "primary": "n013793",
+  "other": "n067225",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among ʿAli's companions, read twice.",
+  "quote": "من أصحاب علي عليه السلام، رجال الشيخ (13)"
+ },
+ {
+  "group": "p2026-11-12:q630",
+  "primary": "n011771",
+  "other": "n067226",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among ʿAli's companions, read twice.",
+  "quote": "من أصحاب علي عليه السلام، رجال الشيخ (14)"
+ },
+ {
+  "group": "p2026-11-12:q631",
+  "primary": "n013885",
+  "other": "n067227",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among ʿAli's companions, read twice.",
+  "quote": "من أصحاب علي عليه السلام، رجال الشيخ (18)"
+ },
+ {
+  "group": "p2026-11-12:q632",
+  "primary": "n013792",
+  "other": "n067228",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among ʿAli's companions, read twice.",
+  "quote": "من أصحاب علي عليه السلام، رجال الشيخ (20)"
+ },
+ {
+  "group": "p2026-11-12:q633",
+  "primary": "n013803",
+  "other": "n067229",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among ʿAli's companions, read twice.",
+  "quote": "من أصحاب علي عليه السلام، رجال الشيخ (23)"
+ },
+ {
+  "group": "p2026-11-12:q634",
+  "primary": "n003275",
+  "other": "n067230",
+  "reason": "[orphaned entry of a book his entries cite] Same name and Tusi ʿAli-companion entry; the primary also holds the al-Sadiq listing.",
+  "quote": ""
+ },
+ {
+  "group": "p2026-11-12:q635",
+  "primary": "n013864",
+  "other": "n067231",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among ʿAli's companions, read twice.",
+  "quote": "من أصحاب علي عليه السلام، رجال الشيخ (29)"
+ },
+ {
+  "group": "p2026-11-12:q638",
+  "primary": "n014423",
+  "other": "n067234",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among ʿAli's companions, read twice.",
+  "quote": "من أصحاب علي عليه السلام، رجال الشيخ (3)"
+ },
+ {
+  "group": "p2026-11-12:q639",
+  "primary": "n014472",
+  "other": "n067235",
+  "reason": "[orphaned entry of a book his entries cite] The same Tusi entry among ʿAli's companions, read twice.",
+  "quote": "من أصحاب علي عليه السلام، رجال الشيخ (5)"
+ },
+ {
+  "group": "p2026-11-12:q640",
+  "primary": "n014807",
+  "other": "n067236",
+  "reason": "[orphaned entry of a book his entries cite] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "يزيد بن طعمة: من أصحاب علي عليه السلام، رجال الشيخ (3)"
+ },
+ {
+  "group": "p2026-11-12:q641",
+  "primary": "n014792",
+  "other": "n067237",
+  "reason": "[orphaned entry of a book his entries cite] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "يزيد بن جبلة: من أصحاب علي عليه السلام، رجال الشيخ (7)"
+ },
+ {
+  "group": "p2026-11-12:q643",
+  "primary": "n005847",
+  "other": "n067240",
+  "reason": "[orphaned entry of a book his entries cite] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "جندب بن حجير: من أصحاب الحسين (عليه السلام)، رجال الشيخ (6)"
+ },
+ {
+  "group": "p2026-11-12:q644",
+  "primary": "n008944",
+  "other": "n067242",
+  "reason": "[orphaned entry of a book his entries cite] Both are the Husayn companion listed as Ammar ibn Hassan; Khoei joins the variants.",
+  "quote": "عمار بن حسان: من أصحاب الحسين عليه السلام، رجال الشيخ (17)"
+ },
+ {
+  "group": "p2026-11-12:q645",
+  "primary": "n011731",
+  "other": "n067243",
+  "reason": "[orphaned entry of a book his entries cite] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "كنانة بن عتيق: من أصحاب الحسين عليه السلام، رجال الشيخ (1)"
+ },
+ {
+  "group": "p2026-11-12:q647",
+  "primary": "n009733",
+  "other": "n067254",
+  "reason": "[orphaned entry of a book his entries cite] Same name, same Imam, same Tusi list.",
+  "quote": "عبد الله بن المختار: من أصحاب الباقر (عليه السلام)، رجال الشيخ (11)"
+ },
+ {
+  "group": "p2026-11-12:q653",
+  "primary": "n002375",
+  "other": "n067275",
+  "reason": "[orphaned entry of a book his entries cite] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "الحسن بن فضالة: من أصحاب الصادق عليه السلام، رجال الشيخ (50)"
+ },
+ {
+  "group": "p2026-11-12:q654",
+  "primary": "n008788",
+  "other": "n067287",
+  "reason": "[orphaned entry of a book his entries cite] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "صدقة الأحدب: من أصحاب الصادق (عليه السلام)، رجال الشيخ (37)"
+ },
+ {
+  "group": "p2026-11-12:q655",
+  "primary": "n008983",
+  "other": "n067292",
+  "reason": "[orphaned entry of a book his entries cite] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "عباد بن سالم: من أصحاب الصادق (عليه السلام)، رجال الشيخ (281)"
+ },
+ {
+  "group": "p2026-11-12:q659",
+  "primary": "n003269",
+  "other": "n067326",
+  "reason": "[orphaned entry of a book his entries cite] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "معاوية بن يحيى: من أصحاب الرضا عليه السلام، رجال الشيخ (38)"
+ },
+ {
+  "group": "p2026-11-12:q661",
+  "primary": "n005817",
+  "other": "n067328",
+  "reason": "[orphaned entry of a book his entries cite] Same name, same Imam (al-Jawad), same Tusi list.",
+  "quote": "جعفر الجوهري: من أصحاب الجواد (عليه السلام). رجال الشيخ (5)"
+ },
+ {
+  "group": "p2026-11-12:q662",
+  "primary": "n007046",
+  "other": "n067330",
+  "reason": "[orphaned entry of a book his entries cite] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "حفص الجوهري: من أصحاب الجواد عليه السلام، رجال الشيخ (10)"
+ },
+ {
+  "group": "p2026-11-12:q663",
+  "primary": "n002887",
+  "other": "n067331",
+  "reason": "[orphaned entry of a book his entries cite] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "علي بن نصر: من أصحاب الجواد عليه السلام، رجال الشيخ (15)"
+ },
+ {
+  "group": "p2026-11-12:q664",
+  "primary": "n005813",
+  "other": "n067337",
+  "reason": "[orphaned entry of a book his entries cite] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "جعفر بن هشام: من أصحاب الهادي (عليه السلام)، رجال الشيخ (3)، وذكره البرقي أيضا"
+ },
+ {
+  "group": "p2026-11-12:q665",
+  "primary": "n007049",
+  "other": "n067338",
+  "reason": "[orphaned entry of a book his entries cite] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "حفص المروزي: من أصحاب الهادي عليه السلام، رجال الشيخ (9)"
+ },
+ {
+  "group": "p2026-11-12:q666",
+  "primary": "n002551",
+  "other": "n067339",
+  "reason": "[orphaned entry of a book his entries cite] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "سليمان بن حفصويه: من أصحاب الهادي عليه السلام، رجال الشيخ (2)"
+ },
+ {
+  "group": "p2026-11-12:q667",
+  "primary": "n010595",
+  "other": "n067341",
+  "reason": "[orphaned entry of a book his entries cite] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "علي بن عبد الغفار: من أصحاب الهادي عليه السلام، رجال الشيخ (14)"
+ },
+ {
+  "group": "p2026-11-12:q672",
+  "primary": "n003874",
+  "other": "n067363",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "إبراهيم الغفاري: من أصحاب الصادق عليه السلام، رجال الشيخ (39)"
+ },
+ {
+  "group": "p2026-11-12:q673",
+  "primary": "n004796",
+  "other": "n067366",
+  "reason": "[same name, same Imam] Same name, Ardabili (ل) matches Tusi's list of the Prophet's companions.",
+  "quote": "أزهر بن قيس: من أصحاب رسول الله صلى الله عليه وآله، رجال الشيخ (59)"
+ },
+ {
+  "group": "p2026-11-12:q674",
+  "primary": "n005197",
+  "other": "n067369",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "أعين بن ضبيعة: من أصحاب علي عليه السلام، رجال الشيخ (12)"
+ },
+ {
+  "group": "p2026-11-12:q675",
+  "primary": "n005447",
+  "other": "n067372",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "بكر بن أبي حبيبة: من أصحاب الباقر عليه السلام، رجال الشيخ (16)"
+ },
+ {
+  "group": "p2026-11-12:q676",
+  "primary": "n005635",
+  "other": "n067373",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "جحل (جحر) بن عامر: من أصحاب علي عليه السلام، رجال الشيخ (15)"
+ },
+ {
+  "group": "p2026-11-12:q677",
+  "primary": "n005644",
+  "other": "n067374",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "جرهد الأسلمي: من أصحاب رسول الله صلى الله عليه وآله، رجال الشيخ (16)"
+ },
+ {
+  "group": "p2026-11-12:q678",
+  "primary": "n005653",
+  "other": "n067375",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "جرير بن عثمان: من أصحاب الصادق عليه السلام، رجال الشيخ (75)، وذكره البرقي أيضا"
+ },
+ {
+  "group": "p2026-11-12:q679",
+  "primary": "n005976",
+  "other": "n067379",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "حبيب بن عبد الله: من أصحاب علي (عليه السلام)، رجال الشيخ (13)، وذكره البرقي في أصحاب علي والحسين (عليهما السلام) مع توصي"
+ },
+ {
+  "group": "p2026-11-12:q680",
+  "primary": "n006567",
+  "other": "n067382",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "الحسين بن حبيب: من أصحاب الصادق عليه السلام، رجال الشيخ (310)"
+ },
+ {
+  "group": "p2026-11-12:q682",
+  "primary": "n007342",
+  "other": "n067388",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "خارجة بن مصعب: من أصحاب علي عليه السلام، رجال الشيخ (6)"
+ },
+ {
+  "group": "p2026-11-12:q684",
+  "primary": "n007412",
+  "other": "n067391",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "خزيمة بن حازم: من أصحاب الصادق عليه السلام، رجال الشيخ (65)"
+ },
+ {
+  "group": "p2026-11-12:q685",
+  "primary": "n007590",
+  "other": "n067393",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "الربيع بن صبيح: من أصحاب الباقر عليه السلام، رجال الشيخ (1)"
+ },
+ {
+  "group": "p2026-11-12:q686",
+  "primary": "n007609",
+  "other": "n067394",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "ربيعة بن كعب: من أصحاب رسول الله صلى الله عليه وآله، رجال الشيخ (5)"
+ },
+ {
+  "group": "p2026-11-12:q687",
+  "primary": "n007635",
+  "other": "n067395",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "رزين الكوفي: من أصحاب الصادق عليه السلام، رجال الشيخ (29)"
+ },
+ {
+  "group": "p2026-11-12:q688",
+  "primary": "n007674",
+  "other": "n067396",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "روح بن القاسم: من أصحاب الصادق عليه السلام، رجال الشيخ (21)"
+ },
+ {
+  "group": "p2026-11-12:q689",
+  "primary": "n007817",
+  "other": "n067398",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "زهير بن عمرو: من أصحاب رسول الله صلى الله عليه وآله، رجال الشيخ (7)"
+ },
+ {
+  "group": "p2026-11-12:q691",
+  "primary": "n008188",
+  "other": "n067403",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "سعيد بن عثمان: من أصحاب السجاد عليه السلام، رجال الشيخ (3)"
+ },
+ {
+  "group": "p2026-11-12:q692",
+  "primary": "n008219",
+  "other": "n067404",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "سفيان بن أبي زهير: من أصحاب رسول الله صلى الله عليه وآله، رجال الشيخ (11)"
+ },
+ {
+  "group": "p2026-11-12:q693",
+  "primary": "n008260",
+  "other": "n067405",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "سكين المعدني (العدني): من أصحاب الباقر عليه السلام، رجال الشيخ (16)"
+ },
+ {
+  "group": "p2026-11-12:q694",
+  "primary": "n008418",
+  "other": "n067407",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "سليمان بن محرز: من أصحاب الباقر عليه السلام، رجال الشيخ (10)"
+ },
+ {
+  "group": "p2026-11-12:q695",
+  "primary": "n008460",
+  "other": "n067408",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "سمرة بن ربيعة: من أصحاب أمير المؤمنين عليه السلام، رجال الشيخ (17)"
+ },
+ {
+  "group": "p2026-11-12:q696",
+  "primary": "n009425",
+  "other": "n067412",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "عبد الله بن أبي ربيعة: من أصحاب علي (عليه السلام)، رجال الشيخ (110)"
+ },
+ {
+  "group": "p2026-11-12:q697",
+  "primary": "n028538",
+  "other": "n067416",
+  "reason": "[same text] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "عبد الله بن محمد: كوفي: من أصحاب الصادق (عليه السلام)، رجال الشيخ (699)"
+ },
+ {
+  "group": "p2026-11-12:q699",
+  "primary": "n010128",
+  "other": "n067419",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "عروة البارقي: من أصحاب رسول الله صلى الله عليه وآله، رجال الشيخ (30)"
+ },
+ {
+  "group": "p2026-11-12:q700",
+  "primary": "n010168",
+  "other": "n067420",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "عقبة بن رستم: من أصحاب الرضا عليه السلام، رجال الشيخ (37)"
+ },
+ {
+  "group": "p2026-11-12:q701",
+  "primary": "n011267",
+  "other": "n067425",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "عيسى بن علي: من أصحاب السجاد عليه السلام، رجال الشيخ (27)"
+ },
+ {
+  "group": "p2026-11-12:q704",
+  "primary": "n001928",
+  "other": "n067430",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "مالك بن سريع: من أصحاب الحسين عليه السلام، رجال الشيخ (14)"
+ },
+ {
+  "group": "p2026-11-12:q706",
+  "primary": "n013884",
+  "other": "n067438",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": ""
+ },
+ {
+  "group": "p2026-11-12:q707",
+  "primary": "n013948",
+  "other": "n067439",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "معن بن يزيد: من أصحاب رسول الله صلى الله عليه وآله وسلم، رجال الشيخ (17)"
+ },
+ {
+  "group": "p2026-11-12:q709",
+  "primary": "n014199",
+  "other": "n067441",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "موسى بن معمر: من أصحاب الرضا عليه السلام، رجال الشيخ (63)"
+ },
+ {
+  "group": "p2026-11-12:q710",
+  "primary": "n014200",
+  "other": "n067442",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "موسى بن مهران: من أصحاب الرضا عليه السلام، رجال الشيخ (66)"
+ },
+ {
+  "group": "p2026-11-12:q711",
+  "primary": "n014377",
+  "other": "n067444",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "وايل بن حجر: من أصحاب رسول الله صلى الله عليه وآله، رجال الشيخ (4)"
+ },
+ {
+  "group": "p2026-11-12:q712",
+  "primary": "n014416",
+  "other": "n067445",
+  "reason": "[same name, same Imam] Same name and same Imam/period; the other is the same Rijal entry read from another book.",
+  "quote": "وهب بن أبي وهب: من أصحاب علي عليه السلام، رجال الشيخ (2)"
+ },
+ {
+  "group": "p2026-11-12:q720",
+  "primary": "n000514",
+  "other": "n067586",
+  "reason": "[pointer] Khoei says the Farra' mawla Tirbal is the later-listed Sulayman mawla Tirbal.",
+  "quote": "أقول: هو سليمان مولى طربال الآتي."
+ },
+ {
+  "group": "p2026-11-12:q736",
+  "primary": "n000411",
+  "other": "n070413",
+  "reason": "[pointer] Al-Ardabili states Abu Sa'id al-Qammat is Khalid ibn Sa'id.",
+  "quote": "أبو سعيد القماط (ظم) هو خالد بن سعيد"
+ },
+ {
+  "group": "p2026-11-12:q191",
+  "primary": "n001058",
+  "other": "n026361",
+  "reason": "[chains, checked by hand] Ardabili says Abu Ali ibn Hammam is Muhammad ibn Hammam al-Baghdadi.",
+  "quote": "اسمه محمد بن همام البغدادي"
+ },
+ {
+  "group": "p2026-11-12:q320",
+  "primary": "n069047",
+  "other": "n035171",
+  "reason": "[chains, checked by hand] Other is Ardabili's entry for Wuhayb ibn Hafs al-Kufi known as al-Muntuf, an epithet the primary also carries, with the same name.",
+  "quote": "وهيب بن حفص الكوفي المعروف بالمنتوف"
+ },
+ {
+  "group": "p2026-11-12:q520",
+  "primary": "n000871",
+  "other": "n040322",
+  "reason": "[chains, checked by hand] Same name Fudayl ibn Yasar, Basri, thiqa; al-Tusi lists him in two places and the primary holds the same Basra residence.",
+  "quote": "فضيل بن يسار، بصري، ثقة"
+ }
+]
