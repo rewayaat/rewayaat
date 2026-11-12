@@ -188,6 +188,9 @@ public class NarratorPageController {
      * nothing resolves by it. A bare «/narrator/n000515», or one carrying a name he no longer
      * goes by, is moved permanently to the canonical form rather than serving the page twice.
      */
+    private static final java.util.Set<String> NARRATOR_TABS =
+            java.util.Set.of("overview", "names", "books", "chains", "narrations");
+
     @GetMapping({"/narrator/{id}", "/narrator/{id}/{slug}"})
     public Object narratorPage(@PathVariable("id") String id,
                                @PathVariable(value = "slug", required = false) String slug,
@@ -199,6 +202,22 @@ public class NarratorPageController {
                                Model model, HttpServletRequest request,
                                HttpServletResponse response) throws IOException {
         PageLocale locale = PageLocale.of(request);
+        // A narrator page is one page per man, with a tab and the narrations' page number. The
+        // book and topic filters made every combination a URL of its own that ran fresh queries,
+        // and on 2026-11-12 a crawler fleet walking them at 69 requests a second took the site
+        // down. Any other parameter is dropped with a 301 before anything is looked up, so such
+        // a URL costs a redirect and nothing more.
+        boolean knownTab = NARRATOR_TABS.contains(tab);
+        boolean paged = page > 1 && "narrations".equals(tab);
+        if (tag != null || book != null || layout != null || !knownTab || (page != 1 && !paged)) {
+            String to = locale.prefix() + "/narrator/" + id + (slug == null ? "" : "/" + slug);
+            if (knownTab && !"overview".equals(tab)) {
+                to += "?tab=" + tab + (paged ? "&page=" + page : "");
+            }
+            RedirectView plain = new RedirectView(to);
+            plain.setStatusCode(HttpStatus.MOVED_PERMANENTLY);
+            return plain;
+        }
         Map<String, Object> narrator = narratorService.getNarrator(id);
         if (narrator == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
