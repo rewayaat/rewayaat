@@ -1,6 +1,9 @@
 User-agent: *
 Allow: /
 Disallow: /v1/
+# A narrator page with a query is a filter of the same page; the page itself is the address.
+Disallow: /narrator/*?
+Disallow: /ar/narrator/*?
 # MCP endpoints. Agent traffic, not crawler traffic - robots.txt does not govern an
 # MCP client, but a crawler has nothing to index here either.
 Disallow: /mcp
