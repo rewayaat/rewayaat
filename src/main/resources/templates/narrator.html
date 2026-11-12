@@ -986,7 +986,7 @@
         </details>
 
         <!-- The index is the default; the full card stays one link away. -->
-        <p class="narrator-layout">
+        <p class="narrator-layout" th:if="${false}">
             <a class="narrator-layout__link" th:href="${layoutToggleUrl}"
                th:text="${cardLayout} ? #{narrator.narrations.layout.compact} : #{narrator.narrations.layout.cards}">Show full cards</a>
         </p>

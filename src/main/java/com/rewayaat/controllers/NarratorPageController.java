@@ -209,7 +209,14 @@ public class NarratorPageController {
         // a URL costs a redirect and nothing more.
         boolean knownTab = NARRATOR_TABS.contains(tab);
         boolean paged = page > 1 && "narrations".equals(tab);
-        if (tag != null || book != null || layout != null || !knownTab || (page != 1 && !paged)) {
+        // The filters are gone from the page, so nobody reaches one from it: a filtered URL is a
+        // 404, which costs nothing. A redirect sent the fleet on to the plain page, which is not
+        // cheap either.
+        if (tag != null || book != null || layout != null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return null;
+        }
+        if (!knownTab || (page != 1 && !paged)) {
             String to = locale.prefix() + "/narrator/" + id + (slug == null ? "" : "/" + slug);
             if (knownTab && !"overview".equals(tab)) {
                 to += "?tab=" + tab + (paged ? "&page=" + page : "");
@@ -417,10 +424,9 @@ public class NarratorPageController {
         model.addAttribute("activeBook", book == null || book.isBlank() ? null : book);
         model.addAttribute("clearBookUrl", narrationsBase
                 + (tag == null || tag.isBlank() ? "" : "&tag=" + encode(tag)));
-        model.addAttribute("bookFacets",
-                bookFacets(locale, naming.get("books"), narrationsBase, tag, book));
-        model.addAttribute("tagFacets",
-                tagFacets(locale, naming.get("tags"), narrationsBase, tag, book));
+        // Filters off since the 2026-11-12 outage: each was a URL of its own that ran queries.
+        model.addAttribute("bookFacets", List.of());
+        model.addAttribute("tagFacets", List.of());
         model.addAttribute("activeTag", tag == null || tag.isBlank() ? null : tag);
         model.addAttribute("clearTagUrl", narrationsBase);
         model.addAttribute("narrationsPage", page);
