@@ -101,6 +101,26 @@
                         himself</a>
                 </p>
             </th:block>
+            <!-- A page the books may make one man with another, without settling it: al-Khoei
+                 writes «الظاهر اتحاده», or the two share a name and nothing tells them apart.
+                 They were not merged, because that would choose for the reader. The line names
+                 the other page, quotes the book where the book discusses it, and claims
+                 nothing more. -->
+            <p class="hub-hero__rests" th:each="maybe : ${narrator['possibly_same_as']}">
+                <span th:text="#{narrator.possiblySame}">Possibly the same man as</span>
+                <a th:href="(${arPrefix} ?: '') + '/narrator/' + ${maybe['person_id']}
+                            + (${maybe['slug']} != null
+                               and !${#strings.isEmpty(maybe['slug'])}
+                               ? '/' + ${maybe['slug']} : '')"
+                   th:text="${isArabic ? maybe['display_ar']
+                             : (maybe['display_en'] ?: maybe['display_ar'])}">another man</a><th:block
+                   th:if="${maybe['quote_ar'] != null}">.
+                    <span th:text="#{narrator.possiblySame.said(${isArabic
+                                     ? (maybe['book_title_ar'] ?: maybe['book_title'])
+                                     : maybe['book_title']})}">In al-Khoei:</span>
+                    <span lang="ar" dir="rtl" th:text="'«' + ${maybe['quote_ar']} + '»'">«…»</span>
+                </th:block>
+            </p>
             <!-- On whose word. The seven books are not seven equal voices: al-Najāshī and
                  al-Ṭūsī wrote within reach of these men, al-Ardabīlī and al-Khoei are reading
                  the same early books a reader of this page can read, and the ascription of

@@ -25,6 +25,7 @@ Usage:
 
 import argparse
 from collections import Counter, defaultdict
+import glob
 import json
 import os
 import re
@@ -1656,6 +1657,56 @@ def points_elsewhere(documents):
     return sent, pointers
 
 
+def possibly_same(documents):
+    """Where two pages may be one man and the books leave it open, say so on both.
+
+    A reviewer read every remaining pair of pages whose headings overlap. Where the books
+    settle it the two were merged (reviewed_merges_*.json); where they are different men
+    nothing is said. What is left is a pair the evidence does not settle: al-Khoei writes
+    «الظاهر اتحاده» rather than «هو», or the two share a bare name and nothing contradicts
+    them. Merging those would be choosing for the reader; keeping them silent leaves a man
+    split across two pages with nothing to say so. Each page names the other, with the
+    book's own words when the book discusses it, and claims no identity.
+
+    The pairs are held by the ids current when they were reviewed, so each is followed
+    through the registry and through this run's folds to the page that holds it now.
+    """
+    from identity import load_registry, registry_state, resolve
+    state = registry_state(load_registry(os.path.join(IDENTITY, "person_ids.jsonl")))
+    everyone = {d["person_id"]: d for d in documents if d.get("person_id")}
+
+    def page(pid):
+        pid = resolve(state, pid)
+        for _ in range(4):
+            doc = everyone.get(pid)
+            if not doc or not doc.get("moved_to"):
+                return doc
+            pid = doc["moved_to"]
+        return None
+
+    noted = 0
+    for path in sorted(glob.glob(os.path.join(REPO, "scripts/data/narrators/possibly_same_*.json"))):
+        with open(path, encoding="utf-8") as handle:
+            pairs = json.load(handle)["possibly_same"]
+        for pair in pairs:
+            one, other = page(pair["a"]), page(pair["b"])
+            if not one or not other or one is other:
+                continue
+            book = pair.get("book") if pair.get("quote_ar") else None
+            for doc, them in ((one, other), (other, one)):
+                notes = doc.setdefault("possibly_same_as", [])
+                if any(n["person_id"] == them["person_id"] for n in notes):
+                    continue
+                notes.append({
+                    "person_id": them["person_id"], "slug": them.get("slug"),
+                    "display_ar": them.get("display_ar"), "display_en": them.get("display_en"),
+                    "quote_ar": pair.get("quote_ar") if book else None,
+                    "book_title": BOOK_TITLE.get(book, book) if book else None,
+                    "book_title_ar": BOOK_TITLE_AR.get(book) if book else None})
+                noted += 1
+    return noted
+
+
 def read_from_key(person, book, pages, source):
     """The record a statement was read from, an entry or not.
 
@@ -2952,6 +3003,8 @@ def main():
             counts["later scholars, kept as pages but not as narrators"] += 1
     folded, pointing = fold_pointers(documents)
     counts[f"of {pointing} pages that only point at another man, folded into him"] = folded
+    counts["pages naming a man they may be, where the books leave it open"] = \
+        possibly_same(documents)
     redirects = merged_away(documents)
     by_id = {d["person_id"]: d for d in documents if d.get("person_id")}
     for doc in redirects:
