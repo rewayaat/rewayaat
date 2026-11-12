@@ -155,6 +155,15 @@ html[dir="rtl"] .hub-hero--rijal .hub-hero__title { text-align: right; }
 
 .hub-hero--rijal .hub-hero__rests { font-style: italic; opacity: 0.85; }
 
+/* The other man named in a «possibly the same» or «another name for» line: the site's link
+   blue is unreadable on the night panel, so the link takes the gold of the hero's heading. */
+.hub-hero--rijal .hub-hero__rests a {
+    color: #f3e5b8;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+.hub-hero--rijal .hub-hero__rests a:hover { color: #fff; }
+
 /* ── Band three: the generations, and where it is written ───────────────── */
 
 .rijal__foot {
