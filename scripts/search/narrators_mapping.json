@@ -478,6 +478,10 @@
         "type": "object",
         "enabled": false
       },
+      "possibly_same_as": {
+        "type": "object",
+        "enabled": false
+      },
       "display_en_made": {
         "type": "boolean"
       },

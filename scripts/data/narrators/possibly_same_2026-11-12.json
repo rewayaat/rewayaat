@@ -1,0 +1,688 @@
+{
+ "possibly_same": [
+  {
+   "pair": "q002",
+   "a": "n035171",
+   "b": "n001185",
+   "book": "khoei",
+   "quote_ar": "والصحيح في جميع ذلك: وهيب بن حفص",
+   "why": "al-Khoei says the correct form of the Wahb/Wuhayb b. Ḥafṣ al-Nakhkhās title is Wuhayb b. Ḥafṣ, the primary."
+  },
+  {
+   "pair": "q008",
+   "a": "n000602",
+   "b": "n002067",
+   "book": null,
+   "quote_ar": null,
+   "why": "Ardabili places the Ibn al-Ghaḍāʾirī remark on ʿAbd Allāh b. Ayyūb al-Qummī inside the primary entry, matching the other entry word for word."
+  },
+  {
+   "pair": "q023",
+   "a": "n002911",
+   "b": "n002915",
+   "book": null,
+   "quote_ar": null,
+   "why": "Ardabili marks al-Faḍl b. al-Rabīʿ with the al-Ṣādiq code of the same Rijāl al-Ṭūsī entry held by the primary."
+  },
+  {
+   "pair": "q024",
+   "a": "n067151",
+   "b": "n000183",
+   "book": "khoei",
+   "quote_ar": "= إسحاق بن عمار الساباطي",
+   "why": "al-Khoei states the equation with Isḥāq b. ʿAmmār al-Sābāṭī."
+  },
+  {
+   "pair": "q053",
+   "a": "n049262",
+   "b": "n003781",
+   "book": null,
+   "quote_ar": null,
+   "why": "Both give a man narrating from Abū Jaʿfar with Ṣāliḥ b. Saʿīd narrating from him."
+  },
+  {
+   "pair": "q056",
+   "a": "n066112",
+   "b": "n003868",
+   "book": null,
+   "quote_ar": null,
+   "why": "al-Khoei gives al-Jaziri with the variant al-Jarīrī as the same Rijāl al-Ṭūsī entry among al-Bāqir companions."
+  },
+  {
+   "pair": "q090",
+   "a": "n033887",
+   "b": "n010698",
+   "book": null,
+   "quote_ar": null,
+   "why": "Same full name; the primary is the one al-Saduq cites and the other is narrated by al-Saduq with his isnad."
+  },
+  {
+   "pair": "q097",
+   "a": "n032480",
+   "b": "n006398",
+   "book": "khoei",
+   "quote_ar": "أقول: الظاهر اتحاده مع من بعده",
+   "why": "Khoei equates the Ibn al-Farazdaq entry with the Fazari figure, and al-Tusi's entry matches al-Najashi's al-Qat'i, Abu Abd Allah."
+  },
+  {
+   "pair": "q110",
+   "a": "n032542",
+   "b": "n007019",
+   "book": null,
+   "quote_ar": null,
+   "why": "Hafs al-A'war narrates from al-Sadiq like Hafs ibn Qurt al-A'war of Rijal al-Tusi, who is called al-A'war."
+  },
+  {
+   "pair": "q120",
+   "a": "n067365",
+   "b": "n004778",
+   "book": null,
+   "quote_ar": null,
+   "why": "Same name, companion of al-Sadiq, same Faqih hadith on breaking the fast in Ramadan."
+  },
+  {
+   "pair": "q122",
+   "a": "n018625",
+   "b": "n005049",
+   "book": "khoei",
+   "quote_ar": "إسماعيل بن أبي السمال: هو أخو إبراهيم بن أبي بكر بن أبي السمال، واقفي",
+   "why": "Same name, the Waqifi brother of Ibrahim ibn Abi Bakr; Ardabili's entry for the primary matches."
+  },
+  {
+   "pair": "q127",
+   "a": "n024772",
+   "b": "n000638",
+   "book": "khoei",
+   "quote_ar": "ولا يبعد اتحاده مع ما بعده",
+   "why": "The primary's Ardabili entry repeats al-Najashi's text on al-Wassafi, Abu Sa'id, from al-Baqir and al-Sadiq, which is the other's entry."
+  },
+  {
+   "pair": "q144",
+   "a": "n002761",
+   "b": "n015136",
+   "book": "khoei",
+   "quote_ar": "ولكن الظاهر أن أبا الحسن محرف أبي الحسين",
+   "why": "Khoei says Abu al-Hasan is a corruption of Abu al-Husayn, the kunya of Ali ibn Ahmad ibn Muhammad ibn Abi Jayyid."
+  },
+  {
+   "pair": "q186",
+   "a": "n041586",
+   "b": "n026243",
+   "book": null,
+   "quote_ar": null,
+   "why": "Both are Muhammad ibn Hamza al-Alawi who wrote to Abu Ja'far II, reported by Ali ibn Mahziyar."
+  },
+  {
+   "pair": "q195",
+   "a": "n001412",
+   "b": "n026768",
+   "book": null,
+   "quote_ar": null,
+   "why": "Same name and Kufan nisba al-Hannat, Sadiq companion, in Tusi and Ardabili."
+  },
+  {
+   "pair": "q202",
+   "a": "n008221",
+   "b": "n027068",
+   "book": null,
+   "quote_ar": null,
+   "why": "Tusi's Sufyan ibn al-Layl is a known variant of Sufyan ibn Layla/Abi Layla al-Hamdani, but no entry states the identity."
+  },
+  {
+   "pair": "q203",
+   "a": "n011065",
+   "b": "n027122",
+   "book": null,
+   "quote_ar": null,
+   "why": "Both carry the kunya Abu Wa'il and are Ali's companions; Khoei equates Umar/Amra with Amr ibn Zubayr."
+  },
+  {
+   "pair": "q206",
+   "a": "n007103",
+   "b": "n027207",
+   "book": null,
+   "quote_ar": null,
+   "why": "Khoei says Tusi lists al-Hallas ibn Amr among Husayn's companions with the same name as the Hajari."
+  },
+  {
+   "pair": "q207",
+   "a": "n028587",
+   "b": "n027454",
+   "book": null,
+   "quote_ar": null,
+   "why": "Same name and Kufan nisba, Tusi listing, article differs only."
+  },
+  {
+   "pair": "q269",
+   "a": "n002377",
+   "b": "n032468",
+   "book": "khoei",
+   "quote_ar": "الحسين بن القاسم: تقدم في الحسن بن القاسم",
+   "why": "Khoei cross-refers al-Husayn ibn al-Qasim to al-Hasan ibn al-Qasim, a Rida companion."
+  },
+  {
+   "pair": "q284",
+   "a": "n037705",
+   "b": "n033140",
+   "book": null,
+   "quote_ar": null,
+   "why": "Ardabili ties Abu Khalid al-Qammat (Najashi) to Ibn Khalid al-Qammat."
+  },
+  {
+   "pair": "q285",
+   "a": "n033156",
+   "b": "n033141",
+   "book": "khoei",
+   "quote_ar": "صالح بن علي: = صالح المكنى أبا محمد",
+   "why": "Khoei equates Salih ibn Ali with Salih al-mukanna Aba Muhammad."
+  },
+  {
+   "pair": "q296",
+   "a": "n027106",
+   "b": "n033372",
+   "book": null,
+   "quote_ar": null,
+   "why": "Same name, in Tusi's Ali list and Kashshi; no contradiction."
+  },
+  {
+   "pair": "q312",
+   "a": "n012780",
+   "b": "n034660",
+   "book": null,
+   "quote_ar": null,
+   "why": "Same text of al-Allama on al-Zuhri, munkar al-hadith."
+  },
+  {
+   "pair": "q313",
+   "a": "n012814",
+   "b": "n034678",
+   "book": null,
+   "quote_ar": null,
+   "why": "Same lineage prefix; the Ardabili entry is truncated."
+  },
+  {
+   "pair": "q317",
+   "a": "n013802",
+   "b": "n034913",
+   "book": null,
+   "quote_ar": null,
+   "why": "Khoei notes the manuscript variant Mas'ud ibn Muhammad."
+  },
+  {
+   "pair": "q324",
+   "a": "n014844",
+   "b": "n035306",
+   "book": null,
+   "quote_ar": null,
+   "why": "Same full name and same Kafi birth-of-Musa report with al-Hasan ibn Rashid narrating from him."
+  },
+  {
+   "pair": "q353",
+   "a": "n000783",
+   "b": "n035939",
+   "book": null,
+   "quote_ar": null,
+   "why": "Same Fihrist entry (Abu Ahmad al-Basri, book, via Ibrahim ibn Sulayman) read twice."
+  },
+  {
+   "pair": "q368",
+   "a": "n000347",
+   "b": "n036733",
+   "book": "khoei",
+   "quote_ar": "والظاهر أنه متحد مع من بعده",
+   "why": "Same Tusi entry (Ja'far ibn Abd al-Rahman, Humayd narrating from him); al-Khoei only hedges about the next entry."
+  },
+  {
+   "pair": "q382",
+   "a": "n021215",
+   "b": "n037083",
+   "book": null,
+   "quote_ar": null,
+   "why": "Same Kafi chain in both (from a man of our companions, from Abu Abd Allah al-Nawfali)."
+  },
+  {
+   "pair": "q432",
+   "a": "n002801",
+   "b": "n038229",
+   "book": "ardabili",
+   "quote_ar": "الظاهر أنه على بن الحسن العبدي المتقدم من (ق) بقرنية رواية الهيثم بن واقد عنه وروايته عن أبي عبد الله عليه السلام.",
+   "why": "Al-Ardabili states that the al-Husayn spelling is apparently the earlier ʿAli ibn al-Hasan al-ʿAbdi, a hedged but internal identification already in the primary's names."
+  },
+  {
+   "pair": "q470",
+   "a": "n003224",
+   "b": "n038862",
+   "book": null,
+   "quote_ar": null,
+   "why": "The other is Muhammad ibn Nuʿaym al-Samarqandi, the nisba carried by the primary's Khoei entry."
+  },
+  {
+   "pair": "q491",
+   "a": "n007083",
+   "b": "n039176",
+   "book": null,
+   "quote_ar": null,
+   "why": "Al-Barqi's Abu al-Hakam ibn al-Mukhtar ibn Abi Ubayda is the same son of al-Mukhtar in the same generation, al-Baqir."
+  },
+  {
+   "pair": "q493",
+   "a": "n014136",
+   "b": "n039280",
+   "book": null,
+   "quote_ar": null,
+   "why": "Ibn Ashyam narrates from al-Baqir and al-Khoei treats Ibn al-Ashyam of Kashshi as Musa ibn Ashyam, companion of al-Baqir."
+  },
+  {
+   "pair": "q497",
+   "a": "n001029",
+   "b": "n039559",
+   "book": null,
+   "quote_ar": null,
+   "why": "Al-Khoei notes al-Tusi lists Muhammad ibn Thabit twice among al-Kazim companions, once as majhul; the other is that entry."
+  },
+  {
+   "pair": "q499",
+   "a": "n066533",
+   "b": "n039568",
+   "book": "tusi",
+   "quote_ar": "محمد بن منصور بن نصر الخزاعي، ويقال: أحمد بن منصور",
+   "why": "Al-Khoei and al-Tusi give Muhammad ibn Mansur ibn Nasr al-Khuza'i, called also Ahmad ibn Mansur, among al-Rida companions."
+  },
+  {
+   "pair": "q502",
+   "a": "n066728",
+   "b": "n039634",
+   "book": "khoei",
+   "quote_ar": "جعفر بن عبد الله المحمدي: = جعفر بن عبد الله المحمدي العلوي",
+   "why": "Al-Khoei writes that al-Muhammadi is the same as al-Muhammadi al-Alawi, a name the primary holds."
+  },
+  {
+   "pair": "q519",
+   "a": "n067273",
+   "b": "n040277",
+   "book": null,
+   "quote_ar": null,
+   "why": "Primary already holds the Ardabili entry for Burd al-Khayyat Kufi, the same al-Tusi entry, same generation."
+  },
+  {
+   "pair": "q529",
+   "a": "n041591",
+   "b": "n046270",
+   "book": null,
+   "quote_ar": null,
+   "why": "Same Tahdhib chain, Ahmad ibn Muhammad from Muhammad ibn Ghalib from Ali ibn al-Hasan, and al-Khoei says Ibn Abi Ghalib is a misreading."
+  },
+  {
+   "pair": "q559",
+   "a": "n000043",
+   "b": "n066129",
+   "book": null,
+   "quote_ar": null,
+   "why": "Al-Tusi's Ibrahim ibn Abd al-Hamid al-Asadi, mawla, Kufi, matches Najashi's Asadi mawla Kufi of the primary."
+  },
+  {
+   "pair": "q568",
+   "a": "n006001",
+   "b": "n066375",
+   "book": null,
+   "quote_ar": null,
+   "why": "Khoei gives al-Karkhi as a parenthetical alias of Hajjaj al-Kufi."
+  },
+  {
+   "pair": "q576",
+   "a": "n004075",
+   "b": "n066635",
+   "book": "khoei",
+   "quote_ar": "والظاهر أنه الصحيح",
+   "why": "Same Nishapuri narrating from Abu Salih Shuʿayb ibn ʿIsa; the Hasan form is a variant reading."
+  },
+  {
+   "pair": "q587",
+   "a": "n030088",
+   "b": "n066802",
+   "book": "khoei",
+   "quote_ar": "أقول: الظاهر اتحاده مع من بعده",
+   "why": "Same Kufi author of Nawadir narrated through Humayd; Khoei leans to identity and Ardabili merges the entries."
+  },
+  {
+   "pair": "q589",
+   "a": "n066860",
+   "b": "n066898",
+   "book": null,
+   "quote_ar": null,
+   "why": "Both rely on al-Najashi's tawthiq of ʿAli ibn Bashir in the entry of his brother Muhammad."
+  },
+  {
+   "pair": "q597",
+   "a": "n003353",
+   "b": "n067105",
+   "book": null,
+   "quote_ar": null,
+   "why": "The Saduq chain to Maymun runs through Jaʿfar ibn Muhammad ibn Malik, who also appears in the primary's Ardabili entry."
+  },
+  {
+   "pair": "q600",
+   "a": "n000044",
+   "b": "n067148",
+   "book": "khoei",
+   "quote_ar": "والظاهر اتحاده مع ما بعده",
+   "why": "Fihrist's book of Ibrahim ibn Nasr runs through Jaʿfar ibn Bashir, who is also the primary's student."
+  },
+  {
+   "pair": "q608",
+   "a": "n003359",
+   "b": "n067186",
+   "book": null,
+   "quote_ar": null,
+   "why": "Kashshi's sentence is also quoted under the primary heading, and Tusi has the identical name."
+  },
+  {
+   "pair": "q637",
+   "a": "n014272",
+   "b": "n067233",
+   "book": null,
+   "quote_ar": null,
+   "why": "Khoei lists Nafiʿ ibn ʿUtba/ʿUtayba both among the Prophet's and ʿAli's companions as one man."
+  },
+  {
+   "pair": "q656",
+   "a": "n000808",
+   "b": "n067294",
+   "book": null,
+   "quote_ar": null,
+   "why": "Tusi's entry gives Abu al-Yaqzan al-Bakri al-Kufi, matching the primary's names and Ardabili's merge."
+  },
+  {
+   "pair": "q670",
+   "a": "n000135",
+   "b": "n067354",
+   "book": null,
+   "quote_ar": null,
+   "why": "Primary's own names include the grandson of Abu Hamza al-Thumali and Tusi lists al-Husayn ibn Hamza al-Laythi and Ibn bint Abi Hamza as one man; the other's alias is al-Husayn ibn Hamza al-Layhi."
+  },
+  {
+   "pair": "q681",
+   "a": "n001969",
+   "b": "n067383",
+   "book": null,
+   "quote_ar": null,
+   "why": "Same name and same Imam/period; the other is the same Rijal entry read from another book."
+  },
+  {
+   "pair": "q690",
+   "a": "n007840",
+   "b": "n067399",
+   "book": "khoei",
+   "quote_ar": "والظاهر أنه سهو، فان المذكور فيه زيد بن ربيعة",
+   "why": "Khoei says Ziyad ibn Rabi'a is an error for Zayd ibn Rabi'a in Tusi."
+  },
+  {
+   "pair": "q742",
+   "a": "n000481",
+   "b": "n076430",
+   "book": null,
+   "quote_ar": null,
+   "why": "Ardabili's entry is the Najashi entry (thiqa, Sadiq, mentioned by Ibn Nuh)."
+  },
+  {
+   "pair": "q036",
+   "a": "n008414",
+   "b": "n008440",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: al-Khoei says «Sulaymān al-Ḍabbī» is al-Qāmūs's misreading of al-Ṭūsī's «Sulaymān b. Qarm b. Sulaymān al-Ḍabbī», not a second man."
+  },
+  {
+   "pair": "q194",
+   "a": "n067318",
+   "b": "n026743",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: al-Khoei, under this very heading, says «Isḥāq b. Muḥammad al-Ḥuḍaynī» is Isḥāq b. Ibrāhīm; the other record is al-Ardabīlī's line for the same heading."
+  },
+  {
+   "pair": "q246",
+   "a": "n001281",
+   "b": "n030170",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: al-Ṭūsī's Fihrist line on Ibn ʿIṣām is quoted under «Abū ʿIṣām», where al-Khoei sends the name."
+  },
+  {
+   "pair": "q249",
+   "a": "n008320",
+   "b": "n030815",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: al-Khoei sends «Salama al-Ahtham» to «Salama b. al-Ahtham», whose al-Ṭūsī entries the bare line is."
+  },
+  {
+   "pair": "q521",
+   "a": "n038050",
+   "b": "n040883",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: al-Ṭūsī's «ʿAbd Allāh al-Qaṣīr, Wāqifī» is the entry al-Khoei files under ʿAbd Allāh b. al-Fuḍayl (al-Qaṣīr), and sends the name there."
+  },
+  {
+   "pair": "q539",
+   "a": "n011011",
+   "b": "n056823",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: The two records are the one al-Kāfī narration with ʿAwn b. Jarīr, which al-Khoei already files under the main record as al-Kāfī's reading «ʿAmr»."
+  },
+  {
+   "pair": "q602",
+   "a": "n067179",
+   "b": "n067159",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: al-Khoei, unhedged, makes ʿAlī b. al-Ḥakam, al-Anbārī and Ibn al-Zubayr one man; the Fihrist's «ʿAlī b. al-Ḥakam al-Kūfī, thiqa» is that man's book."
+  },
+  {
+   "pair": "q652",
+   "a": "n026629",
+   "b": "n067271",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: al-Ṭūsī's «Bishr b. Muslim, Abū al-Ḥasan al-Bajalī al-Kūfī» is the entry al-Khoei files as «Bishr b. Salm (Muslim)», and sends the name there."
+  },
+  {
+   "pair": "q683",
+   "a": "n005987",
+   "b": "n067390",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: al-Khoei sends «Khabbāb b. Yazīd» to «Ḥatāt b. Yazīd», the man of al-Kashshī's report who held the Umayyad view."
+  },
+  {
+   "pair": "q702",
+   "a": "n011667",
+   "b": "n067428",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: al-Khoei sends «Qays b. Qahrān» to «Qays b. Fahrān (Qahrān) (Qahdān) (Mihrān)»."
+  },
+  {
+   "pair": "q012",
+   "a": "n067206",
+   "b": "n002273",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: Same man on a second reading of both records (the smaller record's heading is one the main record already carries). The other is the same Thābit b. Aslam al-Bunānī al-Qurashī entry of al-Ṭūsī that the primary holds (the primary also wrongly absorbs the Badri Abū Fuḍāla)."
+  },
+  {
+   "pair": "q064",
+   "a": "n011230",
+   "b": "n011273",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: Same man on a second reading of both records (the smaller record's heading is one the main record already carries). Both are the one Rijāl al-Ṭūsī entry for ʿĪsā b. al-Faraj al-Sindī among al-Ṣādiq companions."
+  },
+  {
+   "pair": "q131",
+   "a": "n012879",
+   "b": "n012878",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: Same man on a second reading of both records (the smaller record's heading is one the main record already carries). Same name and nisbas, Kufan Hadhdha', Rijal al-Tusi entry for companions of al-Sadiq."
+  },
+  {
+   "pair": "q138",
+   "a": "n029184",
+   "b": "n014629",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: Same man on a second reading of both records (the smaller record's heading is one the main record already carries). Same Rijal al-Tusi entry for Yahya, brother of Adam, companion of al-Sadiq."
+  },
+  {
+   "pair": "q183",
+   "a": "n007539",
+   "b": "n026182",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: Same man on a second reading of both records (the smaller record's heading is one the main record already carries). Khoei gives the other as Dinar ibn Amr (Umayr), mawla of Shayban, Kufan, matching Tusi's entry held by the primary."
+  },
+  {
+   "pair": "q346",
+   "a": "n001281",
+   "b": "n035668",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: Same man on a second reading of both records (the smaller record's heading is one the main record already carries). Same Najashi entry read twice."
+  },
+  {
+   "pair": "q558",
+   "a": "n007008",
+   "b": "n066089",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: Same man on a second reading of both records (the smaller record's heading is one the main record already carries). Both are al-Tusi's Abu Sasan al-Raqashi, standard-bearer of Ali."
+  },
+  {
+   "pair": "q698",
+   "a": "n009945",
+   "b": "n067418",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: Same man on a second reading of both records (the smaller record's heading is one the main record already carries). Same name and same Imam/period; the other is the same Rijal entry read from another book."
+  },
+  {
+   "pair": "q705",
+   "a": "n013211",
+   "b": "n067433",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: Same man on a second reading of both records (the smaller record's heading is one the main record already carries). Same name and same Imam/period; the other is the same Rijal entry read from another book."
+  },
+  {
+   "pair": "q716",
+   "a": "n001966",
+   "b": "n067523",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: Same man on a second reading of both records (the smaller record's heading is one the main record already carries). Primary already carries the al-Sayrafi entry; Khoei's al-Sayrafi entry is a companion of al-Rida like the primary."
+  },
+  {
+   "pair": "q717",
+   "a": "n000461",
+   "b": "n067536",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: Same man on a second reading of both records (the smaller record's heading is one the main record already carries). Khoei reproduces al-Najashi's entry on Rabi' ibn Sulayman ibn 'Amr, the primary's."
+  },
+  {
+   "pair": "q721",
+   "a": "n000835",
+   "b": "n067604",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: Same man on a second reading of both records (the smaller record's heading is one the main record already carries). Khoei's entry is a quotation of the same Najashi entry (book, narrated by Muhammad ibn al-Husayn)."
+  },
+  {
+   "pair": "q723",
+   "a": "n002951",
+   "b": "n067613",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: Same man on a second reading of both records (the smaller record's heading is one the main record already carries). Khoei's entry is the same Tusi Sadiq-companion entry (al-Khathami al-Kufi)."
+  },
+  {
+   "pair": "q738",
+   "a": "n000595",
+   "b": "n072780",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: Same man on a second reading of both records (the smaller record's heading is one the main record already carries). Khoei's entry quotes the Najashi entry for al-Mudhari verbatim."
+  },
+  {
+   "pair": "q739",
+   "a": "n000346",
+   "b": "n074642",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: Same man on a second reading of both records (the smaller record's heading is one the main record already carries). Ardabili's 'Jafar ibn Ali al-Bajali narrated from by Humayd' matches the primary's Tusi entry and Jafar ibn Ali ibn Hassan al-Bajali narrated from by Humayd."
+  },
+  {
+   "pair": "q740",
+   "a": "n000336",
+   "b": "n074754",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: Same man on a second reading of both records (the smaller record's heading is one the main record already carries). Khoei quotes the Najashi entry on al-Awdi verbatim."
+  },
+  {
+   "pair": "q744",
+   "a": "n006081",
+   "b": "n077367",
+   "book": null,
+   "quote_ar": null,
+   "why": "Judged the same man on the entries, but recording the merge split one of the two records' other notices off into a third person, so it was held back: Same man on a second reading of both records (the smaller record's heading is one the main record already carries). Tusi's Sadiq-companion entry with the same nisba al-Nili; Khoei reports the primary narrated from both Baqir and Sadiq."
+  }
+ ],
+ "different": [
+  {
+   "pair": "q041",
+   "a": "n016058",
+   "b": "n008862",
+   "why": "Ḍamra narrates from his father Abū Ḍamra, the grandfather of al-Ḥusayn b. Ḍamra: father and son."
+  },
+  {
+   "pair": "q134",
+   "a": "n067323",
+   "b": "n013479",
+   "why": "The other record's al-Ardabīlī line is spliced with Sulaymān b. Zakariyyā al-Daylamī's; merging it would carry «كذاب غال» onto this man."
+  },
+  {
+   "pair": "q155",
+   "a": "n000050",
+   "b": "n015707",
+   "why": "Abū Harāsa is the father: al-Ardabīlī says Ibrāhīm b. Abī Harāsa's name is known from him («ويأتي ابن أبي هراسة ومنه يعرف اسمه»)."
+  },
+  {
+   "pair": "q177",
+   "a": "n012308",
+   "b": "n025342",
+   "why": "al-Khoei distinguishes al-Barāthī from al-Barānī («فالظهر أنه غير محمد بن الحسن البراني»)."
+  },
+  {
+   "pair": "q454",
+   "a": "n003515",
+   "b": "n038565",
+   "why": "Mālik b. Aʿyan of al-Khoei's entry is Zurāra's brother «not in this matter»; the main record is Mālik b. Aʿyan al-Juhanī."
+  },
+  {
+   "pair": "q514",
+   "a": "n003052",
+   "b": "n039746",
+   "why": "The main record is Ibn Bundār al-Qummī, of al-Talʿukbarī's generation; the other is Ibn Abī Khālid al-Ashʿarī, al-Jawād's companion."
+  },
+  {
+   "pair": "q724",
+   "a": "n067130",
+   "b": "n067920",
+   "why": "Muḥammad al-Wāsiṭī is al-Ṣādiq's companion; Muḥammad b. al-Ḥasan al-Wāsiṭī is al-Jawād's."
+  }
+ ]
+}
