@@ -542,6 +542,14 @@ HEADING_CORRECTED = {
     # and al-Fihrist both head him without it; Rijāl al-Ṭūsī, which carries the slip, was the
     # anchor, so the slip was the page's name.
     "n000164": "الحسن بن حمزة العلوي الطبري",
+    # al-Khoei: «محمد بن الحسن البرناني ... ولا شك في أنه من غلط النسخة، والصحيح محمد بن الحسن
+    # البراثي» — al-Kashshī's shaykh, whom al-Ṭūsī's copy heads «البرناني». His own Khoei
+    # entry is headed «محمد بن الحسن البراثي».
+    "n012308": "محمد بن الحسن البراثي",
+    # Not a slip but a heading cut short: al-Kashshī's line is «في إبراهيم بن عبد الحميد
+    # الصنعاني», and the extraction kept «ابراهيم بن عبد الحميد», which is also al-Asadī's
+    # page. al-Khoei heads him «إبراهيم بن عبد الحميد الصنعاني».
+    "n077383": "إبراهيم بن عبد الحميد الصنعاني",
 }
 
 
@@ -773,6 +781,23 @@ BLESSING = re.compile(r"عليه السلام|عليهما السلام|عليه
                       r"صلى الله عليه وآله|صلى الله عليه وآله وسلم|^الإمام\s+|^الامام\s+|^امام\s+")
 PAREN = re.compile(r"\(([^)]*)\)")
 IMAM_STATS = Counter()
+# «Abu al-Hasan (AS)», «Abu Abdillah (as)»: the bracket is the blessing, not a note about which
+# man is meant, and a bracket that is a note is what keeps a row a person below. 91 Imams stood
+# among men's human teachers for it.
+HONORIFIC_PAREN = re.compile(r"\(\s*(AS|as|A|a\.s\.?|ʿa|pbuh|peace be upon him|alayhi al-salam|"
+                             r"عليه السلام|عليهما السلام|ع)\s*\)")
+# The kunya alone, in English: imams.identify reads Arabic, so «Abu Ja'far» never reached it.
+EN_KUNYA = ((r"abu al-hasan", "أبي الحسن"), (r"abu (abd ?allah|abdillah|abdullah)", "أبي عبد الله"),
+            (r"abu jafar", "أبي جعفر"), (r"abu ibrahim", "أبي إبراهيم"),
+            (r"abu muhammad", "أبي محمد"), (r"amir al-muminin", "أمير المؤمنين"))
+
+
+def _fold_latin(text):
+    """«al-Kazhim», «Mu'minin», «al-Ridha» to the roster's own spelling of them."""
+    low = "".join(c for c in unicodedata.normalize("NFKD", text.lower())
+                  if not unicodedata.combining(c))
+    low = re.sub(r"['ʿʾ`]", "", low)
+    return re.sub(r"[dz]h", "z", low)
 
 
 def _imam_ids(name):
@@ -781,15 +806,22 @@ def _imam_ids(name):
     A qualifier in brackets outranks the rest of the name, because «Ali bin al-Husayn
     (al-Sajjad)» contains «al-Husayn» and would otherwise name the third Imam as well.
     """
+    name = HONORIFIC_PAREN.sub(" ", name)
     inside = " ".join(PAREN.findall(name))
     base = BLESSING.sub(" ", PAREN.sub(" ", name))
     ids = set(imams.identify(normalize_arabic(base)))
+    if not ids and not ARABIC_RANGE.search(base):
+        bare = " ".join(_fold_latin(base).split())
+        for pattern, arabic in EN_KUNYA:
+            if re.fullmatch(pattern, bare):
+                ids = set(imams.identify(normalize_arabic(arabic)))
 
     def hints(text):
         found = set()
-        low = text.lower()
+        low = _fold_latin(text)
         for imam in imams.ROSTER:
-            if any(re.search(rf"(?<![a-z]){re.escape(h)}(?![a-z])", low) for h in imam["en"]):
+            if any(re.search(rf"(?<![a-z]){re.escape(_fold_latin(h))}(?![a-z])", low)
+                   for h in imam["en"]):
                 found.add(imam["id"])
         found |= set(imams.identify(normalize_arabic(BLESSING.sub(" ", text))))
         return found
@@ -798,6 +830,26 @@ def _imam_ids(name):
     if not hinted and not ARABIC_RANGE.search(name):
         hinted = hints(name)
     return ids, hinted
+
+
+def titled(name, iid):
+    """«Abu al-Hasan (al-Kazhim)», «Abu al-Hasan al-Kadhim», «al-Riḍā (Imam)»: the Imam's own
+    title, alone or after his kunya. No ordinary man is written so, which a bare
+    «علي بن الحسين» or «Abu al-Hasan» cannot say."""
+    if ARABIC_RANGE.search(name):
+        return False
+    low = " ".join(_fold_latin(HONORIFIC_PAREN.sub(" ", name)).replace("(", " ")
+                   .replace(")", " ").split())
+    for title in imams.BY_ID[iid]["en"]:
+        title = _fold_latin(title)
+        if not title.startswith("al-") or title in ("al-husayn", "al-hussain", "al-hasan ibn ali"):
+            continue
+        if re.search(rf"(?<![a-z]){re.escape(title)}(?![a-z])", low):
+            rest = " ".join(re.sub(rf"(?<![a-z]){re.escape(title)}(?![a-z])|\bimam\b", " ",
+                                   low).split())
+            if not rest or any(re.fullmatch(pattern, rest) for pattern, _ in EN_KUNYA):
+                return True
+    return False
 
 
 def which_imam(name, subject_imams):
@@ -831,14 +883,15 @@ def settle_imams(rows, subject_imams, teachers_side):
             ids, hinted = _imam_ids(row["name"])
             # a parenthesis that is not an Imam's name («Ahmad ibn Muhammad's father») marks a
             # man, and a name with a qualifier the roster does not know is left as written
-            if PAREN.search(row["name"]) and not hinted:
+            if PAREN.search(HONORIFIC_PAREN.sub(" ", row["name"])) and not hinted:
                 iid = None
             else:
                 iid = which_imam(row["name"], subject_imams)
                 # a name that is also an ordinary man's («علي بن الحسين», «جعفر بن محمد») is
                 # taken for the Imam only when the subject's own books put him in that Imam's
                 # company; otherwise it is whichever man of that name the book meant
-                if iid and imams.BY_ID[iid]["ordinal"] not in subject_imams:
+                if iid and imams.BY_ID[iid]["ordinal"] not in subject_imams \
+                        and not titled(row["name"], iid):
                     iid = None
             if iid:
                 IMAM_STATS["a human teacher row that was an Imam"] += 1
@@ -941,6 +994,65 @@ def city_ar(value):
     key = key.split("/")[0].split(",")[0].strip(" .")
     key = re.sub(r"^(al-|el-)", "", key)
     return CITY_AR.get(key) or TRIBES_AND_TOWNS_AR.get(key)
+
+
+# The field is free text an extraction wrote, and the page printed it as written: «Kufa (implied
+# by affiliation with Maytham al-Tammar)», «Kufan; Bijili; maternal grandson of Ilyas
+# al-Sayrafi», «العماني (Omani?)» — in the sentence under his name, in the panel above it and
+# in the facts. Every value the corpus holds was read once, by hand, into the places, tribes
+# and patrons it states, with its guesses and glosses left out and its Arabic written as the
+# books spell it: scripts/data/narrators/city_or_tribe_clean.json.
+CITY_CLEAN = {}
+# entry key → the folded names a record carries that are not its man's: not_his_names.json
+NOT_HIS = defaultdict(set)
+
+
+def city_parts(value):
+    """The places, tribes and patrons a city value states; nothing it only guesses."""
+    if not value:
+        return []
+    if value in CITY_CLEAN:
+        return CITY_CLEAN[value]
+    # A value the table has not read: the plain reading, or nothing where it hedges.
+    if re.search(r"[?;]|implied|likely|possibly|unknown", value, re.I):
+        return []
+    english = re.sub(r"\s*\([^()]*\)", "", value).strip(" .,")
+    if not english:
+        return []
+    arabic = city_ar(value)
+    if ARABIC_RANGE.search(english):
+        return [{"type": "place", "en": None, "ar": english}]
+    return [{"type": "place", "en": english, "ar": arabic}]
+
+
+def city_label(parts, arabic=False):
+    """The panel's and the facts row's words: «Kufa, Banu Asad, client of Banu Udayy»."""
+    out = []
+    for part in parts:
+        name = part.get("ar") if arabic else part.get("en")
+        if not name:
+            continue
+        if part["type"] == "client":
+            name = ("مولى " if arabic else "client of ") + name
+        elif arabic and name.startswith("بني "):
+            name = "بنو " + name[4:]     # standing alone, not after «من»
+        out.append(name)
+    return ("، " if arabic else ", ").join(dict.fromkeys(out)) or None
+
+
+def city_phrase(parts, arabic=False):
+    """What follows «was» in the blurb: «of Kufa, of Banu Asad, a client of Banu Udayy»."""
+    def pick(kind):
+        return list(dict.fromkeys(p.get("ar") if arabic else p.get("en") for p in parts
+                                  if p["type"] == kind and (p.get("ar") if arabic else p.get("en"))))
+    join = join_names_ar if arabic else join_names
+    bits = []
+    for kind in ("place", "tribe"):
+        if pick(kind):
+            bits.append(("من " if arabic else "of ") + join(pick(kind)))
+    if pick("client"):
+        bits.append(("مولى " if arabic else "a client of ") + join(pick("client")))
+    return ("، " if arabic else ", ").join(bits) or None
 
 
 def load(path):
@@ -1778,6 +1890,43 @@ def not_a_personal_name(value, headings_folded, english=False):
     return None
 
 
+# A note the extraction left riding on a name: «الحسين بن الحسن اللؤلؤي (erroneous)», «موسى بن
+# زيد (variant reading)», «إبراهيم بن عيسى أبو أيوب (المتقدم)», «Muhammad ibn Dawawayh
+# (Rawzawi?)». The page listed them among his names as written, note and all. The note comes
+# off; where it says the form is a slip, the form is still searched, since a chain may carry
+# the slip, but is not listed as a name of his.
+LATIN_NOTE = re.compile(r"\s*\(([^()]*[A-Za-z?][^()]*)\)")
+ARABIC_NOTE = re.compile(r"\s*\((المتقدم|المتقدّم|الآتي|تحريف|تصحيف|سهو|كذا|خطأ|غلط)\)")
+MISPRINT_NOTE = re.compile(r"erroneous|error|corrupt|misprint|mistake|تحريف|تصحيف|سهو|خطأ|غلط",
+                           re.I)
+# «أبيه (in context of son)»: a word for a relative, which names no one off the page it was on.
+RELATIVE_ONLY = {"ابيه", "ابوه", "اباه", "ابنه", "اخيه", "اخوه", "جده", "عمه", "خاله", "امه"}
+HONORIFIC_EN = re.compile(r"\s*\((A|AS|as|a\.s\.|alayhi al-salam|peace be upon him)\)")
+
+
+def without_note(value, arabic=True):
+    """(name, slip) with the extraction's note taken off; None when no name is left."""
+    if not value:
+        return None
+    notes = [m.group(1) for m in LATIN_NOTE.finditer(value)]
+    notes += [m.group(1) for m in ARABIC_NOTE.finditer(value)]
+    name = ARABIC_NOTE.sub("", LATIN_NOTE.sub("", value)).strip(" ،,?")
+    if arabic and not ARABIC_RANGE.search(name):
+        return None    # an English name filed among the Arabic ones
+    if not name or normalize_arabic(name) in RELATIVE_ONLY:
+        return None
+    return name, any(MISPRINT_NOTE.search(n) for n in notes)
+
+
+def english_heading_tidy(value):
+    """An English heading without a guess in brackets, and with one form of the honorific."""
+    if not value:
+        return value
+    value = HONORIFIC_EN.sub(" (ʿa)", value)
+    value = re.sub(r"\s*\([^()]*\?[^()]*\)", "", value)
+    return " ".join(value.split())
+
+
 def searchable(headings, aliases, holders):
     """The names safe to search the chains by.
 
@@ -1951,7 +2100,13 @@ def document(person, source, headless):
             key = entry_key_for(person, book, pages, entry_keys)
             if not key:
                 continue
-            same = seen.get(_same_value(value))
+            parts = city_parts(value) if field == "city_or_tribe" else None
+            if parts is not None:
+                if not city_label(parts) and not city_label(parts, arabic=True):
+                    continue    # only a guess, which the page does not pass on
+                value = city_label(parts) or city_label(parts, arabic=True)
+            same_key = value.lower() if parts is not None else _same_value(value)
+            same = seen.get(same_key)
             if same is not None:
                 if BOOK_TITLE.get(book, book) not in same["also"]:
                     same["also"].append(BOOK_TITLE.get(book, book))
@@ -1964,14 +2119,14 @@ def document(person, source, headless):
             # the city in Arabic where CITY_AR vouches for it, so an Arabic page does not
             # print «Kufan (city)» in the middle of a line of Arabic
             if field == "city_or_tribe":
-                row["value_ar"] = city_ar(value)
+                row["value_ar"] = city_label(parts, arabic=True)
             # «Companion of al-Sadiq» is not a thing a book says; it is what the extraction
             # made of a chapter the book wrote in Arabic. The Arabic is not translated back
             # — it is composed from the Imams the sentence names, in the forms the roster
             # carries, so an Arabic page reads «من أصحاب الباقر والصادق».
             if field == "generations":
                 row["value_ar"] = generation_ar(value)
-            seen[_same_value(value)] = row
+            seen[same_key] = row
             out.append(row)
         return out
 
@@ -2169,8 +2324,20 @@ def document(person, source, headless):
         return out
 
     cities = cited("city_or_tribe")
-    died = cited("death_years")
+    # A companion of an Imam did not die before that Imam's time. Faḍāla b. Ayyūb, who kept
+    # company with al-Kāẓim, carried «2» as a death year, and Jaʿfar b. Bashīr «2» beside
+    # 208 and 218: read off something that was not a year. Ḥamza's 3 and Jaʿfar al-Ṭayyār's
+    # 8 stand, because the Prophet's time began before them.
+    earliest = min((YEARS[o][0] for o in imams if YEARS and o in YEARS), default=None)
+
+    def too_early(year):
+        # twenty years' grace: Ṭūsī counts among an Imam's companions men who met him
+        # before his imamate began
+        return isinstance(year, int) and earliest is not None and year < earliest - 20
+
+    died = [y for y in cited("death_years") if not too_early(y)]
     said_cities, said_died = reported("city_or_tribe"), reported("death_years")
+    said_died = [y for y in said_died if not too_early(y)]
     city = Counter(cities).most_common(1)[0][0] if cities else None
     # A year read out of the entry by rule beats a year an agent read in phase 1, where the
     # two differ in the way a misreading differs — «إحدى وثلاثمائة» is 301, not 311. The
@@ -2205,16 +2372,17 @@ def document(person, source, headless):
     said_city = (Counter(said_cities).most_common(1)[0][0]
                  if said_cities and not city else None)
     said_death = (said_died[0] if said_died and not died else None) or said_death_year
+    place_parts, said_parts = city_parts(city), city_parts(said_city)
     life = {"imams": imams_named,
             "imams_ar": imams_named_ar,
-            "city": city,
-            "city_ar": city_ar(city),
+            "city": city_label(place_parts),
+            "city_ar": city_label(place_parts, arabic=True),
             "died": death_year,
             "died_ar": arabic_digits(death_year) if death_year else None,
             # Said by a record we cannot show a passage for, and only where the traced field
             # is empty. The page must print these differently: they are reported, not shown.
-            "city_reported": said_city,
-            "city_reported_ar": city_ar(said_city) if said_city else None,
+            "city_reported": city_label(said_parts),
+            "city_reported_ar": city_label(said_parts, arabic=True),
             "died_reported": said_death,
             "died_reported_ar": arabic_digits(said_death) if said_death else None,
             # Said, not missing: a book that files him among those who narrated from no Imam
@@ -2381,9 +2549,15 @@ def document(person, source, headless):
             and not another_mans_laqab(value)
 
     all_names_ar = [n["value"] for n in values(person, "primary_names") if n.get("value")]
-    all_names_ar += [lineage.without_chain_words(n["value"]) for n in values(person, "arabic_aliases")
-                     if n.get("value") and not another_mans_name(person, n["value"])
-                     and his_alias(n["value"])]
+    not_his = set().union(*(NOT_HIS.get(k, set()) for k in person.get("source_keys") or []))
+    for n in values(person, "arabic_aliases"):
+        if not n.get("value") or another_mans_name(person, n["value"]) or not his_alias(n["value"]):
+            continue
+        if normalize_arabic(n["value"]) in not_his:
+            continue
+        tidied = without_note(lineage.without_chain_words(n["value"]))
+        if tidied and not tidied[1]:   # a slip is searched (search_ar below), not listed
+            all_names_ar.append(tidied[0])
     all_names_ar = [n for n in all_names_ar if n]
     all_names_ar = list(dict.fromkeys(all_names_ar))
     own_headings = [normalize_arabic(n["value"]) for n in values(person, "primary_names")
@@ -2414,8 +2588,10 @@ def document(person, source, headless):
     raw_headings_ar = set(headings_ar)
     headings_ar = {name_only(h) for h in headings_ar} - {""}
     search_ar = searchable(sorted(headings_ar),
-                           sorted({n["value"] for n in values(person, "arabic_aliases")
-                                   if n.get("value") and his_alias(n["value"])}), HOLDERS)
+                           sorted({without_note(n["value"])[0] for n in values(person, "arabic_aliases")
+                                   if n.get("value") and his_alias(n["value"])
+                                   and normalize_arabic(n["value"]) not in not_his
+                                   and without_note(n["value"])}), HOLDERS)
     own_words_en = {transliterate._english_skeleton(w) for h in own_lineage_en for w in h.split()}
 
     def another_mans_laqab_en(value):
@@ -2431,6 +2607,8 @@ def document(person, source, headless):
                     if n.get("value") and not another_mans_english(person, n["value"])
                     and not lineage.foreign_en(n["value"], own_lineage_en)
                     and not another_mans_laqab_en(n["value"])]
+    tidied_en = [without_note(n, arabic=False) for n in all_names_en]
+    all_names_en = list(dict.fromkeys(t[0] for t in tidied_en if t and not t[1]))
     names_en = [n for n in all_names_en if not not_a_personal_name(n, [], english=True)]
     names_group_en = [{"value": n, "kind": "family"} for n in sorted(set(all_names_en))
                       if not_a_personal_name(n, [], english=True)]
@@ -2534,6 +2712,7 @@ def document(person, source, headless):
     if english_fix == "rebuilt":
         made = True
     ENGLISH_FIXES[english_fix] += 1
+    display_en = english_heading_tidy(display_en)
     if display_ar == nasab_ar:
         nasab_ar = None
 
@@ -2547,10 +2726,11 @@ def document(person, source, headless):
     said = []
     if imams_named:
         said.append(f"{display} kept company with " + join_names(imams_named))
-    elif life["city"]:
-        said.append(f"{display} was of {life['city']}")
-    if life["city"] and imams_named:
-        said.append(f"and was of {life['city']}")
+    city_en = city_phrase(place_parts) if life["city"] else None
+    if imams_named and city_en:
+        said.append(f"and was {city_en}")
+    elif city_en:
+        said.append(f"{display} was {city_en}")
     if life["died"]:
         said.append((f"and died in {life['died']} AH") if said
                     else f"{display} died in {life['died']} AH")
@@ -2572,10 +2752,11 @@ def document(person, source, headless):
     if imams_named_ar:
         said_ar.append((display_ar + " " if display_ar else "") + "من أصحاب "
                        + join_names_ar(imams_named_ar))
-    elif life["city_ar"]:
-        said_ar.append((display_ar + " من " if display_ar else "من ") + life["city_ar"])
-    if life["city_ar"] and imams_named_ar:
-        said_ar.append("وكان من " + life["city_ar"])
+    city_said_ar = city_phrase(place_parts, arabic=True) if life["city_ar"] else None
+    if imams_named_ar and city_said_ar:
+        said_ar.append("وكان " + city_said_ar)
+    elif city_said_ar:
+        said_ar.append((display_ar + " " if display_ar else "") + city_said_ar)
     if life["died_ar"]:
         said_ar.append(("وتوفي سنة " + life["died_ar"] + " هـ") if said_ar
                        else ((display_ar + " " if display_ar else "") + "توفي سنة "
@@ -2681,7 +2862,7 @@ def document(person, source, headless):
                         if ARABIC_RANGE.search(str(row.get("value", "")))],
         "imam_ordinals": sorted(imams),
         "cities_or_tribes": traced("city_or_tribe"),
-        "death_years": traced("death_years"),
+        "death_years": [r for r in traced("death_years") if not too_early(r.get("value"))],
         # Whom he takes from and who takes from him: the evidence a rijali argument about
         # his generation actually runs on, so the counts are kept whole even where the
         # lists shown are trimmed.
@@ -2854,6 +3035,12 @@ def main():
     global HEADING_FIRST_WORDS, ENGLISH_FIRST_WORDS
     YEARS = imam_years()
     TRANSLITERATION = transliterate.load()
+    with open(os.path.join(REPO, "scripts/data/narrators/city_or_tribe_clean.json")) as handle:
+        CITY_CLEAN.update(json.load(handle))
+    with open(os.path.join(REPO, "scripts/data/narrators/not_his_names.json")) as handle:
+        for item in json.load(handle)["names"]:
+            NOT_HIS[item["entry"]].add(normalize_arabic(item["name"]))
+    print(f"{len(CITY_CLEAN):,} city or tribe values read into places, tribes and patrons")
     try:
         with open(os.path.join(REPO, "scripts/data/narrators/death_years.json")) as handle:
             DEATH_YEARS.update(json.load(handle)["years"])
@@ -3056,6 +3243,10 @@ def main():
         # except the names it could not read the first time.
         counts["rows joined to an Imam, once the roster was in the set"] = \
             relations_join.join(documents, settled)
+        counts["teacher or student rows that were the man himself, dropped"] = \
+            relations_join.SELF_ROWS["dropped"]
+        counts["teacher or student rows that reached the man himself, unlinked"] = \
+            relations_join.SELF_ROWS["unlinked"]
         # The Imams' own block is built from imams_from/imams_to, which relations_join does
         # not touch — those rows are settled by name against the roster long before it runs,
         # and they already carry imam_id. They only lack the slug, so a link had to go to

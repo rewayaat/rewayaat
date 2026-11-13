@@ -1,0 +1,11 @@
+{
+  "_about": "Names a record carries that are not the man's own, removed by hand. Keyed by an entry the record holds (book:index), so the key survives merges and renumbering of person ids. Each needs the entry's own words showing whose name it is.",
+  "names": [
+    {"entry": "khoei:37134", "name": "ضمرة بن أبي ضمرة",
+     "why": "The record is the grandfather of al-Ḥusayn b. Ḍamra («عن الحسين بن ضمرة، عن أبيه، عن جده»), i.e. Abū Ḍamra; «ضمرة بن أبي ضمرة» is his son, al-Ḥusayn's father."},
+    {"entry": "khoei:24954", "name": "ابن علي بن زياد الوشّاء",
+     "why": "A fragment of «هو ابن زياد الوشاء المتقدم» (al-Ardabīlī) read as a name; al-Khoei adds that the identification «لم يثبت»."},
+    {"entry": "ardabili:3204", "name": "ابن علي بن زياد الوشّاء",
+     "why": "The same fragment, from al-Ardabīlī's line «هو ابن زياد - الوشاء المتقدم»."}
+  ]
+}
