@@ -179,9 +179,10 @@ def test_the_display_names_are_optional():
 
 
 def test_join_puts_the_display_names_on_every_document():
-    docs = [dict(PEOPLE[0], narrated_to=[row("Harun ibn Muslim", "A")])] + PEOPLE[1:]
+    # on Hilal's page: a row naming the man whose page it is would be dropped as himself
+    docs = [PEOPLE[0], dict(PEOPLE[1], narrated_to=[row("Harun ibn Muslim", "A")])] + PEOPLE[2:]
     join(docs)
-    assert docs[0]["narrated_to"][0]["display_ar"] == "هارون بن مسلم"
+    assert docs[1]["narrated_to"][0]["display_ar"] == "هارون بن مسلم"
 
 
 # --- rows a judge settled, where no name reaches one man ---------------------------------

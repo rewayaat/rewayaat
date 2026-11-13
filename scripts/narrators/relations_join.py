@@ -25,6 +25,7 @@ which is what lets the page link a teacher's name to his own page.
 """
 import argparse
 import json
+import re
 import os
 import sys
 import urllib.request
@@ -288,9 +289,47 @@ def join(documents, settled=None):
                 continue
             joined = join_rows(rows, tables, slugs, displays, settled,
                                doc.get("person_id"), field)
+            joined = not_himself(doc, field, joined)
             removed += len(rows) - len(joined)
             doc[field] = joined
     return removed
+
+
+# A row that reaches the man whose page it is on. Abān b. Taghlib was listed among his own
+# pupils, and Khoei's chain index put ninety men among their own teachers or students: the
+# extraction read the subject's own name in the chain he heads. A row that is his own name
+# goes; one that names someone else — «أبان بن محمد بن أبان بن تغلب (his son)» — keeps its
+# words and loses the link, which was wrong whoever he is.
+RELATIVE_NOTE = re.compile(r"\((his|her) |\b(son|father|brother|grandson|nephew|uncle)\b", re.I)
+SELF_ROWS = defaultdict(int)
+
+
+def _bare(name):
+    return re.sub(r"\s*\([^()]*\)", "", name or "").strip()
+
+
+def not_himself(doc, field, rows):
+    pid = doc.get("person_id")
+    own = {arabic_key(n) for n in [doc.get("display_ar")] + list(doc.get("names_ar") or [])
+           + list(doc.get("headings_ar") or []) if n}
+    own |= {english_key(n) for n in [doc.get("display_en")] + list(doc.get("names_en") or [])
+            if n}
+    out = []
+    for row in rows:
+        if not pid or row.get("person_id") != pid:
+            out.append(row)
+            continue
+        name = row.get("name") or ""
+        keys = {arabic_key(_bare(name)), english_key(_bare(name)),
+                arabic_key(_bare(row.get("name_ar")))} - {""}
+        if keys & own or (field.startswith("chain_") and not RELATIVE_NOTE.search(name)):
+            SELF_ROWS["dropped"] += 1
+            continue
+        for key in ("person_id", "slug", "display_ar", "display_en", "settled_by"):
+            row.pop(key, None)
+        SELF_ROWS["unlinked"] += 1
+        out.append(row)
+    return out
 
 
 # --- applying it to an index that is already built -------------------------------------

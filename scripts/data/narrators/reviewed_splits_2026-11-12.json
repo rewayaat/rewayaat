@@ -1,0 +1,18 @@
+[
+ {"record": "n012308", "keep": ["tusi:6407", "ardabili:6994"],
+  "apart": ["tusi:6469", "ardabili:6995", "khoei:32384", "khoei:32386"],
+  "why": "Two men. Muḥammad b. al-Ḥasan al-Barānī, Abū Bakr, «كانت له رواية» (al-Ṭūsī), and al-Kashshī's shaykh Muḥammad b. al-Ḥasan al-Barāthī. al-Khoei separates them and calls al-Ṭūsī's «البرناني» a copyist's slip for al-Barāthī.",
+  "quote": "فالظهر أنه غير محمد بن الحسن البراني الآتي"},
+ {"record": "n009968", "keep": ["khoei:29355", "khoei:29356", "khoei:29357"],
+  "apart": ["khoei:29358"],
+  "why": "ʿUbayd b. Yazīd is the brother of Sufyān b. Yazīd, not ʿUbayd b. Yaḥyā al-Thawrī.",
+  "quote": "عبيد بن يزيد: تقدم في أخيه سفيان بن يزيد"},
+ {"record": "n067130", "keep": ["tusi:5739", "kashshi:562", "ardabili:1183", "khoei:32483"],
+  "apart": ["tusi:4505", "ardabili:1401"],
+  "why": "The bare «محمد الواسطي» from whom Abān narrates is filed among al-Ṣādiq's companions (ق); Muḥammad b. al-Ḥasan al-Wāsiṭī is a companion of al-Jawād, two generations later.",
+  "quote": "محمد الواسطي روى عنه ابان (ق)"},
+ {"record": "n000043", "keep": ["najashi:44", "fihrist:56", "tusi:5047", "tusi:5069", "tusi:5317", "ardabili:58", "ardabili:1474", "khoei:22126"],
+  "apart": ["kashshi:163", "khoei:22127"],
+  "why": "al-Khoei gives Ibrāhīm b. ʿAbd al-Ḥamīd al-Ṣanʿānī (al-Kashshī's heading) his own entry, apart from al-Asadī al-Kūfī, and calls it unlikely that the man who narrates from al-Riḍā is al-Ṣanʿānī. Kept apart, with a note on both pages.",
+  "quote": "اللهم إلا أن يكون المراد بإبراهيم بن عبد الحميد الذي يروي عن الرضا عليه السلام: إبراهيم بن عبد الحميد الصنعاني الآتي، وهو بعيد"}
+]
