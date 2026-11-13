@@ -292,3 +292,22 @@ def test_a_name_the_books_call_shared_needs_the_chain():
     data = index(filed("n1", "إسحاق بياع اللؤلؤ", "أبي إسحاق", students=["شريك"]))
     outcomes, _ = read(data, "شريك", "أبي إسحاق")
     assert outcomes[1][1] == "n1", outcomes
+
+
+def test_an_alias_is_backed_by_the_man_before_it_not_only_by_his_spelling():
+    """Al-Khiṣāl 205: «أبي الخزرج الحسن بن الزبرقان، عن فضيل بن عثمان». Nobody is filed under
+    «فضيل بن عثمان»; al-Fuḍayl answers to it as an alias, so a neighbour must back him. His
+    record writes that student «الحسن بن زبرقان الأنصاري», a spelling the chain does not use,
+    but relations_join has joined the row to the very man the chain names before him."""
+    hasan = man("n1", "الحسن بن الزبرقان")
+    fudayl = man("n2", "الفضل بن عثمان المرادي")
+    fudayl["names_ar"].append("الفضيل بن عثمان")
+    fudayl["chain_to"] = [{"name_ar": "الحسن بن زبرقان الأنصاري", "person_id": "n1"}]
+    data = index(hasan, fudayl)
+    assert read(data, "أبي الخزرج الحسن بن الزبرقان", "فضيل بن عثمان")[0] == [
+        ("one", "n1"), ("chosen", "n2")]
+    # The same alias with no row joined to the man before is still refused.
+    fudayl["chain_to"] = [{"name_ar": "الحسن بن زبرقان الأنصاري", "person_id": "n9"}]
+    data = index(hasan, fudayl)
+    assert read(data, "أبي الخزرج الحسن بن الزبرقان", "فضيل بن عثمان")[0] == [
+        ("one", "n1"), ("none", "")]

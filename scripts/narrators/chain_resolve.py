@@ -492,6 +492,7 @@ def load_people(path, books):
     answers_to = defaultdict(set)
     held_as_alias = []
     teachers, students, by_id = {}, {}, {}
+    students_by_id = {}
     imams_of, fathers, is_imam = {}, {}, {}
     for person in people:
         if books and not books & set(person.get("books") or []):
@@ -525,6 +526,13 @@ def load_people(path, books):
                          for name in [r.get("name_ar") or r.get("name")] + (r.get("spellings_ar") or [])}
         teachers[pid].discard("")
         students[pid].discard("")
+        # The same rows by the man they were joined to, where relations_join found him. A
+        # spelling is a weaker match than the man: al-Khoei writes Fuḍayl b. ʿUthmān's student
+        # «الحسن بن زبرقان الأنصاري» and al-Khiṣāl writes «أبي الخزرج الحسن بن الزبرقان», and
+        # both are n000124.
+        students_by_id[pid] = {r["person_id"]: r.get("name_ar") or r.get("name") or ""
+                               for field in ("narrated_to", "chain_to", "unsaid_to")
+                               for r in person.get(field) or [] if r.get("person_id")}
         # A rijālī who catalogues the companions catalogues the Imams among them, so a few
         # of the fourteen hold narrator records: al-Ṭūsī files al-Riḍā, and a chain naming
         # him in ʿUyūn — the book written about him — was landing on a three-entry stub
@@ -607,7 +615,8 @@ def load_people(path, books):
 
     return {"headings": headings, "aliases": aliases, "answers_to": answers_to,
             "teachers": teachers,
-            "students": students, "by_id": by_id, "imams_of": imams_of, "fathers": fathers,
+            "students": students, "students_by_id": students_by_id,
+            "by_id": by_id, "imams_of": imams_of, "fathers": fathers,
             "is_imam": is_imam, "extends": extends, "shortened": shortened,
             "shortened_own": shortened_own,
             "loose": loosened_tables(headings, aliases, shortened_own, shortened)}
@@ -664,6 +673,13 @@ def support(pid, before, after, teachers, students):
         if name not in RELATIVE and same_name(name, before):
             return f"narrated to {name}"
     return ""
+
+
+def support_by_id(pid, before_id, data):
+    """`support` by the man rather than the spelling: the link before this one is a man the
+    candidate's own record names as his student, joined to him by relations_join."""
+    name = before_id and data.get("students_by_id", {}).get(pid, {}).get(before_id)
+    return f"narrated to {name}" if name else ""
 
 
 def past_the_stub(folded, lone, before, after, data):
@@ -1055,8 +1071,10 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
                 # reached Isḥāq b. Jarīr. So an alias is accepted here only for a man whom a
                 # book places beside the name next to this one, which is the same word a
                 # `chosen` rests on.
+                before_id = rows[position - 1].get("person_id") if position else ""
                 candidates = [pid for pid in candidates if support(
-                    pid, before, after, data["teachers"], data["students"])]
+                    pid, before, after, data["teachers"], data["students"])
+                    or support_by_id(pid, before_id, data)]
         # Dating is evidence like any other, and the cheapest kind: a candidate who outlived
         # the compiler is not a reading of the name, so he is taken out before the others are
         # weighed. Where he was the only candidate the name goes unanswered, which is the
@@ -1075,7 +1093,10 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
             row["outcome"] = "none"
         elif len(candidates) == 1 and widened:
             row["outcome"], row["person_id"] = "one", candidates[0]
-            why = support(candidates[0], before, after, data["teachers"], data["students"])
+            why = (support(candidates[0], before, after, data["teachers"], data["students"])
+                   or support_by_id(candidates[0],
+                                    rows[position - 1].get("person_id") if position else "",
+                                    data))
             if tier in ("aliases", "alias_shortened"):
                 row["outcome"], row["because"] = "chosen", why
             RESCUED[(row["outcome"], widened)] += 1
