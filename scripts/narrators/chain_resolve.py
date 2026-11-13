@@ -740,6 +740,21 @@ def spelled_beside(pid, before, after, before_id, after_id, data):
     return False
 
 
+def fathers_only(pid, before_id, keys, position, data):
+    """After «عن أبيه X», X is the father of the man before him, and only a man whose
+    nasab that man's own could name as his father may be chosen: pairing with the son is no
+    evidence, since a teacher of the son is paired with him just as well. «أحمد بن محمد بن
+    الحسن بن الوليد، عن أبيه محمد بن الحسن» was going to al-Ṣaffār, his teacher."""
+    words = keys[position].split()
+    if not words or words[0] not in ("ابيه", "ابوه"):
+        return True
+    son = data["every_id"].get(before_id)
+    candidate = data["by_id"].get(pid) or data["every_id"].get(pid)
+    if not son or not candidate:
+        return False
+    return any(could_be_father(son, name, candidate) for name in father_names(son))
+
+
 def linked_man(row):
     if row.get("outcome") in ("one", "chosen", "convention") and row.get("target") == "narrator":
         return row.get("person_id") or ""
@@ -786,6 +801,13 @@ def by_the_man(rows, keys, pools, data, compiler, beside=None):
             if not (before_id or after_id):
                 continue
             current = linked_man(row)
+            if current and before_id and not fathers_only(current, before_id, keys, position, data):
+                # «عن أبيه X» given to a man the son's nasab cannot make his father
+                row["replaced"] = current
+                row.pop("person_id", None)
+                row["outcome"] = "none"
+                row["because"] = "named as the father of the man before him, which his nasab rules out"
+                continue
             before = keys[first - 1] if first else ""
             after = keys[last] if last < len(keys) else ""
             if current:
@@ -808,7 +830,8 @@ def by_the_man(rows, keys, pools, data, compiler, beside=None):
                     continue
                 both = [pid for pid in pool if pid in data["by_id"]
                         and not outlived(pid, compiler, data)
-                        and len(tied(pid, before_id, after_id, data)) == 2]
+                        and len(tied(pid, before_id, after_id, data)) == 2
+                        and fathers_only(pid, before_id, keys, position, data)]
                 if len(both) == 1:
                     row["replaced"] = current
                     row["outcome"], row["person_id"] = "chosen", both[0]
@@ -822,7 +845,8 @@ def by_the_man(rows, keys, pools, data, compiler, beside=None):
             pool = set(row.get("candidates") or pools.get(position) or [])
             pool = {pid for pid in pool if pid in data["by_id"]
                     and not outlived(pid, compiler, data)}
-            found = [pid for pid in sorted(pool) if tied(pid, before_id, after_id, data)]
+            found = [pid for pid in sorted(pool) if tied(pid, before_id, after_id, data)
+                     and fathers_only(pid, before_id, keys, position, data)]
             why = "the books pair him with the man beside him"
             if not found and row["outcome"] == "none" and not pools.get(position):
                 read = set()
@@ -832,7 +856,8 @@ def by_the_man(rows, keys, pools, data, compiler, beside=None):
                     read |= data["named_student"].get(after_id, {}).get(keys[position], set())
                 read = {pid for pid in read if pid in data["every_id"]
                         and (pid not in data["by_id"] or not outlived(pid, compiler, data))}
-                found = sorted(read)
+                found = sorted(pid for pid in read
+                               if fathers_only(pid, before_id, keys, position, data))
                 why = "the entry of the man beside him names him so, and that is this man"
             if len(found) == 1:
                 row["outcome"], row["person_id"], row["because"] = "chosen", found[0], why

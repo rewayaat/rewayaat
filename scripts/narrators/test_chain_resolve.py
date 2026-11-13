@@ -379,3 +379,16 @@ def test_names_set_side_by_side_are_stepped_over():
     rows = cr.resolve_chain(mentions, data, "Kāmil al-Ziyārāt", {}, "", text=text)
     assert [(r["outcome"], r.get("person_id", "")) for r in rows] == [
         ("one", "n1"), ("chosen", "n3"), ("one", "n4")]
+
+
+def test_his_father_named_is_only_a_man_the_sons_nasab_allows():
+    """«أحمد بن محمد بن الحسن بن الوليد، عن أبيه محمد بن الحسن» is Ibn al-Walīd. al-Ṣaffār is
+    the son's teacher too, so pairing cannot tell them apart; the son's nasab can."""
+    son = joined("n1", "أحمد بن محمد بن الحسن بن الوليد",
+                 teachers=[("محمد بن الحسن الصفار", "n2")])
+    saffar = joined("n2", "محمد بن الحسن بن فروخ الصفار", "محمد بن الحسن الصفار",
+                    students=[("أحمد بن محمد بن الحسن بن الوليد", "n1")])
+    walid = joined("n3", "محمد بن الحسن بن أحمد بن الوليد")
+    data = index(son, saffar, walid)
+    outcomes = read(data, "أحمد بن محمد بن الحسن بن الوليد", "أبيه محمد بن الحسن")[0]
+    assert outcomes[1][1] != "n2"
