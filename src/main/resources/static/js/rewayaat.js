@@ -1299,9 +1299,15 @@ function applyAuthState() {
     if (profileName) {
         // The template renders this through the bundle; rewriting it here with a
         // literal put English back on the Arabic page as soon as auth state settled.
-        profileName.textContent = isAuthed
-            ? ((authState.user && authState.user.displayName) || t('nav.account', 'Account'))
-            : t('nav.account', 'Account');
+        var fullName = isAuthed && authState.user && authState.user.displayName
+            ? String(authState.user.displayName).trim() : '';
+        profileName.textContent = fullName ? shortFirstName(fullName) : t('nav.account', 'Account');
+        // The whole name stays in the dropdown's header, and on hover here.
+        if (fullName) {
+            profileName.setAttribute('title', fullName);
+        } else {
+            profileName.removeAttribute('title');
+        }
     }
     if (profileInitial) {
         var source = isAuthed
@@ -3797,6 +3803,18 @@ function playPreviewWhileVisible(video) {
             });
         }
     }, { threshold: 0.4 }).observe(video);
+}
+
+/*
+ * The menu button shows a reader's first name only, at most ten characters: a long full
+ * name pushed the search bar and the language switch aside. Counted in code points, so an
+ * Arabic or accented name is cut between letters, not inside one; past ten it keeps nine
+ * and an ellipsis, so the label is never longer than ten.
+ */
+function shortFirstName(name) {
+    var first = String(name || '').trim().split(/\s+/)[0] || '';
+    var letters = Array.from(first);
+    return letters.length > 10 ? letters.slice(0, 9).join('') + '\u2026' : first;
 }
 
 function escapeHtml(value) {
