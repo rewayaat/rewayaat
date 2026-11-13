@@ -387,14 +387,16 @@ def test_names_set_side_by_side_are_stepped_over():
         ("one", "n1"), ("chosen", "n3"), ("one", "n4")]
 
 
-def test_his_father_named_is_only_a_man_the_sons_nasab_allows():
-    """«أحمد بن محمد بن الحسن بن الوليد، عن أبيه محمد بن الحسن» is Ibn al-Walīd. al-Ṣaffār is
-    the son's teacher too, so pairing cannot tell them apart; the son's nasab can."""
-    son = joined("n1", "أحمد بن محمد بن الحسن بن الوليد",
-                 teachers=[("محمد بن الحسن الصفار", "n2")])
-    saffar = joined("n2", "محمد بن الحسن بن فروخ الصفار", "محمد بن الحسن الصفار",
-                    students=[("أحمد بن محمد بن الحسن بن الوليد", "n1")])
-    walid = joined("n3", "محمد بن الحسن بن أحمد بن الوليد")
-    data = index(son, saffar, walid)
-    outcomes = read(data, "أحمد بن محمد بن الحسن بن الوليد", "أبيه محمد بن الحسن")[0]
-    assert outcomes[1][1] != "n2"
+def test_his_father_named_is_the_man_the_sons_nasab_names():
+    """«أحمد بن أبي عبد الله البرقي، عن أبيه محمد بن خالد» is Muḥammad b. Khālid b. ʿAbd
+    al-Raḥmān. al-Ashʿarī, filed under the bare «محمد بن خالد», is paired with the son by a
+    spelling, and his own name states no grandfather the son's nasab could check."""
+    son = joined("n1", "أحمد بن محمد بن خالد بن عبد الرحمن البرقي",
+                 teachers=[("محمد بن خالد", "n2")])
+    ashari = joined("n2", "محمد بن خالد الأشعري", "محمد بن خالد",
+                    students=[("أحمد بن محمد بن خالد بن عبد الرحمن البرقي", "n1")])
+    father = joined("n3", "محمد بن خالد بن عبد الرحمن")
+    other = joined("n4", "محمد بن خالد بن عبد الله")
+    data = index(son, ashari, father, other)
+    outcomes = read(data, "أحمد بن محمد بن خالد بن عبد الرحمن البرقي", "أبيه محمد بن خالد")[0]
+    assert outcomes[1] == ("chosen", "n3")

@@ -1,6 +1,7 @@
 {
  "why": "Entries folded into another man by the 2026-11-13 reviewed merges. Their headings stay names a reader can search, but the chain resolver does not read them as the man's filing names: a merge joins evidence, it does not hand a man every short form al-Khoei indexed under him («يحيى بن سعيد» for al-Ḥillī).",
  "source_keys": [
+  "ardabili:9065",
   "khoei:21957",
   "khoei:21970",
   "khoei:22003",
@@ -215,6 +216,7 @@
   "khoei:33202",
   "khoei:33349",
   "khoei:33354",
+  "khoei:33427",
   "khoei:33434",
   "khoei:33491",
   "khoei:33500",

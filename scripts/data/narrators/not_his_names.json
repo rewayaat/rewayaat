@@ -1,11 +1,30 @@
 {
-  "_about": "Names a record carries that are not the man's own, removed by hand. Keyed by an entry the record holds (book:index), so the key survives merges and renumbering of person ids. Each needs the entry's own words showing whose name it is.",
-  "names": [
-    {"entry": "khoei:37134", "name": "ضمرة بن أبي ضمرة",
-     "why": "The record is the grandfather of al-Ḥusayn b. Ḍamra («عن الحسين بن ضمرة، عن أبيه، عن جده»), i.e. Abū Ḍamra; «ضمرة بن أبي ضمرة» is his son, al-Ḥusayn's father."},
-    {"entry": "khoei:24954", "name": "ابن علي بن زياد الوشّاء",
-     "why": "A fragment of «هو ابن زياد الوشاء المتقدم» (al-Ardabīlī) read as a name; al-Khoei adds that the identification «لم يثبت»."},
-    {"entry": "ardabili:3204", "name": "ابن علي بن زياد الوشّاء",
-     "why": "The same fragment, from al-Ardabīlī's line «هو ابن زياد - الوشاء المتقدم»."}
-  ]
+ "_about": "Names a record carries that are not the man's own, removed by hand. Keyed by an entry the record holds (book:index), so the key survives merges and renumbering of person ids. Each needs the entry's own words showing whose name it is.",
+ "names": [
+  {
+   "entry": "khoei:37134",
+   "name": "ضمرة بن أبي ضمرة",
+   "why": "The record is the grandfather of al-Ḥusayn b. Ḍamra («عن الحسين بن ضمرة، عن أبيه، عن جده»), i.e. Abū Ḍamra; «ضمرة بن أبي ضمرة» is his son, al-Ḥusayn's father."
+  },
+  {
+   "entry": "khoei:24954",
+   "name": "ابن علي بن زياد الوشّاء",
+   "why": "A fragment of «هو ابن زياد الوشاء المتقدم» (al-Ardabīlī) read as a name; al-Khoei adds that the identification «لم يثبت»."
+  },
+  {
+   "entry": "ardabili:3204",
+   "name": "ابن علي بن زياد الوشّاء",
+   "why": "The same fragment, from al-Ardabīlī's line «هو ابن زياد - الوشاء المتقدم»."
+  },
+  {
+   "entry": "khoei:32198",
+   "name": "أبي إسماعيل السراج",
+   "why": "al-Khoei on «محمد بن إسماعيل السراج»: the other printings read «محمد بن إسماعيل، عن أبي إسماعيل السراج، وهو الصحيح»; Abū Ismāʿīl al-Sarrāj is the man he narrates from, «اسمه عبد الله بن عثمان بن عمرو الفزاري» (al-Ardabīlī)."
+  },
+  {
+   "entry": "ardabili:2083",
+   "name": "أحمد بن الوليد",
+   "why": "Not a name the books give Ibn al-Walīd's son Aḥmad b. Muḥammad b. al-Ḥasan, a shaykh of al-Mufīd; al-Kāfī's «أحمد بن الوليد» is a Kūfan who narrates from Abān b. ʿUthmān."
+  }
+ ]
 }
