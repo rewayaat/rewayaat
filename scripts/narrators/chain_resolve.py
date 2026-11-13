@@ -613,7 +613,35 @@ def load_people(path, books):
             # a shorter one would trade a father nobody holds for a namesake somebody does.
             break
 
+    # Who narrated from whom, by the man, read off every record in the file and in both
+    # directions: X's entry naming Y among his teachers is the same pairing as Y's naming X
+    # among his students, and either book may be the one that wrote it down. A row counts
+    # only where relations_join tied it to one man. Also kept: each record's rows by the
+    # spelling the book gave, so a chain name nobody is filed under can be read off its
+    # neighbour's own entry («روى عن فضيل بن عثمان») when that row was tied to a man.
+    taught_by, taught = defaultdict(set), defaultdict(set)
+    named_teacher, named_student = defaultdict(dict), defaultdict(dict)
+    for person in people:
+        pid = person["person_id"]
+        for field, mine, theirs, by_name in (
+                (("narrated_from", "chain_from", "unsaid_from"), taught_by, taught, named_teacher),
+                (("narrated_to", "chain_to", "unsaid_to"), taught, taught_by, named_student)):
+            for name in field:
+                for r in person.get(name) or []:
+                    other = r.get("person_id")
+                    if not other or other == pid:
+                        continue
+                    mine[pid].add(other)
+                    theirs[other].add(pid)
+                    for spelled in [r.get("name_ar") or r.get("name")] + (r.get("spellings_ar") or []):
+                        folded = key(spelled or "")
+                        if folded:
+                            by_name[pid].setdefault(folded, set()).add(other)
+    every_id = {person["person_id"]: person for person in people}
+
     return {"headings": headings, "aliases": aliases, "answers_to": answers_to,
+            "taught_by": taught_by, "taught": taught, "every_id": every_id,
+            "named_teacher": named_teacher, "named_student": named_student,
             "teachers": teachers,
             "students": students, "students_by_id": students_by_id,
             "by_id": by_id, "imams_of": imams_of, "fathers": fathers,
@@ -680,6 +708,137 @@ def support_by_id(pid, before_id, data):
     candidate's own record names as his student, joined to him by relations_join."""
     name = before_id and data.get("students_by_id", {}).get(pid, {}).get(before_id)
     return f"narrated to {name}" if name else ""
+
+
+def tied(pid, before_id, after_id, data):
+    """Which of the two neighbours the books pair this man with, by the man: the one before
+    him received from him, the one after him is his teacher."""
+    sides = []
+    if before_id and before_id in data["taught"].get(pid, ()):
+        sides.append(before_id)
+    if after_id and after_id in data["taught_by"].get(pid, ()):
+        sides.append(after_id)
+    return sides
+
+
+def spelled_beside(pid, before, after, before_id, after_id, data):
+    """`support` with the rows' own men asked too: a spelling vouches for this man only where
+    the row it matched was not tied to somebody other than the neighbour the chain names.
+    al-Ṭūsī's «محمد بن عيسى» among one Yūnus's students is al-Ashʿarī, and the chain's «محمد
+    بن عيسى بن عبيد» before a bare «يونس» does not make that Yūnus the one meant."""
+    for spellings, by_name, neighbour, nid in (
+            (data["teachers"].get(pid, ()), data["named_teacher"].get(pid, {}), after, after_id),
+            (data["students"].get(pid, ()), data["named_student"].get(pid, {}), before, before_id)):
+        if not neighbour or neighbour in RELATIVE:
+            continue
+        for name in spellings:
+            if name in RELATIVE or not same_name(name, neighbour):
+                continue
+            tied_to = by_name.get(name)
+            if not tied_to or not nid or nid in tied_to:
+                return True
+    return False
+
+
+def linked_man(row):
+    if row.get("outcome") in ("one", "chosen", "convention") and row.get("target") == "narrator":
+        return row.get("person_id") or ""
+    return ""
+
+
+def by_the_man(rows, keys, pools, data, compiler, beside=None):
+    """Settle a name from the men beside it, where the books pair it with them by person.
+
+    Every pass above weighs a neighbour by the spelling its entry gives him, and a spelling
+    is a weaker witness than the man: al-Khoei writes Fuḍayl b. ʿUthmān's student «الحسن بن
+    زبرقان الأنصاري», al-Khiṣāl writes «أبي الخزرج الحسن بن الزبرقان», and relations_join has
+    already tied both to n000124. So, for each name still undecided — and for a link that
+    nothing in the books places here — the candidates are asked which of them the books pair
+    with the men on either side.
+
+    - An undecided name, or one nobody was given, goes to the one candidate so paired.
+    - A name nobody is filed under at all is read off its neighbour's own entry: the man
+      before wrote «روى عن X» and that row was tied to one man, so X is him.
+    - A link already made is replaced only where nothing pairs its man with either neighbour,
+      by spelling or by person, while one other candidate is paired with both. al-Kāfī's
+      «أحمد بن محمد عن محمد بن يحيى عن غياث بن إبراهيم» is al-Khazzāz, whom the books put
+      between those two, and the book's convention for a chain's opening «محمد بن يحيى» had
+      made him al-ʿAṭṭār.
+
+    Names joined by a bare «و» stand side by side: the man before the group is the student
+    of each of them and the man after it their teacher, so the group is stepped over.
+
+    Twice over, because a name settled here can be the neighbour that settles the next.
+    """
+    beside = beside or [False] * len(rows)
+    for _ in range(2):
+        for position, row in enumerate(rows):
+            if row.get("kind") != "name" or row.get("target") == "imam":
+                continue
+            first = position
+            while first > 0 and beside[first]:
+                first -= 1
+            last = position + 1
+            while last < len(rows) and beside[last]:
+                last += 1
+            before_id = linked_man(rows[first - 1]) if first else ""
+            after_id = linked_man(rows[last]) if last < len(rows) else ""
+            if not (before_id or after_id):
+                continue
+            current = linked_man(row)
+            before = keys[first - 1] if first else ""
+            after = keys[last] if last < len(keys) else ""
+            if current:
+                if tied(current, before_id, after_id, data):
+                    continue
+                if spelled_beside(current, before, after, before_id, after_id, data):
+                    continue
+                pool = set(pools.get(position) or held_by(keys[position], data)) - {current}
+                if row["outcome"] == "chosen" and row.get("because", "").startswith("narrated "):
+                    # A `chosen` that rested on a spelling the book itself ties to another man
+                    # rests on nothing; it is decided again, from the men, like any other.
+                    found = [pid for pid in sorted(pool) if pid in data["by_id"]
+                             and not outlived(pid, compiler, data)
+                             and tied(pid, before_id, after_id, data)]
+                    if len(found) == 1:
+                        row["replaced"] = current
+                        row["person_id"], row["because"] = found[0], (
+                            "the books pair him with the man beside him; the spelling the "
+                            "earlier match rested on is another man's")
+                    continue
+                both = [pid for pid in pool if pid in data["by_id"]
+                        and not outlived(pid, compiler, data)
+                        and len(tied(pid, before_id, after_id, data)) == 2]
+                if len(both) == 1:
+                    row["replaced"] = current
+                    row["outcome"], row["person_id"] = "chosen", both[0]
+                    row["because"] = ("the books pair him with the men on both sides, and "
+                                      "nothing pairs the man this name was given with either")
+                    row.pop("candidates", None)
+                    row.pop("backed", None)
+                continue
+            if row.get("outcome") not in ("several", "none"):
+                continue
+            pool = set(row.get("candidates") or pools.get(position) or [])
+            pool = {pid for pid in pool if pid in data["by_id"]
+                    and not outlived(pid, compiler, data)}
+            found = [pid for pid in sorted(pool) if tied(pid, before_id, after_id, data)]
+            why = "the books pair him with the man beside him"
+            if not found and row["outcome"] == "none" and not pools.get(position):
+                read = set()
+                if before_id:
+                    read |= data["named_teacher"].get(before_id, {}).get(keys[position], set())
+                if after_id:
+                    read |= data["named_student"].get(after_id, {}).get(keys[position], set())
+                read = {pid for pid in read if pid in data["every_id"]
+                        and (pid not in data["by_id"] or not outlived(pid, compiler, data))}
+                found = sorted(read)
+                why = "the entry of the man beside him names him so, and that is this man"
+            if len(found) == 1:
+                row["outcome"], row["person_id"], row["because"] = "chosen", found[0], why
+                row["target"] = "narrator"
+                row.pop("candidates", None)
+                row.pop("backed", None)
 
 
 def past_the_stub(folded, lone, before, after, data):
@@ -1020,7 +1179,24 @@ SHARED_KUNYA = {
 }
 
 
-def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
+def side_by_side(mentions, text):
+    """For each step, whether it stands beside the one before rather than behind it.
+
+    «حدثني أبي ومحمد بن الحسن رحمهم الله عن الحسن بن متيل»: the two first men are both
+    Ibn Qūlawayh's teachers, and neither received from the other. A bare «و» between two
+    names says so; anything with a verb or «عن» in it does not.
+    """
+    flags = [False] * len(mentions)
+    if not text:
+        return flags
+    for at in range(1, len(mentions)):
+        gap = text[mentions[at - 1]["end"]:mentions[at]["start"]]
+        gap = "".join(ch for ch in gap if "\u0621" <= ch <= "\u064a")
+        flags[at] = gap == "و"
+    return flags
+
+
+def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None, text=""):
     """Give each mention in one chain an outcome, in three passes over the same chain.
 
     Names first, because the other two kinds are read off their neighbours: an Imam's kunya is
@@ -1038,6 +1214,7 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
     if "settled" not in data:
         data["settled"] = settled_names(table, seen)
     names = data["settled"]
+    pools = {}
 
     for position, row in enumerate(rows):
         if row["kind"] != "name":
@@ -1045,6 +1222,7 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
             continue
         row["target"] = "narrator"
         candidates = held_by(keys[position], data)
+        pools[position] = list(candidates)
         before = keys[position - 1] if position else ""
         after = keys[position + 1] if position + 1 < len(keys) else ""
         widened = ""
@@ -1064,6 +1242,7 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
             # somebody *does* hold, and widening it would find those same men under a looser
             # spelling or, worse, other men.
             candidates, widened, tier = widen(keys[position], data)
+            pools[position] = list(candidates)
             if tier in ("aliases", "alias_shortened"):
                 # An alias is any name an entry mentions, chains quoted inside it included, and
                 # a widened key matched against one is two steps from the heading a rijālī
@@ -1322,6 +1501,8 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
             row["target"] = "imam" if fix["person_id"] in imams.BY_ID else "narrator"
             row["imam_id" if fix["person_id"] in imams.BY_ID else "person_id"] = fix["person_id"]
 
+    by_the_man(rows, keys, pools, data, compiler, side_by_side(mentions, text))
+
     for position, row in enumerate(rows):
         if row["kind"] != "relative":
             continue
@@ -1535,6 +1716,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--mentions", default=MENTIONS)
+    parser.add_argument("--chains", default=f'{TMP}/narrators_chains/chains_served.jsonl',
+                        help="the chain text the mentions were cut from, read for the «و» "
+                             "that sets two names side by side")
     parser.add_argument("--people", default=PEOPLE)
     parser.add_argument("--out", default=f'{TMP}/narrators_chains/resolved.jsonl')
     parser.add_argument("--conventions", default=CONVENTIONS)
@@ -1562,6 +1746,12 @@ def main():
     print(f"  {len(data['headings']):7,}  names a book files one of them under, "
           f"{len(data['aliases']):,} more they are called elsewhere")
 
+    texts = {}
+    if os.path.exists(args.chains):
+        with open(args.chains) as handle:
+            for line in handle:
+                chain = json.loads(line)
+                texts[chain["id"]] = chain.get("chain_ar") or ""
     outcomes, examples, chains = Counter(), defaultdict(list), 0
     by_kind, per_book = Counter(), defaultdict(Counter)
     rows = []
@@ -1570,7 +1760,7 @@ def main():
             row = json.loads(line)
             chains += 1
             resolved = resolve_chain(row["mentions"], data, row["book"], table,
-                                     row.get("source", ""), seen)
+                                     row.get("source", ""), seen, texts.get(row["id"], ""))
             for mention in resolved:
                 outcomes[mention["outcome"]] += 1
                 by_kind[(mention["kind"], mention["outcome"])] += 1

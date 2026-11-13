@@ -1232,6 +1232,14 @@ POINTS_ACROSS = re.compile(
 # And a third: «جعفر بن قولويه: هو جعفر بن محمد بن قولويه الآتي», «المفيد: هو محمد بن محمد بن
 # النعمان، المتقدم ذكره». Only where «هو» opens the entry and what follows is a name some one
 # man is filed under — «هو من الزيدية» names nobody, and is left alone by the lookup.
+# A page's heading kept through a merge: person id → the heading it was served under. When a
+# variant record is folded into a man, his shortest clean heading can become the variant's own
+# («صابر بن ربيعة» for Ṣāʿid, «الحسن بن علي» for Ibn Mahziyār), and the page should not take
+# the very form al-Khoei sends the reader away from. Applied only where the kept heading is
+# still one of his.
+KEPT_HEADINGS = {}
+
+
 def hedged(text, end):
     """Whether what follows a pointer takes it back: «هو محمد بن أبي القاسم، أو محمد بن القاسم»
     names two men, «بناء على أن …» makes it conditional, «تقدم في عبد الرحمان بن بديل: أنه …»
@@ -2670,6 +2678,11 @@ def document(person, source, headless):
     # opens with should not have to take our word that we shortened a real name.
     nasab_ar = display_ar
     display_ar = short_heading(display_ar, raw_headings_ar)
+    kept = KEPT_HEADINGS.get(person.get("person_id"))
+    if kept and normalize_arabic(kept) in {normalize_arabic(name_only(h)) for h in raw_headings_ar}:
+        # the heading the page was served under before a record was folded into it; see
+        # scripts/data/narrators/kept_headings.json
+        display_ar = kept
     display_en = anchor.get("primary_english_name") or person.get("primary_english_name")
     if display_en and display_en.rstrip().endswith(("...", "\u2026")):
         display_en = None      # a truncation, not a name
@@ -3037,6 +3050,8 @@ def main():
     TRANSLITERATION = transliterate.load()
     with open(os.path.join(REPO, "scripts/data/narrators/city_or_tribe_clean.json")) as handle:
         CITY_CLEAN.update(json.load(handle))
+    with open(os.path.join(REPO, "scripts/data/narrators/kept_headings.json")) as handle:
+        KEPT_HEADINGS.update({pid: row["display_ar"] for pid, row in json.load(handle).items()})
     with open(os.path.join(REPO, "scripts/data/narrators/not_his_names.json")) as handle:
         for item in json.load(handle)["names"]:
             NOT_HIS[item["entry"]].add(normalize_arabic(item["name"]))
