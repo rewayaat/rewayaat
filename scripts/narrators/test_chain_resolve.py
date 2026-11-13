@@ -340,9 +340,15 @@ def test_a_name_nobody_is_filed_under_is_read_off_the_neighbours_own_entry():
     same spelling in a chain where nobody is filed under it — even a man only al-Khoei has."""
     data = index(
         joined("n1", "الحسن بن الزبرقان", teachers=[("فضيل بن عثمان", "n2")]),
-        joined("n2", "الفضل بن عثمان المرادي", books=("khoei",)))
+        joined("n2", "الفضل بن عثمان المرادي", "الفضيل بن عثمان", books=("khoei",)))
     assert read(data, "الحسن بن الزبرقان", "فضيل بن عثمان")[0] == [
         ("one", "n1"), ("chosen", "n2")]
+    # The row's man must answer to the name: a join can be wrong, «خالد بن عمار» tied to
+    # Hishām al-Khayyāṭ.
+    data = index(
+        joined("n1", "الحسن بن الزبرقان", teachers=[("فضيل بن عثمان", "n2")]),
+        joined("n2", "هشام الخياط", books=("khoei",)))
+    assert read(data, "الحسن بن الزبرقان", "فضيل بن عثمان")[0] == [("one", "n1"), ("none", "")]
 
 
 def test_a_link_is_moved_only_to_a_man_the_books_place_on_both_sides():
