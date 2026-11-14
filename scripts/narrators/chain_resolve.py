@@ -843,16 +843,19 @@ def kunya_fits(pid, folded, data):
     """A chain that opens on a kunya, «أبو العباس محمد بن جعفر», names a man whose books give
     that kunya, or give none: al-Razzāz is Abū al-ʿAbbās and Ibn Baṭṭa Abū Jaʿfar."""
     words = folded.split()
-    if len(words) < 3 or words[0] not in KUNYA_WORDS or words[1] in LINK:
+    if len(words) < 2 or words[0] not in KUNYA_WORDS or words[1] in LINK:
         # «أبي بن كعب» is the name Ubayy, not a kunya
         return True
     said = loosen(["ابو", words[1]])
     person = data["by_id"].get(pid) or data["every_id"].get(pid) or {}
     own = set()
     for name in [person.get("display_ar") or ""] + list(person.get("names_ar") or []):
-        words = key(name).split()
+        words = key(re.sub(r"\([^)]*\)", " ", name)).split()   # «(الحسن خ)» is a variant note
+        # a laqab stands after his own name, «حمزة الطيار»; a word after «بن» is a forebear's
+        # name, and «أبو الحسن» is not a laqab for being his father's name too
         own |= {word for at, word in enumerate(words[1:], 1)
-                if word not in KUNYA_WORDS and words[at - 1] not in KUNYA_WORDS}
+                if word not in KUNYA_WORDS and words[at - 1] not in KUNYA_WORDS
+                and words[at - 1] not in LINK}
     his = {loosen(["ابو"] + key(k).split()[1:2]) for k in person.get("kunyahs_ar") or []
            if len(key(k).split()) >= 2 and key(k).split()[0] in KUNYA_WORDS
            and key(k).split()[1] not in own}   # «أبو الطيار» for Ḥamza al-Ṭayyār is his laqab
@@ -1016,7 +1019,7 @@ def by_the_man(rows, keys, pools, data, compiler, beside=None, theirs=()):
                                        "nothing ties this narrator here")
                 continue
             if current and not kunya_fits(current, keys[position], data):
-                withdraw(row, current, "the chain gives him a kunya his books do not")
+                withdraw(row, current, "the chain names him by a kunya his books do not give")
                 continue
             before = keys[first - 1] if first else ""
             after = keys[last] if last < len(keys) else ""
@@ -1051,10 +1054,6 @@ def by_the_man(rows, keys, pools, data, compiler, beside=None, theirs=()):
                     row.pop("backed", None)
                 continue
             if row.get("outcome") not in ("several", "none") or position in theirs:
-                continue
-            if loosen(keys[position].split()) in SHARED_LOOSE:
-                # «أبي بصير» is Layth or Yaḥyā, as the books themselves say; one tie does not
-                # choose between two men the corpus declares share the name
                 continue
             pool = set(row.get("candidates") or pools.get(position) or [])
             # The men who spell the name out are asked too: al-Barqī is filed under «محمد
@@ -1432,14 +1431,11 @@ def read_as_imam(row, imam, because):
         row.pop(gone, None)
 
 
-SHARED_LOOSE = set()   # filled below, once loosen() can be called on the keys
-
 SHARED_KUNYA = {
     "ابي بصير": ("n000902", "n030321"),
     "ابو بصير": ("n000902", "n030321"),
     "ابا بصير": ("n000902", "n030321"),
 }
-SHARED_LOOSE.update(loosen(name.split()) for name in SHARED_KUNYA)
 
 
 def side_by_side(mentions, text):
