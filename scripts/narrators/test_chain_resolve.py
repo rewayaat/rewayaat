@@ -437,3 +437,18 @@ def test_the_compiler_does_not_stand_after_his_own_teacher():
                 for i, t in enumerate(("ابن أبي عمير", "الحسين", "عثمان"))]
     rows = cr.resolve_chain(mentions, data, "Kitāb al-Zuhd", {}, "Ḥusayn b. Saʿīd al-Ahwāzī")
     assert rows[1].get("person_id") != "n067140"
+
+
+def test_a_link_moves_to_al_khoeis_man_only_where_readers_ruled_the_linked_man_out():
+    stub = {"person_id": "n9", "books": ["khoei"], "display_ar": "محمد بن الوليد",
+            "headings_ar": ["محمد بن الوليد"], "names_ar": ["محمد بن الوليد"],
+            "entries": [{"book": "khoei", "source_key": "khoei:1",
+                         "text_ar": "محمد بن الوليد: روى عن يونس، وروى عنه علي. الكافي: الجزء 2."}]}
+    linked = man("n1", "محمد بن الوليد")
+    linked["entries"] = [{"book": "najashi", "source_key": "najashi:1", "text_ar": ""}]
+    data = index(stub, linked, man("n2", "علي بن الحكم", "علي"), man("n3", "يونس بن يعقوب", "يونس"))
+    got, _ = read(data, "علي", "محمد بن الوليد", "يونس")
+    assert got[1] == ("one", "n1")
+    data["khoei_not"] = {"n9": {"n1"}}
+    got, rows = read(data, "علي", "محمد بن الوليد", "يونس")
+    assert got[1] == ("chosen", "n9") and rows[1]["replaced"] == "n1"

@@ -53,6 +53,21 @@ BESIDE = {"و", "جميعا", "معا", "كلهم", "جميعهم", "قالا", 
 # «و رويته عن …» starts the chain again by another route. The last man of the first
 # ṭarīq and the first of the second never met; they are not a pair of any kind.
 RESTART = {"رويته", "ورويته", "رويت", "وقد", "وفي"}
+# «… عن محمد بن الحسين وحدثني محمد بن جعفر الرزاز عن محمد بن الحسين …» is the compiler
+# taking up a second route: «و» with a verb of reporting starts the chain again.
+REPORTING = {"حدثني", "حدثنا", "اخبرني", "اخبرنا", "أخبرني", "أخبرنا"}
+
+
+def restarts(between):
+    """Whether the words between two names start the chain again by another route."""
+    if any(w in RESTART for w in between):
+        return True
+    for at, word in enumerate(between):
+        if word.startswith("و") and word[1:] in REPORTING:
+            return True
+        if word == "و" and at + 1 < len(between) and between[at + 1] in REPORTING:
+            return True
+    return False
 
 # A name only tells two people apart if it belongs to few of them. «احمد بن محمد» is
 # filed under 20 different men, «ابو عبد الله» under dozens, so finding that string in some
@@ -313,7 +328,7 @@ def main():
                     between = [w for w in between if w]
                     if between and all(w in BESIDE for w in between):
                         beside = True
-                    if any(w in RESTART for w in between):
+                    if restarts(between):
                         restart = True
                 if restart:
                     found["second-tariq"] += 1

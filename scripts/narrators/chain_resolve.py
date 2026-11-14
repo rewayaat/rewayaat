@@ -39,6 +39,7 @@ from narrator_schema import normalize_arabic  # noqa: E402
 
 TMP = f'{W}/tmp'
 CONVENTIONS = f'{W}/scripts/data/narrators/chain_conventions.json'
+HAND_READINGS = f'{W}/scripts/data/narrators/chain_hand_readings.json'
 MENTIONS = f'{TMP}/narrators_chains/mentions.jsonl'
 PEOPLE = f'{TMP}/narrators_chains/people_index.json'
 
@@ -666,6 +667,7 @@ def load_people(path, books):
 
     return {"headings": headings, "aliases": aliases, "answers_to": answers_to,
             "khoei_cites": khoei_cites(people),
+            "khoei_not": khoei_ruled_out(people),
             "taught_by": taught_by, "taught": taught, "every_id": every_id,
             "folded_names": folded_names, "opens": opens,
             "named_teacher": named_teacher, "named_student": named_student,
@@ -877,21 +879,59 @@ def khoei_cites(people):
     return cites
 
 
+KHOEI_REVIEWED = f'{W}/scripts/data/narrators/khoei_chain_records_reviewed.json'
+
+
+def khoei_ruled_out(people):
+    """al-Khoei's man for a chain → the men two readers found he is not, by current id."""
+    try:
+        with open(KHOEI_REVIEWED) as handle:
+            reviewed = json.load(handle).get("different") or []
+    except FileNotFoundError:
+        return {}
+    owner = {entry.get("source_key"): person["person_id"]
+             for person in people for entry in person.get("entries") or []}
+    ruled = defaultdict(set)
+    for item in reviewed:
+        linked = owner.get(item["linked_entry"])
+        for stub in item["stub_entries"]:
+            if owner.get(stub) and linked and owner[stub] != linked:
+                ruled[owner[stub]].add(linked)
+    return ruled
+
+
 def khoei_cited(rows, keys, data, book, theirs=()):
-    """Settle an undecided name where al-Khoei filed a man under it for this very chain."""
+    """Settle a name where al-Khoei filed a man under it for this very chain.
+
+    An undecided name goes to his man. A link already made moves to him only where two
+    readers found the linked man to be somebody else: «محمد بن الوليد شباب الصيرفي» is not
+    al-Khazzāz, whatever the spelling reached."""
     for position, row in enumerate(rows):
         if (row.get("kind") != "name" or position in theirs or not position
-                or position + 1 >= len(rows) or row.get("outcome") not in ("several", "none")):
+                or position + 1 >= len(rows)):
+            continue
+        undecided = row.get("outcome") in ("several", "none")
+        if not undecided and row.get("outcome") not in ("one", "chosen"):
             continue
         found = data["khoei_cites"].get((loosen(keys[position].split()),
                                          loosen(keys[position + 1].split()),
                                          loosen(keys[position - 1].split()), book), set())
         found = {pid for pid in found if pid in data["every_id"]}
-        if len(found) == 1:
-            row["outcome"], row["target"], row["person_id"] = "chosen", "narrator", found.pop()
+        if len(found) != 1:
+            continue
+        his = next(iter(found))
+        current = row.get("person_id")
+        if undecided:
             row["because"] = "al-Khoei files a man under this name for this chain"
-            row.pop("candidates", None)
-            row.pop("backed", None)
+        elif current != his and current in data["khoei_not"].get(his, ()):
+            row["replaced"] = current
+            row["because"] = ("al-Khoei files another man under this name for this chain, "
+                              "and his books are not this one's")
+        else:
+            continue
+        row["outcome"], row["target"], row["person_id"] = "chosen", "narrator", his
+        row.pop("candidates", None)
+        row.pop("backed", None)
 
 
 def withdraw(row, current, why):
@@ -1399,7 +1439,20 @@ def conventions(path):
         with open(path) as handle:
             table = json.load(handle)
     except FileNotFoundError:
-        return {"settles": {}, "corrects": {}, "everywhere": {}}
+        table = {"settles": {}, "corrects": {}, "everywhere": {}}
+    # Readings made by hand from the books, kept apart from the harvested table so that a
+    # harvest does not drop them (scripts/data/narrators/chain_hand_readings.json).
+    try:
+        with open(HAND_READINGS) as handle:
+            hand = json.load(handle)
+    except FileNotFoundError:
+        hand = {}
+    everywhere = dict(table.get("everywhere") or {})
+    table["hand"] = set()
+    for item in hand.get("everywhere") or []:
+        everywhere[unprayed(key(item["name"]))] = item["person_id"]
+        table["hand"].add(unprayed(key(item["name"])))
+    table["everywhere"] = everywhere
     return table
 
 
@@ -1809,7 +1862,8 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None, t
         if row.get("kind") not in ("name", "imam"):
             continue
         if row["outcome"] in ("several", "none") or (
-                row["outcome"] == "chosen" and row.get("kind") == "name"):
+                row["outcome"] == "chosen" and row.get("kind") == "name") or (
+                row["outcome"] == "one" and keys[position] in (table.get("hand") or ())):
             # Where a convention and a `chosen` name different men, the audit has said three
             # times that the convention was right, and never the other way. A `chosen` rests
             # on one pairing found in one entry, and it rests on nothing at all when nobody is
