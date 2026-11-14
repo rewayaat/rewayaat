@@ -665,6 +665,7 @@ def load_people(path, books):
                 folded_names[key(name)].add(pid)
 
     return {"headings": headings, "aliases": aliases, "answers_to": answers_to,
+            "khoei_cites": khoei_cites(people),
             "taught_by": taught_by, "taught": taught, "every_id": every_id,
             "folded_names": folded_names, "opens": opens,
             "named_teacher": named_teacher, "named_student": named_student,
@@ -825,6 +826,72 @@ def bare_record(pid, data):
     if words[0] in KUNYA_WORDS:
         return len(words) <= 2
     return len(words) <= 2 and not any(word in LINK for word in words)
+
+
+# The compiler of each book, as the index files him. The men who carried the book name him at
+# its head, so he can stand in its chains; what he cannot do is stand after one of his own
+# teachers. In Kitāb al-Zuhd «ابن أبي عمير عن الحسين عن عثمان» is not al-Ḥusayn b. Saʿīd.
+COMPILER_SELF = {
+    "Shaykh Muḥammad b. Yaʿqūb al-Kulaynī": "n001052",
+    "Shaykh Muḥammad b. ʿAlī al-Ṣaduq": "n001075",
+    "Shaykh Muḥammad b. al-Ḥasan al-Ṭūsī": "n001093",
+    "Shaykh Muḥammad b. Muḥammad al-Mufīd": "n001092",
+    "Shaykh Jaʿfar b. Muḥammad al-Qummī": "n000339",
+    "Abū ʿAbd Allah Muḥammad b. Ibrāhīm al-Nuʿmānī": "n001069",
+    "Ḥusayn b. Saʿīd al-Ahwāzī": "n067140",
+}
+
+
+def his_own_teacher_before(pid, before_id, compiler, data):
+    """Whether this man is the book's compiler and the man before him is one of his teachers."""
+    return bool(before_id and COMPILER_SELF.get(compiler) == pid
+                and before_id in data["taught_by"].get(pid, ()))
+
+
+# al-Khoei heads a record for a name exactly as one chain writes it, and says where: «أحمد بن
+# الوليد: روى عن أبان، وروى عنه أحمد القلانسي. الكافي: الجزء 4 …». The name, the man after
+# it, the man before it and the book together point at one chain, and he filed the man there.
+KHOEI_CITE = re.compile(r"روى عن ([^،.:]{2,60}?)،\s*وروى عنه ([^،.:]{2,60}?)\.\s*"
+                        r"(الكافي|الفقيه|كامل الزيارات)")
+KHOEI_BOOKS = {"الكافي": "Al-Kāfi", "الفقيه": "Man Lā Yaḥḍuruh al-Faqīh",
+               "كامل الزيارات": "Kāmil al-Ziyārāt"}
+HONORIFIC_TAIL = re.compile(r"\s*\(?\s*(?:عليه|عليهم|عليهما)\s+السلام\s*\)?\s*$")
+
+
+def khoei_cites(people):
+    """(name, teacher, student, book) → the men al-Khoei filed under that name in that chain."""
+    cites = defaultdict(set)
+    for person in people:
+        for entry in person.get("entries") or []:
+            if entry.get("book") != "khoei":
+                continue
+            text = entry.get("text_ar") or ""
+            name = unprayed(key(text.split(":", 1)[0]))
+            for found in KHOEI_CITE.finditer(text):
+                teacher = key(HONORIFIC_TAIL.sub("", found.group(1)))
+                student = key(HONORIFIC_TAIL.sub("", found.group(2)))
+                if name and teacher and student:
+                    cites[(loosen(name.split()), loosen(teacher.split()),
+                           loosen(student.split()), KHOEI_BOOKS[found.group(3)])].add(
+                        person["person_id"])
+    return cites
+
+
+def khoei_cited(rows, keys, data, book, theirs=()):
+    """Settle an undecided name where al-Khoei filed a man under it for this very chain."""
+    for position, row in enumerate(rows):
+        if (row.get("kind") != "name" or position in theirs or not position
+                or position + 1 >= len(rows) or row.get("outcome") not in ("several", "none")):
+            continue
+        found = data["khoei_cites"].get((loosen(keys[position].split()),
+                                         loosen(keys[position + 1].split()),
+                                         loosen(keys[position - 1].split()), book), set())
+        found = {pid for pid in found if pid in data["every_id"]}
+        if len(found) == 1:
+            row["outcome"], row["target"], row["person_id"] = "chosen", "narrator", found.pop()
+            row["because"] = "al-Khoei files a man under this name for this chain"
+            row.pop("candidates", None)
+            row.pop("backed", None)
 
 
 def withdraw(row, current, why):
@@ -1009,17 +1076,23 @@ def by_the_man(rows, keys, pools, data, compiler, beside=None, theirs=()):
                 last += 1
             before_id = linked_man(rows[first - 1]) if first else ""
             after_id = linked_man(rows[last]) if last < len(rows) else ""
+            current = linked_man(row)
+            if current and not kunya_fits(current, keys[position], data):
+                # the name itself rules him out, whoever stands beside it: «أبو يوسف يعقوب بن
+                # إبراهيم» is the qāḍī, not Abū Ibrāhīm al-Anṣārī
+                withdraw(row, current, "the chain names him by a kunya his books do not give")
+                continue
             if not (before_id or after_id):
                 continue
-            current = linked_man(row)
             if (current and loosen(keys[position].split()) == "حسين" and position + 1 < len(rows)
                     and rows[position + 1].get("kind") == "relative"
                     and not tied(current, before_id, after_id, data)):
                 withdraw(row, current, "«عن الحسين عن أبيه» is the Imams' own chain, and "
                                        "nothing ties this narrator here")
                 continue
-            if current and not kunya_fits(current, keys[position], data):
-                withdraw(row, current, "the chain names him by a kunya his books do not give")
+            if current and his_own_teacher_before(current, before_id, compiler, data):
+                withdraw(row, current, "the compiler of this book, named after one of his "
+                                       "own teachers")
                 continue
             before = keys[first - 1] if first else ""
             after = keys[last] if last < len(keys) else ""
@@ -1067,7 +1140,8 @@ def by_the_man(rows, keys, pools, data, compiler, beside=None, theirs=()):
             found = [pid for pid in sorted(wider) if tied(pid, before_id, after_id, data)
                      and fathers_only(pid, before_id, keys, position, data)
                      and from_this_imam(pid, after_imam, data)
-                     and kunya_fits(pid, keys[position], data)]
+                     and kunya_fits(pid, keys[position], data)
+                     and not his_own_teacher_before(pid, before_id, compiler, data)]
             if after_imam and found:
                 # Another candidate the books show transmitting from this very Imam is as
                 # good a reading as the one a neighbour ties: «العمركي عن علي بن جعفر عن أخيه
@@ -1531,6 +1605,21 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None, t
             # somebody *does* hold, and widening it would find those same men under a looser
             # spelling or, worse, other men.
             candidates, widened, tier = widen(keys[position], data)
+            if keys[position].split()[:1] in (["ابي"], ["ابا"]):
+                # The case fold takes «أبي سعيد» to the heading «أبو سعيد», and where that
+                # record is the bare kunya it says no more than the chain does. Leaving it in
+                # the pool kept the men beside the name from settling it: the two «أبي سعيد»
+                # of al-Kāfī between Ṣafwān and ʿAbd al-Malik are al-Mukārī.
+                kept = [pid for pid in candidates if not bare_record(pid, data)]
+                if len(kept) < len(candidates):
+                    # Whoever is left won the name only by the stubs dropping out, which says
+                    # nothing about him: «عاصم عن أبي عثمان عن أبي هريرة» is al-Nahdī, not
+                    # Muʿallā b. ʿUthmān. He must be borne out by a neighbour.
+                    before_id = linked_man(rows[position - 1]) if position else ""
+                    kept = [pid for pid in kept if support(
+                        pid, before, after, data["teachers"], data["students"])
+                        or support_by_id(pid, before_id, data)]
+                candidates = kept
             pools[position] = list(candidates)
             if tier in ("aliases", "alias_shortened"):
                 # An alias is any name an entry mentions, chains quoted inside it included, and
@@ -1796,6 +1885,7 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None, t
     theirs = {position for position, row in enumerate(rows)
               if row.get("refused") or (row.get("kind") == "name"
                                         and by_convention(table, book, keys[position])[0])}
+    khoei_cited(rows, keys, data, book, theirs)
     by_the_man(rows, keys, pools, data, compiler, side_by_side(mentions, text), theirs)
 
     for position, row in enumerate(rows):

@@ -400,3 +400,40 @@ def test_his_father_named_is_the_man_the_sons_nasab_names():
     data = index(son, ashari, father, other)
     outcomes = read(data, "أحمد بن محمد بن خالد بن عبد الرحمن البرقي", "أبيه محمد بن خالد")[0]
     assert outcomes[1] == ("chosen", "n3")
+
+
+def test_al_khoei_files_a_man_for_this_very_chain():
+    """«أحمد بن الوليد: روى عن أبان، وروى عنه أحمد القلانسي. الكافي…» is al-Khoei's record of one
+    al-Kāfī chain. The name between those two men there is his, and only there."""
+    stub = {"person_id": "n9", "books": ["khoei"], "display_ar": "أحمد بن الوليد",
+            "headings_ar": ["أحمد بن الوليد"], "names_ar": ["أحمد بن الوليد"],
+            "entries": [{"book": "khoei", "text_ar": "أحمد بن الوليد: روى عن أبان، وروى عنه "
+                                                      "أحمد القلانسي. الكافي: الجزء 4 كتاب الحج."}]}
+    data = index(stub, man("n1", "أحمد القلانسي"), man("n2", "أبان بن عثمان", "أبان"))
+    got, _ = read(data, "أحمد القلانسي", "أحمد بن الوليد", "أبان")
+    assert got[1] == ("chosen", "n9")
+    got, _ = read(data, "أحمد القلانسي", "أحمد بن الوليد", "زرارة")
+    assert got[1][1] != "n9"
+
+
+def test_a_bare_kunya_record_does_not_answer_a_genitive_kunya():
+    """«أبي سعيد» folded to the heading «أبو سعيد» found a record of the kunya alone, and that
+    kept the men beside it from settling the name."""
+    data = index(man("n1", "أبو سعيد"),
+                 man("n2", "هاشم بن حيان", "أبو سعيد المكاري", teachers=["عبد الملك بن عمرو"],
+                     students=["صفوان"]),
+                 man("n3", "صفوان بن يحيى", "صفوان"), man("n4", "عبد الملك بن عمرو"))
+    got, _ = read(data, "صفوان", "أبي سعيد", "عبد الملك بن عمرو")
+    assert got[1][1] != "n1"
+
+
+def test_the_compiler_does_not_stand_after_his_own_teacher():
+    compiler = man("n067140", "الحسين بن سعيد", "الحسين")
+    compiler["narrated_from"] = [{"name_ar": "ابن أبي عمير", "person_id": "n7"},
+                                 {"name_ar": "عثمان", "person_id": "n8"}]
+    data = index(compiler, man("n7", "محمد بن أبي عمير", "ابن أبي عمير"),
+                 man("n8", "عثمان بن عيسى", "عثمان"))
+    mentions = [{"text": t, "kind": "name", "start": i * 20, "end": i * 20 + len(t)}
+                for i, t in enumerate(("ابن أبي عمير", "الحسين", "عثمان"))]
+    rows = cr.resolve_chain(mentions, data, "Kitāb al-Zuhd", {}, "Ḥusayn b. Saʿīd al-Ahwāzī")
+    assert rows[1].get("person_id") != "n067140"
