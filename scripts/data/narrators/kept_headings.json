@@ -54,5 +54,9 @@
  "n035674": {
   "display_ar": "محمد بن عيسى بن عبد الله الأشعري",
   "why": "al-Ardabīlī's «أبو على الأشعري» anchors the record, but in al-Kāfī that kunya is al-Kulaynī's shaykh Aḥmad b. Idrīs; the man is Muḥammad b. ʿĪsā b. ʿAbd Allāh al-Ashʿarī, father of Aḥmad."
+ },
+ "n015231": {
+  "display_ar": "الخيراني",
+  "why": "the record holds al-Khoei's «الخيراني: روى عن أبيه، وروى عنه الحسين بن محمد» (the son); «أبو الخيراني: يأتي في الخيراني» is only his pointer, and as a heading it named the father (audit 4)"
  }
 }

@@ -958,6 +958,9 @@ def kunya_fits(pid, folded, data):
     own = set()
     for name in [person.get("display_ar") or ""] + list(person.get("names_ar") or []):
         words = key(re.sub(r"\([^)]*\)", " ", name)).split()   # «(الحسن خ)» is a variant note
+        if words and words[0] in KUNYA_WORDS:
+            # «أبو يعقوب السفاتج» opens on a kunya, so no word in it stands after his ism
+            continue
         # a laqab stands after his own name, «حمزة الطيار»; a word after «بن» is a forebear's
         # name, and «أبو الحسن» is not a laqab for being his father's name too
         own |= {word for at, word in enumerate(words[1:], 1)
