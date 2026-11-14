@@ -147,7 +147,7 @@ LINK = ("بن", "ابن")
 # «أبي عبيدة الحذاء», trimmed, reached Abān b. ʿAbda, and «ابن جرير الطبري» reached Isḥāq b. Jarīr.
 # So an alias is accepted only for a man whom a book places beside the name next to this one
 # (`support`), and then it is a `chosen` with that reason, not a `one`.
-RECALL = {"article", "ibn", "relative", "trim", "short", "kunya"}
+RECALL = {"article", "ibn", "relative", "trim", "short", "kunya", "kunya_case"}
 
 # The definite article comes off a word only when at least three letters remain, so a word of
 # five or more. Measured as the steps for which exactly one man is then filed, on the names
@@ -193,11 +193,16 @@ def loosen(tokens, rules=None):
     """A name's tokens as one lookup key with the article and «ابن» folded, as `rules` say."""
     rules = RECALL if rules is None else rules
     out = []
-    for word in tokens:
+    for at, word in enumerate(tokens):
         if "article" in rules and word.startswith("ال") and len(word) >= ARTICLE_LETTERS:
             word = word[2:]
         if "ibn" in rules and word == "ابن":
             word = "بن"
+        if ("kunya_case" in rules and word in ("ابي", "ابا") and at + 1 < len(tokens)
+                and tokens[at + 1] not in LINK):
+            # «عن أبي إسماعيل السراج» is the genitive of the heading «أبو إسماعيل السراج»;
+            # «أبي بن كعب» is the name Ubayy and stays
+            word = "ابو"
         out.append(word)
     return " ".join(out)
 
@@ -492,6 +497,7 @@ def load_people(path, books):
     answers_to = defaultdict(set)
     held_as_alias = []
     teachers, students, by_id = {}, {}, {}
+    students_by_id = {}
     imams_of, fathers, is_imam = {}, {}, {}
     for person in people:
         if books and not books & set(person.get("books") or []):
@@ -525,6 +531,13 @@ def load_people(path, books):
                          for name in [r.get("name_ar") or r.get("name")] + (r.get("spellings_ar") or [])}
         teachers[pid].discard("")
         students[pid].discard("")
+        # The same rows by the man they were joined to, where relations_join found him. A
+        # spelling is a weaker match than the man: al-Khoei writes Fuḍayl b. ʿUthmān's student
+        # «الحسن بن زبرقان الأنصاري» and al-Khiṣāl writes «أبي الخزرج الحسن بن الزبرقان», and
+        # both are n000124.
+        students_by_id[pid] = {r["person_id"]: r.get("name_ar") or r.get("name") or ""
+                               for field in ("narrated_to", "chain_to", "unsaid_to")
+                               for r in person.get(field) or [] if r.get("person_id")}
         # A rijālī who catalogues the companions catalogues the Imams among them, so a few
         # of the fourteen hold narrator records: al-Ṭūsī files al-Riḍā, and a chain naming
         # him in ʿUyūn — the book written about him — was landing on a three-entry stub
@@ -562,7 +575,10 @@ def load_people(path, books):
         own = set(person.get("headings_ar") or [])
         if person.get("display_ar"):
             own.add(person["display_ar"])
-        for name in own | set(person.get("names_ar") or []):
+        # A heading only a folded record carried is a name he is called, not one he is filed
+        # under (index_people's not_filing): shortened, it answers as an alias does.
+        own -= set(person.get("not_filing_ar") or [])
+        for name in own | set(person.get("names_ar") or []) | set(person.get("not_filing_ar") or []):
             words = key(name).split()
             core = max((at for at, word in enumerate(words) if word in LINK), default=-1) + 2
             for count in range(max(core, 3), len(words)):
@@ -605,9 +621,56 @@ def load_people(path, books):
             # a shorter one would trade a father nobody holds for a namesake somebody does.
             break
 
+    # Who narrated from whom, by the man, read off every record in the file and in both
+    # directions: X's entry naming Y among his teachers is the same pairing as Y's naming X
+    # among his students, and either book may be the one that wrote it down. A row counts
+    # only where relations_join tied it to one man. Also kept: each record's rows by the
+    # spelling the book gave, so a chain name nobody is filed under can be read off its
+    # neighbour's own entry («روى عن فضيل بن عثمان») when that row was tied to a man.
+    taught_by, taught = defaultdict(set), defaultdict(set)
+    named_teacher, named_student = defaultdict(dict), defaultdict(dict)
+    for person in people:
+        pid = person["person_id"]
+        for field, mine, theirs, by_name in (
+                (("narrated_from", "chain_from", "unsaid_from"), taught_by, taught, named_teacher),
+                (("narrated_to", "chain_to", "unsaid_to"), taught, taught_by, named_student)):
+            for name in field:
+                for r in person.get(name) or []:
+                    other = r.get("person_id")
+                    if not other or other == pid:
+                        continue
+                    mine[pid].add(other)
+                    theirs[other].add(pid)
+                    for spelled in [r.get("name_ar") or r.get("name")] + (r.get("spellings_ar") or []):
+                        folded = key(spelled or "")
+                        if folded:
+                            by_name[pid].setdefault(folded, set()).add(other)
+    every_id = {person["person_id"]: person for person in people}
+    # Every heading by the generations it opens with, «محمد بن خالد» for «محمد بن خالد بن عبد
+    # الرحمن»: what his_father looks a father up by, since a father is often filed only under
+    # his full nasab and has no teacher or student recorded to put him in `extends`.
+    opens = defaultdict(set)
+    for pid, person in by_id.items():
+        for name in set(person.get("headings_ar") or []) | {person.get("display_ar") or ""}:
+            words = key(name).split()
+            for at, word in enumerate(words):
+                if word in LINK and at >= 1 and at + 1 < len(words):
+                    opens[" ".join(words[:at + 2])].add(pid)
+    # The names a man holds only because a record was folded into him (index_people's
+    # not_filing_ar), by folded key.
+    folded_names = defaultdict(set)
+    for pid, person in by_id.items():
+        for name in person.get("not_filing_ar") or []:
+            if key(name):
+                folded_names[key(name)].add(pid)
+
     return {"headings": headings, "aliases": aliases, "answers_to": answers_to,
+            "taught_by": taught_by, "taught": taught, "every_id": every_id,
+            "folded_names": folded_names, "opens": opens,
+            "named_teacher": named_teacher, "named_student": named_student,
             "teachers": teachers,
-            "students": students, "by_id": by_id, "imams_of": imams_of, "fathers": fathers,
+            "students": students, "students_by_id": students_by_id,
+            "by_id": by_id, "imams_of": imams_of, "fathers": fathers,
             "is_imam": is_imam, "extends": extends, "shortened": shortened,
             "shortened_own": shortened_own,
             "loose": loosened_tables(headings, aliases, shortened_own, shortened)}
@@ -664,6 +727,377 @@ def support(pid, before, after, teachers, students):
         if name not in RELATIVE and same_name(name, before):
             return f"narrated to {name}"
     return ""
+
+
+def support_by_id(pid, before_id, data):
+    """`support` by the man rather than the spelling: the link before this one is a man the
+    candidate's own record names as his student, joined to him by relations_join."""
+    name = before_id and data.get("students_by_id", {}).get(pid, {}).get(before_id)
+    return f"narrated to {name}" if name else ""
+
+
+def tied(pid, before_id, after_id, data):
+    """Which of the two neighbours the books pair this man with, by the man: the one before
+    him received from him, the one after him is his teacher."""
+    sides = []
+    if before_id and before_id in data["taught"].get(pid, ()):
+        sides.append(before_id)
+    if after_id and after_id in data["taught_by"].get(pid, ()):
+        sides.append(after_id)
+    return sides
+
+
+def spelled_beside(pid, before, after, before_id, after_id, data):
+    """`support` with the rows' own men asked too: a spelling vouches for this man only where
+    the row it matched was not tied to somebody other than the neighbour the chain names.
+    al-Ṭūsī's «محمد بن عيسى» among one Yūnus's students is al-Ashʿarī, and the chain's «محمد
+    بن عيسى بن عبيد» before a bare «يونس» does not make that Yūnus the one meant."""
+    for spellings, by_name, neighbour, nid in (
+            (data["teachers"].get(pid, ()), data["named_teacher"].get(pid, {}), after, after_id),
+            (data["students"].get(pid, ()), data["named_student"].get(pid, {}), before, before_id)):
+        if not neighbour or neighbour in RELATIVE:
+            continue
+        for name in spellings:
+            if name in RELATIVE or not same_name(name, neighbour):
+                continue
+            tied_to = by_name.get(name)
+            if not tied_to or not nid or nid in tied_to:
+                return True
+    return False
+
+
+def fathers_only(pid, before_id, keys, position, data):
+    """After «عن أبيه X», X is the father of the man before him, and only a man whose
+    nasab that man's own could name as his father may be chosen: pairing with the son is no
+    evidence, since a teacher of the son is paired with him just as well. «أحمد بن محمد بن
+    الحسن بن الوليد، عن أبيه محمد بن الحسن» was going to al-Ṣaffār, his teacher."""
+    words = keys[position].split()
+    if not words or words[0] not in ("ابيه", "ابوه"):
+        return True
+    son = data["every_id"].get(before_id)
+    candidate = data["by_id"].get(pid) or data["every_id"].get(pid)
+    if not son or not candidate:
+        return False
+    names = list(candidate.get("headings_ar") or []) + [candidate.get("display_ar") or ""]
+    his = max((len(generations(key(n).split())) for n in names if n), default=0)
+    readings = father_names(son)
+    fullest = max((len(generations(name.split())) for name in readings), default=0)
+    if his < min(3, fullest):
+        return False
+    for name in readings:
+        # «أحمد بن محمد بن خالد بن عبد الرحمن» names his father with a grandfather behind
+        # him; «محمد بن خالد الأشعري», who states no grandfather, is not shown to be him.
+        if could_be_father(son, name, candidate):
+            return True
+    return False
+
+
+def from_this_imam(pid, imam, data):
+    """Where the next link is an Imam, a man whose record names the Imams he transmitted from,
+    and not this one, is not the man: «العمركي عن علي بن جعفر عن أخيه موسى» is al-ʿUrayḍī, and
+    al-Hurmuzānī, whom the books tie to al-ʿAmrakī as well, was al-Hādī's man."""
+    if not imam:
+        return True
+    his = data["imams_of"].get(pid) or set()
+    return not his or imam in his
+
+
+def answers(pid, folded, data):
+    """Whether one of the names the books give this man is the chain's name, or opens it, or
+    is opened by it, once the article and «ابن» are folded. A row's tie to a man is only as
+    good as relations_join's reading of it: «خالد بن عمار» was tied to Hishām al-Khayyāṭ."""
+    person = data["by_id"].get(pid) or data["every_id"].get(pid) or {}
+    want = loosen(folded.split())
+    for name in ([person.get("display_ar") or ""] + list(person.get("headings_ar") or [])
+                 + list(person.get("names_ar") or [])):
+        have = loosen(key(name).split())
+        if have and (same_name(have, want) or same_name(want, have)):
+            return True
+    return False
+
+
+def bare_record(pid, data):
+    """Whether a record's heading is a kunya alone, «أبو العباس», or a lone name, «عبد الله»."""
+    person = data["by_id"].get(pid) or data["every_id"].get(pid) or {}
+    words = key(person.get("display_ar") or "").split()
+    if not words:
+        return True
+    if words[0] in KUNYA_WORDS:
+        return len(words) <= 2
+    return len(words) <= 2 and not any(word in LINK for word in words)
+
+
+def withdraw(row, current, why):
+    """Take a link back because the books rule its man out here. Marked, so that building the
+    served file from this reading does not keep the old link as one we merely stopped making."""
+    row["replaced"] = current
+    row.pop("person_id", None)
+    row["outcome"], row["because"], row["withdrawn"] = "none", why, True
+
+
+KUNYA_WORDS = ("ابو", "ابي", "ابا")
+GLUE_SET = frozenset(GLUE)
+
+
+def kunya_fits(pid, folded, data):
+    """A chain that opens on a kunya, «أبو العباس محمد بن جعفر», names a man whose books give
+    that kunya, or give none: al-Razzāz is Abū al-ʿAbbās and Ibn Baṭṭa Abū Jaʿfar."""
+    words = folded.split()
+    if len(words) < 2 or words[0] not in KUNYA_WORDS or words[1] in LINK:
+        # «أبي بن كعب» is the name Ubayy, not a kunya
+        return True
+    said = loosen(["ابو", words[1]])
+    person = data["by_id"].get(pid) or data["every_id"].get(pid) or {}
+    own = set()
+    for name in [person.get("display_ar") or ""] + list(person.get("names_ar") or []):
+        words = key(re.sub(r"\([^)]*\)", " ", name)).split()   # «(الحسن خ)» is a variant note
+        # a laqab stands after his own name, «حمزة الطيار»; a word after «بن» is a forebear's
+        # name, and «أبو الحسن» is not a laqab for being his father's name too
+        own |= {word for at, word in enumerate(words[1:], 1)
+                if word not in KUNYA_WORDS and words[at - 1] not in KUNYA_WORDS
+                and words[at - 1] not in LINK}
+    his = {loosen(["ابو"] + key(k).split()[1:2]) for k in person.get("kunyahs_ar") or []
+           if len(key(k).split()) >= 2 and key(k).split()[0] in KUNYA_WORDS
+           and key(k).split()[1] not in own}   # «أبو الطيار» for Ḥamza al-Ṭayyār is his laqab
+    return not his or said in his
+
+
+def split_generations(tokens):
+    """A nasab as its generations, each a list of words in order (generations() gives sets)."""
+    gens, current = [], []
+    for token in tokens:
+        if token in LINK:
+            if current:
+                gens.append(current)
+            current = []
+        else:
+            current.append(token)
+    if current:
+        gens.append(current)
+    return gens
+
+
+def ism_and_nisbas(words):
+    """One generation's name and its nisbas: «يحيى العطار القمي» → ({يحيى}, {العطار, القمي}).
+    A word after «عبد» is the name's own, «عبد الرحمن» not a nisba «الرحمن»."""
+    ism, nisbas = set(), set()
+    for at, word in enumerate(words):
+        if word in KUNYA_WORDS or (at and words[at - 1] in KUNYA_WORDS):
+            continue   # «محمد بن يحيى أبو جعفر العطار»: the kunya is his, not his name
+        if word.startswith("ال") and not (at and words[at - 1] in ("عبد",)) and ism:
+            nisbas.add(word)
+        elif not nisbas:
+            ism.add(word)
+    return frozenset(ism - GLUE_SET), frozenset(nisbas)
+
+
+def his_father(row, rows, keys, position, data, compiler):
+    """«X عن أبيه Y»: the one man named Y whom X's own nasab makes his father. Asked before any
+    neighbour is: al-Barqī's «عن أبيه محمد بن خالد» is Muḥammad b. Khālid b. ʿAbd al-Raḥmān,
+    and a match by spelling had given every one of them to al-Ashʿarī."""
+    words = keys[position].split()
+    if len(words) < 3 or words[0] not in ("ابيه", "ابوه") or not position:
+        return ""
+    son = linked_man(rows[position - 1])
+    if not son:
+        return ""
+    name = " ".join(words[1:])
+    pool = set(held_by(name, data)) | set(data["extends"].get(name, ())) | \
+        set(data["shortened_own"].get(name, ())) | set(data["headings"].get(name, ())) | \
+        set(data["opens"].get(name, ()))
+    fits = [pid for pid in sorted(pool) if pid in data["by_id"] and pid != son
+            and not outlived(pid, compiler, data)
+            and fathers_only(pid, son, keys, position, data)]
+    if len(fits) > 1:
+        # could_be_father compares a generation by any word it shares, and «عبد الله» shares
+        # «عبد» with «عبد الرحمن». Where several pass, the father is the one whose names are
+        # the son's reading generation for generation, and who shares a nisba with it where
+        # both give one: «محمد بن يحيى العطار» is al-ʿAṭṭār, not al-Khathʿamī.
+        readings = father_names(data["every_id"][son])
+        want = [ism_and_nisbas(g) for g in split_generations(readings[0].split())][:3] \
+            if readings else []
+        def exact(pid):
+            person = data["by_id"][pid]
+            names = list(person.get("headings_ar") or []) + [person.get("display_ar") or ""]
+            for n in names:
+                got = [ism_and_nisbas(g) for g in split_generations(key(n).split())][:len(want)]
+                if len(got) != len(want):
+                    continue
+                if all(w[0] == g[0] for w, g in zip(want, got)) and (
+                        not want[-1][1] or not got[-1][1] or want[-1][1] & got[-1][1]):
+                    return True
+            return False
+        fits = [pid for pid in fits if exact(pid)]
+        if len(fits) > 1 and want and want[-1][1]:
+            # the son's reading carries a nisba: the one candidate whose own name shares it
+            def shares(pid):
+                person = data["by_id"][pid]
+                names = list(person.get("headings_ar") or []) + [person.get("display_ar") or ""]
+                return any(want[-1][1] & ism_and_nisbas(split_generations(key(n).split())[
+                    min(len(want), len(split_generations(key(n).split()))) - 1])[1]
+                    for n in names if n and split_generations(key(n).split()))
+            sharing = [pid for pid in fits if shares(pid)]
+            if len(sharing) == 1:
+                fits = sharing
+    return fits[0] if len(fits) == 1 else ""
+
+
+def linked_man(row):
+    if row.get("outcome") in ("one", "chosen", "convention") and row.get("target") == "narrator":
+        return row.get("person_id") or ""
+    return ""
+
+
+CROWDED = 5
+
+
+def by_the_man(rows, keys, pools, data, compiler, beside=None, theirs=()):
+    """Settle a name from the men beside it, where the books pair it with them by person.
+
+    Every pass above weighs a neighbour by the spelling its entry gives him, and a spelling
+    is a weaker witness than the man: al-Khoei writes Fuḍayl b. ʿUthmān's student «الحسن بن
+    زبرقان الأنصاري», al-Khiṣāl writes «أبي الخزرج الحسن بن الزبرقان», and relations_join has
+    already tied both to n000124. So, for each name still undecided — and for a link that
+    nothing in the books places here — the candidates are asked which of them the books pair
+    with the men on either side.
+
+    - An undecided name, or one nobody was given, goes to the one candidate so paired.
+    - A name nobody is filed under at all is read off its neighbour's own entry: the man
+      before wrote «روى عن X» and that row was tied to one man, so X is him.
+    - A link already made is replaced only where nothing pairs its man with either neighbour,
+      by spelling or by person, while one other candidate is paired with both. al-Kāfī's
+      «أحمد بن محمد عن محمد بن يحيى عن غياث بن إبراهيم» is al-Khazzāz, whom the books put
+      between those two, and the book's convention for a chain's opening «محمد بن يحيى» had
+      made him al-ʿAṭṭār.
+
+    Names joined by a bare «و» stand side by side: the man before the group is the student
+    of each of them and the man after it their teacher, so the group is stepped over.
+
+    Twice over, because a name settled here can be the neighbour that settles the next.
+    """
+    beside = beside or [False] * len(rows)
+    for _ in range(2):
+        for position, row in enumerate(rows):
+            if row.get("kind") != "name" or row.get("target") == "imam":
+                continue
+            father = his_father(row, rows, keys, position, data, compiler)
+            if father:
+                if father != linked_man(row):
+                    if linked_man(row):
+                        row["replaced"] = linked_man(row)
+                    row["outcome"], row["person_id"], row["target"] = "chosen", father, "narrator"
+                    row["because"] = "his father, as the nasab of the man before him gives him"
+                    row.pop("candidates", None)
+                    row.pop("backed", None)
+                continue
+            if len(keys[position].split()) == 1 and keys[position].startswith("ال") and \
+                    row.get("outcome") in ("several", "none"):
+                # A bare nisba, «الحلبي», names a family — the Āl Abī Shuʿba were several
+                # brothers — and a tie to one of them says nothing about which.
+                continue
+            if (len(keys[position].split()) == 1 and position + 1 < len(rows)
+                    and rows[position + 1].get("kind") == "relative"
+                    and row.get("outcome") in ("several", "none")):
+                # «عن الحسين عن أبيه» is the Imam and his father far more often than any
+                # narrator of the bare name; a one-word name before «أبيه» is left alone.
+                continue
+            first = position
+            while first > 0 and beside[first]:
+                first -= 1
+            last = position + 1
+            while last < len(rows) and beside[last]:
+                last += 1
+            before_id = linked_man(rows[first - 1]) if first else ""
+            after_id = linked_man(rows[last]) if last < len(rows) else ""
+            if not (before_id or after_id):
+                continue
+            current = linked_man(row)
+            if (current and loosen(keys[position].split()) == "حسين" and position + 1 < len(rows)
+                    and rows[position + 1].get("kind") == "relative"
+                    and not tied(current, before_id, after_id, data)):
+                withdraw(row, current, "«عن الحسين عن أبيه» is the Imams' own chain, and "
+                                       "nothing ties this narrator here")
+                continue
+            if current and not kunya_fits(current, keys[position], data):
+                withdraw(row, current, "the chain names him by a kunya his books do not give")
+                continue
+            before = keys[first - 1] if first else ""
+            after = keys[last] if last < len(keys) else ""
+            if current:
+                if tied(current, before_id, after_id, data):
+                    continue
+                if spelled_beside(current, before, after, before_id, after_id, data):
+                    continue
+                pool = set(pools.get(position) or held_by(keys[position], data)) - {current}
+                if row["outcome"] == "chosen" and row.get("because", "").startswith("narrated "):
+                    # A `chosen` that rested on a spelling the book itself ties to another man
+                    # rests on nothing; it is decided again, from the men, like any other.
+                    found = [pid for pid in sorted(pool) if pid in data["by_id"]
+                             and not outlived(pid, compiler, data)
+                             and tied(pid, before_id, after_id, data)]
+                    if len(found) == 1:
+                        row["replaced"] = current
+                        row["person_id"], row["because"] = found[0], (
+                            "the books pair him with the man beside him; the spelling the "
+                            "earlier match rested on is another man's")
+                    continue
+                both = [pid for pid in pool if pid in data["by_id"]
+                        and not outlived(pid, compiler, data)
+                        and len(tied(pid, before_id, after_id, data)) == 2
+                        and fathers_only(pid, before_id, keys, position, data)]
+                if len(both) == 1:
+                    row["replaced"] = current
+                    row["outcome"], row["person_id"] = "chosen", both[0]
+                    row["because"] = ("the books pair him with the men on both sides, and "
+                                      "nothing pairs the man this name was given with either")
+                    row.pop("candidates", None)
+                    row.pop("backed", None)
+                continue
+            if row.get("outcome") not in ("several", "none") or position in theirs:
+                continue
+            pool = set(row.get("candidates") or pools.get(position) or [])
+            # The men who spell the name out are asked too: al-Barqī is filed under «محمد
+            # بن خالد بن عبد الرحمن», never the bare «محمد بن خالد», and with him left out
+            # the one candidate the books happened to tie was linked in his chains.
+            wider = pool | set(data["extends"].get(keys[position], ()))
+            wider = {pid for pid in wider if pid in data["by_id"]
+                     and not outlived(pid, compiler, data)}
+            after_imam = (rows[last].get("imam_id") if last < len(rows)
+                          and rows[last].get("target") == "imam" else "")
+            found = [pid for pid in sorted(wider) if tied(pid, before_id, after_id, data)
+                     and fathers_only(pid, before_id, keys, position, data)
+                     and from_this_imam(pid, after_imam, data)
+                     and kunya_fits(pid, keys[position], data)]
+            if after_imam and found:
+                # Another candidate the books show transmitting from this very Imam is as
+                # good a reading as the one a neighbour ties: «العمركي عن علي بن جعفر عن أخيه
+                # موسى» has al-ʿUrayḍī among them, and the tie to al-ʿAmrakī was a namesake's.
+                rivals = [pid for pid in wider if pid not in found
+                          and after_imam in (data["imams_of"].get(pid) or ())]
+                if rivals:
+                    found = []
+            if len(wider) >= CROWDED:
+                # A name half a dozen men hold — «الحسن بن علي» — has ties recorded for some
+                # of them and not others, so one tie decides nothing; both sides must agree.
+                found = [pid for pid in found if len(tied(pid, before_id, after_id, data)) == 2]
+            why = "the books pair him with the man beside him"
+            if not found and row["outcome"] == "none" and not pools.get(position):
+                read = set()
+                if before_id:
+                    read |= data["named_teacher"].get(before_id, {}).get(keys[position], set())
+                if after_id:
+                    read |= data["named_student"].get(after_id, {}).get(keys[position], set())
+                read = {pid for pid in read if pid in data["every_id"]
+                        and (pid not in data["by_id"] or not outlived(pid, compiler, data))}
+                found = sorted(pid for pid in read
+                               if fathers_only(pid, before_id, keys, position, data)
+                               and answers(pid, keys[position], data))
+                why = "the entry of the man beside him names him so, and that is this man"
+            if len(found) == 1:
+                row["outcome"], row["person_id"], row["because"] = "chosen", found[0], why
+                row["target"] = "narrator"
+                row.pop("candidates", None)
+                row.pop("backed", None)
 
 
 def past_the_stub(folded, lone, before, after, data):
@@ -1004,14 +1438,46 @@ SHARED_KUNYA = {
 }
 
 
-def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
+def side_by_side(mentions, text):
+    """For each step, whether it stands beside the one before rather than behind it.
+
+    «حدثني أبي ومحمد بن الحسن رحمهم الله عن الحسن بن متيل»: the two first men are both
+    Ibn Qūlawayh's teachers, and neither received from the other. A bare «و» between two
+    names says so; anything with a verb or «عن» in it does not.
+    """
+    flags = [False] * len(mentions)
+    if not text:
+        return flags
+    for at in range(1, len(mentions)):
+        gap = text[mentions[at - 1]["end"]:mentions[at]["start"]]
+        gap = "".join(ch for ch in gap if "\u0621" <= ch <= "\u064a")
+        flags[at] = gap == "و"
+    return flags
+
+
+PRAYER = {"رحمه", "رحمهما", "رحمهم", "الله", "رضي", "رضى", "عنه", "عنهما", "عنهم", "قدس",
+          "سره", "عليه", "رحمة"}
+
+
+def unprayed(folded):
+    """A name with the prayer after it taken off: «محمد بن الحسن رحمهما الله» is al-Ṣadūq's
+    «أبي ومحمد بن الحسن رحمهما الله», Ibn al-Walīd, and with the prayer left on, the book's
+    own convention for «محمد بن الحسن» was never asked."""
+    words = folded.split()
+    cut = len(words)
+    while cut > 2 and words[cut - 1] in PRAYER:
+        cut -= 1
+    return " ".join(words[:cut]) if cut < len(words) and words[cut - 1] not in GLUE else folded
+
+
+def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None, text=""):
     """Give each mention in one chain an outcome, in three passes over the same chain.
 
     Names first, because the other two kinds are read off their neighbours: an Imam's kunya is
     settled by which Imams the books say the narrator beside him transmitted from, and «أبيه»
     is settled by whose father he is.
     """
-    keys = [key(m["text"]) for m in mentions]
+    keys = [unprayed(key(m["text"])) for m in mentions]
     seen = seen or {"contexts": {}, "disambiguated": set()}
     near = neighbours(mentions)
     rows = [dict(m) for m in mentions]
@@ -1022,6 +1488,7 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
     if "settled" not in data:
         data["settled"] = settled_names(table, seen)
     names = data["settled"]
+    pools = {}
 
     for position, row in enumerate(rows):
         if row["kind"] != "name":
@@ -1029,6 +1496,22 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
             continue
         row["target"] = "narrator"
         candidates = held_by(keys[position], data)
+        pools[position] = list(candidates)
+        folded = data["folded_names"].get(keys[position], set())
+        if candidates and not by_heading(keys[position], data) and set(candidates) & folded:
+            # Matched only through a name a folded record carried: al-Khoei's index of the form
+            # some chains use. Like any alias it must be borne out by a neighbour, or
+            # «عبد الرحمن بن يزيد» goes to Ibn Zayd b. Aslam in every chain that writes it.
+            before_id = linked_man(rows[position - 1]) if position else ""
+            b_key = keys[position - 1] if position else ""
+            a_key = keys[position + 1] if position + 1 < len(keys) else ""
+            candidates = [pid for pid in candidates if pid not in folded
+                          or support(pid, b_key, a_key, data["teachers"], data["students"])
+                          or support_by_id(pid, before_id, data)]
+            if not candidates:
+                row["outcome"] = "none"
+                row["because"] = "only a folded record's name, and nothing beside it bears him out"
+                continue
         before = keys[position - 1] if position else ""
         after = keys[position + 1] if position + 1 < len(keys) else ""
         widened = ""
@@ -1048,6 +1531,7 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
             # somebody *does* hold, and widening it would find those same men under a looser
             # spelling or, worse, other men.
             candidates, widened, tier = widen(keys[position], data)
+            pools[position] = list(candidates)
             if tier in ("aliases", "alias_shortened"):
                 # An alias is any name an entry mentions, chains quoted inside it included, and
                 # a widened key matched against one is two steps from the heading a rijālī
@@ -1055,8 +1539,10 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
                 # reached Isḥāq b. Jarīr. So an alias is accepted here only for a man whom a
                 # book places beside the name next to this one, which is the same word a
                 # `chosen` rests on.
+                before_id = rows[position - 1].get("person_id") if position else ""
                 candidates = [pid for pid in candidates if support(
-                    pid, before, after, data["teachers"], data["students"])]
+                    pid, before, after, data["teachers"], data["students"])
+                    or support_by_id(pid, before_id, data)]
         # Dating is evidence like any other, and the cheapest kind: a candidate who outlived
         # the compiler is not a reading of the name, so he is taken out before the others are
         # weighed. Where he was the only candidate the name goes unanswered, which is the
@@ -1075,7 +1561,10 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
             row["outcome"] = "none"
         elif len(candidates) == 1 and widened:
             row["outcome"], row["person_id"] = "one", candidates[0]
-            why = support(candidates[0], before, after, data["teachers"], data["students"])
+            why = (support(candidates[0], before, after, data["teachers"], data["students"])
+                   or support_by_id(candidates[0],
+                                    rows[position - 1].get("person_id") if position else "",
+                                    data))
             if tier in ("aliases", "alias_shortened"):
                 row["outcome"], row["because"] = "chosen", why
             RESCUED[(row["outcome"], widened)] += 1
@@ -1301,6 +1790,14 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
             row["target"] = "imam" if fix["person_id"] in imams.BY_ID else "narrator"
             row["imam_id" if fix["person_id"] in imams.BY_ID else "person_id"] = fix["person_id"]
 
+    # Names the book's own conventions speak to are theirs to settle, here or not at all:
+    # «أحمد بن محمد» in al-Kāfī is Ibn ʿĪsā in one slot and al-Barqī in another, and where
+    # the convention pass left it undecided, its silence stands.
+    theirs = {position for position, row in enumerate(rows)
+              if row.get("refused") or (row.get("kind") == "name"
+                                        and by_convention(table, book, keys[position])[0])}
+    by_the_man(rows, keys, pools, data, compiler, side_by_side(mentions, text), theirs)
+
     for position, row in enumerate(rows):
         if row["kind"] != "relative":
             continue
@@ -1350,6 +1847,18 @@ def resolve_chain(mentions, data, book="", table=None, compiler="", seen=None):
         if imam:
             row.pop("person_id")
             row["target"], row["imam_id"] = "imam", imam
+
+    # A genitive kunya, «أبي العباس», reaches the heading «أبو العباس» only once the case is
+    # folded, and where the man filed under it is that kunya and nothing more — a record of
+    # the bare kunya, or of a lone «عبد الله» — the link would say no more than the chain does.
+    for position, row in enumerate(rows):
+        words = keys[position].split()
+        if (row.get("outcome") in ("one", "chosen") and row.get("target") == "narrator"
+                and len(words) >= 2 and words[0] in ("ابي", "ابا") and words[1] not in LINK
+                and bare_record(row.get("person_id"), data)):
+            row.pop("person_id", None)
+            row["outcome"] = "none"
+            row["because"] = "a kunya, and the one record filed under it is the kunya alone"
 
     # How many other men answer to the name, recorded only where the outcome claims that one
     # man bears it. `chosen` and `convention` already publish their reasoning and the Imams
@@ -1514,6 +2023,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--mentions", default=MENTIONS)
+    parser.add_argument("--chains", default=f'{TMP}/narrators_chains/chains_served.jsonl',
+                        help="the chain text the mentions were cut from, read for the «و» "
+                             "that sets two names side by side")
     parser.add_argument("--people", default=PEOPLE)
     parser.add_argument("--out", default=f'{TMP}/narrators_chains/resolved.jsonl')
     parser.add_argument("--conventions", default=CONVENTIONS)
@@ -1541,6 +2053,12 @@ def main():
     print(f"  {len(data['headings']):7,}  names a book files one of them under, "
           f"{len(data['aliases']):,} more they are called elsewhere")
 
+    texts = {}
+    if os.path.exists(args.chains):
+        with open(args.chains) as handle:
+            for line in handle:
+                chain = json.loads(line)
+                texts[chain["id"]] = chain.get("chain_ar") or ""
     outcomes, examples, chains = Counter(), defaultdict(list), 0
     by_kind, per_book = Counter(), defaultdict(Counter)
     rows = []
@@ -1549,7 +2067,7 @@ def main():
             row = json.loads(line)
             chains += 1
             resolved = resolve_chain(row["mentions"], data, row["book"], table,
-                                     row.get("source", ""), seen)
+                                     row.get("source", ""), seen, texts.get(row["id"], ""))
             for mention in resolved:
                 outcomes[mention["outcome"]] += 1
                 by_kind[(mention["kind"], mention["outcome"])] += 1
