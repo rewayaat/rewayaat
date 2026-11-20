@@ -108,10 +108,15 @@ spec:
               port: 8003
             initialDelaySeconds: 60
             periodSeconds: 20
+          # The request is what the scheduler reserves on the node, so it is sized to the
+          # pod's observed use rather than its ceiling: the working set peaked at 483Mi over
+          # 30 days and the limit below stays the burst ceiling. The worker node this pod
+          # shares with the mongo data member has little unrequested memory, and 1Gi of
+          # reservation for a 350-480Mi process was the largest slack on it.
           resources:
             requests:
               cpu: "500m"
-              memory: "1Gi"
+              memory: "512Mi"
             limits:
               cpu: "2"
               memory: "2Gi"
