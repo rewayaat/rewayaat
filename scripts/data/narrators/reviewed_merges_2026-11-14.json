@@ -1,0 +1,16 @@
+[
+ {
+  "primary": "n066904",
+  "other": "n035674",
+  "reason": "hand-read: al-Ardabīlī names Abū ʿAlī al-Ashʿarī as Muḥammad b. ʿĪsā b. ʿAbd Allāh b. Saʿd b. Mālik, shaykh of the Qummīs, the man al-Khoei's entry quotes al-Najāshī on («… الأشعري، أبو علي: شيخ القميين»)",
+  "quote": "أبو على الأشعري اسمه محمد بن عيسى بن عبد الله بن سعد بن مالك شيخ القميين",
+  "group": "ibn-isa-father-ardabili"
+ },
+ {
+  "primary": "n066904",
+  "other": "n066903",
+  "reason": "hand-read: al-Khoei's «محمد بن عيسى بن عبد الله الأشعري» is the father of Aḥmad b. Muḥammad b. ʿĪsā, whom al-Najāshī (quoted under «… بن سعد») makes Muḥammad b. ʿĪsā b. ʿAbd Allāh b. Saʿd b. Mālik al-Ashʿarī",
+  "quote": "روى عنه أحمد بن محمد، ابنه",
+  "group": "ibn-isa-father-khoei"
+ }
+]

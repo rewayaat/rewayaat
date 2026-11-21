@@ -1,0 +1,384 @@
+{
+ "_about": "al-Khoei's records of a name as one chain writes it («X: روى عن A، وروى عنه B. الكافي…») that two blind readers found to be a different man from the one the site linked in that chain. chain_resolve moves such a link to al-Khoei's man. Keyed by entry source_key, so the keys survive merges.",
+ "different": [
+  {
+   "stub_entries": [
+    "khoei:33697"
+   ],
+   "linked_entry": "najashi:919",
+   "stub": "محمد بن مسلم",
+   "linked": "محمد بن مسلم بن رباح",
+   "why": "Chain has Kulayni's teacher Ali b. Muhammad b. Sa'd narrating from him and he is taught by Ishaq b. Musa, so a is a later man than the Imam-era Ibn Rabah who died 150.",
+   "quote": "محمد بن مسلم بن رباح الثقفي، أبو جعفر الطحان الأعور",
+   "pair": "k002"
+  },
+  {
+   "stub_entries": [
+    "khoei:27611",
+    "khoei:33855",
+    "khoei:37243"
+   ],
+   "linked_entry": "najashi:971",
+   "stub": "محمد بن الوليد شباب الصيرفي",
+   "linked": "محمد بن الوليد البجلي الخزاز",
+   "why": "Khoei keeps Muhammad b. al-Walid Shabab al-Sayrafi distinct from al-Khazzaz and rejects merging them.",
+   "quote": "ولا نعرف له وجها، فإن محمد بن الوليد في هذه الطبقة، ينصرف إلى محمد بن الوليد الخزاز المعروف",
+   "pair": "k004"
+  },
+  {
+   "stub_entries": [
+    "khoei:28306",
+    "khoei:28307",
+    "khoei:28393",
+    "khoei:28395",
+    "khoei:37562"
+   ],
+   "linked_entry": "ardabili:5045",
+   "stub": "عبد الرحمان بن زيد بن أسلم",
+   "linked": "عبد الرحمن بن زيد أبى زبد الجرشى مولى كوفي",
+   "why": "Khoei identifies a with Ibn Aslam al-Tanukhi, not the Kufan Jurashi mawla.",
+   "quote": "عبد الرحمان بن زيد هذا هو عبد الرحمان بن زيد بن أسلم الآتي",
+   "pair": "k005"
+  },
+  {
+   "stub_entries": [
+    "khoei:24272",
+    "khoei:24273",
+    "khoei:24276"
+   ],
+   "linked_entry": "tusi:5656",
+   "stub": "جعفر بن يحيى الخزاعي",
+   "linked": "جعفر بن يحيى بن سعد الأحول",
+   "why": "a is the Khuza'i son of Yahya b. Abi al-Ala, b is the son of Sa'd al-Ahwal, Husayn b. Sa'id's maternal uncle.",
+   "quote": "جعفر بن يحيى بن أبي العلاء الخزاعي",
+   "pair": "k008"
+  },
+  {
+   "stub_entries": [
+    "khoei:33659"
+   ],
+   "linked_entry": "najashi:970",
+   "stub": "محمد بن مروان",
+   "linked": "محمد بن مروان الانباري",
+   "why": "Khoei says a is al-Dhuhli, not al-Anbari.",
+   "quote": "الظاهر أنه محمد بن مروان الذهلي الآتي",
+   "pair": "k010"
+  },
+  {
+   "stub_entries": [
+    "khoei:24974",
+    "khoei:24975"
+   ],
+   "linked_entry": "tusi:1234",
+   "stub": "الحسن بن عمار",
+   "linked": "الحسن بن عمارة الكوفي",
+   "why": "a is al-Hasan b. Ammar al-Dahhan, listed apart from Ibn Umara al-Kufi.",
+   "quote": "الحسن بن عمار الدهان",
+   "pair": "k021"
+  },
+  {
+   "stub_entries": [
+    "khoei:25539"
+   ],
+   "linked_entry": "tusi:2353",
+   "stub": "الحسين بن محمد",
+   "linked": "الحسين بن محمد بن عمران",
+   "why": "Khoei corrects a in this chain to al-Hasan b. Muhammad, and b is a Sadiq-era companion who cannot reach these chains.",
+   "quote": "والصحيح الحسن بن محمد، بقرينة رواية حميد بن زياد، عن الحسن بن محمد بن سماعة",
+   "pair": "k022"
+  },
+  {
+   "stub_entries": [
+    "khoei:29742"
+   ],
+   "linked_entry": "najashi:713",
+   "stub": "علي بن إبراهيم",
+   "linked": "علي بن إبراهيم بن هاشم",
+   "why": "Khoei says that where Muhammad b. Sulayman narrates from Ali b. Ibrahim he is the Hashimi, not Ibn Hashim al-Qummi.",
+   "quote": "فهو علي بن إبراهيم الهاشمي الآتي الذي هو من أصحاب موسى بن جعفر",
+   "pair": "k024"
+  },
+  {
+   "stub_entries": [
+    "khoei:24841"
+   ],
+   "linked_entry": "fihrist:265",
+   "stub": "الحسن بن عبد الله",
+   "linked": "الحسين بن عبد الله بن سهل",
+   "why": "a narrates from the Imams Sadiq and Kazim, while b is a later author known only through Ali b. Hatim, and the names differ (al-Hasan vs al-Husayn).",
+   "quote": "الحسين بن عبد الله بن سهل 137، له كتاب المتعة",
+   "pair": "k026"
+  },
+  {
+   "stub_entries": [
+    "khoei:29775"
+   ],
+   "linked_entry": "ardabili:5765",
+   "stub": "علي بن أبي زيد",
+   "linked": "علي بن أبي زيد بن أبي يعلى",
+   "why": "b is a later scholar (Muntajab al-Din's era), a narrates in Ahmad b. Isa's circle.",
+   "quote": "الشيخ عز الدين علي بن أبي زيد ابن أبي يعلي",
+   "pair": "k037"
+  },
+  {
+   "stub_entries": [
+    "khoei:22132"
+   ],
+   "linked_entry": "tusi:593",
+   "stub": "إبراهيم بن عبد الله",
+   "linked": "إبراهيم بن عبد الله القاري",
+   "why": "b is a companion of Amir al-Mu'minin while a is narrated from by Ibn Jumhur, two or more generations later.",
+   "quote": "من أصحاب أمير المؤمنين عليه السلام. رجال الشيخ (3)",
+   "pair": "k040"
+  },
+  {
+   "stub_entries": [
+    "khoei:24409"
+   ],
+   "linked_entry": "tusi:313",
+   "stub": "الحارث بن زياد",
+   "linked": "الحارث بن زياد الساعدي الأنصاري",
+   "why": "b is a companion of the Prophet; a narrates from Shu'ayb in a later layer.",
+   "quote": "من أصحاب رسول الله (صلى الله عليه وآله)",
+   "pair": "k045"
+  },
+  {
+   "stub_entries": [
+    "khoei:25070"
+   ],
+   "linked_entry": "najashi:100",
+   "stub": "الحسن بن محمد الصيرفي",
+   "linked": "الحسن بن محمد بن سماعة",
+   "why": "Khoei rejects equating a with Ibn Sama'a (d. 263) on chronology.",
+   "quote": "وهذا غريب فإنه توفي سنة 263",
+   "pair": "k057"
+  },
+  {
+   "stub_entries": [
+    "khoei:36703"
+   ],
+   "linked_entry": "tusi:1683",
+   "stub": "أبو المستهل",
+   "linked": "الكميت بن زيد",
+   "why": "b (al-Kumayt, Abu al-Mustahill) died in Sadiq's lifetime, yet in the chain Safwan b. Yahya narrates from a.",
+   "quote": "مات في حياة أبي عبد الله عليه السلام",
+   "pair": "k058"
+  },
+  {
+   "stub_entries": [
+    "khoei:29524"
+   ],
+   "linked_entry": "tusi:5863",
+   "stub": "عثمان بن سعيد",
+   "linked": "عثمان بن سعيد العمري",
+   "why": "b is the agent of Imams al-Hadi and al-Askari, too late for Sa'id b. Janah and Ibrahim b. Hashim to narrate from him.",
+   "quote": "جليل القدر ثقة، وكيله عليه السلام",
+   "pair": "k062"
+  },
+  {
+   "stub_entries": [
+    "khoei:29987"
+   ],
+   "linked_entry": "najashi:709",
+   "stub": "علي بن الحسين بن علي",
+   "linked": "علي بن الحسن بن علي بن فضال",
+   "why": "a's father is al-Husayn, b's is al-Hasan; Khoei says a is another man.",
+   "quote": "علي بن الحسن بن علي بن فضال بن عمر بن أيمن",
+   "pair": "k065"
+  },
+  {
+   "stub_entries": [
+    "khoei:22016"
+   ],
+   "linked_entry": "tusi:1888",
+   "stub": "إبراهيم بن أبي رجاء",
+   "linked": "إبراهيم بن رجاء",
+   "why": "Khoei says a is other than Ibrahim b Raja.",
+   "quote": "هو غير إبراهيم بن رجاء الآتي",
+   "pair": "k067"
+  },
+  {
+   "stub_entries": [
+    "khoei:26579"
+   ],
+   "linked_entry": "tusi:689",
+   "stub": "زاذان",
+   "linked": "زاذان",
+   "why": "Khoei says a is not the preceding Zadhan (the Persian companion of Ali) and is of unknown status.",
+   "quote": "أقول: الظاهر أنه غير سابقه، فهو مجهول الحال.",
+   "pair": "k072"
+  },
+  {
+   "stub_entries": [
+    "khoei:26682"
+   ],
+   "linked_entry": "tusi:2",
+   "stub": "زهير",
+   "linked": "زهير بن القين",
+   "why": "b was a companion of al-Husayn (d. 61), a narrates from Abu Ishaq al-Sabi'i and is taught to Haytham b Jamil.",
+   "quote": "من أصحاب الحسين عليه السلام",
+   "pair": "k075"
+  },
+  {
+   "stub_entries": [
+    "khoei:24798",
+    "khoei:24799"
+   ],
+   "linked_entry": "tusi:2296",
+   "stub": "الحسن بن سيف بن عميرة",
+   "linked": "الحسن بن سيف التمار الكوفي",
+   "why": "a is the son of Sayf b. Amira while b is the son of Sayf b. Sulayman al-Tammar.",
+   "quote": "الحسن بن سيف بن سليمان التمار",
+   "pair": "k082"
+  },
+  {
+   "stub_entries": [
+    "khoei:22819"
+   ],
+   "linked_entry": "tusi:6111",
+   "stub": "أحمد بن محمد بن علي",
+   "linked": "أحمد بن علي الكوفي",
+   "why": "b is a student of al-Kulayni teaching al-Murtada, far later than a's chain (Ali b Ja'far, Mu'alla).",
+   "quote": "روى عن الكليني، أخبرنا عنه علي بن الحسين الموسوي المرتضى",
+   "pair": "k083"
+  },
+  {
+   "stub_entries": [
+    "khoei:24454"
+   ],
+   "linked_entry": "tusi:318",
+   "stub": "الحارث بن النعمان",
+   "linked": "الحارث بن النعمان بن أمية الأنصاري",
+   "why": "b is a Badr companion of the Prophet; a's chain has Ibn Mahbub's student narrating from him.",
+   "quote": "شهد بدرا وأحدا",
+   "pair": "k087"
+  },
+  {
+   "stub_entries": [
+    "khoei:33464"
+   ],
+   "linked_entry": "tusi:5889",
+   "stub": "محمد بن الفضل",
+   "linked": "محمد بن الفضل",
+   "why": "b is a companion of al-Hadi, too late to narrate from Abd al-Rahim al-Qasir as in the chain.",
+   "quote": "عده الشيخ في رجاله من أصحاب الهادي عليه السلام",
+   "pair": "k095"
+  },
+  {
+   "stub_entries": [
+    "khoei:27441",
+    "khoei:27442",
+    "khoei:35838",
+    "khoei:35839",
+    "khoei:35840",
+    "khoei:35841",
+    "khoei:35842"
+   ],
+   "linked_entry": "najashi:512",
+   "stub": "أبو أيوب المدني",
+   "linked": "سليمان بن جعفر",
+   "why": "Abu Ayyub is Sulayman b. Miqbal and narrates from Sulayman b. Ja'far.",
+   "quote": "فالظاهر أن سليمان بن مقبل يقال له أبو أيوب المدائني، والمدني، والمديني",
+   "pair": "k101"
+  },
+  {
+   "stub_entries": [
+    "khoei:26770"
+   ],
+   "linked_entry": "ardabili:4157",
+   "stub": "زيد بن إسحاق",
+   "linked": "زيد بن إسحاق",
+   "why": "Khoei says a is a corruption for Yazid b. Ishaq Sha'ar, whereas b is a later Sayyid Abu al-Qasim Zayd b. Ishaq.",
+   "quote": "والصحيح يزيد بن إسحاق شعر الذي يروي عن الحسن بن عطية",
+   "pair": "k104"
+  },
+  {
+   "stub_entries": [
+    "khoei:36985"
+   ],
+   "linked_entry": "tusi:2768",
+   "stub": "ابن صدقة",
+   "linked": "رحمة بن صدقة",
+   "why": "Khoei points a to Mas'ada b. Sadaqa and Musaddiq b. Sadaqa, not to Rahma b. Sadaqa.",
+   "quote": "تقدم بعنوان مسعدة بن صدقة ومصدق بن صدقة",
+   "pair": "k108"
+  },
+  {
+   "stub_entries": [
+    "khoei:33398"
+   ],
+   "linked_entry": "tusi:4365",
+   "stub": "محمد بن عمران",
+   "linked": "محمد بن عمران",
+   "why": "b is a first-generation mawla; a's chain is in a much later layer.",
+   "quote": "محمد بن عمران، مولى أم هاني بنت أبي طالب",
+   "pair": "k109"
+  },
+  {
+   "stub_entries": [
+    "khoei:22380"
+   ],
+   "linked_entry": "tusi:6091",
+   "stub": "أحمد بن إسماعيل الكاتب",
+   "linked": "أحمد بن إسماعيل الفقيه",
+   "why": "b is a later (Tal'ukbari's shaykh) author, while a sits under Amr b. Uthman and Ibrahim b. Hashim.",
+   "quote": "روى عنه التلعكبري إجازة",
+   "pair": "k110"
+  },
+  {
+   "stub_entries": [
+    "khoei:29243"
+   ],
+   "linked_entry": "ardabili:5501",
+   "stub": "عبد الملك بن عمير",
+   "linked": "عبد الملك بن عمير القبطي",
+   "why": "Khoei says the correct reading of a's narration is Abd al-Malik b. Amr, not b. Umayr, and b is only said to narrate from Amir al-Mu'minin.",
+   "quote": "إلا أن فيهما عبد الملك بن عمرو، وهو الصحيح",
+   "pair": "k112"
+  },
+  {
+   "stub_entries": [
+    "khoei:35591"
+   ],
+   "linked_entry": "tusi:377",
+   "stub": "يسار",
+   "linked": "سليمان بن صرد",
+   "why": "b is a senior Tabi'i who died long before a's chain through al-Sadiq.",
+   "quote": "هو من التابعين الكبار",
+   "pair": "k115"
+  },
+  {
+   "stub_entries": [
+    "khoei:32966"
+   ],
+   "linked_entry": "tusi:4307",
+   "stub": "محمد بن عبد الرحمن بن أبي ليلى",
+   "linked": "محمد بن عبد الرحمان بن أبي ليلي الأنصاري القاضي الكوفي",
+   "why": "Khoei states explicitly that a is not the judge Ibn Abi Layla, who is b.",
+   "quote": "أن محمد بن عبد الرحمن هذا، غير محمد بن عبد الرحمن بن أبي ليلى القاضي الآتي",
+   "pair": "k116"
+  },
+  {
+   "stub_entries": [
+    "khoei:29005"
+   ],
+   "linked_entry": "tusi:3290",
+   "stub": "عبد الله بن كثير",
+   "linked": "عبد الله بن كثير اليربوعي التميمي",
+   "why": "Khoei says the correct name in this chain is Abd al-Rahman b. Kathir, not Abd Allah b. Kathir.",
+   "quote": "عبد الرحمان بن كثير بدل عبد الله، وهو الصحيح",
+   "pair": "k126"
+  },
+  {
+   "stub_entries": [
+    "khoei:28714"
+   ],
+   "linked_entry": "ardabili:5256",
+   "stub": "عبد الله بن حبيب",
+   "linked": "عبد الله بن حبيب السلمي",
+   "why": "Khoei says a is distinct from the companion of Ali.",
+   "quote": "فهو مغاير لعبد الله بن حبيب الآتي الذي هو من أصحاب علي",
+   "pair": "k129"
+  }
+ ]
+}

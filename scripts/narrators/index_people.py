@@ -1232,6 +1232,34 @@ POINTS_ACROSS = re.compile(
 # And a third: «جعفر بن قولويه: هو جعفر بن محمد بن قولويه الآتي», «المفيد: هو محمد بن محمد بن
 # النعمان، المتقدم ذكره». Only where «هو» opens the entry and what follows is a name some one
 # man is filed under — «هو من الزيدية» names nobody, and is left alone by the lookup.
+# A page's heading kept through a merge: person id → the heading it was served under. When a
+# variant record is folded into a man, his shortest clean heading can become the variant's own
+# («صابر بن ربيعة» for Ṣāʿid, «الحسن بن علي» for Ibn Mahziyār), and the page should not take
+# the very form al-Khoei sends the reader away from. Applied only where the kept heading is
+# still one of his.
+KEPT_HEADINGS = {}
+
+
+# Source keys whose headings the chain resolver does not take as a man's filing names; see
+# scripts/data/narrators/folded_not_filing.json.
+FOLDED_NOT_FILING = set()
+
+
+def not_filing(entries, keep):
+    """Headings carried only by entries folded into this man by a reviewed merge.
+
+    A merge joins two records' evidence and pages. It is not a reason for every short form
+    al-Khoei indexed under the folded record — «يحيى بن سعيد», «علي بن يعقوب» — to become a
+    name the resolver files this man under, which linked every chain of that form to him.
+    """
+    folded, own = set(), set()
+    for entry in entries:
+        heading = entry.get("heading_ar")
+        if heading:
+            (folded if entry.get("source_key") in FOLDED_NOT_FILING else own).add(heading)
+    return folded - own - {keep}
+
+
 def hedged(text, end):
     """Whether what follows a pointer takes it back: «هو محمد بن أبي القاسم، أو محمد بن القاسم»
     names two men, «بناء على أن …» makes it conditional, «تقدم في عبد الرحمان بن بديل: أنه …»
@@ -2670,6 +2698,11 @@ def document(person, source, headless):
     # opens with should not have to take our word that we shortened a real name.
     nasab_ar = display_ar
     display_ar = short_heading(display_ar, raw_headings_ar)
+    kept = KEPT_HEADINGS.get(person.get("person_id"))
+    if kept and normalize_arabic(kept) in {normalize_arabic(name_only(h)) for h in raw_headings_ar}:
+        # the heading the page was served under before a record was folded into it; see
+        # scripts/data/narrators/kept_headings.json
+        display_ar = kept
     display_en = anchor.get("primary_english_name") or person.get("primary_english_name")
     if display_en and display_en.rstrip().endswith(("...", "\u2026")):
         display_en = None      # a truncation, not a name
@@ -2794,7 +2827,10 @@ def document(person, source, headless):
         # the chain resolver alone (kept in the dump, dropped before the load). Cut, al-
         # Ardabīlī's «أبو على الأشعري اسمه أحمد بن إدريس ويجئ لغيره» became a second
         # «أبو على الأشعري», and al-Kulaynī's shaykh lost 22 links to a tie with it.
-        "_resolver_headings_ar": sorted(set(raw_headings_ar) | {raw_display_ar} - {None}),
+        "_resolver_headings_ar": sorted((set(raw_headings_ar) | {raw_display_ar}) - {None}
+                                        - not_filing(entries, raw_display_ar)),
+        "_not_filing_ar": sorted({form for h in not_filing(entries, raw_display_ar)
+                                  for form in (h, name_only(h)) if form}),
         "_join_en": join_en,
         "person_id": person["person_id"],
         # the anchor entry's own heading, not the longest name the merge found: that gave Ibn Abi
@@ -3037,6 +3073,10 @@ def main():
     TRANSLITERATION = transliterate.load()
     with open(os.path.join(REPO, "scripts/data/narrators/city_or_tribe_clean.json")) as handle:
         CITY_CLEAN.update(json.load(handle))
+    with open(os.path.join(REPO, "scripts/data/narrators/folded_not_filing.json")) as handle:
+        FOLDED_NOT_FILING.update(json.load(handle)["source_keys"])
+    with open(os.path.join(REPO, "scripts/data/narrators/kept_headings.json")) as handle:
+        KEPT_HEADINGS.update({pid: row["display_ar"] for pid, row in json.load(handle).items()})
     with open(os.path.join(REPO, "scripts/data/narrators/not_his_names.json")) as handle:
         for item in json.load(handle)["names"]:
             NOT_HIS[item["entry"]].add(normalize_arabic(item["name"]))
@@ -3149,7 +3189,7 @@ def main():
 
     if documents and args.dump:
         with open(args.dump + ".part", "w") as handle:
-            json.dump([{(k[1:] if k == "_resolver_headings_ar" else k): v
+            json.dump([{(k[1:] if k in ("_resolver_headings_ar", "_not_filing_ar") else k): v
                         for k, v in doc.items() if not k.startswith("_join")}
                        for doc in documents], handle, ensure_ascii=False)
         os.replace(args.dump + ".part", args.dump)
@@ -3231,6 +3271,7 @@ def main():
             # Built from documents[0] as a template, they would join under that man's names.
             doc.pop("_join_ar", None)
             doc.pop("_resolver_headings_ar", None)
+            doc.pop("_not_filing_ar", None)
             doc.pop("_join_en", None)
         documents += roster
         counts["the fourteen, who hold no entry anywhere"] = len(roster)
@@ -3297,6 +3338,7 @@ def main():
         doc.pop("_join_ar", None)
         doc.pop("_join_en", None)
         doc.pop("_resolver_headings_ar", None)
+        doc.pop("_not_filing_ar", None)
 
     if args.show:
         wanted = [d for d in documents if d["person_id"] == args.show]
