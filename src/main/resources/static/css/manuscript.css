@@ -17581,7 +17581,7 @@ body.is-search-mode .site-nav .search-entry-shell:focus-within {
     height: 1px;
     background: linear-gradient(90deg, rgba(200, 162, 61, 0.5), transparent);
 }
-.quran-insight__snippet {
+.quran-insight .quran-insight__snippet.quranic-snippet {
     background: #f7f9fc;
     border: 1px solid rgba(30, 58, 95, 0.08);
     border-radius: 10px;
