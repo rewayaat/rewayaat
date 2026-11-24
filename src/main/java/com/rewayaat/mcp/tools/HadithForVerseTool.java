@@ -17,7 +17,7 @@ import java.util.Map;
  *
  * <p>This is the direction with no equivalent anywhere else. Asking what a verse means will
  * find tafsīr, because tafsīr is written up and indexed; asking which narrations in these
- * books were judged to bear on it is a join over COVERAGE_LINKS reviewed connections,
+ * books were judged to bear on it is a join over 10,287 reviewed connections,
  * and a join is not a document any search engine has crawled.
  *
  * <p>It reports {@code total_matches} for the same reason {@code search_hadith} does. A verse

@@ -25,6 +25,12 @@ commentary on it with nothing saying why it was there.
 | 4 | Build documents: clean and choose tafsir passages, previews, quote spans | `build_insights_index.py`, `snippets.py` | — |
 | 5 | Load a dated index and point the `rewayaat_quranic_insights` alias at it | `load_insights_index.py` | — |
 
+Result of the 2026-11-25 run: 13,280 narrations reviewed in 266 batches (Sonnet, about
+22.5M tokens); 7,526 narrations keep 10,287 links (4,886 quoted, 1,587 explains, 1,752
+ruling, 2,062 theme); 553 verses were added that no retrieval had proposed; 820 links
+have no English tafsir passage. A random 50 graded the way the November spot check was:
+40 strong, 10 on topic but generic, none weak (it was 19 / 18 / 13).
+
 All data lives in `tmp/qlight-v2/`. Run order:
 
 ```bash
@@ -97,7 +103,7 @@ code still reads (no reasons or previews; everything else as before).
 | 4 | Extract `relevant_excerpt` | `prepare_excerpt_batches.py`, `apply_excerpts.py` | **partial — 8,947 / 17,612 snippets (51%)** |
 | 5 | Add `<em>` highlighting | `generate_highlight_batches.py`, `apply_highlighting.py` | done (17,612 / 17,612) |
 
-Live index: 22,640 hadith docs carrying 17,612 tafsir snippets.
+v1 index (`rewayaat_quranic_light_filtered`) as served until the v2 rebuild: 11,426 narrations, 14,325 links (this line used to say 22,640, which was the count before the strict re-judge).
 
 ## Index Shape
 

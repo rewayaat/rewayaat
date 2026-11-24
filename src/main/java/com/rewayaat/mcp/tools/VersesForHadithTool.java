@@ -36,7 +36,7 @@ public class VersesForHadithTool implements McpTool {
 
     /** Measured when the index was built; see docs/pipelines/quranic-insights.md. */
     private static final String COVERAGE =
-            "COVERAGE_NARRATIONS of the 50,038 narrations have at least one.";
+            "7,526 of the 50,038 narrations have at least one.";
 
     private final QuranicInsightsService insights;
     private final NarrationRepository repository;
