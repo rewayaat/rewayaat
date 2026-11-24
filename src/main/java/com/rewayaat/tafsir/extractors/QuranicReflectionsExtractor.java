@@ -57,9 +57,12 @@ public class QuranicReflectionsExtractor implements TafsirExtractor {
     private static final Pattern BISMILLAH_PATTERN =
             Pattern.compile("(?iu)^bismill[āa]h\\.?$");
     private static final Pattern PROMO_LINE_PATTERN =
-            Pattern.compile("(?i)(tahajjud salat app|google play|apple store|download the latest copy of all tafsir sessions|visit www\\.academyofislam\\.com/ali-|have you registered(?: for .*?)?|registration:|seeking sponsorships for weekly quranic reflections|donations welcome|for our course learning arabic thru the quran|did you buy your copy|get digital copies of books|for more info and your order|academyofislam\\.com/publications|check https://academyofislam\\.com/publications|go to https://academyofislam\\.com/publications)");
+            Pattern.compile("(?i)(tahajjud salat app|google play|apple store|download the latest copy of all tafsir sessions|visit www\\.academyofislam\\.com/ali-|have you registered(?: for .*?)?|registration:|seeking sponsorships for weekly quranic reflections|donations welcome|for our course learning arabic thru the quran|did you buy your copy|get digital copies of books|for more info and your order|academyofislam\\.com/publications|check https://academyofislam\\.com/publications|go to https://academyofislam\\.com/publications|check our new online courses|click here for details on online course|order (?:a )?printed copy|have you visited ali quran portal|holy ramadan gift)");
     private static final Pattern PROMO_SECTION_PATTERN =
             Pattern.compile("(?i)^(ALI\\s+\\d+\\b|seeking sponsorships for weekly quranic reflections|the world federation\\b|registration\\b|schedule:\\b|cost:\\b|date:\\b|format:\\b)");
+
+    /** Blocks before the verse citation that are still a header, not reflection. */
+    private static final int HEADER_MAX_BLOCKS = 5;
 
     private final HttpClient httpClient;
     private final String sourceDir;
@@ -273,8 +276,18 @@ public class QuranicReflectionsExtractor implements TafsirExtractor {
         return null;
     }
 
-    private String extractCommentaryText(Document html, String verseTranslation) {
+    /**
+     * The reflection's own text.
+     *
+     * <p>Many issues open with something other than the reflection: a hadith for the
+     * season ("Bismillah. Prophet Muhammad (s): And when it is night of Qadr…"), then the
+     * verse transliterated and translated, then its citation, "(Sūrat al-Baqarah No. 2,
+     * Āyat 184)". The reflection starts after the citation, so a citation among the first
+     * few blocks discards everything gathered before it.
+     */
+    String extractCommentaryText(Document html, String verseTranslation) {
         List<String> blocks = new ArrayList<>();
+        boolean citationSeen = false;
         for (Element element : html.body().children()) {
             String tag = element.tagName();
             if ("style".equals(tag) || "script".equals(tag)) {
@@ -289,6 +302,10 @@ public class QuranicReflectionsExtractor implements TafsirExtractor {
                 continue;
             }
             if (isVerseMetadataLine(text)) {
+                if (!citationSeen && blocks.size() <= HEADER_MAX_BLOCKS) {
+                    blocks.clear();
+                }
+                citationSeen = true;
                 continue;
             }
             if (verseTranslation != null && text.equals(verseTranslation)) {
@@ -317,7 +334,7 @@ public class QuranicReflectionsExtractor implements TafsirExtractor {
     }
 
     private boolean isVerseMetadataLine(String text) {
-        String lower = text.toLowerCase(Locale.ROOT);
+        String lower = text.toLowerCase(Locale.ROOT).replaceFirst("^[(\\[]\\s*", "");
         return lower.startsWith("sūrat ")
                 || lower.startsWith("surat ")
                 || lower.startsWith("surah ")
