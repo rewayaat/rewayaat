@@ -36,7 +36,7 @@ public class QuranicInsightsService {
     @Value("${quranic.insights.enabled:true}")
     private boolean enabled;
 
-    @Value("${quranic.insights.index:rewayaat_quranic_light_filtered}")
+    @Value("${quranic.insights.index:rewayaat_quranic_insights}")
     private String indexName;
 
     @Value("${quranic.insights.max-candidates:10}")

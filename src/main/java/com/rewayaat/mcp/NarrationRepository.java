@@ -118,7 +118,7 @@ public class NarrationRepository {
 
     public NarrationRepository(
             HadithQueryService queryService,
-            @Value("${quranic.insights.index:rewayaat_quranic_light_filtered}") String insightsIndex,
+            @Value("${quranic.insights.index:rewayaat_quranic_insights}") String insightsIndex,
             @Value("${quran.index:rewayaat_quran}") String quranIndex) {
         this.queryService = queryService;
         this.insightsIndex = insightsIndex;

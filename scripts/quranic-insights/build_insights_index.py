@@ -105,11 +105,23 @@ def main():
                 if not kept:
                     stats["no_links"] += 1
                     continue
+                # Where each verse is first quoted in the narration, so quoted verses read
+                # in the order the narration recites them.
+                first_at = {}
+                for q in quoted.get(hid, []):
+                    pos = q["start"] if q["field"] == "arabic" else 10**6 + q["start"]
+                    for k in [q["verse_key"]] + q.get("also_matches", []):
+                        first_at[k] = min(first_at.get(k, 10**9), pos)
+
+                def verse_number(vk):
+                    s_, a_ = vk.split(":")
+                    return int(s_) * 1000 + int(a_)
+
                 kept.sort(key=lambda ln: (
                     KIND_ORDER.get(ln.get("kind"), 9),
-                    0 if ("quoted_ar" in inp.get(ln["verse_key"], {}) or "cited_as" in inp.get(ln["verse_key"], {})) else 1,
+                    first_at.get(ln["verse_key"], 10**9),
                     -((live.get((hid, ln["verse_key"])) or {}).get("combined_score") or 0),
-                    ln["verse_key"]))
+                    verse_number(ln["verse_key"])))
                 kept_keys = [ln["verse_key"] for ln in kept]
 
                 # Where the narration's own text quotes or cites a kept verse.
