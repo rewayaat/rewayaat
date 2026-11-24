@@ -629,10 +629,10 @@ function localeHref(path) {
             var ref = item.verse_key || item.reference || ('Verse ' + (idx + 1));
             var surah = item.surah_name_english || t('js.quranicVerse', 'Quranic verse');
             var kind = item.kind ? t('quran.kind.' + item.kind, '') : '';
-            var line = '<span class="hadith-sidecar__list-line">'
-                + '<span class="hadith-sidecar__list-eyebrow">' + escapeHtml(ref) + '</span>'
-                + sep()
+            var line = '<span class="hadith-sidecar__list-line quran-row-line">'
                 + '<span class="hadith-sidecar__list-text">' + escapeHtml(surah) + '</span>'
+                + sep()
+                + '<span class="quran-row-ref">' + escapeHtml(localeDigits(ref)) + '</span>'
                 + '</span>'
                 + (kind ? '<span class="quran-row-kind quran-row-kind--' + escapeHtml(item.kind) + '">'
                           + escapeHtml(kind) + '</span>' : '');

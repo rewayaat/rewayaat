@@ -659,10 +659,10 @@
                                                             v-bind:class="{'is-active': qidx === narration.quranicInsightsActiveIndex}"
                                                             v-bind:aria-expanded="qidx === narration.quranicInsightsActiveIndex ? 'true' : 'false'"
                                                             v-on:click="selectQuranicInsightTab(narration, qidx)">
-                                                        <span class="hadith-sidecar__list-line">
-                                                            <span class="hadith-sidecar__list-eyebrow">{{ quranicInsightTabTitle(item, qidx) }}</span>
-                                                            <span class="hadith-sidecar__list-separator" aria-hidden="true">•</span>
+                                                        <span class="hadith-sidecar__list-line quran-row-line">
                                                             <span class="hadith-sidecar__list-text">{{ item.surah_name_english || 'Quranic verse' }}</span>
+                                                            <span class="hadith-sidecar__list-separator" aria-hidden="true">•</span>
+                                                            <span class="quran-row-ref">{{ item.verse_key }}</span>
                                                         </span>
                                                         <span class="quran-row-kind" v-if="quranKindLabel(item)" v-bind:class="'quran-row-kind--' + item.kind">{{ quranKindLabel(item) }}</span>
                                                     </button>

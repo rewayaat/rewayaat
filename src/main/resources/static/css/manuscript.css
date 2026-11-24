@@ -17441,7 +17441,10 @@ body.is-search-mode .site-nav .search-entry-shell:focus-within {
    The sidecar row carries "Why this matched", as Related does.
    ======================================================================== */
 .hadith-inline-context--quran:has(.quran-insight) {
-    background: linear-gradient(180deg, #fbf3e2, #fdf9ef);
+    background: #ffffff;
+    border: 1px solid rgba(30, 58, 95, 0.12);
+    border-left: 1px solid rgba(30, 58, 95, 0.12);
+    box-shadow: 0 2px 10px rgba(18, 35, 59, 0.06);
     padding: 1.1rem 1.15rem 1.2rem;
 }
 .quran-insight__head {
@@ -17579,8 +17582,8 @@ body.is-search-mode .site-nav .search-entry-shell:focus-within {
     background: linear-gradient(90deg, rgba(200, 162, 61, 0.5), transparent);
 }
 .quran-insight__snippet {
-    background: #fffdf8;
-    border: 1px solid rgba(199, 154, 59, 0.25);
+    background: #f7f9fc;
+    border: 1px solid rgba(30, 58, 95, 0.08);
     border-radius: 10px;
     padding: 0.8rem 0.95rem 0.75rem;
     margin-bottom: 0.6rem;
@@ -17619,4 +17622,16 @@ body.is-search-mode .site-nav .search-entry-shell:focus-within {
 .hadith-sidecar__list-item--quran .quran-row-kind {
     align-self: flex-start;
     width: auto;
+}
+/* Verse rows read "Al-Maaida · 5:90", the two kept together rather than spread
+   across the row the way Related's book and number are. */
+.quran-row-line {
+    justify-content: flex-start;
+}
+.quran-row-ref {
+    flex: 0 0 auto;
+    color: rgba(247, 225, 166, 0.9);
+    font-size: 0.78rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
 }
