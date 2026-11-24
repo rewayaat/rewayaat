@@ -6508,9 +6508,16 @@ function setupVue(query, page, sortFields) {
                                     commentary_text: s.commentary_text_highlighted || s.commentary_text || '',
                                     source_url: s.source_url || '',
                                     section_title: s.section_title || '',
-                                    commentary_score: Number(s.commentary_score) || 0
+                                    commentary_score: Number(s.commentary_score) || 0,
+                                    // v2 index: the span chosen for this narration, and the passage's language.
+                                    preview: s.preview || '',
+                                    language: s.language || 'en'
                                 };
                             }) : [];
+                            // English passages first on the English site, the Arabic one first on the Arabic site.
+                            var firstLanguage = window.I18N_LOCALE === 'ar' ? 'ar' : 'en';
+                            tafsirSnippets = tafsirSnippets.filter(function(s) { return s.language === firstLanguage; })
+                                .concat(tafsirSnippets.filter(function(s) { return s.language !== firstLanguage; }));
                             var availableSources = buildSourceOptions(tafsirSnippets, item.sources);
                             return {
                                 verse_key: item.verse_key || '',
@@ -6523,6 +6530,9 @@ function setupVue(query, page, sortFields) {
                                 combined_score: Number(item.combined_score) || 0,
                                 shared_tags: Array.isArray(item.shared_tags) ? item.shared_tags : [],
                                 tafsir_snippet_count: Number(item.tafsir_snippet_count) || 0,
+                                kind: item.kind || '',
+                                reason: item.reason || '',
+                                reason_ar: item.reason_ar || '',
                                 sources: Array.isArray(item.sources) ? item.sources : [],
                                 tafsir_snippets: tafsirSnippets,
                                 availableSources: availableSources,
@@ -6647,6 +6657,21 @@ function setupVue(query, page, sortFields) {
                         || (snippet.tafsir_name || '') === activeSource.label;
                 });
             },
+            /** Why this verse is linked, in the reader's language; '' for old-index links. */
+            quranReason: function(item) {
+                return (item && localeField(item, 'reason')) || '';
+            },
+            quranKindLabel: function(item) {
+                return (item && item.kind) ? t('quran.kind.' + item.kind, '') : '';
+            },
+            /** A passage has more to show than its preview. */
+            snippetHasMore: function(snippet, narration) {
+                var plain = (snippet.commentary_text || '').replace(/<\/?em>/g, '').trim();
+                if (snippet.preview) {
+                    return snippet.preview.replace(/\s*…$/, '').length < plain.length;
+                }
+                return this.snippetPreview(snippet.commentary_text, narration).length < plain.length;
+            },
             snippetPreview: function(text, narration) {
                 if (!text) return '';
                 var s = String(text);
@@ -6692,6 +6717,8 @@ function setupVue(query, page, sortFields) {
                 if (!text) return '';
                 // Strip trailing ellipsis from truncated snippets
                 text = text.replace(/\s*\.{3,}\s*$/, '');
+                // v2 passages are plain text in blank-line paragraphs.
+                text = text.replace(/\n\s*\n/g, '<br><br>');
                 return this.highlightTopicTags(text, narration);
             },
             highlightTopicTags: function(text, narration) {

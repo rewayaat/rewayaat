@@ -587,6 +587,42 @@ function localeHref(path) {
             .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
     }
 
+    /**
+     * Why a verse is linked to this narration: the kind of link, and the reviewer's one
+     * line. Links from the old index have neither and render nothing here.
+     */
+    function quranReasonHtml(item) {
+        var reason = localeField(item, 'reason');
+        if (!reason) { return ''; }
+        var kind = item.kind ? t('quran.kind.' + item.kind, '') : '';
+        return '<div class="quranic-reason">'
+            + (kind ? '<span class="quranic-reason__kind quranic-reason__kind--' + escapeHtml(item.kind) + '">'
+                      + escapeHtml(kind) + '</span> ' : '')
+            + '<span class="quranic-reason__text">' + escapeHtml(reason) + '</span>'
+            + '</div>';
+    }
+
+    /**
+     * Tafsir passage text as HTML. The index holds plain text with blank-line paragraphs
+     * and, in the highlighted copy, <em> around the span chosen for this narration; it is
+     * escaped first and only those tags are put back.
+     */
+    function tafsirHtml(text) {
+        return escapeHtml(text || '')
+            .replace(/&lt;(\/?)em&gt;/g, '<$1em>')
+            .split(/\n\s*\n/)
+            .map(function (para) { return '<p>' + para.replace(/\n/g, ' ') + '</p>'; })
+            .join('');
+    }
+
+    /** English passages first on the English site, the Arabic one first on the Arabic site. */
+    function orderedSnippets(item) {
+        var snippets = (item.tafsir_snippets || []).slice();
+        var first = window.I18N_LOCALE === 'ar' ? 'ar' : 'en';
+        return snippets.filter(function (sn) { return (sn.language || 'en') === first; })
+            .concat(snippets.filter(function (sn) { return (sn.language || 'en') !== first; }));
+    }
+
     function renderQuran(body, data) {
         var items = (data && (data.insights || data.candidates || data.items)) || [];
         var rows = items.map(function (item, idx) {
@@ -620,7 +656,8 @@ function localeHref(path) {
                       }).join('')
                       + '</div></div>'
                     : '';
-                return (item.text_english
+                return quranReasonHtml(item)
+                    + (item.text_english
                         ? '<div class="quranic-verse-english">' + escapeHtml(item.text_english) + '</div>' : '')
                     + (item.text_arabic
                         ? '<div class="quranic-verse-arabic arabic-text">' + escapeHtml(item.text_arabic) + '</div>' : '')
@@ -730,7 +767,7 @@ function localeHref(path) {
 
     /** Renders the chosen verse and its tafsir snippets into the main column. */
     function inlineQuran(item) {
-        var snippets = item.tafsir_snippets || [];
+        var snippets = orderedSnippets(item);
         var head = '<div class="hadith-inline-context__meta-band hadith-inline-context__meta-band--compact '
             + 'hadith-inline-context__meta-band--quran">'
             + '<div class="hadith-inline-context__title-block">'
@@ -743,7 +780,8 @@ function localeHref(path) {
                   + '<span class="hadith-inline-context__meta-inline-text">'
                   + escapeHtml(item.surah_name_english) + '</span>'
                 : '')
-            + '</div></div></div>';
+            + '</div></div></div>'
+            + quranReasonHtml(item);
 
         if (!snippets.length) {
             return head + '<div class="hadith-inline-context__snippets">'
@@ -751,7 +789,7 @@ function localeHref(path) {
                 + '</div>';
         }
         return head + '<div class="hadith-inline-context__snippets">'
-            + '<div class="quranic-section__label">Tafsir Sources</div>'
+            + '<div class="quranic-section__label">' + escapeHtml(t('sidecar.tafsirSources', 'Tafsir Sources')) + '</div>'
             + snippets.map(function (sn) {
                 var name = sn.tafsir_name || sn.tafsir_slug || 'Tafsir';
                 return '<div class="quranic-snippet">'
@@ -764,11 +802,29 @@ function localeHref(path) {
                         ? '<span class="quranic-snippet__section">&mdash; ' + escapeHtml(sn.section_title) + '</span>'
                         : '')
                     + '</div>'
-                    + '<div class="quranic-snippet__text">'
-                    + (sn.commentary_text_highlighted || sn.commentary_text || '') + '</div>'
+                    + snippetBody(sn)
                     + '</div>';
               }).join('')
             + '</div>';
+    }
+
+    /**
+     * A passage as its preview (the span chosen for this narration, or the opening
+     * sentences) with the whole passage one click away. Passages from the old index have
+     * no preview and show in full, as they did.
+     */
+    function snippetBody(sn) {
+        var full = tafsirHtml(sn.commentary_text_highlighted || sn.commentary_text || '');
+        var dir = sn.language === 'ar' ? ' dir="rtl" lang="ar"' : '';
+        if (!sn.preview) {
+            return '<div class="quranic-snippet__text"' + dir + '>' + full + '</div>';
+        }
+        return '<div class="quranic-snippet__text quranic-snippet__preview"' + dir + '>'
+            + escapeHtml(sn.preview) + '</div>'
+            + '<details class="quranic-snippet__more">'
+            + '<summary>' + escapeHtml(t('js.showMore', 'Show more')) + '</summary>'
+            + '<div class="quranic-snippet__text"' + dir + '>' + full + '</div>'
+            + '</details>';
     }
 
     var INLINE = {similar: inlineSimilar, quran: inlineQuran};

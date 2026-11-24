@@ -17363,3 +17363,73 @@ body.is-search-mode .site-nav .search-entry-shell:focus-within {
 @media (prefers-reduced-motion: reduce) {
     .search-entry-shell::before { transition: opacity 0.2s ease; }
 }
+
+/* ========================================================================
+   QURANIC LINK REASON + TAFSIR PREVIEW (insights v2, 2026-11)
+   Why a verse is linked to the narration, and a short preview of each tafsir
+   passage with the whole passage behind "Show more". The reason sits both in the
+   dark sidecar and in the light inline panel, so each gets its own colours.
+   ======================================================================== */
+.quranic-reason {
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: var(--text-primary);
+    margin: 0.5rem 0 0.75rem;
+}
+.quranic-reason__kind {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.1rem 0.45rem;
+    margin-inline-end: 0.35rem;
+    border-radius: 3px;
+    background: var(--gold-bg);
+    color: var(--gold-dark);
+    border: 1px solid var(--gold-light);
+    vertical-align: 0.1em;
+}
+.quranic-reason__kind--quoted {
+    background: var(--accent-lighter);
+    color: var(--accent);
+    border-color: var(--accent-light);
+}
+[dir="rtl"] .quranic-reason__kind {
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 0.8rem;
+}
+.hadith-sidecar .quranic-reason {
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0 0 0.55rem;
+}
+.hadith-sidecar .quranic-reason__kind {
+    background: rgba(200, 162, 61, 0.18);
+    color: #f3e5b8;
+    border-color: rgba(200, 162, 61, 0.35);
+}
+.quranic-snippet__more > summary {
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin-top: 0.35rem;
+    list-style: none;
+}
+.quranic-snippet__more > summary::-webkit-details-marker {
+    display: none;
+}
+.quranic-snippet__more > summary::after {
+    content: " \25BE";
+}
+.quranic-snippet__more[open] > summary::after {
+    content: " \25B4";
+}
+.quranic-snippet:has(.quranic-snippet__more[open]) .quranic-snippet__preview {
+    display: none;
+}
+.quranic-snippet__text p {
+    margin: 0 0 0.6rem;
+}

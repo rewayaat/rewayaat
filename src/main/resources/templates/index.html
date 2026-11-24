@@ -667,6 +667,12 @@
                                                     </button>
                                                     <div class="hadith-sidecar__accordion-body hadith-sidecar__accordion-body--quran"
                                                          v-if="qidx === narration.quranicInsightsActiveIndex">
+                                                        <div class="quranic-reason" v-if="quranReason(item)">
+                                                            <span class="quranic-reason__kind"
+                                                                  v-if="quranKindLabel(item)"
+                                                                  v-bind:class="'quranic-reason__kind--' + item.kind">{{ quranKindLabel(item) }}</span>
+                                                            <span class="quranic-reason__text">{{ quranReason(item) }}</span>
+                                                        </div>
                                                         <div class="quranic-verse-english"
                                                              v-if="item.text_english">
                                                             {{item.text_english}}
@@ -865,6 +871,12 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        <div class="quranic-reason" v-if="quranReason(activeQuranicInsight(narration))">
+                                            <span class="quranic-reason__kind"
+                                                  v-if="quranKindLabel(activeQuranicInsight(narration))"
+                                                  v-bind:class="'quranic-reason__kind--' + activeQuranicInsight(narration).kind">{{ quranKindLabel(activeQuranicInsight(narration)) }}</span>
+                                            <span class="quranic-reason__text">{{ quranReason(activeQuranicInsight(narration)) }}</span>
+                                        </div>
                                         <div class="hadith-inline-context__snippets"
                                              v-if="activeQuranicInsightSelectedSnippets(narration).length > 0">
                                             <div class="quranic-section__label" th:text="#{sidecar.tafsirSources}">Tafsir Sources</div>
@@ -877,7 +889,7 @@
                                                     <span class="quranic-snippet__section" v-if="snippet.section_title">&mdash; {{snippet.section_title}}</span>
                                                     <button type="button"
                                                             class="text-toggle quranic-snippet__expand"
-                                                            v-if="snippetPreview(snippet.commentary_text, narration).length < snippet.commentary_text.replace(/<\/?em>/g,'').trim().length"
+                                                            v-if="snippetHasMore(snippet, narration)"
                                                             v-bind:aria-expanded="isSnippetExpanded(narration, sidx) ? 'true' : 'false'"
                                                             v-on:click="toggleSnippetExpand(narration, sidx)">
                                                         <span>{{ isSnippetExpanded(narration, sidx) ? tr('js.showLess', 'Show less') : tr('js.showMore', 'Show more') }}</span>
@@ -889,6 +901,8 @@
                                                 <div class="quranic-snippet__text"
                                                      v-if="isSnippetExpanded(narration, sidx)"
                                                      v-html="snippetFullHtml(snippet, narration)"></div>
+                                                <div class="quranic-snippet__text" v-else-if="snippet.preview"
+                                                     v-bind:dir="snippet.language === 'ar' ? 'rtl' : null">{{ snippet.preview }}</div>
                                                 <div class="quranic-snippet__text" v-else v-html="snippetPreview(snippet.commentary_text, narration)"></div>
                                             </div>
                                         </div>
