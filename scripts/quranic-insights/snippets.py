@@ -27,6 +27,11 @@ QR_CITATION = re.compile(
     r"^\(?\s*S[uū]ra(?:t|tu|h)?\b[^\n]{0,60}?(?:No\.?\s*\d+|\d+\s*[:،,]\s*\d+)[^\n]{0,40}?[AĀ]y[aā]t?\b[^\n]{0,40}\)?\s*$"
     r"|^\(?\s*S[uū]ra(?:t|tu|h)?\b[^\n]{0,60}?\(No\.?\s*\d+\)[^\n]{0,40}$",
     re.IGNORECASE)
+# The same citation closing a paragraph that also holds the transliteration and translation:
+# "… Sūratul Wāqi‘ah (No. 56), Āyats 10-11" / "(Sūrat al-Nisā, No 4, Āyat 36)".
+QR_CITATION_TAIL = re.compile(
+    r"S[uū]r[a-zāʿ‘’'\s.-]{0,40}?[^\n]{0,50}?No\.?\s*\d+\)?,?\s*[AĀ]y[aā]t?s?\.?\s*[\d\s:&,–-]+\)?\.?\s*$",
+    re.IGNORECASE)
 PROMO = re.compile(
     r"^(check our new online course|click here|order (a )?printed cop|have you visited|holy ramadan gift"
     r"|join our|register (now|here)|subscribe|download (the|our))", re.IGNORECASE)
@@ -57,7 +62,7 @@ def leading_drop(slug, paras):
     if slug == "quranic-reflections":
         limit = max(1, int(len(paras) * 0.6))
         for i, p in enumerate(paras[:limit]):
-            if QR_CITATION.match(p.strip()):
+            if QR_CITATION.match(p.strip()) or (len(p) < 1200 and QR_CITATION_TAIL.search(p.strip())):
                 n = i + 1
                 break
     # Adverts and repeats of the verse, in any source, at the very top.
@@ -156,7 +161,10 @@ def choose(verse_key, verse_arabic, docs, live_snippets=None):
     for s in english:
         if s["slug"] in FALLBACK_ONLY and have_other_english:
             continue
-        if not s["anchored"] and any(c["anchored"] for c in chosen):
+        # A passage split from a multi-verse section that never names this verse may still
+        # be about it (Verses 183-185 on 2:184 is), or about its neighbour (Verses 5-11 on
+        # 76:8 was). One such passage is shown, after every passage that does name it.
+        if not s["anchored"] and any(not c["anchored"] for c in chosen):
             continue
         k = norm_key(s["text"])
         if k in seen:
