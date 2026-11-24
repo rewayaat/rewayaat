@@ -22,7 +22,7 @@ import re
 
 MIN_SCORE = 5.0
 BATCH_SIZE = 50
-ENGLISH_MAX = 1800
+ENGLISH_MAX = 4000
 VERSE_MAX = 360
 
 
@@ -40,6 +40,8 @@ def main():
     ap.add_argument("--quoted", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--seed", type=int, default=20261125)
+    ap.add_argument("--skip-reviewed", help="outputs dir: narrations already reviewed there are left out")
+    ap.add_argument("--first-batch", type=int, default=1)
     args = ap.parse_args()
 
     verses = {}
@@ -60,11 +62,17 @@ def main():
         d = json.loads(line)
         quoted[d["hadith_id"]] = d["quotes"]
 
+    reviewed = set()
+    if args.skip_reviewed:
+        for f in os.listdir(args.skip_reviewed):
+            for line in open(os.path.join(args.skip_reviewed, f)):
+                reviewed.add(json.loads(line)["hadith_id"])
+
     items = []
     dropped_low = 0
     for hid in sorted(set(live) | set(quoted)):
         h = hadith.get(hid)
-        if not h:
+        if not h or hid in reviewed:
             continue
         cands = {}
 
@@ -106,7 +114,7 @@ def main():
 
     random.Random(args.seed).shuffle(items)
     os.makedirs(args.out, exist_ok=True)
-    n_batches = 0
+    n_batches = args.first_batch - 1
     for i in range(0, len(items), BATCH_SIZE):
         n_batches += 1
         with open(os.path.join(args.out, f"batch_{n_batches:04d}.jsonl"), "w") as out:
@@ -114,7 +122,7 @@ def main():
                 out.write(json.dumps(item, ensure_ascii=False) + "\n")
     n_cands = sum(len(it["candidates"]) for it in items)
     print(f"{len(items)} narrations, {n_cands} candidates, {n_batches} batches; "
-          f"{dropped_low} live links under {MIN_SCORE} left out")
+          f"{dropped_low} live links under {MIN_SCORE} left out; {len(reviewed)} already reviewed")
 
 
 if __name__ == "__main__":

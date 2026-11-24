@@ -70,6 +70,8 @@ FORMULAE = [("ل", "له", "ل"), ("ن", "ش", "لله"), ("تكل", "عل", "ل
             ("نك", "نت", "علم", "لغب"), ("ل", "نشرك", "به", "ش")]
 INNER_PUNCT = re.compile(r"[:：.,،؛;«»\"“”()\[\]]")
 SHORT_MIN_CHARS = 11   # skeleton letters a short run must carry
+RARE_WORD_MAX = 60     # a word the Qur'an uses at most this often counts as distinctive
+SHORT_MIN_RARE = 2     # a short run needs this many distinctive words: «الله في الدنيا والآخرة» has none
 
 
 class VerseIndex:
@@ -77,11 +79,14 @@ class VerseIndex:
         self.words = {}                       # verse_key -> [skeleton]
         self.light = {}                       # verse_key -> [light form]
         self.grams = defaultdict(list)        # 4-gram -> [(verse_key, position)]
+        self.freq = defaultdict(int)          # skeleton -> occurrences in the Qur'an
         for v in verses:
             toks = tokens(v["text_arabic"])
             sk = [t[0] for t in toks]
             self.words[v["_id"]] = sk
             self.light[v["_id"]] = [t[3] for t in toks]
+            for w in sk:
+                self.freq[w] += 1
             for i in range(len(sk) - MIN_RUN + 1):
                 self.grams[tuple(sk[i:i + MIN_RUN])].append((v["_id"], i))
 
@@ -89,8 +94,10 @@ class VerseIndex:
         return len(self.grams.get(gram, ())) > STOCK_LIMIT
 
 
-def short_run_ok(run, text, verse_light, all_stock):
+def short_run_ok(run, text, verse_light, all_stock, freq):
     if all_stock:
+        return False
+    if sum(1 for t in run if freq.get(t[0], 0) <= RARE_WORD_MAX) < SHORT_MIN_RARE:
         return False
     if [t[3] for t in run] != verse_light:
         return False
@@ -128,7 +135,7 @@ def find_arabic_quotes(text, index):
                 best = (vk, pos, n)
         vk, pos, n = best
         all_stock = all(index.stock(tuple(sk[j:j + MIN_RUN])) for j in range(i, i + n - MIN_RUN + 1))
-        if n < COMMON_MIN_RUN and not short_run_ok(toks[i:i + n], text, index.light[vk][pos:pos + n], all_stock):
+        if n < COMMON_MIN_RUN and not short_run_ok(toks[i:i + n], text, index.light[vk][pos:pos + n], all_stock, index.freq):
             i += 1
             continue
         # Same run can be several verses at once (a phrase repeated in the Qur'an).

@@ -73,6 +73,17 @@ addition away if they do not match.
 - No honorifics beyond what the narration uses; refer to "the Imam", "the Prophet",
   "Imam Ali". Do not praise the narration or the verse. Do not state rulings that the
   narration does not state.
+- Credit the words to whoever says them. Al-Ṣadūq and al-Kulaynī often add their own
+  explanation after the narration ("This distribution aligns with the verse…"); that is
+  "al-Saduq", not "the Imam". A narrator's question is the narrator's.
+- Lead with the specific point. Do not open every reason with "Both…"; "The Imam counts
+  haste as the cause of error, as the verse calls man ever hasty" reads better than
+  "Both link haste to error".
+- Where the narration explains many verses at once (a list of the opening letters, say),
+  each reason still names what is said about *that* verse, not "the Imam gives a meaning
+  for it".
+- If you drop a cited verse because the citation is mis-numbered (the English says 6:1
+  for «Yā Sīn»), add the verse it should have been.
 - `reason_ar`: the same sentence in clear Modern Standard Arabic, faithful to
   `reason_en`, not a new sentence. Use الإمام، النبي (ص)، الإمام علي (ع) as appropriate.
 - `kind`: one of `quoted`, `explains`, `ruling`, `theme`.
