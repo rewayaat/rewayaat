@@ -664,43 +664,13 @@
                                                             <span class="hadith-sidecar__list-separator" aria-hidden="true">•</span>
                                                             <span class="hadith-sidecar__list-text">{{ item.surah_name_english || 'Quranic verse' }}</span>
                                                         </span>
+                                                        <span class="quran-row-kind" v-if="quranKindLabel(item)" v-bind:class="'quran-row-kind--' + item.kind">{{ quranKindLabel(item) }}</span>
                                                     </button>
                                                     <div class="hadith-sidecar__accordion-body hadith-sidecar__accordion-body--quran"
-                                                         v-if="qidx === narration.quranicInsightsActiveIndex">
-                                                        <div class="quranic-reason" v-if="quranReason(item)">
-                                                            <span class="quranic-reason__kind"
-                                                                  v-if="quranKindLabel(item)"
-                                                                  v-bind:class="'quranic-reason__kind--' + item.kind">{{ quranKindLabel(item) }}</span>
-                                                            <span class="quranic-reason__text">{{ quranReason(item) }}</span>
-                                                        </div>
-                                                        <div class="quranic-verse-english"
-                                                             v-if="item.text_english">
-                                                            {{item.text_english}}
-                                                        </div>
-                                                        <div class="quranic-verse-arabic arabic-text"
-                                                             v-if="item.text_arabic">
-                                                            {{item.text_arabic}}
-                                                        </div>
-                                                        <a class="quranic-verse-link"
-                                                           v-bind:href="'https://al-islam.org/quran/surah/' + item.surah_number + '/' + alIslamSurahSlug(item) + '/ayat/' + item.ayah_number"
-                                                           target="_blank" rel="noopener">View on Al-Islam.org <i class="fa fa-external-link-alt fa-xs"></i></a>
-                                                        <div class="hadith-sidecar__source-tree"
-                                                             v-if="quranicInsightSources(item).length > 0">
-                                                            <div class="hadith-sidecar__source-tree-label" th:text="#{sidecar.tafsirSources}">Tafsir Sources</div>
-                                                            <div class="hadith-sidecar__source-tree-children">
-                                                                <button type="button"
-                                                                        class="hadith-sidecar__source-node"
-                                                                        v-for="(source, sourceIdx) in quranicInsightSources(item)"
-                                                                        v-bind:key="'source-' + qidx + '-' + source.slug + '-' + sourceIdx"
-                                                                        v-bind:class="{'is-active': isQuranicInsightSourceActive(item, source)}"
-                                                                        v-on:click.stop="selectQuranicInsightSource(narration, qidx, source.slug)">
-                                                                    <span class="hadith-sidecar__source-branch" aria-hidden="true"></span>
-                                                                    <span class="hadith-sidecar__source-node-icon" aria-hidden="true"><i class="fa fa-file-lines"></i></span>
-                                                                    <span class="hadith-sidecar__source-name">{{ source.label }}</span>
-                                                                    <span class="hadith-sidecar__source-count"
-                                                                          v-if="source.count > 0">{{ num(source.count) }}</span>
-                                                                </button>
-                                                            </div>
+                                                         v-if="qidx === narration.quranicInsightsActiveIndex && quranReason(item)">
+                                                        <div class="similar-reason-text">
+                                                            <span class="similar-reason-label" th:text="#{sidecar.whyMatched}">Why this matched:</span>
+                                                            {{ quranReason(item) }}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -853,61 +823,42 @@
                                     </div>
                                     <div class="hadith-inline-context hadith-inline-context--quran"
                                          v-else-if="activeNarrationSidecarTab(narration) === 'quran' && activeQuranicInsight(narration)">
-                                        <div class="hadith-inline-context__meta-band hadith-inline-context__meta-band--compact hadith-inline-context__meta-band--quran">
-                                            <div class="hadith-inline-context__title-block">
-                                                <div class="hadith-inline-context__eyebrow" th:text="#{sidecar.quranicInsight}">Quranic Insight</div>
-                                                <div class="hadith-inline-context__meta-line"
-                                                     v-if="quranContextSegments(narration).length > 0">
-                                                    <template v-for="(segment, segmentIdx) in quranContextSegments(narration)">
-                                                        <span class="hadith-inline-context__meta-separator"
-                                                              v-if="segmentIdx > 0"
-                                                              v-bind:key="'quran-separator-' + segmentIdx"
-                                                              aria-hidden="true">•</span>
-                                                        <span class="hadith-inline-context__meta-inline-text"
-                                                              v-bind:key="'quran-segment-' + segmentIdx">
-                                                            {{ segment }}
-                                                        </span>
-                                                    </template>
+                                        <div class="quran-insight">
+                                            <div class="quran-insight__head">
+                                                <div class="quran-insight__title">
+                                                    <span class="quran-insight__eyebrow" th:text="#{sidecar.quranicInsight}">Quranic Insight</span>
+                                                    <span class="quran-insight__ref">{{ activeQuranicInsight(narration).surah_name_english }} &middot; {{ activeQuranicInsight(narration).verse_key }}</span>
                                                 </div>
+                                                <span class="quran-insight__kind" v-if="quranKindLabel(activeQuranicInsight(narration))"
+                                                      v-bind:class="'quran-insight__kind--' + activeQuranicInsight(narration).kind">{{ quranKindLabel(activeQuranicInsight(narration)) }}</span>
                                             </div>
-                                        </div>
-                                        <div class="quranic-reason" v-if="quranReason(activeQuranicInsight(narration))">
-                                            <span class="quranic-reason__kind"
-                                                  v-if="quranKindLabel(activeQuranicInsight(narration))"
-                                                  v-bind:class="'quranic-reason__kind--' + activeQuranicInsight(narration).kind">{{ quranKindLabel(activeQuranicInsight(narration)) }}</span>
-                                            <span class="quranic-reason__text">{{ quranReason(activeQuranicInsight(narration)) }}</span>
-                                        </div>
-                                        <div class="hadith-inline-context__snippets"
-                                             v-if="activeQuranicInsightSelectedSnippets(narration).length > 0">
-                                            <div class="quranic-section__label" th:text="#{sidecar.tafsirSources}">Tafsir Sources</div>
-                                            <div class="quranic-snippet"
-                                                 v-for="(snippet, sidx) in activeQuranicInsightSelectedSnippets(narration)"
-                                                 v-bind:key="'snippet-inline-' + (snippet.tafsir_slug || sidx)">
-                                                <div class="quranic-snippet__head">
-                                                    <a v-if="snippet.source_url" v-bind:href="snippet.source_url" class="quranic-snippet__source-link" target="_blank" rel="noopener">{{snippet.tafsir_name || snippet.tafsir_slug}}</a>
-                                                    <span v-else class="quranic-snippet__source">{{snippet.tafsir_name || snippet.tafsir_slug}}</span>
-                                                    <span class="quranic-snippet__section" v-if="snippet.section_title">&mdash; {{snippet.section_title}}</span>
-                                                    <button type="button"
-                                                            class="text-toggle quranic-snippet__expand"
+                                            <figure class="quran-insight__verse">
+                                                <p class="quran-insight__arabic" dir="rtl" lang="ar" v-if="activeQuranicInsight(narration).text_arabic"><span class="quran-insight__bracket" aria-hidden="true">&#xFD3F;</span>{{ activeQuranicInsight(narration).text_arabic }}<span class="quran-insight__bracket" aria-hidden="true">&#xFD3E;</span><span class="quran-insight__ayah-no" aria-hidden="true">{{ arabicDigits(activeQuranicInsight(narration).ayah_number) }}</span></p>
+                                                <figcaption class="quran-insight__english" th:unless="${isArabic}" v-if="activeQuranicInsight(narration).text_english">{{ activeQuranicInsight(narration).text_english }}</figcaption>
+                                                <a class="quran-insight__source" target="_blank" rel="noopener"
+                                                   v-if="activeQuranicInsight(narration).surah_number && activeQuranicInsight(narration).ayah_number"
+                                                   v-bind:href="'https://al-islam.org/quran/surah/' + activeQuranicInsight(narration).surah_number + '/' + alIslamSurahSlug(activeQuranicInsight(narration)) + '/ayat/' + activeQuranicInsight(narration).ayah_number"><span th:text="#{sidecar.viewOnAlIslam}">View on Al-Islam.org</span> <i class="fa fa-external-link-alt fa-xs" aria-hidden="true"></i></a>
+                                            </figure>
+                                            <div class="quran-insight__tafsir" v-if="activeQuranicInsight(narration).tafsir_snippets.length > 0">
+                                                <div class="quran-insight__label" th:text="#{quran.fromTafsir}">From the tafsir</div>
+                                                <div class="quranic-snippet quran-insight__snippet"
+                                                     v-for="(snippet, sidx) in activeQuranicInsight(narration).tafsir_snippets"
+                                                     v-bind:key="'snippet-inline-' + (snippet.tafsir_slug || '') + sidx"
+                                                     v-bind:dir="snippet.language === 'ar' ? 'rtl' : null">
+                                                    <div class="quranic-snippet__head">
+                                                        <a v-if="snippet.source_url" v-bind:href="snippet.source_url" class="quranic-snippet__source-link" target="_blank" rel="noopener">{{snippet.tafsir_name || snippet.tafsir_slug}}</a>
+                                                        <span v-else class="quranic-snippet__source">{{snippet.tafsir_name || snippet.tafsir_slug}}</span>
+                                                        <span class="quranic-snippet__section" v-if="snippet.section_title">{{snippet.section_title}}</span>
+                                                    </div>
+                                                    <div class="quranic-snippet__text" v-if="isSnippetExpanded(narration, sidx)" v-html="snippetFullHtml(snippet, narration)"></div>
+                                                    <div class="quranic-snippet__text" v-else-if="snippet.preview">{{ snippet.preview }}</div>
+                                                    <div class="quranic-snippet__text" v-else v-html="snippetPreview(snippet.commentary_text, narration)"></div>
+                                                    <button type="button" class="text-toggle quranic-snippet__expand quran-insight__more"
                                                             v-if="snippetHasMore(snippet, narration)"
                                                             v-bind:aria-expanded="isSnippetExpanded(narration, sidx) ? 'true' : 'false'"
-                                                            v-on:click="toggleSnippetExpand(narration, sidx)">
-                                                        <span>{{ isSnippetExpanded(narration, sidx) ? tr('js.showLess', 'Show less') : tr('js.showMore', 'Show more') }}</span>
-                                                        <i class="fa"
-                                                           v-bind:class="isSnippetExpanded(narration, sidx) ? 'fa-chevron-up' : 'fa-chevron-down'"
-                                                           aria-hidden="true"></i>
-                                                    </button>
+                                                            v-on:click="toggleSnippetExpand(narration, sidx)">{{ isSnippetExpanded(narration, sidx) ? tr('js.showLess', 'Show less') : tr('js.showMore', 'Show more') }}</button>
                                                 </div>
-                                                <div class="quranic-snippet__text"
-                                                     v-if="isSnippetExpanded(narration, sidx)"
-                                                     v-html="snippetFullHtml(snippet, narration)"></div>
-                                                <div class="quranic-snippet__text" v-else-if="snippet.preview"
-                                                     v-bind:dir="snippet.language === 'ar' ? 'rtl' : null">{{ snippet.preview }}</div>
-                                                <div class="quranic-snippet__text" v-else v-html="snippetPreview(snippet.commentary_text, narration)"></div>
                                             </div>
-                                        </div>
-                                        <div class="text-muted" v-else>
-                                            Select a tafsir source from the verse tree to read its snippet here.
                                         </div>
                                     </div>
                                     <div class="hadith-card__footer">
