@@ -35,6 +35,18 @@ QR_CITATION_TAIL = re.compile(
 PROMO = re.compile(
     r"^(check our new online course|click here|order (a )?printed cop|have you visited|holy ramadan gift"
     r"|join our|register (now|here)|subscribe|download (the|our))", re.IGNORECASE)
+SURAH_OPENING = re.compile(r"^\s*In\s+the\s+Name\s+of\s+Allah\b", re.IGNORECASE)
+# A seasonal saying with its source, which some Quranic Reflections issues open with
+# without a verse citation after it: "Imam al-Sādiq … said: “…” Bihār al-Anwār, vol. 93".
+SEASONAL_SAYING = re.compile(
+    r"^(bismill[āa]h\.?\s*)?(the\s+)?(prophet|imam|amīr|amir|lady|sayyida|holy prophet|rasūl|rasul)\b[^\n]{0,80}?\bsa(id|ys)\b",
+    re.IGNORECASE)
+SAYING_SOURCE = re.compile(r"(bih[āa]r|al-k[āa]f[īi]|[āa]m[āa]l[īi]|wass[āa]’?il|mustadrak|nahj|ghurar|mizan|tuhaf|khis[āa]l|\bvol\.?\s*\d|\bH\s?\d+)", re.IGNORECASE)
+# The same saying run into the reflection's first paragraph: cut through its citation.
+INLINE_SAYING = re.compile(
+    r"^\s*(bismill[āa]h\.?\s*)?(the\s+)?(prophet|imam|amīr|amir|holy prophet)\b.{0,700}?"
+    r"(bih[āa]r al-anw[āa]r|al-k[āa]f[īi]|[āa]m[āa]l[īi])[^\n]{0,40}?\d+(\s*[,:]\s*(p\.?\s*)?\d+)?\)?\s*",
+    re.IGNORECASE | re.S)
 VERSE_NUMBER_LINE = re.compile(r"^\s*\d{1,3}\s*[.)-]\s")
 MIZAN_VERSE_LINE = re.compile(r"^\s*Qur['’]an\s*:", re.IGNORECASE)
 SPLIT_TITLE = re.compile(r"\(verse\s+(\d+)\)\s*$", re.IGNORECASE)
@@ -68,7 +80,9 @@ def leading_drop(slug, paras):
     # Adverts and repeats of the verse, in any source, at the very top.
     while n < len(paras):
         p = paras[n].strip()
-        if not p or PROMO.match(p):
+        if not p or PROMO.match(p) or SURAH_OPENING.match(p):
+            n += 1
+        elif slug == "quranic-reflections" and n < 2 and SEASONAL_SAYING.match(p) and SAYING_SOURCE.search(p[-200:]):
             n += 1
         elif n < 3 and arabic_share(p) > 0.6 and not slug.startswith("ar-"):
             n += 1                                   # the verse in Arabic
@@ -84,6 +98,15 @@ def leading_drop(slug, paras):
 def clean(slug, text, highlighted=None):
     """(clean_text, clean_highlighted). The highlighted copy loses the same paragraphs,
     so its <em> span survives; if the two do not line up it is dropped, not guessed."""
+    if slug == "quranic-reflections":
+        m = INLINE_SAYING.match(text)
+        if m and len(text) - m.end() > MIN_CLEAN_CHARS:
+            cut = m.group(0)
+            text = text[m.end():]
+            if highlighted and highlighted.startswith(cut):
+                highlighted = highlighted[len(cut):]
+            elif highlighted:
+                highlighted = None
     paras = paragraphs(text)
     n = leading_drop(slug, paras)
     body = "\n\n".join(p for p in paras[n:] if not PROMO.match(p.strip())).strip()
@@ -178,6 +201,7 @@ def choose(verse_key, verse_arabic, docs, live_snippets=None):
 
 
 SENTENCE = re.compile(r"(?<=[.!?؟])\s+")
+MIN_PREVIEW = 120   # a preview shorter than this is a phrase, not an explanation
 
 
 def preview(text, highlighted, max_chars=420):
@@ -187,9 +211,23 @@ def preview(text, highlighted, max_chars=420):
         m = re.search(r"<em>(.+?)</em>", highlighted, re.S)
         if m:
             span = re.sub(r"\s+", " ", m.group(1)).strip()
-            if len(span) <= max_chars * 1.5:
-                return span
-            return span[:max_chars].rsplit(" ", 1)[0] + " …"
+            if len(span) >= MIN_PREVIEW:
+                if len(span) <= max_chars * 1.5:
+                    return span
+                return span[:max_chars].rsplit(" ", 1)[0] + " …"
+            # A highlight of a few words ("month of Ramadan") is no preview on its own:
+            # show the sentence it sits in, and the ones after it up to the limit.
+            plain = re.sub(r"\s+", " ", re.sub(r"</?em>", "", highlighted)).strip()
+            sentences = SENTENCE.split(plain)
+            at = next((i for i, x in enumerate(sentences) if span[:40] in x), None)
+            if at is not None:
+                out = ""
+                for sent in sentences[at:]:
+                    if out and len(out) + len(sent) > max_chars:
+                        break
+                    out = (out + " " + sent).strip()
+                if len(out) >= MIN_PREVIEW:
+                    return out if len(out) <= max_chars * 1.3 else out[:max_chars].rsplit(" ", 1)[0] + " …"
     out = ""
     for sent in SENTENCE.split(re.sub(r"\s+", " ", text).strip()):
         if out and len(out) + len(sent) > max_chars:
