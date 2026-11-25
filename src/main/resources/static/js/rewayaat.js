@@ -6771,7 +6771,10 @@ function setupVue(query, page, sortFields) {
                 return parts.join('');
             },
             snippetExpandKey: function(narration, sidx) {
-                return (narration._id || narration.id || '') + '-snippet-' + sidx;
+                // Per verse as well as per passage, so opening one verse's first passage
+                // does not leave the next verse's first passage open too.
+                return (narration._id || narration.id || '') + '-verse-' + (narration.quranicInsightsActiveIndex || 0)
+                    + '-snippet-' + sidx;
             },
             isSnippetExpanded: function(narration, sidx) {
                 return !!this.snippetExpandedKeys[this.snippetExpandKey(narration, sidx)];

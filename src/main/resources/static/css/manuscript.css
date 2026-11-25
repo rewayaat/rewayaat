@@ -17798,3 +17798,11 @@ body.is-search-mode .site-nav .search-entry-shell:focus-within {
     font-family: "Noto Naskh Arabic", "IBM Plex Sans Arabic", sans-serif;
     font-size: 0.92rem;
 }
+/* The disclosure's label follows its state: Show more when closed, Show less when open. */
+.quranic-snippet__more .quranic-snippet__less-label,
+.quranic-snippet__more[open] .quranic-snippet__more-label {
+    display: none;
+}
+.quranic-snippet__more[open] .quranic-snippet__less-label {
+    display: inline;
+}
