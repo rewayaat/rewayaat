@@ -6514,10 +6514,9 @@ function setupVue(query, page, sortFields) {
                                     language: s.language || 'en'
                                 };
                             }) : [];
-                            // English passages first on the English site, the Arabic one first on the Arabic site.
-                            var firstLanguage = window.I18N_LOCALE === 'ar' ? 'ar' : 'en';
-                            tafsirSnippets = tafsirSnippets.filter(function(s) { return s.language === firstLanguage; })
-                                .concat(tafsirSnippets.filter(function(s) { return s.language !== firstLanguage; }));
+                            // Only passages in the page's language: English on the English site, Arabic on the Arabic.
+                            var pageLanguage = window.I18N_LOCALE === 'ar' ? 'ar' : 'en';
+                            tafsirSnippets = tafsirSnippets.filter(function(s) { return s.language === pageLanguage; });
                             var availableSources = buildSourceOptions(tafsirSnippets, item.sources);
                             return {
                                 verse_key: item.verse_key || '',
@@ -6531,6 +6530,7 @@ function setupVue(query, page, sortFields) {
                                 shared_tags: Array.isArray(item.shared_tags) ? item.shared_tags : [],
                                 tafsir_snippet_count: Number(item.tafsir_snippet_count) || 0,
                                 kind: item.kind || '',
+                                surah_name_arabic: item.surah_name_arabic || '',
                                 reason: item.reason || '',
                                 reason_ar: item.reason_ar || '',
                                 sources: Array.isArray(item.sources) ? item.sources : [],
@@ -6576,6 +6576,7 @@ function setupVue(query, page, sortFields) {
                 }
                 narration.quranicInsightsActiveIndex = index;
                 narration.sidecarActiveTab = 'quran';
+                this.$set(narration, 'quranTab', 0);
                 this.ensureQuranicInsightSourceSelection(narration.quranicInsightsItems[index]);
             },
             quranicInsightTabTitle: function(item, index) {
@@ -6661,6 +6662,32 @@ function setupVue(query, page, sortFields) {
                     return (snippet.tafsir_slug || snippet.tafsir_name || '') === activeSource.slug
                         || (snippet.tafsir_name || '') === activeSource.label;
                 });
+            },
+            /** Tab labels for a verse's tafsir passages; numbered when one source gives two. */
+            quranTabLabels: function(item) {
+                var SHORT = {
+                    'enlightening-commentary': 'Enlightening Commentary', 'al-mizan': 'al-Mīzān',
+                    'quranic-reflections': 'Quranic Reflections', 'pooya-mir-ahmad-ali': 'Pooya',
+                    'imam-askari': 'Tafsīr al-ʿAskarī', 'fatima-zahra': 'Fāṭima in the Qurʾān',
+                    'khomeini-hamd': 'Khomeini on al-Ḥamd', 'al-bayan': 'al-Bayān', 'divine-lights': 'Divine Lights',
+                    'ar-amthal': 'الأمثل', 'ar-tafsir-al-qummi': 'تفسير القمي', 'ar-kanz-al-daqaiq': 'كنز الدقائق'
+                };
+                var seen = {};
+                return ((item && item.tafsir_snippets) || []).map(function(sn) {
+                    var base = SHORT[sn.tafsir_slug] || sn.tafsir_name || sn.tafsir_slug || 'Tafsir';
+                    seen[base] = (seen[base] || 0) + 1;
+                    return seen[base] > 1 ? base + ' ' + localeDigits(seen[base]) : base;
+                });
+            },
+            quranTab: function(narration) {
+                return (narration && narration.quranTab) || 0;
+            },
+            setQuranTab: function(narration, index) {
+                this.$set(narration, 'quranTab', index);
+            },
+            quranSurahName: function(item) {
+                if (!item) { return ''; }
+                return (window.I18N_LOCALE === 'ar' && item.surah_name_arabic) || item.surah_name_english || '';
             },
             /** Why this verse is linked, in the reader's language; '' for old-index links. */
             quranReason: function(item) {

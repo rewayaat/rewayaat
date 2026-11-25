@@ -57,11 +57,9 @@
                           th:classappend="${narration.similarCount == 0} ? 'is-zero' : ''"
                           th:text="${narration.similarCount}">0</span>
                 </button>
-                <!-- The Qur'anic commentary is drawn from English-language tafsir sources
-                     and has no Arabic rendering, so the Arabic site does not offer the
-                     panel rather than opening one onto English prose. -->
+                <!-- Offered in both languages since the v2 links (2026-11): every link has
+                     an Arabic reason, and each site shows only tafsir in its own language. -->
                 <button type="button" class="hadith-sidecar__rail-btn" data-hub-panel="quran"
-                        th:unless="${isArabic}"
                         aria-selected="false" title="Quranic insights" th:title="#{card.quranicInsights}">
                     <span class="hadith-sidecar__rail-indicator" aria-hidden="true"></span>
                     <span class="hadith-sidecar__rail-label" th:text="#{sidecar.tafsir}">TAFSIR</span>
@@ -186,8 +184,7 @@
                     </p>
                 </div>
                 <div class="hadith-sidecar__panel-body d-none" data-hub-panel-body="similar"></div>
-                <div class="hadith-sidecar__panel-body d-none" data-hub-panel-body="quran"
-                     th:unless="${isArabic}"></div>
+                <div class="hadith-sidecar__panel-body d-none" data-hub-panel-body="quran"></div>
             </div>
         </aside>
 

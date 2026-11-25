@@ -440,10 +440,8 @@
                                             {{ narrationRailCountLabel(narration, 'similar') }}
                                         </span>
                                     </button>
-                                    <!-- No Arabic tafsir to show, so the Arabic site does
-                                         not offer the panel. -->
+                                    <!-- Both languages: each site shows only tafsir in its own language. -->
                                     <button type="button"
-                                            th:unless="${isArabic}"
                                             class="hadith-sidecar__rail-btn"
                                             v-bind:class="{'is-active': isNarrationSidecarTabActive(narration, 'quran')}"
                                             v-bind:aria-selected="isNarrationSidecarTabActive(narration, 'quran') ? 'true' : 'false'"
@@ -660,9 +658,9 @@
                                                             v-bind:aria-expanded="qidx === narration.quranicInsightsActiveIndex ? 'true' : 'false'"
                                                             v-on:click="selectQuranicInsightTab(narration, qidx)">
                                                         <span class="hadith-sidecar__list-line quran-row-line">
-                                                            <span class="hadith-sidecar__list-text">{{ item.surah_name_english || 'Quranic verse' }}</span>
+                                                            <span class="hadith-sidecar__list-text">{{ quranSurahName(item) || 'Quranic verse' }}</span>
                                                             <span class="hadith-sidecar__list-separator" aria-hidden="true">•</span>
-                                                            <span class="quran-row-ref">{{ item.verse_key }}</span>
+                                                            <span class="quran-row-ref">{{ localeField(item, 'verse_key') }}</span>
                                                         </span>
                                                         <span class="quran-row-kind" v-if="quranKindLabel(item)" v-bind:class="'quran-row-kind--' + item.kind">{{ quranKindLabel(item) }}</span>
                                                     </button>
@@ -827,7 +825,7 @@
                                             <div class="quran-insight__head">
                                                 <div class="quran-insight__title">
                                                     <span class="quran-insight__eyebrow" th:text="#{sidecar.quranicInsight}">Quranic Insight</span>
-                                                    <span class="quran-insight__ref">{{ activeQuranicInsight(narration).surah_name_english }} &middot; {{ activeQuranicInsight(narration).verse_key }}</span>
+                                                    <span class="quran-insight__ref">{{ quranSurahName(activeQuranicInsight(narration)) }} &middot; {{ localeField(activeQuranicInsight(narration), 'verse_key') }}</span>
                                                 </div>
                                                 <span class="quran-insight__kind" v-if="quranKindLabel(activeQuranicInsight(narration))"
                                                       v-bind:class="'quran-insight__kind--' + activeQuranicInsight(narration).kind">{{ quranKindLabel(activeQuranicInsight(narration)) }}</span>
@@ -841,23 +839,36 @@
                                             </figure>
                                             <div class="quran-insight__tafsir" v-if="activeQuranicInsight(narration).tafsir_snippets.length > 0">
                                                 <div class="quran-insight__label" th:text="#{quran.fromTafsir}">From the tafsir</div>
-                                                <div class="quranic-snippet quran-insight__snippet"
-                                                     v-for="(snippet, sidx) in activeQuranicInsight(narration).tafsir_snippets"
-                                                     v-bind:key="'snippet-inline-' + (snippet.tafsir_slug || '') + sidx"
-                                                     v-bind:dir="snippet.language === 'ar' ? 'rtl' : null">
-                                                    <div class="quranic-snippet__head">
-                                                        <a v-if="snippet.source_url" v-bind:href="snippet.source_url" class="quranic-snippet__source-link" target="_blank" rel="noopener">{{snippet.tafsir_name || snippet.tafsir_slug}}</a>
-                                                        <span v-else class="quranic-snippet__source">{{snippet.tafsir_name || snippet.tafsir_slug}}</span>
-                                                        <span class="quranic-snippet__section" v-if="snippet.section_title">{{snippet.section_title}}</span>
+                                                <div class="quran-insight__tabs" role="tablist" v-if="activeQuranicInsight(narration).tafsir_snippets.length > 1">
+                                                    <button type="button" role="tab" class="quran-insight__tab"
+                                                            v-for="(label, tidx) in quranTabLabels(activeQuranicInsight(narration))"
+                                                            v-bind:key="'qtab-' + tidx"
+                                                            v-bind:class="{'is-active': quranTab(narration) === tidx}"
+                                                            v-bind:aria-selected="quranTab(narration) === tidx ? 'true' : 'false'"
+                                                            v-on:click="setQuranTab(narration, tidx)">{{ label }}</button>
+                                                </div>
+                                                <template v-for="(snippet, sidx) in activeQuranicInsight(narration).tafsir_snippets">
+                                                <div class="quran-insight__passage" role="tabpanel"
+                                                     v-if="sidx === quranTab(narration)"
+                                                     v-bind:key="'qpane-' + sidx"
+                                                     v-bind:dir="snippet.language === 'ar' ? 'rtl' : null"
+                                                     v-bind:lang="snippet.language === 'ar' ? 'ar' : null">
+                                                    <div class="quran-insight__passage-meta">
+                                                        <span class="quran-insight__passage-source">{{ snippet.tafsir_name || snippet.tafsir_slug }}</span>
+                                                        <span class="quran-insight__passage-section" v-if="snippet.section_title">{{ snippet.section_title }}</span>
                                                     </div>
                                                     <div class="quranic-snippet__text" v-if="isSnippetExpanded(narration, sidx)" v-html="snippetFullHtml(snippet, narration)"></div>
                                                     <div class="quranic-snippet__text" v-else-if="snippet.preview">{{ snippet.preview }}</div>
                                                     <div class="quranic-snippet__text" v-else v-html="snippetPreview(snippet.commentary_text, narration)"></div>
-                                                    <button type="button" class="text-toggle quranic-snippet__expand quran-insight__more"
-                                                            v-if="snippetHasMore(snippet, narration)"
-                                                            v-bind:aria-expanded="isSnippetExpanded(narration, sidx) ? 'true' : 'false'"
-                                                            v-on:click="toggleSnippetExpand(narration, sidx)">{{ isSnippetExpanded(narration, sidx) ? tr('js.showLess', 'Show less') : tr('js.showMore', 'Show more') }}</button>
+                                                    <div class="quran-insight__passage-actions">
+                                                        <button type="button" class="quran-insight__more-btn"
+                                                                v-if="snippetHasMore(snippet, narration)"
+                                                                v-bind:aria-expanded="isSnippetExpanded(narration, sidx) ? 'true' : 'false'"
+                                                                v-on:click="toggleSnippetExpand(narration, sidx)">{{ isSnippetExpanded(narration, sidx) ? tr('js.showLess', 'Show less') : tr('js.showMore', 'Show more') }}</button>
+                                                        <a class="quran-insight__passage-link" v-if="snippet.source_url" v-bind:href="snippet.source_url" target="_blank" rel="noopener"><span th:text="#{quran.readFull}">Read the full commentary</span> <i class="fa fa-external-link-alt fa-xs" aria-hidden="true"></i></a>
+                                                    </div>
                                                 </div>
+                                                </template>
                                             </div>
                                         </div>
                                     </div>

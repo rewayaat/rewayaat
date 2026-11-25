@@ -17635,3 +17635,166 @@ body.is-search-mode .site-nav .search-entry-shell:focus-within {
     font-weight: 700;
     font-variant-numeric: tabular-nums;
 }
+
+/* Tafsir in the Quran insight panel: one passage at a time behind source tabs,
+   set for reading rather than as stacked grey cards (2026-11-26). */
+.quran-insight__tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 1.1rem;
+    border-bottom: 1px solid rgba(30, 58, 95, 0.12);
+    margin-bottom: 0.95rem;
+}
+.quran-insight__tab {
+    appearance: none;
+    background: none;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    padding: 0.45rem 0.1rem 0.55rem;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #5b6b80;
+    cursor: pointer;
+    transition: color 120ms ease, border-color 120ms ease;
+}
+.quran-insight__tab:hover {
+    color: #14263f;
+}
+.quran-insight__tab.is-active {
+    color: #14263f;
+    border-bottom-color: var(--gold);
+}
+.quran-insight__passage {
+    padding: 0.1rem 0.1rem 0;
+}
+.quran-insight__passage-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.1rem 0.6rem;
+    margin-bottom: 0.55rem;
+}
+.quran-insight__passage-source {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #1e3a5f;
+}
+.quran-insight__passage-section {
+    font-size: 0.78rem;
+    color: #6b7a8c;
+}
+.quran-insight__passage .quranic-snippet__text {
+    font-family: "Literata", Georgia, serif;
+    font-size: 1.03rem;
+    line-height: 1.85;
+    color: #1f2a37;
+    max-width: 72ch;
+}
+.quran-insight__passage .quranic-snippet__text em {
+    font-weight: 600;
+    color: #14263f;
+    background: rgba(200, 162, 61, 0.16);
+    padding: 0 0.15em;
+    border-radius: 2px;
+}
+.quran-insight__passage[dir="rtl"] .quranic-snippet__text,
+[dir="rtl"] .quran-insight__passage .quranic-snippet__text {
+    font-family: "Noto Naskh Arabic", "Scheherazade New", serif;
+    font-size: 1.4rem;
+    line-height: 2.15;
+    max-width: none;
+    text-align: right;
+    font-weight: 400;
+    color: #1b2633;
+}
+.quran-insight__passage[dir="rtl"] .quran-insight__passage-source,
+[dir="rtl"] .quran-insight__passage-source,
+[dir="rtl"] .quran-insight__tab {
+    font-family: "Noto Naskh Arabic", "IBM Plex Sans Arabic", sans-serif;
+    font-size: 0.98rem;
+}
+.quran-insight__passage[dir="rtl"] .quran-insight__passage-section,
+[dir="rtl"] .quran-insight__passage-section {
+    font-family: "Noto Naskh Arabic", serif;
+    font-size: 0.9rem;
+}
+.quran-insight__passage-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1.2rem;
+    margin-top: 0.7rem;
+}
+.quran-insight__more-btn,
+.quran-insight__passage .quranic-snippet__more > summary {
+    display: inline-block;
+    appearance: none;
+    background: #fff;
+    border: 1px solid rgba(30, 58, 95, 0.25);
+    border-radius: 999px;
+    padding: 0.28rem 0.85rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #1e3a5f;
+    cursor: pointer;
+    margin-top: 0.7rem;
+}
+.quran-insight__more-btn {
+    margin-top: 0;
+}
+.quran-insight__more-btn:hover,
+.quran-insight__passage .quranic-snippet__more > summary:hover {
+    background: #f2f5f9;
+}
+.quran-insight__passage .quranic-snippet__more > summary::after {
+    content: none;
+}
+.quran-insight__passage .quranic-snippet__more[open] > summary {
+    margin-bottom: 0.7rem;
+}
+.quran-insight__passage:has(.quranic-snippet__more[open]) .quranic-snippet__preview {
+    display: none;
+}
+.quran-insight__passage-link {
+    display: inline-block;
+    margin-top: 0.7rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #6b7a8c;
+    text-decoration: none;
+}
+.quran-insight__passage-actions .quran-insight__passage-link {
+    margin-top: 0;
+}
+.quran-insight__passage-link:hover {
+    color: #1e3a5f;
+}
+/* Right-to-left: the accordion chevron belongs on the reader's trailing side (left). */
+[dir="rtl"] .hadith-sidecar__accordion-toggle::after {
+    right: auto;
+    left: 0.66rem;
+}
+[dir="rtl"] .quran-insight__title {
+    gap: 0.2rem;
+}
+[dir="rtl"] .quran-insight__eyebrow {
+    font-family: "Noto Naskh Arabic", "IBM Plex Sans Arabic", sans-serif;
+    font-size: 0.82rem;
+    line-height: 1.5;
+}
+[dir="rtl"] .quran-insight__ref {
+    font-family: "Noto Naskh Arabic", "Scheherazade New", serif;
+    font-size: 1.3rem;
+    line-height: 1.7;
+}
+[dir="rtl"] .quran-insight__label {
+    font-family: "Noto Naskh Arabic", "IBM Plex Sans Arabic", sans-serif;
+    font-size: 0.88rem;
+    letter-spacing: 0;
+}
+[dir="rtl"] .quran-row-ref,
+[dir="rtl"] .hadith-sidecar__list-item--quran .hadith-sidecar__list-text {
+    font-family: "Noto Naskh Arabic", "IBM Plex Sans Arabic", sans-serif;
+    font-size: 0.92rem;
+}
