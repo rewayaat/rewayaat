@@ -17,8 +17,8 @@ import java.util.Map;
  * The Qurʾānic verses connected to a narration, with the tafsīr that makes the connection.
  *
  * <p>Like {@code find_similar}, these are pre-computed judgements rather than a retrieval
- * score, and only connections judged strong survived the filter. 22,635 narrations carry at
- * least one.
+ * score. Every link was reviewed and carries its kind (the narration quotes the verse,
+ * explains it, rules from it, or makes the same point) and a one-line reason.
  *
  * <p>The tafsīr commentary is the largest thing in a candidate and is trimmed hard here: a
  * model asking which verses relate to a narration wants the verses and one line of why, and
@@ -33,6 +33,10 @@ public class VersesForHadithTool implements McpTool {
 
     /** Enough commentary to judge the connection; the source URL carries the rest. */
     private static final int SNIPPET_CHARS = 400;
+
+    /** Measured when the index was built; see docs/pipelines/quranic-insights.md. */
+    private static final String COVERAGE =
+            "7,526 of the 50,038 narrations have at least one.";
 
     private final QuranicInsightsService insights;
     private final NarrationRepository repository;
@@ -59,12 +63,15 @@ public class VersesForHadithTool implements McpTool {
     @Override
     public String description() {
         return "Given a narration id, returns the Qur'anic verses connected to it - Arabic "
-                + "and English text of each verse, plus an extract from the classical tafsīr "
-                + "that grounds the connection and a link to it.\n\n"
-                + "These connections were judged in advance and only those rated strong were "
-                + "kept, so a returned verse is an argued link rather than a keyword overlap. "
-                + "11,426 of 50,038 narrations have at least one; an empty result means none "
-                + "survived that filter for this narration, not that no relationship exists.";
+                + "and English text of each verse, what kind of link it is, a one-line reason "
+                + "saying what connects the two, and an extract from a tafsīr on the verse with "
+                + "a link to it.\n\n"
+                + "kind is quoted (the narration quotes or cites the verse), explains (it "
+                + "interprets or applies the verse), ruling (a legal ruling resting on the "
+                + "verse) or theme (both make the same specific point). Every link was "
+                + "reviewed, so a returned verse is an argued link rather than a keyword "
+                + "overlap. " + COVERAGE + " An empty result means no link passed review for "
+                + "this narration, not that no relationship exists.";
     }
 
     @Override
@@ -114,9 +121,8 @@ public class VersesForHadithTool implements McpTool {
         out.put("returned", verses.size());
         out.put("verses", verses);
         if (verses.isEmpty()) {
-            out.put("note", "No Qur'anic connection was judged strong enough for this "
-                    + "narration. That is the filter's verdict, not a statement that none "
-                    + "exists.");
+            out.put("note", "No Qur'anic link passed review for this narration. That is "
+                    + "the review's verdict, not a statement that none exists.");
         }
         return out;
     }
@@ -128,6 +134,14 @@ public class VersesForHadithTool implements McpTool {
         row.put("surah", NarrationView.str(candidate.get("surah_name_english")));
         row.put("arabic", NarrationView.str(candidate.get("text_arabic")));
         row.put("english", NarrationView.str(candidate.get("text_english")));
+        String kind = NarrationView.str(candidate.get("kind"));
+        if (!kind.isEmpty()) {
+            row.put("kind", kind);
+        }
+        String reason = NarrationView.str(candidate.get("reason"));
+        if (!reason.isEmpty()) {
+            row.put("reason", reason);
+        }
 
         List<Map<String, Object>> commentary = new ArrayList<>();
         if (candidate.get("tafsir_snippets") instanceof List<?> snippets) {
@@ -135,7 +149,14 @@ public class VersesForHadithTool implements McpTool {
                 if (!(item instanceof Map<?, ?> snippet) || commentary.size() >= 2) {
                     continue;
                 }
-                String text = NarrationView.str(snippet.get("commentary_text"));
+                if ("ar".equals(NarrationView.str(snippet.get("language")))) {
+                    continue;
+                }
+                // The preview is the passage's relevant span, chosen for this narration.
+                String text = NarrationView.str(snippet.get("preview"));
+                if (text.isEmpty()) {
+                    text = NarrationView.str(snippet.get("commentary_text"));
+                }
                 if (text.isEmpty()) {
                     continue;
                 }

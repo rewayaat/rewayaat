@@ -17,7 +17,7 @@ import java.util.Map;
  *
  * <p>This is the direction with no equivalent anywhere else. Asking what a verse means will
  * find tafsīr, because tafsīr is written up and indexed; asking which narrations in these
- * eighteen books were judged to bear on it is a join over 8,556 pre-computed connections,
+ * books were judged to bear on it is a join over 10,287 reviewed connections,
  * and a join is not a document any search engine has crawled.
  *
  * <p>It reports {@code total_matches} for the same reason {@code search_hadith} does. A verse
@@ -57,10 +57,11 @@ public class HadithForVerseTool implements McpTool {
                 + "bear on it, with `total_matches` - the true number connected to that "
                 + "verse.\n\n"
                 + "This is the inverse of `verses_for_hadith` and reads the same "
-                + "pre-computed judgements from the other end: connections were rated in "
-                + "advance and only those rated strong were kept, so a returned narration is "
-                + "an argued link rather than a keyword overlap. An empty result means none "
-                + "survived that filter for this verse, not that no relationship exists.\n\n"
+                + "pre-computed judgements from the other end: every connection was reviewed "
+                + "and given a reason (see `verses_for_hadith` for it), so a returned "
+                + "narration is an argued link rather than a keyword overlap. Narrations that "
+                + "quote the verse are included. An empty result means no link passed review "
+                + "for this verse, not that no relationship exists.\n\n"
                 + CorpusScope.SCOPE_SENTENCE;
     }
 
@@ -117,8 +118,8 @@ public class HadithForVerseTool implements McpTool {
         out.put("returned", results.size());
         out.put("results", results);
         if (results.isEmpty()) {
-            out.put("note", "No narration in these books was judged to connect strongly to "
-                    + resolved.key() + ". That is the filter's verdict, not a statement "
+            out.put("note", "No narration in these books has a reviewed link to "
+                    + resolved.key() + ". That is the review's verdict, not a statement "
                     + "that none exists.");
         } else if (page.total() > offset + results.size()) {
             out.put("note", "Showing " + results.size() + " of " + page.total()

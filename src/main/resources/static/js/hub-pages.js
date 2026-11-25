@@ -587,50 +587,82 @@ function localeHref(path) {
             .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
     }
 
+
+    /**
+     * Tafsir passage text as HTML. The index holds plain text with blank-line paragraphs
+     * and, in the highlighted copy, <em> around the span chosen for this narration; it is
+     * escaped first and only those tags are put back.
+     */
+    function tafsirHtml(text) {
+        return escapeHtml(text || '')
+            .replace(/&lt;(\/?)em&gt;/g, '<$1em>')
+            .split(/\n\s*\n/)
+            .map(function (para) { return '<p>' + para.replace(/\n/g, ' ') + '</p>'; })
+            .join('');
+    }
+
+    /**
+     * The passages a reader of this page can read: English on the English site, Arabic on
+     * the Arabic site. An English passage that quotes Arabic is still English.
+     */
+    function localSnippets(item) {
+        var lang = window.I18N_LOCALE === 'ar' ? 'ar' : 'en';
+        return (item.tafsir_snippets || []).filter(function (sn) { return (sn.language || 'en') === lang; });
+    }
+
+    var TAFSIR_SHORT = {
+        'enlightening-commentary': 'Enlightening Commentary',
+        'al-mizan': 'al-Mīzān',
+        'quranic-reflections': 'Quranic Reflections',
+        'pooya-mir-ahmad-ali': 'Pooya',
+        'imam-askari': 'Tafsīr al-ʿAskarī',
+        'fatima-zahra': 'Fāṭima in the Qurʾān',
+        'khomeini-hamd': 'Khomeini on al-Ḥamd',
+        'al-bayan': 'al-Bayān',
+        'divine-lights': 'Divine Lights',
+        'ar-amthal': 'الأمثل',
+        'ar-tafsir-al-qummi': 'تفسير القمي',
+        'ar-kanz-al-daqaiq': 'كنز الدقائق'
+    };
+
+    /** Tab labels: a short source name, numbered when one source gives two passages. */
+    function tafsirTabLabels(snippets) {
+        var seen = {};
+        return snippets.map(function (sn) {
+            var base = TAFSIR_SHORT[sn.tafsir_slug] || sn.tafsir_name || sn.tafsir_slug || 'Tafsir';
+            seen[base] = (seen[base] || 0) + 1;
+            return seen[base] > 1 ? base + ' ' + localeDigits(seen[base]) : base;
+        });
+    }
+
     function renderQuran(body, data) {
         var items = (data && (data.insights || data.candidates || data.items)) || [];
         var rows = items.map(function (item, idx) {
             var ref = item.verse_key || item.reference || ('Verse ' + (idx + 1));
-            var surah = item.surah_name_english || t('js.quranicVerse', 'Quranic verse');
-            var line = '<span class="hadith-sidecar__list-line">'
-                + '<span class="hadith-sidecar__list-eyebrow">' + escapeHtml(ref) + '</span>'
-                + sep()
+            var surah = (window.I18N_LOCALE === 'ar' && item.surah_name_arabic)
+                || item.surah_name_english || t('js.quranicVerse', 'Quranic verse');
+            var kind = item.kind ? t('quran.kind.' + item.kind, '') : '';
+            var line = '<span class="hadith-sidecar__list-line quran-row-line">'
                 + '<span class="hadith-sidecar__list-text">' + escapeHtml(surah) + '</span>'
-                + '</span>';
+                + sep()
+                + '<span class="quran-row-ref">' + escapeHtml(localeDigits(ref)) + '</span>'
+                + '</span>'
+                + (kind ? '<span class="quran-row-kind quran-row-kind--' + escapeHtml(item.kind) + '">'
+                          + escapeHtml(kind) + '</span>' : '');
             return {line: line, raw: item};
         });
+        // Like Related: the open row says why the verse matched; the verse itself and its
+        // tafsir are read below the narration, in the card's own panel.
         body.innerHTML = accordion(t('sidecar.noQuranicInsights',
                 'No Quranic insights were found for this narration.'), rows,
             function (item) {
-                var sources = sourceOptions(item);
-                var tree = sources.length
-                    ? '<div class="hadith-sidecar__source-tree">'
-                      + '<div class="hadith-sidecar__source-tree-label">Tafsir Sources</div>'
-                      + '<div class="hadith-sidecar__source-tree-children">'
-                      + sources.map(function (source) {
-                          return '<span class="hadith-sidecar__source-node">'
-                              + '<span class="hadith-sidecar__source-branch" aria-hidden="true"></span>'
-                              + '<span class="hadith-sidecar__source-node-icon" aria-hidden="true">'
-                              + '<i class="fa fa-file-lines"></i></span>'
-                              + '<span class="hadith-sidecar__source-name">'
-                              + escapeHtml(source.label) + '</span>'
-                              + (source.count ? '<span class="hadith-sidecar__source-count">'
-                                                + escapeHtml(String(source.count)) + '</span>' : '')
-                              + '</span>';
-                      }).join('')
-                      + '</div></div>'
+                var reason = localeField(item, 'reason');
+                return reason
+                    ? '<div class="similar-reason-text">'
+                      + '<span class="similar-reason-label">'
+                      + escapeHtml(t('sidecar.whyMatched', 'Why this matched:')) + '</span> '
+                      + escapeHtml(reason) + '</div>'
                     : '';
-                return (item.text_english
-                        ? '<div class="quranic-verse-english">' + escapeHtml(item.text_english) + '</div>' : '')
-                    + (item.text_arabic
-                        ? '<div class="quranic-verse-arabic arabic-text">' + escapeHtml(item.text_arabic) + '</div>' : '')
-                    + (item.surah_number && item.ayah_number
-                        ? '<a class="quranic-verse-link" target="_blank" rel="noopener" href="'
-                          + 'https://al-islam.org/quran/surah/' + encodeURIComponent(item.surah_number)
-                          + '/' + alIslamSurahSlug(item) + '/ayat/' + encodeURIComponent(item.ayah_number)
-                          + '">View on Al-Islam.org <i class="fa fa-external-link-alt fa-xs"></i></a>'
-                        : '')
-                    + tree;
             }, 'quran');
     }
 
@@ -696,79 +728,113 @@ function localeHref(path) {
             + '</div></div>';
     }
 
-    /**
-     * The tafsir sources for a verse, as {slug, label, url, count}.
-     *
-     * <p>Mirrors buildSourceOptions in rewayaat.js. The API's `sources` is a list of
-     * plain NAMES, not objects — reading .label off it, as this used to, yields blank
-     * nodes. The snippets carry the slug and URL, so the two are merged, keyed on a
-     * normalised name so a source named in both does not appear twice.
-     */
-    function sourceOptions(item) {
-        var options = [];
-        var byAlias = {};
-        function key(v) { return String(v || '').trim().toLowerCase(); }
-        function ensure(slug, label, url) {
-            var existing = byAlias[key(slug)] || byAlias[key(label)];
-            if (!existing) {
-                existing = {slug: String(slug || label || '').trim(),
-                            label: String(label || slug || '').trim(), url: '', count: 0};
-                options.push(existing);
-            }
-            if (key(slug)) { byAlias[key(slug)] = existing; }
-            if (key(label)) { byAlias[key(label)] = existing; }
-            if (url && !existing.url) { existing.url = url; }
-            return existing;
-        }
-        (item.tafsir_snippets || []).forEach(function (sn) {
-            ensure(sn.tafsir_slug, sn.tafsir_name, sn.source_url).count += 1;
-        });
-        // Names the API lists without a snippet attached still belong in the tree.
-        (item.sources || []).forEach(function (name) { ensure('', name, ''); });
-        return options.filter(function (o) { return o.label; });
-    }
 
     /** Renders the chosen verse and its tafsir snippets into the main column. */
-    function inlineQuran(item) {
-        var snippets = item.tafsir_snippets || [];
-        var head = '<div class="hadith-inline-context__meta-band hadith-inline-context__meta-band--compact '
-            + 'hadith-inline-context__meta-band--quran">'
-            + '<div class="hadith-inline-context__title-block">'
-            + '<div class="hadith-inline-context__eyebrow">Quranic Insight</div>'
-            + '<div class="hadith-inline-context__meta-line">'
-            + '<span class="hadith-inline-context__meta-inline-text">'
-            + escapeHtml(item.verse_key || '') + '</span>'
-            + (item.surah_name_english
-                ? '<span class="hadith-inline-context__meta-separator" aria-hidden="true">\u2022</span>'
-                  + '<span class="hadith-inline-context__meta-inline-text">'
-                  + escapeHtml(item.surah_name_english) + '</span>'
-                : '')
-            + '</div></div></div>';
+    /** An ayah number in the reader's digits, for the end-of-verse marker. */
+    function ayahMarker(n) {
+        if (!n) { return ''; }
+        var digits = String(n).replace(/[0-9]/g, function (d) { return String.fromCharCode(0x0660 + Number(d)); });
+        return '<span class="quran-insight__ayah-no" aria-hidden="true">' + digits + '</span>';
+    }
 
-        if (!snippets.length) {
-            return head + '<div class="hadith-inline-context__snippets">'
-                + '<div class="text-muted py-2">No tafsir snippets are attached to this verse yet.</div>'
-                + '</div>';
-        }
-        return head + '<div class="hadith-inline-context__snippets">'
-            + '<div class="quranic-section__label">Tafsir Sources</div>'
-            + snippets.map(function (sn) {
-                var name = sn.tafsir_name || sn.tafsir_slug || 'Tafsir';
-                return '<div class="quranic-snippet">'
-                    + '<div class="quranic-snippet__head">'
-                    + (sn.source_url
-                        ? '<a class="quranic-snippet__source-link" target="_blank" rel="noopener" href="'
-                          + escapeHtml(sn.source_url) + '">' + escapeHtml(name) + '</a>'
-                        : '<span class="quranic-snippet__source">' + escapeHtml(name) + '</span>')
-                    + (sn.section_title
-                        ? '<span class="quranic-snippet__section">&mdash; ' + escapeHtml(sn.section_title) + '</span>'
-                        : '')
-                    + '</div>'
-                    + '<div class="quranic-snippet__text">'
-                    + (sn.commentary_text_highlighted || sn.commentary_text || '') + '</div>'
-                    + '</div>';
-              }).join('')
+    /**
+     * The verse a narration is linked to, read below the narration: the verse itself on its
+     * own ground, why it is linked, then what the tafsir says. The sidecar only lists them.
+     */
+    function inlineQuran(item) {
+        var snippets = localSnippets(item);
+        var surah = (window.I18N_LOCALE === 'ar' && item.surah_name_arabic) || item.surah_name_english || '';
+        var kind = item.kind ? t('quran.kind.' + item.kind, '') : '';
+        var alIslam = (item.surah_number && item.ayah_number)
+            ? 'https://al-islam.org/quran/surah/' + encodeURIComponent(item.surah_number)
+              + '/' + alIslamSurahSlug(item) + '/ayat/' + encodeURIComponent(item.ayah_number)
+            : '';
+
+        var head = '<div class="quran-insight__head">'
+            + '<div class="quran-insight__title">'
+            + '<span class="quran-insight__eyebrow">' + escapeHtml(t('sidecar.quranicInsight', 'Quranic Insight')) + '</span>'
+            + '<span class="quran-insight__ref">' + escapeHtml(surah)
+            + (surah ? ' &middot; ' : '') + escapeHtml(localeDigits(item.verse_key || '')) + '</span>'
+            + '</div>'
+            + (kind ? '<span class="quran-insight__kind quran-insight__kind--' + escapeHtml(item.kind) + '">'
+                      + escapeHtml(kind) + '</span>' : '')
             + '</div>';
+
+        var verse = '<figure class="quran-insight__verse">'
+            + (item.text_arabic
+                ? '<p class="quran-insight__arabic" dir="rtl" lang="ar">'
+                  + '<span class="quran-insight__bracket" aria-hidden="true">\uFD3F</span>'
+                  + escapeHtml(item.text_arabic)
+                  + '<span class="quran-insight__bracket" aria-hidden="true">\uFD3E</span>'
+                  + ayahMarker(item.ayah_number) + '</p>'
+                : '')
+            + (item.text_english && window.I18N_LOCALE !== 'ar'
+                ? '<figcaption class="quran-insight__english">' + escapeHtml(item.text_english) + '</figcaption>'
+                : '')
+            + (alIslam
+                ? '<a class="quran-insight__source" target="_blank" rel="noopener" href="' + alIslam + '">'
+                  + escapeHtml(t('sidecar.viewOnAlIslam', 'View on Al-Islam.org'))
+                  + ' <i class="fa fa-external-link-alt fa-xs" aria-hidden="true"></i></a>'
+                : '')
+            + '</figure>';
+
+        var labels = tafsirTabLabels(snippets);
+        var tafsir = snippets.length
+            ? '<div class="quran-insight__tafsir">'
+              + '<div class="quran-insight__label">' + escapeHtml(t('quran.fromTafsir', 'From the tafsir')) + '</div>'
+              + (snippets.length > 1
+                  ? '<div class="quran-insight__tabs" role="tablist">'
+                    + labels.map(function (label, i) {
+                        return '<button type="button" role="tab" class="quran-insight__tab' + (i === 0 ? ' is-active' : '') + '"'
+                            + ' aria-selected="' + (i === 0) + '" data-quran-tab="' + i + '">' + escapeHtml(label) + '</button>';
+                      }).join('')
+                    + '</div>'
+                  : '')
+              + snippets.map(function (sn, i) {
+                  var name = sn.tafsir_name || sn.tafsir_slug || 'Tafsir';
+                  return '<div class="quran-insight__passage" role="tabpanel" data-quran-pane="' + i + '"'
+                      + (sn.language === 'ar' ? ' dir="rtl" lang="ar"' : '')
+                      + (i === 0 ? '' : ' hidden') + '>'
+                      + '<div class="quran-insight__passage-meta">'
+                      + '<span class="quran-insight__passage-source">' + escapeHtml(name) + '</span>'
+                      + (sn.section_title
+                          ? '<span class="quran-insight__passage-section">' + escapeHtml(sn.section_title) + '</span>'
+                          : '')
+                      + '</div>'
+                      + snippetBody(sn)
+                      + (sn.source_url
+                          ? '<a class="quran-insight__passage-link" target="_blank" rel="noopener" href="'
+                            + escapeHtml(sn.source_url) + '">' + escapeHtml(t('quran.readFull', 'Read the full commentary'))
+                            + ' <i class="fa fa-external-link-alt fa-xs" aria-hidden="true"></i></a>'
+                          : '')
+                      + '</div>';
+                }).join('')
+              + '</div>'
+            : '';
+
+        return '<div class="quran-insight">' + head + verse + tafsir + '</div>';
+    }
+
+    /**
+     * A passage as its preview (the span chosen for this narration, or the opening
+     * sentences) with the whole passage one click away. Passages from the old index have
+     * no preview and show in full, as they did.
+     */
+    function snippetBody(sn) {
+        var full = tafsirHtml(sn.commentary_text_highlighted || sn.commentary_text || '');
+        var dir = sn.language === 'ar' ? ' dir="rtl" lang="ar"' : '';
+        if (!sn.preview) {
+            return '<div class="quranic-snippet__text"' + dir + '>' + full + '</div>';
+        }
+        return '<div class="quranic-snippet__text quranic-snippet__preview"' + dir + '>'
+            + escapeHtml(sn.preview) + '</div>'
+            + '<details class="quranic-snippet__more">'
+            + '<summary>'
+            + '<span class="quranic-snippet__more-label">' + escapeHtml(t('js.showMore', 'Show more')) + '</span>'
+            + '<span class="quranic-snippet__less-label">' + escapeHtml(t('js.showLess', 'Show less')) + '</span>'
+            + '</summary>'
+            + '<div class="quranic-snippet__text"' + dir + '>' + full + '</div>'
+            + '</details>';
     }
 
     var INLINE = {similar: inlineSimilar, quran: inlineQuran};
@@ -824,6 +890,20 @@ function localeHref(path) {
     /** The accordion behaves the way the Vue one does: one open at a time. */
     function bindAccordions() {
         document.addEventListener('click', function (event) {
+            var tab = event.target.closest('[data-quran-tab]');
+            if (tab) {
+                var panel = tab.closest('.quran-insight');
+                var want = tab.getAttribute('data-quran-tab');
+                panel.querySelectorAll('[data-quran-tab]').forEach(function (b) {
+                    var on = b === tab;
+                    b.classList.toggle('is-active', on);
+                    b.setAttribute('aria-selected', on ? 'true' : 'false');
+                });
+                panel.querySelectorAll('[data-quran-pane]').forEach(function (pane) {
+                    pane.hidden = pane.getAttribute('data-quran-pane') !== want;
+                });
+                return;
+            }
             var showAll = event.target.closest('[data-hub-show-all]');
             if (showAll) {
                 event.preventDefault();

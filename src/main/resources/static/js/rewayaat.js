@@ -3799,6 +3799,14 @@ function playPreviewWhileVisible(video) {
     }, { threshold: 0.4 }).observe(video);
 }
 
+/**
+ * Tafsir text for v-html: escaped, with only the <em> around the span chosen for the
+ * narration put back. The text is scraped from outside sites and must not carry markup.
+ */
+function escapeKeepingEm(value) {
+    return escapeHtml(String(value || '')).replace(/&lt;(\/?)em&gt;/g, '<$1em>');
+}
+
 function escapeHtml(value) {
     var div = document.createElement('div');
     div.textContent = value == null ? '' : String(value);
@@ -6508,9 +6516,15 @@ function setupVue(query, page, sortFields) {
                                     commentary_text: s.commentary_text_highlighted || s.commentary_text || '',
                                     source_url: s.source_url || '',
                                     section_title: s.section_title || '',
-                                    commentary_score: Number(s.commentary_score) || 0
+                                    commentary_score: Number(s.commentary_score) || 0,
+                                    // v2 index: the span chosen for this narration, and the passage's language.
+                                    preview: s.preview || '',
+                                    language: s.language || 'en'
                                 };
                             }) : [];
+                            // Only passages in the page's language: English on the English site, Arabic on the Arabic.
+                            var pageLanguage = window.I18N_LOCALE === 'ar' ? 'ar' : 'en';
+                            tafsirSnippets = tafsirSnippets.filter(function(s) { return s.language === pageLanguage; });
                             var availableSources = buildSourceOptions(tafsirSnippets, item.sources);
                             return {
                                 verse_key: item.verse_key || '',
@@ -6523,6 +6537,10 @@ function setupVue(query, page, sortFields) {
                                 combined_score: Number(item.combined_score) || 0,
                                 shared_tags: Array.isArray(item.shared_tags) ? item.shared_tags : [],
                                 tafsir_snippet_count: Number(item.tafsir_snippet_count) || 0,
+                                kind: item.kind || '',
+                                surah_name_arabic: item.surah_name_arabic || '',
+                                reason: item.reason || '',
+                                reason_ar: item.reason_ar || '',
                                 sources: Array.isArray(item.sources) ? item.sources : [],
                                 tafsir_snippets: tafsirSnippets,
                                 availableSources: availableSources,
@@ -6566,13 +6584,13 @@ function setupVue(query, page, sortFields) {
                 }
                 narration.quranicInsightsActiveIndex = index;
                 narration.sidecarActiveTab = 'quran';
+                this.$set(narration, 'quranTab', 0);
                 this.ensureQuranicInsightSourceSelection(narration.quranicInsightsItems[index]);
             },
-            quranicInsightTabTitle: function(item, index) {
-                if (!item) {
-                    return 'Verse ' + (index + 1);
-                }
-                return item.reference || item.verse_key || ('Verse ' + (index + 1));
+            /** An ayah number in Arabic-Indic digits, for the end-of-verse marker. */
+            arabicDigits: function(n) {
+                if (!n) { return ''; }
+                return String(n).replace(/[0-9]/g, function(d) { return String.fromCharCode(0x0660 + Number(d)); });
             },
             alIslamSurahSlug: function(item) {
                 if (!item || !item.surah_name_english) return '';
@@ -6603,21 +6621,6 @@ function setupVue(query, page, sortFields) {
             quranicInsightSources: function(item) {
                 return item && Array.isArray(item.availableSources) ? item.availableSources : [];
             },
-            selectQuranicInsightSource: function(narration, index, slug) {
-                if (!narration || !narration.quranicInsightsItems || index < 0 || index >= narration.quranicInsightsItems.length) {
-                    return;
-                }
-                var item = narration.quranicInsightsItems[index];
-                narration.quranicInsightsActiveIndex = index;
-                narration.sidecarActiveTab = 'quran';
-                item.activeSourceSlug = slug || this.ensureQuranicInsightSourceSelection(item);
-            },
-            isQuranicInsightSourceActive: function(item, source) {
-                if (!item || !source) {
-                    return false;
-                }
-                return this.ensureQuranicInsightSourceSelection(item) === source.slug;
-            },
             activeQuranicInsightSource: function(narration) {
                 var item = this.activeQuranicInsight(narration);
                 if (!item) {
@@ -6632,24 +6635,50 @@ function setupVue(query, page, sortFields) {
                 }
                 return sources.length ? sources[0] : null;
             },
-            activeQuranicInsightSelectedSnippets: function(narration) {
-                var item = this.activeQuranicInsight(narration);
-                if (!item) {
-                    return [];
-                }
-                var activeSource = this.activeQuranicInsightSource(narration);
-                var snippets = Array.isArray(item.tafsir_snippets) ? item.tafsir_snippets : [];
-                if (!activeSource || !activeSource.slug) {
-                    return snippets;
-                }
-                return snippets.filter(function(snippet) {
-                    return (snippet.tafsir_slug || snippet.tafsir_name || '') === activeSource.slug
-                        || (snippet.tafsir_name || '') === activeSource.label;
+            /** Tab labels for a verse's tafsir passages; numbered when one source gives two. */
+            quranTabLabels: function(item) {
+                var SHORT = {
+                    'enlightening-commentary': 'Enlightening Commentary', 'al-mizan': 'al-Mīzān',
+                    'quranic-reflections': 'Quranic Reflections', 'pooya-mir-ahmad-ali': 'Pooya',
+                    'imam-askari': 'Tafsīr al-ʿAskarī', 'fatima-zahra': 'Fāṭima in the Qurʾān',
+                    'khomeini-hamd': 'Khomeini on al-Ḥamd', 'al-bayan': 'al-Bayān', 'divine-lights': 'Divine Lights',
+                    'ar-amthal': 'الأمثل', 'ar-tafsir-al-qummi': 'تفسير القمي', 'ar-kanz-al-daqaiq': 'كنز الدقائق'
+                };
+                var seen = {};
+                return ((item && item.tafsir_snippets) || []).map(function(sn) {
+                    var base = SHORT[sn.tafsir_slug] || sn.tafsir_name || sn.tafsir_slug || 'Tafsir';
+                    seen[base] = (seen[base] || 0) + 1;
+                    return seen[base] > 1 ? base + ' ' + localeDigits(seen[base]) : base;
                 });
+            },
+            quranTab: function(narration) {
+                return (narration && narration.quranTab) || 0;
+            },
+            setQuranTab: function(narration, index) {
+                this.$set(narration, 'quranTab', index);
+            },
+            quranSurahName: function(item) {
+                if (!item) { return ''; }
+                return (window.I18N_LOCALE === 'ar' && item.surah_name_arabic) || item.surah_name_english || '';
+            },
+            /** Why this verse is linked, in the reader's language; '' for old-index links. */
+            quranReason: function(item) {
+                return (item && localeField(item, 'reason')) || '';
+            },
+            quranKindLabel: function(item) {
+                return (item && item.kind) ? t('quran.kind.' + item.kind, '') : '';
+            },
+            /** A passage has more to show than its preview. */
+            snippetHasMore: function(snippet, narration) {
+                var plain = (snippet.commentary_text || '').replace(/<\/?em>/g, '').trim();
+                if (snippet.preview) {
+                    return snippet.preview.replace(/\s*…$/, '').length < plain.length;
+                }
+                return this.snippetPreview(snippet.commentary_text, narration).length < plain.length;
             },
             snippetPreview: function(text, narration) {
                 if (!text) return '';
-                var s = String(text);
+                var s = escapeKeepingEm(text);
                 // If text has <em> tags, show context around first highlight
                 var emIdx = s.indexOf('<em>');
                 if (emIdx >= 0) {
@@ -6688,10 +6717,12 @@ function setupVue(query, page, sortFields) {
             },
             snippetFullHtml: function(snippet, narration) {
                 // commentary_text already contains highlighted version (merged in JS mapping)
-                var text = (snippet && snippet.commentary_text) || '';
+                var text = escapeKeepingEm((snippet && snippet.commentary_text) || '');
                 if (!text) return '';
                 // Strip trailing ellipsis from truncated snippets
                 text = text.replace(/\s*\.{3,}\s*$/, '');
+                // v2 passages are plain text in blank-line paragraphs.
+                text = text.replace(/\n\s*\n/g, '<br><br>');
                 return this.highlightTopicTags(text, narration);
             },
             highlightTopicTags: function(text, narration) {
@@ -6712,7 +6743,10 @@ function setupVue(query, page, sortFields) {
                 return parts.join('');
             },
             snippetExpandKey: function(narration, sidx) {
-                return (narration._id || narration.id || '') + '-snippet-' + sidx;
+                // Per verse as well as per passage, so opening one verse's first passage
+                // does not leave the next verse's first passage open too.
+                return (narration._id || narration.id || '') + '-verse-' + (narration.quranicInsightsActiveIndex || 0)
+                    + '-snippet-' + sidx;
             },
             isSnippetExpanded: function(narration, sidx) {
                 return !!this.snippetExpandedKeys[this.snippetExpandKey(narration, sidx)];

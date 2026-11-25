@@ -18,7 +18,15 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Reads precomputed hadith-to-Quran candidates from the quranic light index.
+ * Reads precomputed hadith-to-Quran links from the Quranic insights index.
+ *
+ * <p>Since the v2 rebuild (2026-11) every link was reviewed and carries a {@code kind}
+ * (quoted, explains, ruling, theme) and a one-line {@code reason} in English and Arabic
+ * saying what connects the narration to the verse. The document also lists
+ * {@code quotes}: the places where the narration's own text quotes or cites one of its
+ * verses, with offsets into the {@code arabic} or {@code english} field, so the page can
+ * make that text a link to the verse. Documents from the old index have neither, and
+ * everything here treats them as absent rather than failing.
  */
 @Service
 public class QuranicInsightsService {
@@ -28,7 +36,7 @@ public class QuranicInsightsService {
     @Value("${quranic.insights.enabled:true}")
     private boolean enabled;
 
-    @Value("${quranic.insights.index:rewayaat_quranic_light_filtered}")
+    @Value("${quranic.insights.index:rewayaat_quranic_insights}")
     private String indexName;
 
     @Value("${quranic.insights.max-candidates:10}")
@@ -69,7 +77,15 @@ public class QuranicInsightsService {
     }
 
     public Map<String, Object> insightOverview(String hadithId, boolean countOnly, boolean all) {
-        LightDocument document = loadLightDocument(hadithId);
+        return overview(loadLightDocument(hadithId), countOnly, all);
+    }
+
+    /** The API payload for one index document's _source; package-visible for tests. */
+    Map<String, Object> overviewFromSource(Map<String, Object> source, String hadithId, boolean countOnly, boolean all) {
+        return overview(source == null ? null : parseLightDocument(source, hadithId), countOnly, all);
+    }
+
+    private Map<String, Object> overview(LightDocument document, boolean countOnly, boolean all) {
         int count = document == null ? 0 : document.count();
 
         Map<String, Object> payload = new LinkedHashMap<>();
@@ -83,8 +99,10 @@ public class QuranicInsightsService {
             payload.put("candidates", candidates
                     .map(this::toOverviewMap)
                     .toList());
+            payload.put("quotes", document.quotes());
         } else if (!countOnly) {
             payload.put("candidates", List.of());
+            payload.put("quotes", List.of());
         }
         return payload;
     }
@@ -127,6 +145,11 @@ public class QuranicInsightsService {
                     safeText(rawCandidate.get("text_arabic")),
                     doubleValue(rawCandidate.get("combined_score")),
                     readStringList(rawCandidate.get("shared_tags")),
+                    safeText(rawCandidate.get("kind")),
+                    safeText(rawCandidate.get("reason")),
+                    safeText(rawCandidate.get("reason_ar")),
+                    safeText(rawCandidate.get("surah_name_arabic")),
+                    Boolean.TRUE.equals(rawCandidate.get("quoted")),
                     snippets
             );
             candidates.add(candidate);
@@ -148,8 +171,31 @@ public class QuranicInsightsService {
                 safeText(source.get("hadith_semantic_matn_source")),
                 safeText(source.get("hadith_semantic_english_hint_source")),
                 count,
-                candidates
+                candidates,
+                readQuotes(source.get("quotes"))
         );
+    }
+
+    /** Quote spans, kept only when they name a verse and a field the page can find. */
+    private List<Map<String, Object>> readQuotes(Object raw) {
+        List<Map<String, Object>> quotes = new ArrayList<>();
+        for (Map<String, Object> q : readMapList(raw)) {
+            String verseKey = safeText(q.get("verse_key"));
+            String field = safeText(q.get("field"));
+            String text = safeText(q.get("text"));
+            if (verseKey.isBlank() || text.isBlank() || !(field.equals("arabic") || field.equals("english"))) {
+                continue;
+            }
+            Map<String, Object> quote = new LinkedHashMap<>();
+            quote.put("verse_key", verseKey);
+            quote.put("source", safeText(q.get("source")));
+            quote.put("field", field);
+            quote.put("start", intValue(q.get("start")));
+            quote.put("end", intValue(q.get("end")));
+            quote.put("text", text);
+            quotes.add(quote);
+        }
+        return quotes;
     }
 
     private TafsirSnippet parseSnippet(Map<String, Object> source) {
@@ -160,7 +206,9 @@ public class QuranicInsightsService {
                 safeText(source.get("commentary_text_highlighted")),
                 safeText(source.get("source_url")),
                 safeText(source.get("section_title")),
-                doubleValue(source.get("commentary_score"))
+                doubleValue(source.get("commentary_score")),
+                safeText(source.get("language")),
+                safeText(source.get("preview"))
         );
     }
 
@@ -175,6 +223,11 @@ public class QuranicInsightsService {
         payload.put("text_arabic", candidate.textArabic());
         payload.put("combined_score", candidate.combinedScore());
         payload.put("shared_tags", candidate.sharedTags());
+        payload.put("surah_name_arabic", candidate.surahNameArabic());
+        payload.put("kind", candidate.kind());
+        payload.put("reason", candidate.reason());
+        payload.put("reason_ar", candidate.reasonAr());
+        payload.put("quoted", candidate.quoted());
         payload.put("tafsir_snippet_count", candidate.snippets().size());
         payload.put("sources", candidate.sourceNames());
         List<Map<String, Object>> snippets = new ArrayList<>();
@@ -187,6 +240,8 @@ public class QuranicInsightsService {
             s.put("source_url", snippet.sourceUrl());
             s.put("section_title", snippet.sectionTitle());
             s.put("commentary_score", snippet.commentaryScore());
+            s.put("language", snippet.languageOrInferred());
+            s.put("preview", snippet.preview());
             snippets.add(s);
         }
         payload.put("tafsir_snippets", snippets);
@@ -266,7 +321,8 @@ public class QuranicInsightsService {
             String hadithArabic,
             String hadithEnglishHint,
             int count,
-            List<Candidate> candidates) {
+            List<Candidate> candidates,
+            List<Map<String, Object>> quotes) {
 
         private Candidate findCandidate(String verseKey) {
             String safeVerseKey = verseKey == null ? "" : verseKey.trim();
@@ -291,6 +347,11 @@ public class QuranicInsightsService {
             String textArabic,
             double combinedScore,
             List<String> sharedTags,
+            String kind,
+            String reason,
+            String reasonAr,
+            String surahNameArabic,
+            boolean quoted,
             List<TafsirSnippet> snippets) {
 
         private String referenceLabel() {
@@ -321,7 +382,20 @@ public class QuranicInsightsService {
             String commentaryTextHighlighted,
             String sourceUrl,
             String sectionTitle,
-            double commentaryScore) {
+            double commentaryScore,
+            String language,
+            String preview) {
+
+        /**
+         * The passage's language. The v1 index has no such field, so after a rollback the
+         * slug decides: the Arabic tafsir slugs all start "ar-".
+         */
+        private String languageOrInferred() {
+            if (!language.isBlank()) {
+                return language;
+            }
+            return tafsirSlug.startsWith("ar-") ? "ar" : "en";
+        }
 
         private String sourceLabel() {
             if (!tafsirName.isBlank()) {

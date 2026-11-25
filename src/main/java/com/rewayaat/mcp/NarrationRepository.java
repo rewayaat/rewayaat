@@ -118,7 +118,7 @@ public class NarrationRepository {
 
     public NarrationRepository(
             HadithQueryService queryService,
-            @Value("${quranic.insights.index:rewayaat_quranic_light_filtered}") String insightsIndex,
+            @Value("${quranic.insights.index:rewayaat_quranic_insights}") String insightsIndex,
             @Value("${quran.index:rewayaat_quran}") String quranIndex) {
         this.queryService = queryService;
         this.insightsIndex = insightsIndex;
@@ -328,8 +328,8 @@ public class NarrationRepository {
      * <p>The reverse of {@code verses_for_hadith}, and it reads the same precomputed
      * judgements from the other end: {@code top_verse_keys} on the insights index is a
      * keyword array of {@code surah:ayah}, so a term filter answers "what was judged to
-     * connect to this verse" directly. Only connections judged strong survived the filter
-     * that built that index, so this is a curated set rather than a retrieval score.
+     * connect to this verse" directly. Every link in that index passed a review that wrote
+     * its reason, so this is a curated set rather than a retrieval score.
      *
      * <p>Paging happens on the insights index and the narrations are fetched by id, which
      * keeps the ordering stable across pages and means a verse with hundreds of connections
