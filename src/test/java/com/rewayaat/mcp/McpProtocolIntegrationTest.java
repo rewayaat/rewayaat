@@ -568,11 +568,11 @@ class McpProtocolIntegrationTest {
     @Test
     void hadithForVerseSeparatesAVerseWithNoConnectionsFromAVerseThatDoesNotExist()
             throws Exception {
-        // The distinction the tool exists to make. A verse nothing was judged to connect to
+        // The distinction the tool exists to make. A verse no link passed review for
         // is a finding; an unparseable reference is a mistake, and they must not look alike.
         Map<String, Object> none = call("hadith_for_verse", Map.of("verse", "19:12"));
         assertEquals(0, ((Number) none.get("total_matches")).intValue());
-        assertTrue(String.valueOf(none.get("note")).contains("filter's verdict"));
+        assertTrue(String.valueOf(none.get("note")).contains("review's verdict"));
 
         Map<String, Object> error = callRaw("hadith_for_verse", Map.of("verse", "999:1"));
         assertEquals(Boolean.TRUE, error.get("isError"));
