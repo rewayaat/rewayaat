@@ -587,20 +587,6 @@ function localeHref(path) {
             .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
     }
 
-    /**
-     * Why a verse is linked to this narration: the kind of link, and the reviewer's one
-     * line. Links from the old index have neither and render nothing here.
-     */
-    function quranReasonHtml(item) {
-        var reason = localeField(item, 'reason');
-        if (!reason) { return ''; }
-        var kind = item.kind ? t('quran.kind.' + item.kind, '') : '';
-        return '<div class="quranic-reason">'
-            + (kind ? '<span class="quranic-reason__kind quranic-reason__kind--' + escapeHtml(item.kind) + '">'
-                      + escapeHtml(kind) + '</span> ' : '')
-            + '<span class="quranic-reason__text">' + escapeHtml(reason) + '</span>'
-            + '</div>';
-    }
 
     /**
      * Tafsir passage text as HTML. The index holds plain text with blank-line paragraphs
@@ -742,37 +728,6 @@ function localeHref(path) {
             + '</div></div>';
     }
 
-    /**
-     * The tafsir sources for a verse, as {slug, label, url, count}.
-     *
-     * <p>Mirrors buildSourceOptions in rewayaat.js. The API's `sources` is a list of
-     * plain NAMES, not objects — reading .label off it, as this used to, yields blank
-     * nodes. The snippets carry the slug and URL, so the two are merged, keyed on a
-     * normalised name so a source named in both does not appear twice.
-     */
-    function sourceOptions(item) {
-        var options = [];
-        var byAlias = {};
-        function key(v) { return String(v || '').trim().toLowerCase(); }
-        function ensure(slug, label, url) {
-            var existing = byAlias[key(slug)] || byAlias[key(label)];
-            if (!existing) {
-                existing = {slug: String(slug || label || '').trim(),
-                            label: String(label || slug || '').trim(), url: '', count: 0};
-                options.push(existing);
-            }
-            if (key(slug)) { byAlias[key(slug)] = existing; }
-            if (key(label)) { byAlias[key(label)] = existing; }
-            if (url && !existing.url) { existing.url = url; }
-            return existing;
-        }
-        (item.tafsir_snippets || []).forEach(function (sn) {
-            ensure(sn.tafsir_slug, sn.tafsir_name, sn.source_url).count += 1;
-        });
-        // Names the API lists without a snippet attached still belong in the tree.
-        (item.sources || []).forEach(function (name) { ensure('', name, ''); });
-        return options.filter(function (o) { return o.label; });
-    }
 
     /** Renders the chosen verse and its tafsir snippets into the main column. */
     /** An ayah number in the reader's digits, for the end-of-verse marker. */

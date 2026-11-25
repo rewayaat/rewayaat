@@ -240,7 +240,7 @@ public class QuranicInsightsService {
             s.put("source_url", snippet.sourceUrl());
             s.put("section_title", snippet.sectionTitle());
             s.put("commentary_score", snippet.commentaryScore());
-            s.put("language", snippet.language().isBlank() ? "en" : snippet.language());
+            s.put("language", snippet.languageOrInferred());
             s.put("preview", snippet.preview());
             snippets.add(s);
         }
@@ -385,6 +385,17 @@ public class QuranicInsightsService {
             double commentaryScore,
             String language,
             String preview) {
+
+        /**
+         * The passage's language. The v1 index has no such field, so after a rollback the
+         * slug decides: the Arabic tafsir slugs all start "ar-".
+         */
+        private String languageOrInferred() {
+            if (!language.isBlank()) {
+                return language;
+            }
+            return tafsirSlug.startsWith("ar-") ? "ar" : "en";
+        }
 
         private String sourceLabel() {
             if (!tafsirName.isBlank()) {

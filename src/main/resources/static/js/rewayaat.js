@@ -3799,6 +3799,14 @@ function playPreviewWhileVisible(video) {
     }, { threshold: 0.4 }).observe(video);
 }
 
+/**
+ * Tafsir text for v-html: escaped, with only the <em> around the span chosen for the
+ * narration put back. The text is scraped from outside sites and must not carry markup.
+ */
+function escapeKeepingEm(value) {
+    return escapeHtml(String(value || '')).replace(/&lt;(\/?)em&gt;/g, '<$1em>');
+}
+
 function escapeHtml(value) {
     var div = document.createElement('div');
     div.textContent = value == null ? '' : String(value);
@@ -6579,12 +6587,6 @@ function setupVue(query, page, sortFields) {
                 this.$set(narration, 'quranTab', 0);
                 this.ensureQuranicInsightSourceSelection(narration.quranicInsightsItems[index]);
             },
-            quranicInsightTabTitle: function(item, index) {
-                if (!item) {
-                    return 'Verse ' + (index + 1);
-                }
-                return item.reference || item.verse_key || ('Verse ' + (index + 1));
-            },
             /** An ayah number in Arabic-Indic digits, for the end-of-verse marker. */
             arabicDigits: function(n) {
                 if (!n) { return ''; }
@@ -6619,21 +6621,6 @@ function setupVue(query, page, sortFields) {
             quranicInsightSources: function(item) {
                 return item && Array.isArray(item.availableSources) ? item.availableSources : [];
             },
-            selectQuranicInsightSource: function(narration, index, slug) {
-                if (!narration || !narration.quranicInsightsItems || index < 0 || index >= narration.quranicInsightsItems.length) {
-                    return;
-                }
-                var item = narration.quranicInsightsItems[index];
-                narration.quranicInsightsActiveIndex = index;
-                narration.sidecarActiveTab = 'quran';
-                item.activeSourceSlug = slug || this.ensureQuranicInsightSourceSelection(item);
-            },
-            isQuranicInsightSourceActive: function(item, source) {
-                if (!item || !source) {
-                    return false;
-                }
-                return this.ensureQuranicInsightSourceSelection(item) === source.slug;
-            },
             activeQuranicInsightSource: function(narration) {
                 var item = this.activeQuranicInsight(narration);
                 if (!item) {
@@ -6647,21 +6634,6 @@ function setupVue(query, page, sortFields) {
                     }
                 }
                 return sources.length ? sources[0] : null;
-            },
-            activeQuranicInsightSelectedSnippets: function(narration) {
-                var item = this.activeQuranicInsight(narration);
-                if (!item) {
-                    return [];
-                }
-                var activeSource = this.activeQuranicInsightSource(narration);
-                var snippets = Array.isArray(item.tafsir_snippets) ? item.tafsir_snippets : [];
-                if (!activeSource || !activeSource.slug) {
-                    return snippets;
-                }
-                return snippets.filter(function(snippet) {
-                    return (snippet.tafsir_slug || snippet.tafsir_name || '') === activeSource.slug
-                        || (snippet.tafsir_name || '') === activeSource.label;
-                });
             },
             /** Tab labels for a verse's tafsir passages; numbered when one source gives two. */
             quranTabLabels: function(item) {
@@ -6706,7 +6678,7 @@ function setupVue(query, page, sortFields) {
             },
             snippetPreview: function(text, narration) {
                 if (!text) return '';
-                var s = String(text);
+                var s = escapeKeepingEm(text);
                 // If text has <em> tags, show context around first highlight
                 var emIdx = s.indexOf('<em>');
                 if (emIdx >= 0) {
@@ -6745,7 +6717,7 @@ function setupVue(query, page, sortFields) {
             },
             snippetFullHtml: function(snippet, narration) {
                 // commentary_text already contains highlighted version (merged in JS mapping)
-                var text = (snippet && snippet.commentary_text) || '';
+                var text = escapeKeepingEm((snippet && snippet.commentary_text) || '');
                 if (!text) return '';
                 // Strip trailing ellipsis from truncated snippets
                 text = text.replace(/\s*\.{3,}\s*$/, '');

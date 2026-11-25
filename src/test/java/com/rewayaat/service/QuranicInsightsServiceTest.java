@@ -91,14 +91,19 @@ class QuranicInsightsServiceTest {
     void anOldIndexDocumentStillReadsWithTheNewFieldsEmpty() {
         Map<String, Object> old = Map.of("candidate_count", 1, "candidates", List.of(Map.of(
                 "verse_key", "2:228", "combined_score", 12.5,
-                "tafsir_snippets", List.of(Map.of("tafsir_slug", "al-mizan", "commentary_text", "Text")))));
+                "tafsir_snippets", List.of(
+                        Map.of("tafsir_slug", "al-mizan", "commentary_text", "Text"),
+                        Map.of("tafsir_slug", "ar-amthal", "commentary_text", "نص")))));
         Map<String, Object> out = service.overviewFromSource(old, "x", false, true);
         Map<String, Object> verse = ((List<Map<String, Object>>) out.get("candidates")).get(0);
 
         assertEquals("", verse.get("reason"));
         assertEquals("", verse.get("kind"));
         assertEquals(false, verse.get("quoted"));
-        assertEquals("en", ((List<Map<String, Object>>) verse.get("tafsir_snippets")).get(0).get("language"));
+        List<Map<String, Object>> oldSnippets = (List<Map<String, Object>>) verse.get("tafsir_snippets");
+        // No language field in v1: the slug decides, so a rollback still keeps each site to its language.
+        assertEquals("en", oldSnippets.stream().filter(x -> "al-mizan".equals(x.get("tafsir_slug"))).findFirst().get().get("language"));
+        assertEquals("ar", oldSnippets.stream().filter(x -> "ar-amthal".equals(x.get("tafsir_slug"))).findFirst().get().get("language"));
         assertTrue(((List<?>) out.get("quotes")).isEmpty());
     }
 
