@@ -17806,3 +17806,24 @@ body.is-search-mode .site-nav .search-entry-shell:focus-within {
 .quranic-snippet__more[open] .quranic-snippet__less-label {
     display: inline;
 }
+/* Phones: the verse and Arabic passages a step smaller, the verse panel tighter. */
+@media (max-width: 575.98px) {
+    .quran-insight__verse {
+        padding: 1.15rem 1rem 1rem;
+    }
+    .quran-insight__arabic {
+        font-size: 1.5rem;
+        line-height: 2;
+    }
+    .quran-insight__english {
+        font-size: 0.95rem;
+    }
+    .quran-insight__passage[dir="rtl"] .quranic-snippet__text,
+    [dir="rtl"] .quran-insight__passage .quranic-snippet__text {
+        font-size: 1.25rem;
+        line-height: 2.05;
+    }
+    .quran-insight__passage .quranic-snippet__text {
+        font-size: 0.98rem;
+    }
+}
