@@ -1,0 +1,15 @@
+{
+ "_about": "Readings of a chain name made by hand from the books, merged into chain_conventions.json's `everywhere` table by chain_resolve.conventions(). Kept apart so a --harvest of the audits does not drop them. Each needs the books' own words for whose name it is.",
+ "everywhere": [
+  {
+   "name": "أبو عبد الله جعفر بن محمد الحسني",
+   "person_id": "n000335",
+   "why": "Jaʿfar b. Muḥammad b. Jaʿfar b. al-Ḥasan b. Jaʿfar b. al-Ḥasan b. al-Ḥasan, «أبو عبد الله» (al-Najāshī), «أبو عبد اللّه العلوي الحسني», d. 308 aged ninety-odd, «سمع وأكثر وعمر وعلا إسناده». His students in these chains are al-Jiʿābī, Ibn Hammām and Ibn Abī al-Thalj. The record the alias had reached, Jaʿfar b. Muḥammad al-ʿAlawī al-Ḥusaynī, is «يكنى أبا هاشم» and a Ḥusaynī."
+  },
+  {
+   "name": "جعفر بن محمد الحسني",
+   "person_id": "n000335",
+   "why": "The same man without his kunya: the same teachers (ʿĪsā b. Mihrān, Muḥammad b. ʿAlī b. Khalaf) and students (al-Jiʿābī) as the chains that give «أبو عبد الله»."
+  }
+ ]
+}

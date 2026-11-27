@@ -1,0 +1,408 @@
+[
+ {
+  "primary": "n007470",
+  "other": "n007464",
+  "reason": "Pure pointer to b's heading.",
+  "quote": "يأتي بعنوان الخليل النحوي.",
+  "group": "p034-second"
+ },
+ {
+  "primary": "n057578",
+  "other": "n008054",
+  "reason": "Pure pointer to b's heading.",
+  "quote": "ستير: يأتي في شتير.",
+  "group": "p038-second"
+ },
+ {
+  "primary": "n001013",
+  "other": "n008151",
+  "reason": "Khoei says the Basri entry is one man with the following Daylami entry.",
+  "quote": "أقول: هذا متحد مع من بعده.",
+  "group": "p041-second"
+ },
+ {
+  "primary": "n037705",
+  "other": "n008714",
+  "reason": "Pure pointer to b's heading.",
+  "quote": "صالح أبو خالد: القماط: يأتي في صالح بن خالد القماط.",
+  "group": "p046-second"
+ },
+ {
+  "primary": "n066475",
+  "other": "n009533",
+  "reason": "Pointer to Abd Allah b. Hamza al-Tusi, same man as b.",
+  "quote": "عبيد الله بن حمزة: ابن عبد الله الطوسي: تقدم في عبد الله بن حمزة.",
+  "group": "p060-second"
+ },
+ {
+  "primary": "n038895",
+  "other": "n012702",
+  "reason": "Pure pointer to b's heading.",
+  "quote": "محمد بن شاه: ابن القاسم: يأتي في محمد شاه بن القاسم.",
+  "group": "p082-second"
+ },
+ {
+  "primary": "n000361",
+  "other": "n015664",
+  "reason": "Khoei says Abu al-Mughra is Humayd b. al-Muthanna.",
+  "quote": "أقول: هذا هو حميد بن المثنى",
+  "group": "p118-second"
+ },
+ {
+  "primary": "n001230",
+  "other": "n029934",
+  "reason": "Pure pointer to b's man.",
+  "quote": "الحماني: تقدم في يحيى بن عبد الحميد الحماني.",
+  "group": "p154-second"
+ },
+ {
+  "primary": "n040354",
+  "other": "n036538",
+  "reason": "Pure pointer to b's heading.",
+  "quote": "السلمي، الكوفي، تقدم في إسماعيل بن زياد السلمي.",
+  "group": "p175-second"
+ },
+ {
+  "primary": "n033088",
+  "other": "n037684",
+  "reason": "Pure pointer to b's heading.",
+  "quote": "شيث بن ربعي: تقدم في شبث بن ربعي.",
+  "group": "p232-second"
+ },
+ {
+  "primary": "n044493",
+  "other": "n038019",
+  "reason": "a's entry says this man is Abu Ismail al-Sarraj, whose entry is b.",
+  "quote": "عبد الله بن عثمان هذا هو عبد الله بن عثمان أبو إسماعيل السراج الآتي",
+  "group": "p240-second"
+ },
+ {
+  "primary": "n000751",
+  "other": "n038202",
+  "reason": "Ardabili says Ibn Ghurab is the son of Abi al-Mughira al-Azdi, matching a's pointer to Ali b. Ghurab.",
+  "quote": "وهو ابن أبي المغيرة الأزدي ضعيف",
+  "group": "p251-second"
+ },
+ {
+  "primary": "n000705",
+  "other": "n038322",
+  "reason": "a is a pure pointer to Ali b. Muhammad b. Rabah, whose Najashi nasab is b. Ali b. Umar b. Rabah.",
+  "quote": "ابن علي بن عمر بن رباح: تقدم في علي بن محمد بن رباح",
+  "group": "p255-second"
+ },
+ {
+  "primary": "n060724",
+  "other": "n038680",
+  "reason": "a is a pure pointer to Muhammad b. al-Husayn Jamal al-Din, who is al-Khwansari in b.",
+  "quote": "محمد بن الحسين بن محمد جمال الدين: الخوانساري: يأتي في محمد بن الحسين جمال الدين",
+  "group": "p286-second"
+ },
+ {
+  "primary": "n011967",
+  "other": "n038710",
+  "reason": "a is a pure pointer, and b's entry is the same man's article under his full name.",
+  "quote": "محمد بن زهرة: يأتي في محمد بن عبد الله بن علي بن زهرة",
+  "group": "p289-second"
+ },
+ {
+  "primary": "n059962",
+  "other": "n038950",
+  "reason": "a is Ma'qil Abu Hamza and the entry points to Ma'qil al-Ijli, who is Abu Hamza in b.",
+  "quote": "ويأتي بعنوان معقل العجلي",
+  "group": "p309-second"
+ },
+ {
+  "primary": "n014844",
+  "other": "n039106",
+  "reason": "a says it is Ya'qub b. Ja'far al-Ja'fari, and b's entry chains the generic and b. Ibrahim forms into al-Ja'fari.",
+  "quote": "أقول: هذا هو يعقوب بن جعفر الجعفري.",
+  "group": "p319-second"
+ },
+ {
+  "primary": "n014940",
+  "other": "n039124",
+  "reason": "b's entry records al-Nasbani as a variant reading of al-Shaybani, matching a's pointer.",
+  "quote": "إلا أن فيه: النسباني، بدل الشيباني",
+  "group": "p321-second"
+ },
+ {
+  "primary": "n000924",
+  "other": "n039228",
+  "reason": "a (Abu Abdillah, whose son Ahmad narrates from him) is declared Muhammad b. Khalid al-Barqi, whose kunya is Abu Abdillah.",
+  "quote": "أقول: هذا هو محمد بن خالد البرقي.",
+  "group": "p326-second"
+ },
+ {
+  "primary": "n047618",
+  "other": "n039794",
+  "reason": "b's entry records al-Nadr b. Ishaq al-Kufi as a variant reading of Nasr b. Ishaq al-Kufi.",
+  "quote": "إلا أن فيه: نضر بن إسحاق الكوفي",
+  "group": "p345-second"
+ },
+ {
+  "primary": "n037094",
+  "other": "n043266",
+  "reason": "b's entry records al-Husayn b. Amr as the printed-text variant of al-Husayn b. Umar b. Yazid.",
+  "quote": "ولكن في النسخة المطبوعة الموافقة لنسخة السيد التفريشي والميرزا في رجاليه والمولى عناية الله: الحسين بن عمرو",
+  "group": "p350-second"
+ },
+ {
+  "primary": "n001081",
+  "other": "n046221",
+  "reason": "a is a pure pointer, and Fihrist names al-Ja'abi as Muhammad b. Umar b. Salim.",
+  "quote": "محمد بن عمر بن سالم: يأتي في محمد بن عمر بن محمد.",
+  "group": "p356-second"
+ },
+ {
+  "primary": "n028376",
+  "other": "n059310",
+  "reason": "Ardabili records Amr as a variant reading of Umar b. Mazid al-Ju'fi, matching a's pointer.",
+  "quote": "وفي نسخة عمرو",
+  "group": "p377-second"
+ },
+ {
+  "primary": "n003058",
+  "other": "n059577",
+  "reason": "Ardabili records b. al-Husayn as a variant reading of Muhammad b. al-Hasan b. Harun al-Kindi.",
+  "quote": "وفى نسخة ابن الحسين",
+  "group": "p379-second"
+ },
+ {
+  "primary": "n031699",
+  "other": "n066533",
+  "reason": "a equates itself with Ahmad b. Mansur b. Nasr, and b is that man.",
+  "quote": "أحمد بن منصور أبو بكر: = أحمد بن منصور بن نصر.",
+  "group": "p393-second"
+ },
+ {
+  "primary": "n021492",
+  "other": "n066976",
+  "reason": "b's own Khoei entry equates Hafs al-Mu'adhdhin with Hafs b. Umar Abu Muhammad.",
+  "quote": "حفص المؤذن: = حفص بن عمر أبو محمد.",
+  "group": "p413-second"
+ },
+ {
+  "primary": "n037886",
+  "other": "n067087",
+  "reason": "a says it is Abd al-Rahman b. Zayd b. Aslam, which is b's man.",
+  "quote": "أقول: عبد الرحمان بن زيد هذا هو عبد الرحمان بن زيد بن أسلم الآتي.",
+  "group": "p416-second"
+ },
+ {
+  "primary": "n000046",
+  "other": "n067460",
+  "reason": "a equates Ibrahim b. Abi Bakr b. Abi al-Simal with Ibn Abi Simak, and Ardabili says b is Ibn Abi Simal.",
+  "quote": "وهو إبراهيم بن أبي سمال",
+  "group": "p417-second"
+ },
+ {
+  "primary": "n004763",
+  "other": "n067557",
+  "reason": "Tusi says Ahnaf b. Qays al-Tamimi Abu Bahr is named al-Dahhak, matching a's equation.",
+  "quote": "اسمه الضحاك",
+  "group": "p426-second"
+ },
+ {
+  "primary": "n002644",
+  "other": "n067571",
+  "reason": "b's entry records Abdullah b. Maysara as the printed reading of Abdullah b. Bisr.",
+  "quote": "ولكن في المطبوع من رجال الشيخ: عبد الله بن ميسرة (16)",
+  "group": "p427-second"
+ },
+ {
+  "primary": "n004326",
+  "other": "n067723",
+  "reason": "b's entry records Ja'far b. Muhammad b. Isa as a variant reading of Ja'far b. Isa.",
+  "quote": "جعفر بن محمد ابن عيسى",
+  "group": "p439-second"
+ },
+ {
+  "primary": "n000046",
+  "other": "n003755",
+  "reason": "al-Khoei's entry on this form is only a pointer to the man's own heading",
+  "quote": "إبراهيم بن محمد أبي بكر السمال: = إبراهيم بن أبي بكر",
+  "group": "p006-pointer"
+ },
+ {
+  "primary": "n067185",
+  "other": "n006073",
+  "reason": "al-Khoei's entry on this form is only a pointer to the man's own heading",
+  "quote": "الحسن بن أبي حبيش: = الحسن بن حبيش",
+  "group": "p018-pointer"
+ },
+ {
+  "primary": "n066561",
+  "other": "n006504",
+  "reason": "al-Khoei's entry on this form is only a pointer to the man's own heading",
+  "quote": "الحسين الأشعري: = الحسين بن محمد بن عمران الأشعري",
+  "group": "p024-pointer"
+ },
+ {
+  "primary": "n000469",
+  "other": "n007671",
+  "reason": "al-Khoei's entry on this form is only a pointer to the man's own heading",
+  "quote": "روح ابن أخت المعلى: = روح بن عبد الرحيم",
+  "group": "p036-pointer"
+ },
+ {
+  "primary": "n057008",
+  "other": "n008130",
+  "reason": "al-Khoei's entry on this form is only a pointer to the man's own heading",
+  "quote": "سعد بن مسعود: يأتي في سعيد بن مسعود",
+  "group": "p040-pointer"
+ },
+ {
+  "primary": "n032320",
+  "other": "n021180",
+  "reason": "al-Khoei's entry on this form is only a pointer to the man's own heading",
+  "quote": "الحسين بن شاذان: تقدم في الحسن بن شاذان",
+  "group": "p143-pointer"
+ },
+ {
+  "primary": "n031541",
+  "other": "n036350",
+  "reason": "al-Khoei's entry on this form is only a pointer to the man's own heading",
+  "quote": "إبراهيم بن إسحاق: = إبراهيم بن إسحاق أبو إسحاق",
+  "group": "p159-pointer"
+ },
+ {
+  "primary": "n015498",
+  "other": "n036385",
+  "reason": "al-Khoei's entry on this form is only a pointer to the man's own heading",
+  "quote": "أحمد بن بندار: = أبو عنان أحمد بن بندار",
+  "group": "p161-pointer"
+ },
+ {
+  "primary": "n004136",
+  "other": "n036395",
+  "reason": "al-Khoei's entry on this form is only a pointer to the man's own heading",
+  "quote": "أحمد بن الحسن بن عبد الله: = أحمد بن الحسين بن عبد الله",
+  "group": "p162-pointer"
+ },
+ {
+  "primary": "n040239",
+  "other": "n036715",
+  "reason": "al-Khoei's entry on this form is only a pointer to the man's own heading",
+  "quote": "جعدة: الحمداني: يأتي في جعيد",
+  "group": "p184-pointer"
+ },
+ {
+  "primary": "n027635",
+  "other": "n036719",
+  "reason": "al-Khoei's entry on this form is only a pointer to the man's own heading",
+  "quote": "جعفر بن إبراهيم: = جعفر بن إبراهيم الجعفري",
+  "group": "p185-pointer"
+ },
+ {
+  "primary": "n001966",
+  "other": "n036908",
+  "reason": "al-Khoei's entry on this form is only a pointer to the man's own heading",
+  "quote": "الحسن (الحسين) بن خالد: يأتي في الحسين بن خالد",
+  "group": "p188-pointer"
+ },
+ {
+  "primary": "n032286",
+  "other": "n036964",
+  "reason": "al-Khoei's entry on this form is only a pointer to the man's own heading",
+  "quote": "الحسن بن عبد الله: ابن علي الحسيني المرعشي: تقدم في الحسن بن أبي الرضا",
+  "group": "p194-pointer"
+ },
+ {
+  "primary": "n057152",
+  "other": "n037147",
+  "reason": "al-Khoei's entry on this form is only a pointer to the man's own heading",
+  "quote": "حفص بن عمر: = حفص بن عمر الكوفي",
+  "group": "p208-pointer"
+ },
+ {
+  "primary": "n000478",
+  "other": "n037356",
+  "reason": "al-Khoei's entry on this form is only a pointer to the man's own heading",
+  "quote": "زكريا بن محمد: = زكريا بن محمد أبو عبد الله",
+  "group": "p217-pointer"
+ },
+ {
+  "primary": "n008085",
+  "other": "n037461",
+  "reason": "al-Khoei's entry on this form is only a pointer to the man's own heading",
+  "quote": "سعيد بن حكيم: تقدم في سعد بن حكيم",
+  "group": "p222-pointer"
+ },
+ {
+  "primary": "n032926",
+  "other": "n037463",
+  "reason": "al-Khoei's entry on this form is only a pointer to the man's own heading",
+  "quote": "سعيد بن حماد: تقدم في سعد بن حماد",
+  "group": "p223-pointer"
+ },
+ {
+  "primary": "n002723",
+  "other": "n039088",
+  "reason": "al-Khoei's entry on this form is only a pointer to the man's own heading",
+  "quote": "يحيى بن عبد الملك: تقدم في عثمان بن عبد الملك",
+  "group": "p318-pointer"
+ },
+ {
+  "primary": "n002359",
+  "other": "n042904",
+  "reason": "al-Khoei's entry on this form is only a pointer to the man's own heading",
+  "quote": "الحسن بن عيسى الجلاب: الكوفي: تقدم في الحسن بن علي بن عيسى",
+  "group": "p348-pointer"
+ },
+ {
+  "primary": "n001154",
+  "other": "n046624",
+  "reason": "al-Khoei's entry on this form is only a pointer to the man's own heading",
+  "quote": "المنبه بن عبد الله أبو الجوزاء: = أبو الجوزاء",
+  "group": "p357-pointer"
+ },
+ {
+  "primary": "n000931",
+  "other": "n048056",
+  "reason": "al-Khoei's entry on this form is only a pointer to the man's own heading",
+  "quote": "محمد بن عبد الحميد البجلي: يأتي في محمد بن عبد الحميد بن سالم العطار",
+  "group": "p368-pointer"
+ },
+ {
+  "primary": "n040475",
+  "other": "n066576",
+  "reason": "al-Khoei's entry on this form is only a pointer to the man's own heading",
+  "quote": "الحسين بن هارون: الكوفي: تقدم في الحسن بن هارون الكوفي",
+  "group": "p396-pointer"
+ },
+ {
+  "primary": "n007056",
+  "other": "n066578",
+  "reason": "al-Khoei's entry on this form is only a pointer to the man's own heading",
+  "quote": "الحكيم بن أيوب: تقدم في حكم بن أيوب",
+  "group": "p397-pointer"
+ },
+ {
+  "primary": "n034480",
+  "other": "n066632",
+  "reason": "al-Khoei's entry on this form is only a pointer to the man's own heading",
+  "quote": "محمد بن أبي عبد الله الكوفي: = محمد بن أبي عبد الله الأسدي",
+  "group": "p401-pointer"
+ },
+ {
+  "primary": "n000751",
+  "other": "n067588",
+  "reason": "al-Khoei's entry on this form is only a pointer to the man's own heading",
+  "quote": "علي بن غياث: تقدم في علي بن غراب",
+  "group": "p428-pointer"
+ },
+ {
+  "primary": "n027451",
+  "other": "n038520",
+  "reason": "hand-read: al-Khoei closes the entry «أقول: تقدم في / متحد مع» the man's own heading, and names the same student, Abū al-Khazraj",
+  "quote": "هذا متحد مع فضيل بن عثمان الأعور الآتي",
+  "group": "p267-hand"
+ },
+ {
+  "primary": "n000867",
+  "other": "n038522",
+  "reason": "hand-read: al-Khoei closes the entry «أقول: تقدم في / متحد مع» the man's own heading, and names the same student, Abū al-Khazraj",
+  "quote": "الفضيل بن عثمان المرادي، ويقال: الفضل، الأعور الصائغ الأنباري",
+  "group": "p268-hand"
+ }
+]

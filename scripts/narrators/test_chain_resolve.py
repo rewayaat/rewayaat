@@ -292,3 +292,163 @@ def test_a_name_the_books_call_shared_needs_the_chain():
     data = index(filed("n1", "إسحاق بياع اللؤلؤ", "أبي إسحاق", students=["شريك"]))
     outcomes, _ = read(data, "شريك", "أبي إسحاق")
     assert outcomes[1][1] == "n1", outcomes
+
+
+def test_an_alias_is_backed_by_the_man_before_it_not_only_by_his_spelling():
+    """Al-Khiṣāl 205: «أبي الخزرج الحسن بن الزبرقان، عن فضيل بن عثمان». Nobody is filed under
+    «فضيل بن عثمان»; al-Fuḍayl answers to it as an alias, so a neighbour must back him. His
+    record writes that student «الحسن بن زبرقان الأنصاري», a spelling the chain does not use,
+    but relations_join has joined the row to the very man the chain names before him."""
+    hasan = man("n1", "الحسن بن الزبرقان")
+    fudayl = man("n2", "الفضل بن عثمان المرادي")
+    fudayl["names_ar"].append("الفضيل بن عثمان")
+    fudayl["chain_to"] = [{"name_ar": "الحسن بن زبرقان الأنصاري", "person_id": "n1"}]
+    data = index(hasan, fudayl)
+    assert read(data, "أبي الخزرج الحسن بن الزبرقان", "فضيل بن عثمان")[0] == [
+        ("one", "n1"), ("chosen", "n2")]
+    # The same alias with no row joined to the man before is still refused.
+    fudayl["chain_to"] = [{"name_ar": "الحسن بن زبرقان الأنصاري", "person_id": "n9"}]
+    data = index(hasan, fudayl)
+    assert read(data, "أبي الخزرج الحسن بن الزبرقان", "فضيل بن عثمان")[0] == [
+        ("one", "n1"), ("none", "")]
+
+
+def joined(pid, *names, teachers=(), students=(), books=("najashi",)):
+    """A man whose teacher and student rows relations_join has tied to people: (name, id)."""
+    person = man(pid, *names)
+    person["books"] = list(books)
+    person["narrated_from"] = [{"name_ar": n, "person_id": p} for n, p in teachers]
+    person["narrated_to"] = [{"name_ar": n, "person_id": p} for n, p in students]
+    return person
+
+
+def test_an_undecided_name_goes_to_the_one_man_the_books_pair_with_its_neighbour():
+    """Bare «يونس» after «محمد بن عيسى» names several men by spelling; only one of them is
+    tied, by person, to the Muḥammad b. ʿĪsā this chain has already linked."""
+    data = index(
+        joined("n1", "محمد بن عيسى بن عبيد", "محمد بن عيسى", teachers=[("يونس", "n2")]),
+        joined("n2", "يونس بن عبد الرحمن", "يونس"),
+        joined("n3", "يونس بن يعقوب", "يونس", students=[("محمد بن عيسى", "n9")]),
+        joined("n9", "محمد بن عيسى الأشعري"))
+    outcomes, rows = read(data, "محمد بن عيسى بن عبيد", "يونس")
+    assert outcomes == [("one", "n1"), ("chosen", "n2")]
+    assert "pair him" in rows[1]["because"]
+
+
+def test_a_name_nobody_is_filed_under_is_read_off_the_neighbours_own_entry():
+    """«روى عن فضيل بن عثمان» in al-Ḥasan b. al-Zibriqān's entry, tied to the man, settles the
+    same spelling in a chain where nobody is filed under it — even a man only al-Khoei has."""
+    data = index(
+        joined("n1", "الحسن بن الزبرقان", teachers=[("فضيل بن عثمان", "n2")]),
+        joined("n2", "الفضل بن عثمان المرادي", "الفضيل بن عثمان", books=("khoei",)))
+    assert read(data, "الحسن بن الزبرقان", "فضيل بن عثمان")[0] == [
+        ("one", "n1"), ("chosen", "n2")]
+    # The row's man must answer to the name: a join can be wrong, «خالد بن عمار» tied to
+    # Hishām al-Khayyāṭ.
+    data = index(
+        joined("n1", "الحسن بن الزبرقان", teachers=[("فضيل بن عثمان", "n2")]),
+        joined("n2", "هشام الخياط", books=("khoei",)))
+    assert read(data, "الحسن بن الزبرقان", "فضيل بن عثمان")[0] == [("one", "n1"), ("none", "")]
+
+
+def test_a_link_is_moved_only_to_a_man_the_books_place_on_both_sides():
+    """«أحمد بن محمد عن محمد بن يحيى عن غياث» is al-Khazzāz, whom the books put between those
+    two; the one man filed under the bare name, al-ʿAṭṭār, is paired with neither."""
+    people = [
+        joined("n1", "أحمد بن محمد بن عيسى", teachers=[("محمد بن يحيى", "n3")]),
+        joined("n2", "محمد بن يحيى"),
+        joined("n3", "محمد بن يحيى الخزاز", teachers=[("غياث بن إبراهيم", "n4")]),
+        joined("n4", "غياث بن إبراهيم")]
+    assert read(index(*people), "أحمد بن محمد بن عيسى", "محمد بن يحيى",
+                "غياث بن إبراهيم")[0] == [("one", "n1"), ("chosen", "n3"), ("one", "n4")]
+    # One side is not enough to take a link away from the man filed under the name.
+    people[2] = joined("n3", "محمد بن يحيى الخزاز")
+    assert read(index(*people), "أحمد بن محمد بن عيسى", "محمد بن يحيى",
+                "غياث بن إبراهيم")[0] == [("one", "n1"), ("one", "n2"), ("one", "n4")]
+
+
+def test_names_set_side_by_side_are_stepped_over():
+    """«حدثني أبي ومحمد بن الحسن عن أحمد بن إدريس»: the father is not Muḥammad b. al-Ḥasan's
+    student, he is his fellow; the pairing that counts is with the man after them both."""
+    data = index(
+        joined("n1", "علي بن الحسين بن بابويه", teachers=[("محمد بن الحسن", "n2")]),
+        joined("n2", "محمد بن الحسن الصفار", "محمد بن الحسن"),
+        joined("n3", "محمد بن الحسن بن الوليد", "محمد بن الحسن",
+               teachers=[("أحمد بن إدريس", "n4")]),
+        joined("n4", "أحمد بن إدريس"))
+    text = "علي بن الحسين بن بابويه و محمد بن الحسن عن أحمد بن إدريس"
+    mentions, at = [], 0
+    for name in ("علي بن الحسين بن بابويه", "محمد بن الحسن", "أحمد بن إدريس"):
+        at = text.index(name, at)
+        mentions.append({"text": name, "kind": "name", "start": at, "end": at + len(name)})
+        at += len(name)
+    rows = cr.resolve_chain(mentions, data, "Kāmil al-Ziyārāt", {}, "", text=text)
+    assert [(r["outcome"], r.get("person_id", "")) for r in rows] == [
+        ("one", "n1"), ("chosen", "n3"), ("one", "n4")]
+
+
+def test_his_father_named_is_the_man_the_sons_nasab_names():
+    """«أحمد بن أبي عبد الله البرقي، عن أبيه محمد بن خالد» is Muḥammad b. Khālid b. ʿAbd
+    al-Raḥmān. al-Ashʿarī, filed under the bare «محمد بن خالد», is paired with the son by a
+    spelling, and his own name states no grandfather the son's nasab could check."""
+    son = joined("n1", "أحمد بن محمد بن خالد بن عبد الرحمن البرقي",
+                 teachers=[("محمد بن خالد", "n2")])
+    ashari = joined("n2", "محمد بن خالد الأشعري", "محمد بن خالد",
+                    students=[("أحمد بن محمد بن خالد بن عبد الرحمن البرقي", "n1")])
+    father = joined("n3", "محمد بن خالد بن عبد الرحمن")
+    other = joined("n4", "محمد بن خالد بن عبد الله")
+    data = index(son, ashari, father, other)
+    outcomes = read(data, "أحمد بن محمد بن خالد بن عبد الرحمن البرقي", "أبيه محمد بن خالد")[0]
+    assert outcomes[1] == ("chosen", "n3")
+
+
+def test_al_khoei_files_a_man_for_this_very_chain():
+    """«أحمد بن الوليد: روى عن أبان، وروى عنه أحمد القلانسي. الكافي…» is al-Khoei's record of one
+    al-Kāfī chain. The name between those two men there is his, and only there."""
+    stub = {"person_id": "n9", "books": ["khoei"], "display_ar": "أحمد بن الوليد",
+            "headings_ar": ["أحمد بن الوليد"], "names_ar": ["أحمد بن الوليد"],
+            "entries": [{"book": "khoei", "text_ar": "أحمد بن الوليد: روى عن أبان، وروى عنه "
+                                                      "أحمد القلانسي. الكافي: الجزء 4 كتاب الحج."}]}
+    data = index(stub, man("n1", "أحمد القلانسي"), man("n2", "أبان بن عثمان", "أبان"))
+    got, _ = read(data, "أحمد القلانسي", "أحمد بن الوليد", "أبان")
+    assert got[1] == ("chosen", "n9")
+    got, _ = read(data, "أحمد القلانسي", "أحمد بن الوليد", "زرارة")
+    assert got[1][1] != "n9"
+
+
+def test_a_bare_kunya_record_does_not_answer_a_genitive_kunya():
+    """«أبي سعيد» folded to the heading «أبو سعيد» found a record of the kunya alone, and that
+    kept the men beside it from settling the name."""
+    data = index(man("n1", "أبو سعيد"),
+                 man("n2", "هاشم بن حيان", "أبو سعيد المكاري", teachers=["عبد الملك بن عمرو"],
+                     students=["صفوان"]),
+                 man("n3", "صفوان بن يحيى", "صفوان"), man("n4", "عبد الملك بن عمرو"))
+    got, _ = read(data, "صفوان", "أبي سعيد", "عبد الملك بن عمرو")
+    assert got[1][1] != "n1"
+
+
+def test_the_compiler_does_not_stand_after_his_own_teacher():
+    compiler = man("n067140", "الحسين بن سعيد", "الحسين")
+    compiler["narrated_from"] = [{"name_ar": "ابن أبي عمير", "person_id": "n7"},
+                                 {"name_ar": "عثمان", "person_id": "n8"}]
+    data = index(compiler, man("n7", "محمد بن أبي عمير", "ابن أبي عمير"),
+                 man("n8", "عثمان بن عيسى", "عثمان"))
+    mentions = [{"text": t, "kind": "name", "start": i * 20, "end": i * 20 + len(t)}
+                for i, t in enumerate(("ابن أبي عمير", "الحسين", "عثمان"))]
+    rows = cr.resolve_chain(mentions, data, "Kitāb al-Zuhd", {}, "Ḥusayn b. Saʿīd al-Ahwāzī")
+    assert rows[1].get("person_id") != "n067140"
+
+
+def test_a_link_moves_to_al_khoeis_man_only_where_readers_ruled_the_linked_man_out():
+    stub = {"person_id": "n9", "books": ["khoei"], "display_ar": "محمد بن الوليد",
+            "headings_ar": ["محمد بن الوليد"], "names_ar": ["محمد بن الوليد"],
+            "entries": [{"book": "khoei", "source_key": "khoei:1",
+                         "text_ar": "محمد بن الوليد: روى عن يونس، وروى عنه علي. الكافي: الجزء 2."}]}
+    linked = man("n1", "محمد بن الوليد")
+    linked["entries"] = [{"book": "najashi", "source_key": "najashi:1", "text_ar": ""}]
+    data = index(stub, linked, man("n2", "علي بن الحكم", "علي"), man("n3", "يونس بن يعقوب", "يونس"))
+    got, _ = read(data, "علي", "محمد بن الوليد", "يونس")
+    assert got[1] == ("one", "n1")
+    data["khoei_not"] = {"n9": {"n1"}}
+    got, rows = read(data, "علي", "محمد بن الوليد", "يونس")
+    assert got[1] == ("chosen", "n9") and rows[1]["replaced"] == "n1"

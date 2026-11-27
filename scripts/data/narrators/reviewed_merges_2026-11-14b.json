@@ -1,0 +1,268 @@
+[
+ {
+  "primary": "n002661",
+  "other": "n038019",
+  "reason": "two blind readers: Ardabili names Abu Ismail al-Sarraj as this Abd Allah b. Uthman in the same Kafi chain Khoei cites, and Khoei says the bare name is al-Sarraj.",
+  "quote": "أبو إسماعيل السراج اسمه عبد الله بن عثمان بن عمرو الفزاري في الكافي في صلاة الحوائج",
+  "group": "khoei-chain-k000"
+ },
+ {
+  "primary": "n066252",
+  "other": "n068216",
+  "reason": "two blind readers: Khoei says a is Isa b. Khulayd.",
+  "quote": "الظاهر أنه هو عيسى بن خليد المتقدم",
+  "group": "khoei-chain-k001"
+ },
+ {
+  "primary": "n000982",
+  "other": "n066639",
+  "reason": "two blind readers: al-Khoei says this narrator is al-San'ani, by the evidence of Hammad b. Isa narrating from him.",
+  "quote": "أقول: الظاهر هذا، هو محمد بن يوسف الصنعاني الآتي",
+  "group": "khoei-chain-k003"
+ },
+ {
+  "primary": "n000559",
+  "other": "n001264",
+  "reason": "two blind readers: Najashi's Abu Shu'ayb al-Muhamili is the same client of Ali b. al-Hakam as Salih b. Khalid al-Muhamili Abu Shu'ayb.",
+  "quote": "صالح بن خالد المحاملي أبو شعيب الكناسي، مولى علي بن الحكم بن الزبير",
+  "group": "khoei-chain-k006"
+ },
+ {
+  "primary": "n000640",
+  "other": "n067578",
+  "reason": "two blind readers: Same teacher (Ibn Abi Umayr) and student (Humayd) as b's entry, though Khoei calls the bare name shared.",
+  "quote": "روى عن ابن أبي عمير، وروى عنه حميد بن زياد",
+  "group": "khoei-chain-k007"
+ },
+ {
+  "primary": "n003420",
+  "other": "n039057",
+  "reason": "two blind readers: Same full name and Sadiq-era circle; only the nisba is added.",
+  "quote": "هشام بن المثنى الرازي",
+  "group": "khoei-chain-k009"
+ },
+ {
+  "primary": "n011312",
+  "other": "n006036",
+  "reason": "two blind readers: Khoei says a is a corruption of Ghassan al-Basri, and b's entry carries the identical chain.",
+  "quote": "وروى عن معاوية بن وهب، وروى عنه موسى بن عمر",
+  "group": "khoei-chain-k011"
+ },
+ {
+  "primary": "n000124",
+  "other": "n015224",
+  "reason": "two blind readers: Khoei states Abu Khazraj is al-Hasan b. al-Zabraqan.",
+  "quote": "هذا هو الحسن بن الزبرقان الأنصاري",
+  "group": "khoei-chain-k013"
+ },
+ {
+  "primary": "n036221",
+  "other": "n036255",
+  "reason": "two blind readers: Khoei says a is Khalid al-Aqouli, whose entry makes him Khalid b. Nafi' al-Bajali.",
+  "quote": "أقول: هو خالد العاقولي الآتي.",
+  "group": "khoei-chain-k014"
+ },
+ {
+  "primary": "n014710",
+  "other": "n014709",
+  "reason": "two blind readers: Ardabili's entry for b cites the very Thalaba-Yahya-Sura chain that Khoei gives for a (Tahdhib kayfiyyat al-salat, Kafi tashahhud).",
+  "quote": "ثعلبة بن ميمون عن يحيى بن طلحة عن سورة بن كليب عن أبي جعفر عليه السلام",
+  "group": "khoei-chain-k016"
+ },
+ {
+  "primary": "n002633",
+  "other": "n009456",
+  "reason": "two blind readers: Khoei states a in these chains is al-Alawi.",
+  "quote": "هو عبد الله بن إسحاق العلوي الآتي",
+  "group": "khoei-chain-k019"
+ },
+ {
+  "primary": "n001443",
+  "other": "n037046",
+  "reason": "two blind readers: Khoei says Ibn Abi Umayr's Husayn b. Ahmad is Ibn Zabyan, matching the chain.",
+  "quote": "الظاهر أنه الحسين بن أحمد بن ظبيان الآتي",
+  "group": "khoei-chain-k029"
+ },
+ {
+  "primary": "n057518",
+  "other": "n036354",
+  "reason": "two blind readers: b's record cites the same Ibn Bukayr-from-him-from-Abu Abd Allah chain that a's note cites.",
+  "quote": "ابن بكير عنه عن أبي عبد الله عليه السلام",
+  "group": "khoei-chain-k030"
+ },
+ {
+  "primary": "n013127",
+  "other": "n013122",
+  "reason": "two blind readers: b's entry has the exact pair (from Abd Allah b. Jabala, from him al-Husayn b. Muhammad) found in the second chain.",
+  "quote": "روى عن عبد الله بن جبلة، وروى عنه الحسين بن محمد",
+  "group": "khoei-chain-k034"
+ },
+ {
+  "primary": "n000750",
+  "other": "n066641",
+  "reason": "two blind readers: Khoei identifies a as al-Sa'i.",
+  "quote": "الظاهر أن علي بن سويد هذا هو علي بن سويد السائي الآتي",
+  "group": "khoei-chain-k035"
+ },
+ {
+  "primary": "n002635",
+  "other": "n037941",
+  "reason": "two blind readers: Khoei says a is apparently the next entry, Abd Allah b. Asad (Rashid) al-Kufi, which is b.",
+  "quote": "أقول: الظاهر اتحاده مع من بعده.",
+  "group": "khoei-chain-k038"
+ },
+ {
+  "primary": "n000679",
+  "other": "n037921",
+  "reason": "two blind readers: Khoei identifies a as Abd al-Azim al-Hasani.",
+  "quote": "هو عبد العظيم بن عبد الله الحسني الآتي",
+  "group": "khoei-chain-k039"
+ },
+ {
+  "primary": "n057343",
+  "other": "n037727",
+  "reason": "two blind readers: b's Sandal also narrates from Zayd al-Shahham, matching a's teacher in the chain.",
+  "quote": "وروى عن زيد الشحام، وروى عنه علي بن أبي حمزة",
+  "group": "khoei-chain-k042"
+ },
+ {
+  "primary": "n000939",
+  "other": "n045656",
+  "reason": "two blind readers: Khoei states a is Muhammad b. Ahmad b. Khaqan al-Nahdi al-Qalanisi, which is b.",
+  "quote": "أقول: هذا هو محمد بن أحمد بن خاقان النهدي القلانسي.",
+  "group": "khoei-chain-k044"
+ },
+ {
+  "primary": "n002203",
+  "other": "n026618",
+  "reason": "two blind readers: Khoei says the correct reading is Ahmad b. Bashir al-Barqi.",
+  "quote": "وهو الصحيح ويأتي في محله",
+  "group": "khoei-chain-k049"
+ },
+ {
+  "primary": "n067381",
+  "other": "n067522",
+  "reason": "two blind readers: Khoei's Husayn b Bashir entry holds this very chain and the Abu Abdillah report that b's entry names.",
+  "quote": "روى عن ابن مضارب، وروى عنه ابن أبي عمير",
+  "group": "khoei-chain-k055"
+ },
+ {
+  "primary": "n015011",
+  "other": "n015010",
+  "reason": "two blind readers: Ardabili's entry for b cites the same Ibn Fadal-Abu Ismail-Abu Yahya al-Razi chain that Khoei gives for a.",
+  "quote": "ابن فضال عنه عن أبي يحيى الرازي في (يب) في باب الولادة النفاس",
+  "group": "khoei-chain-k060"
+ },
+ {
+  "primary": "n002845",
+  "other": "n039719",
+  "reason": "two blind readers: Identical full name incl. grandfather and matching era.",
+  "quote": "بغدادي، من أصحاب الهادي عليه السلام",
+  "group": "khoei-chain-k061"
+ },
+ {
+  "primary": "n041359",
+  "other": "n036954",
+  "reason": "two blind readers: Ardabili cites Salama b. al-Khattab from al-Hasan b. Abd al-Rahman from Ali b. Abi Hamza, the same chain as a.",
+  "quote": "الحسن بن عبد الرحمن عن علي أبى حمزة عن أبي بصير",
+  "group": "khoei-chain-k068"
+ },
+ {
+  "primary": "n025171",
+  "other": "n038870",
+  "reason": "two blind readers: b's Ardabili entry cites the very Mufaddal-Muhammad b. Harun-Sadiq chain in Kafi Du'a that Khoei gives for a.",
+  "quote": "مفضل بن صالح الأسدي عنه عن أبي عبد الله عليه السلام في (في) في باب الصلاة على محمد",
+  "group": "khoei-chain-k076"
+ },
+ {
+  "primary": "n000816",
+  "other": "n066512",
+  "reason": "two blind readers: Khoei reads a's chain name as Imran b. Muhammad b. Imran al-Qummi (al-Ash'ari).",
+  "quote": "والظاهر أنه الصحيح الموافق للتهذيب",
+  "group": "khoei-chain-k089"
+ },
+ {
+  "primary": "n028856",
+  "other": "n013320",
+  "reason": "two blind readers: Khoei says a is apparently the next entry, Muhammad b. Musawir al-Tamimi, whose dates fit the chain.",
+  "quote": "أقول: الظاهر اتحاده مع من بعده.",
+  "group": "khoei-chain-k090"
+ },
+ {
+  "primary": "n000508",
+  "other": "n016084",
+  "reason": "two blind readers: Khoei says al-Ja'fari is Abu Hashim or Sulayman b. Ja'far, told apart by narrators, and Bakr b. Salih is among Sulayman al-Ja'fari's students.",
+  "quote": "وأحمد بن محمد، وبكر بن صالح",
+  "group": "khoei-chain-k092"
+ },
+ {
+  "primary": "n000387",
+  "other": "n047916",
+  "reason": "two blind readers: Khoei equates al-Harith b. Muhammad, who narrates from Burayd with Ibn Mahbub, with al-Harith b. Abi Ja'far al-Ahwal.",
+  "quote": "الحارث بن محمد: = الحارث بن أبي جعفر",
+  "group": "khoei-chain-k094"
+ },
+ {
+  "primary": "n031823",
+  "other": "n036547",
+  "reason": "two blind readers: Khoei says a is apparently the next entry, Ismail b. Abbad al-Qasri of Rida's era, which fits the chain.",
+  "quote": "أقول: الظاهر اتحاده مع من بعده.",
+  "group": "khoei-chain-k098"
+ },
+ {
+  "primary": "n068081",
+  "other": "n005436",
+  "reason": "two blind readers: b's entry records Yunus narrating from Bakkar, as in the chain.",
+  "quote": "وروى عنه يونس",
+  "group": "khoei-chain-k102"
+ },
+ {
+  "primary": "n057588",
+  "other": "n037893",
+  "reason": "two blind readers: Ardabili's entry for b cites the very chain via Safwan and Ibn Abi Umayr.",
+  "quote": "محمد بن عبد الجبار عن صفوان عن ابن أبي عمير",
+  "group": "khoei-chain-k105"
+ },
+ {
+  "primary": "n000667",
+  "other": "n037917",
+  "reason": "two blind readers: b's entry has Ibn Mahbub narrating from Abd al-Aziz who narrates from Ubayd b. Zurara, as in the chain.",
+  "quote": "وعبيد بن زرارة، وعمر بن يزيد. وروى عنه ابن محبوب",
+  "group": "khoei-chain-k118"
+ },
+ {
+  "primary": "n004815",
+  "other": "n004812",
+  "reason": "two blind readers: b's entry has the same student, al-Qasim al-Jawhari, and Sadiq's era as a's chain.",
+  "quote": "روى عن أبي عبد الله عليه السلام، وروى عنه القاسم بن محمد الجوهري",
+  "group": "khoei-chain-k119"
+ },
+ {
+  "primary": "n005885",
+  "other": "n036776",
+  "reason": "two blind readers: b's entry matches a's chain (Abu Ishaq from al-Harith from Ali, Tahdhib inheritance).",
+  "quote": "روى عن أمير المؤمنين (عليه السلام)، وروى عنه أبو إسحاق السبيعي",
+  "group": "khoei-chain-k123"
+ },
+ {
+  "primary": "n006237",
+  "other": "n066751",
+  "reason": "two blind readers: Khoei states there is no doubt a is al-Khurasani.",
+  "quote": "لا شك في اتحاده مع نوح بن شعيب الخراساني",
+  "group": "khoei-chain-k127"
+ },
+ {
+  "primary": "n002429",
+  "other": "n067277",
+  "reason": "two blind readers: Same full name, and Khoei's entry cites this very chain (Yunus b. Ya'qub).",
+  "quote": "روى عن أبي عبد الله عليه السلام، وروى عنه يونس بن يعقوب",
+  "group": "khoei-chain-k133"
+ },
+ {
+  "primary": "n066262",
+  "other": "n003952",
+  "reason": "two blind readers: Khoei says a is identical with the following Musa b. al-Ala.",
+  "quote": "الظاهر اتحاده مع من بعده",
+  "group": "khoei-chain-k137"
+ }
+]
